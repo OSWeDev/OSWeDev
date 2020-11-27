@@ -4,7 +4,9 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
+import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueAppBase from '../../../VueAppBase';
@@ -245,14 +247,35 @@ export default class PushDataVueModule extends VueModuleBase {
                 let tmp = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
                 if (tmp && tmp.length) {
                     for (let j in tmp) {
-                        let e = tmp[j];
+                        let e: VarDataValueResVO = tmp[j];
+
+
+                        // On log les notifications sur l'index sélectionné en description actuellement
+                        let selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
+                        if (selectedVarParam && selectedVarParam.index && (selectedVarParam.index == e.index)) {
+                            ConsoleHandler.getInstance().log('Notification pour var sélectionnée :' +
+                                'id:' + e.id + ':' +
+                                'value:' + e.value + ':' +
+                                'value_type:' + e.value_type + ':' +
+                                'value_ts:' + e.value_ts + ':' +
+                                'is_computing:' + e.is_computing + ':'
+                            );
+                        }
 
                         // On check les dates aussi
-                        if (!var_by_indexes[e.index].value_ts) {
+                        if ((!var_by_indexes[e.index]) || (!var_by_indexes[e.index].value_ts)) {
                             var_by_indexes[e.index] = e;
                             continue;
                         }
-                        TODO
+
+                        if (!e.value_ts) {
+                            continue;
+                        }
+
+                        if (var_by_indexes[e.index].value_ts.isAfter(e.value_ts)) {
+                            continue;
+                        }
+
                         var_by_indexes[e.index] = e;
                     }
                 }

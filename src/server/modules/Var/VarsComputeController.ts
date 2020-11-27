@@ -201,7 +201,7 @@ export default class VarsComputeController {
         /**
          * Cache step B : cache complet - inutile si on est sur un noeud du vars_datas
          */
-        if ((typeof node.var_data.value === 'undefined') && (!vars_datas[node.var_data.index]) &&
+        if ((!node.var_data.has_valid_value) && (!vars_datas[node.var_data.index]) &&
             (VarsCacheController.getInstance().B_use_cache(node))) {
 
             VarsPerfsController.addPerfs(performance.now(), [
@@ -218,7 +218,7 @@ export default class VarsComputeController {
         /**
          * Imports
          */
-        if ((typeof node.var_data.value === 'undefined') && (!node.var_controller.optimization__has_no_imports)) {
+        if ((!node.var_data.has_valid_value) && (!node.var_controller.optimization__has_no_imports)) {
 
             /**
              * On doit essayer de récupérer des données parcellaires
@@ -239,7 +239,7 @@ export default class VarsComputeController {
         /**
          * Cache step C : cache partiel : uniquement si on a pas splitt sur import
          */
-        if ((typeof node.var_data.value === 'undefined') && (!vars_datas[node.var_data.index]) &&
+        if ((!node.var_data.has_valid_value) && (!vars_datas[node.var_data.index]) &&
             (!node.is_aggregator)) {
 
             VarsPerfsController.addPerfs(performance.now(), [
@@ -264,7 +264,7 @@ export default class VarsComputeController {
             for (let i in node.aggregated_nodes) {
                 let aggregated_node = node.aggregated_nodes[i];
 
-                if (typeof aggregated_node.var_data.value === 'undefined') {
+                if (!aggregated_node.var_data.has_valid_value) {
                     await this.deploy_deps(aggregated_node, vars_datas, ds_cache);
                 }
             }
@@ -309,7 +309,7 @@ export default class VarsComputeController {
              * Plan A : on propage pas
              * Plan B : on propage le deploy_dep au nouveau noeud
              */
-            if (typeof dep_node.var_data.value === 'undefined') {
+            if (!dep_node.var_data.has_valid_value) {
                 // Premier essai, on tente de trouver des datas en base / cache en cours de mise à jour
                 let existing_var_data: VarDataBaseVO = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(dep_node.var_data);
 
@@ -326,7 +326,7 @@ export default class VarsComputeController {
                 delete dep_node.var_data.value;
             }
 
-            if (typeof dep_node.var_data.value === 'undefined') {
+            if (!dep_node.var_data.has_valid_value) {
 
                 VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
                 await this.deploy_deps(dep_node, vars_datas, ds_cache);

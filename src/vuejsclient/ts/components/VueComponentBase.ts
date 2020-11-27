@@ -594,6 +594,29 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
+    protected simple_var_mean(values: VarDataBaseVO[]): number {
+        if ((!values) || (!values.length)) {
+            return null;
+        }
+
+        let res: number = null;
+        for (let i in values) {
+            let value = values[i];
+
+            if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
+                continue;
+            }
+
+            if (res == null) {
+                res = value.value;
+            } else {
+                res += value.value;
+            }
+        }
+
+        return res / values.length;
+    }
+
     protected simple_var_supp_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;

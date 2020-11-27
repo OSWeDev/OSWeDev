@@ -1,4 +1,4 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import MatroidController from '../../../../../../shared/modules/Matroid/MatroidController';
@@ -6,6 +6,7 @@ import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
@@ -135,5 +136,13 @@ export default class VarDescComponent extends VueComponentBase {
         let var_data = this.getVarDatas[this.var_param.index];
 
         return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(var_data.value_ts);
+    }
+
+    @Watch('var_param', { immediate: true })
+    private log_index() {
+        if (!this.var_param) {
+            return;
+        }
+        ConsoleHandler.getInstance().log('Index du paramètre de var sélectionné : ' + this.var_param.index);
     }
 }

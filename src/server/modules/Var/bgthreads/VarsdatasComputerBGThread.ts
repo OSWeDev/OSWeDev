@@ -1,3 +1,4 @@
+import { throttle } from 'lodash';
 import { performance } from 'perf_hooks';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -22,28 +23,32 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private static instance: VarsdatasComputerBGThread = null;
 
-    public current_timeout: number = 100;
-    public MAX_timeout: number = 500;
-    public MIN_timeout: number = 1;
+    // public current_timeout: number = 100;
+    // public MAX_timeout: number = 500;
+    // public MIN_timeout: number = 1;
+    public current_timeout: number = 1000;
+    public MAX_timeout: number = 1000;
+    public MIN_timeout: number = 1000;
 
-    public request_limit: number = 500;
+    public request_limit: number = 1000;
 
-    private enabled: boolean = true;
-    private invalidations: number = 0;
-
+    // private enabled: boolean = true;
+    // private invalidations: number = 0;
     private semaphore: boolean = false;
+
+    private throttled_calculation_run = throttle(this.do_calculation_run, 100, { leading: false });
 
     private constructor() { }
 
-    public disable() {
-        this.invalidations++;
-        this.enabled = false;
-    }
+    // public disable() {
+    //     this.invalidations++;
+    //     this.enabled = false;
+    // }
 
-    public enable() {
-        this.invalidations--;
-        this.enabled = (this.invalidations == 0);
-    }
+    // public enable() {
+    //     this.invalidations--;
+    //     this.enabled = (this.invalidations == 0);
+    // }
 
     get name(): string {
         return "VarsdatasComputerBGThread";
@@ -57,21 +62,28 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      */
     public async work(): Promise<number> {
 
-        if (!this.enabled) {
-            return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
-        }
+        this.throttled_calculation_run();
+        return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+        // if (!this.enabled) {
+        //     return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+        // }
 
-        if (!this.semaphore) {
-            this.semaphore = true;
-            let res = await this.do_calculation_run();
-            this.semaphore = false;
-            return res;
-        }
-        return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+        // if (!this.semaphore) {
+        //     this.semaphore = true;
+        //     let res = await this.do_calculation_run();
+        //     this.semaphore = false;
+        //     return res;
+        // }
+        // return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
     }
 
     private async do_calculation_run(): Promise<number> {
         try {
+
+            if (this.semaphore) {
+                return null;
+            }
+            this.semaphore = true;
 
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
@@ -103,6 +115,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         await VarsPerfsController.update_perfs_in_bdd();
                     }
 
+                    this.semaphore = false;
                     return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
                 }
 
@@ -122,9 +135,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 }
 
                 if (remaining == null) {
+                    this.semaphore = false;
                     return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
                 }
 
+                this.semaphore = false;
                 return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
 
@@ -161,6 +176,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             console.error(error);
         }
 
+        this.semaphore = false;
         return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
     }
 }

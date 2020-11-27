@@ -8,6 +8,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
@@ -86,7 +87,8 @@ export default class VarsDatasProxy {
         var_datas = this.filter_var_datas_by_indexes(var_datas);
         var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
 
-        // var_datas.forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:prepend_var_datas:' + vd.index + ':'));
+        // On lance le calcul quand on prepend ici ça veut dire qu'on attend une réponse rapide
+        BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
     }
 
     /**

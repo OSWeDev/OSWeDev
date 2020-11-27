@@ -1,3 +1,5 @@
+import { Moment } from 'moment';
+import * as moment from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
@@ -37,6 +39,7 @@ export default class VarsDatasVoUpdateHandler {
     private static instance: VarsDatasVoUpdateHandler = null;
 
     private ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
+    private last_registration: Moment = null;
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
@@ -49,6 +52,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         this.ordered_vos_cud.push(vo_cud);
+        this.last_registration = moment();
     }
 
     /**
@@ -59,6 +63,11 @@ export default class VarsDatasVoUpdateHandler {
     public async handle_buffer(limit: number): Promise<number> {
 
         if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+            return limit;
+        }
+
+        // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
+        if (this.last_registration && moment().add(5, 'seconds').isBefore(this.last_registration)) {
             return limit;
         }
 
