@@ -246,6 +246,13 @@ export default class PushDataVueModule extends VueModuleBase {
                 if (tmp && tmp.length) {
                     for (let j in tmp) {
                         let e = tmp[j];
+
+                        // On check les dates aussi
+                        if (!var_by_indexes[e.index].value_ts) {
+                            var_by_indexes[e.index] = e;
+                            continue;
+                        }
+                        TODO
                         var_by_indexes[e.index] = e;
                     }
                 }
