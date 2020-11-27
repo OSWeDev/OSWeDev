@@ -791,21 +791,26 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 bdd_versions.push(moduleTable.get_bdd_version(vo));
             }
 
-            let results: InsertOrDeleteQueryResult[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
+            let results: InsertOrDeleteQueryResult[] = null;
 
-                let queries: any[] = [];
+            if (sqls.length > 0) {
+                results = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
-                for (let i in sqls) {
-                    let sql: string = sqls[i];
-                    let vo = bdd_versions[i];
+                    let queries: any[] = [];
 
-                    queries.push(t.oneOrNone(sql, vo));
-                }
+                    for (let i in sqls) {
+                        let sql: string = sqls[i];
+                        let vo = bdd_versions[i];
 
-                return t.batch(queries);
-            }).catch((reason) => {
-                resolve(null);
-            });
+                        queries.push(t.oneOrNone(sql, vo));
+                    }
+
+                    return t.batch(queries);
+                }).catch((reason) => {
+                    ConsoleHandler.getInstance().error('insertOrUpdateVOs :' + reason);
+                    resolve(null);
+                });
+            }
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
                 for (let i in results) {
