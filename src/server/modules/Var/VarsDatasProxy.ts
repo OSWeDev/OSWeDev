@@ -116,10 +116,6 @@ export default class VarsDatasProxy {
             limit--;
         }
 
-        // if (handled && handled.length) {
-        //     VarsTabsSubsController.getInstance().notify_vardatas(handled);
-        // }
-
         return limit;
     }
 

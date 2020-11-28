@@ -42,20 +42,22 @@ export default class VarsServerCallBackSubsController {
             return;
         }
 
+        let self = this;
+
         return new Promise(async (resolve, reject) => {
 
             let cb = (data: VarDataBaseVO) => {
                 resolve(data);
             };
 
-            if (!this._cb_subs[param.index]) {
-                this._cb_subs[param.index] = [];
+            if (!self._cb_subs[param.index]) {
+                self._cb_subs[param.index] = [];
             }
-            this._cb_subs[param.index].push(cb);
+            self._cb_subs[param.index].push(cb);
 
             let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
             if (in_db_data && in_db_data.has_valid_value) {
-                this.notify_vardatas([in_db_data]);
+                self.notify_vardatas([in_db_data]);
                 return;
             }
         });

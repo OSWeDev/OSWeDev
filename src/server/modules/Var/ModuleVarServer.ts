@@ -593,7 +593,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         } else {
 
-            if (!!vardata.value_ts) {
+            if (vardata.has_valid_value) {
                 return vardata;
             }
         }

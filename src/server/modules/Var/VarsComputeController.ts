@@ -12,6 +12,7 @@ import VarsPerfsController from './perf/VarsPerfsController';
 import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsImportsHandler from './VarsImportsHandler';
+import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class VarsComputeController {
@@ -149,6 +150,7 @@ export default class VarsComputeController {
 
         node.var_controller.computeValue(node);
         VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
+        VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
 
         VarsPerfsController.addPerfs(performance.now(), [
             "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node",
