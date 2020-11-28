@@ -267,6 +267,10 @@ export default class VarDataBaseVO implements IMatroid {
             return false;
         }
 
+        if (!VarsController.getInstance().var_conf_by_id[this.var_id]) {
+            return false;
+        }
+
         let fields = MatroidController.getInstance().getMatroidFields(this._type);
 
         for (let i in fields) {
