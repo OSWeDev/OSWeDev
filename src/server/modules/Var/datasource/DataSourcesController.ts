@@ -27,6 +27,10 @@ export default class DataSourcesController {
 
     private constructor() { }
 
+    /**
+     * TODO FIXME : Si on demande les datas une à une c'est très long, si on demande tout en bloc ça plante en dev... donc
+     *  on fait des packs
+     */
     public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<void> {
 
         let promises = [];
@@ -35,6 +39,11 @@ export default class DataSourcesController {
 
             if (!ds_cache[ds.name]) {
                 ds_cache[ds.name] = {};
+            }
+
+            if (promises.length >= 10) {
+                await Promise.all(promises);
+                promises = [];
             }
 
             promises.push(ds.load_node_data(node, ds_cache[ds.name]));
