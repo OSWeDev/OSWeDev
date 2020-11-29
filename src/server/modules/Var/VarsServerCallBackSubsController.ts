@@ -77,7 +77,7 @@ export default class VarsServerCallBackSubsController {
             let param = params[i];
 
             // TODO FIXME promises.length
-            if (promises.length >= 1) {
+            if (promises.length >= 10) {
                 await Promise.all(promises);
                 promises = [];
             }

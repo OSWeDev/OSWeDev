@@ -42,7 +42,7 @@ export default class DataSourcesController {
             }
 
             // TODO FIXME promises.length
-            if (promises.length >= 1) {
+            if (promises.length >= 10) {
                 await Promise.all(promises);
                 promises = [];
             }
