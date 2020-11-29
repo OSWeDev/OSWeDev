@@ -128,6 +128,13 @@ export default class VarsComputeController {
             let node = dag.nodes[i];
 
             let dss: DataSourceControllerBase[] = node.var_controller.getDataSourcesDependencies();
+
+            // TODO FIXME promises.length
+            if (promises.length >= 1) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
             promises.push((async () => {
                 await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
             })());

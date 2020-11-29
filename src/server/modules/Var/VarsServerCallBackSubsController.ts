@@ -76,6 +76,12 @@ export default class VarsServerCallBackSubsController {
         for (let i in params) {
             let param = params[i];
 
+            // TODO FIXME promises.length
+            if (promises.length >= 1) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
             promises.push((async () => res[param.index] = await this.get_var_data(param))());
         }
 

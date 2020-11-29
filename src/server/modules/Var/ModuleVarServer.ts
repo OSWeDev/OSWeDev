@@ -689,6 +689,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
+            // TODO FIXME promises.length
+            if (promises.length >= 1) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
             promises.push((async () => {
 
                 let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);

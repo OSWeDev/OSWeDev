@@ -41,6 +41,7 @@ export default class DataSourcesController {
                 ds_cache[ds.name] = {};
             }
 
+            // TODO FIXME promises.length
             if (promises.length >= 1) {
                 await Promise.all(promises);
                 promises = [];
