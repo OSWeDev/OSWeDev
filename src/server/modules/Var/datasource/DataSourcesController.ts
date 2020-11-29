@@ -41,7 +41,7 @@ export default class DataSourcesController {
                 ds_cache[ds.name] = {};
             }
 
-            if (promises.length >= 10) {
+            if (promises.length >= 1) {
                 await Promise.all(promises);
                 promises = [];
             }
