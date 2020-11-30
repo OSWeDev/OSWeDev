@@ -86,6 +86,7 @@ export default class MatroidController {
             return null;
         }
 
+        let ranges_need_union: { [res_i: number]: { [field_id: string]: boolean } } = {};
         for (let i in matroids) {
 
             let tested_matroid = matroids[i];
@@ -107,7 +108,13 @@ export default class MatroidController {
 
                 if (different_field_ids.length == 1) {
 
-                    matroid[different_field_ids[0]] = RangeHandler.getInstance().getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+                    // matroid[different_field_ids[0]] = RangeHandler.getInstance().getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+                    // Au lieu de faire l'union à chaque rapprochement on tag ce champ comme nécessitant une union en fin de calcul avant de tout renvoyer
+                    matroid[different_field_ids[0]] = tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]);
+                    if (!ranges_need_union[j]) {
+                        ranges_need_union[j] = {};
+                    }
+                    ranges_need_union[j][different_field_ids[0]] = true;
 
                     ignore_matroid = true;
                     break;
@@ -119,6 +126,14 @@ export default class MatroidController {
             }
 
             res.push(tested_matroid);
+        }
+
+        for (let i in ranges_need_union) {
+            let matroid = res[i];
+
+            for (let field_id in ranges_need_union[i]) {
+                matroid[field_id] = RangeHandler.getInstance().getRangesUnion(matroid[field_id]);
+            }
         }
 
         return res;

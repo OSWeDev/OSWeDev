@@ -600,6 +600,7 @@ export default class VueComponentBase extends Vue
         }
 
         let res: number = null;
+        let length: number = 0;
         for (let i in values) {
             let value = values[i];
 
@@ -612,9 +613,14 @@ export default class VueComponentBase extends Vue
             } else {
                 res += value.value;
             }
+            length++;
         }
 
-        return res / values.length;
+        if (!length) {
+            return null;
+        }
+
+        return res / length;
     }
 
     protected simple_var_supp_zero(var_data: VarDataBaseVO): boolean {

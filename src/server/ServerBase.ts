@@ -52,7 +52,7 @@ import PushDataServerController from './modules/PushData/PushDataServerControlle
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
-import { createTerminus } from '@godaddy/terminus';
+// import { createTerminus } from '@godaddy/terminus';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 require('moment-json-parser').overrideDefault();
 
@@ -202,7 +202,22 @@ export default abstract class ServerBase {
 
         this.app = express();
 
-        createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
+        // createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
+
+        process.stdin.resume(); //so the program will not close instantly
+
+        //do something when app is closing
+        process.on('exit', this.exitHandler.bind(null, { cleanup: true }));
+
+        //catches ctrl+c event
+        process.on('SIGINT', this.exitHandler.bind(null, { exit: true }));
+
+        // catches "kill pid" (for example: nodemon restart)
+        process.on('SIGUSR1', this.exitHandler.bind(null, { exit: true }));
+        process.on('SIGUSR2', this.exitHandler.bind(null, { exit: true }));
+
+        //catches uncaught exceptions
+        process.on('uncaughtException', this.exitHandler.bind(null, { exit: true }));
 
         this.app.use(cookieParser());
 
@@ -902,10 +917,25 @@ export default abstract class ServerBase {
         return true;
     }
 
-    protected terminus() {
+    // protected terminus() {
+    //     ConsoleHandler.getInstance().log('Server is starting cleanup');
+    //     return Promise.all([
+    //         VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
+    //     ]);
+    // }
+
+    protected exitHandler(options, exitCode) {
         ConsoleHandler.getInstance().log('Server is starting cleanup');
-        return Promise.all([
-            VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
-        ]);
+
+        ConsoleHandler.getInstance().log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
+        if (options.cleanup) {
+            console.log('clean');
+        }
+        if (exitCode || exitCode === 0) {
+            console.log(exitCode);
+        }
+        if (options.exit) {
+            process.exit();
+        }
     }
 }
