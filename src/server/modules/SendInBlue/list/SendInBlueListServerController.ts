@@ -1,6 +1,5 @@
-import ModuleRequest from '../../../../shared/modules/Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import SendInBlueServerController from '../SendInBlueServerController';
+import ModuleRequest from '../../../../shared/modules/Request/ModuleRequest';
 import SendInBlueContactDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactDetailVO';
 import SendInBlueContactsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactsVO';
 import SendInBlueContactVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactVO';
@@ -8,6 +7,7 @@ import SendInBlueFolderDetailVO from '../../../../shared/modules/SendInBlue/vos/
 import SendInBlueFoldersVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueFolderVO';
 import SendInBlueListDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListDetailVO';
 import SendInBlueListsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListsVO';
+import SendInBlueServerController from '../SendInBlueServerController';
 
 export default class SendInBlueListServerController {
 
@@ -220,6 +220,40 @@ export default class SendInBlueListServerController {
                 SendInBlueListServerController.PATH_LIST + '/' + listId + '/contacts/add',
                 { emails: batch }
             );
+        }
+
+        return true;
+    }
+
+    /**
+     *
+     * @param limit MAX 50
+     * @param offset
+     */
+    public async purgeLists(limit: number, offset: number): Promise<boolean> {
+        let folder: SendInBlueFolderDetailVO = await this.getOrCreateDefaultFolder();
+
+        while (limit > 0) {
+            let limit_query: number = limit;
+
+            if (limit_query > 50) {
+                limit_query = 50;
+            }
+
+            let lists: SendInBlueListsVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueListsVO>(
+                ModuleRequest.METHOD_GET,
+                SendInBlueListServerController.PATH_FOLDER + '/' + folder.id.toString() + '/lists?limit=' + limit_query + '&offset=' + offset
+            );
+
+            if (!lists || !lists.lists || !lists.lists.length) {
+                return true;
+            }
+
+            for (let i in lists.lists) {
+                await SendInBlueServerController.getInstance().sendRequestFromApp(ModuleRequest.METHOD_DELETE, SendInBlueListServerController.PATH_LIST + '/' + lists.lists[i].id.toString());
+            }
+
+            limit -= limit_query;
         }
 
         return true;
