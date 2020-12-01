@@ -617,15 +617,19 @@ export default class PushDataServerController {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
-        let newUserSockets: { [sessId: string]: SocketWrapper[] } = {};
         let toclose_tabs: string[] = [];
+
+        if (!this.registeredSockets[userId]) {
+            return;
+        }
+
         for (let i in this.registeredSockets[userId][client_tab_id]) {
 
             let sessionSockets = this.registeredSockets[userId][client_tab_id][i];
             let toclose: string[] = [];
             for (let socketId in sessionSockets) {
 
-                if (!sessionSockets[socketId].socket.connected) {
+                if ((!sessionSockets[socketId]) || (!sessionSockets[socketId].socket.connected)) {
                     toclose.push(socketId);
                 }
             }
@@ -640,7 +644,9 @@ export default class PushDataServerController {
         }
 
         for (let j in toclose_tabs) {
-            delete this.registeredSockets[userId][toclose_tabs[j]];
+            if (this.registeredSockets[userId] && this.registeredSockets[userId][toclose_tabs[j]]) {
+                delete this.registeredSockets[userId][toclose_tabs[j]];
+            }
         }
     }
 
