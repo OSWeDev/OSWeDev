@@ -226,7 +226,7 @@ export default class VarsDatasVoUpdateHandler {
 
         for (let j in Nx.outgoing_deps) {
             let dep = Nx.outgoing_deps[j];
-            let controller = VarsServerController.getInstance().getVarControllerById((dep.outgoing_node as VarDAGNode).var_data.var_id);
+            let controller = (dep.outgoing_node as VarCtrlDAGNode).var_controller;
 
             if (!intersectors_by_var_id[controller.varConf.id]) {
                 continue;
@@ -265,8 +265,8 @@ export default class VarsDatasVoUpdateHandler {
 
             await DAGController.getInstance().visit_bottom_up_from_node(
                 VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl),
-                async (node: VarDAGNode) => {
-                    let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+                async (node: VarCtrlDAGNode) => {
+                    let controller = node.var_controller;
                     if (!markers[controller.varConf.id]) {
                         markers[controller.varConf.id] = 0;
                     }
