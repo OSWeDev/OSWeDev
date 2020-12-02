@@ -3,6 +3,7 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class VarsImportsHandler {
@@ -44,7 +45,8 @@ export default class VarsImportsHandler {
             return;
         }
 
-        await this.split_nodes(node, vars_datas, ds_cache, imports, node.var_controller.optimization__has_only_atomic_imports);
+        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        await this.split_nodes(node, vars_datas, ds_cache, imports, controller.optimization__has_only_atomic_imports);
     }
 
     /**

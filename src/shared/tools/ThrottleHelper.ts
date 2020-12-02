@@ -1,17 +1,17 @@
 import { Cancelable, ThrottleSettings } from 'lodash';
-import throttle from 'lodash/throttle';
+import { throttle } from 'lodash';
 
-export default class ClientThrottleHelper {
+export default class ThrottleHelper {
 
-    public static getInstance(): ClientThrottleHelper {
-        if (!ClientThrottleHelper.instance) {
-            ClientThrottleHelper.instance = new ClientThrottleHelper();
+    public static getInstance(): ThrottleHelper {
+        if (!ThrottleHelper.instance) {
+            ThrottleHelper.instance = new ThrottleHelper();
         }
 
-        return ClientThrottleHelper.instance;
+        return ThrottleHelper.instance;
     }
 
-    private static instance: ClientThrottleHelper = null;
+    private static instance: ThrottleHelper = null;
 
     protected UID: number = 0;
     protected throttles: { [throttle_id: number]: ((...args: any) => any) & Cancelable } = {};
@@ -33,7 +33,7 @@ export default class ClientThrottleHelper {
             func(params);
         }, wait, options);
 
-        return (mappable_args: { [map_elt_id: string]: any }) => ClientThrottleHelper.getInstance().throttle_with_mappable_args(UID, mappable_args);
+        return (mappable_args: { [map_elt_id: string]: any }) => ThrottleHelper.getInstance().throttle_with_mappable_args(UID, mappable_args);
     }
 
     public declare_throttle_with_stackable_args(
@@ -50,7 +50,7 @@ export default class ClientThrottleHelper {
         }, wait, options);
 
         return (stackable_args: any[]) => {
-            ClientThrottleHelper.getInstance().throttle_with_stackable_args(UID, stackable_args);
+            ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stackable_args);
         };
     }
 

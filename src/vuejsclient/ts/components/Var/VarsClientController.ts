@@ -5,7 +5,7 @@ import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallb
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import VueAppBase from '../../../VueAppBase';
-import ClientThrottleHelper from '../../modules/ClientThrottleHelper';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
@@ -25,8 +25,8 @@ export default class VarsClientController {
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
 
-    public throttled_server_registration = ClientThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 100, { leading: false });
-    public throttled_server_unregistration = ClientThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false });
+    public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 100, { leading: false });
+    public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false });
 
     private timeout_check_registrations: number = 10000;
 

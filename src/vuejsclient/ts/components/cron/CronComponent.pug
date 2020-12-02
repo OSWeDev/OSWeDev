@@ -13,20 +13,40 @@
                 p {{ label('cron.component.body') }}
 
     .row
-        template(v-for='cron_worker in cron_workers')
-            .col-md-3
-                button.btn.btn-sm.btn-primary(@click='run_cron_individuel(cron_worker)' v-if='!is_running')
-                    i.fa.fa-play.btn_icon(aria-hidden="true")
-                    | {{ label('cron.run_cron_individuel', {worker_uid: cron_worker.worker_uid}) }}
-                button.btn.btn-sm.btn-secondary(v-if='is_running')
-                    i.fa.fa-play.btn_icon(aria-hidden="true")
-                    | {{ label('cron.run_cron_individuel', {worker_uid: cron_worker.worker_uid}) }}
+        .col-md-12
+            .jumbotron
+                p.lead.import_title {{ label('cron.run_cron_individuel.head') }}
+                hr
+                .row
+                    template(v-for='cron_worker in cron_workers')
+                        .col-md-3
+                            button.btn.btn-sm.btn-primary(@click='run_cron_individuel(cron_worker)' v-if='!is_running')
+                                i.fa.fa-play.btn_icon(aria-hidden="true")
+                                | {{ label('cron.run_cron_individuel', {worker_uid: cron_worker.worker_uid}) }}
+                            button.btn.btn-sm.btn-secondary(v-if='is_running')
+                                i.fa.fa-play.btn_icon(aria-hidden="true")
+                                | {{ label('cron.run_cron_individuel', {worker_uid: cron_worker.worker_uid}) }}
 
     .row
-        template(v-for='supervised_item in supervised_items')
-            .col-md-3
-                button.btn.btn-sm.btn-primary(@click='update_supervised_items(supervised_item)')
-                    i.fa.fa-play.btn_icon(aria-hidden="true")
-                    | {{ label('cron.update_supervised', {supervised_uid: supervised_item}) }}
+        .col-md-12
+            .jumbotron
+                p.lead.import_title {{ label('cron.update_supervised.head') }}
+                hr
+                .row
+                    template(v-for='supervised_item in supervised_items')
+                        .col-md-3
+                            button.btn.btn-sm.btn-primary(@click='update_supervised_items(supervised_item)')
+                                i.fa.fa-play.btn_icon(aria-hidden="true")
+                                | {{ label('cron.update_supervised', {supervised_uid: supervised_item}) }}
 
-                
+    .row
+        .col-md-12
+            .jumbotron
+                p.lead.import_title {{ label('cron.manual_task.head') }}
+                hr
+                .row
+                    template(v-for='manual_task in manual_tasks')
+                        .col-md-3
+                            button.btn.btn-sm.btn-primary(@click='run_manual_task(manual_task)')
+                                i.fa.fa-play.btn_icon(aria-hidden="true")
+                                | {{ label('cron.manual_task', {manual_task: manual_task}) }}

@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO from '../../../shared/modules/DAO/vos/APISimpleVOsParamVO';
@@ -159,6 +160,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
+        }, 'force_empty_cars_datas_vu_update_cache.done'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Import ?'
         }, 'var_desc.var_data_is_import.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -245,6 +251,9 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             VarsServerController.getInstance().init_varcontrollers_dag();
         });
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache] =
+            VarsDatasVoUpdateHandler.getInstance().force_empty_cars_datas_vu_update_cache;
     }
 
     /**
@@ -593,7 +602,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         } else {
 
-            if (vardata.has_valid_value) {
+            if (VarsServerController.getInstance().has_valid_value(vardata)) {
                 return vardata;
             }
         }

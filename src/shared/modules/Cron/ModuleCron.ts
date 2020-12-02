@@ -16,6 +16,7 @@ export default class ModuleCron extends Module {
 
     public static APINAME_executeWorkersManually: string = "executeWorkersManually";
     public static APINAME_executeWorkerManually: string = "executeWorkerManually";
+    public static APINAME_run_manual_task: string = "run_manual_task";
 
     public static getInstance(): ModuleCron {
         if (!ModuleCron.instance) {
@@ -44,6 +45,17 @@ export default class ModuleCron extends Module {
             [CronWorkerPlanification.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleCron.POLICY_BO_ACCESS,
+            ModuleCron.APINAME_run_manual_task,
+            [CronWorkerPlanification.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
+        ));
+    }
+
+    public async run_manual_task(name: string) {
+        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_run_manual_task, name);
     }
 
     public async executeWorkersManually() {

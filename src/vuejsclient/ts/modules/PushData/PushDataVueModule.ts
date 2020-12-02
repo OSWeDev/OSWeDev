@@ -12,7 +12,7 @@ import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
-import ClientThrottleHelper from '../ClientThrottleHelper';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueModuleBase from '../VueModuleBase';
 
 export default class PushDataVueModule extends VueModuleBase {
@@ -27,7 +27,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private static instance: PushDataVueModule = null;
 
-    public throttled_notifications_handler = ClientThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+    public throttled_notifications_handler = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.notifications_handler.bind(this), 1000);
     protected socket;
 

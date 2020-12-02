@@ -1,4 +1,3 @@
-import VarServerControllerBase from '../../../../../server/modules/Var/VarServerControllerBase';
 import ObjectHandler from '../../../../tools/ObjectHandler';
 import DAGNodeDep from './DAGNodeDep';
 
@@ -8,11 +7,6 @@ export default abstract class DAGNodeBase {
      * Les dépendances ascendantes.
      */
     public incoming_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> } = {};
-
-    /**
-     * Le contrôleur de ce noeud
-     */
-    public var_controller: VarServerControllerBase<any>;
 
     /**
      * Les dépendances descendantes.

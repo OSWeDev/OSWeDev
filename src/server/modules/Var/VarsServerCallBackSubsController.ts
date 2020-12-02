@@ -2,6 +2,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleVarServer from './ModuleVarServer';
+import VarsServerController from './VarsServerController';
 
 export default class VarsServerCallBackSubsController {
 
@@ -56,7 +57,7 @@ export default class VarsServerCallBackSubsController {
             self._cb_subs[param.index].push(cb);
 
             let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
-            if (in_db_data && in_db_data.has_valid_value) {
+            if (in_db_data && VarsServerController.getInstance().has_valid_value(in_db_data)) {
                 self.notify_vardatas([in_db_data]);
                 return;
             }

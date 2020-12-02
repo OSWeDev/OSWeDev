@@ -1,14 +1,20 @@
-import { Moment } from 'moment';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import StackContext from '../../StackContext';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
+import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -43,6 +49,30 @@ export default class VarsDatasVoUpdateHandler {
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
+    }
+
+    /**
+     * Objectif on bloque le ModuleDAO en modification, et on informe via notif quand on a à la fois bloqué les updates et vidé le cache de ce module
+     */
+    public async force_empty_cars_datas_vu_update_cache() {
+
+        ModuleDAOServer.getInstance().global_update_blocker = true;
+
+        while (true) {
+            await ThreadHandler.getInstance().sleep(5000);
+
+            if ((!VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud) ||
+                (!VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud.length)) {
+
+                let uid: number = StackContext.getInstance().get('UID');
+                let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+                if (uid) {
+                    PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_cars_datas_vu_update_cache.done', true);
+                }
+                ConsoleHandler.getInstance().warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
+                return;
+            }
+        }
     }
 
     public register_vo_cud(vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase) {
@@ -196,15 +226,16 @@ export default class VarsDatasVoUpdateHandler {
 
         for (let j in Nx.outgoing_deps) {
             let dep = Nx.outgoing_deps[j];
+            let controller = VarsServerController.getInstance().getVarControllerById((dep.outgoing_node as VarDAGNode).var_data.var_id);
 
-            if (!intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]) {
+            if (!intersectors_by_var_id[controller.varConf.id]) {
                 continue;
             }
 
             has_deps_to_compute = true;
             let tmp = await Nx.var_controller.get_invalid_params_intersectors_from_dep(
                 dep.dep_name,
-                intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]);
+                intersectors_by_var_id[controller.varConf.id]);
             if (tmp && tmp.length) {
                 intersectors = intersectors.concat(tmp);
             }
@@ -234,11 +265,12 @@ export default class VarsDatasVoUpdateHandler {
 
             await DAGController.getInstance().visit_bottom_up_from_node(
                 VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl),
-                async (node) => {
-                    if (!markers[node.var_controller.varConf.id]) {
-                        markers[node.var_controller.varConf.id] = 0;
+                async (node: VarDAGNode) => {
+                    let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+                    if (!markers[controller.varConf.id]) {
+                        markers[controller.varConf.id] = 0;
                     }
-                    markers[node.var_controller.varConf.id]++;
+                    markers[controller.varConf.id]++;
                 });
         }
     }

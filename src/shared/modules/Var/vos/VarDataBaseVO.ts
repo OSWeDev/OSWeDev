@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
@@ -32,36 +31,7 @@ export default class VarDataBaseVO implements IMatroid {
         return a.index == b.index;
     }
 
-    /**
-     * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
-     *  vardatares or les valeurs sont là bas et pas dans le vardata
-     * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
-     *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
-     *  dont il faut aussi indiquer ces var datas valides
-     */
-    get has_valid_value(): boolean {
 
-        if (this.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) {
-            return true;
-        }
-
-        if ((typeof this.value !== 'undefined') && (!!this.value_ts)) {
-
-            if (this.varcacheconf && !!this.varcacheconf.cache_timeout_ms) {
-                let timeout: Moment = moment().utc(true).add(-this.varcacheconf.cache_timeout_ms, 'ms');
-                if (this.value_ts.isSameOrAfter(timeout)) {
-                    return true;
-                }
-            } else {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    get varcacheconf(): VarCacheConfVO {
-        return VarsServerController.getInstance().varcacheconf_by_var_ids[this.var_id];
-    }
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type

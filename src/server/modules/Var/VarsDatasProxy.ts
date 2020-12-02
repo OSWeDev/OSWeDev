@@ -104,7 +104,7 @@ export default class VarsDatasProxy {
 
             let handle_var = this.vars_datas_buffer[0];
             // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage
-            if (!handle_var.has_valid_value) {
+            if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
                 break;
             }
 
@@ -162,7 +162,7 @@ export default class VarsDatasProxy {
 
             let var_data = this.vars_datas_buffer[i];
 
-            if (!var_data.has_valid_value) {
+            if (!VarsServerController.getInstance().has_valid_value(var_data)) {
                 res[var_data.index] = var_data;
 
                 // ConsoleHandler.getInstance().log('REMOVETHIS:get_vars_to_compute_from_buffer_or_bdd:' + var_data.index + ':');

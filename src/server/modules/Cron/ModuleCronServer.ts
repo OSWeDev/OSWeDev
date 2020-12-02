@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -40,7 +41,19 @@ export default class ModuleCronServer extends ModuleServerBase {
             fr: '{worker_uid}'
         }, 'cron.run_cron_individuel.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lancer une tâche planifiée manuellement'
+        }, 'cron.run_cron_individuel.head.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mettre à jour la supervision'
+        }, 'cron.update_supervised.head.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâche manuelles'
+        }, 'cron.manual_task.head.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '{manual_task}'
+        }, 'cron.manual_task.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: '{supervised_uid}'
         }, 'cron.update_supervised.___LABEL___'));
@@ -52,6 +65,21 @@ export default class ModuleCronServer extends ModuleServerBase {
         }, 'CronComponent.info.update_supervised.ended.___LABEL___'));
 
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâche manuelle en cours'
+        }, 'CronComponent.info.run_manual_task.started.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâche manuelle terminée'
+        }, 'CronComponent.info.run_manual_task.ended.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lancement manuel des tâches'
+        }, 'cron.execute_manually.start'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâches terminées'
+        }, 'cron.execute_manually.success'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâches échouées'
+        }, 'cron.execute_manually.failed'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Tâche manuelle en cours'
         }, 'CronComponent.info.executeWorkerManually.started.___LABEL___'));
@@ -90,6 +118,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {
@@ -119,6 +148,18 @@ export default class ModuleCronServer extends ModuleServerBase {
             await ModuleDAO.getInstance().insertOrUpdateVO(cronWorkerPlan);
         }
     }
+
+    public async run_manual_task(param: StringParamVO) {
+
+        let uid: number = StackContext.getInstance().get('UID');
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+        if (!ManualTasksController.getInstance().registered_manual_tasks_by_name[param.text]) {
+            return null;
+        }
+        await ManualTasksController.getInstance().registered_manual_tasks_by_name[param.text]();
+    }
+
 
     public async executeWorkersManually() {
 

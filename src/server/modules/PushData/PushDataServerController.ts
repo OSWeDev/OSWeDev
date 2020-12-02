@@ -260,7 +260,7 @@ export default class PushDataServerController {
     public async notifyVarData(user_id: number, client_tab_id: string, vo: VarDataValueResVO) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarData, user_id, vo)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarData, user_id, client_tab_id, vo)) {
             return;
         }
 
@@ -281,7 +281,7 @@ export default class PushDataServerController {
      */
     public async notifyVarsDatas(user_id: number, client_tab_id: string, vos: VarDataValueResVO[]) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, user_id, vos)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, user_id, client_tab_id, vos)) {
             return;
         }
 
@@ -311,7 +311,7 @@ export default class PushDataServerController {
 
     public async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVoById, user_id, api_type_id, vo_id)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVoById, user_id, client_tab_id, api_type_id, vo_id)) {
             return;
         }
 
@@ -335,7 +335,7 @@ export default class PushDataServerController {
 
     public async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAORemoveId, user_id, api_type_id, vo_id)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAORemoveId, user_id, client_tab_id, api_type_id, vo_id)) {
             return;
         }
 
@@ -359,7 +359,7 @@ export default class PushDataServerController {
 
     public async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVos, user_id, api_type_id)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVos, user_id, client_tab_id, api_type_id)) {
             return;
         }
 
@@ -470,7 +470,7 @@ export default class PushDataServerController {
 
     public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, code_text, auto_read_if_connected)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -479,7 +479,7 @@ export default class PushDataServerController {
 
     public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, code_text, auto_read_if_connected)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -488,7 +488,7 @@ export default class PushDataServerController {
 
     public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, code_text, auto_read_if_connected)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -497,7 +497,7 @@ export default class PushDataServerController {
 
     public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, code_text, auto_read_if_connected)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 

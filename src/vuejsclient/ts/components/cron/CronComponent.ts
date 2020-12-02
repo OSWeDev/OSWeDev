@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
+import ManualTasksController from '../../../../shared/modules/Cron/ManualTasksController';
 import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import CronWorkerPlanification from '../../../../shared/modules/Cron/vos/CronWorkerPlanification';
@@ -28,6 +29,16 @@ export default class CronComponent extends VueComponentBase {
         setTimeout(() => {
             self.is_running = false;
         }, 1000);
+    }
+
+    get manual_tasks(): string[] {
+        return Object.keys(ManualTasksController.getInstance().registered_manual_tasks_by_name);
+    }
+
+    private async run_manual_task(name: string) {
+        this.snotify.info(this.label('CronComponent.info.run_manual_task.started'));
+        await ModuleCron.getInstance().run_manual_task(name);
+        this.snotify.info(this.label('CronComponent.info.run_manual_task.ended'));
     }
 
     private async mounted() {

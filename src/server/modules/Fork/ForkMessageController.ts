@@ -26,6 +26,9 @@ export default class ForkMessageController {
     /**
      * ----- Local thread cache
      */
+
+    private throttled_retry = throttle(this.retry.bind(this), 1000, { leading: false });
+
     private constructor() { }
 
     public register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: Socket | Server) => Promise<boolean>) {
@@ -78,13 +81,13 @@ export default class ForkMessageController {
         }
 
         if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-            throttle(this.throttled_retry.bind(this), 1000, { leading: false });
+            this.throttled_retry();
         }
 
         return res;
     }
 
-    public throttled_retry() {
+    public retry() {
         if ((!this.stacked_msg_waiting) || (!this.stacked_msg_waiting.length)) {
             return;
         }
@@ -99,7 +102,7 @@ export default class ForkMessageController {
         });
 
         if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-            throttle(this.throttled_retry.bind(this), 1000, { leading: false });
+            this.throttled_retry();
         }
     }
 }

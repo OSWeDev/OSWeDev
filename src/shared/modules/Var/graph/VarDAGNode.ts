@@ -1,4 +1,4 @@
-import VarsServerController from '../../../../server/modules/Var/VarsServerController';
+import VarsController from '../VarsController';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
 import DAG from './dagbase/DAG';
 import DAGNodeBase from './dagbase/DAGNodeBase';
@@ -46,7 +46,6 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     private constructor(public dag: DAG<VarDAGNode>, public var_data: VarDataBaseVO) {
         super();
-        this.var_controller = VarsServerController.getInstance().getVarControllerById(var_data.var_id);
     }
 
     /**

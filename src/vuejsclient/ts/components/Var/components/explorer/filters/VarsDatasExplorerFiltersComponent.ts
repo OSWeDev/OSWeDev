@@ -121,6 +121,30 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.vars_confs = vars_confs;
     }
 
+    get has_no_filter(): boolean {
+        if (this.fitered_vars_confs && this.fitered_vars_confs.length && (this.fitered_vars_confs.length != this.vars_confs.length)) {
+            return false;
+        }
+
+        for (let i in this.fields_filters_range) {
+            let field_filter_range = this.fields_filters_range[i];
+
+            if (RangeHandler.getInstance().getCardinal(field_filter_range)) {
+                return false;
+            }
+        }
+
+        for (let i in this.fields_filters_list) {
+            let field_filter_list = this.fields_filters_list[i];
+
+            if (field_filter_list && field_filter_list.length && (field_filter_list.length != this.enum_initial_options[i].length)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private var_conf_label(var_conf: VarConfVO): string {
         if ((var_conf == null) || (typeof var_conf == 'undefined')) {
             return '';
@@ -135,6 +159,13 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             return [];
         }
 
+        /**
+         * Si on a fait aucun filtrage, on peut tout choisir
+         */
+        if (this.has_no_filter) {
+            return this.vars_confs;
+        }
+
         let filterable_vars_confs = this.vars_confs;
 
         /**
@@ -144,14 +175,20 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         filterable_vars_confs = filterable_vars_confs.filter((var_conf: VarConfVO) => {
             for (let field_id in self.fields_filters_range) {
 
-                if ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id])) {
+                let range = self.fields_filters_range[field_id];
+                let is_filtering = range && RangeHandler.getInstance().getCardinal(range);
+
+                if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
                 }
             }
 
             for (let field_id in self.fields_filters_list) {
 
-                if ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id])) {
+                let filter = self.fields_filters_list[field_id];
+                let is_filtering = filter && filter.length && (self.enum_initial_options[field_id].length != filter.length);
+
+                if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
                 }
             }
@@ -180,14 +217,20 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         filtered_vars_confs = filtered_vars_confs.filter((var_conf: VarConfVO) => {
             for (let field_id in self.fields_filters_range) {
 
-                if ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id])) {
+                let range = self.fields_filters_range[field_id];
+                let is_filtering = range && RangeHandler.getInstance().getCardinal(range);
+
+                if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
                 }
             }
 
             for (let field_id in self.fields_filters_list) {
 
-                if ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id])) {
+                let filter = self.fields_filters_list[field_id];
+                let is_filtering = filter && filter.length && (self.enum_initial_options[field_id].length != filter.length);
+
+                if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
                 }
             }

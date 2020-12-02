@@ -1,4 +1,5 @@
-import debounce = require('lodash/debounce');
+import * as moment from 'moment';
+import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -8,6 +9,7 @@ import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -76,6 +78,35 @@ export default class VarsServerController {
 
     get registered_vars_controller_by_api_type_id(): { [api_type_id: string]: Array<VarServerControllerBase<any>> } {
         return this._registered_vars_controller_by_api_type_id;
+    }
+
+
+    /**
+     * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
+     *  vardatares or les valeurs sont là bas et pas dans le vardata
+     * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
+     *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
+     *  dont il faut aussi indiquer ces var datas valides
+     */
+    public has_valid_value(param: VarDataBaseVO): boolean {
+
+        if (param.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) {
+            return true;
+        }
+
+        if ((typeof param.value !== 'undefined') && (!!param.value_ts)) {
+
+            let var_cache_conf = this.varcacheconf_by_var_ids[param.var_id];
+            if (var_cache_conf && !!var_cache_conf.cache_timeout_ms) {
+                let timeout: Moment = moment().utc(true).add(-var_cache_conf.cache_timeout_ms, 'ms');
+                if (param.value_ts.isSameOrAfter(timeout)) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+            return false;
+        }
     }
 
     public getVarConf(var_name: string): VarConfVO {

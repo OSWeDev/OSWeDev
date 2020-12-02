@@ -19,7 +19,7 @@ import VarConfVO from './vos/VarConfVO';
 import VarPerfVO from './vos/VarPerfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
-const moment = require('moment');
+import ManualTasksController from '../Cron/ManualTasksController';
 
 export default class ModuleVar extends Module {
 
@@ -53,6 +53,8 @@ export default class ModuleVar extends Module {
     public static APINAME_invalidate_cache_exact: string = 'invalidate_cache_exact';
     public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
 
+    public static MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache = 'force_empty_cars_datas_vu_update_cache';
+
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
             ModuleVar.instance = new ModuleVar();
@@ -76,6 +78,8 @@ export default class ModuleVar extends Module {
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarPerfVO();
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache] = null;
     }
 
     public registerApis() {

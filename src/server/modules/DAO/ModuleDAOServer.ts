@@ -1,3 +1,4 @@
+import { throttle } from 'lodash';
 import { Duration } from 'moment';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -47,6 +48,7 @@ import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
@@ -55,6 +57,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
+import PushDataServerController from '../PushData/PushDataServerController';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -77,6 +80,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private static instance: ModuleDAOServer = null;
+
+    public global_update_blocker: boolean = false;
+    private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -298,6 +304,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Consulter'
         }, 'editable_page_switch.read.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Demande refusée : Le système est en lecture seule'
+        }, 'dao.global_update_blocker.actif'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Enregistrement...'
@@ -690,6 +700,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
 
     public async truncate(api_type_id: string, ranges: Array<IRange<any>> = null) {
+
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
         let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
         if (!datatable) {
@@ -832,6 +852,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async query(query: string = null, values: any = null): Promise<any> {
 
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
         // On vérifie qu'on peut faire des modifs de table modules
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDAO.DAO_ACCESS_QUERY)) {
             return null;
@@ -956,6 +985,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
         // On vérifie qu'on peut faire un insert ou update
         if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type])) {
             return null;
@@ -1036,6 +1074,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
+
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
 
         // On vérifie qu'on peut faire un insert ou update
         if ((!vo) || (!vo._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vo._type])) {
@@ -1153,6 +1200,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
 
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
         // On vérifie qu'on peut faire un delete
         if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type])) {
             return null;
@@ -1220,6 +1276,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async deleteVOsByIds(param: APIDAOParamsVO): Promise<any[]> {
 
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
         // On vérifie qu'on peut faire un delete
         if ((!param) || (!param.API_TYPE_ID) || (!param.ids) || (!param.ids.length)) {
             return null;
@@ -1228,72 +1293,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // En fait avec les triggers qui prennent en param le vo, on est obligé de faire une requete sur le vo avant d'en demander la suppression...
         let vos: IDistantVOBase[] = await this.getVosByIds(param);
         return await this.deleteVOs(vos);
-
-        // let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[param.API_TYPE_ID];
-
-        // if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[param.API_TYPE_ID], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
-        //     return null;
-        // }
-
-        // if (!moduletable) {
-        //     ConsoleHandler.getInstance().error("Impossible de trouver le datatable de ce _type ! " + param.API_TYPE_ID);
-        //     return null;
-        // }
-
-        // // Ajout des triggers, avant et après suppression.
-        // //  Attention si un des output est false avant suppression, on annule la suppression
-        // let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo);
-        // if (!BooleanHandler.getInstance().AND(res, true)) {
-        //     continue;
-        // }
-
-        // let full_name = null;
-
-        // let ids:number[] =
-
-        // if (moduletable.is_segmented) {
-        //     // Si on est sur une table segmentée on adapte le comportement
-        //     // On sait pas où se trouve l'élément dans ce cas puisqu'on a que l'id pour la suppression.
-        //     //  On met un warn en log, c'est pas idéal d'utiliser cette fonction du coup puisqu'on va devoir lancer la
-        //     //  requete sur toutes les tables de la segmentation
-        //     full_name = moduletable.get_segmented_full_name_from_vo(vo);
-
-        //     ConsoleHandler.getInstance().warn('Suppression par id sur table segmentée, à revoir peut-être car très peu efficient:' + param.API_TYPE_ID);
-
-        //     for (let i in DAOServerController.getInstance().segmented_known_databases[param.API_TYPE_ID]) {
-        //         let table_name = DAOServerController.getInstance().segmented_known_databases[param.API_TYPE_ID];
-        //         await ModuleServiceBase.getInstance().db.query('DELETE FROM ' + param.API_TYPE_ID + '.' + table_name + ' where id in ('+ids.+')');
-        //     }
-        // } else {
-        //     full_name = moduletable.full_name;
-        // }
-
-        // const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
-        // await db.oneOrNone(sql, vo);
-
-        // let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
-
-        //     let queries: any[] = [];
-
-        //     for (let i in vos) {
-        //         let vo = vos[i];
-
-        //         if (!vo._type) {
-        //             ConsoleHandler.getInstance().error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
-        //             continue;
-        //         }
-
-        //         let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-
-
-
-
-        //     }
-
-        //     return t.batch(queries);
-        // });
-
-        // return results;
     }
 
     private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase): Promise<string> {
@@ -2994,5 +2993,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return null;
+    }
+
+    private refuse(params: { [uid: number]: { [CLIENT_TAB_ID: string]: boolean } }) {
+
+        for (let uid_s in params) {
+            let uid: number = parseInt(uid_s.toString());
+            for (let CLIENT_TAB_ID in params[uid]) {
+                PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.global_update_blocker.actif', true);
+            }
+        }
+        ConsoleHandler.getInstance().warn("global_update_blocker actif");
     }
 }
