@@ -76,11 +76,13 @@ export default class ForkServerController {
 
             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
-                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096']
+                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
+                    serialization: "advanced"
                 });
             } else {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
-                    execArgv: ['--max-old-space-size=4096']
+                    execArgv: ['--max-old-space-size=4096'],
+                    serialization: "advanced"
                 });
             }
             forked.child_process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {

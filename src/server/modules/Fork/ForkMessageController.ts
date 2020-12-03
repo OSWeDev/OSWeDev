@@ -1,7 +1,9 @@
 import { ChildProcess } from 'child_process';
 import { throttle } from 'lodash';
 import { Server, Socket } from 'net';
+import { performance } from 'perf_hooks';
 import APIController from '../../../shared/modules/API/APIController';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkServerController from './ForkServerController';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
@@ -26,6 +28,8 @@ export default class ForkMessageController {
     /**
      * ----- Local thread cache
      */
+
+    private last_log_msg_error: number = 0;
 
     private throttled_retry = throttle(this.retry.bind(this), 1000, { leading: false });
 
@@ -71,14 +75,14 @@ export default class ForkMessageController {
         msg = APIController.getInstance().try_translate_vo_to_api(msg);
         let res: boolean = false;
         let sendHandle = (!child_process) ? process : child_process;
+        let self = this;
 
-        res = sendHandle.send(msg);
-        if (!res) {
-            this.stacked_msg_waiting.push({
+        res = sendHandle.send(msg, (error: Error) => {
+            self.handle_send_error({
                 message: msg,
                 sendHandle: sendHandle
-            });
-        }
+            }, error);
+        });
 
         if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
             this.throttled_retry();
@@ -92,17 +96,35 @@ export default class ForkMessageController {
             return;
         }
 
+        ConsoleHandler.getInstance().warn("Retry messages... :" + this.stacked_msg_waiting.length + ':');
+
         let stacked_msg_waiting = this.stacked_msg_waiting;
         this.stacked_msg_waiting = [];
+        let self = this;
 
         stacked_msg_waiting.forEach((msg_wrapper: IForkMessageWrapper) => {
-            if (!msg_wrapper.sendHandle.send(msg_wrapper.message)) {
-                this.stacked_msg_waiting.push(msg_wrapper);
-            }
+            msg_wrapper.sendHandle.send(msg_wrapper.message, (error: Error) => {
+                self.handle_send_error(msg_wrapper, error);
+            });
         });
 
         if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
             this.throttled_retry();
+        }
+    }
+
+    private handle_send_error(msg_wrapper: IForkMessageWrapper, error: Error) {
+        if (error) {
+
+            /**
+             * On log max 1 fois par minute
+             */
+            let log_msg_error = performance.now();
+            if (this.last_log_msg_error < (log_msg_error - (60 * 1000))) {
+                this.last_log_msg_error = log_msg_error;
+                ConsoleHandler.getInstance().error(error);
+            }
+            this.stacked_msg_waiting.push(msg_wrapper);
         }
     }
 }

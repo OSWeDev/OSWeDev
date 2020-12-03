@@ -65,6 +65,11 @@ export default class VarsDatasProxy {
         }
 
         var_datas = this.filter_var_datas_by_indexes(var_datas);
+
+        if ((!var_datas) || (!var_datas.length)) {
+            return;
+        }
+
         this.vars_datas_buffer = this.vars_datas_buffer.concat(var_datas);
     }
 
@@ -85,6 +90,11 @@ export default class VarsDatasProxy {
 
         let self = this;
         var_datas = this.filter_var_datas_by_indexes(var_datas);
+
+        if ((!var_datas) || (!var_datas.length)) {
+            return;
+        }
+
         var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
 
         // On lance le calcul quand on prepend ici ça veut dire qu'on attend une réponse rapide

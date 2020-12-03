@@ -27,10 +27,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     // public MAX_timeout: number = 500;
     // public MIN_timeout: number = 1;
     public current_timeout: number = 1000;
-    public MAX_timeout: number = 1000;
-    public MIN_timeout: number = 1000;
+    public MAX_timeout: number = 2000;
+    public MIN_timeout: number = 1;
 
-    public request_limit: number = 1000;
+    public request_limit: number = 50;
 
     // private enabled: boolean = true;
     // private invalidations: number = 0;
@@ -145,7 +145,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);
             VarsTabsSubsController.getInstance().notify_vardatas(vars_datas, true);
-            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.notify_vardatas_computing"], false);
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", false);
 
             /**
              * Fonctionnement :
@@ -162,7 +162,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
             await VarsComputeController.getInstance().compute(vars_datas);
-            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", false);
+            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
 
             if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
