@@ -2315,6 +2315,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (moduleTable.isMatroidTable && (!!moduleTable.getFieldFromId('var_id'))) {
             // Cas d'un param de var
 
+            let where_clause: string = "(_bdd_only_index in (";
             let first_matroid = true;
             for (let matroid_i in matroids) {
                 let matroid = matroids[matroid_i];
@@ -2324,17 +2325,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return null;
                 }
 
-                let where_clause: string = '';
-
-                where_clause += "(_bdd_only_index = '" + (matroid as VarDataBaseVO).bdd_only_index + "')";
-
-                where_clauses.push(where_clause);
+                where_clause += (first_matroid ? "" : ",") + "'" + (matroid as VarDataBaseVO).bdd_only_index + "'";
                 first_matroid = false;
             }
 
             if (first_matroid) {
                 return null;
             }
+
+            where_clause += "))";
+            where_clauses.push(where_clause);
         } else {
             // Cas général
 

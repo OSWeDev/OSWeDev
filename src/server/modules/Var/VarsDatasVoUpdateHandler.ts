@@ -87,23 +87,20 @@ export default class VarsDatasVoUpdateHandler {
 
     /**
      * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
-     * @param limit null indique de gérer toute la liste
-     * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
+     * @returns true si dépile quelque chose
      */
-    public async handle_buffer(limit: number): Promise<number> {
+    public async handle_buffer(): Promise<boolean> {
 
         if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
-            return limit;
+            return false;
         }
 
         // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
         if (this.last_registration && moment().add(5, 'seconds').isBefore(this.last_registration)) {
-            return limit;
+            return false;
         }
 
-        if (limit == null) {
-            limit = this.ordered_vos_cud.length;
-        }
+        let limit = this.ordered_vos_cud.length;
 
         let vo_types: string[] = [];
         let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
@@ -119,7 +116,7 @@ export default class VarsDatasVoUpdateHandler {
 
         await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
 
-        return limit;
+        return true;
     }
 
     public async invalidate_datas_and_parents(

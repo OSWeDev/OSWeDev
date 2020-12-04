@@ -317,7 +317,7 @@ export default class ModuleVar extends Module {
                 [VarDataBaseVO.VALUE_TYPE_COMPUTED]: VarDataBaseVO.VALUE_TYPE_LABELS[VarDataBaseVO.VALUE_TYPE_COMPUTED]
             }).index(),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', false, false).index(), // TODO FIXME passer obligatoire quand tous les projets ont migrés en V3 ça sera plus simple
+            new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', false, false).index().unique(), // TODO FIXME passer obligatoire quand tous les projets ont migrés en V3 ça sera plus simple
         ]);
 
         let datatable = new ModuleTable(this, api_type_id, constructor, var_fields, null);

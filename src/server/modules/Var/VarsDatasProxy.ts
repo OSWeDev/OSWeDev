@@ -1,6 +1,8 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
@@ -64,13 +66,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        var_datas = this.filter_var_datas_by_indexes(var_datas);
-
-        if ((!var_datas) || (!var_datas.length)) {
-            return;
-        }
-
-        this.vars_datas_buffer = this.vars_datas_buffer.concat(var_datas);
+        var_datas = this.filter_var_datas_by_indexes(var_datas, false);
     }
 
     /**
@@ -88,14 +84,11 @@ export default class VarsDatasProxy {
             return;
         }
 
-        let self = this;
-        var_datas = this.filter_var_datas_by_indexes(var_datas);
+        var_datas = this.filter_var_datas_by_indexes(var_datas, true);
 
         if ((!var_datas) || (!var_datas.length)) {
             return;
         }
-
-        var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
 
         // On lance le calcul quand on prepend ici ça veut dire qu'on attend une réponse rapide
         BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
@@ -107,26 +100,46 @@ export default class VarsDatasProxy {
      *  Si un jour l'ordre diffère dans JS, on passera sur une liste en FIFO, c'est le but dans tous les cas
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon
      */
-    public async handle_buffer(limit: number): Promise<number> {
+    public async handle_buffer(): Promise<void> {
 
         // let handled: VarDataBaseVO[] = [];
-        while ((limit > 0) && this.vars_datas_buffer.length) {
 
-            let handle_var = this.vars_datas_buffer[0];
-            // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage
+        let vars_datas_buffer_copy = Array.from(this.vars_datas_buffer);
+
+        let i = 0;
+        while (i < vars_datas_buffer_copy.length) {
+
+            let handle_var = vars_datas_buffer_copy[i];
+            // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage => surtout pas sinon on tourne en boucle
             if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
-                break;
+                // break;
+                i++;
+                continue;
             }
 
             // ConsoleHandler.getInstance().log('REMOVETHIS:handle_buffer:' + handle_var.index + ':');
             // handled.push(handle_var);
-            await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+            if ((!res) || (!res.id)) {
+                ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                /**
+                 * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
+                 *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
+                 */
+                let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(handle_var._type, [handle_var], null);
+                if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
+                    ((!datas[0].value_ts) || (datas[0].value_ts < handle_var.value_ts))) {
+                    handle_var.id = datas[0].id;
+                    res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+                    if ((!res) || (!res.id)) {
+                        ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                    }
+                }
+            }
             delete this.vars_datas_buffer_indexes[handle_var.index];
-            this.vars_datas_buffer.splice(0, 1);
-            limit--;
+            this.vars_datas_buffer.splice(this.vars_datas_buffer.indexOf(handle_var), 1);
+            i++;
         }
-
-        return limit;
     }
 
     /**
@@ -148,6 +161,55 @@ export default class VarsDatasProxy {
             return res[0];
         }
         return null;
+    }
+
+    /**
+     * On a explicitement pas l'id à ce niveau donc on cherche par l'index plutôt
+     * On optimise la recherche en base en faisant un seul appel
+     */
+    public async get_exact_params_from_buffer_or_bdd<T extends VarDataBaseVO>(var_datas: T[]): Promise<T[]> {
+
+        let res: T[] = [];
+        let check_in_bdd_per_type: { [type: string]: T[] } = {};
+        for (let i in var_datas) {
+            let var_data = var_datas[i];
+
+            let e = null;
+            if (this.vars_datas_buffer_indexes[var_data.index]) {
+                e = this.vars_datas_buffer_indexes[var_data.index] as T;
+            }
+
+            if (e) {
+                res.push(e);
+            } else {
+
+                if (!var_data.check_param_is_valid(var_data._type)) {
+                    ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage:' + var_data.index);
+                    continue;
+                }
+
+                if (!check_in_bdd_per_type[var_data._type]) {
+                    check_in_bdd_per_type[var_data._type] = [];
+                }
+                check_in_bdd_per_type[var_data._type].push(var_data);
+            }
+        }
+
+        let promises = [];
+        for (let _type in check_in_bdd_per_type) {
+            let check_in_bdd = check_in_bdd_per_type[_type];
+
+            promises.push((async () => {
+                let bdd_res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(_type, check_in_bdd, null);
+
+                if (bdd_res && bdd_res.length) {
+                    res = (res && res.length) ? res.concat(bdd_res) : bdd_res;
+                }
+            })());
+        }
+        await Promise.all(promises);
+
+        return res;
     }
 
     /**
@@ -286,10 +348,11 @@ export default class VarsDatasProxy {
      * On met à jour la map des indexs au passage
      * @param var_datas
      */
-    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[]): VarDataBaseVO[] {
+    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean): VarDataBaseVO[] {
+
+        let self = this;
 
         let res: VarDataBaseVO[] = [];
-
         for (let i in var_datas) {
             let var_data = var_datas[i];
 
@@ -298,6 +361,12 @@ export default class VarsDatasProxy {
             }
             this.vars_datas_buffer_indexes[var_data.index] = var_data;
             res.push(var_data);
+        }
+
+        if (prepend) {
+            var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
+        } else {
+            this.vars_datas_buffer = this.vars_datas_buffer.concat(var_datas);
         }
 
         return res;

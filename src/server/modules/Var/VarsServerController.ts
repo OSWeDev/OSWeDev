@@ -105,8 +105,9 @@ export default class VarsServerController {
             } else {
                 return true;
             }
-            return false;
         }
+
+        return false;
     }
 
     public getVarConf(var_name: string): VarConfVO {

@@ -562,53 +562,102 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
 
-    public async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
 
-        // TODO FIXME OPTI - ou pas ... - on peut aller demander aussi aux vars en attente de maj en bdd - mais une perte de perf légère tout le temps pour un gain très ponctuel mais probablement élevé
-        let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(param._type, [param as any], {});
+    public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
 
-        // Si on a plus de 1 vardata il faut supprimer les plus anciens et logger un pb
-        let vardata: VarDataBaseVO = null;
+        let varsdata: VarDataBaseVO[] = await VarsDatasProxy.getInstance().get_exact_params_from_buffer_or_bdd(params);
 
-        if (varsdata && (varsdata.length > 1)) {
-            ConsoleHandler.getInstance().error('get_var_data_or_ask_to_bgthread:On ne devrait trouver qu\'une var de cet index :' + param.index + ':on en trouve:' + varsdata.length + ':Suppression auto des plus anciennes...');
+        if (varsdata) {
 
-            let maxid = 0;
-            let maxi = 0;
-            for (let i in varsdata) {
-                let tmp = varsdata[i];
-                if (maxid < tmp.id) {
-                    maxid = tmp.id;
-                    maxi = parseInt(i.toString());
-                    vardata = tmp;
+            varsdata.forEach((vardata) => {
+                if (VarsServerController.getInstance().has_valid_value(vardata)) {
+                    notifyable_vars.push(vardata);
                 }
-            }
-
-            varsdata.splice(maxi, 1);
-            await ModuleDAO.getInstance().deleteVOs(varsdata);
+            });
         }
 
-        vardata = vardata ? vardata : ((varsdata && (varsdata.length == 1)) ? varsdata[0] : null);
+        if ((!varsdata) || (varsdata.length != params.length)) {
 
-        if (!vardata) {
+            /**
+             * On doit chercher les datas manquantes, et les prepend sur le proxy
+             */
+            let vars_datas_by_index: { [index: string]: VarDataBaseVO } = {};
+            if (varsdata) {
+                varsdata.forEach((vardata) => {
+                    vars_datas_by_index[vardata.index] = vardata;
+                });
+            }
 
-            // On a rien en base, on le crée et on attend le résultat
-            param.value_ts = null;
-            param.value = null;
-            param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+            let to_prepend: VarDataBaseVO[] = [];
+            for (let i in params) {
+                let param = params[i];
+
+                let vardata = vars_datas_by_index[param.index];
+                if (vardata) {
+                    continue;
+                }
+
+                // On a rien en base, on le crée et on attend le résultat
+                param.value_ts = null;
+                param.value = null;
+                param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+
+                to_prepend.push(param);
+                needs_computation.push(param);
+            }
 
             // On push dans le buffer de mise à jour de la BDD
-            VarsDatasProxy.getInstance().prepend_var_datas([param]);
-            return null;
-        } else {
-
-            if (VarsServerController.getInstance().has_valid_value(vardata)) {
-                return vardata;
-            }
+            VarsDatasProxy.getInstance().prepend_var_datas(to_prepend);
         }
-
-        return null;
     }
+
+    // public async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
+
+    //     // TODO FIXME OPTI - ou pas ... - on peut aller demander aussi aux vars en attente de maj en bdd - mais une perte de perf légère tout le temps pour un gain très ponctuel mais probablement élevé
+    //     let varsdata: VarDataBaseVO[] = await VarsDatasProxy.getInstance().get_exact_params_from_buffer_or_bdd([param]);
+
+    //     // Si on a plus de 1 vardata il faut supprimer les plus anciens et logger un pb
+    //     let vardata: VarDataBaseVO = null;
+
+    //     if (varsdata && (varsdata.length > 1)) {
+    //         ConsoleHandler.getInstance().error('get_var_data_or_ask_to_bgthread:On ne devrait trouver qu\'une var de cet index :' + param.index + ':on en trouve:' + varsdata.length + ':Suppression auto des plus anciennes...');
+
+    //         let maxid = 0;
+    //         let maxi = 0;
+    //         for (let i in varsdata) {
+    //             let tmp = varsdata[i];
+    //             if (maxid < tmp.id) {
+    //                 maxid = tmp.id;
+    //                 maxi = parseInt(i.toString());
+    //                 vardata = tmp;
+    //             }
+    //         }
+
+    //         varsdata.splice(maxi, 1);
+    //         await ModuleDAO.getInstance().deleteVOs(varsdata);
+    //     }
+
+    //     vardata = vardata ? vardata : ((varsdata && (varsdata.length == 1)) ? varsdata[0] : null);
+
+    //     if (!vardata) {
+
+    //         // On a rien en base, on le crée et on attend le résultat
+    //         param.value_ts = null;
+    //         param.value = null;
+    //         param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+
+    //         // On push dans le buffer de mise à jour de la BDD
+    //         VarsDatasProxy.getInstance().prepend_var_datas([param]);
+    //         return null;
+    //     } else {
+
+    //         if (VarsServerController.getInstance().has_valid_value(vardata)) {
+    //             return vardata;
+    //         }
+    //     }
+
+    //     return null;
+    // }
 
     private async onCVarCacheConf(vcc: VarCacheConfVO) {
         if (!vcc) {
@@ -686,41 +735,57 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si on trouve des datas existantes et valides en base, on les envoie, sinon on indique qu'on attend ces valeurs
          */
-        let promises = [];
+        let notifyable_vars: VarDataBaseVO[] = [];
+        let needs_computation: VarDataBaseVO[] = [];
 
-        let vars_to_notif: VarDataValueResVO[] = [];
-        let needs_var_computation: boolean = false;
-        for (let i in params) {
-            let param = params[i];
+        await ModuleVarServer.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
 
-            if (!param.check_param_is_valid(param._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                continue;
-            }
+        if (notifyable_vars && notifyable_vars.length) {
+            let vars_to_notif: VarDataValueResVO[] = [];
+            notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
-            // TODO FIXME promises.length
-            if (promises.length >= 10) {
-                await Promise.all(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
-
-                let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
-                if (!in_db_data) {
-                    needs_var_computation = true;
-                    return;
-                }
-
-                vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
-            })());
-        }
-
-        await Promise.all(promises);
-
-        if (vars_to_notif && vars_to_notif.length) {
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
         }
+
+
+
+
+
+        // let promises = [];
+
+        // let vars_to_notif: VarDataValueResVO[] = [];
+        // let needs_var_computation: boolean = false;
+        // for (let i in params) {
+        //     let param = params[i];
+
+        //     if (!param.check_param_is_valid(param._type)) {
+        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         continue;
+        //     }
+
+        //     // TODO FIXME promises.length
+        //     if (promises.length >= 10) {
+        //         await Promise.all(promises);
+        //         promises = [];
+        //     }
+
+        //     promises.push((async () => {
+
+        //         let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
+        //         if (!in_db_data) {
+        //             needs_var_computation = true;
+        //             return;
+        //         }
+
+        //         vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
+        //     })());
+        // }
+
+        // await Promise.all(promises);
+
+        // if (vars_to_notif && vars_to_notif.length) {
+        //     await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
+        // }
     }
 
     /**

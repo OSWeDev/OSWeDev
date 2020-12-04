@@ -1,5 +1,6 @@
 import { throttle } from 'lodash';
 import { performance } from 'perf_hooks';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -21,6 +22,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         return VarsdatasComputerBGThread.instance;
     }
 
+    private static PARAM_NAME_request_limit: string = 'VarsdatasComputerBGThread.request_limit';
     private static instance: VarsdatasComputerBGThread = null;
 
     // public current_timeout: number = 100;
@@ -29,8 +31,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public current_timeout: number = 1000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 1;
-
-    public request_limit: number = 50;
 
     // private enabled: boolean = true;
     // private invalidations: number = 0;
@@ -85,6 +85,12 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             }
             this.semaphore = true;
 
+            let request_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_request_limit);
+            if (!request_limit) {
+                await ModuleParams.getInstance().setParamValueAsNumber(VarsdatasComputerBGThread.PARAM_NAME_request_limit, 100);
+                request_limit = 100;
+            }
+
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
              *  soit on fait un batch par appel au bgthread soit on dépile x vars, soit on se donne x ms et on essaie d'estimer le temps de calcul en fonction des vars en attente, ...
@@ -92,55 +98,37 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *      de temps par batch qu'on veut se donner (si le plus efficace c'est de calculer toute la base d'un coup mais que ça prend 1H on fera pas ça dans tous les cas)
              */
 
+            /**
+             * On commence par mettre à jour la bdd si nécessaire
+             */
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", true);
+            await VarsDatasProxy.getInstance().handle_buffer();
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
+
             VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.selection"], true);
-            let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(this.request_limit);
+            let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(request_limit);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
 
             if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
 
                 /**
-                 * Si on a rien à dépiler, alors là on peut prendre le temps de vider une partie du buffer avant de rendre la main.
-                 */
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", true);
-                let remaining: number = await VarsDatasProxy.getInstance().handle_buffer(500);
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
-
-                if (!remaining) {
-                    VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", false);
-
-                    if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
-                        // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread VarsDatasProxy : took [' +
-                        //     VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
-                        //     VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasProxy.buffer"].sum_ms + ' ms] VarsDatasProxy');
-                        await VarsPerfsController.update_perfs_in_bdd();
-                    }
-
-                    this.semaphore = false;
-                    return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
-                }
-
-                /**
-                 * Si on a vidé le buffer également, on peut aussi dépiler les CUD sur les VOs et faire les invalidations
+                 * On dépile les CUD sur les VOs et faire les invalidations
                  */
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
-                remaining = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(null);
+                let has_done_something = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
                 VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"], false);
 
-                if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
-                    // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread VarsDatasProxy && VarsDatasVoUpdateHandler : took [' +
-                    //     VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
-                    //     VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasProxy.buffer"].sum_ms + ' ms] VarsDatasProxy, [' +
-                    //     VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"].sum_ms + ' ms] VarsDatasVoUpdateHandler');
+                if (has_done_something && ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                     await VarsPerfsController.update_perfs_in_bdd();
                 }
 
-                if (remaining == null) {
-                    this.semaphore = false;
+                this.semaphore = false;
+
+                if (has_done_something) {
+                    return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+                } else {
                     return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
                 }
-
-                this.semaphore = false;
-                return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
 
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);

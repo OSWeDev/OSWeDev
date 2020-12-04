@@ -1,8 +1,6 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleVarServer from './ModuleVarServer';
-import VarsServerController from './VarsServerController';
 
 export default class VarsServerCallBackSubsController {
 
@@ -31,38 +29,69 @@ export default class VarsServerCallBackSubsController {
         ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
     }
 
-    /**
-     * WARN : Only on main thread (express).
-     * ATTENTION ne doit être appelé que depuis le thread principal
-     */
-    public async get_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
-        ForkedTasksController.getInstance().assert_is_main_process();
+    // /**
+    //  * WARN : Only on main thread (express).
+    //  * ATTENTION ne doit être appelé que depuis le thread principal
+    //  */
+    // public async get_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
+    //     ForkedTasksController.getInstance().assert_is_main_process();
 
-        if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-            return;
-        }
+    //     if (!param.check_param_is_valid(param._type)) {
+    //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+    //         return;
+    //     }
 
-        let self = this;
+    //     let notifyable_vars: VarDataBaseVO[]
+    //     let needs_computation: VarDataBaseVO[]
 
-        return new Promise(async (resolve, reject) => {
+    //     let self = this;
 
-            let cb = (data: VarDataBaseVO) => {
-                resolve(data);
-            };
+    //     return new Promise(async (resolve, reject) => {
 
-            if (!self._cb_subs[param.index]) {
-                self._cb_subs[param.index] = [];
-            }
-            self._cb_subs[param.index].push(cb);
+    //         let cb = (data: VarDataBaseVO) => {
+    //             resolve(data);
+    //         };
 
-            let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
-            if (in_db_data && VarsServerController.getInstance().has_valid_value(in_db_data)) {
-                self.notify_vardatas([in_db_data]);
-                return;
-            }
-        });
-    }
+    //         if (!self._cb_subs[param.index]) {
+    //             self._cb_subs[param.index] = [];
+    //         }
+    //         self._cb_subs[param.index].push(cb);
+
+    //         let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
+    //         if (in_db_data && VarsServerController.getInstance().has_valid_value(in_db_data)) {
+    //             self.notify_vardatas([in_db_data]);
+    //             return;
+    //         }
+    //     });
+    // }
+
+    // /**
+    //  * WARN : Only on main thread (express).
+    //  * ATTENTION ne doit être appelé que depuis le thread principal
+    //  */
+    // public async wait_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
+    //     ForkedTasksController.getInstance().assert_is_main_process();
+
+    //     let self = this;
+
+    //     return new Promise(async (resolve, reject) => {
+
+    //         let cb = (data: VarDataBaseVO) => {
+    //             resolve(data);
+    //         };
+
+    //         if (!self._cb_subs[param.index]) {
+    //             self._cb_subs[param.index] = [];
+    //         }
+    //         self._cb_subs[param.index].push(cb);
+
+    //         let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
+    //         if (in_db_data && VarsServerController.getInstance().has_valid_value(in_db_data)) {
+    //             self.notify_vardatas([in_db_data]);
+    //             return;
+    //         }
+    //     });
+    // }
 
     /**
      * WARN : Only on main thread (express).
@@ -72,23 +101,89 @@ export default class VarsServerCallBackSubsController {
         ForkedTasksController.getInstance().assert_is_main_process();
 
         let res: { [index: string]: VarDataBaseVO } = {};
+
+        let notifyable_vars: VarDataBaseVO[] = [];
+        let needs_computation: VarDataBaseVO[] = [];
+
+        if ((!params) || (!params.length)) {
+            return;
+        }
+
+        let self = this;
         let promises = [];
 
-        for (let i in params) {
-            let param = params[i];
+        params.forEach((param) => {
 
-            // TODO FIXME promises.length
-            if (promises.length >= 10) {
-                await Promise.all(promises);
-                promises = [];
+            let cb = null;
+            let promise = new Promise(async (resolve, reject) => {
+
+                cb = (data: VarDataBaseVO) => {
+                    res[data.index] = data;
+                    resolve(data);
+                };
+            });
+
+            if (!self._cb_subs[param.index]) {
+                self._cb_subs[param.index] = [];
             }
+            self._cb_subs[param.index].push(cb);
 
-            promises.push((async () => res[param.index] = await this.get_var_data(param))());
+            promises.push(promise);
+        });
+
+        await ModuleVarServer.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
+
+        if (notifyable_vars && notifyable_vars.length) {
+            this.notify_vardatas(notifyable_vars);
         }
 
         await Promise.all(promises);
+
         return res;
     }
+
+    /**
+     * WARN : Only on main thread (express).
+     * ATTENTION ne doit être appelé que depuis le thread principal
+     */
+    public async get_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        let res: VarDataBaseVO = null;
+
+        let notifyable_vars: VarDataBaseVO[] = [];
+        let needs_computation: VarDataBaseVO[] = [];
+
+        if (!param) {
+            return;
+        }
+
+        let self = this;
+        let cb = null;
+        let promise = new Promise(async (resolve, reject) => {
+
+            cb = (data: VarDataBaseVO) => {
+                res = data;
+                resolve(data);
+            };
+        });
+
+        if (!self._cb_subs[param.index]) {
+            self._cb_subs[param.index] = [];
+        }
+        self._cb_subs[param.index].push(cb);
+
+        await ModuleVarServer.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation);
+
+        if (notifyable_vars && notifyable_vars.length) {
+            this.notify_vardatas(notifyable_vars);
+        }
+
+        await promise;
+
+        return res;
+    }
+
 
 
     /**

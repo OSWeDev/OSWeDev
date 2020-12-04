@@ -85,7 +85,7 @@ export default class ModuleParams extends Module {
     public async getParamValueAsInt(param_name: string): Promise<number> {
         let res = await this.getParamValue(param_name);
 
-        return res ? parseInt(res) : null;
+        return (res != null) ? parseInt(res) : null;
     }
 
     public async getParamValueAsBoolean(param_name: string): Promise<boolean> {
@@ -97,7 +97,7 @@ export default class ModuleParams extends Module {
     public async getParamValueAsFloat(param_name: string): Promise<number> {
         let res = await this.getParamValue(param_name);
 
-        return res ? parseFloat(res) : null;
+        return (res != null) ? parseFloat(res) : null;
     }
 
     public async setParamValue(param_name: string, param_value: string): Promise<void> {

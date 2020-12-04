@@ -86,6 +86,7 @@ export default class ModuleTableField<T> {
     public max_values: number = 999;
 
     public is_indexed: boolean = false;
+    public is_unique: boolean = false;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -166,6 +167,11 @@ export default class ModuleTableField<T> {
 
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
         this.segmentation_type = segmentation_type;
+        return this;
+    }
+
+    public unique(): ModuleTableField<T> {
+        this.is_unique = true;
         return this;
     }
 
@@ -306,11 +312,11 @@ export default class ModuleTableField<T> {
                 TypesHandler.getInstance().isNull(default_value) || TypesHandler.getInstance().isNumber(default_value) || TypesHandler.getInstance().isBoolean(default_value))) {
                 default_value = "'" + default_value.replace(/'/ig, "''") + "'";
             }
-            return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '');
+            return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '') + (this.is_unique ? ' UNIQUE' : '');
         } catch (error) {
             ConsoleHandler.getInstance().error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
         }
-        return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '');
+        return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.is_unique ? ' UNIQUE' : '');
     }
 
     public getPGSqlFieldIndex(database_name: string, table_name: string) {
