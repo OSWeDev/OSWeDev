@@ -1,0 +1,9 @@
+.container_mms
+    template(v-if="field_values", v-for="(mm, index) in field_values")
+        .mm_item(:mm="index")
+            template(v-for="field in fields")
+                Datatablecomponentfield(
+                    :field="field",
+                    :vo="mm",
+                    :show_label="true"
+                )
