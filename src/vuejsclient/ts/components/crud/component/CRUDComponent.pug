@@ -6,7 +6,7 @@ include ../../../../views/mixins/loading.pug
             .table-title
                 h5(v-if='!embed') {{ CRUDTitle }}
                 .btn-group.d-print-none
-                    button.btn.btn-sm.btn-danger.m-1(v-if='!embed', @click='delete_all()')
+                    button.btn.btn-sm.btn-danger.m-1(v-if='(!embed) && can_delete_all', @click='delete_all()')
                         i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('crud.actions.delete_all') }}
                     button.btn.btn-sm.btn-secondary.m-1(v-if='!embed', @click='reload_datas()')

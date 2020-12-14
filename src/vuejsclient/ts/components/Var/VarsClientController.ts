@@ -25,8 +25,8 @@ export default class VarsClientController {
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
 
-    public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 100, { leading: false });
-    public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false });
+    public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 250, { leading: false });
+    public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 2000, { leading: false });
 
     private timeout_check_registrations: number = 30000;
 

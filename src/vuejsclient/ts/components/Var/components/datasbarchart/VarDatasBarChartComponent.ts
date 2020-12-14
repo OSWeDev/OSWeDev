@@ -1,6 +1,7 @@
 import { Bar } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarsBarDataSetDescriptor';
+import MainAggregateOperatorsHandlers from '../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -34,6 +35,12 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
     private rendered = false;
 
+    public mounted() {
+        if (this.all_data_loaded) {
+            setTimeout(this.render_chart_js, 500);
+        }
+    }
+
     public destroyed() {
 
         for (let j in this.var_dataset_descriptors) {
@@ -43,6 +50,10 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
                 VarsClientController.getInstance().unRegisterParams(var_dataset_descriptor.vars_params_by_label_index[label_index]);
             }
+        }
+        if (!!this.rendered) {
+            // Issu de Bar
+            this.$data._chart.destroy();
         }
     }
 
@@ -120,7 +131,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         return var_dataset_descriptor.filter.apply(null, params);
     }
 
-    @Watch('var_dataset_descriptor', { immediate: true, deep: true })
+    @Watch('var_dataset_descriptors', { immediate: true, deep: true })
     private onChange_var_dataset_descriptor(new_datasets: VarsBarDataSetDescriptor[], old_datasets: VarsBarDataSetDescriptor[]) {
 
         let new_var_params = this.get_all_datas(new_datasets);
@@ -145,7 +156,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     @Watch("all_data_loaded")
     private onchange_all_data_loaded() {
         if (this.all_data_loaded) {
-            this.render_chart_js();
+            setTimeout(this.render_chart_js, 500);
         }
     }
 
@@ -202,11 +213,16 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 let label_values: number[] = [];
                 for (let j in var_params) {
                     let var_param: VarDataBaseVO = var_params[j];
-                    let var_data_value: number = this.get_filtered_value(this.getVarDatas[var_param.index], var_dataset_descriptor);
-                    label_values.push(var_data_value);
+                    let var_data_value: number = this.getVarDatas[var_param.index].value;
+
+                    if ((!!var_dataset_descriptor.var_value_filter) && !var_dataset_descriptor.var_value_filter(var_param, var_data_value)) {
+                        label_values.push(null);
+                    } else {
+                        label_values.push(var_data_value);
+                    }
                 }
 
-                let value = var_dataset_descriptor.var_value_callback(label_values);
+                let value = var_dataset_descriptor.var_value_callback ? var_dataset_descriptor.var_value_callback(label_values) : MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM(label_values);
 
                 if (var_dataset_descriptor.filter) {
                     value = (var_dataset_descriptor.filter_additional_params && var_dataset_descriptor.filter_additional_params.length) ?

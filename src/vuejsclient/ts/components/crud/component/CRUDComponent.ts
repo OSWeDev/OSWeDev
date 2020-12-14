@@ -108,6 +108,7 @@ export default class CRUDComponent extends VueComponentBase {
     private api_types_involved: string[] = [];
 
     private can_access_vocus: boolean = false;
+    private can_delete_all: boolean = false;
 
     private creating_vo: boolean = false;
     private updating_vo: boolean = false;
@@ -256,6 +257,7 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.can_access_vocus = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS);
+        this.can_delete_all = await ModuleAccessPolicy.getInstance().checkAccess(this.crud.delete_all_access_right);
 
         await Promise.all(this.loadDatasFromDatatable(this.crud.readDatatable));
         this.nextLoadingStep();

@@ -242,7 +242,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             // this.set_chartData();
             // this.set_chartOptions();
 
-            this.render_chart_js();
+            setTimeout(this.render_chart_js, 500);
         }
     }
 

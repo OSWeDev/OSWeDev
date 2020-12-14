@@ -178,12 +178,26 @@ export default class VarsComputeController {
      */
     private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<DAG<VarDAGNode>> {
         let var_dag: DAG<VarDAGNode> = new DAG();
+        let deployed_vars_datas: { [index: string]: boolean } = {};
 
-        for (let i in vars_datas) {
-            let var_data: VarDataBaseVO = vars_datas[i];
+        let vars_datas_as_array: VarDataBaseVO[] = Object.values(vars_datas);
+        let promises = [];
+        let i = 0;
 
-            await this.deploy_deps(VarDAGNode.getInstance(var_dag, var_data), vars_datas, ds_cache);
+        while (i < vars_datas_as_array.length) {
+
+            /**
+             * On fait des packs de 10 promises...
+             */
+            if (i >= 10) {
+                await Promise.all(promises);
+            }
+
+            promises.push(this.deploy_deps(VarDAGNode.getInstance(var_dag, vars_datas_as_array[i]), deployed_vars_datas, vars_datas, ds_cache));
+
+            i++;
         }
+        await Promise.all(promises);
 
         return var_dag;
     }
@@ -206,7 +220,16 @@ export default class VarsComputeController {
      * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on ne peut pas vouloir donner un import complet en résultat, donc inutile de faire cette recherche
      *  par contre un import partiel oui
      */
-    private async deploy_deps(node: VarDAGNode, vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+    private async deploy_deps(
+        node: VarDAGNode,
+        deployed_vars_datas: { [index: string]: boolean },
+        vars_datas: { [index: string]: VarDataBaseVO },
+        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+
+        if (deployed_vars_datas[node.var_data.index]) {
+            return;
+        }
+        deployed_vars_datas[node.var_data.index] = true;
 
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", true);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
@@ -267,19 +290,36 @@ export default class VarsComputeController {
         }
 
         // Si on est sur un aggrégateur, on déploie les deps des noeuds restants à calculer
-        if (node.is_aggregator) {
+        if (node.is_aggregator && node.aggregated_nodes) {
 
             VarsPerfsController.addPerfs(performance.now(), [
                 "__computing_bg_thread.compute.create_tree.is_aggregator",
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.is_aggregator"
             ], true);
 
-            for (let i in node.aggregated_nodes) {
-                let aggregated_node = node.aggregated_nodes[i];
+            let promises = [];
+            let aggregated_nodes_as_array = Object.values(node.aggregated_nodes);
+            let i = 0;
+
+            while (i < aggregated_nodes_as_array.length) {
+
+                /**
+                 * On fait des packs de 10 promises...
+                 */
+                if (promises.length >= 10) {
+                    await Promise.all(promises);
+                }
+                let aggregated_node = aggregated_nodes_as_array[i];
 
                 if (!VarsServerController.getInstance().has_valid_value(aggregated_node.var_data)) {
-                    await this.deploy_deps(aggregated_node, vars_datas, ds_cache);
+                    promises.push(this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache));
                 }
+
+                i++;
+            }
+
+            if (promises.length) {
+                await Promise.all(promises);
             }
 
             VarsPerfsController.addPerfs(performance.now(), [
@@ -303,11 +343,38 @@ export default class VarsComputeController {
             node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.ds_cache"
         ], false);
 
-        for (let dep_id in deps) {
-            let dep = deps[dep_id];
+        if (deps) {
+            await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
+        }
+
+        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+    }
+
+    private async handle_deploy_deps(
+        node: VarDAGNode,
+        deps: { [index: string]: VarDataBaseVO },
+        deployed_vars_datas: { [index: string]: boolean },
+        vars_datas: { [index: string]: VarDataBaseVO },
+        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        let deps_promises = [];
+        let deps_as_array = Object.values(deps);
+        let deps_ids_as_array = Object.keys(deps);
+        let deps_i = 0;
+
+        while (deps_i < deps_as_array.length) {
+
+            /**
+             * On fait des packs de 10 promises...
+             */
+            if (deps_promises.length >= 10) {
+                await Promise.all(deps_promises);
+            }
+            let dep = deps_as_array[deps_i];
+            let dep_id = deps_ids_as_array[deps_i];
 
             if (node.dag.nodes[dep.index]) {
                 node.addOutgoingDep(dep_id, node.dag.nodes[dep.index]);
+                deps_i++;
                 continue;
             }
 
@@ -342,11 +409,15 @@ export default class VarsComputeController {
             if (!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
 
                 VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
-                await this.deploy_deps(dep_node, vars_datas, ds_cache);
+                deps_promises.push(this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache));
             }
+
+            deps_i++;
         }
 
-        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+        if (deps_promises.length) {
+            await Promise.all(deps_promises);
+        }
     }
 
     private async try_load_cache_complet(node: VarDAGNode) {
