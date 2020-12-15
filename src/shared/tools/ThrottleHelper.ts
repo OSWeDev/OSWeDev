@@ -17,6 +17,7 @@ export default class ThrottleHelper {
     protected throttles: { [throttle_id: number]: ((...args: any) => any) & Cancelable } = {};
     protected throttles_mappable_args: { [throttle_id: number]: { [map_elt_id: string]: any } } = {};
     protected throttles_stackable_args: { [throttle_id: number]: any[] } = {};
+    protected throttles_semaphore: { [throttle_id: number]: boolean } = {};
 
     private constructor() { }
 
@@ -26,10 +27,12 @@ export default class ThrottleHelper {
         options?: ThrottleSettings) {
 
         let UID = this.UID++;
+        let self = this;
         this.throttles[UID] = throttle(() => {
 
-            let params = this.throttles_mappable_args[UID];
-            this.throttles_mappable_args[UID] = {};
+            let params = self.throttles_mappable_args[UID];
+            self.throttles_mappable_args[UID] = {};
+            self.throttles_semaphore[UID] = false;
             func(params);
         }, wait, options);
 
@@ -65,7 +68,10 @@ export default class ThrottleHelper {
             this.throttles_mappable_args[throttle_id] = Object.assign(this.throttles_mappable_args[throttle_id], mappable_args);
         }
 
-        this.throttles[throttle_id]();
+        if (!this.throttles_semaphore[throttle_id]) {
+            this.throttles_semaphore[throttle_id] = true;
+            this.throttles[throttle_id]();
+        }
     }
 
     private throttle_with_stackable_args(throttle_id: number, stackable_args: any[]) {

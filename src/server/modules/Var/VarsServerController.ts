@@ -235,6 +235,10 @@ export default class VarsServerController {
         for (let i in varDAGNode.outgoing_deps) {
             let outgoing = varDAGNode.outgoing_deps[i];
 
+            if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
+                continue;
+            }
+
             let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
             let value = var_data ? var_data.value : null;
             if ((!var_data) || (isNaN(value))) {

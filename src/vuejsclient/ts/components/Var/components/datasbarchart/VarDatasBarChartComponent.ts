@@ -10,6 +10,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
+import debounce from 'lodash/debounce';
 
 @Component({
     extends: Bar
@@ -21,9 +22,6 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     @ModuleVarGetter
     public isDescMode: boolean;
 
-    /**
-     * TODO FIXME DIRTY : cas particulier des vars_params où l'on ne veut pas trimballer le var_id, on veut juste identifier les segments sur axis
-     */
     @Prop({ default: null })
     public labels: string[];
 
@@ -34,23 +32,17 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     public options: any;
 
     private rendered = false;
+    private debounced_render_chart_js = debounce(this.render_chart_js, 2000);
 
     public mounted() {
         if (this.all_data_loaded) {
-            setTimeout(this.render_chart_js, 500);
+            this.debounced_render_chart_js();
         }
     }
 
     public destroyed() {
 
-        for (let j in this.var_dataset_descriptors) {
-            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
-
-            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
-
-                VarsClientController.getInstance().unRegisterParams(var_dataset_descriptor.vars_params_by_label_index[label_index]);
-            }
-        }
+        VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors));
         if (!!this.rendered) {
             // Issu de Bar
             this.$data._chart.destroy();
@@ -107,6 +99,32 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         return Object.values(res);
     }
 
+    get get_all_values(): { [index: string]: VarDataValueResVO } {
+
+        let res: { [index: string]: VarDataValueResVO } = {};
+
+        if ((!this.var_dataset_descriptors) || (!this.var_dataset_descriptors.length)) {
+            return null;
+        }
+
+        for (let j in this.var_dataset_descriptors) {
+            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
+
+            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
+                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
+
+                for (let i in var_params) {
+                    let var_param = var_params[i];
+                    let var_data_value: VarDataValueResVO = this.getVarDatas[var_param.index];
+
+                    res[var_param.index] = var_data_value;
+                }
+            }
+        }
+
+        return res;
+    }
+
     private get_filtered_value(var_data: VarDataValueResVO, var_dataset_descriptor: VarsBarDataSetDescriptor) {
 
         if (!var_data) {
@@ -154,9 +172,10 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     }
 
     @Watch("all_data_loaded")
+    @Watch('get_all_values', { deep: true })
     private onchange_all_data_loaded() {
         if (this.all_data_loaded) {
-            setTimeout(this.render_chart_js, 500);
+            this.debounced_render_chart_js();
         }
     }
 
@@ -275,7 +294,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.getInstance().warn('PB:render Bar Chart probablement trop tôt:' + error);
             this.rendered = false;
-            setTimeout(this.render_chart_js, 500);
+            this.debounced_render_chart_js();
         }
     }
 }

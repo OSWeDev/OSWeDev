@@ -14,8 +14,6 @@ export default class VarDataRefComponent extends VueComponentBase {
     public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public getDescSelectedVarParam: VarDataBaseVO;
-    @ModuleVarGetter
-    public get_dependencies_heatmap_version: number;
     @ModuleVarAction
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
     @ModuleVarGetter
