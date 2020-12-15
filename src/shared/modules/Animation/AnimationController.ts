@@ -27,7 +27,7 @@ export default class AnimationController {
                 let reponses: AnimationReponseVO[] = JSON.parse(vo.reponses);
 
                 for (let obj of reponses) {
-                    obj.weight = (obj.weight) ? parseFloat(obj.weight.toString()) : null;
+                    obj.weight = (obj.weight != null) ? parseFloat(obj.weight.toString()) : null;
                     obj.id = (obj.id) ? parseFloat(obj.id.toString()) : null;
 
                     if (obj.valid && (obj.valid as any) != '') {
@@ -52,8 +52,8 @@ export default class AnimationController {
                 let messages: AnimationMessageModuleVO[] = JSON.parse(vo.messages);
 
                 for (let obj of messages) {
-                    obj.min = (obj.max) ? parseFloat(obj.max.toString()) : null;
-                    obj.max = (obj.min) ? parseFloat(obj.min.toString()) : null;
+                    obj.min = (obj.min != null) ? parseFloat(obj.min.toString()) : null;
+                    obj.max = (obj.max != null) ? parseFloat(obj.max.toString()) : null;
                     obj.id = (obj.id) ? parseFloat(obj.id.toString()) : null;
                 }
 

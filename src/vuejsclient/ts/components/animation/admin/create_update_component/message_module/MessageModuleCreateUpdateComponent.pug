@@ -1,7 +1,7 @@
 .container_reponses
     template(v-for="(reponse, index) in field_values")
-        .reponse_item(:reponse="index")
-            h2 {{ label('crud.container_reponses.numero') }} {{ index + 1 }}
+        fieldset.reponse_item(:reponse="index")
+            legend {{ label('crud.container_reponses.numero') }} {{ index + 1 }}
             template(v-for="field in fields")
                 Crudcomponentfield(
                     :field="field",
@@ -11,5 +11,5 @@
                     :auto_update_field_value='true',
                 )
 
-            .btn.btn-danger(v-if='!readonly', @click="remove(index)") {{ label('crud.field.custom_field.remove_item') }}
-    .btn.btn-success(v-if='!readonly', @click="add") {{ label('crud.field.custom_field.add') }}
+            .btn.btn-danger(@click="remove(index)") {{ label('crud.field.custom_field.remove_item') }}
+    .btn.btn-success.mt-2(@click="add") {{ label('crud.field.custom_field.add') }}

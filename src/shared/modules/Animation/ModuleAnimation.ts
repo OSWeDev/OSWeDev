@@ -1,5 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -115,10 +116,10 @@ export default class ModuleAnimation extends Module {
 
         let fields = [
             name_field,
-            new ModuleTableField('like', ModuleTableField.FIELD_TYPE_boolean, "Like"),
+            new ModuleTableField('like_vote', ModuleTableField.FIELD_TYPE_boolean, "Like"),
             new ModuleTableField('commentaire', ModuleTableField.FIELD_TYPE_html, "Commentaire"),
-            new ModuleTableField('start', ModuleTableField.FIELD_TYPE_tstz, "Début"),
-            new ModuleTableField('end', ModuleTableField.FIELD_TYPE_tstz, "Fin"),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
             module_id_field,
             user_id_field,
         ];

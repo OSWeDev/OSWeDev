@@ -22,23 +22,23 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private user_qrs: AnimationUserQRVO[] = null;
     private user_id: number = null;
 
-    @Watch('theme_id')
     @Watch('module_id')
     private async reloadAsyncDatas() {
-        if (!this.theme_id || !this.module_id) {
+        if (!this.module_id) {
             return;
         }
 
         let promises = [];
 
         promises.push((async () => this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
-        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.theme_id))());
         promises.push((async () => this.module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
 
         await Promise.all(promises);
 
         promises = [];
+
+        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.module.theme_id))());
 
         promises.push((async () => this.user_module = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
             AnimationUserModuleVO.API_TYPE_ID,
@@ -63,10 +63,6 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     private async mounted() {
         this.reloadAsyncDatas();
-    }
-
-    get theme_id(): number {
-        return (this.$route.params && this.$route.params.theme_id) ? parseInt(this.$route.params.theme_id) : null;
     }
 
     get module_id(): number {

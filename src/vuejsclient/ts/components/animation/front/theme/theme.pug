@@ -1,2 +1,15 @@
 
 .rootElt.theme
+    template(v-if="theme")
+        h1 {{ theme.name }}
+        .description(v-if="theme.description", v-html="theme.description")
+
+    template(v-if="modules && modules.length > 0")
+        .row.modules
+            template(v-for="module in ordered_modules")
+                .module.col-md-3
+                    .type {{ get_type_module(module) }}
+                    .name {{ module.name }}
+                    .description(v-if="module.description", v-html="module.description")
+                    .link
+                        router-link(tag="a", :to="get_route_module(module)") {{ label('animation.link') }}

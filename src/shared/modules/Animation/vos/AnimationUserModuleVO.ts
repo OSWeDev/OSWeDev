@@ -8,10 +8,10 @@ export default class AnimationUserModuleVO implements IDistantVOBase {
     public id: number;
     public _type: string = AnimationUserModuleVO.API_TYPE_ID;
 
-    public like: boolean;
+    public like_vote: boolean;
     public commentaire: string;
-    public start: Moment;
-    public end: Moment;
+    public start_date: Moment;
+    public end_date: Moment;
 
     public module_id: number;
     public user_id: number;

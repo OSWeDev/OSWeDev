@@ -11,7 +11,7 @@ export default class AnimationMessageModuleVO {
         let datatable_fields = [
             new ModuleTableField('min', ModuleTableField.FIELD_TYPE_prct, "Min"),
             new ModuleTableField('max', ModuleTableField.FIELD_TYPE_prct, "Max"),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, "Message"),
+            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_html, "Message"),
         ];
 
         return new ModuleTable(ModuleAnimation.getInstance(), AnimationMessageModuleVO.API_TYPE_ID, null, datatable_fields, null);

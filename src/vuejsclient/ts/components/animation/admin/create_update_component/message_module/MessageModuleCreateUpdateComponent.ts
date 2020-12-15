@@ -26,7 +26,6 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
     public disabled: boolean;
 
     private field_values: AnimationMessageModuleVO[] = [];
-    private readonly: boolean;
 
     @Watch('vo', { immediate: true })
     private init_field_values() {
@@ -44,14 +43,6 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
             let res: AnimationMessageModuleVO = new AnimationMessageModuleVO();
             res.id = this.next_id;
             this.field_values.push(res);
-        }
-
-        this.readonly = !!this.vo.id;
-
-        if (this.fields) {
-            for (let i in this.fields) {
-                this.fields[i].is_readonly = this.readonly;
-            }
         }
     }
 

@@ -30,11 +30,10 @@ export default class AnimationVueModule extends VueModuleBase {
                 theme_id: parseInt(route.params.theme_id),
             })
         }, {
-            path: '/animation/theme/:theme_id/module/:module_id',
+            path: '/animation/module/:module_id',
             name: AnimationController.ROUTE_NAME_ANIMATION_MODULE,
             component: () => import(/* webpackChunkName: "VueAnimationModuleComponent" */ "./module/module"),
             props: (route) => ({
-                theme_id: parseInt(route.params.theme_id),
                 module_id: parseInt(route.params.module_id),
             })
         }];

@@ -26,7 +26,6 @@ export default class ReponseCreateUpdateComponent extends VueComponentBase imple
     public disabled: boolean;
 
     private field_values: AnimationReponseVO[] = [];
-    private readonly: boolean;
 
     @Watch('vo', { immediate: true })
     private init_field_values() {
@@ -44,14 +43,6 @@ export default class ReponseCreateUpdateComponent extends VueComponentBase imple
             let res: AnimationReponseVO = new AnimationReponseVO();
             res.id = this.next_id;
             this.field_values.push(res);
-        }
-
-        this.readonly = !!this.vo.id;
-
-        if (this.fields) {
-            for (let i in this.fields) {
-                this.fields[i].is_readonly = this.readonly;
-            }
         }
     }
 

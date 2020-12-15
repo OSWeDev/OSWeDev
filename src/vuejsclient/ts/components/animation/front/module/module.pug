@@ -1,2 +1,5 @@
 
 .rootElt.module
+    template(v-if="theme && module")
+        h1 {{ theme.name }} - {{ module.name }}
+        .description(v-if="module.description", v-html="module.description")
