@@ -11,7 +11,9 @@ mixin var_data_content()
 
                         template(v-if='(var_data_value === 0) && zero_value_replacement')
                             template {{ zero_value_replacement }}
-                        template(v-if='(var_data_value !== 0) || ((var_data_value === 0) && (!zero_value_replacement))')
+                        template(v-else-if='(var_data_value === null) && null_value_replacement')
+                            template {{ null_value_replacement }}
+                        template(v-else-if='(var_data_value !== 0) || ((var_data_value === 0) && (!zero_value_replacement))')
                             template(v-if="filter") {{ filtered_value }}
                             template(v-if="(!filter)") {{ var_data_value }}
 
