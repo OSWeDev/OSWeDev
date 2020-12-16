@@ -1,27 +1,23 @@
-export default class APIDAORefFieldsAndFieldsStringParamsVO {
+import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
+
+export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParamTranslator<APIDAORefFieldsAndFieldsStringParamsVO> {
 
     public static URL: string = ':api_type_id/:field_name1/:ids1/:field_name2/:values2/:field_name3/:values3';
 
-    public static async translateCheckAccessParams(
+    public static fromParams(
         API_TYPE_ID: string,
         field_name1: string,
         ids1: number[],
-        field_name2: string,
-        values2: string[],
-        field_name3: string,
-        values3: string[]): Promise<APIDAORefFieldsAndFieldsStringParamsVO> {
+        field_name2: string = null,
+        values2: string[] = null,
+        field_name3: string = null,
+        values3: string[] = null): APIDAORefFieldsAndFieldsStringParamsVO {
 
         return new APIDAORefFieldsAndFieldsStringParamsVO(API_TYPE_ID, field_name1, ids1, field_name2, values2, field_name3, values3);
     }
 
-    public static async translateToURL(param: APIDAORefFieldsAndFieldsStringParamsVO): Promise<string> {
-
-        return param ? param.API_TYPE_ID
-            + '/' + (param.field_name1 ? param.field_name1 : '_') + '/' + ((param.ids1 && param.field_name1) ? param.ids1.join('_') : '_')
-            + '/' + (param.field_name2 ? param.field_name2 : '_') + '/' + ((param.values2 && param.field_name2) ? param.values2.join('_') : '_')
-            + '/' + (param.field_name3 ? param.field_name3 : '_') + '/' + ((param.values3 && param.field_name3) ? param.values3.join('_') : '_') : '';
-    }
-    public static async translateFromREQ(req): Promise<APIDAORefFieldsAndFieldsStringParamsVO> {
+    public static fromREQ(req): APIDAORefFieldsAndFieldsStringParamsVO {
 
         if (!(req && req.params)) {
             return null;
@@ -61,9 +57,31 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO {
         public API_TYPE_ID: string,
         public field_name1: string,
         public ids1: number[],
-        public field_name2: string,
-        public values2: string[],
-        public field_name3: string,
-        public values3: string[]) {
+        public field_name2: string = null,
+        public values2: string[] = null,
+        public field_name3: string = null,
+        public values3: string[] = null) {
+    }
+
+    public getAPIParams(): any[] {
+        return [
+            this.API_TYPE_ID,
+            this.field_name1,
+            this.ids1,
+            this.field_name2,
+            this.values2,
+            this.field_name3,
+            this.values3
+        ];
+    }
+
+    public translateToURL(): string {
+
+        return this.API_TYPE_ID
+            + '/' + (this.field_name1 ? this.field_name1 : '_') + '/' + ((this.ids1 && this.field_name1) ? this.ids1.join('_') : '_')
+            + '/' + (this.field_name2 ? this.field_name2 : '_') + '/' + ((this.values2 && this.field_name2) ? this.values2.join('_') : '_')
+            + '/' + (this.field_name3 ? this.field_name3 : '_') + '/' + ((this.values3 && this.field_name3) ? this.values3.join('_') : '_');
     }
 }
+
+export const APIDAORefFieldsAndFieldsStringParamsVOStatic: IAPIParamTranslatorStatic<APIDAORefFieldsAndFieldsStringParamsVO> = APIDAORefFieldsAndFieldsStringParamsVO;

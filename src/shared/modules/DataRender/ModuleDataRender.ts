@@ -1,5 +1,5 @@
 import ModuleAPI from '../API/ModuleAPI';
-import StringParamVO from '../API/vos/apis/StringParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -26,6 +26,11 @@ export default class ModuleDataRender extends Module {
 
     private static instance: ModuleDataRender = null;
 
+    public getDataRenderers: () => Promise<DataRendererVO[]> = ModuleAPI.sah(ModuleDataRender.APINAME_GET_DATA_RENDERERS);
+    public getDataRenderer: (renderer_name: string) => Promise<DataRendererVO> = ModuleAPI.sah(ModuleDataRender.APINAME_GET_DATA_RENDERER);
+    public getDataRenderingLogs: () => Promise<DataRenderingLogVO[]> = ModuleAPI.sah(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS);
+    public getLatestAvailableSegment: (api_name: string) => Promise<TimeSegment> = ModuleAPI.sah(ModuleDataRender.APINAME_getLatestAvailableSegment);
+
     private constructor() {
 
         super("data_render", "DataRender");
@@ -43,10 +48,7 @@ export default class ModuleDataRender extends Module {
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERER,
             [DataRendererVO.API_TYPE_ID],
-            StringParamVO.translateCheckAccessParams,
-            StringParamVO.URL,
-            StringParamVO.translateToURL,
-            StringParamVO.translateFromREQ
+            StringParamVOStatic
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
             null,
@@ -57,15 +59,8 @@ export default class ModuleDataRender extends Module {
             null,
             ModuleDataRender.APINAME_getLatestAvailableSegment,
             [DataRendererVO.API_TYPE_ID],
-            StringParamVO.translateCheckAccessParams,
-            StringParamVO.URL,
-            StringParamVO.translateToURL,
-            StringParamVO.translateFromREQ
+            StringParamVOStatic
         ));
-    }
-
-    public async getLatestAvailableSegment(api_name: string): Promise<TimeSegment> {
-        return await ModuleAPI.getInstance().handleAPI<StringParamVO, TimeSegment>(ModuleDataRender.APINAME_getLatestAvailableSegment, api_name);
     }
 
     /**
@@ -99,18 +94,6 @@ export default class ModuleDataRender extends Module {
      */
     public getPrct(value_a: number, value_b: number): number {
         return DataRenderController.getInstance().getPrct(value_a, value_b);
-    }
-
-    public async getDataRenderers(): Promise<DataRendererVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<void, DataRendererVO[]>(ModuleDataRender.APINAME_GET_DATA_RENDERERS);
-    }
-
-    public async getDataRenderer(renderer_name: string): Promise<DataRendererVO> {
-        return await ModuleAPI.getInstance().handleAPI<StringParamVO, DataRendererVO>(ModuleDataRender.APINAME_GET_DATA_RENDERER, renderer_name);
-    }
-
-    public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<void, DataRenderingLogVO[]>(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS);
     }
 
     /**

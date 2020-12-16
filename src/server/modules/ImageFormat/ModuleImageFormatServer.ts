@@ -7,7 +7,6 @@ import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
-import GetFormattedImageParamVO from '../../../shared/modules/ImageFormat/apis/GetFormattedImageParamVO';
 import ModuleImageFormat from '../../../shared/modules/ImageFormat/ModuleImageFormat';
 import FormattedImageVO from '../../../shared/modules/ImageFormat/vos/FormattedImageVO';
 import ImageFormatVO from '../../../shared/modules/ImageFormat/vos/ImageFormatVO';
@@ -85,21 +84,25 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         }
     }
 
-    private async get_formatted_image(param: GetFormattedImageParamVO): Promise<FormattedImageVO> {
+    private async get_formatted_image(
+        src: string,
+        format_name: string,
+        width: number,
+        height: number): Promise<FormattedImageVO> {
 
-        if ((!param) || (!param.format_name) || (!param.height) || (!param.src) || (!param.width)) {
+        if ((!format_name) || (!height) || (!src) || (!width)) {
             return null;
         }
 
         try {
 
-            let param_height = parseInt(param.height.toString());
-            let param_width = parseInt(param.width.toString());
+            let param_height = parseInt(height.toString());
+            let param_width = parseInt(width.toString());
 
-            let format: ImageFormatVO = await ModuleDAO.getInstance().getNamedVoByName<ImageFormatVO>(ImageFormatVO.API_TYPE_ID, param.format_name);
+            let format: ImageFormatVO = await ModuleDAO.getInstance().getNamedVoByName<ImageFormatVO>(ImageFormatVO.API_TYPE_ID, format_name);
 
             if (!format) {
-                ConsoleHandler.getInstance().error('Impossible de charger le format d\'image :' + param.format_name);
+                ConsoleHandler.getInstance().error('Impossible de charger le format d\'image :' + format_name);
                 return null;
             }
 
@@ -110,7 +113,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
              */
             let fis: FormattedImageVO[] = await ModuleDAOServer.getInstance().selectAll<FormattedImageVO>(FormattedImageVO.API_TYPE_ID,
                 ' join ' + VOsTypesManager.getInstance().moduleTables_by_voType[ImageFormatVO.API_TYPE_ID].full_name +
-                ' imgfmt on imgfmt.id = t.image_format_id where imgfmt.name = $1 and t.image_src = $2;', [param.format_name, param.src]);
+                ' imgfmt on imgfmt.id = t.image_format_id where imgfmt.name = $1 and t.image_src = $2;', [format_name, src]);
 
             let res_diff_min_value: number = null;
             let res_diff_min_fi: FormattedImageVO = null;
@@ -163,13 +166,13 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             /**
              * Sinon il faut générer l'image
              */
-            let image = await jimp.read(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + param.src);
+            let image = await jimp.read(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + src);
 
             let base_image_width: number = image.getWidth();
             let base_image_height: number = image.getHeight();
 
             if (!image) {
-                ConsoleHandler.getInstance().error('Impossible de charger l\'image à cette url :' + param.src);
+                ConsoleHandler.getInstance().error('Impossible de charger l\'image à cette url :' + src);
                 return null;
             }
 
@@ -192,7 +195,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
             let new_img_file: FileVO = new FileVO();
             new_img_file.is_secured = false;
-            new_img_file.path = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + param.src.substring(0, param.src.length - 4) + '__' + param_width + '_' + param_height + param.src.substring(param.src.length - 4, param.src.length);
+            new_img_file.path = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + src.substring(0, src.length - 4) + '__' + param_width + '_' + param_height + src.substring(src.length - 4, src.length);
             await image.writeAsync(new_img_file.path);
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);
             new_img_file.id = parseInt(res.id);
@@ -204,7 +207,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.image_format_id = format.id;
             new_img_formattee.image_height = base_image_height;
             new_img_formattee.image_width = base_image_width;
-            new_img_formattee.image_src = param.src;
+            new_img_formattee.image_src = src;
             new_img_formattee.quality = format.quality;
             new_img_formattee.remplir_haut = format.remplir_haut;
             new_img_formattee.remplir_larg = format.remplir_larg;

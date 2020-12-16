@@ -1,15 +1,15 @@
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAPI from '../API/ModuleAPI';
-import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import ModuleDAO from '../DAO/ModuleDAO';
 
 export default class ModuleMaintenance extends Module {
 
@@ -38,6 +38,10 @@ export default class ModuleMaintenance extends Module {
 
     private static instance: ModuleMaintenance = null;
 
+    public start_maintenance: () => Promise<void> = ModuleAPI.sah(ModuleMaintenance.APINAME_START_MAINTENANCE);
+    public end_maintenance: (maintenance_vo_id: number) => Promise<void> = ModuleAPI.sah(ModuleMaintenance.APINAME_END_MAINTENANCE);
+    public end_planned_maintenance: () => Promise<void> = ModuleAPI.sah(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
+
     private constructor() {
 
         super("maintenance", ModuleMaintenance.MODULE_NAME);
@@ -60,20 +64,8 @@ export default class ModuleMaintenance extends Module {
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams
+            NumberParamVOStatic
         ));
-    }
-
-    public async start_maintenance(): Promise<void> {
-        return ModuleAPI.getInstance().handleAPI<void, void>(ModuleMaintenance.APINAME_START_MAINTENANCE);
-    }
-
-    public async end_maintenance(maintenance_vo_id: number): Promise<void> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleMaintenance.APINAME_END_MAINTENANCE, maintenance_vo_id);
-    }
-
-    public async end_planned_maintenance(): Promise<void> {
-        return ModuleAPI.getInstance().handleAPI<void, void>(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
     }
 
     public initialize() {

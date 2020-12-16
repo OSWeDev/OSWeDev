@@ -1,6 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
-import StringParamVO from '../API/vos/apis/StringParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -27,6 +27,10 @@ export default class ModuleCron extends Module {
 
     private static instance: ModuleCron = null;
 
+    public run_manual_task: (name: string) => void = ModuleAPI.sah(ModuleCron.APINAME_run_manual_task);
+    public executeWorkersManually: () => void = ModuleAPI.sah(ModuleCron.APINAME_executeWorkersManually);
+    public executeWorkerManually: (worker_uid: string) => void = ModuleAPI.sah(ModuleCron.APINAME_executeWorkerManually);
+
     private constructor() {
 
         super("cron", ModuleCron.MODULE_NAME);
@@ -43,27 +47,15 @@ export default class ModuleCron extends Module {
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkerManually,
             [CronWorkerPlanification.API_TYPE_ID],
-            StringParamVO.translateCheckAccessParams
+            StringParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_run_manual_task,
             [CronWorkerPlanification.API_TYPE_ID],
-            StringParamVO.translateCheckAccessParams
+            StringParamVOStatic
         ));
-    }
-
-    public async run_manual_task(name: string) {
-        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_run_manual_task, name);
-    }
-
-    public async executeWorkersManually() {
-        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkersManually);
-    }
-
-    public async executeWorkerManually(worker_uid: string) {
-        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkerManually, worker_uid);
     }
 
     public initialize() {

@@ -3,7 +3,7 @@ import * as socketIO from 'socket.io';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import APIController from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
@@ -568,7 +568,7 @@ export default class PushDataServerController {
             if (socketWrappers && socketWrappers.length) {
 
                 let notification_type = NotificationVO.TYPE_NAMES[notification.notification_type];
-                notification = APIController.getInstance().try_translate_vo_to_api(notification);
+                notification = APIControllerWrapper.getInstance().try_translate_vo_to_api(notification);
 
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
@@ -596,7 +596,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
-        notification.vos = JSON.stringify(APIController.getInstance().try_translate_vos_to_api(vos));
+        notification.vos = JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(vos));
         return notification;
     }
 

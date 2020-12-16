@@ -23,7 +23,6 @@ import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolic
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
@@ -39,7 +38,6 @@ import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
-import ServerAPIController from './modules/API/ServerAPIController';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
@@ -50,10 +48,10 @@ import MaintenanceServerController from './modules/Maintenance/MaintenanceServer
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import ServerExpressController from './ServerExpressController';
-import StackContext from './StackContext';
 // import { createTerminus } from '@godaddy/terminus';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import ServerExpressController from './ServerExpressController';
+import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -101,9 +99,6 @@ export default abstract class ServerBase {
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
         BGThreadServerController.getInstance().register_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
-
-        // On initialise le Controller pour les APIs
-        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
 
         ModulesManager.getInstance().isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });

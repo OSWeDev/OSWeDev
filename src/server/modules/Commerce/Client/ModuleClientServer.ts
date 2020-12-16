@@ -28,22 +28,22 @@ export default class ModuleClientServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
     }
 
-    public async getInformationsClientUser(param: NumberParamVO): Promise<InformationsVO> {
+    public async getInformationsClientUser(num: number): Promise<InformationsVO> {
         return await ModuleDAOServer.getInstance().selectOne<InformationsVO>(
             InformationsVO.API_TYPE_ID,
             ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
-            ' WHERE c.user_id = $1', [param.num]
+            ' WHERE c.user_id = $1', [num]
         );
     }
 
-    public async getClientsByUserId(param: NumberParamVO): Promise<ClientVO[]> {
-        if (!param.num) {
+    public async getClientsByUserId(num: number): Promise<ClientVO[]> {
+        if (!num) {
             return null;
         }
 
         return await ModuleDAOServer.getInstance().selectAll<ClientVO>(
             ClientVO.API_TYPE_ID,
-            ' WHERE t.user_id = $1', [param.num]
+            ' WHERE t.user_id = $1', [num]
         );
     }
 
@@ -60,7 +60,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        let clients: ClientVO[] = await this.getClientsByUserId(new NumberParamVO(uid));
+        let clients: ClientVO[] = await this.getClientsByUserId(uid);
 
         return (clients && clients.length > 0) ? clients[0] : null;
     }

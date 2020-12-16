@@ -1,32 +1,36 @@
+import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 import IRange from '../../DataRender/interfaces/IRange';
 
-export default class APIDAOParamVO {
+export default class APIDAOParamVO implements IAPIParamTranslator<APIDAOParamVO> {
 
     public static URL: string = ':api_type_id/:id';
 
-    public static async translateCheckAccessParams(
-        API_TYPE_ID: string,
-        id: number,
-        segmentation_ranges: Array<IRange<any>>): Promise<APIDAOParamVO> {
+    public static fromREQ(req): APIDAOParamVO {
 
-        return new APIDAOParamVO(API_TYPE_ID, id, segmentation_ranges);
+        if (!(req && req.params)) {
+            return null;
+        }
+        return new APIDAOParamVO(req.params.api_type_id, parseInt(req.params.id));
     }
 
-    // public static async translateToURL(param: APIDAOParamVO): Promise<string> {
-
-    //     return param ? param.API_TYPE_ID + '/' + param.id : '';
-    // }
-    // public static async translateFromREQ(req): Promise<APIDAOParamVO> {
-
-    //     if (!(req && req.params)) {
-    //         return null;
-    //     }
-    //     return new APIDAOParamVO(req.params.api_type_id, parseInt(req.params.id));
-    // }
+    public static fromParams(API_TYPE_ID: string, id: number, segmentation_ranges: Array<IRange<any>> = null): APIDAOParamVO {
+        return new APIDAOParamVO(API_TYPE_ID, id, segmentation_ranges);
+    }
 
     public constructor(
         public API_TYPE_ID: string,
         public id: number,
-        public segmentation_ranges: Array<IRange<any>>) {
+        public segmentation_ranges: Array<IRange<any>> = null) {
+    }
+
+    public translateToURL(): string {
+        return this.API_TYPE_ID + '/' + this.id;
+    }
+
+    public getAPIParams(): any[] {
+        return [this.API_TYPE_ID, this.id, this.segmentation_ranges];
     }
 }
+
+export const APIDAOParamVOStatic: IAPIParamTranslatorStatic<APIDAOParamVO> = APIDAOParamVO;

@@ -5,6 +5,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -89,12 +90,16 @@ export default class ModuleVocusServer extends ModuleServerBase {
      * Objectif: Renvoyer tous les IDistantVoBase qui sont liées à ce vo (par type + id) par une liaison 1/n, n/1 ou n/n
      * TODO : (dans le cas du n/n on pourrait renvoyer directement la cible finale, pas le vo de la table n/n)
      */
-    private async getVosRefsById(apiDAOParamVO: APIDAOParamVO): Promise<VocusInfoVO[]> {
+    private async getVosRefsById(
+        API_TYPE_ID: string,
+        id: number,
+        segmentation_ranges: Array<IRange<any>> = null
+    ): Promise<VocusInfoVO[]> {
 
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
@@ -135,7 +140,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         for (let i in refFields) {
             let refField = refFields[i];
 
-            let refvos: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(refField.module_table.vo_type, refField.field_id, [apiDAOParamVO.id]);
+            let refvos: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(refField.module_table.vo_type, refField.field_id, [id]);
 
             for (let j in refvos) {
                 let refvo: IDistantVOBase = refvos[j];

@@ -42,6 +42,10 @@ export default class ModuleDocument extends Module {
 
     private static instance: ModuleDocument = null;
 
+    public get_ds_by_user_lang: () => Promise<DocumentVO[]> = ModuleAPI.sah(ModuleDocument.APINAME_get_ds_by_user_lang);
+    public get_dts_by_user_lang: () => Promise<DocumentTagVO[]> = ModuleAPI.sah(ModuleDocument.APINAME_get_dts_by_user_lang);
+    public get_dtgs_by_user_lang: () => Promise<DocumentTagGroupVO[]> = ModuleAPI.sah(ModuleDocument.APINAME_get_dtgs_by_user_lang);
+
     private constructor() {
 
         super("document", ModuleDocument.MODULE_NAME);
@@ -64,18 +68,6 @@ export default class ModuleDocument extends Module {
             ModuleDocument.APINAME_get_dtgs_by_user_lang,
             [DocumentTagGroupVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
-    }
-
-    public async get_ds_by_user_lang(): Promise<DocumentVO[]> {
-        return ModuleAPI.getInstance().handleAPI<void, DocumentVO[]>(ModuleDocument.APINAME_get_ds_by_user_lang);
-    }
-
-    public async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        return ModuleAPI.getInstance().handleAPI<void, DocumentTagVO[]>(ModuleDocument.APINAME_get_dts_by_user_lang);
-    }
-
-    public async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        return ModuleAPI.getInstance().handleAPI<void, DocumentTagGroupVO[]>(ModuleDocument.APINAME_get_dtgs_by_user_lang);
     }
 
     public initialize() {

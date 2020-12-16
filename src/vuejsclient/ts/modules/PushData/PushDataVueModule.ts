@@ -1,5 +1,5 @@
 import * as io from 'socket.io-client/dist/socket.io.slim.js';
-import APIController from '../../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../../shared/modules/API/APIController';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
@@ -133,7 +133,7 @@ export default class PushDataVueModule extends VueModuleBase {
         if (!(VueAppBase.instance_ && LocaleManager.getInstance().i18n)) {
             return;
         }
-        notifications = APIController.getInstance().try_translate_vos_from_api(notifications);
+        notifications = APIControllerWrapper.getInstance().try_translate_vos_from_api(notifications);
 
         /**
          * On regroupe par type pour gérer en bloc ensuite
@@ -244,7 +244,7 @@ export default class PushDataVueModule extends VueModuleBase {
             let notification = notifications[i];
 
             if (!!notification.vos) {
-                let tmp = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
+                let tmp = APIControllerWrapper.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
                 if (tmp && tmp.length) {
                     for (let j in tmp) {
                         let e: VarDataValueResVO = tmp[j];

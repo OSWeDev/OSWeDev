@@ -1,6 +1,6 @@
 import ModuleAPI from '../../API/ModuleAPI';
-import NumberAndStringParamVO from '../../API/vos/apis/NumberAndStringParamVO';
-import NumberParamVO from '../../API/vos/apis/NumberParamVO';
+import NumberAndStringParamVO, { NumberAndStringParamVOStatic } from '../../API/vos/apis/NumberAndStringParamVO';
+import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
 import ModuleDAO from '../../DAO/ModuleDAO';
@@ -12,7 +12,7 @@ import ModuleClient from '../Client/ModuleClient';
 import ClientVO from '../Client/vos/ClientVO';
 import InformationsVO from '../Client/vos/InformationsVO';
 import ModuleProduit from '../Produit/ModuleProduit';
-import ProduitsParamLignesParamVO from '../Produit/vos/apis/ProduitsParamLignesParamVO';
+import ProduitsParamLignesParamVO, { ProduitsParamLignesParamVOStatic } from '../Produit/vos/apis/ProduitsParamLignesParamVO';
 import ProduitVO from '../Produit/vos/ProduitVO';
 import TypeProduitVO from '../Produit/vos/TypeProduitVO';
 import CommandeVO from './vos/CommandeVO';
@@ -36,6 +36,12 @@ export default class ModuleCommande extends Module {
 
     private static instance: ModuleCommande = null;
 
+
+    public getParamLigneCommandeById: (ligneId: number, vo_type_param: string) => Promise<ParamLigneCommandeVO> = ModuleAPI.sah(ModuleCommande.APINAME_getParamLigneCommandeById);
+    public getCommandesUser: (userId: number) => Promise<CommandeVO[]> = ModuleAPI.sah(ModuleCommande.APINAME_getCommandesUser);
+    public getLignesCommandeByCommandeId: (commandeId: number) => Promise<LigneCommandeVO[]> = ModuleAPI.sah(ModuleCommande.APINAME_getLignesCommandeByCommandeId);
+    public creationPanier: () => Promise<CommandeVO> = ModuleAPI.sah(ModuleCommande.APINAME_creationPanier);
+
     private constructor() {
         super(CommandeVO.API_TYPE_ID, 'Commande', 'Commerce/Commande');
     }
@@ -45,37 +51,28 @@ export default class ModuleCommande extends Module {
             null,
             ModuleCommande.APINAME_getCommandesUser,
             [CommandeVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, LigneCommandeVO[]>(
             null,
             ModuleCommande.APINAME_getLignesCommandeByCommandeId,
             [LigneCommandeVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ProduitsParamLignesParamVO, CommandeVO>(
             null,
             ModuleCommande.APINAME_ajouterAuPanier,
             [CommandeVO.API_TYPE_ID],
-            ProduitsParamLignesParamVO.translateCheckAccessParams,
+            ProduitsParamLignesParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberAndStringParamVO, ParamLigneCommandeVO>(
             null,
             ModuleCommande.APINAME_getParamLigneCommandeById,
             [],
-            NumberAndStringParamVO.translateCheckAccessParams,
-            NumberAndStringParamVO.URL,
-            NumberAndStringParamVO.translateToURL,
-            NumberAndStringParamVO.translateFromREQ
+            NumberAndStringParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<null, CommandeVO>(
@@ -83,11 +80,6 @@ export default class ModuleCommande extends Module {
             ModuleCommande.APINAME_creationPanier,
             [CommandeVO.API_TYPE_ID],
         ));
-    }
-
-    public async creationPanier(): Promise<CommandeVO> {
-        return await ModuleAPI.getInstance().handleAPI<null, CommandeVO>(ModuleCommande.APINAME_creationPanier);
-        // TODO FIXME  c'est un trigger ça : interdiction de faire du get dans un shared !! AjaxCacheClientController.getInstance().get('/setIdPanierEnCours/' + panier.id, null);
     }
 
     public initialize() {
@@ -141,16 +133,8 @@ export default class ModuleCommande extends Module {
         this.datatables.push(dt);
     }
 
-    public async getCommandesUser(userId: number): Promise<CommandeVO[]> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, CommandeVO[]>(ModuleCommande.APINAME_getCommandesUser, userId);
-    }
-
     public async getCommandeById(commandeId: number): Promise<CommandeVO> {
         return ModuleDAO.getInstance().getVoById<CommandeVO>(CommandeVO.API_TYPE_ID, commandeId);
-    }
-
-    public async getLignesCommandeByCommandeId(commandeId: number): Promise<LigneCommandeVO[]> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, LigneCommandeVO[]>(ModuleCommande.APINAME_getLignesCommandeByCommandeId, commandeId);
     }
 
     public async getDetailsLignesCommandeByCommandeId(commandeId: number): Promise<LigneCommandeDetailsVO[]> {
@@ -186,9 +170,5 @@ export default class ModuleCommande extends Module {
         }
 
         return null;
-    }
-
-    public async getParamLigneCommandeById(ligneId: number, vo_type_param: string): Promise<ParamLigneCommandeVO> {
-        return ModuleAPI.getInstance().handleAPI<NumberAndStringParamVO, ParamLigneCommandeVO>(ModuleCommande.APINAME_getParamLigneCommandeById, ligneId, vo_type_param);
     }
 }

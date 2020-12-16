@@ -1,4 +1,3 @@
-import { throttle } from 'lodash';
 import { Duration } from 'moment';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -10,15 +9,12 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
-import APIDAODATATABLEVOParamVO from '../../../shared/modules/DAO/vos/APIDAODATATABLEVOParamVO';
 import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRangesParamsVO';
 import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
 import APIDAOParamsVO from '../../../shared/modules/DAO/vos/APIDAOParamsVO';
-import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
 import APIDAORefFieldParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldParamsVO';
 import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
@@ -352,7 +348,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO, this.INSERT_OR_UPDATE_DATATABLE_VO.bind(this));
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
@@ -694,8 +689,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return where_clause;
     }
 
-    public async truncate_api(api_type_id: StringParamVO) {
-        await this.truncate(api_type_id.text);
+    public async truncate_api(api_type_id: string) {
+        await this.truncate(api_type_id);
     }
 
 
@@ -1146,58 +1141,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         });
     }
 
-    // FIXME todo : remonter côté shared les déclarations de DATATABLE iso déclaration Moduletable
-    private async INSERT_OR_UPDATE_DATATABLE_VO(param: APIDAODATATABLEVOParamVO): Promise<InsertOrDeleteQueryResult> {
-        return null;
-        // if ((!param) || (!param.datatable_vo) || (!param.datatable)){
-        //     return null;
-        // }
-
-        // let datatable_vo = param.datatable_vo;
-        // let datatable = param.datatable;
-
-        // // On vérifie qu'on peut faire un insert ou update
-        // if ((!datatable_vo) || (!datatable_vo._type) || (!datatable_vosTypesManager.getInstance().moduleTables_by_voType[vo._type])) {
-        //     return null;
-        // }
-        // if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[datatable_vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
-        //     return null;
-        // }
-
-        // return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
-
-        //     let isUpdate: boolean = datatable_vo.id ? true : false;
-
-        //     let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-
-        //     if (!moduleTable) {
-        //         return null;
-        //     }
-
-        //     let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
-
-        //     if (!sql) {
-        //         resolve(null);
-        //     }
-
-        //     let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
-        //         resolve(null);
-        //     });
-
-        //     if (result && vo) {
-        //         if (isUpdate) {
-        //             await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, vo);
-        //         } else {
-        //             vo.id = parseInt(result.id.toString());
-        //             await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
-        //         }
-        //     }
-
-        //     resolve(result);
-        // });
-    }
-
-
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
 
         if (this.global_update_blocker) {
@@ -1488,9 +1431,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
-    private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO): Promise<T> {
+    private async getVoById<T extends IDistantVOBase>(
+        API_TYPE_ID: string,
+        id: number,
+        segmentation_ranges: Array<IRange<any>> = null
+    ): Promise<T> {
 
-        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire a minima un listage
         if (!await this.checkAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS)) {
@@ -1509,10 +1456,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let request = null;
             let segmentations: { [table_name: string]: number } = {};
 
-            if (apiDAOParamVO.segmentation_ranges && apiDAOParamVO.segmentation_ranges.length) {
+            if (segmentation_ranges && segmentation_ranges.length) {
 
                 let self = this;
-                await RangeHandler.getInstance().foreach_ranges(apiDAOParamVO.segmentation_ranges, (segmented_value) => {
+                await RangeHandler.getInstance().foreach_ranges(segmentation_ranges, (segmented_value) => {
 
                     if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                         return;
@@ -1532,7 +1479,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 } else {
                     request += ' UNION ALL ';
                 }
-                request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + apiDAOParamVO.id + ' ';
+                request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + id + ' ';
             }
 
             /**
@@ -1545,7 +1492,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
         } else {
-            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T;
+            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + id + ";") as T;
         }
 
         vo = moduleTable.forceNumeric(vo);
@@ -1922,31 +1869,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
     }
 
-    private async getVos<T extends IDistantVOBase>(API_TYPE_ID: StringParamVO): Promise<T[]> {
+    private async getVos<T extends IDistantVOBase>(text: string): Promise<T[]> {
 
         // On filtre les res suivant les droits d'accès
         // return await this.selectAll(apiDAOParamVOs);
-        return await this.selectAll<T>(API_TYPE_ID.text);
+        return await this.selectAll<T>(text);
     }
 
-    private async getNamedVoByName<U extends INamedVO>(param: APIDAONamedParamVO): Promise<U> {
-        // // On définit des limites pour les noms de vos nommes, qui ne doivent contenir que les caractères suivants(JNE : pourquoi ?????):
-        // //  [a-z0-9A-Z-_ ./:,]
-        // if ((!param) || (!/^[a-z0-9A-Z-_ ./:,]+$/.test(param.name))) {
-        //     return null;
-        // }
+    private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
-        if (!param) {
-            return null;
-        }
-
-        let moduleTable: ModuleTable<U> = VOsTypesManager.getInstance().moduleTables_by_voType[param.API_TYPE_ID];
+        let moduleTable: ModuleTable<U> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
         if (moduleTable.is_segmented) {
             // TODO FIXME segmented moduletable
             throw new Error('Not Implemented');
         }
 
-        return await this.selectOne<U>(param.API_TYPE_ID, "where LOWER(name) = LOWER($1)", [param.name]);
+        return await this.selectOne<U>(API_TYPE_ID, "where LOWER(name) = LOWER($1)", [name]);
     }
 
 

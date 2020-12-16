@@ -1,7 +1,7 @@
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
-import SendRequestParamVO from './vos/SendRequestParamVO';
+import SendRequestParamVO, { SendRequestParamVOStatic } from './vos/SendRequestParamVO';
 
 export default class ModuleRequest extends Module {
 
@@ -21,6 +21,14 @@ export default class ModuleRequest extends Module {
 
     private static instance: ModuleRequest = null;
 
+    public sendRequestFromApp: (
+        method: string,
+        host: string,
+        path: string,
+        posts: {},
+        headers: {},
+        sendHttps: boolean) => Promise<any> = ModuleAPI.sah(ModuleRequest.APINAME_sendRequestFromApp);
+
     private constructor() {
 
         super("request", ModuleRequest.MODULE_NAME);
@@ -38,25 +46,7 @@ export default class ModuleRequest extends Module {
             null,
             ModuleRequest.APINAME_sendRequestFromApp,
             [],
-            SendRequestParamVO.translateCheckAccessParams
+            SendRequestParamVOStatic
         ));
-    }
-
-    public async sendRequestFromApp(
-        method: string,
-        host: string,
-        path: string,
-        posts: {} = null,
-        headers: {} = null,
-        sendHttps: boolean = false): Promise<any> {
-
-        return await ModuleAPI.getInstance().handleAPI<SendRequestParamVO, any>(
-            ModuleRequest.APINAME_sendRequestFromApp,
-            method,
-            host,
-            path,
-            posts,
-            headers,
-            sendHttps);
     }
 }

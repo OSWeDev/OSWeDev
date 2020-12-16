@@ -1,22 +1,14 @@
-import { Moment } from 'moment';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import DateHandler from '../../../../tools/DateHandler';
+import IAPIParamTranslator from '../../interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../interfaces/IAPIParamTranslatorStatic';
 
-export default class DayParamVO {
+export default class DayParamVO implements IAPIParamTranslator<DayParamVO>{
 
     public static URL: string = ':day';
 
-    public static async translateCheckAccessParams(
-        day: Moment): Promise<DayParamVO> {
-
-        return new DayParamVO(day);
-    }
-
-    public static async translateToURL(param: DayParamVO): Promise<string> {
-
-        return param ? DateHandler.getInstance().formatDayForApi(param.day) : '';
-    }
-    public static async translateFromREQ(req): Promise<DayParamVO> {
+    public static fromREQ(req): DayParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -24,7 +16,23 @@ export default class DayParamVO {
         return new DayParamVO(moment(req.params.day).utc(true));
     }
 
+    public static fromParams(day: Moment): DayParamVO {
+
+        return new DayParamVO(day);
+    }
+
     public constructor(
         public day: Moment) {
     }
+
+    public translateToURL(): string {
+
+        return DateHandler.getInstance().formatDayForApi(this.day);
+    }
+
+    public getAPIParams(): any[] {
+        return [this.day];
+    }
 }
+
+export const DayParamVOStatic: IAPIParamTranslatorStatic<DayParamVO> = DayParamVO;

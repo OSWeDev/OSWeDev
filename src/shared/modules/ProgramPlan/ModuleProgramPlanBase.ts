@@ -8,31 +8,31 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-import IPlanRDV from './interfaces/IPlanRDV';
-import IPlanRDVCR from './interfaces/IPlanRDVCR';
-import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
-import IPlanRDVPrep from './interfaces/IPlanRDVPrep';
-import IPlanProgramCategory from './interfaces/IPlanProgramCategory';
-import IPlanContactType from './interfaces/IPlanContactType';
-import IPlanFacilitatorRegion from './interfaces/IPlanFacilitatorRegion';
-import IPlanTargetGroup from './interfaces/IPlanTargetGroup';
-import IPlanTargetRegion from './interfaces/IPlanTargetRegion';
-import IPlanTargetZone from './interfaces/IPlanTargetZone';
 import IPlanContact from './interfaces/IPlanContact';
-import IPlanTargetContact from './interfaces/IPlanTargetContact';
-import IPlanProgram from './interfaces/IPlanProgram';
-import IPlanFacilitator from './interfaces/IPlanFacilitator';
-import IPlanManager from './interfaces/IPlanManager';
+import IPlanContactType from './interfaces/IPlanContactType';
 import IPlanEnseigne from './interfaces/IPlanEnseigne';
-import IPlanTaskType from './interfaces/IPlanTaskType';
-import IPlanTask from './interfaces/IPlanTask';
-import IPlanTarget from './interfaces/IPlanTarget';
+import IPlanFacilitator from './interfaces/IPlanFacilitator';
+import IPlanFacilitatorRegion from './interfaces/IPlanFacilitatorRegion';
+import IPlanManager from './interfaces/IPlanManager';
+import IPlanPartner from './interfaces/IPlanPartner';
+import IPlanProgram from './interfaces/IPlanProgram';
+import IPlanProgramCategory from './interfaces/IPlanProgramCategory';
 import IPlanProgramFacilitator from './interfaces/IPlanProgramFacilitator';
 import IPlanProgramManager from './interfaces/IPlanProgramManager';
 import IPlanProgramTarget from './interfaces/IPlanProgramTarget';
-import IPlanPartner from './interfaces/IPlanPartner';
+import IPlanRDV from './interfaces/IPlanRDV';
+import IPlanRDVCR from './interfaces/IPlanRDVCR';
+import IPlanRDVPrep from './interfaces/IPlanRDVPrep';
+import IPlanTarget from './interfaces/IPlanTarget';
+import IPlanTargetContact from './interfaces/IPlanTargetContact';
 import IPlanTargetFacilitator from './interfaces/IPlanTargetFacilitator';
+import IPlanTargetGroup from './interfaces/IPlanTargetGroup';
 import IPlanTargetGroupContact from './interfaces/IPlanTargetGroupContact';
+import IPlanTargetRegion from './interfaces/IPlanTargetRegion';
+import IPlanTargetZone from './interfaces/IPlanTargetZone';
+import IPlanTask from './interfaces/IPlanTask';
+import IPlanTaskType from './interfaces/IPlanTaskType';
+import ProgramSegmentParamVO, { ProgramSegmentParamVOStatic } from './vos/ProgramSegmentParamVO';
 
 export default abstract class ModuleProgramPlanBase extends Module {
 
@@ -66,6 +66,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
     get RDV_STATE_CONFIRMED(): number { return 1; }
     get RDV_STATE_PREP_OK(): number { return 2; }
     get RDV_STATE_CR_OK(): number { return 3; }
+
+    public getRDVsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDV[]> = ModuleAPI.sah(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT);
+    public getCRsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVCR[]> = ModuleAPI.sah(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT);
+    public getPrepsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVPrep[]> = ModuleAPI.sah(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT);
 
     protected constructor(
         name: string,
@@ -145,20 +149,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             null,
             self.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
             () => [self.rdv_type_id],
-            ProgramSegmentParamVO.translateCheckAccessParams,
-            ProgramSegmentParamVO.URL,
-            ProgramSegmentParamVO.translateToURL,
-            ProgramSegmentParamVO.translateFromREQ
+            ProgramSegmentParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
             null,
             self.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
             () => [self.rdv_type_id, self.rdv_cr_type_id],
-            ProgramSegmentParamVO.translateCheckAccessParams,
-            ProgramSegmentParamVO.URL,
-            ProgramSegmentParamVO.translateToURL,
-            ProgramSegmentParamVO.translateFromREQ
+            ProgramSegmentParamVOStatic
         ));
 
         if (!!this.rdv_prep_type_id) {
@@ -166,10 +164,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
                 null,
                 self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
                 () => [self.rdv_type_id, self.rdv_prep_type_id],
-                ProgramSegmentParamVO.translateCheckAccessParams,
-                ProgramSegmentParamVO.URL,
-                ProgramSegmentParamVO.translateToURL,
-                ProgramSegmentParamVO.translateFromREQ
+                ProgramSegmentParamVOStatic
             ));
         }
     }
@@ -193,18 +188,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         return this.RDV_STATE_CR_OK;
-    }
-
-    public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDV[]>(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
-    }
-
-    public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVCR[]>(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
-    }
-
-    public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVPrep[]>(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }
 
     protected abstract callInitializePlanProgramCategory();

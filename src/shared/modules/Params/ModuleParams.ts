@@ -1,14 +1,13 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../API/ModuleAPI';
-import StringParamVO from '../API/vos/apis/StringParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import SetParamParamVO from './vos/apis/SetParamParamVO';
+import SetParamParamVO, { SetParamParamVOStatic } from './vos/apis/SetParamParamVO';
 import ParamVO from './vos/ParamVO';
 
 export default class ModuleParams extends Module {
@@ -31,6 +30,10 @@ export default class ModuleParams extends Module {
 
     private static instance: ModuleParams = null;
 
+    public getParamValue: (param_name: string) => Promise<string> = ModuleAPI.sah(ModuleParams.APINAME_getParamValue);
+    public setParamValue: (param_name: string, param_value: string) => Promise<void> = ModuleAPI.sah(ModuleParams.APINAME_setParamValue);
+    public setParamValue_if_not_exists: (param_name: string, param_value: string) => Promise<void> = ModuleAPI.sah(ModuleParams.APINAME_setParamValue_if_not_exists);
+
     private constructor() {
 
         super("params", ModuleParams.MODULE_NAME);
@@ -43,24 +46,21 @@ export default class ModuleParams extends Module {
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValue,
             [ParamVO.API_TYPE_ID],
-            StringParamVO.translateCheckAccessParams,
-            StringParamVO.URL,
-            StringParamVO.translateToURL,
-            StringParamVO.translateFromREQ
+            StringParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue,
             [ParamVO.API_TYPE_ID],
-            SetParamParamVO.translateCheckAccessParams
+            SetParamParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue_if_not_exists,
             [ParamVO.API_TYPE_ID],
-            SetParamParamVO.translateCheckAccessParams
+            SetParamParamVOStatic
         ));
     }
 
@@ -76,10 +76,6 @@ export default class ModuleParams extends Module {
         ];
 
         this.datatables.push(new ModuleTable(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));
-    }
-
-    public async getParamValue(param_name: string): Promise<string> {
-        return await ModuleAPI.getInstance().handleAPI<StringParamVO, string>(ModuleParams.APINAME_getParamValue, param_name);
     }
 
     public async getParamValueAsInt(param_name: string): Promise<number> {
@@ -100,19 +96,11 @@ export default class ModuleParams extends Module {
         return (res != null) ? parseFloat(res) : null;
     }
 
-    public async setParamValue(param_name: string, param_value: string): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<SetParamParamVO, void>(ModuleParams.APINAME_setParamValue, param_name, param_value);
-    }
-
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {
         return await this.setParamValue(param_name, param_value ? '1' : '0');
     }
 
     public async setParamValueAsNumber(param_name: string, param_value: number): Promise<void> {
         return await this.setParamValue(param_name, param_value.toString());
-    }
-
-    public async setParamValue_if_not_exists(param_name: string, param_value: string): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<SetParamParamVO, void>(ModuleParams.APINAME_setParamValue_if_not_exists, param_name, param_value);
     }
 }

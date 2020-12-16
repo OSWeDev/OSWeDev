@@ -1,6 +1,8 @@
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import Module from '../Module';
+import APIControllerWrapper from './APIController';
 import IAPIController from './interfaces/IAPIController';
+import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import APIDefinition from './vos/APIDefinition';
 
 export default class ModuleAPI extends Module {
@@ -12,13 +14,28 @@ export default class ModuleAPI extends Module {
         return ModuleAPI.instance;
     }
 
+    /**
+     * Return Shared API Handler => la fonction qui gère la demande en fonction de si l'on est client ou server
+     * @param api_name
+     * @param sanitize_params used to sanitize params if provided
+     * @param precondition returns false if we refuse, and the api returns precondition_default_value
+     * @param precondition_default_value default value if !precondition
+     */
+    public static sah<T, U>(
+        api_name: string,
+        sanitize_params: (...params) => any[] = null,
+        precondition: (...params) => boolean = null,
+        precondition_default_value: any = null
+    ): (...params) => Promise<U> {
+        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value);
+    }
+
     private static instance: ModuleAPI = null;
 
     /**
      * Local thread cache -----
      */
     public registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
-    private api_controller: IAPIController = null;
     /**
      * ----- Local thread cache
      */
@@ -27,10 +44,6 @@ export default class ModuleAPI extends Module {
 
         super("api", "API");
         this.forceActivationOnInstallation();
-    }
-
-    public setAPIController(api_controller: IAPIController) {
-        this.api_controller = api_controller;
     }
 
     public registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
@@ -44,34 +57,22 @@ export default class ModuleAPI extends Module {
         this.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }
 
-    public getParamTranslator<T>(api_name: string): (...params) => Promise<T> {
-        if (!this.registered_apis[api_name]) {
-            return null;
-        }
-        return this.registered_apis[api_name].PARAM_TRANSLATOR;
-    }
+    public async translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<IAPIParamTranslator<T>> {
 
-    public async handleAPI<T, U>(api_name: string, ...api_params): Promise<U> {
-        return await this.api_controller.handleAPI(api_name, ...api_params);
-    }
-
-    public async translate_param<T>(api_name: string, ...api_params): Promise<T> {
-
-        let translated_param: T = null;
-        let paramTranslator: (...params) => Promise<T> = ModuleAPI.getInstance().getParamTranslator<T>(api_name);
+        let translated_param: IAPIParamTranslator<T> = null;
 
         if (api_params && Array.isArray(api_params) && (api_params.length > 1)) {
             // On a besoin de faire appel à un traducteur
-            if (!paramTranslator) {
-                ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + api_name);
+            if (!apiDefinition.param_translator.fromParams) {
+                ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + apiDefinition.api_name);
                 return null;
             } else {
-                translated_param = await paramTranslator.apply(this, api_params);
+                translated_param = apiDefinition.param_translator.fromParams(...api_params);
             }
         } else {
             // Si on a un translateur on l'utilise sinon on garde ce param
-            if (paramTranslator) {
-                translated_param = await paramTranslator.apply(this, api_params);
+            if (!!apiDefinition.param_translator.fromParams) {
+                translated_param = apiDefinition.param_translator.fromParams(...api_params);
             } else if (api_params && (api_params.length == 1)) {
                 translated_param = api_params[0];
             }

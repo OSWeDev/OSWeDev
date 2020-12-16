@@ -7,7 +7,6 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
@@ -18,9 +17,11 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
+import FileHandler from '../../../shared/tools/FileHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import IServerUserSession from '../../IServerUserSession';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleFileServer from '../File/ModuleFileServer';
@@ -29,8 +30,6 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
-import FileHandler from '../../../shared/tools/FileHandler';
-import StackContext from '../../StackContext';
 const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
@@ -205,9 +204,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
      * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
      *  Pour trouver le idList => https://customer.io/actions/trello/
      */
-    private async feedback(param: APISimpleVOParamVO): Promise<boolean> {
+    private async feedback(feedback: FeedbackVO): Promise<boolean> {
 
-        if ((!param) || (!param.vo)) {
+        if (!feedback) {
             return false;
         }
 
@@ -233,8 +232,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
             }
-
-            let feedback: FeedbackVO = param ? param.vo as FeedbackVO : null;
 
             // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
             feedback.user_connection_date = moment(user_session.last_load_date_unix).utc(true);

@@ -1,7 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import APIDAOParamVO from '../DAO/vos/APIDAOParamVO';
+import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
 import VOsTypesManager from '../VOsTypesManager';
 import VocusInfoVO from './vos/VocusInfoVO';
@@ -24,6 +24,13 @@ export default class ModuleVocus extends Module {
 
     private static instance: ModuleVocus = null;
 
+    /**
+     * Par définition on ne peut pas chercher des refs sur un type segmenté puisqu'on ne peut pas ref un type segmenté
+     * @param API_TYPE_ID
+     * @param id
+     */
+    public getVosRefsById: (API_TYPE_ID: string, id: number) => Promise<VocusInfoVO[]> = ModuleAPI.sah(ModuleVocus.APINAME_getVosRefsById);
+
     private constructor() {
 
         super("vocus", ModuleVocus.MODULE_NAME);
@@ -36,17 +43,7 @@ export default class ModuleVocus extends Module {
             ModuleVocus.POLICY_BO_ACCESS,
             ModuleVocus.APINAME_getVosRefsById,
             Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType),
-            APIDAOParamVO.translateCheckAccessParams
+            APIDAOParamVOStatic
         ));
-    }
-
-
-    /**
-     * Par définition on ne peut pas chercher des refs sur un type segmenté puisqu'on ne peut pas ref un type segmenté
-     * @param API_TYPE_ID
-     * @param id
-     */
-    public async getVosRefsById(API_TYPE_ID: string, id: number): Promise<VocusInfoVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<APIDAOParamVO, VocusInfoVO[]>(ModuleVocus.APINAME_getVosRefsById, API_TYPE_ID, id, null);
     }
 }

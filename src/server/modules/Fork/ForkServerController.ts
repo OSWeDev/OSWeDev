@@ -1,6 +1,6 @@
 import { fork } from 'child_process';
 import { Server, Socket } from 'net';
-import APIController from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import IBGThread from '../BGThread/interfaces/IBGThread';
 import CronServerController from '../Cron/CronServerController';
@@ -86,7 +86,7 @@ export default class ForkServerController {
                 });
             }
             forked.child_process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
-                msg = APIController.getInstance().try_translate_vo_from_api(msg);
+                msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
                 ForkMessageController.getInstance().message_handler(msg, sendHandle);
             });
         }

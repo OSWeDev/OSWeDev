@@ -1,12 +1,13 @@
+import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
-import ModuleAPI from '../../API/ModuleAPI';
 
-export default class APIDAOApiTypeAndMatroidsParamsVO {
+export default class APIDAOApiTypeAndMatroidsParamsVO implements IAPIParamTranslator<APIDAOApiTypeAndMatroidsParamsVO>{
 
-    public static async translateCheckAccessParams(
+    public static fromParams(
         API_TYPE_ID: string,
         matroids: IMatroid[],
-        fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<APIDAOApiTypeAndMatroidsParamsVO> {
+        fields_ids_mapper: { [matroid_field_id: string]: string }): APIDAOApiTypeAndMatroidsParamsVO {
 
         return new APIDAOApiTypeAndMatroidsParamsVO(API_TYPE_ID, matroids, fields_ids_mapper);
     }
@@ -15,6 +16,11 @@ export default class APIDAOApiTypeAndMatroidsParamsVO {
         public API_TYPE_ID: string,
         public matroids: IMatroid[],
         public fields_ids_mapper: { [matroid_field_id: string]: string }) {
-        // this.matroids = APIController.getInstance().try_translate_vo_to_api(matroids);
+    }
+
+    public getAPIParams(): any[] {
+        return [this.API_TYPE_ID, this.matroids, this.fields_ids_mapper];
     }
 }
+
+export const APIDAOApiTypeAndMatroidsParamsVOStatic: IAPIParamTranslatorStatic<APIDAOApiTypeAndMatroidsParamsVO> = APIDAOApiTypeAndMatroidsParamsVO;

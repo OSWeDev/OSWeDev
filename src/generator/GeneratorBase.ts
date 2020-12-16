@@ -5,12 +5,10 @@ import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
 import FileLoggerHandler from '../server/FileLoggerHandler';
-import ServerAPIController from '../server/modules/API/ServerAPIController';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
@@ -62,13 +60,11 @@ export default abstract class GeneratorBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ModulesManager.getInstance().isServerSide = true;
-
-        // On initialise le Controller pour les APIs
-        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
 
         this.pre_modules_workers = [
             Patch20200331DeleteOrphanTranslations.getInstance(),

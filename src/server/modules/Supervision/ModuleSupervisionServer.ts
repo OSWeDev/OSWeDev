@@ -336,15 +336,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
     }
 
-    private async execute_manually(param: StringParamVO) {
-        if ((!param) || (!param.text)) {
+    private async execute_manually(text: string) {
+        if (!text) {
             return null;
         }
 
-        if (!SupervisionServerController.getInstance().registered_controllers[param.text]) {
+        if (!SupervisionServerController.getInstance().registered_controllers[text]) {
             return null;
         }
 
-        await SupervisionServerController.getInstance().registered_controllers[param.text].work_all();
+        await SupervisionServerController.getInstance().registered_controllers[text].work_all();
     }
 }

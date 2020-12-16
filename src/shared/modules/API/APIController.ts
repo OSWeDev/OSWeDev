@@ -7,32 +7,35 @@ import NumRange from '../DataRender/vos/NumRange';
 import TSRange from '../DataRender/vos/TSRange';
 import IDistantVOBase from '../IDistantVOBase';
 import VOsTypesManager from '../VOsTypesManager';
+import IAPIController from './interfaces/IAPIController';
 import IDurationAPI from './interfaces/IDurationAPI';
 import IMomentAPI from './interfaces/IMomentAPI';
 import APIDefinition from './vos/APIDefinition';
 
-export default class APIController {
+export default class APIControllerWrapper {
 
     public static BASE_API_URL: string = "/api_handler/";
+    public static API_CONTROLLER: IAPIController = null;
 
-    public static getInstance(): APIController {
-        if (!APIController.instance) {
-            APIController.instance = new APIController();
+    public static getInstance(): APIControllerWrapper {
+        if (!APIControllerWrapper.instance) {
+            APIControllerWrapper.instance = new APIControllerWrapper();
         }
-        return APIController.instance;
+        return APIControllerWrapper.instance;
     }
 
-    private static instance: APIController = null;
+    private static instance: APIControllerWrapper = null;
 
     private constructor() { }
 
     public getAPI_URL<T, U>(apiDefinition: APIDefinition<T, U>): string {
         if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
 
-            return APIController.BASE_API_URL + apiDefinition.api_name + "/" + (apiDefinition.PARAM_GET_URL ? apiDefinition.PARAM_GET_URL : "");
+            return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name + "/" +
+                (apiDefinition.param_translator && apiDefinition.param_translator.URL ? apiDefinition.param_translator.URL : "");
         } else {
 
-            return APIController.BASE_API_URL + apiDefinition.api_name;
+            return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name;
         }
     }
 

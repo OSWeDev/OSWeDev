@@ -121,13 +121,13 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE, this.end_planned_maintenance.bind(this));
     }
 
-    public async end_maintenance(param: NumberParamVO): Promise<void> {
+    public async end_maintenance(num: number): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_maintenance, param)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_maintenance, num)) {
             return;
         }
 
-        if ((!param) || (!param.num)) {
+        if (!num) {
             return;
         }
 
@@ -137,7 +137,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, param.num);
+        let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, num);
 
         maintenance.maintenance_over = true;
         maintenance.end_ts = moment().utc(true);

@@ -2,7 +2,7 @@ import { ChildProcess } from 'child_process';
 import { throttle } from 'lodash';
 import { Server, Socket } from 'net';
 import { performance } from 'perf_hooks';
-import APIController from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkServerController from './ForkServerController';
 import IForkMessage from './interfaces/IForkMessage';
@@ -72,7 +72,7 @@ export default class ForkMessageController {
 
     public send(msg: IForkMessage, child_process: ChildProcess = null): boolean {
 
-        msg = APIController.getInstance().try_translate_vo_to_api(msg);
+        msg = APIControllerWrapper.getInstance().try_translate_vo_to_api(msg);
         let res: boolean = false;
         let sendHandle = (!child_process) ? process : child_process;
         let self = this;

@@ -2,11 +2,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetTranslationParamVO';
-import TParamVO from '../../../shared/modules/Translation/apis/TParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -610,12 +606,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
     }
 
-    public async getTranslatableText(param: StringParamVO): Promise<TranslatableTextVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.text]);
+    public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
+        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [text]);
     }
 
-    public async getLang(param: StringParamVO): Promise<LangVO> {
-        return await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, 'where code_lang = $1', [param.text]);
+    public async getLang(text: string): Promise<LangVO> {
+        return await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, 'where code_lang = $1', [text]);
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -626,12 +622,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
     }
 
-    public async getTranslations(param: NumberParamVO): Promise<TranslationVO[]> {
-        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [param.num]);
+    public async getTranslations(num: number): Promise<TranslationVO[]> {
+        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [num]);
     }
 
-    public async getTranslation(params: GetTranslationParamVO): Promise<TranslationVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [params.lang_id, params.text_id]);
+    public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {
+        return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, text_id]);
     }
 
     public addCodeToLocales(ALL_LOCALES: { [code_lang: string]: any }, code_lang: string, code_text: string, translated: string): { [code_lang: string]: any } {
@@ -723,21 +719,21 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return res;
     }
 
-    private async t(param: TParamVO): Promise<string> {
-        let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.code_text]);
+    private async t(code_text: string, lang_id: number): Promise<string> {
+        let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [code_text]);
 
         if (!translatable) {
             return null;
         }
 
-        let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [param.lang_id, translatable.id]);
+        let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, translatable.id]);
 
         return translation.translated;
     }
 
-    private async label(param: TParamVO): Promise<string> {
-        param.code_text += DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-        return await this.t(param);
+    private async label(code_text: string, lang_id: number): Promise<string> {
+        code_text += DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return await this.t(code_text, lang_id);
     }
 
     private async onPreCreateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {

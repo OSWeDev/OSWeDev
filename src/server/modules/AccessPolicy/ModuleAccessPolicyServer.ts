@@ -3,11 +3,7 @@ import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessP
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import AddRoleToUserParamVO from '../../../shared/modules/AccessPolicy/vos/apis/AddRoleToUserParamVO';
 import LoginParamVO from '../../../shared/modules/AccessPolicy/vos/apis/LoginParamVO';
-import ResetPwdParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
-import ResetPwdUIDParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdUIDParamVO';
-import ToggleAccessParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
@@ -15,9 +11,6 @@ import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import BooleanParamVO from '../../../shared/modules/API/vos/apis/BooleanParamVO';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -585,7 +578,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ADMIN, this.isAdmin.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ROLE, this.isRole.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_MY_ROLES, this.getMyRoles.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, this.addRoleToUser.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS, this.beginRecoverSMS.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
@@ -606,8 +598,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
     }
 
-    public async begininitpwd(param: StringParamVO): Promise<void> {
-        if ((!param) || (!param.text)) {
+    public async begininitpwd(text: string): Promise<void> {
+        if (!text) {
             return;
         }
 
@@ -615,11 +607,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await PasswordInitialisation.getInstance().begininitpwd(param.text);
+        await PasswordInitialisation.getInstance().begininitpwd(text);
     }
 
-    public async begininitpwdsms(param: StringParamVO): Promise<void> {
-        if ((!param) || (!param.text)) {
+    public async begininitpwdsms(text: string): Promise<void> {
+        if (!text) {
             return;
         }
 
@@ -631,11 +623,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await PasswordInitialisation.getInstance().beginRecoverySMS(param.text);
+        await PasswordInitialisation.getInstance().beginRecoverySMS(text);
     }
 
-    public async begininitpwd_uid(param: NumberParamVO): Promise<void> {
-        if ((!param) || (!param.num)) {
+    public async begininitpwd_uid(num: number): Promise<void> {
+        if (!num) {
             return;
         }
 
@@ -643,7 +635,27 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await PasswordInitialisation.getInstance().begininitpwd_uid(param.num);
+        await PasswordInitialisation.getInstance().begininitpwd_uid(num);
+    }
+
+    public async addRoleToUser(user_id: number, role_id: number): Promise<void> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!user_id) || (!role_id)) {
+            return;
+        }
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+            return;
+        }
+
+        let userRole: UserRoleVO = await ModuleDAOServer.getInstance().selectOne<UserRoleVO>(UserRoleVO.API_TYPE_ID, " WHERE t.user_id = $1 and t.role_id = $2", [user_id, role_id]);
+
+        if (!userRole) {
+            userRole = new UserRoleVO();
+            userRole.role_id = role_id;
+            userRole.user_id = user_id;
+            await ModuleDAO.getInstance().insertOrUpdateVO(userRole);
+        }
     }
 
     public async activate_policies_for_roles(policy_names: string[], role_names: string[]) {
@@ -703,8 +715,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
-    public async change_lang(param: NumberParamVO): Promise<void> {
-        if ((!param) || (!param.num)) {
+    public async change_lang(num: number): Promise<void> {
+        if (!num) {
             return;
         }
 
@@ -715,7 +727,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
-            [param.num, user_id]);
+            [num, user_id]);
     }
 
     /**
@@ -919,8 +931,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
-    private async togglePolicy(params: ToggleAccessParamVO): Promise<boolean> {
-        if ((!params.policy_id) || (!params.role_id)) {
+    private async togglePolicy(policy_id: number, role_id: number): Promise<boolean> {
+        if ((!policy_id) || (!role_id)) {
             return false;
         }
 
@@ -928,8 +940,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy_by_id(params.policy_id);
-        let role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(params.role_id);
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy_by_id(policy_id);
+        let role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(role_id);
         if (AccessPolicyServerController.getInstance().checkAccessTo(
             target_policy,
             { [role.id]: role }, undefined, undefined, undefined, undefined, role)) {
@@ -963,8 +975,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async getAccessMatrix(param: BooleanParamVO): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
-        return await AccessPolicyServerController.getInstance().getAccessMatrix(param ? param.value : false);
+    private async getAccessMatrix(bool: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
+        return await AccessPolicyServerController.getInstance().getAccessMatrix(bool);
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
@@ -990,7 +1002,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     /**
      * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
      */
-    private async isRole(param: StringParamVO): Promise<boolean> {
+    private async isRole(text: string): Promise<boolean> {
         if (!StackContext.getInstance().get('IS_CLIENT')) {
             return false;
         }
@@ -1005,7 +1017,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             UserRoleVO.API_TYPE_ID,
             " join " + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r on r.id = t.role_id " +
             " where t.user_id = $1 and r.translatable_name = $2",
-            [uid, param.text],
+            [uid, text],
             [UserVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
 
         if (userRoles) {
@@ -1046,13 +1058,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    private async checkAccess(checkAccessParam: StringParamVO): Promise<boolean> {
+    private async checkAccess(policy_name: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!checkAccessParam) || (!checkAccessParam.text)) {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
             return false;
         }
-
-        let policy_name: string = checkAccessParam.text;
 
         // this.consoledebug("CHECKACCESS:" + policy_name + ":");
 
@@ -1090,38 +1100,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             AccessPolicyServerController.getInstance().getUsersRoles(true, uid));
     }
 
-    private async addRoleToUser(params: AddRoleToUserParamVO): Promise<void> {
+    private async beginRecover(text: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!params) || (!params.user_id) || (!params.role_id)) {
-            return;
-        }
-
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
-            return;
-        }
-
-        let userRole: UserRoleVO = await ModuleDAOServer.getInstance().selectOne<UserRoleVO>(UserRoleVO.API_TYPE_ID, " WHERE t.user_id = $1 and t.role_id = $2", [params.user_id, params.role_id]);
-
-        if (!userRole) {
-            userRole = new UserRoleVO();
-            userRole.role_id = params.role_id;
-            userRole.user_id = params.user_id;
-            await ModuleDAO.getInstance().insertOrUpdateVO(userRole);
-        }
-    }
-
-    private async beginRecover(param: StringParamVO): Promise<boolean> {
-
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!param.text)) {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!text)) {
             return false;
         }
 
-        return PasswordRecovery.getInstance().beginRecovery(param.text);
+        return PasswordRecovery.getInstance().beginRecovery(text);
     }
 
-    private async beginRecoverSMS(param: StringParamVO): Promise<boolean> {
+    private async beginRecoverSMS(text: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!param.text)) {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!text)) {
             return false;
         }
 
@@ -1129,43 +1119,43 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        return PasswordRecovery.getInstance().beginRecoverySMS(param.text);
+        return PasswordRecovery.getInstance().beginRecoverySMS(text);
     }
 
-    private async checkCode(params: ResetPwdParamVO): Promise<boolean> {
+    private async checkCode(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+        if (!ModuleAccessPolicy.getInstance().actif) {
             return false;
         }
 
-        return await PasswordReset.getInstance().checkCode(params.email, params.challenge);
+        return await PasswordReset.getInstance().checkCode(email, challenge);
     }
 
-    private async checkCodeUID(params: ResetPwdUIDParamVO): Promise<boolean> {
+    private async checkCodeUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+        if (!ModuleAccessPolicy.getInstance().actif) {
             return false;
         }
 
-        return await PasswordReset.getInstance().checkCodeUID(params.uid, params.challenge);
+        return await PasswordReset.getInstance().checkCodeUID(uid, challenge);
     }
 
-    private async resetPwd(params: ResetPwdParamVO): Promise<boolean> {
+    private async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+        if (!ModuleAccessPolicy.getInstance().actif) {
             return false;
         }
 
-        return await PasswordReset.getInstance().resetPwd(params.email, params.challenge, params.new_pwd1);
+        return await PasswordReset.getInstance().resetPwd(email, challenge, new_pwd1);
     }
 
-    private async resetPwdUID(params: ResetPwdUIDParamVO): Promise<boolean> {
+    private async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+        if (!ModuleAccessPolicy.getInstance().actif) {
             return false;
         }
 
-        return await PasswordReset.getInstance().resetPwdUID(params.uid, params.challenge, params.new_pwd1);
+        return await PasswordReset.getInstance().resetPwdUID(uid, challenge, new_pwd1);
     }
 
     private async handleTriggerUserVOUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>): Promise<boolean> {
@@ -1311,7 +1301,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async loginAndRedirect(param: LoginParamVO): Promise<number> {
+    private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
             let session = StackContext.getInstance().get('SESSION');
@@ -1322,11 +1312,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.uid = null;
 
-            if ((!param) || (!param.email) || (!param.password)) {
+            if ((!email) || (!password)) {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(param.email, param.password);
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
             if (!user) {
                 return null;
@@ -1360,18 +1350,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On await pas ici on se fiche du résultat
             ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
-            // this.redirectUserPostLogin(param.redirect_to, res);
+            // this.redirectUserPostLogin(redirect_to, res);
 
             return user.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error("login:" + param.email + ":" + error);
+            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
         }
         // res.redirect('/login');
 
         return null;
     }
 
-    private async impersonateLogin(param: LoginParamVO): Promise<number> {
+    private async impersonateLogin(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
             let session = StackContext.getInstance().get('SESSION');
@@ -1385,18 +1375,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            if ((!param) || (!param.email)) {
+            if (!email) {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [param.email]);
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [email]);
 
             if (!user) {
                 return null;
             }
 
             if (user.blocked || user.invalidated) {
-                ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":blocked or invalidated");
+                ConsoleHandler.getInstance().error("impersonate login:" + email + ":blocked or invalidated");
                 await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
                 return null;
             }
@@ -1420,7 +1410,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return user.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":" + error);
+            ConsoleHandler.getInstance().error("impersonate login:" + email + ":" + error);
         }
 
         return null;

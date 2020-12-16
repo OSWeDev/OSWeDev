@@ -61,10 +61,10 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
     }
 
-    public async getLatestAvailableSegment(renderer_name: StringParamVO): Promise<TimeSegment> {
+    public async getLatestAvailableSegment(text: string): Promise<TimeSegment> {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
-        let dataRenderer: DataRendererVO = await this.getDataRenderer(renderer_name);
+        let dataRenderer: DataRendererVO = await this.getDataRenderer(text);
         if (!dataRenderer) {
             return null;
         }
@@ -89,8 +89,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<DataRendererVO>(DataRendererVO.API_TYPE_ID);
     }
 
-    public async getDataRenderer(param: StringParamVO): Promise<DataRendererVO> {
-        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [param.text]);
+    public async getDataRenderer(text: string): Promise<DataRendererVO> {
+        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [text]);
     }
 
     /**

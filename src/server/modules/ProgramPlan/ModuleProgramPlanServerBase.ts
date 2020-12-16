@@ -13,7 +13,6 @@ import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import ProgramSegmentParamVO from '../../../shared/modules/ProgramPlan/vos/ProgramSegmentParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -224,8 +223,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         await this.registerFrontEditionAccessPolicies(group, fo_edit);
     }
 
-    public async getPrepsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVPrep[]> {
-        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(params);
+    public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {
+        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(program_id, timeSegment);
         if (!rdvs) {
             return null;
         }
@@ -237,8 +236,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', ids);
     }
 
-    public async getCRsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVCR[]> {
-        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(params);
+    public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
+        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(program_id, timeSegment);
         if (!rdvs) {
             return null;
         }
@@ -250,9 +249,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', ids);
     }
 
-    public async getRDVsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDV[]> {
-        let program_id: number = params.program_id;
-        let timeSegment: TimeSegment = params.timeSegment;
+    public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
 
         if (!timeSegment) {
             return null;

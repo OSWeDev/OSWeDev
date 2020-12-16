@@ -144,10 +144,10 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         });
     }
 
-    private async testFileExistenz(param: NumberParamVO): Promise<boolean> {
+    private async testFileExistenz(num: number): Promise<boolean> {
 
         try {
-            let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, param.num);
+            let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, num);
             return fs.existsSync(fileVo.path);
         } catch (error) {
             console.error(error);

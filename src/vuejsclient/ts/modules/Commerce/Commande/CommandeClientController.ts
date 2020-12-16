@@ -18,7 +18,7 @@ export default class CommandeClientController {
 
     public async ajouterAuPanier(produitsParam: ProduitParamLigneParamVO[]): Promise<CommandeVO> {
         let panier: CommandeVO = await this.getPanierEnCours();
-        return ModuleAPI.getInstance().handleAPI<ProduitsParamLignesParamVO, CommandeVO>(ModuleCommande.APINAME_ajouterAuPanier, produitsParam, panier);
+        return ModuleAPI.sah(ModuleCommande.APINAME_ajouterAuPanier, produitsParam, panier);
     }
 
     public async getPanierEnCours(): Promise<CommandeVO> {

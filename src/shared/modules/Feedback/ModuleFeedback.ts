@@ -1,7 +1,8 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
+import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -10,7 +11,6 @@ import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
 import FeedbackVO from './vos/FeedbackVO';
-import AccessPolicyTools from '../../tools/AccessPolicyTools';
 
 export default class ModuleFeedback extends Module {
 
@@ -31,6 +31,8 @@ export default class ModuleFeedback extends Module {
 
     private static instance: ModuleFeedback = null;
 
+    public feedback: (feedback: FeedbackVO) => Promise<boolean> = ModuleAPI.sah(ModuleFeedback.APINAME_feedback);
+
     private constructor() {
 
         super("feedback", ModuleFeedback.MODULE_NAME);
@@ -43,12 +45,8 @@ export default class ModuleFeedback extends Module {
             ModuleFeedback.POLICY_FO_ACCESS,
             ModuleFeedback.APINAME_feedback,
             [FeedbackVO.API_TYPE_ID],
-            APISimpleVOParamVO.translateCheckAccessParams
+            APISimpleVOParamVOStatic
         ));
-    }
-
-    public async feedback(feedback: FeedbackVO): Promise<boolean> {
-        return ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, boolean>(ModuleFeedback.APINAME_feedback, feedback);
     }
 
     public initialize() {

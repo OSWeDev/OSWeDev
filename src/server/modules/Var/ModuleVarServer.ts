@@ -3,11 +3,8 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
-import APISimpleVOsParamVO from '../../../shared/modules/DAO/vos/APISimpleVOsParamVO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -720,13 +717,12 @@ export default class ModuleVarServer extends ModuleServerBase {
      *  valeurs des vardatas correspondants aux params. Et si on a déjà une valeur à fournir, alors on l'envoie directement
      * @param api_param
      */
-    private async register_params(api_param: APISimpleVOsParamVO): Promise<void> {
+    private async register_params(params: VarDataBaseVO[]): Promise<void> {
 
-        if (!api_param) {
+        if (!params) {
             return;
         }
 
-        let params: VarDataBaseVO[] = api_param.vos as VarDataBaseVO[];
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
 
@@ -793,23 +789,23 @@ export default class ModuleVarServer extends ModuleServerBase {
      *  valeurs des vardatas correspondants aux params. Donc on les supprime de l'abonnement et c'est tout
      * @param api_param
      */
-    private async unregister_params(api_param: APISimpleVOsParamVO): Promise<void> {
+    private async unregister_params(params: VarDataBaseVO[]): Promise<void> {
 
-        if (!api_param) {
+        if (!params) {
             return;
         }
 
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
-        VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.check_param_is_valid(param._type) ? param.index : null) : []);
+        VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
     }
 
-    private async getVarControllerDSDeps(params: StringParamVO): Promise<string[]> {
-        if ((!params) || (!params.text) || (!VarsController.getInstance().var_conf_by_name[params.text])) {
+    private async getVarControllerDSDeps(text: string): Promise<string[]> {
+        if ((!text) || (!VarsController.getInstance().var_conf_by_name[text])) {
             return null;
         }
 
-        let var_controller = VarsServerController.getInstance().registered_vars_controller_[params.text];
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[text];
 
         let res: string[] = [];
         let deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
@@ -821,12 +817,12 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
 
-    private async getVarControllerVarsDeps(params: StringParamVO): Promise<{ [dep_name: string]: string }> {
-        if ((!params) || (!params.text) || (!VarsController.getInstance().var_conf_by_name[params.text])) {
+    private async getVarControllerVarsDeps(text: string): Promise<{ [dep_name: string]: string }> {
+        if ((!text) || (!VarsController.getInstance().var_conf_by_name[text])) {
             return null;
         }
 
-        let var_controller = VarsServerController.getInstance().registered_vars_controller_[params.text];
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[text];
 
         let res: { [dep_name: string]: string } = {};
         let deps: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
@@ -837,12 +833,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         return res;
     }
 
-    private async getParamDependencies(params: APISimpleVOParamVO): Promise<{ [dep_id: string]: VarDataBaseVO }> {
-        if ((!params) || (!params.vo) || (!params.vo._type)) {
+    private async getParamDependencies(param: VarDataBaseVO): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+        if (!param) {
             return null;
         }
-
-        let param: VarDataBaseVO = params.vo as VarDataBaseVO;
 
         if (!param.check_param_is_valid(param._type)) {
             ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
@@ -855,11 +849,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        return var_controller.UT__getParamDependencies(params.vo, await this.getVarParamDatas(params));
+        return var_controller.UT__getParamDependencies(param, await this.getVarParamDatas(param));
     }
 
-    private async getVarParamDatas(params: APISimpleVOParamVO): Promise<{ [ds_name: string]: string }> {
-        if ((!params) || (!params.vo) || (!params.vo._type)) {
+    private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
+        if (!param) {
             return null;
         }
 
@@ -868,8 +862,6 @@ export default class ModuleVarServer extends ModuleServerBase {
          *  a filtré et garder un json valide
          */
         let value_size_limit: number = 10000;
-
-        let param: VarDataBaseVO = params.vo as VarDataBaseVO;
 
         if (!param.check_param_is_valid(param._type)) {
             ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');

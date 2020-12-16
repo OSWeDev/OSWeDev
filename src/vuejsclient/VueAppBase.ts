@@ -1,4 +1,3 @@
-import VModal from 'vue-js-modal';
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
 import "fullcalendar-scheduler";
@@ -16,6 +15,7 @@ import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
 import Intersect from 'vue-intersect';
+import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
@@ -28,7 +28,6 @@ import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
@@ -43,7 +42,6 @@ import UserNotifsMarkerComponent from './ts/components/notification/components/U
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
-import ClientAPIController from './ts/modules/API/ClientAPIController';
 import IVueModule from './ts/modules/IVueModule';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
@@ -71,8 +69,6 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
-        // On initialise les controllers pour les APIs
-        ModuleAPI.getInstance().setAPIController(ClientAPIController.getInstance());
         ModuleAjaxCache.getInstance().setClientController(AjaxCacheClientController.getInstance());
 
         // Chargement des données des modules.

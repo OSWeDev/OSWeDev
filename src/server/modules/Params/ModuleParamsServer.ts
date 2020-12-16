@@ -4,10 +4,8 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import SetParamParamVO from '../../../shared/modules/Params/vos/apis/SetParamParamVO';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -68,34 +66,34 @@ export default class ModuleParamsServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    public async setParamValue(set_param: SetParamParamVO) {
-        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, set_param.param_name);
+    public async setParamValue(param_name: string, param_value: string | number | boolean) {
+        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, param_name);
 
         if (!param) {
             param = new ParamVO();
-            param.name = set_param.param_name;
+            param.name = param_name;
         }
-        param.value = set_param.param_value as string;
+        param.value = param_value as string;
         param.last_up_date = moment().utc(true);
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 
-    public async setParamValue_if_not_exists(set_param: SetParamParamVO) {
-        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, set_param.param_name);
+    public async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
+        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, param_name);
 
         if (!!param) {
             return;
         }
 
         param = new ParamVO();
-        param.name = set_param.param_name;
-        param.value = set_param.param_value as string;
+        param.name = param_name;
+        param.value = param_value as string;
         param.last_up_date = moment().utc(true);
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 
-    public async getParamValue(get_param: StringParamVO): Promise<string> {
-        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, get_param.text);
+    public async getParamValue(text: string): Promise<string> {
+        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, text);
         return param ? param.value : null;
     }
 }

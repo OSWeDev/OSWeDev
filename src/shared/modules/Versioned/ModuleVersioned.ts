@@ -18,6 +18,8 @@ export default class ModuleVersioned extends Module {
 
     private static instance: ModuleVersioned = null;
 
+    public restoreTrashedVo: (vo: IVersionedVO) => Promise<boolean> = ModuleAPI.sah(ModuleVersioned.APINAME_RESTORE_TRASHED_VO);
+
     private constructor() {
 
         super("versioned", ModuleVersioned.MODULE_NAME);
@@ -35,9 +37,5 @@ export default class ModuleVersioned extends Module {
             ModuleVersioned.APINAME_RESTORE_TRASHED_VO,
             (param: IVersionedVO) => [param._type]
         ));
-    }
-
-    public async restoreTrashedVo(vo: IVersionedVO): Promise<boolean> {
-        return await ModuleAPI.getInstance().handleAPI<IVersionedVO, boolean>(ModuleVersioned.APINAME_RESTORE_TRASHED_VO, vo);
     }
 }

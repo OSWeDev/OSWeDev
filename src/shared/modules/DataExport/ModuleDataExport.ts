@@ -1,20 +1,20 @@
+import IExportableSheet from '../../../server/modules/DataExport/interfaces/IExportableSheet';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAPI from '../API/ModuleAPI';
 import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
+import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
-import ExportDataToXLSXParamVO from './vos/apis/ExportDataToXLSXParamVO';
+import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
+import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
-import FileVO from '../File/vos/FileVO';
-import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
-import ModuleDAO from '../DAO/ModuleDAO';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleDataExport extends Module {
 
@@ -32,25 +32,39 @@ export default class ModuleDataExport extends Module {
 
     private static instance: ModuleDataExport = null;
 
+    public exportDataToXLSX: (
+        filename: string,
+        datas: any[],
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+        api_type_id: string,
+        is_secured?: boolean,
+        file_access_policy_name?: string
+    ) => Promise<string> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
+    public exportDataToXLSXFile: (
+        filename: string,
+        datas: any[],
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+        api_type_id: string,
+        is_secured?: boolean,
+        file_access_policy_name?: string) => Promise<FileVO> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
+    public exportDataToMultiSheetsXLSX: (
+        filename: string,
+        sheets: IExportableSheet[],
+        api_type_id: string,
+        is_secured?: boolean,
+        file_access_policy_name?: string) => Promise<string> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
+    public exportDataToMultiSheetsXLSXFile: (
+        filename: string,
+        sheets: IExportableSheet[],
+        api_type_id: string,
+        is_secured?: boolean,
+        file_access_policy_name?: string) => Promise<FileVO> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile);
+
     private constructor() {
         super("data_export", "DataExport");
         this.forceActivationOnInstallation();
-    }
-
-    public async exportDataToXLSX(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<string> {
-        return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, string>(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, exportDataToXLSXParamVO);
-    }
-
-    public async exportDataToXLSXFile(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<FileVO> {
-        return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, FileVO>(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, exportDataToXLSXParamVO);
-    }
-
-    public async exportDataToMultiSheetsXLSX(exportDataToMultiSheetsXLSXParamVO: ExportDataToMultiSheetsXLSXParamVO): Promise<string> {
-        return await ModuleAPI.getInstance().handleAPI<ExportDataToMultiSheetsXLSXParamVO, string>(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, exportDataToMultiSheetsXLSXParamVO);
-    }
-
-    public async exportDataToMultiSheetsXLSXFile(exportDataToMultiSheetsXLSXParamVO: ExportDataToMultiSheetsXLSXParamVO): Promise<FileVO> {
-        return await ModuleAPI.getInstance().handleAPI<ExportDataToMultiSheetsXLSXParamVO, FileVO>(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, exportDataToMultiSheetsXLSXParamVO);
     }
 
     public initialize() {
@@ -66,25 +80,27 @@ export default class ModuleDataExport extends Module {
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
             [],
-            null,
+            ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile,
-            [FileVO.API_TYPE_ID]
+            [FileVO.API_TYPE_ID],
+            ExportDataToXLSXParamVOStatic
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO,
             [],
-            null,
+            ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile,
-            [FileVO.API_TYPE_ID]
+            [FileVO.API_TYPE_ID],
+            ExportDataToXLSXParamVOStatic
         ));
     }
 

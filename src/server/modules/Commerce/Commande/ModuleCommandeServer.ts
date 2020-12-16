@@ -1,22 +1,18 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
-import NumberAndStringParamVO from '../../../../shared/modules/API/vos/apis/NumberAndStringParamVO';
-import NumberParamVO from '../../../../shared/modules/API/vos/apis/NumberParamVO';
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import ModuleCommande from '../../../../shared/modules/Commerce/Commande/ModuleCommande';
 import CommandeVO from '../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
 import LigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/LigneCommandeVO';
 import ParamLigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/ParamLigneCommandeVO';
 import ProduitParamLigneParamVO from '../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
-import ProduitsParamLignesParamVO from '../../../../shared/modules/Commerce/Produit/vos/apis/ProduitsParamLignesParamVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 import ModuleClientServer from '../Client/ModuleClientServer';
 import ModuleProduitServer from '../Produit/ModuleProduitServer';
-import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 const moment = require('moment');
 
 export default class ModuleCommandeServer extends ModuleServerBase {
@@ -42,20 +38,20 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleCommande.APINAME_creationPanier, this.creationPanier.bind(this));
     }
 
-    public async getCommandesUser(param: NumberParamVO): Promise<CommandeVO[]> {
+    public async getCommandesUser(num: number): Promise<CommandeVO[]> {
         return await ModuleDAOServer.getInstance().selectAll<CommandeVO>(
             CommandeVO.API_TYPE_ID,
             ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.id = t.client_id ' +
-            ' WHERE c.user_id = $1', [param.num]
+            ' WHERE c.user_id = $1', [num]
         );
     }
 
-    public async getLignesCommandeByCommandeId(param: NumberParamVO): Promise<LigneCommandeVO[]> {
+    public async getLignesCommandeByCommandeId(num: number): Promise<LigneCommandeVO[]> {
         return await ModuleDAOServer.getInstance().selectAll<LigneCommandeVO>(
             LigneCommandeVO.API_TYPE_ID,
             ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID].full_name + ' commande on commande.id = t.commande_id ' +
             ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' client on client.id = commande.client_id ' +
-            ' WHERE t.commande_id = $1', [param.num]
+            ' WHERE t.commande_id = $1', [num]
         );
     }
 
@@ -73,17 +69,28 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         return panier;
     }
 
-    public async ajouterAuPanier(param: ProduitsParamLignesParamVO): Promise<CommandeVO> {
-        if (param.produitsParam) {
-            for (let i in param.produitsParam) {
-                this.ajouterLigneCommande(param.commande, param.produitsParam[i]);
+    public async ajouterAuPanier(
+        produitsParam: ProduitParamLigneParamVO[],
+        commande: CommandeVO
+    ): Promise<CommandeVO> {
+
+        if (produitsParam) {
+            for (let i in produitsParam) {
+                this.ajouterLigneCommande(commande, produitsParam[i]);
             }
         }
 
-        return param.commande;
+        return commande;
     }
 
-    public async ajouterLigneCommande(commande: CommandeVO, produitParam: ProduitParamLigneParamVO): Promise<void> {
+    public async getParamLigneCommandeById(num: number, text: string): Promise<ParamLigneCommandeVO> {
+        return await ModuleDAOServer.getInstance().selectOne<ParamLigneCommandeVO>(
+            text,
+            ' WHERE t.ligne_commande_id = $1', [num]
+        );
+    }
+
+    private async ajouterLigneCommande(commande: CommandeVO, produitParam: ProduitParamLigneParamVO): Promise<void> {
         if (!commande || !produitParam) {
             return null;
         }
@@ -92,7 +99,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         let ligne: LigneCommandeVO = new LigneCommandeVO();
         ligne.commande_id = commande.id;
         ligne.informations_id = (client) ? client.informations_id : null;
-        ligne.prix_unitaire = await ModuleProduitServer.getInstance().getPrixProduit(produitParam);
+        ligne.prix_unitaire = await ModuleProduitServer.getInstance().getPrixProduit(produitParam.produit, produitParam.produit_custom, produitParam.ligneParam);
         ligne.produit_id = produitParam.produit.id;
         ligne.quantite = 1;
 
@@ -101,12 +108,5 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         produitParam.ligneParam.ligne_commande_id = parseInt(result.id);
 
         await ModuleDAO.getInstance().insertOrUpdateVO(produitParam.ligneParam);
-    }
-
-    public async getParamLigneCommandeById(param: NumberAndStringParamVO): Promise<ParamLigneCommandeVO> {
-        return await ModuleDAOServer.getInstance().selectOne<ParamLigneCommandeVO>(
-            param.text,
-            ' WHERE t.ligne_commande_id = $1', [param.num]
-        );
     }
 }

@@ -1,21 +1,13 @@
 import TimeSegment from '../../../DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../../tools/TimeSegmentHandler';
+import IAPIParamTranslator from '../../interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../interfaces/IAPIParamTranslatorStatic';
 
-export default class TimeSegmentParamVO {
+export default class TimeSegmentParamVO implements IAPIParamTranslator<TimeSegmentParamVO>{
 
     public static URL: string = ':date_index/:type';
 
-    public static async translateCheckAccessParams(
-        timeSegment: TimeSegment): Promise<TimeSegmentParamVO> {
-
-        return new TimeSegmentParamVO(timeSegment);
-    }
-
-    public static async translateToURL(param: TimeSegmentParamVO): Promise<string> {
-
-        return param ? param.timeSegment.dateIndex + '/' + param.timeSegment.type : '';
-    }
-    public static async translateFromREQ(req): Promise<TimeSegmentParamVO> {
+    public static fromREQ(req): TimeSegmentParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -23,7 +15,22 @@ export default class TimeSegmentParamVO {
         return new TimeSegmentParamVO(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(req.params.date_index, parseInt(req.params.type.toString())));
     }
 
+    public static fromParams(timeSegment: TimeSegment): TimeSegmentParamVO {
+        return new TimeSegmentParamVO(timeSegment);
+    }
+
     public constructor(
         public timeSegment: TimeSegment) {
     }
+
+    public translateToURL(): string {
+
+        return this.timeSegment.dateIndex + '/' + this.timeSegment.type;
+    }
+
+    public getAPIParams(): any[] {
+        return [this.timeSegment];
+    }
 }
+
+export const TimeSegmentParamVOStatic: IAPIParamTranslatorStatic<TimeSegmentParamVO> = TimeSegmentParamVO;

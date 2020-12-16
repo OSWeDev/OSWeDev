@@ -7,13 +7,12 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import default_mail_html_template from './default_export_mail_html_template.html';
 import IExportableDatas from './interfaces/IExportableDatas';
 import IExportHandler from './interfaces/IExportHandler';
 import ModuleDataExportServer from './ModuleDataExportServer';
-import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 
 export default abstract class ExportHandlerBase implements IExportHandler {
 
@@ -21,7 +20,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
     protected constructor() { }
 
-    public abstract async prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas>;
+    public abstract prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas>;
 
     /**
      * Par défaut on exporte au format XLSX avec la fonction exportDataToXLSX
@@ -32,10 +31,10 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
         try {
 
-            let file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSXFile(new ExportDataToXLSXParamVO(
+            let file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSXFile(
                 datas.filename, datas.datas, datas.ordered_column_list, datas.column_labels, datas.api_type_id,
                 exhi.export_is_secured, exhi.export_file_access_policy_name
-            ));
+            );
             exhi.exported_file_id = file.id;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

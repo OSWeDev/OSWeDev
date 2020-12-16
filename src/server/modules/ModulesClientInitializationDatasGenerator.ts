@@ -54,6 +54,8 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += this.generateModulesCode(this.generateModuleImport, target);
 
         fileContent += "import EnvHandler from 'oswedev/dist/shared/tools/EnvHandler';\n";
+        fileContent += "import ClientAPIController from 'oswedev/dist/vuejsclient/ts/modules/API/ClientAPIController';\n";
+        fileContent += "import APIController from 'oswedev/dist/shared/modules/API/APIController';\n";
 
         if (target != 'Test') {
             fileContent += "import AjaxCacheClientController from 'oswedev/dist/vuejsclient/ts/modules/AjaxCache/AjaxCacheClientController';\n";
@@ -61,6 +63,9 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent += "\n";
         fileContent += "export default async function Initialize" + target + "ModulesDatas() {\n";
+
+        // On initialise le Controller pour les APIs
+        fileContent += "    APIControllerWrapper.API_CONTROLLER = ClientAPIController.getInstance();\n";
 
         // Initialiser directement l'env param
         fileContent += "    EnvHandler.getInstance().NODE_VERBOSE = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().NODE_VERBOSE) ? 'true' : 'false') + ';\n';

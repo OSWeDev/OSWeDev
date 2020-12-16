@@ -1,31 +1,19 @@
+import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 import NumRange from '../../DataRender/vos/NumRange';
 
-export default class APIDAOIdsRangesParamsVO {
+export default class APIDAOIdsRangesParamsVO implements IAPIParamTranslator<APIDAOIdsRangesParamsVO> {
 
     public static URL: string = ':api_type_id/:ranges';
 
-    public static async translateCheckAccessParams(
+    public static fromParams(
         API_TYPE_ID: string,
-        ranges: NumRange[]): Promise<APIDAOIdsRangesParamsVO> {
+        ranges: NumRange[]): APIDAOIdsRangesParamsVO {
 
         return new APIDAOIdsRangesParamsVO(API_TYPE_ID, ranges);
     }
 
-    public static async translateToURL(param: APIDAOIdsRangesParamsVO): Promise<string> {
-
-        let range_txt: string = "";
-        for (let i in param.ranges) {
-
-            range_txt += (range_txt == "") ? "" : "_";
-            range_txt += param.ranges[i].min + "-";
-            range_txt += param.ranges[i].max + "-";
-            range_txt += (param.ranges[i].min_inclusiv ? "i" : "") + "-";
-            range_txt += (param.ranges[i].max_inclusiv ? "i" : "") + "-";
-            range_txt += param.ranges[i].segment_type + "-";
-        }
-        return param ? param.API_TYPE_ID + '/' + range_txt : '';
-    }
-    public static async translateFromREQ(req): Promise<APIDAOIdsRangesParamsVO> {
+    public static fromREQ(req): APIDAOIdsRangesParamsVO {
 
         if (!(req && req.params)) {
             return null;
@@ -45,4 +33,25 @@ export default class APIDAOIdsRangesParamsVO {
         public API_TYPE_ID: string,
         public ranges: NumRange[]) {
     }
+
+    public translateToURL(): string {
+
+        let range_txt: string = "";
+        for (let i in this.ranges) {
+
+            range_txt += (range_txt == "") ? "" : "_";
+            range_txt += this.ranges[i].min + "-";
+            range_txt += this.ranges[i].max + "-";
+            range_txt += (this.ranges[i].min_inclusiv ? "i" : "") + "-";
+            range_txt += (this.ranges[i].max_inclusiv ? "i" : "") + "-";
+            range_txt += this.ranges[i].segment_type + "-";
+        }
+        return this.API_TYPE_ID + '/' + range_txt;
+    }
+
+    public getAPIParams(): any[] {
+        return [this.API_TYPE_ID, this.ranges];
+    }
 }
+
+export const APIDAOIdsRangesParamsVOStatic: IAPIParamTranslatorStatic<APIDAOIdsRangesParamsVO> = APIDAOIdsRangesParamsVO;

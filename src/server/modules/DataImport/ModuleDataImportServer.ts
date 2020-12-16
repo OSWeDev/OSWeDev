@@ -358,22 +358,22 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
     }
 
-    public async getDataImportHistorics(param: NumberParamVO): Promise<DataImportHistoricVO[]> {
+    public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
 
         return await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [num]);
     }
 
-    public async getDataImportHistoric(param: NumberParamVO): Promise<DataImportHistoricVO> {
+    public async getDataImportHistoric(num: number): Promise<DataImportHistoricVO> {
 
         return await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [param.num]);
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [num]);
     }
 
-    public async getDataImportLogs(param: NumberParamVO): Promise<DataImportLogVO[]> {
+    public async getDataImportLogs(num: number): Promise<DataImportLogVO[]> {
 
         return await ModuleDAOServer.getInstance().selectAll<DataImportLogVO>(
-            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
+            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [num]);
     }
 
     public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
@@ -381,10 +381,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID);
     }
 
-    public async getDataImportFile(param: StringParamVO): Promise<DataImportFormatVO> {
+    public async getDataImportFile(text: string): Promise<DataImportFormatVO> {
 
         return await ModuleDAOServer.getInstance().selectOne<DataImportFormatVO>(
-            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [param.text]);
+            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [text]);
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
@@ -393,10 +393,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             DataImportFormatVO.API_TYPE_ID, 'WHERE t.api_type_id = $1', [API_TYPE_ID]);
     }
 
-    public async getDataImportColumnsFromFormatId(param: NumberParamVO): Promise<DataImportColumnVO[]> {
+    public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {
 
         return await ModuleDAOServer.getInstance().selectAll<DataImportColumnVO>(
-            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [param.num]);
+            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [num]);
     }
 
     /**

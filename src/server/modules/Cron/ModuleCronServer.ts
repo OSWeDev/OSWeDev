@@ -149,15 +149,15 @@ export default class ModuleCronServer extends ModuleServerBase {
         }
     }
 
-    public async run_manual_task(param: StringParamVO) {
+    public async run_manual_task(text: string) {
 
         let uid: number = StackContext.getInstance().get('UID');
         let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
-        if (!ManualTasksController.getInstance().registered_manual_tasks_by_name[param.text]) {
+        if (!ManualTasksController.getInstance().registered_manual_tasks_by_name[text]) {
             return null;
         }
-        await ManualTasksController.getInstance().registered_manual_tasks_by_name[param.text]();
+        await ManualTasksController.getInstance().registered_manual_tasks_by_name[text]();
     }
 
 
@@ -176,9 +176,9 @@ export default class ModuleCronServer extends ModuleServerBase {
         }
     }
 
-    public async executeWorkerManually(param: StringParamVO) {
+    public async executeWorkerManually(text: string) {
 
-        let worker_uid: string = param.text;
+        let worker_uid: string = text;
 
         if (!worker_uid) {
             return;

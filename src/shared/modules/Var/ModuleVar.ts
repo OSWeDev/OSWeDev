@@ -1,12 +1,12 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleAPI from '../API/ModuleAPI';
-import StringParamVO from '../API/vos/apis/StringParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
-import APISimpleVOsParamVO from '../DAO/vos/APISimpleVOsParamVO';
+import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
+import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -64,6 +64,19 @@ export default class ModuleVar extends Module {
 
     private static instance: ModuleVar = null;
 
+    public invalidate_cache_exact: (vos: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_invalidate_cache_exact);
+    public invalidate_cache_intersection_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_invalidate_cache_intersection_and_parents);
+    public invalidate_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_invalidate_cache_intersection);
+    public delete_cache_and_imports_intersection: (vos: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_delete_cache_and_imports_intersection);
+    public delete_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_delete_cache_intersection);
+    public getVarControllerDSDeps: (var_name: string) => Promise<string[]> = ModuleAPI.sah(ModuleVar.APINAME_getVarControllerDSDeps);
+    public getVarControllerVarsDeps: (var_name: string) => Promise<{ [dep_name: string]: string }> = ModuleAPI.sah(ModuleVar.APINAME_getVarControllerVarsDeps);
+    public getParamDependencies: (param: VarDataBaseVO) => Promise<{ [dep_id: string]: VarDataBaseVO }> = ModuleAPI.sah(ModuleVar.APINAME_getParamDependencies);
+    public getVarParamDatas: (param: VarDataBaseVO) => Promise<{ [ds_name: string]: string }> = ModuleAPI.sah(ModuleVar.APINAME_getVarParamDatas);
+    public register_params: (params: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_register_params);
+    public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = ModuleAPI.sah(ModuleVar.APINAME_unregister_params);
+    public get_var_id_by_names: () => Promise<VarConfIds> = ModuleAPI.sah(ModuleVar.APINAME_get_var_id_by_names);
+
     private constructor() {
 
         super("var", ModuleVar.MODULE_NAME);
@@ -88,42 +101,42 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_register_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOsParamVO.translateCheckAccessParams
+            APISimpleVOsParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOsParamVO.translateCheckAccessParams
+            APISimpleVOsParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarControllerVarsDeps,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            StringParamVO.translateCheckAccessParams
+            StringParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, string[]>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarControllerDSDeps,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            StringParamVO.translateCheckAccessParams
+            StringParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getParamDependencies,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOParamVO.translateCheckAccessParams
+            APISimpleVOParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarParamDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
-            APISimpleVOParamVO.translateCheckAccessParams
+            APISimpleVOParamVOStatic
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(
@@ -222,75 +235,6 @@ export default class ModuleVar extends Module {
             }
         ));
     }
-
-    public async invalidate_cache_exact(vos: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_invalidate_cache_exact, vos);
-    }
-    public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, vos);
-    }
-
-    public async invalidate_cache_intersection(vos: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_invalidate_cache_intersection, vos);
-    }
-    public async delete_cache_and_imports_intersection(vos: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_delete_cache_and_imports_intersection, vos);
-    }
-    public async delete_cache_intersection(vos: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_delete_cache_intersection, vos);
-    }
-
-    public async getVarControllerDSDeps(var_name: string): Promise<string[]> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, string[]>(ModuleVar.APINAME_getVarControllerDSDeps, var_name);
-    }
-    public async getVarControllerVarsDeps(var_name: string): Promise<{ [dep_name: string]: string }> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [dep_name: string]: string }>(ModuleVar.APINAME_getVarControllerVarsDeps, var_name);
-    }
-    public async getParamDependencies(param: VarDataBaseVO): Promise<{ [dep_id: string]: VarDataBaseVO }> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(ModuleVar.APINAME_getParamDependencies, param);
-    }
-    public async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [ds_name: string]: string }>(ModuleVar.APINAME_getVarParamDatas, param);
-    }
-
-    public async register_params(params: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOsParamVO, void>(ModuleVar.APINAME_register_params, params);
-    }
-
-    public async unregister_params(params: VarDataBaseVO[]): Promise<void> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOsParamVO, void>(ModuleVar.APINAME_unregister_params, params);
-    }
-
-    public async get_var_id_by_names(): Promise<VarConfIds> {
-        return await ModuleAPI.getInstance().handleAPI<void, VarConfIds>(ModuleVar.APINAME_get_var_id_by_names);
-    }
-
-    // public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
-    //     let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
-    //     // Si on est côté client, on a pas besoin de la conf du cache
-
-    //     if (!server_side) {
-    //         return var_cache_conf;
-    //     }
-
-    //     return await ModuleAPI.getInstance().handleAPI<ConfigureVarCacheParamVO, VarCacheConfVO>(ModuleVar.APINAME_configureVarCache, var_conf, var_cache_conf);
-    // }
-
-    // public async getSimpleVarDataValueSumFilterByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
-    //     if ((!matroids) || (!matroids.length)) {
-    //         return null;
-    //     }
-
-    //     return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
-    // }
-
-    // public async getSimpleVarDataCachedValueFromParam<T extends VarDataBaseVO>(param: T): Promise<VarDataValueResVO> {
-    //     if (!param) {
-    //         return null;
-    //     }
-
-    //     return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, VarDataValueResVO>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
-    // }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
         await VarsController.getInstance().initialize();

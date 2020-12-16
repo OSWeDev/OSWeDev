@@ -1,19 +1,11 @@
-export default class APIDAOParamsVO {
+import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
+
+export default class APIDAOParamsVO implements IAPIParamTranslator<APIDAOParamsVO> {
 
     public static URL: string = ':api_type_id/:ids';
 
-    public static async translateCheckAccessParams(
-        API_TYPE_ID: string,
-        ids: number[]): Promise<APIDAOParamsVO> {
-
-        return new APIDAOParamsVO(API_TYPE_ID, ids);
-    }
-
-    public static async translateToURL(param: APIDAOParamsVO): Promise<string> {
-
-        return param ? param.API_TYPE_ID + '/' + param.ids.join('_') : '';
-    }
-    public static async translateFromREQ(req): Promise<APIDAOParamsVO> {
+    public static fromREQ(req): APIDAOParamsVO {
 
         if (!(req && req.params)) {
             return null;
@@ -25,8 +17,23 @@ export default class APIDAOParamsVO {
         return new APIDAOParamsVO(req.params.api_type_id, ids);
     }
 
+    public static fromParams(API_TYPE_ID: string, ids: number[]): APIDAOParamsVO {
+        return new APIDAOParamsVO(API_TYPE_ID, ids);
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public ids: number[]) {
     }
+
+    public translateToURL(): string {
+
+        return this.API_TYPE_ID + '/' + this.ids.join('_');
+    }
+
+    public getAPIParams(): any[] {
+        return [this.API_TYPE_ID, this.ids];
+    }
 }
+
+export const APIDAOParamsVOStatic: IAPIParamTranslatorStatic<APIDAOParamsVO> = APIDAOParamsVO;
