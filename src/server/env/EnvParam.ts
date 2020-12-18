@@ -25,4 +25,5 @@ export default class EnvParam implements IEnvParam {
     public CONSOLE_LOG_TO_FILE: boolean = true;
     public DEBUG_FORKS: boolean = false;
     public VARS_PERF_MONITORING?: boolean = true;
+    public START_MAINTENANCE_ACCEPTATION_CODE: string;
 }

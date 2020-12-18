@@ -1,7 +1,6 @@
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 
 
 describe('APIController', () => {

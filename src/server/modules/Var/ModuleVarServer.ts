@@ -250,7 +250,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         });
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache] =
-            VarsDatasVoUpdateHandler.getInstance().force_empty_cars_datas_vu_update_cache;
+            VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache;
     }
 
     /**

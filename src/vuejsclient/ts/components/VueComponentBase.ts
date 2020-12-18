@@ -3,6 +3,7 @@ import { unitOfTime } from "moment";
 import * as screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
+import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
 import Module from "../../../shared/modules/Module";
@@ -857,11 +858,19 @@ export default class VueComponentBase extends Vue
     protected async export_to_xlsx() {
         if (this.isExportableToXLSX) {
             // this.startLoading();
-            let param = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
+            let param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
 
             if (!!param) {
 
-                await ModuleDataExport.getInstance().exportDataToXLSX(param);
+                await ModuleDataExport.getInstance().exportDataToXLSX(
+                    param.filename,
+                    param.datas,
+                    param.ordered_column_list,
+                    param.column_labels,
+                    param.api_type_id,
+                    param.is_secured,
+                    param.file_access_policy_name
+                );
             }
             // this.stopLoading();
         }

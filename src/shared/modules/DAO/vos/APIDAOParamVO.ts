@@ -18,6 +18,10 @@ export default class APIDAOParamVO implements IAPIParamTranslator<APIDAOParamVO>
         return new APIDAOParamVO(API_TYPE_ID, id, segmentation_ranges);
     }
 
+    public static getAPIParams(param: APIDAOParamVO): any[] {
+        return [param.API_TYPE_ID, param.id, param.segmentation_ranges];
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public id: number,
@@ -26,10 +30,6 @@ export default class APIDAOParamVO implements IAPIParamTranslator<APIDAOParamVO>
 
     public translateToURL(): string {
         return this.API_TYPE_ID + '/' + this.id;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.API_TYPE_ID, this.id, this.segmentation_ranges];
     }
 }
 

@@ -1,7 +1,7 @@
+import * as moment from 'moment';
 import Component from 'vue-class-component';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
-import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import ImportTranslation from '../../../../../../../shared/modules/Translation/import/vos/ImportTranslation';
 import LangVO from '../../../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
@@ -10,7 +10,6 @@ import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager
 import DateHandler from '../../../../../../../shared/tools/DateHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import './TranslationsImportOverviewComponent.scss';
-import * as moment from 'moment';
 
 @Component({
     template: require('./TranslationsImportOverviewComponent.pug'),
@@ -32,14 +31,12 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
     private async export_translations() {
 
         await this.set_exportable_data();
-        let datas: ExportDataToXLSXParamVO = new ExportDataToXLSXParamVO(
+        await ModuleDataExport.getInstance().exportDataToXLSX(
             "export_translations_" + DateHandler.getInstance().formatDayForIndex(moment().utc(true)) + ".xlsx",
             this.exportable_data,
             this.exportable_columns,
             this.columns_labels,
-            ImportTranslation.API_TYPE_ID,
-        );
-        await ModuleDataExport.getInstance().exportDataToXLSX(datas);
+            ImportTranslation.API_TYPE_ID);
     }
 
     private async set_exportable_data() {

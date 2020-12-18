@@ -1,8 +1,7 @@
-import { Component, Watch } from 'vue-property-decorator';
+import { Component } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarsManagerComponent.scss';
@@ -24,9 +23,6 @@ export default class VarsManagerComponent extends VueComponentBase {
     private set_desc_selected_var_param_historic_i: (desc_selected_var_param_historic_i: number) => void;
     @ModuleVarGetter
     private get_desc_selected_var_param_historic_i: number;
-
-    @ModuleVarGetter
-    private getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     private isDescMode: boolean;
     @ModuleVarGetter

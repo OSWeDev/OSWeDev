@@ -18,6 +18,10 @@ export default class BooleanParamVO implements IAPIParamTranslator<BooleanParamV
         return new BooleanParamVO(value);
     }
 
+    public static getAPIParams(param: BooleanParamVO): any[] {
+        return [param.value];
+    }
+
     public constructor(
         public value: boolean) {
     }
@@ -25,10 +29,6 @@ export default class BooleanParamVO implements IAPIParamTranslator<BooleanParamV
     public translateToURL(): string {
 
         return this.value ? 'true' : 'false';
-    }
-
-    public getAPIParams(): any[] {
-        return [this.value];
     }
 }
 

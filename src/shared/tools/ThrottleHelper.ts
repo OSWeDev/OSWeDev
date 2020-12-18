@@ -1,5 +1,4 @@
-import { Cancelable, ThrottleSettings } from 'lodash';
-import { throttle } from 'lodash';
+import { Cancelable, throttle, ThrottleSettings } from 'lodash';
 
 export default class ThrottleHelper {
 
@@ -20,6 +19,22 @@ export default class ThrottleHelper {
     protected throttles_semaphore: { [throttle_id: number]: boolean } = {};
 
     private constructor() { }
+
+    public declare_throttle_without_args(
+        func: () => any,
+        wait: number,
+        options?: ThrottleSettings) {
+
+        let UID = this.UID++;
+        let self = this;
+        this.throttles[UID] = throttle(() => {
+            self.throttles_semaphore[UID] = false;
+            func();
+        }, wait, options);
+
+        return () => ThrottleHelper.getInstance().throttle_without_args(UID);
+    }
+
 
     public declare_throttle_with_mappable_args(
         func: (mappable_args: { [map_elt_id: string]: any }) => any,
@@ -55,6 +70,17 @@ export default class ThrottleHelper {
         return (stackable_args: any[]) => {
             ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stackable_args);
         };
+    }
+
+    private throttle_without_args(throttle_id: number) {
+        if (!this.throttles[throttle_id]) {
+            return;
+        }
+
+        if (!this.throttles_semaphore[throttle_id]) {
+            this.throttles_semaphore[throttle_id] = true;
+            this.throttles[throttle_id]();
+        }
     }
 
     private throttle_with_mappable_args(throttle_id: number, mappable_args: { [map_elt_id: string]: any }) {

@@ -3,7 +3,7 @@ import * as socketIO from 'socket.io';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';

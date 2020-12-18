@@ -2,7 +2,6 @@ import { Express, Request, Response } from 'express';
 import * as fileUpload from 'express-fileupload';
 import * as fs from 'fs';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';

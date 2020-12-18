@@ -25,7 +25,7 @@ export default class ModuleGeneratePDF extends Module {
      * @param save_to_desktop Forcer la sauvegarde sur l'ordinateur du client
      * @param options Options du PDF : default { encoding: 'utf-8' }
      */
-    public generatePDF: (sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options: {}) => Promise<string> = ModuleAPI.sah(ModuleGeneratePDF.APINAME_generatePDF);
+    public generatePDF: (sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options?: {}) => Promise<string> = ModuleAPI.sah(ModuleGeneratePDF.APINAME_generatePDF);
 
     private constructor() {
         super("generate_pdf", 'GeneratePDF');

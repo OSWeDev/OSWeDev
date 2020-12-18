@@ -5,10 +5,7 @@ export default class APIDAORefFieldParamsVO implements IAPIParamTranslator<APIDA
 
     public static URL: string = ':api_type_id/:field_name/:has_null/:ids';
 
-    public static fromParams(
-        API_TYPE_ID: string,
-        field_name: string,
-        ids: number[]): APIDAORefFieldParamsVO {
+    public static fromParams(API_TYPE_ID: string, field_name: string, ids: number[]): APIDAORefFieldParamsVO {
 
         return new APIDAORefFieldParamsVO(API_TYPE_ID, field_name, ids);
     }
@@ -33,6 +30,10 @@ export default class APIDAORefFieldParamsVO implements IAPIParamTranslator<APIDA
         return new APIDAORefFieldParamsVO(req.params.api_type_id, req.params.field_name, ids);
     }
 
+    public static getAPIParams(param: APIDAORefFieldParamsVO): any[] {
+        return [param.API_TYPE_ID, param.field_name, param.ids];
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public field_name: string,
@@ -53,10 +54,6 @@ export default class APIDAORefFieldParamsVO implements IAPIParamTranslator<APIDA
         let request = this.API_TYPE_ID + '/' + this.field_name + '/' + (has_null ? "true" : "false") + '/' + temp.join('_');
 
         return request;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.API_TYPE_ID, this.field_name, this.ids];
     }
 }
 

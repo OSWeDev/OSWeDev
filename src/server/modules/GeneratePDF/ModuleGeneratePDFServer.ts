@@ -1,9 +1,9 @@
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import ModuleServerBase from '../ModuleServerBase';
-import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
-import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
 import * as fs from 'fs';
 import * as wkhtmltopdf from 'wkhtmltopdf';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
+import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
@@ -48,36 +48,8 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
             wkhtmltopdf(html, options).pipe(write);
             write.on('finish', async () => {
 
-                if (save_to_desktop) {
-                    this.saveToDisk(filepath_return, file_name);
-                }
-
                 resolve(filepath_return);
             });
         }) as string;
-    }
-
-    public saveToDisk(fileURL: string, fileName: string) {
-        // for non-IE
-        if (!window['ActiveXObject']) {
-            var save = document.createElement('a');
-            save.href = fileURL;
-            save.target = '_blank';
-            save.download = fileName || 'unknown';
-
-            var evt = new MouseEvent('click', {
-                view: window,
-                bubbles: true,
-                cancelable: false
-            });
-            save.dispatchEvent(evt);
-
-            (window.URL || window['webkitURL']).revokeObjectURL(save.href);
-        } else if (!!window['ActiveXObject'] && document.execCommand) {
-            var _window = window.open(fileURL, '_blank');
-            _window.document.close();
-            _window.document.execCommand('SaveAs', true, fileName || fileURL);
-            _window.close();
-        }
     }
 }

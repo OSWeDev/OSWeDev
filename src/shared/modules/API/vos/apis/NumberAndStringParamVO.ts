@@ -18,6 +18,10 @@ export default class NumberAndStringParamVO implements IAPIParamTranslator<Numbe
         return new NumberAndStringParamVO(num, text);
     }
 
+    public static getAPIParams(param: NumberAndStringParamVO): any[] {
+        return [param.num, param.text];
+    }
+
     public constructor(
         public num: number,
         public text: string
@@ -26,10 +30,6 @@ export default class NumberAndStringParamVO implements IAPIParamTranslator<Numbe
     public translateToURL(): string {
 
         return (((this.num % 1) === 0) ? this.num.toString() : this.num.toPrecision(10)) + '/' + this.text;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.num, this.text];
     }
 }
 

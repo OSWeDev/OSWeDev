@@ -3,7 +3,6 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import ModuleCMS from '../../../shared/modules/CMS/ModuleCMS';
 import TemplateComponentVO from '../../../shared/modules/CMS/vos/TemplateComponentVO';

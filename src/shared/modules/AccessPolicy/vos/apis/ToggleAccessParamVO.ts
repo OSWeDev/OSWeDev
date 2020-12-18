@@ -18,6 +18,10 @@ export default class ToggleAccessParamVO implements IAPIParamTranslator<ToggleAc
         return new ToggleAccessParamVO(policy_id, role_id);
     }
 
+    public static getAPIParams(param: ToggleAccessParamVO): any[] {
+        return [param.policy_id, param.role_id];
+    }
+
     public constructor(
         public policy_id: number,
         public role_id: number) {
@@ -26,10 +30,6 @@ export default class ToggleAccessParamVO implements IAPIParamTranslator<ToggleAc
     public translateToURL(): string {
 
         return this.policy_id + '/' + this.role_id;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.policy_id, this.role_id];
     }
 }
 

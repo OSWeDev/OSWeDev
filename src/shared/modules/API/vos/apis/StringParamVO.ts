@@ -17,12 +17,12 @@ export default class StringParamVO implements IAPIParamTranslator<StringParamVO>
         return new StringParamVO(text);
     }
 
-    public constructor(
-        public text: string) {
+    public static getAPIParams(param: StringParamVO): any[] {
+        return [param.text];
     }
 
-    public getAPIParams(): any[] {
-        return [this.text];
+    public constructor(
+        public text: string) {
     }
 
     public translateToURL(): string {

@@ -8,14 +8,14 @@ export default class LoginParamVO implements IAPIParamTranslator<LoginParamVO> {
         return new LoginParamVO(email, password, redirect_to);
     }
 
+    public static getAPIParams(param: LoginParamVO): any[] {
+        return [param.email, param.password, param.redirect_to];
+    }
+
     public constructor(
         public email: string,
         public password: string,
         public redirect_to: string) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.email, this.password, this.redirect_to];
     }
 }
 

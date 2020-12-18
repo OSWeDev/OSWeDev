@@ -1,12 +1,11 @@
-import ModuleServerBase from '../../ModuleServerBase';
-import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../../shared/modules/API/vos/apis/NumberParamVO';
-import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
-import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
+import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
+import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
+import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ModuleServerBase from '../../ModuleServerBase';
 
 export default class ModuleClientServer extends ModuleServerBase {
 

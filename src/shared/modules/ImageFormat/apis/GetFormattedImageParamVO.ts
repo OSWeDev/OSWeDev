@@ -15,15 +15,15 @@ export default class GetFormattedImageParamVO implements IAPIParamTranslator<Get
             height);
     }
 
+    public static getAPIParams(param: GetFormattedImageParamVO): any[] {
+        return [param.src, param.format_name, param.width, param.height];
+    }
+
     public constructor(
         public src: string,
         public format_name: string,
         public width: number,
         public height: number) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.src, this.format_name, this.width, this.height];
     }
 }
 

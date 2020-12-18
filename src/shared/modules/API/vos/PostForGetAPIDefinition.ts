@@ -1,3 +1,4 @@
+import IAPIParamTranslator from '../interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../interfaces/IAPIParamTranslatorStatic';
 import APIDefinition from './APIDefinition';
 
@@ -13,7 +14,7 @@ export default class PostForGetAPIDefinition<T, U> extends APIDefinition<T, U> {
     public constructor(
         public access_policy_name: string,
         public api_name: string,
-        public API_TYPES_IDS_involved: (string[]) | ((value: T) => string[]),
+        public API_TYPES_IDS_involved: (string[]) | ((value: IAPIParamTranslator<T> | T) => string[]),
         public param_translator: IAPIParamTranslatorStatic<T> = null,
         public api_return_type: number = 0) {
         super(access_policy_name, APIDefinition.API_TYPE_POST_FOR_GET, api_name, API_TYPES_IDS_involved, param_translator, api_return_type);

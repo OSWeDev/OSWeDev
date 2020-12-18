@@ -12,13 +12,13 @@ export default class APIDAODATATABLEVOParamVO implements IAPIParamTranslator<API
         return new APIDAODATATABLEVOParamVO(datatable_vo, datatable);
     }
 
+    public static getAPIParams(param: APIDAODATATABLEVOParamVO): any[] {
+        return [param.datatable_vo, param.datatable];
+    }
+
     public constructor(
         public datatable_vo: IDistantVOBase,
         public datatable: Datatable<any>) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.datatable_vo, this.datatable];
     }
 }
 

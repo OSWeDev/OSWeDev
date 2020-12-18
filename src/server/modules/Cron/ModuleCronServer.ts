@@ -3,7 +3,6 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';

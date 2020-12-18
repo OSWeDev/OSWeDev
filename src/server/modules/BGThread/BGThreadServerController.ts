@@ -61,7 +61,7 @@ export default class BGThreadServerController {
                 return false;
             }
             let forked = ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
-            ForkMessageController.getInstance().send(new RunBGThreadForkMessage(bgthread_name), forked.child_process);
+            ForkMessageController.getInstance().send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
         }
     }
 }

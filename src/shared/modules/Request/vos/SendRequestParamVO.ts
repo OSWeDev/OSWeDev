@@ -14,6 +14,10 @@ export default class SendRequestParamVO implements IAPIParamTranslator<SendReque
         return new SendRequestParamVO(method, host, path, posts, headers, sendHttps);
     }
 
+    public static getAPIParams(param: SendRequestParamVO): any[] {
+        return [param.method, param.host, param.path, param.posts, param.headers, param.sendHttps];
+    }
+
     public constructor(
         public method: string,
         public host: string,
@@ -21,10 +25,6 @@ export default class SendRequestParamVO implements IAPIParamTranslator<SendReque
         public posts: {} = null,
         public headers: {} = null,
         public sendHttps: boolean = false) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.method, this.host, this.path, this.posts, this.headers, this.sendHttps];
     }
 }
 

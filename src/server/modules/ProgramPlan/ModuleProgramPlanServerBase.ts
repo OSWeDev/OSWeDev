@@ -358,20 +358,20 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
     }
 
     private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterManagerByIdByAccess_own_team(datatable, vos, uid);
         }
         return null;
@@ -544,10 +544,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
 
     private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -569,10 +569,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;

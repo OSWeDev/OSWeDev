@@ -11,6 +11,7 @@ import AliveForkMessage from './messages/AliveForkMessage';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
+import PingForkMessage from './messages/PingForkMessage';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -28,6 +29,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     public async configure(): Promise<void> {
+        ForkMessageController.getInstance().register_message_handler(PingForkMessage.FORK_MESSAGE_TYPE, this.handle_ping_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(AliveForkMessage.FORK_MESSAGE_TYPE, this.handle_alive_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE, this.handle_broadcast_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(MainProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocesstask_message.bind(this));
@@ -57,6 +59,10 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         return await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+    }
+
+    private async handle_ping_message(msg: IForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+        return true;
     }
 
     private async handle_alive_message(msg: IForkMessage, sendHandle: Socket | Server): Promise<boolean> {

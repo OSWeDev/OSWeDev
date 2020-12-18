@@ -67,7 +67,7 @@ export default class CronServerController {
                 return false;
             }
             let forked = ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
-            ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process);
+            ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
         }
     }
 

@@ -10,12 +10,12 @@ export default class APISimpleVOsParamVO implements IAPIParamTranslator<APISimpl
         return new APISimpleVOsParamVO(vos);
     }
 
+    public static getAPIParams(param: APISimpleVOsParamVO): any[] {
+        return [param.vos];
+    }
+
     public constructor(
         public vos: IDistantVOBase[]) { }
-
-    public getAPIParams(): any[] {
-        return [this.vos];
-    }
 }
 
 export const APISimpleVOsParamVOStatic: IAPIParamTranslatorStatic<APISimpleVOsParamVO> = APISimpleVOsParamVO;

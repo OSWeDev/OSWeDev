@@ -11,14 +11,14 @@ export default class ResetPwdUIDParamVO implements IAPIParamTranslator<ResetPwdU
         return new ResetPwdUIDParamVO(uid, challenge, new_pwd1);
     }
 
+    public static getAPIParams(param: ResetPwdUIDParamVO): any[] {
+        return [param.uid, param.challenge, param.new_pwd1];
+    }
+
     public constructor(
         public uid: number,
         public challenge: string,
         public new_pwd1: string) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.uid, this.challenge, this.new_pwd1];
     }
 }
 

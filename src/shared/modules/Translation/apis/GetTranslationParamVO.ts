@@ -18,6 +18,10 @@ export default class GetTranslationParamVO implements IAPIParamTranslator<GetTra
         return new GetTranslationParamVO(lang_id, text_id);
     }
 
+    public static getAPIParams(param: GetTranslationParamVO): any[] {
+        return [param.lang_id, param.text_id];
+    }
+
     public constructor(
         public lang_id: number,
         public text_id: number) {
@@ -26,10 +30,6 @@ export default class GetTranslationParamVO implements IAPIParamTranslator<GetTra
     public translateToURL(): string {
 
         return this.lang_id + '/' + this.text_id;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.lang_id, this.text_id];
     }
 }
 

@@ -45,7 +45,7 @@ export default class VarDescComponent extends VueComponentBase {
             return false;
         }
 
-        let var_data = this.getVarDatas[this.var_param.index];
+        let var_data = this.var_data;
 
         if ((!var_data) || (typeof var_data.value === 'undefined')) {
             return false;
@@ -58,7 +58,7 @@ export default class VarDescComponent extends VueComponentBase {
         if (!this.var_data_has_valid_value) {
             return false;
         }
-        let var_data = this.getVarDatas[this.var_param.index];
+        let var_data = this.var_data;
 
         return var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
     }
@@ -128,12 +128,16 @@ export default class VarDescComponent extends VueComponentBase {
         }
     }
 
+    get var_data(): VarDataValueResVO {
+        return this.getVarDatas[this.var_param.index];
+    }
+
     get var_data_last_update(): string {
         if (!this.var_data_has_valid_value) {
             return null;
         }
 
-        let var_data = this.getVarDatas[this.var_param.index];
+        let var_data = this.var_data;
 
         return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(var_data.value_ts);
     }

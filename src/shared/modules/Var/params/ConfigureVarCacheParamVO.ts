@@ -10,12 +10,12 @@ export default class ConfigureVarCacheParamVO implements IAPIParamTranslator<Con
         return new ConfigureVarCacheParamVO(var_conf, var_cache_conf);
     }
 
-    public constructor(
-        public var_conf: VarConfVO, public var_cache_conf: VarCacheConfVO) {
+    public static getAPIParams(param: ConfigureVarCacheParamVO): any[] {
+        return [param.var_conf, param.var_cache_conf];
     }
 
-    public getAPIParams(): any[] {
-        return [this.var_conf, this.var_cache_conf];
+    public constructor(
+        public var_conf: VarConfVO, public var_cache_conf: VarCacheConfVO) {
     }
 }
 

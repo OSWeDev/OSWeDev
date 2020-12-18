@@ -64,7 +64,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 for (let i in var_params) {
                     let var_param = var_params[i];
 
-                    if ((!this.getVarDatas) || (!this.getVarDatas[var_param.index])) {
+                    if ((!this.get_all_values) || (!this.get_all_values[var_param.index])) {
                         return false;
                     }
                 }
@@ -115,9 +115,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
                 for (let i in var_params) {
                     let var_param = var_params[i];
-                    let var_data_value: VarDataValueResVO = this.getVarDatas[var_param.index];
-
-                    res[var_param.index] = var_data_value;
+                    res[var_param.index] = this.getVarDatas[var_param.index];
                 }
             }
         }
@@ -232,7 +230,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 let label_values: number[] = [];
                 for (let j in var_params) {
                     let var_param: VarDataBaseVO = var_params[j];
-                    let var_data_value: number = this.getVarDatas[var_param.index].value;
+                    let var_data_value: number = this.get_all_values[var_param.index].value;
 
                     if ((!!var_dataset_descriptor.var_value_filter) && !var_dataset_descriptor.var_value_filter(var_param, var_data_value)) {
                         label_values.push(null);
@@ -294,7 +292,9 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         } catch (error) {
             ConsoleHandler.getInstance().warn('PB:render Bar Chart probablement trop tôt:' + error);
             this.rendered = false;
-            this.debounced_render_chart_js();
+            if (!this['_isDestroyed']) {
+                this.debounced_render_chart_js();
+            }
         }
     }
 }

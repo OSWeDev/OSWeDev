@@ -17,6 +17,18 @@ export default class ExportDataToXLSXParamVO implements IExportableDatas, IAPIPa
         return new ExportDataToXLSXParamVO(filename, datas, ordered_column_list, column_labels, api_type_id, is_secured, file_access_policy_name);
     }
 
+    public static getAPIParams(param: ExportDataToXLSXParamVO): any[] {
+        return [
+            param.filename,
+            param.datas,
+            param.ordered_column_list,
+            param.column_labels,
+            param.api_type_id,
+            param.is_secured,
+            param.file_access_policy_name
+        ];
+    }
+
     public constructor(
         public filename: string,
         public datas: any[],
@@ -26,18 +38,6 @@ export default class ExportDataToXLSXParamVO implements IExportableDatas, IAPIPa
         public is_secured: boolean = false,
         public file_access_policy_name: string = null
     ) { }
-
-    public getAPIParams(): any[] {
-        return [
-            this.filename,
-            this.datas,
-            this.ordered_column_list,
-            this.column_labels,
-            this.api_type_id,
-            this.is_secured,
-            this.file_access_policy_name
-        ];
-    }
 }
 
 export const ExportDataToXLSXParamVOStatic: IAPIParamTranslatorStatic<ExportDataToXLSXParamVO> = ExportDataToXLSXParamVO;

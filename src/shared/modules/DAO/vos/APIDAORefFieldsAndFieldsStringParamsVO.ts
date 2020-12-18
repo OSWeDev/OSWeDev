@@ -53,6 +53,18 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
         return new APIDAORefFieldsAndFieldsStringParamsVO(req.params.api_type_id, field_name1, ids1, field_name2, values2, field_name3, values3);
     }
 
+    public static getAPIParams(param: APIDAORefFieldsAndFieldsStringParamsVO): any[] {
+        return [
+            param.API_TYPE_ID,
+            param.field_name1,
+            param.ids1,
+            param.field_name2,
+            param.values2,
+            param.field_name3,
+            param.values3
+        ];
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public field_name1: string,
@@ -61,18 +73,6 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
         public values2: string[] = null,
         public field_name3: string = null,
         public values3: string[] = null) {
-    }
-
-    public getAPIParams(): any[] {
-        return [
-            this.API_TYPE_ID,
-            this.field_name1,
-            this.ids1,
-            this.field_name2,
-            this.values2,
-            this.field_name3,
-            this.values3
-        ];
     }
 
     public translateToURL(): string {

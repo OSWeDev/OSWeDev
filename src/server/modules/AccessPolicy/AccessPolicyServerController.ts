@@ -15,6 +15,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleAccessPolicyServer from './ModuleAccessPolicyServer';
 
 export default class AccessPolicyServerController {
 
@@ -770,7 +771,7 @@ export default class AccessPolicyServerController {
     }
 
     public async getAccessMatrix(ignore_role: boolean = false): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return null;
         }
 

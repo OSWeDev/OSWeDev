@@ -103,7 +103,7 @@ export default class VarsComputeController {
         for (let i in dag.nodes) {
             let node = dag.nodes[i];
 
-            VarsPerfsController.addCard(MatroidController.getInstance().get_cardinal(node.var_data), node.var_data.var_id);
+            VarsPerfsController.addCard(node);
         }
     }
 
@@ -138,7 +138,15 @@ export default class VarsComputeController {
             }
 
             promises.push((async () => {
+
+                VarsPerfsController.addPerfs(performance.now(), [
+                    node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
+                ], true);
                 await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
+                node.has_load_nodes_datas_perf = true;
+                VarsPerfsController.addPerfs(performance.now(), [
+                    node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
+                ], false);
             })());
         }
 
@@ -161,6 +169,7 @@ export default class VarsComputeController {
         controller.computeValue(node);
         VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
         VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
+        node.has_compute_node_perf = true;
 
         VarsPerfsController.addPerfs(performance.now(), [
             "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node",
@@ -245,6 +254,7 @@ export default class VarsComputeController {
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
             ], true);
             await this.try_load_cache_complet(node);
+            node.has_try_load_cache_complet_perf = true;
             VarsPerfsController.addPerfs(performance.now(), [
                 "__computing_bg_thread.compute.create_tree.try_load_cache_complet",
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
@@ -266,6 +276,7 @@ export default class VarsComputeController {
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
             ], true);
             await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, vars_datas, ds_cache);
+            node.has_load_imports_and_split_nodes_perf = true;
             VarsPerfsController.addPerfs(performance.now(), [
                 "__computing_bg_thread.compute.create_tree.load_imports_and_split_nodes",
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
@@ -276,13 +287,15 @@ export default class VarsComputeController {
          * Cache step C : cache partiel : uniquement si on a pas splitt sur import
          */
         if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
-            (!node.is_aggregator)) {
+            (!node.is_aggregator) &&
+            (VarsCacheController.getInstance().C_use_partial_cache(node))) {
 
             VarsPerfsController.addPerfs(performance.now(), [
                 "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
             ], true);
             await this.try_load_cache_partiel(node, vars_datas, ds_cache);
+            node.has_try_load_cache_partiel_perf = true;
             VarsPerfsController.addPerfs(performance.now(), [
                 "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
@@ -322,6 +335,7 @@ export default class VarsComputeController {
                 await Promise.all(promises);
             }
 
+            node.has_is_aggregator_perf = true;
             VarsPerfsController.addPerfs(performance.now(), [
                 "__computing_bg_thread.compute.create_tree.deploy_deps",
                 "__computing_bg_thread.compute.create_tree.is_aggregator",
@@ -337,6 +351,7 @@ export default class VarsComputeController {
         ], true);
 
         let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
+        node.has_ds_cache_perf = true;
 
         VarsPerfsController.addPerfs(performance.now(), [
             "__computing_bg_thread.compute.create_tree.ds_cache",

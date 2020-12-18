@@ -12,14 +12,14 @@ export default class ProduitsParamLignesParamVO implements IAPIParamTranslator<P
         return new ProduitsParamLignesParamVO(produitsParam, commande);
     }
 
+    public static getAPIParams(param: ProduitsParamLignesParamVO): any[] {
+        return [param.produitsParam, param.commande];
+    }
+
     public constructor(
         public produitsParam: ProduitParamLigneParamVO[],
         public commande: CommandeVO
     ) { }
-
-    public getAPIParams(): any[] {
-        return [this.produitsParam, this.commande];
-    }
 }
 
 export const ProduitsParamLignesParamVOStatic: IAPIParamTranslatorStatic<ProduitsParamLignesParamVO> = ProduitsParamLignesParamVO;

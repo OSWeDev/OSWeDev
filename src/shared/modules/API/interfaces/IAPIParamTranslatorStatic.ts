@@ -11,4 +11,5 @@ export default interface IAPIParamTranslatorStatic<T> {
     URL?: string;
     fromREQ?: (req: Request) => IAPIParamTranslator<T>;
     fromParams: (...params) => IAPIParamTranslator<T>;
+    getAPIParams: (param: IAPIParamTranslator<T>) => any[];
 }

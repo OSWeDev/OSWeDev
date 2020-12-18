@@ -63,11 +63,26 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         for (let i in this.var_params) {
 
-            if ((!this.getVarDatas) || (!this.getVarDatas[this.var_params[i].index])) {
+            if ((!this.get_all_values) || (!this.get_all_values[this.var_params[i].index])) {
                 return false;
             }
         }
         return true;
+    }
+
+    get get_all_values(): { [index: string]: VarDataValueResVO } {
+
+        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
+            return null;
+        }
+        let res: { [index: string]: VarDataValueResVO } = {};
+
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+
+            res[var_param.index] = this.getVarDatas[var_param.index];
+        }
+        return res;
     }
 
     private get_filtered_value(var_data: VarDataValueResVO) {
@@ -197,7 +212,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (let j in this.var_params) {
             let var_param: VarDataBaseVO = this.var_params[j];
 
-            dataset_datas.push(this.get_filtered_value(this.getVarDatas[var_param.index] as VarDataValueResVO));
+            dataset_datas.push(this.get_filtered_value(this.get_all_values[var_param.index]));
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                 backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
             } else {

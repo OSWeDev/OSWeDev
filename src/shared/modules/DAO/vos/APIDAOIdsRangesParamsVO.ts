@@ -6,9 +6,7 @@ export default class APIDAOIdsRangesParamsVO implements IAPIParamTranslator<APID
 
     public static URL: string = ':api_type_id/:ranges';
 
-    public static fromParams(
-        API_TYPE_ID: string,
-        ranges: NumRange[]): APIDAOIdsRangesParamsVO {
+    public static fromParams(API_TYPE_ID: string, ranges: NumRange[]): APIDAOIdsRangesParamsVO {
 
         return new APIDAOIdsRangesParamsVO(API_TYPE_ID, ranges);
     }
@@ -29,6 +27,10 @@ export default class APIDAOIdsRangesParamsVO implements IAPIParamTranslator<APID
         return new APIDAOIdsRangesParamsVO(req.params.api_type_id, ranges);
     }
 
+    public static getAPIParams(param: APIDAOIdsRangesParamsVO): any[] {
+        return [param.API_TYPE_ID, param.ranges];
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public ranges: NumRange[]) {
@@ -47,10 +49,6 @@ export default class APIDAOIdsRangesParamsVO implements IAPIParamTranslator<APID
             range_txt += this.ranges[i].segment_type + "-";
         }
         return this.API_TYPE_ID + '/' + range_txt;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.API_TYPE_ID, this.ranges];
     }
 }
 

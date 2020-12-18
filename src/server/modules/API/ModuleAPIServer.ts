@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
@@ -9,6 +9,7 @@ import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleAPIServer extends ModuleServerBase {
@@ -53,7 +54,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
         return async (req: Request, res: Response) => {
 
             if (!!api.access_policy_name) {
-                if (!ModuleAccessPolicy.getInstance().checkAccess(api.access_policy_name)) {
+                if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(api.access_policy_name)) {
                     ConsoleHandler.getInstance().error('Access denied to API:' + api.api_name + ':');
                     this.respond_on_error(api, res);
                     return;
@@ -61,7 +62,10 @@ export default class ModuleAPIServer extends ModuleServerBase {
             }
 
             let param: IAPIParamTranslator<T> = null;
-            if (api.param_translator && api.param_translator.fromREQ) {
+            if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
+                ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
+                param = APIControllerWrapper.getInstance().try_translate_vo_from_api(req.body);
+            } else if (api.param_translator && api.param_translator.fromREQ) {
                 try {
                     param = api.param_translator.fromREQ(req);
                 } catch (error) {
@@ -69,18 +73,14 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     this.respond_on_error(api, res);
                     return;
                 }
-            } else {
-                if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
-                    ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
-                    param = APIControllerWrapper.getInstance().try_translate_vo_from_api(req.body);
-                }
             }
 
+            let params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
             let returnvalue = null;
             try {
                 returnvalue = await StackContext.getInstance().runPromise(
                     ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => await api.SERVER_HANDLER(param));
+                    async () => await api.SERVER_HANDLER(...params));
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
                 this.respond_on_error(api, res);

@@ -504,7 +504,7 @@ export default abstract class ServerBase {
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     file = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
-                    has_access = (file && file.file_access_policy_name) ? await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name) : false;
+                    has_access = (file && file.file_access_policy_name) ? ModuleAccessPolicyServer.getInstance().checkAccessSync(file.file_access_policy_name) : false;
                 });
 
             if (!has_access) {
@@ -533,7 +533,7 @@ export default abstract class ServerBase {
 
             let has_access: boolean = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS));
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS));
 
             if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -549,7 +549,7 @@ export default abstract class ServerBase {
 
             let has_access: boolean = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS));
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS));
 
             if (!has_access) {
 
@@ -571,7 +571,7 @@ export default abstract class ServerBase {
                 await StackContext.getInstance().runPromise(
                     ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => {
-                        has_access = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
+                        has_access = ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
                     });
             }
 
@@ -923,6 +923,7 @@ export default abstract class ServerBase {
         ConsoleHandler.getInstance().log('Server is starting cleanup');
 
         ConsoleHandler.getInstance().log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
+        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
         if (options.cleanup) {
             console.log('clean');
         }

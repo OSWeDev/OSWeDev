@@ -1,6 +1,7 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
@@ -47,9 +48,9 @@ export default class MaintenanceBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
             }
 
-            let timeout_minutes_msg1: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
-            let timeout_minutes_msg2: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
-            let timeout_minutes_msg3: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
+            let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120);
+            let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15);
+            let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5);
 
             let changed: boolean = false;
 

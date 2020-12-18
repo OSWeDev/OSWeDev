@@ -7,19 +7,19 @@ export default class APIDAOApiTypeAndMatroidsParamsVO implements IAPIParamTransl
     public static fromParams(
         API_TYPE_ID: string,
         matroids: IMatroid[],
-        fields_ids_mapper: { [matroid_field_id: string]: string }): APIDAOApiTypeAndMatroidsParamsVO {
+        fields_ids_mapper: { [matroid_field_id: string]: string } = null): APIDAOApiTypeAndMatroidsParamsVO {
 
         return new APIDAOApiTypeAndMatroidsParamsVO(API_TYPE_ID, matroids, fields_ids_mapper);
+    }
+
+    public static getAPIParams(param: APIDAOApiTypeAndMatroidsParamsVO): any[] {
+        return [param.API_TYPE_ID, param.matroids, param.fields_ids_mapper];
     }
 
     public constructor(
         public API_TYPE_ID: string,
         public matroids: IMatroid[],
-        public fields_ids_mapper: { [matroid_field_id: string]: string }) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.API_TYPE_ID, this.matroids, this.fields_ids_mapper];
+        public fields_ids_mapper: { [matroid_field_id: string]: string } = null) {
     }
 }
 

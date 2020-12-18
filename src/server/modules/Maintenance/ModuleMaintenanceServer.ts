@@ -1,18 +1,23 @@
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../shared/tools/EnvHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleParamsServer from '../Params/ModuleParamsServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
 import MaintenanceCronWorkersHandler from './MaintenanceCronWorkersHandler';
 const moment = require('moment');
@@ -171,9 +176,17 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }
     }
 
-    public async start_maintenance(): Promise<void> {
+    public async start_maintenance(validation_code: string): Promise<void> {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_start_maintenance)) {
+            return;
+        }
+
+        ConsoleHandler.getInstance().log('Maintenance demandée:' + validation_code);
+
+        if (ConfigurationService.getInstance().getNodeConfiguration().START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
+            ConsoleHandler.getInstance().error('Maintenance refusée');
+
             return;
         }
 
@@ -191,6 +204,14 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.end_ts = moment().utc(true).add(1, 'hour');
         maintenance.maintenance_over = false;
 
+        /**
+         * On en profite pour bloquer les updates en bases
+         *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
+         */
+        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
+        setTimeout(VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache, readonly_maintenance_deadline);
+
+        ConsoleHandler.getInstance().error('Maintenance lancée');
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
     }
 
@@ -220,10 +241,6 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }
 
         let session = StackContext.getInstance().get('SESSION');
-
-        if (session && session.uid) {
-            return false;
-        }
 
         maintenance.creation_date = moment().utc(true);
         maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);

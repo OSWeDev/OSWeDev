@@ -152,20 +152,20 @@ export default class ModuleDAO extends Module {
 
             return true;
         });
-    public getVosByExactMatroids: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
+    public getVosByExactMatroids: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
         ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS,
         null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => {
+        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
             if ((!matroids) || (!matroids.length)) {
                 return false;
             }
 
             return true;
         });
-    public getColSumFilterByMatroid: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => Promise<number> = ModuleAPI.sah(
+    public getColSumFilterByMatroid: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<number> = ModuleAPI.sah(
         ModuleDAO.APINAME_getColSumFilterByMatroid,
         null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => {
+        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
             if ((!matroids) || (!matroids.length)) {
                 return false;
             }
@@ -180,10 +180,10 @@ export default class ModuleDAO extends Module {
      * @param matroids
      * @param fields_ids_mapper
      */
-    public getVarImportsByMatroidParams: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
+    public getVarImportsByMatroidParams: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
         ModuleDAO.APINAME_getVarImportsByMatroidParams,
         null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => {
+        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
             if ((!matroids) || (!matroids.length)) {
                 return false;
             }
@@ -197,10 +197,10 @@ export default class ModuleDAO extends Module {
      * @param matroids
      * @param fields_ids_mapper
      */
-    public filterVosByMatroids: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
+    public filterVosByMatroids: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
         ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS,
         null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => {
+        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
             if ((!matroids) || (!matroids.length)) {
                 return false;
             }
@@ -214,10 +214,10 @@ export default class ModuleDAO extends Module {
      * @param matroids
      * @param fields_ids_mapper
      */
-    public filterVosByMatroidsIntersections: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
+    public filterVosByMatroidsIntersections: <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => Promise<T[]> = ModuleAPI.sah(
         ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS,
         null,
-        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }) => {
+        <T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper?: { [matroid_field_id: string]: string }) => {
             if ((!matroids) || (!matroids.length)) {
                 return false;
             }

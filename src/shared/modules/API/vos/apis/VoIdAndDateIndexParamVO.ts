@@ -17,6 +17,10 @@ export default class VoIdAndDateIndexParamVO implements IAPIParamTranslator<VoId
         return new VoIdAndDateIndexParamVO(vo_id, date_index);
     }
 
+    public static getAPIParams(param: VoIdAndDateIndexParamVO): any[] {
+        return [param.vo_id, param.date_index];
+    }
+
     public constructor(
         public vo_id: number,
         public date_index: string) {
@@ -25,10 +29,6 @@ export default class VoIdAndDateIndexParamVO implements IAPIParamTranslator<VoId
     public translateToURL(): string {
 
         return this.vo_id + '/' + this.date_index;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.vo_id, this.date_index];
     }
 }
 

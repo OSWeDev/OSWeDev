@@ -42,6 +42,17 @@ export default class VarDAGNode extends DAGNodeBase {
     public datasources: { [ds_name: string]: any } = {};
 
     /**
+     * Indicateurs de performance
+     */
+    public has_try_load_cache_complet_perf: boolean = false;
+    public has_load_imports_and_split_nodes_perf: boolean = false;
+    public has_try_load_cache_partiel_perf: boolean = false;
+    public has_is_aggregator_perf: boolean = false;
+    public has_ds_cache_perf: boolean = false;
+    public has_compute_node_perf: boolean = false;
+    public has_load_nodes_datas_perf: boolean = false;
+
+    /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public dag: DAG<VarDAGNode>, public var_data: VarDataBaseVO) {

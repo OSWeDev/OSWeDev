@@ -183,7 +183,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 reject,
                 post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_POST);
 
-            if ((!post_for_get) || (apiDefinition.opti__aggregate_params)) {
+            if (!post_for_get) {
                 // On invalide le cache directement
                 self.invalidateCachedItem(cache);
 
@@ -526,47 +526,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
             if (requests && (requests.length > 1)) {
 
-
-                // On map les index de retour
-                // On met en place une opti sur les fonctions déclarées comme ayant 1 unique param de type array, concatenable sur les différents appels au sein du wrapper
-                let aggregated_requests: { [api_name: string]: RequestResponseCacheVO } = {};
-                let aggregated_requests_old_postdatas: { [api_name: string]: any } = {};
-                let callbacks_to_call_on_these_requests: RequestResponseCacheVO[] = [];
-                let new_requests: RequestResponseCacheVO[] = [];
-                for (let i in requests) {
-                    let request = requests[i];
-
-                    if (request.type != RequestResponseCacheVO.API_TYPE_POST_FOR_GET) {
-                        new_requests.push(request);
-                        continue;
-                    }
-
-                    if ((!request.apiDefinition) || (!request.apiDefinition.opti__aggregate_params) || (!request.apiDefinition.opti__aggregate_method)) {
-                        new_requests.push(request);
-                        continue;
-                    }
-
-                    if (!aggregated_requests[request.apiDefinition.api_name]) {
-                        aggregated_requests[request.apiDefinition.api_name] = request;
-                        new_requests.push(request);
-                        continue;
-                    }
-
-                    if (!aggregated_requests[request.apiDefinition.api_name].postdatas) {
-                        aggregated_requests[request.apiDefinition.api_name].postdatas = request.postdatas;
-                        aggregated_requests_old_postdatas[request.apiDefinition.api_name] = request.postdatas;
-                    } else {
-                        let aggregated_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(aggregated_requests[request.apiDefinition.api_name].postdatas) : aggregated_requests[request.apiDefinition.api_name].postdatas;
-                        let this_postdatas = ((!EnvHandler.getInstance().MSGPCK) && request.postdatas) ? JSON.parse(request.postdatas) : request.postdatas;
-
-                        request.apiDefinition.opti__aggregate_method(aggregated_postdatas, this_postdatas);
-                        aggregated_requests[request.apiDefinition.api_name].postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(aggregated_postdatas) : aggregated_postdatas;
-                    }
-                    callbacks_to_call_on_these_requests.push(request);
-                }
-
-                requests = new_requests;
-
                 let correspondance: { [id_local: string]: string } = {};
                 for (let i in requests) {
                     let request = requests[i];
@@ -595,11 +554,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
                         null, null, false, true) as RequestsWrapperResult;
 
-                    for (let i in aggregated_requests) {
-                        let request = aggregated_requests[i];
-                        request.postdatas = aggregated_requests_old_postdatas[i];
-                    }
-
                     if ((!results) || (!results.requests_results)) {
                         throw new Error('Pas de résultat pour la requête groupée.');
                     }
@@ -615,22 +569,13 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                         self.resolve_request(wrapped_request, results.requests_results[i]);
                     }
-
-                    /**
-                     * Pour les requêtes agrégées on doit remettre les postdatas initiales
-                     *  et appeler les callbacks pas encore appelés (donc sur les agrégées)
-                     */
-                    for (let i in callbacks_to_call_on_these_requests) {
-                        let request = callbacks_to_call_on_these_requests[i];
-                        self.resolve_request(request, null);
-                    }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.
                     ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
                     everything_went_well = false;
                 }
                 if (everything_went_well) {
-                    self.waitingForRequest = self.waitingForRequest.filter((req: RequestResponseCacheVO) => (requests.indexOf(req) < 0) && (callbacks_to_call_on_these_requests.indexOf(req) < 0));
+                    self.waitingForRequest = self.waitingForRequest.filter((req: RequestResponseCacheVO) => (requests.indexOf(req) < 0));
                 }
             }
         }

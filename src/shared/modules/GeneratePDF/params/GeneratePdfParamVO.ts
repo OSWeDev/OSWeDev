@@ -26,6 +26,10 @@ export default class GeneratePdfParamVO implements IAPIParamTranslator<GenerateP
         return new GeneratePdfParamVO(sous_rep, file_name, html, save_to_desktop, options);
     }
 
+    public static getAPIParams(param: GeneratePdfParamVO): any[] {
+        return [param.sous_rep, param.file_name, param.html, param.save_to_desktop, param.options];
+    }
+
     public constructor(
         public sous_rep: string,
         public file_name: string,
@@ -36,10 +40,6 @@ export default class GeneratePdfParamVO implements IAPIParamTranslator<GenerateP
 
     public translateToURL(): string {
         return this.sous_rep + '/' + this.file_name + '/' + this.html + '/' + this.options;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.sous_rep, this.file_name, this.html, this.save_to_desktop, this.options];
     }
 }
 

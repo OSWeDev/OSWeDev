@@ -21,6 +21,10 @@ export default class DayParamVO implements IAPIParamTranslator<DayParamVO>{
         return new DayParamVO(day);
     }
 
+    public static getAPIParams(param: DayParamVO): any[] {
+        return [param.day];
+    }
+
     public constructor(
         public day: Moment) {
     }
@@ -28,10 +32,6 @@ export default class DayParamVO implements IAPIParamTranslator<DayParamVO>{
     public translateToURL(): string {
 
         return DateHandler.getInstance().formatDayForApi(this.day);
-    }
-
-    public getAPIParams(): any[] {
-        return [this.day];
     }
 }
 

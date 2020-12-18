@@ -1,6 +1,6 @@
 import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
-import APIControllerWrapper from '../../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import IAPIController from '../../../../shared/modules/API/interfaces/IAPIController';
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
@@ -47,7 +47,8 @@ export default class ClientAPIController implements IAPIController {
     }
 
     private async handleAPI<T extends IAPIParamTranslator<T>, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<U> {
-        let translated_param: T = await ModuleAPI.getInstance().translate_param(apiDefinition.api_name, ...api_params);
+        let translated_param: IAPIParamTranslator<T> = ModuleAPI.getInstance().translate_param(apiDefinition, ...api_params);
+        let api_name = apiDefinition.api_name;
 
         let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
         if ((API_TYPES_IDS_involved != CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) && !Array.isArray(API_TYPES_IDS_involved)) {
@@ -60,7 +61,7 @@ export default class ClientAPIController implements IAPIController {
             case APIDefinition.API_TYPE_GET:
 
                 let url_param: string =
-                    translated_param.translateToURL ? translated_param.translateToURL(translated_param) :
+                    (translated_param && translated_param.translateToURL) ? translated_param.translateToURL() :
                         (translated_param ? translated_param.toString() : "");
 
                 api_res = await AjaxCacheClientController.getInstance().get(

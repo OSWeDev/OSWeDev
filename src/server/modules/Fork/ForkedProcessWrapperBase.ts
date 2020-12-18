@@ -1,12 +1,12 @@
 import { Server, Socket } from 'net';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
+import FileLoggerHandler from '../../FileLoggerHandler';
 import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
@@ -14,7 +14,6 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import FileLoggerHandler from '../../FileLoggerHandler';
 
 export default abstract class ForkedProcessWrapperBase {
 

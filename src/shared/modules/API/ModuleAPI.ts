@@ -1,7 +1,6 @@
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import Module from '../Module';
-import APIControllerWrapper from './APIController';
-import IAPIController from './interfaces/IAPIController';
+import APIControllerWrapper from './APIControllerWrapper';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import APIDefinition from './vos/APIDefinition';
 
@@ -57,21 +56,21 @@ export default class ModuleAPI extends Module {
         this.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }
 
-    public async translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<IAPIParamTranslator<T>> {
+    public translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): IAPIParamTranslator<T> {
 
         let translated_param: IAPIParamTranslator<T> = null;
 
         if (api_params && Array.isArray(api_params) && (api_params.length > 1)) {
             // On a besoin de faire appel à un traducteur
-            if (!apiDefinition.param_translator.fromParams) {
+            if (apiDefinition.param_translator && apiDefinition.param_translator.fromParams) {
+                translated_param = apiDefinition.param_translator.fromParams(...api_params);
+            } else {
                 ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + apiDefinition.api_name);
                 return null;
-            } else {
-                translated_param = apiDefinition.param_translator.fromParams(...api_params);
             }
         } else {
             // Si on a un translateur on l'utilise sinon on garde ce param
-            if (!!apiDefinition.param_translator.fromParams) {
+            if (apiDefinition.param_translator && apiDefinition.param_translator.fromParams) {
                 translated_param = apiDefinition.param_translator.fromParams(...api_params);
             } else if (api_params && (api_params.length == 1)) {
                 translated_param = api_params[0];

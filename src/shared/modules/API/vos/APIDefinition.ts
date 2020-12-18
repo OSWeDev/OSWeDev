@@ -1,3 +1,4 @@
+import IAPIParamTranslator from "../interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../interfaces/IAPIParamTranslatorStatic";
 
 export default abstract class APIDefinition<T, U> {
@@ -29,7 +30,7 @@ export default abstract class APIDefinition<T, U> {
         public access_policy_name: string,
         public api_type: number,
         public api_name: string,
-        public API_TYPES_IDS_involved: (string[]) | ((value: T) => string[]),
+        public API_TYPES_IDS_involved: (string[]) | ((value: IAPIParamTranslator<T> | T) => string[]),
         public param_translator: IAPIParamTranslatorStatic<T> = null,
         public api_return_type: number = 0) {
     }

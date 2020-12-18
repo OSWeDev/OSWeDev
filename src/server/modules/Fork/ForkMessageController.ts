@@ -2,9 +2,10 @@ import { ChildProcess } from 'child_process';
 import { throttle } from 'lodash';
 import { Server, Socket } from 'net';
 import { performance } from 'perf_hooks';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkServerController from './ForkServerController';
+import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
@@ -64,13 +65,13 @@ export default class ForkMessageController {
                 if ((!!ignore_uid) && (ignore_uid == forked.uid)) {
                     continue;
                 }
-                this.send(msg, forked.child_process);
+                this.send(msg, forked.child_process, forked);
             }
             await this.message_handler(msg);
         }
     }
 
-    public send(msg: IForkMessage, child_process: ChildProcess = null): boolean {
+    public send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): boolean {
 
         msg = APIControllerWrapper.getInstance().try_translate_vo_to_api(msg);
         let res: boolean = false;
@@ -80,7 +81,8 @@ export default class ForkMessageController {
         res = sendHandle.send(msg, (error: Error) => {
             self.handle_send_error({
                 message: msg,
-                sendHandle: sendHandle
+                sendHandle: sendHandle,
+                forked_target: forked_target
             }, error);
         });
 
@@ -125,6 +127,14 @@ export default class ForkMessageController {
                 ConsoleHandler.getInstance().error(error);
             }
             this.stacked_msg_waiting.push(msg_wrapper);
+
+            /**
+             * On informe qu'un thread est plus accessible
+             */
+            if (msg_wrapper.forked_target) {
+                ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = false;
+                ForkServerController.getInstance().throttled_reload_unavailable_threads();
+            }
         }
     }
 }

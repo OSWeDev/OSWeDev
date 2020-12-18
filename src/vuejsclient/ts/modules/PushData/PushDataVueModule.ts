@@ -1,5 +1,5 @@
 import * as io from 'socket.io-client/dist/socket.io.slim.js';
-import APIControllerWrapper from '../../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';

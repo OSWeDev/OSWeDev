@@ -19,13 +19,13 @@ export default class CheckAccessParamVO implements IAPIParamTranslator<CheckAcce
         return new CheckAccessParamVO(group_name, policy_name);
     }
 
+    public static getAPIParams(param: CheckAccessParamVO): any[] {
+        return [param.group_name, param.policy_name];
+    }
+
     public constructor(
         public group_name: string,
         public policy_name: string) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.group_name, this.policy_name];
     }
 
     public translateToURL(): string {

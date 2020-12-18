@@ -1,7 +1,6 @@
 import { Express } from 'express';
 import * as moment from 'moment';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
 import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';

@@ -4,7 +4,6 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';

@@ -4,7 +4,6 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';

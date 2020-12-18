@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import { Moment } from 'moment';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
@@ -6,7 +5,6 @@ import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import VOsTypesManager from '../../VOsTypesManager';
 import VarsController from '../VarsController';
-import VarCacheConfVO from './VarCacheConfVO';
 import VarConfVO from './VarConfVO';
 
 export default class VarDataBaseVO implements IMatroid {

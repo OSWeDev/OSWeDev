@@ -8,13 +8,13 @@ export default class SetParamParamVO implements IAPIParamTranslator<SetParamPara
         return new SetParamParamVO(param_name, param_value);
     }
 
+    public static getAPIParams(param: SetParamParamVO): any[] {
+        return [param.param_name, param.param_value];
+    }
+
     public constructor(
         public param_name: string,
         public param_value: string | number | boolean) {
-    }
-
-    public getAPIParams(): any[] {
-        return [this.param_name, this.param_value];
     }
 }
 

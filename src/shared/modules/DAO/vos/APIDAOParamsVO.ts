@@ -31,8 +31,8 @@ export default class APIDAOParamsVO implements IAPIParamTranslator<APIDAOParamsV
         return this.API_TYPE_ID + '/' + this.ids.join('_');
     }
 
-    public getAPIParams(): any[] {
-        return [this.API_TYPE_ID, this.ids];
+    public static getAPIParams(param: APIDAOParamsVO): any[] {
+        return [param.API_TYPE_ID, param.ids];
     }
 }
 

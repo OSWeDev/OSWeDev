@@ -18,6 +18,10 @@ export default class TParamVO implements IAPIParamTranslator<TParamVO> {
         return new TParamVO(code_text, lang_id);
     }
 
+    public static getAPIParams(param: TParamVO): any[] {
+        return [param.code_text, param.lang_id];
+    }
+
     public constructor(
         public code_text: string,
         public lang_id: number) {
@@ -26,10 +30,6 @@ export default class TParamVO implements IAPIParamTranslator<TParamVO> {
     public translateToURL(): string {
 
         return this.code_text + '/' + this.lang_id;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.code_text, this.lang_id];
     }
 }
 

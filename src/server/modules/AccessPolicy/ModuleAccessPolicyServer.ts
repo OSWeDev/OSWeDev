@@ -3,7 +3,6 @@ import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessP
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import LoginParamVO from '../../../shared/modules/AccessPolicy/vos/apis/LoginParamVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
@@ -598,12 +597,48 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
     }
 
+    /**
+     * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
+     * @param policy_name
+     */
+    public checkAccessSync(policy_name: string): boolean {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
+            return false;
+        }
+
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            return true;
+        }
+
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
+        if (!target_policy) {
+            return false;
+        }
+
+        let uid: number = StackContext.getInstance().get('UID');
+        if (!uid) {
+            // profil anonyme
+            return AccessPolicyServerController.getInstance().checkAccessTo(
+                target_policy,
+                AccessPolicyServerController.getInstance().getUsersRoles(false, null));
+        }
+
+        if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
+            return false;
+        }
+
+        return AccessPolicyServerController.getInstance().checkAccessTo(
+            target_policy,
+            AccessPolicyServerController.getInstance().getUsersRoles(true, uid));
+    }
+
     public async begininitpwd(text: string): Promise<void> {
         if (!text) {
             return;
         }
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -615,7 +650,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -631,7 +666,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -644,7 +679,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }
 
@@ -936,7 +971,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return false;
         }
 
@@ -1060,44 +1095,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async checkAccess(policy_name: string): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            return false;
-        }
-
-        // this.consoledebug("CHECKACCESS:" + policy_name + ":");
-
-        // // Un admin a accès à tout dans tous les cas
-        // if (await this.isAdmin()) {
-        //     // this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:IS_ADMIN");
-        //     return true;
-        // }
-
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
-            // this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:IS_SERVER");
-            return true;
-        }
-
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
-        if (!target_policy) {
-            // this.consoledebug("CHECKACCESS:" + policy_name + ":FALSE:policy_name:Introuvable");
-            return false;
-        }
-
-        let uid: number = StackContext.getInstance().get('UID');
-        if (!uid) {
-            // profil anonyme
-            return AccessPolicyServerController.getInstance().checkAccessTo(
-                target_policy,
-                AccessPolicyServerController.getInstance().getUsersRoles(false, null));
-        }
-
-        if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
-            return false;
-        }
-
-        return AccessPolicyServerController.getInstance().checkAccessTo(
-            target_policy,
-            AccessPolicyServerController.getInstance().getUsersRoles(true, uid));
+        return this.checkAccessSync(policy_name);
     }
 
     private async beginRecover(text: string): Promise<boolean> {
@@ -1371,7 +1369,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
                 return null;
             }
 

@@ -1,6 +1,7 @@
 import { Moment } from 'moment';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 const moment = require('moment');
@@ -67,14 +68,14 @@ export default class MaintenanceServerController {
             return;
         }
 
-        let timeout_info: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES);
+        let timeout_info: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES, 1);
         if ((!!this.informed_users_tstzs[user_id]) && (moment(this.informed_users_tstzs[user_id]).utc(true).add(timeout_info, 'minute').isAfter(moment().utc(true)))) {
             return;
         }
 
-        let timeout_minutes_msg1: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
-        let timeout_minutes_msg2: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
-        let timeout_minutes_msg3: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
+        let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
+        let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES);
+        let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES);
 
         if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(moment().utc(true))) {
             await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text);

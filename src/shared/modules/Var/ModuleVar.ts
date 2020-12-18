@@ -299,6 +299,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('cache_seuil_a', ModuleTableField.FIELD_TYPE_float, 'Seuil cache A', true, true, 1000),
             new ModuleTableField('cache_seuil_b', ModuleTableField.FIELD_TYPE_float, 'Seuil cache B', true, true, 1000),
             new ModuleTableField('cache_seuil_c', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C', true, true, 1000),
+            new ModuleTableField('cache_seuil_c_element', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C - élément', true, true, 1000),
             new ModuleTableField('calculation_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float, 'Ms calcul pour 1000', true, true, 1000)
         ];
 

@@ -22,7 +22,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         return VarsdatasComputerBGThread.instance;
     }
 
-    private static PARAM_NAME_request_limit: string = 'VarsdatasComputerBGThread.request_limit';
+    private static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
+    private static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
     private static instance: VarsdatasComputerBGThread = null;
 
     // public current_timeout: number = 100;
@@ -85,11 +86,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             }
             this.semaphore = true;
 
-            let request_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_request_limit);
-            if (!request_limit) {
-                await ModuleParams.getInstance().setParamValueAsNumber(VarsdatasComputerBGThread.PARAM_NAME_request_limit, 100);
-                request_limit = 100;
-            }
+            let client_request_estimated_ms_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500);
+            let bg_estimated_ms_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000);
 
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
@@ -106,7 +104,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
 
             VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.selection"], true);
-            let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(request_limit);
+            let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(
+                client_request_estimated_ms_limit, bg_estimated_ms_limit);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
 
             if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
@@ -148,6 +147,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *  - on libère le bgthread, en indiquant qu'on a eu des choses à gérer donc il faut revenir très rapidement
              */
 
+            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread starts computation...');
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
             await VarsComputeController.getInstance().compute(vars_datas);
             VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);

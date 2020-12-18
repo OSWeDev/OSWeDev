@@ -102,6 +102,7 @@ export default class ModuleAccessPolicy extends Module {
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
     /**
+     * WARN : Uniquement à usage côté client, côté serveur pour les performances préférer l'appel directement à checkAccessSync sur le module server
      * @param policy_name Le titre de la policy, qui doit être unique sur tous les groupes de toutes façons
      */
     public checkAccess: (policy_name: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_CHECK_ACCESS);

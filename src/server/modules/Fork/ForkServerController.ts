@@ -1,6 +1,8 @@
 import { fork } from 'child_process';
 import { Server, Socket } from 'net';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import IBGThread from '../BGThread/interfaces/IBGThread';
 import CronServerController from '../Cron/CronServerController';
@@ -10,7 +12,7 @@ import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
-import ConfigurationService from '../../env/ConfigurationService';
+import PingForkMessage from './messages/PingForkMessage';
 
 export default class ForkServerController {
 
@@ -28,6 +30,8 @@ export default class ForkServerController {
      */
     public forks_are_initialized: boolean = false;
     public forks_waiting_to_be_alive: number = 0;
+    public forks_availability: { [uid: number]: boolean } = {};
+    public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false });
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private UID: number = 0;
@@ -70,17 +74,33 @@ export default class ForkServerController {
 
         this.forks_waiting_to_be_alive = Object.keys(this.forks).length;
 
+        this.reload_unavailable_threads();
+
+        /**
+         * On met en place un thread sur le master qui check le status régulièrement des forked (en tentant d'envoyer un alive)
+         */
+        setTimeout(this.checkForksAvailability.bind(this), 10000);
+    }
+
+    public reload_unavailable_threads() {
+
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
-        for (let i in this.forks) {
-            let forked: IFork = this.forks[i];
+        for (let i in ForkServerController.getInstance().forks) {
+            let forked: IFork = ForkServerController.getInstance().forks[i];
+
+            if (ForkServerController.getInstance().forks_availability[i]) {
+                continue;
+            }
+
+            ForkServerController.getInstance().forks_availability[i] = true;
 
             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
                     execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
                     serialization: "advanced"
                 });
             } else {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
                     execArgv: ['--max-old-space-size=4096'],
                     serialization: "advanced"
                 });
@@ -163,5 +183,20 @@ export default class ForkServerController {
                 this.fork_by_type_and_name[CronServerController.ForkedProcessType][cron.worker_uid] = default_fork;
             }
         }
+    }
+
+    private async checkForksAvailability() {
+
+        for (let i in this.forks) {
+            let forked: IFork = this.forks[i];
+
+            if (!this.forks_availability[i]) {
+                continue;
+            }
+
+            ForkMessageController.getInstance().send(new PingForkMessage(), forked.child_process, forked);
+        }
+
+        setTimeout(this.checkForksAvailability.bind(this), 10000);
     }
 }

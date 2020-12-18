@@ -16,6 +16,16 @@ export default class ExportDataToMultiSheetsXLSXParamVO implements IExportableMu
         return new ExportDataToMultiSheetsXLSXParamVO(filename, sheets, api_type_id, is_secured, file_access_policy_name);
     }
 
+    public static getAPIParams(param: ExportDataToMultiSheetsXLSXParamVO): any[] {
+        return [
+            param.filename,
+            param.sheets,
+            param.api_type_id,
+            param.is_secured,
+            param.file_access_policy_name
+        ];
+    }
+
     public constructor(
         public filename: string,
         public sheets: IExportableSheet[],
@@ -23,16 +33,6 @@ export default class ExportDataToMultiSheetsXLSXParamVO implements IExportableMu
         public is_secured: boolean = false,
         public file_access_policy_name: string = null
     ) { }
-
-    public getAPIParams(): any[] {
-        return [
-            this.filename,
-            this.sheets,
-            this.api_type_id,
-            this.is_secured,
-            this.file_access_policy_name
-        ];
-    }
 }
 
 export const ExportDataToMultiSheetsXLSXParamVOStatic: IAPIParamTranslatorStatic<ExportDataToMultiSheetsXLSXParamVO> = ExportDataToMultiSheetsXLSXParamVO;

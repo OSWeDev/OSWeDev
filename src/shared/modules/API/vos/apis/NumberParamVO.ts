@@ -18,6 +18,10 @@ export default class NumberParamVO implements IAPIParamTranslator<NumberParamVO>
         return new NumberParamVO(num);
     }
 
+    public static getAPIParams(param: NumberParamVO): any[] {
+        return [param.num];
+    }
+
     public constructor(
         public num: number) {
     }
@@ -25,10 +29,6 @@ export default class NumberParamVO implements IAPIParamTranslator<NumberParamVO>
     public translateToURL(): string {
 
         return ((this.num % 1) === 0) ? this.num.toString() : this.num.toPrecision(10);
-    }
-
-    public getAPIParams(): any[] {
-        return [this.num];
     }
 }
 

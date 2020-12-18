@@ -23,4 +23,5 @@ export default interface IEnvParam {
     CONSOLE_LOG_TO_FILE: boolean;
     DEBUG_FORKS: boolean;
     VARS_PERF_MONITORING?: boolean;
+    START_MAINTENANCE_ACCEPTATION_CODE: string;
 }

@@ -19,6 +19,10 @@ export default class TimeSegmentParamVO implements IAPIParamTranslator<TimeSegme
         return new TimeSegmentParamVO(timeSegment);
     }
 
+    public static getAPIParams(param: TimeSegmentParamVO): any[] {
+        return [param.timeSegment];
+    }
+
     public constructor(
         public timeSegment: TimeSegment) {
     }
@@ -26,10 +30,6 @@ export default class TimeSegmentParamVO implements IAPIParamTranslator<TimeSegme
     public translateToURL(): string {
 
         return this.timeSegment.dateIndex + '/' + this.timeSegment.type;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.timeSegment];
     }
 }
 

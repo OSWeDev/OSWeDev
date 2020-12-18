@@ -5,7 +5,7 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
-import APIControllerWrapper from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -81,7 +81,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 }
 
                 if (!!apiDefinition.access_policy_name) {
-                    if (!ModuleAccessPolicy.getInstance().checkAccess(apiDefinition.access_policy_name)) {
+                    if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(apiDefinition.access_policy_name)) {
                         ConsoleHandler.getInstance().error('Access denied to API:' + apiDefinition.api_name + ':');
                         return null;
                     }
@@ -111,7 +111,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         }
                 }
 
-                let api_res = await apiDefinition.SERVER_HANDLER(param.getAPIParams());
+                let params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
+                let api_res = await apiDefinition.SERVER_HANDLER(...params);
                 res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
 
                 // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||

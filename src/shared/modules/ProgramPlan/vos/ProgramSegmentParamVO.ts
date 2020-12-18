@@ -20,6 +20,10 @@ export default class ProgramSegmentParamVO implements IAPIParamTranslator<Progra
         return new ProgramSegmentParamVO(program_id, timeSegment);
     }
 
+    public static getAPIParams(param: ProgramSegmentParamVO): any[] {
+        return [param.program_id, param.timeSegment];
+    }
+
     public constructor(
         public program_id: number,
         public timeSegment: TimeSegment) {
@@ -28,10 +32,6 @@ export default class ProgramSegmentParamVO implements IAPIParamTranslator<Progra
     public translateToURL(): string {
 
         return this.program_id + '/' + this.timeSegment.dateIndex + '/' + this.timeSegment.type;
-    }
-
-    public getAPIParams(): any[] {
-        return [this.program_id, this.timeSegment];
     }
 }
 

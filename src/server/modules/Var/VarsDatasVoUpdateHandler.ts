@@ -54,13 +54,11 @@ export default class VarsDatasVoUpdateHandler {
     /**
      * Objectif on bloque le ModuleDAO en modification, et on informe via notif quand on a à la fois bloqué les updates et vidé le cache de ce module
      */
-    public async force_empty_cars_datas_vu_update_cache() {
+    public async force_empty_vars_datas_vo_update_cache() {
 
         ModuleDAOServer.getInstance().global_update_blocker = true;
 
         while (true) {
-            await ThreadHandler.getInstance().sleep(5000);
-
             if ((!VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud) ||
                 (!VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud.length)) {
 
@@ -72,6 +70,7 @@ export default class VarsDatasVoUpdateHandler {
                 ConsoleHandler.getInstance().warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
                 return;
             }
+            await ThreadHandler.getInstance().sleep(5000);
         }
     }
 
