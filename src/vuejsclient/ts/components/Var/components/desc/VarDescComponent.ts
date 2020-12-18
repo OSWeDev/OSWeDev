@@ -220,7 +220,7 @@ export default class VarDescComponent extends VueComponentBase {
                 continue;
             }
 
-            param[field.field_id] = await SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+            param[field.field_id] = await SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid, field.field_id);
         }
 
         return param;
@@ -340,7 +340,7 @@ export default class VarDescComponent extends VueComponentBase {
     }
 
     @Watch('var_param', { immediate: true })
-    private async  onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    private async onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
@@ -394,7 +394,7 @@ export default class VarDescComponent extends VueComponentBase {
         await this.update_var_infos();
     }
 
-    private async  set_loaded_datas_matroids_desc(): Promise<void> {
+    private async set_loaded_datas_matroids_desc(): Promise<void> {
         if (!this.var_index) {
             this.loaded_datas_matroids_desc = null;
         }

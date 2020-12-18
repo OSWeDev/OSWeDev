@@ -217,10 +217,10 @@ export default class VarDataRefComponent extends VueComponentBase {
                         res += (tstzrange.max_inclusiv) ? tstzrange.max.format('DD/MM/Y') : tstzrange.max.clone().add(-1, 'day').format('DD/MM/Y');
                         break;
                     default:
-                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid, field.field_id);
                 }
             } else {
-                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid, field.field_id);
             }
             nb_fields++;
         }

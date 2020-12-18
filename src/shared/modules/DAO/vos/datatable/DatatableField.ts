@@ -1,7 +1,8 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ICRUDComponentField from '../../interface/ICRUDComponentField';
 import Alert from '../../../Alert/vos/Alert';
+import ModuleTableField from '../../../ModuleTableField';
+import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -20,6 +21,8 @@ export default abstract class DatatableField<T, U> {
 
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;
+
+    public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
 
     public vue_component: ICRUDComponentField = null;
 
@@ -257,6 +260,12 @@ export default abstract class DatatableField<T, U> {
             this.vue_component.$data.select_options_enabled = options;
             this.vue_component.on_reload_field_value();
         }
+
+        return this;
+    }
+
+    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): DatatableField<T, U> {
+        DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 
         return this;
     }
