@@ -107,19 +107,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         return this.getDescSelectedVarParam.index == this.var_param.index;
     }
 
-    get var_index(): string {
-        if (!this.var_param) {
-            return null;
-        }
-
-        return this.var_param.index;
-    }
-
     get var_data(): VarDataValueResVO {
-
-        // if (!this.entered_once) {
-        //     return null;
-        // }
 
         if ((!this.getVarDatas) || (!this.var_param)) {
             return null;
@@ -145,14 +133,6 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private intersect_out() {
         this.unregister();
-    }
-
-    get is_computing() {
-        if (!this.var_data) {
-            return false;
-        }
-
-        return this.var_data.is_computing;
     }
 
     private register(var_param: VarDataBaseVO = null) {
