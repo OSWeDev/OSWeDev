@@ -9,10 +9,10 @@ import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueRe
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
-import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueModuleBase from '../VueModuleBase';
 
 export default class PushDataVueModule extends VueModuleBase {
@@ -285,18 +285,33 @@ export default class PushDataVueModule extends VueModuleBase {
         if (var_by_indexes && ObjectHandler.getInstance().hasAtLeastOneAttribute(var_by_indexes)) {
 
             let vos = Object.values(var_by_indexes);
-            VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
-            await VarsClientController.getInstance().notifyCallbacks(vos);
 
             let types: { [name: string]: boolean } = {};
             for (let i in vos) {
                 let vo = vos[i];
+
+                // if varData is_computing, on veut écraser un seul champs
+                if (vo.is_computing) {
+
+                    let stored_var: VarDataValueResVO = VarsClientController.getInstance().cached_var_datas[vo.index];
+
+                    // Si on a encore rien reçu, l'info de calcul en cours est inutile
+                    if (!!stored_var) {
+                        vo.value = stored_var.value;
+                        vo.value_ts = stored_var.value_ts;
+                        vo.value_type = stored_var.value_type;
+                        vo.id = stored_var.id;
+                    }
+                }
+                VarsClientController.getInstance().cached_var_datas[vo.index] = vo;
 
                 if (!types[vo._type]) {
                     types[vo._type] = true;
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
                 }
             }
+            // VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
+            await VarsClientController.getInstance().notifyCallbacks(vos);
         }
     }
 }

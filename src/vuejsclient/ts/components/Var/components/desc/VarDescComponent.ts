@@ -1,17 +1,17 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import MatroidController from '../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 import VarsDatasExplorerFiltersComponent from '../explorer/filters/VarsDatasExplorerFiltersComponent';
-import { ModuleVarsDatasExplorerVuexAction } from '../explorer/VarsDatasExplorerVuexStore';
 import './VarDescComponent.scss';
 
 @Component({
@@ -23,9 +23,6 @@ import './VarDescComponent.scss';
     }
 })
 export default class VarDescComponent extends VueComponentBase {
-
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
 
     @Prop()
     private var_param: VarDataBaseVO;
@@ -39,6 +36,20 @@ export default class VarDescComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_last_update: boolean;
 
+    private var_data: VarDataValueResVO = null;
+    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this))
+    };
+
+    private var_data_updater() {
+        if (!this.var_param) {
+            this.var_data = null;
+            return;
+        }
+        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
+    }
 
     get var_data_has_valid_value(): boolean {
         if (!this.var_param) {
@@ -126,10 +137,6 @@ export default class VarDescComponent extends VueComponentBase {
                     RangeHandler.getInstance().getMinSurroundingRange(field_value);
             }
         }
-    }
-
-    get var_data(): VarDataValueResVO {
-        return this.getVarDatas[this.var_param.index];
     }
 
     get var_data_last_update(): string {

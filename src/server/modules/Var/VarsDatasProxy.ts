@@ -3,22 +3,17 @@ import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleVar from '../../../shared/modules/Var/ModuleVar';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import StackContext from '../../StackContext';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
-import VarsCacheController from './VarsCacheController';
 import VarsServerController from './VarsServerController';
-import VarsTabsSubsController from './VarsTabsSubsController';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -176,6 +171,11 @@ export default class VarsDatasProxy {
         let check_in_bdd_per_type: { [type: string]: T[] } = {};
         for (let i in var_datas) {
             let var_data = var_datas[i];
+
+            if ((!var_data) || (!var_data.check_param_is_valid)) {
+                ConsoleHandler.getInstance().error('Paramètre invalide dans get_exact_params_from_buffer_or_bdd:' + JSON.stringify(var_data));
+                continue;
+            }
 
             let e = null;
             if (this.vars_datas_buffer_indexes[var_data.index]) {

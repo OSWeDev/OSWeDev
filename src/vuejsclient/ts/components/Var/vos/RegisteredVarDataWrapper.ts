@@ -1,5 +1,6 @@
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarUpdateCallback from '../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import VarsClientController from '../VarsClientController';
 
 export default class RegisteredVarDataWrapper {
 
@@ -12,6 +13,21 @@ export default class RegisteredVarDataWrapper {
 
     public add_callbacks(callbacks: { [cb_uid: number]: VarUpdateCallback }): RegisteredVarDataWrapper {
         for (let uid in callbacks) {
+            let callback = callbacks[uid];
+
+            /**
+             * Si on a déjà une valeur pour ce param, on peut appeler le callback directement, on attend rien de plus
+             */
+            if (VarsClientController.getInstance().cached_var_datas[this.var_param.index]) {
+                if (!!callback.callback) {
+                    callback.callback(VarsClientController.getInstance().cached_var_datas[this.var_param.index]);
+
+                    if (callback.type == VarUpdateCallback.TYPE_ONCE) {
+                        continue;
+                    }
+                }
+            }
+
             this.callbacks[uid] = callbacks[uid];
         }
 

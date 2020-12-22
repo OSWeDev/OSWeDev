@@ -877,7 +877,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         // On commence par charger la liste des données concernées
         // Un getter du store qui renvoie les datas de base, version distant vo et on va chercher ensuite tous les fields utiles, et les refs
-        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID]; //TODO chargement depuis le store
+        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID];
         let baseDatas: IDistantVOBase[] = [];
 
         if (!!this.datatable.data_set_hook) {

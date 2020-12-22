@@ -6,10 +6,11 @@ import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleVarGetter } from '../../../store/VarStore';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
 
@@ -22,9 +23,6 @@ import './VarDescExplainComponent.scss';
 })
 export default class VarDescExplainComponent extends VueComponentBase {
 
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
-
     @Prop()
     private var_param: VarDataBaseVO;
 
@@ -34,6 +32,26 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private ds_values_jsoned: { [ds_name: string]: string } = null;
 
     private opened: boolean = true;
+
+    private var_data: VarDataValueResVO = null;
+    private var_datas_deps: VarDataValueResVO[] = [];
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this))
+    };
+
+    private var_datas_updater() {
+
+        this.var_data = this.var_param ? VarsClientController.getInstance().cached_var_datas[this.var_param.index] : null;
+
+        let var_datas: VarDataValueResVO[] = [];
+        for (let i in this.deps_params) {
+            let dep_param = this.deps_params[i];
+            var_datas.push(VarsClientController.getInstance().cached_var_datas[dep_param.index]);
+        }
+        this.var_datas_deps = var_datas;
+    }
 
     private var_id_from_name(name: string): number {
         return VarsController.getInstance().var_conf_by_name[name].id;
@@ -73,9 +91,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return false;
         }
 
-        let dep_data = this.getVarDatas[this.var_param.index];
-
-        if ((!dep_data) || (typeof dep_data.value === 'undefined')) {
+        if ((!this.var_data) || (typeof this.var_data.value === 'undefined')) {
             return false;
         }
 
@@ -87,9 +103,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return false;
         }
 
-        for (let i in this.deps_params) {
-            let dep_param = this.deps_params[i];
-            let dep_data = this.getVarDatas[dep_param.index];
+        for (let i in this.var_datas_deps) {
+            let dep_data = this.var_datas_deps[i];
 
             if ((!dep_data) || (typeof dep_data.value === 'undefined')) {
                 return false;
@@ -121,7 +136,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         let res = {
-            self: this.getVarDatas[this.var_param.index].value
+            self: this.var_data.value
         };
         let matroid_bases = MatroidController.getInstance().getMatroidBases(this.var_param);
         for (let i in matroid_bases) {
@@ -140,7 +155,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 if (!param_dep_id.startsWith(var_dep_id)) {
                     continue;
                 }
-                values.push(this.getVarDatas[this.deps_params[param_dep_id].index].value);
+                values.push(VarsClientController.getInstance().cached_var_datas[this.deps_params[param_dep_id].index].value);
             }
 
             if ((!values) || (!values.length)) {
@@ -193,7 +208,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
-            VarsClientController.getInstance().registerParams(Object.values(deps_params));
+            VarsClientController.getInstance().registerParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
 
@@ -203,7 +218,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
-            VarsClientController.getInstance().unRegisterParams(Object.values(deps_params));
+            VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
 

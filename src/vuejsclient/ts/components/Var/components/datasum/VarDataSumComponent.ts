@@ -2,6 +2,8 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
@@ -15,8 +17,6 @@ export default class VarDataSumComponent extends VueComponentBase {
 
     private static UID: number = 0;
 
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public getDescSelectedVarParam: VarDataBaseVO;
     @ModuleVarAction
@@ -54,6 +54,22 @@ export default class VarDataSumComponent extends VueComponentBase {
     private entered_once: boolean = false;
 
     private this_uid: number = VarDataSumComponent.UID++;
+
+    private var_datas: VarDataValueResVO[] = [];
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this))
+    };
+
+    private var_datas_updater() {
+        let var_datas: VarDataValueResVO[] = [];
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            var_datas.push(VarsClientController.getInstance().cached_var_datas[var_param.index]);
+        }
+        this.var_datas = var_datas;
+    }
 
     get is_being_updated(): boolean {
 
@@ -118,113 +134,7 @@ export default class VarDataSumComponent extends VueComponentBase {
         return false;
     }
 
-    // get is_selected_var_dependency(): boolean {
-    //     if (!this.isDescMode) {
-    //         return false;
-    //     }
-
-    //     let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedVarParam];
-
-    //     if (!selectedNode) {
-    //         return false;
-    //     }
-
-    //     for (let i in this.var_params) {
-    //         let var_param = this.var_params[i];
-
-    //         if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], false)) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-
-    // public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
-    //     // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
-    //     //  dep de type cumul au complet et pas juste le jour de demande du cumul
-    //     if ((!test_node) || (!selectedNode)) {
-    //         return false;
-    //     }
-    //     if (!!test_incoming) {
-
-    //         if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-    //             return true;
-    //         }
-
-    //         for (let i in test_node.incoming) {
-    //             let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
-
-
-    //             if (incoming.param.var_id == selectedNode.param.var_id) {
-    //                 if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
-    //                     return true;
-    //                 }
-    //             }
-    //         }
-    //     } else {
-
-    //         if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-    //             return true;
-    //         }
-
-    //         for (let i in test_node.outgoing) {
-    //             let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
-
-
-    //             if (outgoing.param.var_id == selectedNode.param.var_id) {
-    //                 if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
-    //                     return true;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return false;
-    // }
-
-    // get is_selected_var_dependent(): boolean {
-    //     if (!this.isDescMode) {
-    //         return false;
-    //     }
-
-    //     let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedVarParam];
-
-    //     if ((!selectedNode) || (!selectedNode.outgoingNames)) {
-    //         return false;
-    //     }
-
-    //     for (let i in this.var_params) {
-    //         let var_param = this.var_params[i];
-
-    //         if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], true)) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-
-    get var_datas(): VarDataValueResVO[] {
-
-        if ((!this.getVarDatas) || (!this.var_params) || (!this.var_params.length)) {
-            return null;
-        }
-
-        let res: VarDataValueResVO[] = [];
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            let var_data = this.getVarDatas[var_param.index];
-
-            if (!!var_data) {
-
-                res.push(var_data);
-            }
-        }
-
-        return res.length ? res : null;
-    }
-
-    public destroyed() {
-
+    private destroyed() {
         this.unregister(this.var_params);
     }
 
@@ -248,13 +158,13 @@ export default class VarDataSumComponent extends VueComponentBase {
 
     private register(var_params: VarDataBaseVO[]) {
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().registerParams(var_params);
+            VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
         }
     }
 
     private unregister(var_params: VarDataBaseVO[]) {
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(var_params);
+            VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
         }
     }
 

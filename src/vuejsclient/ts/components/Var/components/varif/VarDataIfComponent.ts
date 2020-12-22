@@ -1,6 +1,8 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
@@ -12,8 +14,6 @@ export default class VarDataIfComponent extends VueComponentBase {
     @ModuleVarAction
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
 
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public isDescMode: boolean;
 
@@ -29,18 +29,24 @@ export default class VarDataIfComponent extends VueComponentBase {
     @Prop({ default: false })
     public preload_content: boolean;
 
-    get var_data(): VarDataValueResVO {
+    private var_data: VarDataValueResVO = null;
+    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false });
 
-        if ((!this.getVarDatas) || (!this.var_param)) {
-            return null;
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this))
+    };
+
+    private var_data_updater() {
+        if (!this.var_param) {
+            this.var_data = null;
+            return;
         }
-
-        return this.getVarDatas[this.var_param.index];
+        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
     }
 
-    public destroyed() {
+    private destroyed() {
 
-        VarsClientController.getInstance().unRegisterParams([this.var_param]);
+        VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
     }
 
     @Watch('var_param', { immediate: true })
@@ -52,11 +58,11 @@ export default class VarDataIfComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            VarsClientController.getInstance().unRegisterParams([old_var_param]);
+            VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
         }
 
         if (new_var_param) {
-            VarsClientController.getInstance().registerParams([new_var_param]);
+            VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
 

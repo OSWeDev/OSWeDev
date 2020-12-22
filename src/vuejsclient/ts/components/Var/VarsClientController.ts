@@ -3,12 +3,15 @@ import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
-import TypesHandler from '../../../../shared/tools/TypesHandler';
-import VueAppBase from '../../../VueAppBase';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
+import TypesHandler from '../../../../shared/tools/TypesHandler';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
+
+    public static get_CB_UID(): number {
+        return this.CB_UID++;
+    }
 
     public static getInstance(): VarsClientController {
         if (!VarsClientController.instance) {
@@ -17,6 +20,7 @@ export default class VarsClientController {
         return VarsClientController.instance;
     }
 
+    private static CB_UID: number = 0;
     private static instance: VarsClientController = null;
 
     /**
@@ -24,6 +28,11 @@ export default class VarsClientController {
      *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
+
+    /**
+     * On stocke les dernières Vardatares reçues (TODO FIXME à nettoyer peut-etre au bout d'un moment)
+     */
+    public cached_var_datas: { [index: string]: VarDataValueResVO } = {};
 
     public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 250, { leading: false });
     public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 2000, { leading: false });
@@ -200,9 +209,7 @@ export default class VarsClientController {
             for (let i in this.registered_var_params) {
                 let registered_var_param: RegisteredVarDataWrapper = this.registered_var_params[i];
 
-                let getVarDatas = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getVarDatas'];
-
-                let var_data: VarDataValueResVO = getVarDatas[registered_var_param.var_param.index];
+                let var_data: VarDataValueResVO = VarsClientController.getInstance().cached_var_datas[registered_var_param.var_param.index];
 
                 if (var_data && (typeof var_data.value !== 'undefined') && !var_data.is_computing) {
                     continue;

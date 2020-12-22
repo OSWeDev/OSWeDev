@@ -1,4 +1,5 @@
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import VarsClientController from '../../VarsClientController';
 
@@ -22,7 +23,7 @@ export default class VarDirective {
 
     private static instance: VarDirective = null;
 
-    private callbacks: { [var_index: string]: VarUpdateCallback[] } = {};
+    private callbacks: { [var_index: string]: { [cb_uid: number]: VarUpdateCallback } } = {};
 
     private constructor() {
     }
@@ -59,24 +60,24 @@ export default class VarDirective {
         VarsClientController.getInstance().unRegisterParams([var_param], VarDirective.getInstance().callbacks[var_param.index]);
     }
 
-    private getVarUpdateCallbacks(el, binding, vnode): VarUpdateCallback[] {
+    private getVarUpdateCallbacks(el, binding, vnode): { [cb_uid: number]: VarUpdateCallback } {
 
-        let on_every_update: (varData: VarDataBaseVO, el, binding, vnode) => Promise<void> = binding.value.on_every_update ? binding.value.on_every_update : null;
-        let on_update_once: (varData: VarDataBaseVO, el, binding, vnode) => Promise<void> = binding.value.on_update_once ? binding.value.on_update_once : null;
+        let on_every_update: (varData: VarDataBaseVO | VarDataValueResVO, el, binding, vnode) => Promise<void> = binding.value.on_every_update ? binding.value.on_every_update : null;
+        let on_update_once: (varData: VarDataBaseVO | VarDataValueResVO, el, binding, vnode) => Promise<void> = binding.value.on_update_once ? binding.value.on_update_once : null;
 
-        let varUpdateCallbacks: VarUpdateCallback[] = [];
+        let varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {};
 
         if (!!on_every_update) {
-            let on_every_update_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO) => {
+            let on_every_update_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
                 await on_every_update(varData, el, binding, vnode);
             });
-            varUpdateCallbacks.push(on_every_update_callback);
+            varUpdateCallbacks[VarsClientController.get_CB_UID()] = on_every_update_callback;
         }
         if (!!on_update_once) {
-            let on_update_once_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO) => {
+            let on_update_once_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
                 await on_update_once(varData, el, binding, vnode);
             });
-            varUpdateCallbacks.push(on_update_once_callback);
+            varUpdateCallbacks[VarsClientController.get_CB_UID()] = on_update_once_callback;
         }
 
         return varUpdateCallbacks;

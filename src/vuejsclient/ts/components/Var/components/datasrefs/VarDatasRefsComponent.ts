@@ -2,6 +2,8 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
@@ -15,8 +17,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
 
     private static UID: number = 0;
 
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public isDescMode: boolean;
 
@@ -53,6 +53,22 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     private entered_once: boolean = false;
 
     private this_uid: number = VarDatasRefsComponent.UID++;
+
+    private var_datas: VarDataValueResVO[] = [];
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this))
+    };
+
+    private var_datas_updater() {
+        let var_datas: VarDataValueResVO[] = [];
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            var_datas.push(VarsClientController.getInstance().cached_var_datas[var_param.index]);
+        }
+        this.var_datas = var_datas;
+    }
 
     get is_being_updated(): boolean {
 
@@ -109,32 +125,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         return false;
     }
 
-    get var_datas(): VarDataValueResVO[] {
-
-        if (!this.entered_once) {
-            return null;
-        }
-
-        if ((!this.getVarDatas) || (!this.var_params) || (!this.var_params.length)) {
-            return null;
-        }
-
-        let res: VarDataValueResVO[] = [];
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            let var_data = this.getVarDatas[var_param.index];
-
-            if (!!var_data) {
-
-                res.push(var_data);
-            }
-        }
-
-        return (res.length == this.var_params.length) ? res : null;
-    }
-
-    public destroyed() {
+    private destroyed() {
         this.unregister(this.var_params);
     }
 
@@ -158,7 +149,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         }
 
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().registerParams(var_params);
+            VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
         }
     }
 
@@ -167,8 +158,10 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return;
         }
 
+        this.var_datas = null;
+
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(var_params);
+            VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
         }
     }
 
@@ -220,7 +213,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         for (let i in this.var_datas) {
             let var_data = this.var_datas[i];
 
-            if (var_data.is_computing) {
+            if (var_data && var_data.is_computing) {
                 return true;
             }
         }

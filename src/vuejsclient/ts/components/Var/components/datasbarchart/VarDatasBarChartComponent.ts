@@ -1,3 +1,4 @@
+import debounce from 'lodash/debounce';
 import { Bar } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarsBarDataSetDescriptor';
@@ -5,12 +6,13 @@ import MainAggregateOperatorsHandlers from '../../../../../../shared/modules/Var
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
-import debounce from 'lodash/debounce';
 
 @Component({
     extends: Bar
@@ -18,31 +20,60 @@ import debounce from 'lodash/debounce';
 export default class VarDatasBarChartComponent extends VueComponentBase {
 
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
-    @ModuleVarGetter
-    public isDescMode: boolean;
+    private isDescMode: boolean;
 
     @Prop({ default: null })
-    public labels: string[];
+    private labels: string[];
 
     @Prop({ default: null })
-    public var_dataset_descriptors: VarsBarDataSetDescriptor[];
+    private var_dataset_descriptors: VarsBarDataSetDescriptor[];
 
     @Prop({ default: null })
-    public options: any;
+    private options: any;
 
     private rendered = false;
-    private debounced_render_chart_js = debounce(this.render_chart_js, 2000);
+    private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
-    public mounted() {
+    private var_datas: { [index: string]: VarDataValueResVO } = {};
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this))
+    };
+
+    private var_datas_updater() {
+        let res: { [index: string]: VarDataValueResVO } = {};
+
+        if ((!this.var_dataset_descriptors) || (!this.var_dataset_descriptors.length)) {
+            this.var_datas = null;
+            return;
+        }
+
+        for (let j in this.var_dataset_descriptors) {
+            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
+
+            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
+                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
+
+                for (let i in var_params) {
+                    let var_param = var_params[i];
+                    res[var_param.index] = VarsClientController.getInstance().cached_var_datas[var_param.index];
+                }
+            }
+        }
+
+        this.var_datas = res;
+    }
+
+    private mounted() {
         if (this.all_data_loaded) {
             this.debounced_render_chart_js();
         }
     }
 
-    public destroyed() {
+    private destroyed() {
 
-        VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors));
+        VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
         if (!!this.rendered) {
             // Issu de Bar
             this.$data._chart.destroy();
@@ -64,7 +95,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 for (let i in var_params) {
                     let var_param = var_params[i];
 
-                    if ((!this.get_all_values) || (!this.get_all_values[var_param.index])) {
+                    if ((!this.var_datas) || (!this.var_datas[var_param.index])) {
                         return false;
                     }
                 }
@@ -97,30 +128,6 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         }
 
         return Object.values(res);
-    }
-
-    get get_all_values(): { [index: string]: VarDataValueResVO } {
-
-        let res: { [index: string]: VarDataValueResVO } = {};
-
-        if ((!this.var_dataset_descriptors) || (!this.var_dataset_descriptors.length)) {
-            return null;
-        }
-
-        for (let j in this.var_dataset_descriptors) {
-            let var_dataset_descriptor: VarsBarDataSetDescriptor = this.var_dataset_descriptors[j];
-
-            for (let label_index in var_dataset_descriptor.vars_params_by_label_index) {
-                let var_params = var_dataset_descriptor.vars_params_by_label_index[label_index];
-
-                for (let i in var_params) {
-                    let var_param = var_params[i];
-                    res[var_param.index] = this.getVarDatas[var_param.index];
-                }
-            }
-        }
-
-        return res;
     }
 
     private get_filtered_value(var_data: VarDataValueResVO, var_dataset_descriptor: VarsBarDataSetDescriptor) {
@@ -159,11 +166,11 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(old_var_params);
+            VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            VarsClientController.getInstance().registerParams(new_var_params);
+            VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
         this.onchange_all_data_loaded();
@@ -230,7 +237,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 let label_values: number[] = [];
                 for (let j in var_params) {
                     let var_param: VarDataBaseVO = var_params[j];
-                    let var_data_value: number = this.get_all_values[var_param.index].value;
+                    let var_data_value: number = this.var_datas[var_param.index].value;
 
                     if ((!!var_dataset_descriptor.var_value_filter) && !var_dataset_descriptor.var_value_filter(var_param, var_data_value)) {
                         label_values.push(null);

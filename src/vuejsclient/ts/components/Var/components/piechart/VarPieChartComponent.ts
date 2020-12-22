@@ -4,7 +4,9 @@ import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
@@ -14,8 +16,6 @@ import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasR
     extends: Pie
 })
 export default class VarPieChartComponent extends VueComponentBase {
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public isDescMode: boolean;
 
@@ -45,14 +45,37 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     private rendered: boolean = false;
 
-    public mounted() {
+    private var_datas: { [index: string]: VarDataValueResVO } = {};
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this))
+    };
+
+    private var_datas_updater() {
+
+        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
+            this.var_datas = null;
+            return;
+        }
+        let res: { [index: string]: VarDataValueResVO } = {};
+
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+
+            res[var_param.index] = VarsClientController.getInstance().cached_var_datas[var_param.index];
+        }
+        this.var_datas = res;
+    }
+
+    private mounted() {
 
         this.render_chart_js();
     }
 
-    public destroyed() {
+    private destroyed() {
 
-        VarsClientController.getInstance().unRegisterParams(this.var_params);
+        VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
     }
 
     get all_data_loaded(): boolean {
@@ -63,26 +86,11 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         for (let i in this.var_params) {
 
-            if ((!this.get_all_values) || (!this.get_all_values[this.var_params[i].index])) {
+            if ((!this.var_datas) || (!this.var_datas[this.var_params[i].index])) {
                 return false;
             }
         }
         return true;
-    }
-
-    get get_all_values(): { [index: string]: VarDataValueResVO } {
-
-        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptor)) {
-            return null;
-        }
-        let res: { [index: string]: VarDataValueResVO } = {};
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-
-            res[var_param.index] = this.getVarDatas[var_param.index];
-        }
-        return res;
     }
 
     private get_filtered_value(var_data: VarDataValueResVO) {
@@ -118,11 +126,11 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(old_var_params);
+            VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            VarsClientController.getInstance().registerParams(new_var_params);
+            VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
         // this.set_datasets();
@@ -148,21 +156,14 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         // sur chaque dimension
         if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(this.var_params);
+            VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
         }
         if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            VarsClientController.getInstance().registerParams(this.var_params);
+            VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
         }
 
         // this.onchange_all_data_loaded();
     }
-
-    // @Watch("all_data_loaded")
-    // private onchange_all_data_loaded() {
-    //     if (this.all_data_loaded) {
-    //         this.set_labels();
-    //     }
-    // }
 
     get chartData() {
         if (!this.all_data_loaded) {
@@ -212,7 +213,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (let j in this.var_params) {
             let var_param: VarDataBaseVO = this.var_params[j];
 
-            dataset_datas.push(this.get_filtered_value(this.get_all_values[var_param.index]));
+            dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                 backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
             } else {

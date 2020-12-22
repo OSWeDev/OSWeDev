@@ -1,22 +1,18 @@
-import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarDataValueResVO from '../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import IStoreModule from '../../../store/IStoreModule';
 
 export type VarContext = ActionContext<IVarState, any>;
 
 export interface IVarState {
-    varDatas: { [index: string]: VarDataValueResVO };
     desc_mode: boolean;
     desc_selected_var_param: VarDataBaseVO;
     desc_selected_var_param_historic: VarDataBaseVO[];
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
     desc_funcstats_opened: boolean;
-    dependencies_heatmap_version: number;
     desc_selected_var_param_historic_i: number;
 }
 
@@ -45,7 +41,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
 
         this.state = {
-            varDatas: {},
             desc_mode: false,
             desc_selected_var_param: null,
             desc_selected_var_param_historic_i: -1,
@@ -53,17 +48,10 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_deps_opened: false,
             desc_registrations_opened: false,
             desc_funcstats_opened: false,
-            dependencies_heatmap_version: 0
         };
 
 
         this.getters = {
-            getVarDatas(state: IVarState): { [index: string]: VarDataValueResVO } {
-                return state.varDatas;
-            },
-            get_dependencies_heatmap_version(state: IVarState): number {
-                return state.dependencies_heatmap_version;
-            },
             isDescDepsOpened(state: IVarState): boolean {
                 return state.desc_deps_opened;
             },
@@ -88,10 +76,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
         };
 
         this.mutations = {
-
-            set_dependencies_heatmap_version(state: IVarState, dependencies_heatmap_version: number) {
-                state.dependencies_heatmap_version = dependencies_heatmap_version;
-            },
 
             setDescDepsOpened(state: IVarState, desc_deps_opened: boolean) {
                 state.desc_deps_opened = desc_deps_opened;
@@ -136,59 +120,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     state.desc_selected_var_param_historic_i++;
                 }
             },
-
-            setVarData(state: IVarState, varData: VarDataValueResVO) {
-                if (!varData) {
-                    return;
-                }
-
-                Vue.set(state.varDatas as any, varData.index, varData);
-            },
-
-            setVarsData(state: IVarState, varsData: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
-                if (!varsData) {
-                    return;
-                }
-
-                for (let i in varsData) {
-
-                    let varData: VarDataValueResVO = varsData[i];
-
-                    // if varData is_computing, on veut écraser un seul champs
-                    if (varData.is_computing) {
-
-                        let stored_var: VarDataValueResVO = (state.varDatas as any)[varData.index];
-
-                        // Si on a encore rien reçu, l'info de calcul en cours est inutile
-                        if (!stored_var) {
-                            continue;
-                        }
-
-                        varData.value = stored_var.value;
-                        varData.value_ts = stored_var.value_ts;
-                        varData.value_type = stored_var.value_type;
-                        varData.id = stored_var.id;
-                    }
-
-                    Vue.set(state.varDatas as any, varData.index, varData);
-                }
-            },
-
-            removeVarData(state: IVarState, varData: VarDataValueResVO) {
-
-                if ((!varData) ||
-                    (!state.varDatas)) {
-                    return;
-                }
-
-                try {
-                    if (!!state.varDatas[varData.index]) {
-                        Vue.delete(state.varDatas, varData.index);
-                    }
-                } catch (error) {
-
-                }
-            },
         };
 
 
@@ -196,10 +127,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
         this.actions = {
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
-            },
-
-            set_dependencies_heatmap_version(context: VarContext, dependencies_heatmap_version: number) {
-                commit_set_dependencies_heatmap_version(context, dependencies_heatmap_version);
             },
 
             setDescDepsOpened(context: VarContext, desc_deps_opened: boolean) {
@@ -217,15 +144,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescSelectedVarParam(context: VarContext, desc_selected_var_param: string) {
                 commitSetDescSelectedVarParam(context, desc_selected_var_param);
             },
-            setVarData(context: VarContext, varData) {
-                commitSetVarData(context, varData);
-            },
-            setVarsData(context: VarContext, varsData: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
-                commitSetVarsData(context, varsData);
-            },
-            removeVarData(context: VarContext, varDataParam: VarDataValueResVO) {
-                commitRemoveVarData(context, varDataParam);
-            },
         };
     }
 }
@@ -235,13 +153,9 @@ const { commit, read, dispatch } =
 export const ModuleVarGetter = namespace('VarStore', Getter);
 export const ModuleVarAction = namespace('VarStore', Action);
 
-export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarData);
-export const commitSetVarsData = commit(VarStore.getInstance().mutations.setVarsData);
-export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);
 export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
 export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
 export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
 export const commitSetDescSelectedVarParam = commit(VarStore.getInstance().mutations.setDescSelectedVarParam);
-export const commit_set_dependencies_heatmap_version = commit(VarStore.getInstance().mutations.set_dependencies_heatmap_version);
 export const commit_set_desc_selected_var_param_historic_i = commit(VarStore.getInstance().mutations.set_desc_selected_var_param_historic_i);
