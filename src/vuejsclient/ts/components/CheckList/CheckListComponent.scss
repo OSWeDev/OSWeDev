@@ -1,0 +1,60 @@
+#program-plan {
+
+    #pplan_date_input {
+
+        margin-left: 25px;
+        width: 180px;
+    }
+
+    .fc-timeline-event .fc-content {
+        padding-left: 5px;
+
+        >i, >.fc-title{
+            vertical-align: middle;
+        }
+
+        i.fa.fa-circle:before {
+            margin: 0;
+            padding: 0;
+        }
+
+        i.fa.fa-circle {
+            border: solid 2px #EEE !important;
+            border-radius: 30px;
+            margin: 0;
+            padding: 0;
+            margin-right: 2px;
+            line-height: 11px;
+        }
+
+        .rdv-state-bg {
+            color: white !important;
+        }
+
+        .rdv-state-confirmed {
+            color: orange !important;
+        }
+
+        .rdv-state-crok {
+            color: green !important;
+        }
+
+        .rdv-state-prepok {
+            color: yellow !important;
+        }
+        
+        .rdv-state-created {
+            color: red !important;
+        }
+    }
+}
+
+@media print {
+
+    #program-plan {
+
+        .fc-left, .fc-right {
+            display: none;
+        }
+    }
+}
