@@ -1,10 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
+import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import VueComponentBase from '../VueComponentBase';
+import './AlertComponent.scss';
 import { ModuleAlertGetter } from './AlertStore';
 import AlertViewComponent from './AlertViewComponent';
-import './AlertComponent.scss';
-import Alert from '../../../../shared/modules/Alert/vos/Alert';
 
 @Component({
     template: require('./AlertComponent.pug'),
@@ -26,6 +26,15 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: null })
     private path: string;
 
+    @Prop({ default: true })
+    private show_alert_date: boolean;
+
+    @Prop({ default: true })
+    private show_alert_content: boolean;
+
+    @Prop({ default: true })
+    private show_popover: boolean;
+
     get alerts(): Alert[] {
         if ((!this.path) || (!this.get_alerts)) {
             return null;
@@ -35,7 +44,7 @@ export default class AlertComponent extends VueComponentBase {
     }
 
     get is_error(): boolean {
-        if (!this.alerts) {
+        if (!this.has_alerts) {
             return null;
         }
 
@@ -43,7 +52,7 @@ export default class AlertComponent extends VueComponentBase {
     }
 
     get is_warn(): boolean {
-        if (!this.alerts) {
+        if (!this.has_alerts) {
             return null;
         }
 
@@ -55,7 +64,7 @@ export default class AlertComponent extends VueComponentBase {
     }
 
     get is_info(): boolean {
-        if (!this.alerts) {
+        if (!this.has_alerts) {
             return null;
         }
 
@@ -67,7 +76,7 @@ export default class AlertComponent extends VueComponentBase {
     }
 
     get is_debug(): boolean {
-        if (!this.alerts) {
+        if (!this.has_alerts) {
             return null;
         }
 
@@ -76,5 +85,9 @@ export default class AlertComponent extends VueComponentBase {
         }
 
         return this.alerts[0].type >= Alert.TYPE_DEBUG;
+    }
+
+    get has_alerts(): boolean {
+        return this.alerts && this.alerts.length > 0;
     }
 }

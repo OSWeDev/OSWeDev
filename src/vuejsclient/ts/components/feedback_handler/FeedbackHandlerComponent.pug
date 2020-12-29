@@ -16,7 +16,7 @@
                             i.fa.fa-asterisk.mandatory
                 .row
                     .col-md-12
-                        input(type='text' name='feedback_user' v-model="tmp_user")
+                        input.form-control(type='text' name='feedback_user' v-model="tmp_user")
 
                 .spacer
 
@@ -26,7 +26,7 @@
                             i.fa.fa-asterisk.mandatory
                 .row
                     .col-md-12
-                        input(type='text' name='feedback_email' v-model="tmp_email")
+                        input.form-control(type='text' name='feedback_email' v-model="tmp_email")
 
                 .spacer
 
@@ -35,7 +35,7 @@
                         label(for='feedback_phone') {{ label('feedback_handler.phone.label') }}
                 .row
                     .col-md-12
-                        input(type='text' name='feedback_phone' v-model="tmp_phone")
+                        input.form-control(type='text' name='feedback_phone' v-model="tmp_phone")
 
                 .spacer
 
@@ -59,7 +59,7 @@
                     .col-md-12
                         input(type="radio" id="feedback_type_3" value='3' v-model="tmp_type")
                         label.feedback_type(for="feedback_type_3" v-tooltip.top="label('feedback_handler.type.not_set.tooltip')") {{ label('feedback_handler.type.not_set') }}
-                
+
                 .spacer
 
                 .row
@@ -68,7 +68,7 @@
                             i.fa.fa-asterisk.mandatory
                 .row
                     .col-md-12
-                        input(type='text' name='feedback_title' v-model="tmp_title")
+                        input.form-control(type='text' name='feedback_title' v-model="tmp_title")
 
                 .spacer
 
@@ -78,7 +78,7 @@
                             i.fa.fa-asterisk.mandatory
                 .row
                     .col-md-12
-                        textarea(name="feedback_message" cols="80" rows="10" v-model="tmp_message")
+                        textarea.form-control(name="feedback_message" cols="80" rows="10" v-model="tmp_message")
 
                 .spacer
 
@@ -115,4 +115,4 @@
 
                 .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
                 button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('feedback_handler.submit') }}
-        
+
