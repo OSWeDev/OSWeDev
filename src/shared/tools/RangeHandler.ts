@@ -1195,6 +1195,9 @@ export default class RangeHandler {
      * On passe par une version text pour simplifier
      */
     public translate_range_to_api(range: NumRange): string {
+        if (!range) {
+            return '';
+        }
 
         let elt = '';
         elt += range.segment_type;
@@ -1359,7 +1362,7 @@ export default class RangeHandler {
         let res: U[] = [];
         try {
 
-            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis 
+            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis
             // TODO FIXME comprendre la source du pb
             if (!ranges) {
                 return null;
