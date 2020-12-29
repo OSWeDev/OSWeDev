@@ -1,17 +1,11 @@
 .alert_component
+    template(v-if="!show_popover")
+        include ./AlertComponentContent.pug
 
-    v-popover(:offset='offset' :placement='tooltip_placement')
-        .alert_component_content
-            template(v-if='is_error')
-                i.fa.fa-exclamation-triangle.fa-fw.alert_component_error(aria-hidden="true")
-            template(v-if='is_warn')
-                i.fa.fa-exclamation-triangle.fa-fw.alert_component_warn(aria-hidden="true")        
-            template(v-if='is_info')
-                i.fa.fa-exclamation-circle.fa-fw.alert_component_info(aria-hidden="true")
-            template(v-if='is_debug')
-                i.fa.fa-exclamation-circle.fa-fw.alert_component_debug(aria-hidden="true")
+    template(v-else)
+        v-popover(:offset='offset' :placement='tooltip_placement')
+            include ./AlertComponentContent.pug
 
-        template(slot="popover")
-            template(v-for='alert in alerts')
-                Alertviewcomponent(:alert='alert')
-  
+            template(slot="popover")
+                template(v-for='alert in alerts')
+                    Alertviewcomponent(:alert='alert', :show_alert_date="show_alert_date", :show_alert_content="show_alert_content")
