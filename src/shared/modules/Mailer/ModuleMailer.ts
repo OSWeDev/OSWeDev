@@ -1,5 +1,9 @@
+import { SendMailOptions } from 'nodemailer';
+import ModuleAPI from '../API/ModuleAPI';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
+import PrepareHTMLParamVO from './vos/PrepareHTMLParamVO';
 
 export default class ModuleMailer extends Module {
 
@@ -11,6 +15,10 @@ export default class ModuleMailer extends Module {
     public static PARAM_NAME_FROM = 'from_address';
     public static PARAM_NAME_SUBJECT_PREFIX = 'subject_prefix';
     public static PARAM_NAME_SUBJECT_SUFFIX = 'subject_suffix';
+
+    public static APINAME_sendMail: string = "send_mail";
+    public static APINAME_prepareHTML: string = "prepare_html";
+
 
     public static getInstance(): ModuleMailer {
         if (!ModuleMailer.instance) {
@@ -39,5 +47,43 @@ export default class ModuleMailer extends Module {
             new ModuleTableField(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX, ModuleTableField.FIELD_TYPE_string, 'subject_suffix'),
         ];
         this.datatables = [];
+    }
+
+    public registerApis() {
+
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
+            null, // droit null ok ???,
+            ModuleMailer.APINAME_sendMail,
+            [],
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
+            null, // droit null ok ???,
+            ModuleMailer.APINAME_prepareHTML,
+            [],
+            PrepareHTMLParamVO.translateCheckAccessParams
+        ));
+    }
+
+    public async sendMail(
+        mailOptions: SendMailOptions
+    ): Promise<any> {
+
+        return await ModuleAPI.getInstance().handleAPI<SendMailOptions, any>(
+            ModuleMailer.APINAME_sendMail,
+            mailOptions);
+    }
+
+    public async prepareHTML(
+        template: string,
+        lang_id: number,
+        vars: { [name: string]: string },
+    ): Promise<any> {
+
+        return await ModuleAPI.getInstance().handleAPI<PrepareHTMLParamVO, string>(
+            ModuleMailer.APINAME_prepareHTML,
+            template,
+            lang_id,
+            vars);
     }
 }

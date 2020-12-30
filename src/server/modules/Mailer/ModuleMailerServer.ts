@@ -2,6 +2,7 @@ import * as nodemailer from 'nodemailer';
 import { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TypesHandler from '../../../shared/tools/TypesHandler';
@@ -51,6 +52,11 @@ export default class ModuleMailerServer extends ModuleServerBase {
                 secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
             });
         }
+    }
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTML.bind(this));
     }
 
     public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
