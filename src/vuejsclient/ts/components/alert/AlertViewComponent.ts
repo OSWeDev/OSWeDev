@@ -1,9 +1,9 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
+import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueComponentBase from '../VueComponentBase';
 import './AlertViewComponent.scss';
-import Alert from '../../../../shared/modules/Alert/vos/Alert';
 
 @Component({
     template: require('./AlertViewComponent.pug'),
@@ -13,6 +13,12 @@ export default class AlertViewComponent extends VueComponentBase {
 
     @Prop()
     private alert: Alert;
+
+    @Prop({ default: true })
+    private show_alert_date: boolean;
+
+    @Prop({ default: true })
+    private show_alert_content: boolean;
 
     get is_error(): boolean {
         if (!this.alert) {
