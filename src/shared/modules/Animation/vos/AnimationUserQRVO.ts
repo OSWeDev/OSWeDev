@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class AnimationUserQRVO implements IDistantVOBase {
@@ -11,4 +12,6 @@ export default class AnimationUserQRVO implements IDistantVOBase {
 
     public qr_id: number;
     public user_id: number;
+
+    public date: Moment;
 }

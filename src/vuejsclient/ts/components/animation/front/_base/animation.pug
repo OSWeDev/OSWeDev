@@ -3,9 +3,6 @@
     h1 {{ label('animation.titre') }}
     template(v-if="themes && themes.length > 0")
         .row.themes
-            template(v-for="theme in ordered_themes")
-                .theme.col-md-3
-                    .name {{ theme.name }}
-                    .description(v-if="theme.description", v-html="theme.description")
-                    .link
-                        router-link(tag="a", :to="get_route_theme(theme)") {{ label('animation.link') }}
+            template(v-for="(theme, index) in ordered_themes")
+                .col-md-3.col-sm-6
+                    Animationtheme(:theme="theme", :index_theme="(index + 1)", :modules="modules_by_themes[theme.id]")

@@ -1,0 +1,29 @@
+
+.rootElt.qr.text-center
+    template(v-if="qr")
+        h2 {{ qr.name }}
+        div(v-if="qr.description", v-html="qr.description")
+        template(v-if="ordered_reponses && ordered_reponses.length > 0")
+            .reponses
+                template(v-for="(reponse, index) in ordered_reponses")
+                    .reponse(v-if="reponse.name")
+                        template(v-if="is_validated")
+                            template(v-if="reponse.valid == selected_reponse[reponse.id]")
+                                i.fa.fa-check
+                            template(v-else)
+                                i.fa.fa-times
+                        input(:disabled="is_validated", v-model="selected_reponse[reponse.id]", type="checkbox", :id="'reponse_' + index", :class="classe_reponses[reponse.id]")
+                        label(:for="'reponse_' + index") {{ reponse.name }}
+
+            .validation
+                template(v-if="!is_validated")
+                    template(v-if="!saving")
+                        .btn.btn-success(@click="validation", :disabled="is_disabled") {{ label('animation.validation') }}
+                    template(v-else)
+                        i.loadingspinner.fa.fa-spinner.fa-spin(aria-hidden="true")
+
+                template(v-else)
+                    .explication(v-if="qr.explicatif", v-html="qr.explicatif")
+                    .next
+                        i.fa.fa-long-arrow-right(@click="next")
+

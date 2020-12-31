@@ -23,13 +23,6 @@ export default class AnimationVueModule extends VueModuleBase {
             name: AnimationController.ROUTE_NAME_ANIMATION,
             component: () => import(/* webpackChunkName: "VueAnimationComponent" */ "./_base/animation"),
         }, {
-            path: '/animation/theme/:theme_id',
-            name: AnimationController.ROUTE_NAME_ANIMATION_THEME,
-            component: () => import(/* webpackChunkName: "VueAnimationThemeComponent" */ "./theme/theme"),
-            props: (route) => ({
-                theme_id: parseInt(route.params.theme_id),
-            })
-        }, {
             path: '/animation/module/:module_id',
             name: AnimationController.ROUTE_NAME_ANIMATION_MODULE,
             component: () => import(/* webpackChunkName: "VueAnimationModuleComponent" */ "./module/module"),

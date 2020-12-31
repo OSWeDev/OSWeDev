@@ -1,1 +1,128 @@
 @import 'skin-variables.scss';
+
+.animation {
+    h1 {
+        text-align: center;
+        color: white;
+        background: $main_box_title_color;
+        padding: 15px 10px;
+        font-size: 24px;
+        margin-top: 0;
+        border-radius: 15px;
+        margin-bottom: 50px;
+        font-weight: bold;
+    }
+
+    .theme {
+        background: white;
+        padding: 15px;
+        border-radius: 15px;
+        text-align: center;
+        position: relative;
+        margin-bottom: 50px;
+        box-shadow: 0px 0px 20px -15px black;
+
+        .index_theme {
+            display: inline-block;
+            background: $table_header_bg_color;
+            color: $main_box_title_color;
+            padding: 0px 28px;
+            border-radius: 28px;
+            font-size: 24px;
+            top: -34px;
+            position: relative;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0px 4px 20px -10px black;
+        }
+
+        .description {
+            margin-top: -22px;
+            font-size: 18px;
+            color: $main_box_title_color;
+            font-weight: bold;
+            margin-bottom: 20px;
+
+            p {
+                margin-bottom: 0;
+            }
+        }
+
+        .prct_avancement {
+            margin-bottom: 20px;
+            position: relative;
+
+            .barre {
+                height: 8px;
+                background: $main_header_bg_color;
+                border-radius: 10px;
+                position: relative;
+                width: 0;
+            }
+
+            .barre-total {
+                height: 2px;
+                background: lightgray;
+                position: absolute;
+                width: 100%;
+                top: 3px;
+            }
+
+            .indicateur {
+                color: $table_header_bg_color;
+            }
+        }
+
+        .prct_avancement_module {
+            float: left;
+            border: 1px solid $table_header_bg_color;
+            padding: 2px 6px 1px 4px;
+            margin-bottom: 0;
+            margin-right: 10px;
+            border-radius: 5px;
+            width: 33px;
+            text-align: center;
+            min-height: 34px;
+        }
+    }
+
+    .modules {
+        .module {
+            cursor: pointer;
+            margin-bottom: 15px;
+
+            .fa-plus {
+                font-size: 32px;
+                color: white;
+                background: $table_header_bg_color;
+                line-height: 1em;
+                padding: 2px 4px 0px 4px;
+                float: left;
+                margin-right: 10px;
+                border-radius: 5px;
+
+                &:before {
+                    margin-right: 0;
+                }
+            }
+
+            &:hover {
+                .fa-plus {
+                    background: $main_header_bg_color;
+                }
+            }
+
+            .module_infos {
+                line-height: 1em;
+            }
+
+            .theme_name {
+                margin-bottom: 6px;
+            }
+
+            .module_name {
+                font-weight: bold;
+            }
+        }
+    }
+}

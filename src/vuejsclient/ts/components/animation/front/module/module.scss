@@ -1,1 +1,175 @@
 @import 'skin-variables.scss';
+
+.module_container {
+    h1 {
+        text-align: center;
+        color: white;
+        background: $main_box_title_color;
+        padding: 15px 10px;
+        font-size: 24px;
+        margin-top: 0;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .questions {
+        margin-bottom: 30px;
+
+        .switch_questions {
+            margin-top: 10px;
+
+            .question {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                background: $table_header_bg_color;
+                border-radius: 30px;
+                margin-right: 10px;
+                cursor: pointer;
+
+                &.fa {
+                    font-size: 20px;
+                    padding-top: 5px;
+                    color: $main_box_title_color;
+                    text-align: center;
+
+                    &.fa-trophy {
+                        opacity: 0.3;
+
+                        &.actif {
+                            opacity: 1;
+                        }
+                    }
+
+                    &:before {
+                        margin-right: 0;
+                    }
+                }
+
+                &:hover,
+                &.active {
+                    background: $main_header_bg_color;
+                    color: white;
+                }
+            }
+        }
+    }
+
+    h2 {
+        font-size: 24px;
+        color: $main_box_title_color;
+        font-weight: bold;
+    }
+
+    .back {
+        .btn {
+            border-radius: 10px;
+        }
+    }
+
+    .qr {
+        .reponses {
+            margin-top: 30px;
+
+            .reponse {
+                margin: 10px 0;
+
+                .fa {
+                    font-size: 20px;
+                    vertical-align: middle;
+                    width: 30px;
+
+                    &.fa-check {
+                        color: $success_color;
+                    }
+
+                    &.fa-times {
+                        color: $danger_color;
+                    }
+                }
+
+                input {
+                    margin: 0 10px 0 0;
+                    width: 30px;
+                    height: 30px;
+                    vertical-align: middle;
+                    border-radius: 60px;
+                    appearance: none;
+                    background: white;
+                    border: 1px solid lightgrey;
+                    position: relative;
+                    cursor: pointer;
+
+                    &:checked {
+                        &:after {
+                            content: ' ';
+                            width: 17px;
+                            height: 17px;
+                            background: $main_box_title_color;
+                            z-index: 1;
+                            position: absolute;
+                            border-radius: 30px;
+                            left: 6px;
+                            top: 6px;
+                        }
+                    }
+
+                    &.opacity {
+                        opacity: 0.3;
+
+                        &+label {
+                            opacity: 0.3;
+                        }
+                    }
+
+                    &:focus {
+                        outline: none;
+                    }
+                }
+
+                label {
+                    font-weight: normal;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        .validation {
+            margin-top: 30px;
+
+            .explicatif {
+                margin: 25px 0;
+            }
+
+            & .next {
+                & i {
+                    background: $table_header_bg_color;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 10px;
+
+                    &:before {
+                        margin-right: 0;
+                    }
+
+                    &:hover {
+                        background: $main_box_title_color;
+                    }
+                }
+            }
+        }
+    }
+
+    .prct_reussite {
+        text-align: center;
+        font-size: 36px;
+        font-weight: bold;
+
+        &>div {
+            display: inline-block;
+            padding: 2px 15px;
+            border-radius: 10px;
+        }
+    }
+}

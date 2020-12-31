@@ -1,11 +1,11 @@
-.container_mms
-    template(v-for="(mm, index) in field_values")
-        fieldset.mm_item(:mm="index")
-            legend {{ label('crud.container_mms.numero') }} {{ index + 1 }}
+.container_reponses
+    template(v-for="(reponse, index) in field_values")
+        fieldset.reponse_item(:reponse="index")
+            legend {{ label('crud.container_reponses.numero') }} {{ index + 1 }}
             template(v-for="field in fields")
                 Crudcomponentfield(
                     :field="field",
-                    :vo="mm",
+                    :vo="reponse",
                     :show_insert_or_update_target="false",
                     @onchangevo="on_edit",
                     :auto_update_field_value='true',

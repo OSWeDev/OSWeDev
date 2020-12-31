@@ -3,11 +3,11 @@ import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessa
 import AnimationReponseVO from './fields/reponse/vos/AnimationReponseVO';
 import AnimationModuleVO from './vos/AnimationModuleVO';
 import AnimationQRVO from './vos/AnimationQRVO';
+import AnimationUserQRVO from './vos/AnimationUserQRVO';
 
 export default class AnimationController {
 
     public static ROUTE_NAME_ANIMATION: string = 'animation';
-    public static ROUTE_NAME_ANIMATION_THEME: string = 'animation_theme';
     public static ROUTE_NAME_ANIMATION_MODULE: string = 'animation_module';
 
     public static getInstance(): AnimationController {
@@ -24,20 +24,7 @@ export default class AnimationController {
     public getReponses(vo: AnimationQRVO): AnimationReponseVO[] {
         if ((vo) && (vo.reponses) && (vo.reponses != '') && (vo.reponses != '[]')) {
             try {
-                let reponses: AnimationReponseVO[] = JSON.parse(vo.reponses);
-
-                for (let obj of reponses) {
-                    obj.weight = (obj.weight != null) ? parseFloat(obj.weight.toString()) : null;
-                    obj.id = (obj.id) ? parseFloat(obj.id.toString()) : null;
-
-                    if (obj.valid && (obj.valid as any) != '') {
-                        obj.valid = ((obj.valid as any) == 'true') ? true : false;
-                    } else {
-                        obj.valid = null;
-                    }
-                }
-
-                return reponses;
+                return JSON.parse(vo.reponses);
             } catch {
                 ConsoleHandler.getInstance().error("PB getReponses :: vo_id" + vo.id);
             }
@@ -49,20 +36,38 @@ export default class AnimationController {
     public getMessagesModule(vo: AnimationModuleVO): AnimationMessageModuleVO[] {
         if ((vo) && (vo.messages) && (vo.messages != '') && (vo.messages != '[]')) {
             try {
-                let messages: AnimationMessageModuleVO[] = JSON.parse(vo.messages);
-
-                for (let obj of messages) {
-                    obj.min = (obj.min != null) ? parseFloat(obj.min.toString()) : null;
-                    obj.max = (obj.max != null) ? parseFloat(obj.max.toString()) : null;
-                    obj.id = (obj.id) ? parseFloat(obj.id.toString()) : null;
-                }
-
-                return messages;
+                return JSON.parse(vo.messages);
             } catch {
                 ConsoleHandler.getInstance().error("PB getMessagesModule :: vo_id" + vo.id);
             }
         }
 
         return null;
+    }
+
+    public isUserQROk(qr: AnimationQRVO, uqr: AnimationUserQRVO): boolean {
+        if (!qr || !uqr || !uqr.reponses) {
+            return false;
+        }
+
+        if (qr.id != uqr.qr_id) {
+            return false;
+        }
+
+        let reponses: AnimationReponseVO[] = this.getReponses(qr);
+
+        if (!reponses || !reponses.length) {
+            return false;
+        }
+
+        for (let i in reponses) {
+            let u_reponse: boolean = uqr.reponses.indexOf(reponses[i].id) >= 0;
+
+            if (reponses[i].valid != u_reponse) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

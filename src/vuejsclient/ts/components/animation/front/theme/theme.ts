@@ -1,12 +1,15 @@
-import { Component, Watch } from "vue-property-decorator";
-import ModuleAccessPolicy from "../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import { Component, Prop } from "vue-property-decorator";
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
+import ThemeModuleDataParamRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO";
+import VarDayPrctAvancementAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctAvancementAnimationController";
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
-import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
-import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
+import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
+import ISimpleNumberVarData from "../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData";
+import IVarDataVOBase from "../../../../../../shared/modules/Var/interfaces/IVarDataVOBase";
+import RangeHandler from "../../../../../../shared/tools/RangeHandler";
+import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import VueComponentBase from '../../../VueComponentBase';
-import './theme.scss';
 
 @Component({
     template: require("./theme.pug"),
@@ -14,69 +17,61 @@ import './theme.scss';
 })
 export default class VueAnimationThemeComponent extends VueComponentBase {
 
-    private modules: AnimationModuleVO[] = null;
-    private theme: AnimationThemeVO = null;
-    private user_module_by_ids: { [id: number]: AnimationUserModuleVO } = null;
-    private user_id: number = null;
+    @Prop()
+    private theme: AnimationThemeVO;
 
-    @Watch('theme_id')
-    private async reloadAsyncDatas() {
-        if (!this.theme_id) {
+    @Prop()
+    private index_theme: number;
+
+    @Prop()
+    private modules: AnimationModuleVO[];
+
+    private async mounted() { }
+
+    private prct_avancement_theme: number = 0;
+
+    private go_to_route_module(module: AnimationModuleVO) {
+        this.$router.push({
+            name: AnimationController.ROUTE_NAME_ANIMATION_MODULE,
+            params: {
+                module_id: module.id.toString(),
+            }
+        });
+    }
+
+    private prct_avancement_theme_value_callback(var_value: IVarDataVOBase, component: VarDataRefComponent): number {
+        if (!component || !component.var_param.var_id) {
             return;
         }
 
-        let promises = [];
+        this.prct_avancement_theme = (var_value as ISimpleNumberVarData).value;
 
-        promises.push((async () => this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
-        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.theme_id))());
-        promises.push((async () => this.modules = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', [this.theme_id]))());
-
-        await Promise.all(promises);
-
-        promises = [];
-
-        if (this.modules && this.modules.length) {
-            promises.push((async () => {
-                let user_modules: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-                    AnimationUserModuleVO.API_TYPE_ID,
-                    'module_id',
-                    this.modules.map((m) => m.id),
-                    'user_id',
-                    [this.user_id],
-                )
-
-                for (let i in user_modules) {
-                    this.user_module_by_ids[user_modules[i].module_id] = user_modules[i];
-                }
-            })());
-        }
-
-        await Promise.all(promises);
+        return this.prct_avancement_theme;
     }
 
-    private async mounted() {
-        this.reloadAsyncDatas();
-    }
-
-    private get_route_module(module: AnimationModuleVO) {
-        return {
-            name: AnimationController.ROUTE_NAME_ANIMATION_MODULE,
-            params: {
-                theme_id: this.theme.id.toString(),
-                module_id: module.id.toString(),
-            }
-        };
-    }
-
-    private get_type_module(module: AnimationModuleVO): string {
-        return module.type_module != null ? this.t(AnimationModuleVO.TYPE_MODULE_LABELS[module.type_module]) : null;
-    }
-
-    get theme_id(): number {
-        return (this.$route.params && this.$route.params.theme_id) ? parseInt(this.$route.params.theme_id) : null;
+    private get_prct_avancement_module_param(module_id: number): ThemeModuleDataParamRangesVO {
+        return ThemeModuleDataParamRangesVO.createNew(
+            VarDayPrctAvancementAnimationController.getInstance().varConf.id,
+            null,
+            [RangeHandler.getInstance().create_single_elt_NumRange(module_id, NumSegment.TYPE_INT)],
+        );
     }
 
     get ordered_modules(): AnimationModuleVO[] {
         return this.modules ? this.modules.sort((a, b) => a.weight - b.weight) : null;
+    }
+
+    get style_barre_avancement(): any {
+        return {
+            width: (this.prct_avancement_theme * 100) + '%',
+        };
+    }
+
+    get prct_avancement_theme_param(): ThemeModuleDataParamRangesVO {
+        return ThemeModuleDataParamRangesVO.createNew(
+            VarDayPrctAvancementAnimationController.getInstance().varConf.id,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.theme.id, NumSegment.TYPE_INT)],
+            null,
+        );
     }
 }

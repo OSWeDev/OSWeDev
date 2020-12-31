@@ -4,9 +4,9 @@
             span {{ t(field.translatable_title) }} :
         template(v-if="field.type == 'Simple'")
             template(v-if="field.moduleTableField.field_type == 'boolean'")
-                template(v-if="field_value == 'true'")
+                template(v-if="field_value == 'true' || field_value === true")
                     i.fa.fa-check
-                template(v-if="field_value == 'false'")
+                template(v-if="field_value == 'false' || field_value === false")
                     i.fa.fa-close
             template(v-else-if="field.moduleTableField.field_type == 'password'")
                 i.fa.fa-lock

@@ -1,15 +1,29 @@
 
 .rootElt.theme
-    template(v-if="theme")
-        h1 {{ theme.name }}
-        .description(v-if="theme.description", v-html="theme.description")
-
-    template(v-if="modules && modules.length > 0")
-        .row.modules
+    .index_theme {{ index_theme }}
+    .description(v-if="theme.description", v-html="theme.description")
+    .prct_avancement
+        .barre-total
+        .barre(:style="style_barre_avancement")
+        .indicateur.text-center
+            var-data(
+                :var_param="prct_avancement_theme_param",
+                :filter='const_filters.percent.read',
+                :filter_additional_params='[]',
+                :var_value_callback="prct_avancement_theme_value_callback",
+            )
+    template(v-if="ordered_modules && ordered_modules.length > 0")
+        .modules
             template(v-for="module in ordered_modules")
-                .module.col-md-3
-                    .type {{ get_type_module(module) }}
-                    .name {{ module.name }}
-                    .description(v-if="module.description", v-html="module.description")
-                    .link
-                        router-link(tag="a", :to="get_route_module(module)") {{ label('animation.link') }}
+                .row.module(@click="go_to_route_module(module)")
+                    .col-md-12
+                        .text-left.module_infos
+                            .prct_avancement_module
+                                var-data(
+                                    :var_param="get_prct_avancement_module_param(module.id)",
+                                    :filter='const_filters.percent.read',
+                                    :filter_additional_params='[]',
+                                )
+                            i.fa.fa-plus
+                            .theme_name {{ theme.name }} :
+                            .module_name {{ module.name }}

@@ -1,5 +1,19 @@
 
-.rootElt.module
+.rootElt.module_container
     template(v-if="theme && module")
-        h1 {{ theme.name }} - {{ module.name }}
-        .description(v-if="module.description", v-html="module.description")
+        .back.mb-3
+            .btn.btn-primary(@click='backToFront')
+                i.fa.fa-angle-left
+                span {{ label('animation.back') }}
+
+        h1 {{ theme.name }} : {{ module.name }}
+
+        template(v-if="module_quizz")
+            include ./module_quizz.pug
+
+        template(v-if="module_video")
+            include ./module_video.pug
+
+        template(v-if="module_photo")
+            include ./module_photo.pug
+

@@ -24,7 +24,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
     public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "AnimationAdminVueModule",
         MenuElementBase.PRIORITY_MEDIUM,
-        "fa-trophy",
+        "fa-graduation-cap",
         []
     );
 
@@ -51,7 +51,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             AnimationThemeVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf("AnimationThemeVO", MenuElementBase.PRIORITY_MEDIUM, "fa-trophy"),
+                new MenuLeaf("AnimationThemeVO", MenuElementBase.PRIORITY_MEDIUM, "fa-graduation-cap"),
                 AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
             ),
             this.routes
@@ -61,7 +61,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             AnimationModuleVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf("AnimationModuleVO", MenuElementBase.PRIORITY_MEDIUM, "fa-trophy"),
+                new MenuLeaf("AnimationModuleVO", MenuElementBase.PRIORITY_MEDIUM, "fa-graduation-cap"),
                 AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
             ),
             this.routes
@@ -71,7 +71,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             AnimationQRVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf("AnimationQRVO", MenuElementBase.PRIORITY_MEDIUM, "fa-trophy"),
+                new MenuLeaf("AnimationQRVO", MenuElementBase.PRIORITY_MEDIUM, "fa-graduation-cap"),
                 AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
             ),
             this.routes
@@ -81,7 +81,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             AnimationUserModuleVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf("AnimationUserModuleVO", MenuElementBase.PRIORITY_MEDIUM, "fa-trophy"),
+                new MenuLeaf("AnimationUserModuleVO", MenuElementBase.PRIORITY_MEDIUM, "fa-graduation-cap"),
                 AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
             ),
             this.routes
@@ -91,7 +91,7 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             AnimationUserQRVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf("AnimationUserQRVO", MenuElementBase.PRIORITY_MEDIUM, "fa-trophy"),
+                new MenuLeaf("AnimationUserQRVO", MenuElementBase.PRIORITY_MEDIUM, "fa-graduation-cap"),
                 AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
             ),
             this.routes
