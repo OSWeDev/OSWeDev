@@ -44,6 +44,7 @@ import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
+import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 
@@ -67,14 +68,14 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private static instance: ModuleVarServer = null;
 
-
-
     private constructor() {
         super(ModuleVar.getInstance().name);
     }
 
     public async configure() {
 
+        VarsTabsSubsController.getInstance();
+        VarsServerCallBackSubsController.getInstance();
         ModuleBGThreadServer.getInstance().registerBGThread(VarsdatasComputerBGThread.getInstance());
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));

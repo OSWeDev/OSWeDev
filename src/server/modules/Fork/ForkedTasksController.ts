@@ -19,7 +19,10 @@ export default class ForkedTasksController {
     /**
      * Local thread cache -----
      */
+    public registered_task_result_resolvers: { [result_task_uid: number]: (result: any) => any } = {};
     private registered_tasks: { [task_uid: string]: (...task_params) => Promise<boolean> } = {};
+
+    private result_task_uid: number = 1;
     /**
      * ----- Local thread cache
      */
@@ -47,6 +50,26 @@ export default class ForkedTasksController {
         } else {
             return await ForkMessageController.getInstance().broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
         }
+    }
+
+    /**
+     * Objectif : Exécuter la fonction sur le thread principal et récupérer la valeur de retour. 
+     *  On envoie la demande au thread maitre si besoin, sinon on exécute directement
+     * @param task_uid
+     * @param task_params
+     * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
+     */
+    public exec_self_on_main_process_and_return_value(task_uid: string, resolver, ...task_params): boolean {
+        if (!ForkServerController.getInstance().is_main_process) {
+
+            let result_task_uid = this.result_task_uid++;
+            this.registered_task_result_resolvers[result_task_uid] = resolver;
+
+            // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
+            ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
+            return false;
+        }
+        return true;
     }
 
     /**

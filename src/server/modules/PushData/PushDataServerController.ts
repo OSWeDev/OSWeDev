@@ -656,6 +656,10 @@ export default class PushDataServerController {
 
         this.clearClosedSockets(userId, client_tab_id);
 
+        if ((!this.registeredSockets) || (!this.registeredSockets[userId]) || (!this.registeredSockets[userId][client_tab_id])) {
+            return [];
+        }
+
         let res: SocketWrapper[] = [];
         for (let sessId in this.registeredSockets[userId][client_tab_id]) {
             for (let socketId in this.registeredSockets[userId][client_tab_id][sessId]) {

@@ -298,6 +298,10 @@ export default class ImportTypeXLSXHandler {
     public getStringfromColumnDataString(column_data_string: any): string {
         let res: string = null;
 
+        if (!column_data_string) {
+            return null;
+        }
+
         if (column_data_string.h && column_data_string.h != "") {
             res = column_data_string.h;
         } else if (column_data_string.w && column_data_string.w != "") {

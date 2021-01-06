@@ -1,3 +1,4 @@
+import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
@@ -100,9 +101,10 @@ export default abstract class ForkedProcessWrapperBase {
 
         BGThreadServerController.getInstance().server_ready = true;
         CronServerController.getInstance().server_ready = true;
-        process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
+
+        process.on('message', async (msg: IForkMessage) => {
             msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
-            ForkMessageController.getInstance().message_handler(msg, sendHandle);
+            ForkMessageController.getInstance().message_handler(msg, process);
         });
 
         // On prévient le process parent qu'on est ready
