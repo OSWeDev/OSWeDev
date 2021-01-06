@@ -1,50 +1,28 @@
 include ../../../views/mixins/loading.pug
 
-.rootElt#program-plan
+.rootElt.checklist
     +loading()
-        .row(v-if="!!custom_filter_component")
-            .col-md-12
-                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed")
+        template(v-for='checklist_item in checklistitems')
+            Checklistitem(
+                :checklist_item='checklist_item' 
+                :ordered_checkpoints='ordered_checkpoints' 
+                :checklistitemcheckpoints='checklistitemcheckpoints[checklistitem.id]'
+                :global_route_path='global_route_path')
 
-        program-plan-component-target-listing.hidden-print(
-            :program_plan_shared_module='program_plan_shared_module'
-            :program_plan_controller='program_plan_controller' 
-            v-show='show_targets' v-if="can_edit_any")
-
-        .row.hidden-print(v-show='can_see_fc')
-            input#pplan_date_input(type='date' v-model='calendar_date')
-
-        full-calendar.fullcalendar_pplan(
-            v-show='can_see_fc'
-            ref="calendar" 
-            :key="calendar_key"
-
-            :events="fcEvents" 
-            :config="fcConfig"
-            
-            @view-render='onFCViewRender' 
-            @event-drop="onFCEventDrop"
-            @event-resize="onFCEventResize"
-            @event-receive="onFCEventReceive"
-            @event-selected="onFCEventSelected"
-            @event-render="onFCEventRender"
-
-            :class="{'hidden-print': use_print_component}"
-        )
-
-        #rdv_modal.modal.fade.in(ref="rdv_modal", tabindex='-1', role='dialog')
+        #checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')
             .modal-dialog.modal-lg(role='document')
-                .modal-content(v-if="selected_rdv && getTargetsByIds && getTargetsByIds[selected_rdv.target_id]")
-                    .modal-header(v-if="!is_facilitator_specific")
-                        h4.modal-title {{ getTargetsByIds[selected_rdv.target_id].name }}
+                .modal-content(v-if="selected_checklist_item")
+                    .modal-header
+                        h4.modal-title {{ selected_checklist_item.name }}
                         router-link.btn.close(:to="route_path") &times;
                     
                     .modal-body
-                        program-plan-component-modal(
-                            :program_plan_shared_module='program_plan_shared_module'
-                            :program_plan_controller='program_plan_controller' 
-                            :key='selected_rdv.id')
+                        Checklistmodalcomponent(
+                            :checklist_item='selected_checklist_item'
+                            :checkpoint='selected_checkpoint'
+                            :checklist_controller='checklist_controller'
+                            :key='selected_checklist_item.id')
 
                     .modal-footer
-                        button.btn.btn-danger(type='button', @click="deleteSelectedEvent", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}
-                        router-link.btn.btn-default(:to="route_path") {{ label('programplan.rdv_modal.close') }}
+                        button.btn.btn-danger(type='button', @click="deleteSelectedItem") {{ label('checklist.checklist_item_modal.delete') }}
+                        router-link.btn.btn-default(:to="route_path") {{ label('checklist.checklist_item_modal.close') }}

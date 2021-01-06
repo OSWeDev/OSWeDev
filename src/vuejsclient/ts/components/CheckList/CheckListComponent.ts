@@ -4,19 +4,21 @@ import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckLi
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckListItemCheckPoints from '../../../../shared/modules/CheckList/interfaces/ICheckListItemCheckPoints';
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
-import ICheckPointDep from '../../../../shared/modules/CheckList/interfaces/ICheckPointDep';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../VueComponentBase';
 import './CheckListComponent.scss';
 import CheckListControllerBase from './CheckListControllerBase';
+import CheckListModalComponent from './modal/CheckListModalComponent';
 
 
 @Component({
     template: require('./CheckListComponent.pug'),
     components: {
+        Checklistmodalcomponent: CheckListModalComponent
     }
 })
 export default class CheckListComponent extends VueComponentBase {
@@ -28,27 +30,56 @@ export default class CheckListComponent extends VueComponentBase {
     public modal_show: boolean;
 
     @Prop({ default: null })
-    public item_id: number;
-
-    @Prop({ default: null })
-    public step_id: number;
-
-    @Prop({ default: null })
-    public checklist_id: number;
-
-    @Prop({ default: null })
-    public checklist_shared_module: ModuleCheckListBase;
-
-    @Prop({ default: null })
     public checklist_controller: CheckListControllerBase;
+
+    @Prop({ default: null })
+    private item_id: number;
+
+    @Prop({ default: null })
+    private step_id: number;
+
+    @Prop({ default: null })
+    private checklist_id: number;
+
+    @Prop({ default: null })
+    private checklist_shared_module: ModuleCheckListBase;
 
     private checklist: ICheckList = null;
     private checklistitems: { [id: number]: ICheckListItem } = {};
     private checkpoints: { [id: number]: ICheckPoint } = {};
-    private checkpointsdeps: { [check_point_id: number]: number[] } = {};
-    private checklistitemCheckpoints: { [checklistitem_id: number]: ICheckPoint[] } = {};
+    // private checkpointsdeps: { [check_point_id: number]: number[] } = {};
+    private checklistitemcheckpoints: { [checklistitem_id: number]: { [checkpoint_id: number]: boolean } } = {};
 
     private debounced_loading = debounce(this.loading, 1000);
+
+    get selected_checklist_item() {
+        if ((!this.checklistitems) || (!this.item_id)) {
+            return null;
+        }
+
+        return this.checklistitems[this.item_id];
+    }
+
+    get selected_checkpoint() {
+        if ((!this.checkpoints) || (!this.step_id)) {
+            return null;
+        }
+
+        return this.checkpoints[this.step_id];
+    }
+
+    get ordered_checkpoints(): ICheckPoint[] {
+
+        if ((!this.checkpoints) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checkpoints))) {
+            return null;
+        }
+
+        let res: ICheckPoint[] = [];
+
+        res = Object.values(this.checkpoints);
+        WeightHandler.getInstance().sortByWeight(res);
+        return res;
+    }
 
     private async loading() {
         this.nbLoadingSteps = 3;
@@ -79,15 +110,15 @@ export default class CheckListComponent extends VueComponentBase {
         promises = [];
         let checkpoints_ids = ObjectHandler.getInstance().getIdsList(checkpoints);
 
-        let checkpointsdeps: ICheckPointDep[] = [];
-        promises.push((async () => {
-            checkpointsdeps = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPointDep>(
-                this.checklist_shared_module.checkpoint_type_id, 'checkpoint_id', checkpoints_ids);
-        })());
+        // let checkpointsdeps: ICheckPointDep[] = [];
+        // promises.push((async () => {
+        //     checkpointsdeps = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPointDep>(
+        //         this.checklist_shared_module.checkpoint_type_id, 'checkpoint_id', checkpoints_ids);
+        // })());
 
-        let checklistitemCheckpoints: ICheckListItemCheckPoints[] = [];
+        let checklistitemcheckpoints: ICheckListItemCheckPoints[] = [];
         promises.push((async () => {
-            checklistitemCheckpoints = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItemCheckPoints>(
+            checklistitemcheckpoints = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItemCheckPoints>(
                 this.checklist_shared_module.checklistitemcheckpoints_type_id, 'checkpoint_id', checkpoints_ids);
         })());
 
@@ -98,24 +129,24 @@ export default class CheckListComponent extends VueComponentBase {
         this.checklistitems = checklistitems;
         this.checkpoints = checkpoints;
 
-        this.checkpointsdeps = {};
-        for (let i in checkpointsdeps) {
-            let checkpointdep: ICheckPointDep = checkpointsdeps[i];
+        // this.checkpointsdeps = {};
+        // for (let i in checkpointsdeps) {
+        //     let checkpointdep: ICheckPointDep = checkpointsdeps[i];
 
-            if (!this.checkpointsdeps[checkpointdep.checkpoint_id]) {
-                this.checkpointsdeps[checkpointdep.checkpoint_id] = [];
+        //     if (!this.checkpointsdeps[checkpointdep.checkpoint_id]) {
+        //         this.checkpointsdeps[checkpointdep.checkpoint_id] = [];
+        //     }
+        //     this.checkpointsdeps[checkpointdep.checkpoint_id].push(checkpointdep.dependson_id);
+        // }
+
+        this.checklistitemcheckpoints = {};
+        for (let i in checklistitemcheckpoints) {
+            let checklistitemcheckpoint: ICheckListItemCheckPoints = checklistitemcheckpoints[i];
+
+            if (!this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id]) {
+                this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id] = {};
             }
-            this.checkpointsdeps[checkpointdep.checkpoint_id].push(checkpointdep.dependson_id);
-        }
-
-        this.checklistitemCheckpoints = {};
-        for (let i in checklistitemCheckpoints) {
-            let checklistitemCheckpoint: ICheckListItemCheckPoints = checklistitemCheckpoints[i];
-
-            if (!this.checklistitemCheckpoints[checklistitemCheckpoint.checklistitem_id]) {
-                this.checklistitemCheckpoints[checklistitemCheckpoint.checklistitem_id] = [];
-            }
-            this.checklistitemCheckpoints[checklistitemCheckpoint.checklistitem_id].push(this.checkpoints[checklistitemCheckpoint.checkpoint_id]);
+            this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id][checklistitemcheckpoint.checkpoint_id] = true;
         }
 
         this.stopLoading();

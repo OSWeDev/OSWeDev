@@ -1,4 +1,5 @@
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
 import ModulesManager from '../../../../shared/modules/ModulesManager';
@@ -18,6 +19,8 @@ export default abstract class CheckListControllerBase {
     ) {
         CheckListControllerBase.controller_by_name[name] = this;
     }
+
+    public abstract get_ordered_editable_fields(): Array<DatatableField<any, any>>;
 
     get shared_module(): Module {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;

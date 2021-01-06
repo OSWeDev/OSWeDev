@@ -1,0 +1,12 @@
+.checklistitem
+    td.item_name
+        .item_name_wrapper(@click='openmodal' v-tooltip.top='item_description')
+            .item_name {{ checklist_item.name }}
+            .item_explaination {{ checklist_item.explaination }}
+
+    td.step(v-for='checkpoint in ordered_checkpoints')
+        .step_wrapper(@click='openmodal(checkpoint.id)' v-tooltip.top='checkpoint_descriptions[checkpoint.id]')
+            template(v-if='checklistitemcheckpoints[checkpoint.id]')
+                i.text-success.fa.fa-check-circle.fa-fw(aria-hidden="true")
+            template(v-else)
+                i.text-default.fa.fa-times-circle.fa-fw(aria-hidden="true")

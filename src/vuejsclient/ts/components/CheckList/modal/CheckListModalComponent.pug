@@ -1,0 +1,12 @@
+.checklist_modal
+    .modal-body        
+        template(v-for='editable_field in editable_fields')       
+            Crudcomponentfield(
+                :field="editable_field"
+                :vo="checklist_item"
+                :auto_update_field_value='true'
+                :inline_input_mode='true'
+                :inline_input_read_value="checklist_item[editable_field.field_id]"
+                key='checklist_item.id + "_" + editable_field.field_id'
+                :inline_input_show_clear='true'
+            )
