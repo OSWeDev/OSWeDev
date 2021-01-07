@@ -24,7 +24,7 @@ export default class ForkMessageController {
     /**
      * Local thread cache -----
      */
-    private registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: Socket | Server) => Promise<boolean> } = {};
+    private registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean> } = {};
     private stacked_msg_waiting: IForkMessageWrapper[] = [];
     /**
      * ----- Local thread cache
@@ -36,11 +36,11 @@ export default class ForkMessageController {
 
     private constructor() { }
 
-    public register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: Socket | Server) => Promise<boolean>) {
+    public register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean>) {
         this.registered_messages_handlers[message_type] = handler;
     }
 
-    public async message_handler(msg: IForkMessage, sendHandle: Socket | Server = null): Promise<boolean> {
+    public async message_handler(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess = null): Promise<boolean> {
         if ((!msg) || (!this.registered_messages_handlers[msg.message_type])) {
             return false;
         }

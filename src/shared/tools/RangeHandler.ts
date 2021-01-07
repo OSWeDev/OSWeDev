@@ -70,6 +70,10 @@ export default class RangeHandler {
         for (let i in ranges) {
             let range = ranges[i];
 
+            if (!range) {
+                continue;
+            }
+
             let comparison: number = null;
             switch (range.range_type) {
                 case TSRange.RANGE_TYPE:

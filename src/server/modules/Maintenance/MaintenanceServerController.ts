@@ -11,6 +11,8 @@ export default class MaintenanceServerController {
     public static TASK_NAME_set_planned_maintenance_vo = 'MaintenanceServerController.set_planned_maintenance_vo';
     public static TASK_NAME_handleTriggerPreC_MaintenanceVO = 'MaintenanceServerController.handleTriggerPreC_MaintenanceVO';
     public static TASK_NAME_end_maintenance = 'MaintenanceServerController.end_maintenance';
+    public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
+    public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
 
     public static getInstance() {
         if (!MaintenanceServerController.instance) {
@@ -37,6 +39,10 @@ export default class MaintenanceServerController {
     /**
      * ----- Local thread cache
      */
+
+    protected constructor() {
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
+    }
 
     public set_planned_maintenance_vo(maintenance: MaintenanceVO): void {
 

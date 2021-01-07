@@ -1,3 +1,4 @@
+import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -12,6 +13,7 @@ import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMe
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import PingForkMessage from './messages/PingForkMessage';
+import TaskResultForkMessage from './messages/TaskResultForkMessage';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -34,24 +36,52 @@ export default class ModuleForkServer extends ModuleServerBase {
         ForkMessageController.getInstance().register_message_handler(BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE, this.handle_broadcast_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(MainProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocesstask_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_bgthreadprocesstask_message.bind(this));
+        ForkMessageController.getInstance().register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
     }
+
+    /**
+     * On cherche le callback à appeler dans le controller et on envoi le résultat
+     */
+    private async handle_taskresult_message(msg: TaskResultForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+        if ((!msg.callback_id) || (!ForkedTasksController.getInstance().registered_task_result_resolvers) ||
+            (!ForkedTasksController.getInstance().registered_task_result_resolvers[msg.callback_id])) {
+
+            return false;
+        }
+
+        ForkedTasksController.getInstance().registered_task_result_resolvers[msg.callback_id](msg.message_content);
+        return true;
+    }
+
 
     /**
      * On doit donc être sur le main process, on cherche juste la fonction qui a été demandée
      */
-    private async handle_mainprocesstask_message(msg: MainProcessTaskForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+    private async handle_mainprocesstask_message(msg: MainProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         if ((!msg.message_content) || (!ForkedTasksController.getInstance().process_registered_tasks) ||
             (!ForkedTasksController.getInstance().process_registered_tasks[msg.message_content])) {
+
             return false;
         }
 
-        return await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+        let res;
+        try {
+            res = await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+        } catch (error) {
+            ConsoleHandler.getInstance().error('handle_mainprocesstask_message:' + error);
+        }
+
+        if (msg.callback_id) {
+            ForkMessageController.getInstance().send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+        }
+
+        return true;
     }
 
     /**
      * Si on est sur le bon thread on lance l'action
      */
-    private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+    private async handle_bgthreadprocesstask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         if ((!msg.message_content) || (!ForkedTasksController.getInstance().process_registered_tasks) ||
             (!ForkedTasksController.getInstance().process_registered_tasks[msg.message_content]) ||
             (!BGThreadServerController.getInstance().valid_bgthreads_names[msg.bgthread])) {
@@ -61,11 +91,11 @@ export default class ModuleForkServer extends ModuleServerBase {
         return await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
     }
 
-    private async handle_ping_message(msg: IForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+    private async handle_ping_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         return true;
     }
 
-    private async handle_alive_message(msg: IForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+    private async handle_alive_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         ForkServerController.getInstance().forks_waiting_to_be_alive--;
         if (ForkServerController.getInstance().forks_waiting_to_be_alive <= 0) {
             ForkServerController.getInstance().forks_are_initialized = true;

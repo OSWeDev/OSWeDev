@@ -1,4 +1,4 @@
-import { fork } from 'child_process';
+import { ChildProcess, fork } from 'child_process';
 import { Server, Socket } from 'net';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -105,9 +105,9 @@ export default class ForkServerController {
                     serialization: "advanced"
                 });
             }
-            forked.child_process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
+            forked.child_process.on('message', async (msg: IForkMessage) => {
                 msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
-                ForkMessageController.getInstance().message_handler(msg, sendHandle);
+                ForkMessageController.getInstance().message_handler(msg, forked.child_process);
             });
         }
     }

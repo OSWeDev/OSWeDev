@@ -8,27 +8,20 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import EnvHandler from '../../../shared/tools/EnvHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleParamsServer from '../Params/ModuleParamsServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
 import MaintenanceCronWorkersHandler from './MaintenanceCronWorkersHandler';
+import MaintenanceServerController from './MaintenanceServerController';
 const moment = require('moment');
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
-
-    public static TASK_NAME_set_planned_maintenance_vo = 'ModuleMaintenanceServer.set_planned_maintenance_vo';
-    public static TASK_NAME_handleTriggerPreC_MaintenanceVO = 'ModuleMaintenanceServer.handleTriggerPreC_MaintenanceVO';
-    public static TASK_NAME_end_maintenance = 'ModuleMaintenanceServer.end_maintenance';
-    public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
-    public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
 
     public static getInstance() {
         if (!ModuleMaintenanceServer.instance) {
@@ -48,6 +41,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        MaintenanceServerController.getInstance();
 
         // On enregistre le BGThread d'avancement/information sur les maintenances
         ModuleBGThreadServer.getInstance().registerBGThread(MaintenanceBGThread.getInstance());
@@ -114,10 +109,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO);
 
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -128,7 +123,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async end_maintenance(num: number): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_maintenance, num)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_maintenance, num)) {
             return;
         }
 
@@ -154,7 +149,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async end_planned_maintenance(): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_planned_maintenance)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_planned_maintenance)) {
             return;
         }
 
@@ -178,7 +173,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async start_maintenance(validation_code: string): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_start_maintenance)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance)) {
             return;
         }
 
@@ -231,7 +226,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
             return false;
         }
 

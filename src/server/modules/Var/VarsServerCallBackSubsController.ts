@@ -5,6 +5,8 @@ import ModuleVarServer from './ModuleVarServer';
 export default class VarsServerCallBackSubsController {
 
     public static TASK_NAME_notify_vardatas: string = 'VarsServerCallBackSubsController.notify_vardatas';
+    public static TASK_NAME_get_vars_datas: string = 'VarsServerCallBackSubsController.get_vars_datas';
+    public static TASK_NAME_get_var_data: string = 'VarsServerCallBackSubsController.get_var_data';
 
     /**
      * Multithreading notes :
@@ -27,15 +29,11 @@ export default class VarsServerCallBackSubsController {
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, this.get_vars_datas.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_get_var_data, this.get_var_data.bind(this));
     }
 
-    /**
-     * WARN : Only on main thread (express).
-     * ATTENTION ne doit être appelé que depuis le thread principal
-     */
     public async get_vars_datas(params: VarDataBaseVO[]): Promise<{ [index: string]: VarDataBaseVO }> {
-        ForkedTasksController.getInstance().assert_is_main_process();
-
         let res: { [index: string]: VarDataBaseVO } = {};
 
         let notifyable_vars: VarDataBaseVO[] = [];
@@ -48,6 +46,11 @@ export default class VarsServerCallBackSubsController {
         let self = this;
 
         return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+                VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve, params)) {
+                return;
+            }
 
             let waiting_nb = params.length;
             let cb = (data: VarDataBaseVO) => {
@@ -76,13 +79,7 @@ export default class VarsServerCallBackSubsController {
         });
     }
 
-    /**
-     * WARN : Only on main thread (express).
-     * ATTENTION ne doit être appelé que depuis le thread principal
-     */
     public async get_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
-        ForkedTasksController.getInstance().assert_is_main_process();
-
         let notifyable_vars: VarDataBaseVO[] = [];
         let needs_computation: VarDataBaseVO[] = [];
 
@@ -93,6 +90,11 @@ export default class VarsServerCallBackSubsController {
         let self = this;
 
         return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+                VarsServerCallBackSubsController.TASK_NAME_get_var_data, resolve, param)) {
+                return;
+            }
 
             if (!self._cb_subs[param.index]) {
                 self._cb_subs[param.index] = [];
