@@ -28,7 +28,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_invalidated: UserVO = {
@@ -45,7 +46,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: true,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_toremind1: UserVO = {
@@ -62,7 +64,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_reminded1: UserVO = {
@@ -79,7 +82,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: false,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_toremind2: UserVO = {
@@ -96,7 +100,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: false,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_toremind1_before_2: UserVO = {
@@ -113,7 +118,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_reminded2: UserVO = {
@@ -130,7 +136,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: true,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
         let user_nothingtodo: UserVO = {
@@ -147,7 +154,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: false
+            blocked: false,
+            logged_once: false
         };
 
 
@@ -166,7 +174,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_invalidated_blocked: UserVO = {
@@ -183,7 +192,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: true,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_toremind1_blocked: UserVO = {
@@ -200,7 +210,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_reminded1_blocked: UserVO = {
@@ -217,7 +228,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: false,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_toremind2_blocked: UserVO = {
@@ -234,7 +246,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: false,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_toremind1_before_2_blocked: UserVO = {
@@ -251,7 +264,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_reminded2_blocked: UserVO = {
@@ -268,7 +282,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: true,
             reminded_pwd_2: true,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
         let user_nothingtodo_blocked: UserVO = {
@@ -285,7 +300,8 @@ describe('TestPasswordInvalidationController', () => {
             recovery_expiration: null,
             reminded_pwd_1: false,
             reminded_pwd_2: false,
-            blocked: true
+            blocked: true,
+            logged_once: false
         };
 
 

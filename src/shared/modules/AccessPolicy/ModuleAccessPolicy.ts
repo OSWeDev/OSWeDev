@@ -303,6 +303,7 @@ export default class ModuleAccessPolicy extends Module {
             field_lang_id,
             new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Challenge de récupération' }), false, true, ""),
             new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: 'Expiration du challenge' }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('logged_once', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Connecté au moins 1 fois' }), true, true, false),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ fr: "Utilisateurs" }));

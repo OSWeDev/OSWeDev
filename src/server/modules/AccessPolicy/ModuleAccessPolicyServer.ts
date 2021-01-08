@@ -1333,6 +1333,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
+            if (!user.logged_once) {
+                user.logged_once = true;
+                await ModuleDAO.getInstance().insertOrUpdateVO(user);
+            }
+
             session.uid = user.id;
 
             PushDataServerController.getInstance().registerSession(session);
