@@ -98,7 +98,7 @@ export default class EditablePageController {
                     let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
 
                     if ((!!res) && (!!res.id)) {
-                        edit_info.vo.id = parseInt(res.id.toString());
+                        edit_info.vo.id = res.id;
                         // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
@@ -115,7 +115,7 @@ export default class EditablePageController {
                     let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
 
                     if ((!!res) && (!!res.id)) {
-                        edit_info.vo.id = parseInt(res.id.toString());
+                        edit_info.vo.id = res.id;
                         // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {

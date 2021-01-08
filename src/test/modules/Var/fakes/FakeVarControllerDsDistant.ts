@@ -8,8 +8,8 @@ import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import DateHandler from '../../../../shared/tools/DateHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import TypesHandler from '../../../../shared/tools/TypesHandler';
 import FakeDistantDatasourceController from './FakeDistantDatasourceController';
 import FakeDataVO from './vos/FakeDataVO';
 import FakeDistantVO from './vos/FakeDistantVO';
@@ -60,7 +60,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         let typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeDistantVO>;
 
-        if ((TypesHandler.getInstance().isSameMoment((typed.pre_update_vo as FakeDistantVO).date, (typed.post_update_vo as FakeDistantVO).date)) &&
+        if ((DateHandler.getInstance().isSameMoment((typed.pre_update_vo as FakeDistantVO).date, (typed.post_update_vo as FakeDistantVO).date)) &&
             ((typed.pre_update_vo as FakeDistantVO).value == (typed.post_update_vo as FakeDistantVO).value)) {
             return null;
         }

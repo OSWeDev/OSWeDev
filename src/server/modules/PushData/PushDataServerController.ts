@@ -561,7 +561,7 @@ export default class PushDataServerController {
             if (notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE) {
                 let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(notification);
                 if (res && res.id) {
-                    notification.id = parseInt(res.id.toString());
+                    notification.id = res.id;
                 }
             }
 

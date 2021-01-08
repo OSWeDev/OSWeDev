@@ -198,7 +198,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_file.path = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + src.substring(0, src.length - 4) + '__' + param_width + '_' + param_height + src.substring(src.length - 4, src.length);
             await image.writeAsync(new_img_file.path);
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);
-            new_img_file.id = parseInt(res.id);
+            new_img_file.id = res.id;
 
             let new_img_formattee: FormattedImageVO = new FormattedImageVO();
             new_img_formattee.align_haut = format.align_haut;
@@ -213,7 +213,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.remplir_larg = format.remplir_larg;
             new_img_formattee.formatted_src = new_img_file.path;
             res = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_formattee);
-            new_img_formattee.id = parseInt(res.id);
+            new_img_formattee.id = res.id;
             return new_img_formattee;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

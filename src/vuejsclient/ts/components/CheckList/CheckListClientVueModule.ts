@@ -6,12 +6,12 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import CheckListControllerBase from './CheckListControllerBase';
 
 export default class CheckListClientVueModule extends VueModuleBase {
 
     public static getInstance(
         checklist_shared_module: ModuleCheckListBase,
-        checklist_client_controller: ModuleCheckListBase,
         route_base_checklist: string = "/checklist",
         menuBranch: MenuBranch = new MenuBranch(
             "CheckListClientVueModule",
@@ -55,7 +55,8 @@ export default class CheckListClientVueModule extends VueModuleBase {
                 list_id: parseInt(route.params.list_id),
                 modal_show: false,
                 global_route_path: this.route_base_checklist,
-                checklist_shared_module: this.checklist_shared_module
+                checklist_shared_module: this.checklist_shared_module,
+                checklist_controller: CheckListControllerBase.controller_by_name[this.checklist_shared_module.name]
             })
         });
         let menuPointer = new MenuPointer(
@@ -80,7 +81,8 @@ export default class CheckListClientVueModule extends VueModuleBase {
                 item_id: parseInt(route.params.item_id),
                 modal_show: true,
                 global_route_path: this.route_base_checklist,
-                checklist_shared_module: this.checklist_shared_module
+                checklist_shared_module: this.checklist_shared_module,
+                checklist_controller: CheckListControllerBase.controller_by_name[this.checklist_shared_module.name]
             })
         });
 
@@ -95,10 +97,11 @@ export default class CheckListClientVueModule extends VueModuleBase {
                 key: this.checklist_shared_module.name + '_list_' + parseInt(route.params.list_id) + '_ITEM_' + parseInt(route.params.item_id) + '_CHECKPOINT_' + parseInt(route.params.checkpoint_id),
                 list_id: parseInt(route.params.list_id),
                 item_id: parseInt(route.params.item_id),
-                checkpoint_id: parseInt(route.params.checkpoint_id),
+                step_id: parseInt(route.params.checkpoint_id),
                 modal_show: true,
                 global_route_path: this.route_base_checklist,
-                checklist_shared_module: this.checklist_shared_module
+                checklist_shared_module: this.checklist_shared_module,
+                checklist_controller: CheckListControllerBase.controller_by_name[this.checklist_shared_module.name]
             })
         });
     }

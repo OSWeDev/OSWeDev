@@ -1003,7 +1003,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         role_policy.role_id = role.id;
 
         insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
-        if ((!insertOrDeleteQueryResult) || (!parseInt(insertOrDeleteQueryResult.id))) {
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
             return false;
         }
 

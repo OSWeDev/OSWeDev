@@ -310,7 +310,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                                 throw new Error('Erreur serveur');
                             }
-                            cr.id = parseInt(insertOrDeleteQueryResult.id);
+                            cr.id = insertOrDeleteQueryResult.id;
                             self.setCrById(cr);
 
                             // TODO passer par une synchro via les notifs de dao ...
@@ -362,7 +362,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                         try {
 
                             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (parseInt(insertOrDeleteQueryResult.id) != cr.id)) {
+                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != cr.id)) {
                                 throw new Error('Erreur serveur');
                             }
                             self.updateCr(cr);
@@ -427,7 +427,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                         try {
 
                             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([cr]);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (parseInt(insertOrDeleteQueryResult[0].id) != cr.id)) {
+                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != cr.id)) {
                                 throw new Error('Erreur serveur');
                             }
                             self.removeCr(cr.id);

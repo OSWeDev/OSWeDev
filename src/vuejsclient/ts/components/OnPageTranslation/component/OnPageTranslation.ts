@@ -209,7 +209,7 @@ export default class OnPageTranslation extends VueComponentBase {
                     this.snotify.error(this.label('on_page_translation.save_translation.ko'));
                     return;
                 }
-                translatable.id = parseInt(insertOrDeleteQueryResult.id);
+                translatable.id = insertOrDeleteQueryResult.id;
                 this.storeData(translatable);
             }
 
@@ -222,7 +222,7 @@ export default class OnPageTranslation extends VueComponentBase {
                 this.snotify.error(this.label('on_page_translation.save_translation.ko'));
                 return;
             }
-            translation.id = parseInt(insertOrDeleteQueryResult.id);
+            translation.id = insertOrDeleteQueryResult.id;
             editable_translation.translation = translation;
             this.storeData(translation);
             this.snotify.success(this.label('on_page_translation.save_translation.ok'));

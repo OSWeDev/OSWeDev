@@ -1,2 +1,13 @@
 .checklistitem {
+
+    .step_wrapper {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 2em;
+
+        cursor: pointer;
+        &.disabled{
+            cursor: inherit;
+        }
+    }
 }

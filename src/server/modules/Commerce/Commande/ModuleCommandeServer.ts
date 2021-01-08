@@ -63,8 +63,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         panier.statut = CommandeVO.STATUT_PANIER;
 
         let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);
-
-        panier.id = (result) ? parseInt(result.id) : null;
+        panier.id = result.id;
 
         return panier;
     }
@@ -104,8 +103,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         ligne.quantite = 1;
 
         let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ligne);
-
-        produitParam.ligneParam.ligne_commande_id = parseInt(result.id);
+        produitParam.ligneParam.ligne_commande_id = result.id;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(produitParam.ligneParam);
     }

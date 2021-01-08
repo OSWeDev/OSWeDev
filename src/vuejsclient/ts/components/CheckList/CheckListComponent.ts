@@ -1,8 +1,7 @@
 import debounce from 'lodash/debounce';
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
-import ICheckListItemCheckPoints from '../../../../shared/modules/CheckList/interfaces/ICheckListItemCheckPoints';
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -12,13 +11,15 @@ import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../VueComponentBase';
 import './CheckListComponent.scss';
 import CheckListControllerBase from './CheckListControllerBase';
+import CheckListItemComponent from './Item/CheckListItemComponent';
 import CheckListModalComponent from './modal/CheckListModalComponent';
 
 
 @Component({
     template: require('./CheckListComponent.pug'),
     components: {
-        Checklistmodalcomponent: CheckListModalComponent
+        Checklistmodalcomponent: CheckListModalComponent,
+        Checklistitemcomponent: CheckListItemComponent
     }
 })
 export default class CheckListComponent extends VueComponentBase {
@@ -39,18 +40,20 @@ export default class CheckListComponent extends VueComponentBase {
     private step_id: number;
 
     @Prop({ default: null })
-    private checklist_id: number;
+    private list_id: number;
 
     @Prop({ default: null })
     private checklist_shared_module: ModuleCheckListBase;
+
+    private modalinit: boolean = false;
 
     private checklist: ICheckList = null;
     private checklistitems: { [id: number]: ICheckListItem } = {};
     private checkpoints: { [id: number]: ICheckPoint } = {};
     // private checkpointsdeps: { [check_point_id: number]: number[] } = {};
-    private checklistitemcheckpoints: { [checklistitem_id: number]: { [checkpoint_id: number]: boolean } } = {};
+    // private checklistitemcheckpoints: { [checklistitem_id: number]: { [checkpoint_id: number]: boolean } } = {};
 
-    private debounced_loading = debounce(this.loading, 1000);
+    private debounced_loading = debounce(this.loading.bind(this), 100);
 
     get selected_checklist_item() {
         if ((!this.checklistitems) || (!this.item_id)) {
@@ -81,34 +84,65 @@ export default class CheckListComponent extends VueComponentBase {
         return res;
     }
 
-    private async loading() {
-        this.nbLoadingSteps = 3;
-        this.startLoading();
+    @Watch('global_route_path')
+    @Watch('modal_show')
+    @Watch('checklist_controller')
+    @Watch('item_id')
+    @Watch('step_id')
+    @Watch('checklist_id')
+    @Watch('checklist_shared_module')
+    private watchers() {
+        this.debounced_loading();
+    }
 
+    private async onchangevo(vo: ICheckListItem) {
+
+        if (!vo) {
+            return;
+        }
+        this.checklistitems[vo.id] = await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id);
+    }
+
+    private mounted() {
+        let self = this;
+        this.stopLoading();
+        this.debounced_loading();
+
+        this.$nextTick(async () => {
+            if (!self.modalinit) {
+                self.modalinit = true;
+                $("#checklist_item_modal").on("hidden.bs.modal", function () {
+                    self.$router.push(self.global_route_path + '/' + self.list_id);
+                });
+            }
+        });
+    }
+
+    private async loading() {
+        let self = this;
         let promises = [];
 
         let checklist: ICheckList = null;
         promises.push((async () => {
-            checklist = await ModuleDAO.getInstance().getVoById<ICheckList>(this.checklist_shared_module.checklist_type_id, this.checklist_id);
+            checklist = await ModuleDAO.getInstance().getVoById<ICheckList>(self.checklist_shared_module.checklist_type_id, self.list_id);
         })());
 
         let checklistitems: { [id: number]: ICheckListItem } = {};
         promises.push((async () => {
             checklistitems = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItem>(
-                this.checklist_shared_module.checklistitem_type_id, 'checklist_id', [this.checklist_id]));
+                self.checklist_shared_module.checklistitem_type_id, 'checklist_id', [self.list_id]));
         })());
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
         promises.push((async () => {
             checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPoint>(
-                this.checklist_shared_module.checkpoint_type_id, 'checklist_id', [this.checklist_id]));
+                self.checklist_shared_module.checkpoint_type_id, 'checklist_id', [self.list_id]));
         })());
 
         await Promise.all(promises);
-        this.nextLoadingStep();
 
-        promises = [];
-        let checkpoints_ids = ObjectHandler.getInstance().getIdsList(checkpoints);
+        // promises = [];
+        // let checkpoints_ids = ObjectHandler.getInstance().getIdsList(checkpoints);
 
         // let checkpointsdeps: ICheckPointDep[] = [];
         // promises.push((async () => {
@@ -116,18 +150,17 @@ export default class CheckListComponent extends VueComponentBase {
         //         this.checklist_shared_module.checkpoint_type_id, 'checkpoint_id', checkpoints_ids);
         // })());
 
-        let checklistitemcheckpoints: ICheckListItemCheckPoints[] = [];
-        promises.push((async () => {
-            checklistitemcheckpoints = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItemCheckPoints>(
-                this.checklist_shared_module.checklistitemcheckpoints_type_id, 'checkpoint_id', checkpoints_ids);
-        })());
+        // let checklistitemcheckpoints: ICheckListItemCheckPoints[] = [];
+        // promises.push((async () => {
+        //     checklistitemcheckpoints = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItemCheckPoints>(
+        //         this.checklist_shared_module.checklistitemcheckpoints_type_id, 'checkpoint_id', checkpoints_ids);
+        // })());
 
-        await Promise.all(promises);
-        this.nextLoadingStep();
+        // await Promise.all(promises);
 
-        this.checklist = checklist;
-        this.checklistitems = checklistitems;
-        this.checkpoints = checkpoints;
+        self.checklist = checklist;
+        self.checklistitems = checklistitems;
+        self.checkpoints = checkpoints;
 
         // this.checkpointsdeps = {};
         // for (let i in checkpointsdeps) {
@@ -139,16 +172,71 @@ export default class CheckListComponent extends VueComponentBase {
         //     this.checkpointsdeps[checkpointdep.checkpoint_id].push(checkpointdep.dependson_id);
         // }
 
-        this.checklistitemcheckpoints = {};
-        for (let i in checklistitemcheckpoints) {
-            let checklistitemcheckpoint: ICheckListItemCheckPoints = checklistitemcheckpoints[i];
+        // this.checklistitemcheckpoints = {};
+        // for (let i in checklistitemcheckpoints) {
+        //     let checklistitemcheckpoint: ICheckListItemCheckPoints = checklistitemcheckpoints[i];
 
-            if (!this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id]) {
-                this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id] = {};
+        //     if (!this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id]) {
+        //         this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id] = {};
+        //     }
+        //     this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id][checklistitemcheckpoint.checkpoint_id] = true;
+        // }
+
+        // On limite à 20 tentatives
+        let timeout: number = 20;
+        async function tryOpenModal() {
+
+            if (!!self.selected_checklist_item) {
+
+                await self.handle_modal_show_hide();
+                return;
             }
-            this.checklistitemcheckpoints[checklistitemcheckpoint.checklistitem_id][checklistitemcheckpoint.checkpoint_id] = true;
+
+            timeout--;
+            if (timeout < 0) {
+
+                // On change la route si on a pas réussi à ouvrir le rdv
+                if (!self.selected_checklist_item) {
+                    self.$router.push(self.global_route_path + '/' + self.list_id);
+                }
+
+                return;
+            }
+
+            setTimeout(tryOpenModal, 100);
         }
 
-        this.stopLoading();
+        if (!!self.item_id) {
+            self.$nextTick(tryOpenModal);
+        }
+    }
+
+    @Watch("$route")
+    private async onrouteChange() {
+
+        await this.handle_modal_show_hide();
+    }
+
+    private async handle_modal_show_hide() {
+        if (!this.modal_show) {
+            $('#checklist_item_modal').modal('hide');
+        }
+        if (this.modal_show) {
+            if (!this.selected_checklist_item) {
+                $('#checklist_item_modal').modal('hide');
+                return;
+            }
+            $('#checklist_item_modal').modal('show');
+            return;
+        }
+    }
+
+    private async createNew() {
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_controller.getCheckListItemNewInstance());
+        this.debounced_loading();
+    }
+
+    private async deleteSelectedItem(item: ICheckListItem) {
+        await ModuleDAO.getInstance().deleteVOs([item]);
     }
 }

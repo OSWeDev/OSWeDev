@@ -409,7 +409,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                                 throw new Error('Erreur serveur');
                             }
-                            prep.id = parseInt(insertOrDeleteQueryResult.id);
+                            prep.id = insertOrDeleteQueryResult.id;
                             self.setPrepById(prep);
 
                             // TODO passer par une synchro via les notifs de dao ...
@@ -461,7 +461,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                         try {
 
                             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (parseInt(insertOrDeleteQueryResult.id) != prep.id)) {
+                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != prep.id)) {
                                 throw new Error('Erreur serveur');
                             }
                             self.updatePrep(prep);
@@ -526,7 +526,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                         try {
 
                             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([prep]);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (parseInt(insertOrDeleteQueryResult[0].id) != prep.id)) {
+                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != prep.id)) {
                                 throw new Error('Erreur serveur');
                             }
                             self.removePrep(prep.id);

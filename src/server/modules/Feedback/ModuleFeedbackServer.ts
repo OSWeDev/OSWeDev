@@ -253,7 +253,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             if ((!res) || (!res.id)) {
                 throw new Error('Failed feedback creation');
             }
-            feedback.id = parseInt(res.id.toString());
+            feedback.id = res.id;
 
             // Créer le Trello associé
             let response;
@@ -310,7 +310,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Faire le lien entre le feedback en base et le Trello
             feedback.trello_ref = response;
             let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
-            feedback.id = parseInt(ires.id.toString());
+            feedback.id = ires.id;
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);

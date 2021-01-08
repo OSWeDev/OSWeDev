@@ -1,13 +1,14 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ICheckListItem from '../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
-import ModuleCheckListBase from '../../../../../shared/modules/CheckList/ModuleCheckListBase';
+import CheckPointVO from '../../../../../shared/modules/CheckList/vos/CheckPointVO';
+import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
 import './CheckListItemComponent.scss';
-import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import debounce from 'lodash/debounce';
 
 @Component({
     template: require('./CheckListItemComponent.pug'),
@@ -17,7 +18,7 @@ import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatabl
 export default class CheckListItemComponent extends VueComponentBase {
 
     @Prop({ default: null })
-    public checklistitemcheckpoints: { [checkpoint_id: number]: boolean };
+    private checklist_controller: CheckListControllerBase;
 
     @Prop()
     private global_route_path: string;
@@ -28,8 +29,15 @@ export default class CheckListItemComponent extends VueComponentBase {
     @Prop({ default: null })
     private ordered_checkpoints: ICheckPoint[];
 
-    private openmodal(step_id: number = null) {
+    private state_steps: { [step_shortname: string]: number } = {};
+    private debounced_update_state_step = debounce(this.update_state_step.bind(this), 100);
+
+    private openmodal(shortname: string = null, step_id: number = null) {
         if (!this.checklist_item) {
+            return;
+        }
+
+        if (this.state_steps[shortname] == this.STATE_DISABLED) {
             return;
         }
 
@@ -41,7 +49,7 @@ export default class CheckListItemComponent extends VueComponentBase {
     get checkpoint_descriptions(): { [step_id: number]: string } {
 
         if (!this.checklist_item) {
-            return null;
+            return {};
         }
 
         let res: { [step_id: number]: string } = {};
@@ -50,7 +58,7 @@ export default class CheckListItemComponent extends VueComponentBase {
         for (let i in this.ordered_checkpoints) {
             let checkpoint = this.ordered_checkpoints[i];
 
-            let checkpoint_description = '<p><strong><u>' + checkpoint.name + ' [' + checkpoint.shortname + ']' + '</u></strong></p>';
+            let checkpoint_description = '<p><strong><u>' + this.label(checkpoint.name) + ' [' + checkpoint.shortname + ']' + '</u></strong></p>';
 
             if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
 
@@ -91,5 +99,51 @@ export default class CheckListItemComponent extends VueComponentBase {
         checkpoint_description += '</ul>';
 
         return checkpoint_description;
+    }
+
+    get STATE_DISABLED(): number {
+        return CheckPointVO.STATE_DISABLED;
+    }
+
+    get STATE_TODO(): number {
+        return CheckPointVO.STATE_TODO;
+    }
+
+    get STATE_ERROR(): number {
+        return CheckPointVO.STATE_ERROR;
+    }
+
+    get STATE_WARN(): number {
+        return CheckPointVO.STATE_WARN;
+    }
+
+    get STATE_OK(): number {
+        return CheckPointVO.STATE_OK;
+    }
+
+    @Watch('checklist_controller')
+    @Watch('global_route_path')
+    @Watch('checklist_item')
+    @Watch('ordered_checkpoints')
+    private watchers() {
+        this.debounced_update_state_step();
+    }
+
+    private mounted() {
+        this.debounced_update_state_step();
+    }
+
+    private async update_state_step() {
+        let res: { [step_shortname: string]: number } = {};
+
+        res['1'] = await this.checklist_controller.get_state_step('1', this.checklist_item);
+        res['2'] = await this.checklist_controller.get_state_step('2', this.checklist_item);
+        res['3'] = await this.checklist_controller.get_state_step('3', this.checklist_item);
+        res['4'] = await this.checklist_controller.get_state_step('4', this.checklist_item);
+        res['5'] = await this.checklist_controller.get_state_step('5', this.checklist_item);
+        res['6'] = await this.checklist_controller.get_state_step('6', this.checklist_item);
+        res['7'] = await this.checklist_controller.get_state_step('7', this.checklist_item);
+
+        this.state_steps = res;
     }
 }

@@ -14,18 +14,6 @@ export default class TypesHandler {
     private constructor() {
     }
 
-    public isSameMoment(a: Moment, b: Moment): boolean {
-
-        if ((a && a.isValid()) && ((!b) || !b.isValid())) {
-            return false;
-        }
-        if ((b && b.isValid()) && ((!a) || !a.isValid())) {
-            return false;
-        }
-
-        return a.isSame(b);
-    }
-
     public isMoment(e: any): boolean {
         return e && isMoment(e);
     }

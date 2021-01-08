@@ -5,7 +5,6 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
 import "./CheckListModalComponent.scss";
-import "./CheckListModalComponentTargetInfos.scss";
 
 @Component({
     template: require('./CheckListModalComponent.pug')
@@ -21,10 +20,18 @@ export default class CheckListModalComponent extends VueComponentBase {
     @Prop({ default: null })
     private checklist_controller: CheckListControllerBase;
 
+    private onchangevo(vo) {
+        this.$emit('onchangevo', vo);
+    }
+
     get editable_fields(): Array<DatatableField<any, any>> {
 
-        if ((!this.checkpoint) || (!this.checkpoint.item_field_ids) || (!this.checkpoint.item_field_ids.length)) {
+        if (!this.checkpoint) {
             return this.all_editable_fields;
+        }
+
+        if ((!this.checkpoint.item_field_ids) || (!this.checkpoint.item_field_ids.length)) {
+            return [];
         }
 
         let res: Array<DatatableField<any, any>> = [];

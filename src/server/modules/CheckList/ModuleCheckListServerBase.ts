@@ -29,6 +29,22 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Fermer'
         }, 'checklist.checklist_item_modal.close.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CheckList'
+        }, 'menu.menuelements.checklist.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CheckPoint'
+        }, 'menu.menuelements.checkpoint.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Nouveau'
+        }, 'checklist.createNew.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Aucun champs lié à cette étape'
+        }, 'checklist_modal.no_fields.___LABEL___'));
     }
 
     /**

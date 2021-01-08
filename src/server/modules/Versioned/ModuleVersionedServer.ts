@@ -127,7 +127,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
-        cloned.id = parseInt(insertionRes.id.toString());
+        cloned.id = insertionRes.id;
 
         let versions: IVersionedVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVersionedVO>(VersionedVOController.getInstance().getVersionedVoType(vo._type), 'parent_id', [vo.id]);
 
@@ -159,7 +159,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
-        cloned.id = parseInt(insertionRes.id.toString());
+        cloned.id = insertionRes.id;
 
         let versions: IVersionedVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVersionedVO>(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type), 'parent_id', [vo.id]);
 

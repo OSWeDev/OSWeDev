@@ -639,7 +639,7 @@ export default class CRUDComponent extends VueComponentBase {
                 return;
             }
 
-            let id = res.id ? parseInt(res.id.toString()) : null;
+            let id = res.id ? res.id : null;
             this.newVO.id = id;
 
             createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
@@ -803,7 +803,7 @@ export default class CRUDComponent extends VueComponentBase {
                             this.snotify.error(this.label('crud.create.errors.many_to_many_failure'));
                             continue;
                         }
-                        need_add_links[linki].id = parseInt(insertOrDeleteQueryResult.id.toString());
+                        need_add_links[linki].id = insertOrDeleteQueryResult.id;
                         this.storeData(need_add_links[linki]);
                     }
                 }

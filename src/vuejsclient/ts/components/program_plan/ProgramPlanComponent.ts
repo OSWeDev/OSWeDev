@@ -1362,7 +1362,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 throw new Error('Erreur côté serveur');
             }
 
-            rdv.id = parseInt(insertOrDeleteQueryResult.id);
+            rdv.id = insertOrDeleteQueryResult.id;
             rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
 
         } catch (error) {

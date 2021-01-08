@@ -71,30 +71,6 @@ export default class ModuleCMSServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    // private async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
-    //     if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
-
-    //         if (!templateComponent.id) {
-    //             let bdd_components: TemplateComponentVO[] = await ModuleDAOServer.getInstance().selectAll<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID, "where type_id = $1", [templateComponent.type_id]);
-    //             if ((bdd_components) && (bdd_components.length >= 1)) {
-    //                 templateComponent = bdd_components[0];
-    //             }
-    //         }
-
-    //         if (!templateComponent.id) {
-    //             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(templateComponent);
-    //             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-    //                 return null;
-    //             }
-    //             templateComponent.id = parseInt(insertOrDeleteQueryResult.id);
-    //         }
-
-    //         ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;
-    //     }
-
-    //     return ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id];
-    // }
-
     private async getPageComponents(num: number): Promise<IInstantiatedPageComponent[]> {
         let res: IInstantiatedPageComponent[] = [];
 

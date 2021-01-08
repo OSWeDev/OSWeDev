@@ -183,7 +183,7 @@ export default class VarsServerController {
             return null;
         }
 
-        varConf.id = parseInt(insertOrDeleteQueryResult.id.toString());
+        varConf.id = insertOrDeleteQueryResult.id;
 
         this.setVar(varConf, controller);
         return varConf;
@@ -213,7 +213,7 @@ export default class VarsServerController {
             return null;
         }
 
-        var_cache_conf.id = parseInt(insert_or_update_result.id.toString());
+        var_cache_conf.id = insert_or_update_result.id;
 
         this._varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
         if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {

@@ -8,6 +8,7 @@ import SendInBlueFolderDetailVO from '../../../../shared/modules/SendInBlue/vos/
 import SendInBlueFoldersVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueFolderVO';
 import SendInBlueListDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListDetailVO';
 import SendInBlueListsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListsVO';
+import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueRequestResultVO';
 
 export default class SendInBlueListServerController {
 
@@ -52,7 +53,7 @@ export default class SendInBlueListServerController {
             folderId = folder.id;
         }
 
-        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueListServerController.PATH_LIST,
             { name: listName, folderId: folderId }
@@ -82,7 +83,7 @@ export default class SendInBlueListServerController {
     }
 
     public async createFolder(folderName: string): Promise<SendInBlueFolderDetailVO> {
-        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueListServerController.PATH_FOLDER,
             { name: folderName }
@@ -157,7 +158,7 @@ export default class SendInBlueListServerController {
             postParams.attributes.SMS = contact.sms;
         }
 
-        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueListServerController.PATH_CONTACT,
             postParams

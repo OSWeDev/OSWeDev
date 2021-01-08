@@ -28,6 +28,7 @@ export default abstract class ModuleCheckListBase extends Module {
 
         super(name, reflexiveClassName, specificImportPath);
 
+        this.initialize_later();
     }
 
     public initialize() {
@@ -68,14 +69,14 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
         let checklist_id = new ModuleTableField('checklist_id', ModuleTableField.FIELD_TYPE_foreign_key, 'CheckList', true);
 
         additional_fields.unshift(
             label_field,
             checklist_id,
             new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true)
+            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false)
         );
 
         let datatable = new ModuleTable(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");

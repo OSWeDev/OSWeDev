@@ -10,6 +10,7 @@ import SendInBlueSmsCampaignsVO from '../../../../shared/modules/SendInBlue/vos/
 import SendInBlueSmsFormatVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueRequestResultVO';
 const moment = require('moment');
 
 export default class SendInBlueSmsCampaignServerController {
@@ -82,7 +83,7 @@ export default class SendInBlueSmsCampaignServerController {
             scheduledAt_clone = moment().utc(true).add(3, 'minutes');
         }
 
-        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueSmsCampaignServerController.PATH_CAMPAIGN,
             {

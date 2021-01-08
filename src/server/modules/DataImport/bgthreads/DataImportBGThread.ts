@@ -167,7 +167,7 @@ export default class DataImportBGThread implements IBGThread {
                     ConsoleHandler.getInstance().error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
                     return false;
                 }
-                let id = parseInt(insertOrDeleteQueryResult.id);
+                let id = insertOrDeleteQueryResult.id;
                 if ((!id) || (!TypesHandler.getInstance().isNumber(id))) {
                     ConsoleHandler.getInstance().error('!id dans handleImportHistoricProgression');
                     return false;

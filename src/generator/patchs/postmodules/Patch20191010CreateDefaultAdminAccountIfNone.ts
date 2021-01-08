@@ -84,7 +84,7 @@ export default class Patch20191010CreateDefaultAdminAccountIfNone implements IGe
             throw new Error('Echec de création du compte admin par défaut');
         }
 
-        user.id = parseInt(res.id.toString());
+        user.id = res.id;
 
         return user;
     }

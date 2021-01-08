@@ -58,7 +58,7 @@ export default class Patch20191126CreateDefaultRobotUserAccount implements IGene
             throw new Error('Echec de création du compte robot par défaut');
         }
 
-        user.id = parseInt(res.id.toString());
+        user.id = res.id;
 
         return user;
     }

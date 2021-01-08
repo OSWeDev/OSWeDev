@@ -990,7 +990,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        return new Promise<InsertOrDeleteQueryResult[]>(async (resolve, reject) => {
+        return new Promise<any[]>(async (resolve, reject) => {
 
             let isUpdates: boolean[] = [];
             let preUpdates: IDistantVOBase[] = [];
@@ -1057,7 +1057,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            resolve(results);
+            let InsertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = [];
+            if (results && results.length) {
+                for (let i in results) {
+                    let result = results[i];
+                    InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult((result && result.id) ? parseInt(result.id.toString()) : null));
+                }
+            }
+
+            resolve(InsertOrDeleteQueryResults);
         });
     }
 
@@ -1111,30 +1119,32 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
+            let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
                 ConsoleHandler.getInstance().error('insertOrUpdateVO :' + reason);
                 failed = true;
             });
+
+            let res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
 
             if (failed) {
                 resolve(null);
                 return null;
             }
 
-            if (result && vo) {
+            if (res && vo) {
                 if (isUpdate) {
                     await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(preUpdate, vo));
                 } else {
-                    vo.id = parseInt(result.id.toString());
+                    vo.id = res.id;
                     await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
                 }
             }
 
-            resolve(result);
+            resolve(res);
         });
     }
 
-    private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
+    private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
         if (this.global_update_blocker) {
             let uid: number = StackContext.getInstance().get('UID');
@@ -1207,7 +1217,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return value;
         });
 
-        return results;
+        let InsertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = [];
+        if (results && results.length) {
+            for (let i in results) {
+                let result = results[i];
+                InsertOrDeleteQueryResults.push(new InsertOrDeleteQueryResult((result && result.id) ? parseInt(result.id.toString()) : null));
+            }
+        }
+
+        return InsertOrDeleteQueryResults;
     }
 
     private async deleteVOsByIds(API_TYPE_ID: string, ids: number[]): Promise<any[]> {

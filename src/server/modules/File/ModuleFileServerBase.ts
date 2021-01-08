@@ -138,7 +138,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
                 return;
             }
 
-            filevo.id = parseInt(insertres.id.toString());
+            filevo.id = insertres.id;
             res.json(JSON.stringify(filevo));
         });
     }

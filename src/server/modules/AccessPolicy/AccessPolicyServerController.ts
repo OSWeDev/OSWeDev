@@ -568,7 +568,7 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        role.id = parseInt(insertOrDeleteQueryResult.id);
+        role.id = insertOrDeleteQueryResult.id;
         this.registered_roles[role.translatable_name] = role;
         this.registered_roles_by_ids[role.id] = role;
         ConsoleHandler.getInstance().error('Ajout du role OK:' + role.translatable_name + ':');
@@ -611,7 +611,7 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        group.id = parseInt(insertOrDeleteQueryResult.id);
+        group.id = insertOrDeleteQueryResult.id;
         this.registered_policy_groups[translatable_name] = group;
         ConsoleHandler.getInstance().error('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
@@ -679,7 +679,7 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        policy.id = parseInt(insertOrDeleteQueryResult.id);
+        policy.id = insertOrDeleteQueryResult.id;
         this.registered_policies[translatable_name] = policy;
         this.registered_policies_by_ids[policy.id] = policy;
         ConsoleHandler.getInstance().error('Ajout du droit OK :' + policy.translatable_name + ':');
@@ -717,7 +717,7 @@ export default class AccessPolicyServerController {
             return null;
         }
 
-        dependency.id = parseInt(insertOrDeleteQueryResult.id);
+        dependency.id = insertOrDeleteQueryResult.id;
         this.registered_dependencies[dependency.src_pol_id].push(dependency);
         ConsoleHandler.getInstance().error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
         return dependency;

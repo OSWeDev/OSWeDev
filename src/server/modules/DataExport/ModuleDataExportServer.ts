@@ -127,7 +127,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
-        file.id = parseInt(res.id.toString());
+        file.id = res.id;
 
         return file;
     }
@@ -246,7 +246,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
-        file.id = parseInt(res.id.toString());
+        file.id = res.id;
 
         return file;
     }
