@@ -1,5 +1,9 @@
 @import 'skin-variables';
 
+.display_inline_block{
+    display: inline-block;
+}
+
 .tooltip.vue-tooltip-theme {
   z-index: 9999999;
 }

@@ -41,6 +41,7 @@ import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import CRUDComponentManager from '../../CRUDComponentManager';
 import './CRUDComponentField.scss';
 let debounce = require('lodash/debounce');
 
@@ -60,6 +61,8 @@ let debounce = require('lodash/debounce');
 })
 export default class CRUDComponentField extends VueComponentBase
     implements ICRUDComponentField {
+
+    public static CRUDComp_UID: number = 1;
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -107,6 +110,8 @@ export default class CRUDComponentField extends VueComponentBase
     private inline_input_hide_label: boolean;
     @Prop()
     private inline_input_read_value: any;
+    @Prop({ default: false })
+    private inline_input_mode_semaphore: boolean;
 
     @Prop({ default: false })
     private is_disabled: boolean;
@@ -117,6 +122,7 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: null })
     private maxlength: number;
 
+    private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
@@ -146,7 +152,18 @@ export default class CRUDComponentField extends VueComponentBase
          *  a voir à l'usage ce qu'on en fait
          */
         this.field.vue_component = this;
+
+        this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
+
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID] = this.cancel_input;
+        }
+
+        if (this.inline_input_mode_semaphore && this.inline_input_is_editing) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+        }
     }
+
 
     /**
      * TODO FIXME : gérer tous les cas pas juste les simple datatable field
@@ -848,21 +865,80 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
 
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
+        }
         this.inline_input_is_editing = false;
 
         this.inline_input_is_busy = false;
     }
 
     private prepare_inline_input() {
+
+        // Mise en place d'un sémaphore sur l'édition inline : si on est en train d'éditer un champ, on ne peut pas en éditer un second,
+        //  sauf à valider un snotify
+        if (this.inline_input_mode_semaphore && CRUDComponentManager.getInstance().inline_input_mode_semaphore) {
+
+            let self = this;
+            this.$snotify.confirm(this.label('crud.inline_input_mode_semaphore.confirm.body'), self.label('crud.inline_input_mode_semaphore.confirm.title'), {
+                timeout: 10000,
+                showProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                buttons: [
+                    {
+                        text: self.t('YES'),
+                        action: async (toast) => {
+                            self.$snotify.remove(toast.id);
+                            for (let idstr in CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb) {
+                                let id = parseInt(idstr.toString());
+                                let cb = CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[idstr];
+
+                                if (id == self.this_CRUDComp_UID) {
+                                    continue;
+                                }
+                                cb();
+                            }
+
+                            if (!self.field_value) {
+
+                                // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
+                                self.field_value = self.field.dataToUpdateIHM(self.inline_input_read_value, self.vo);
+                            }
+
+                            if (this.inline_input_mode_semaphore) {
+                                CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+                            }
+                            self.inline_input_is_editing = true;
+                        },
+                        bold: false
+                    },
+                    {
+                        text: self.t('NO'),
+                        action: (toast) => {
+                            self.$snotify.remove(toast.id);
+                        }
+                    }
+                ]
+            });
+            return;
+        }
+
         if (!this.field_value) {
 
             // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
             this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
         }
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+        }
         this.inline_input_is_editing = true;
     }
 
     private cancel_input() {
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
+        }
         this.inline_input_is_editing = false;
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
@@ -941,6 +1017,13 @@ export default class CRUDComponentField extends VueComponentBase
         let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
         if (!!field) {
             return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+        }
+    }
+
+    private async beforeDestroy() {
+        delete CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID];
+        if (this.inline_input_mode_semaphore && this.inline_input_is_editing) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
         }
     }
 }

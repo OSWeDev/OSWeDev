@@ -5,9 +5,13 @@ import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/IChe
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
+import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
 import VueComponentBase from '../VueComponentBase';
 import './CheckListComponent.scss';
 import CheckListControllerBase from './CheckListControllerBase';
@@ -23,6 +27,12 @@ import CheckListModalComponent from './modal/CheckListModalComponent';
     }
 })
 export default class CheckListComponent extends VueComponentBase {
+
+    @ModuleDAOGetter
+    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+
+    @ModuleDAOAction
+    public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @Prop()
     public global_route_path: string;
@@ -101,6 +111,9 @@ export default class CheckListComponent extends VueComponentBase {
             return;
         }
         this.checklistitems[vo.id] = await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id);
+        if (this.checklistitems[vo.id].archived) {
+            delete this.checklistitems[vo.id];
+        }
     }
 
     private mounted() {
@@ -129,8 +142,9 @@ export default class CheckListComponent extends VueComponentBase {
 
         let checklistitems: { [id: number]: ICheckListItem } = {};
         promises.push((async () => {
-            checklistitems = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItem>(
-                self.checklist_shared_module.checklistitem_type_id, 'checklist_id', [self.list_id]));
+            let items = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItem>(
+                self.checklist_shared_module.checklistitem_type_id, 'checklist_id', [self.list_id]);
+            checklistitems = VOsTypesManager.getInstance().vosArray_to_vosByIds(items.filter((e) => !e.archived));
         })());
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
@@ -161,6 +175,9 @@ export default class CheckListComponent extends VueComponentBase {
         self.checklist = checklist;
         self.checklistitems = checklistitems;
         self.checkpoints = checkpoints;
+
+        await this.checklist_controller.component_hook_onAsyncLoading(
+            this.getStoredDatas, this.storeDatas, this.checklist, this.checklistitems, this.checkpoints);
 
         // this.checkpointsdeps = {};
         // for (let i in checkpointsdeps) {
@@ -232,7 +249,14 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_controller.getCheckListItemNewInstance());
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_controller.getCheckListItemNewInstance());
+        if ((!res) || !res.id) {
+            ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
+            this.debounced_loading();
+            return;
+        }
+        this.$router.push(this.global_route_path + '/' + this.list_id + '/' + res.id);
+
         this.debounced_loading();
     }
 

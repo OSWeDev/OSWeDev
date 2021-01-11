@@ -106,6 +106,7 @@
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'numrange'")
         Numrangeinputcomponent(
+            :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
         // FIXME TODO ASAP
@@ -116,12 +117,14 @@
 
     template(v-else-if="field_type == 'hourrange[]'")
         Multiinputcomponent(
+            :inline_input_mode='inline_input_mode'
             :custom_field_component="hourrange_input_component"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" type_input="custom" @input_with_infos="validateMultiInput" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'hourrange'")
         Hourrangeinputcomponent(
+            :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
 
@@ -130,11 +133,13 @@
 
     template(v-else-if="field_type == 'tstz'")
         Tstzinputcomponent(
+            :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'tsrange'")
         Tsrangeinputcomponent(
+            :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'timestamp'")
@@ -177,11 +182,23 @@
             :deselect-label='label("multiselect.deselectLabel")'
             :deselect-group-label='label("multiselect.deselectGroupLabel")')
     template(v-else-if="field_type == 'number[]'")
-        Multiinputcomponent(v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="number", @input_with_infos="validateMultiInput")
+        Multiinputcomponent(
+            :inline_input_mode='inline_input_mode'
+            v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field",
+            :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", 
+            type_input="number", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
-        Multiinputcomponent(v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", @input_with_infos="validateMultiInput")
+        Multiinputcomponent(
+            :inline_input_mode='inline_input_mode'
+            v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field", :required="field.is_required", 
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", 
+            @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html[]'")
-        Multiinputcomponent(:id="field.datatable_field_uid" :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", @input_with_infos="validateMultiInput")
+        Multiinputcomponent(
+            :inline_input_mode='inline_input_mode'
+            :id="field.datatable_field_uid" :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", 
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", 
+            @input_with_infos="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
             :id="field.datatable_field_uid",

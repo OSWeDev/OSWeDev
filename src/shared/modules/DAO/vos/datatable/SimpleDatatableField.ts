@@ -533,6 +533,18 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): U {
-        return this.dataToReadIHM(e[this.datatable_field_uid], e);
+        let res = this.dataToReadIHM(e[this.datatable_field_uid], e);
+
+        if ((this.type == SimpleDatatableField.SIMPLE_FIELD_TYPE) && (this.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+
+            // FIXME TODO si on est sur un boolean on voudrait voir idéalement OUI/NON et pas true /false mais ça dépend de la langue donc c'est pas si simple...
+            return res;
+        }
+
+        if (res == null) {
+            return '' as any as U;
+        }
+
+        return res;
     }
 }

@@ -115,7 +115,6 @@ export default abstract class ModuleCheckListBase extends Module {
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('shortname', ModuleTableField.FIELD_TYPE_string, 'Nom court', true),
             new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
             new ModuleTableField('item_field_ids', ModuleTableField.FIELD_TYPE_string_array, 'Champs', false),
             checklist_id,

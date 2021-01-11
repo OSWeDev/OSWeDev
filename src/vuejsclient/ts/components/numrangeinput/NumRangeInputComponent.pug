@@ -1,9 +1,9 @@
 .num_range_input
     .row
         .col-md-6
-            input.form-control.numstart(type='number' v-model="numrange_start" :placeholder="label('num_range_input.debut')" :required="required", :disabled="disabled", @input="emitInput")
+            input.numstart(:class="{'form-control': !inline_input_mode}" type='number' v-model="numrange_start" :placeholder="label('num_range_input.debut')" :required="required", :disabled="disabled", @input="emitInput")
         .col-md-6
-            input.form-control.numend(type='number' v-model="numrange_end" :placeholder="label('num_range_input.fin')" :required="required", :disabled="disabled || is_single", @input="emitInput")
+            input.numend(:class="{'form-control': !inline_input_mode}" type='number' v-model="numrange_end" :placeholder="label('num_range_input.fin')" :required="required", :disabled="disabled || is_single", @input="emitInput")
     .row
         .col-md-12
             toggle-button(

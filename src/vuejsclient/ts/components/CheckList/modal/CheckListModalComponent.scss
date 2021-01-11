@@ -1,37 +1,48 @@
 @import 'skin-variables.scss';
 
-#rdv_modal {
+#checklist_item_modal {
 
-    .nav-pills {
-        margin-bottom: 16px;
-        
-        >li {
-            cursor:pointer;
-            margin-bottom: 2px;
-        }
-        
-        >li.active>a, >li.active>a:focus, >li.active>a:hover {
-            color: #fff;
-            background-color: $button_primary_bg_color;
-        }
-        >li.active>a, >li.active>a:hover, >li.active>a:focus {
-            border-top-color: $button_primary_bg_color;
-        }
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_is_editing, .field .inline_input_cancel_input, .field .inline_input_is_not_editing,
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_is_editing, .field .inline_input_cancel_input, .field .inline_input_is_not_editing {
+        padding: 0.35em 0 0 0.5em;
+        vertical-align: middle;
+        border-radius: 20px;
     }
-}
-@import 'skin-variables.scss';
 
-#rdv_modal_target_infos {
-    padding: 10px;
-    background: $main_menu_bg_color;
-    color: $main_menu_text_color;
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_cancel_input,
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_cancel_input {
+        margin-right: .5em;
+    }
+    .field .inline_input_is_editing, .field .inline_input_is_not_editing,
+    .field .inline_input_is_editing, .field .inline_input_is_not_editing {
+        margin-left: .5em;
+    }
 
-    .target-infos-content.form-control {
-        height: auto;
-    }    
-}
+    .inline_input_mode {
+        text-align: left;
+    }
 
-.infosContener {
-    max-height: auto;
-    overflow: hidden;
+    .multiselect {
+        display: inline-block;
+        width: 26em;
+        margin-left: 1em;
+    }
+
+    label[role~=checkbox] {
+        margin-left: 1em;
+    }
+
+    .form-group>label:not([role=checkbox]) {
+        width: 20em;
+    }
+
+    input[type~=text] {
+        width: 30em;
+        margin-left: 1em;
+        background: white;
+        border: solid 1px #EEE;
+        padding: 0.3em;
+        text-align: left;
+        vertical-align: middle;
+    }
 }

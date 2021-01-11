@@ -35,6 +35,10 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         }, 'menu.menuelements.checklist.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Archiver'
+        }, 'checklist.archive.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'CheckPoint'
         }, 'menu.menuelements.checkpoint.___LABEL___'));
 

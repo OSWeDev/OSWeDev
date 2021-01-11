@@ -12,13 +12,15 @@ include ../../../views/mixins/loading.pug
                     thead
                         tr
                             th
-                            th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) + ' [' + checkpoint.shortname + ']' }}
+                            th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
+                            th  {{ label('checklist.archive') }}
                     tbody
                         tr(v-for='checklist_item in checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
                             :checklist_item='checklist_item' 
                             :checklist_controller='checklist_controller'
                             :ordered_checkpoints='ordered_checkpoints' 
-                            :global_route_path='global_route_path')
+                            :global_route_path='global_route_path'
+                            @onchangevo='onchangevo')
 
     #checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')
         .modal-dialog.modal-lg(role='document')

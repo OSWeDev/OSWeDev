@@ -15,6 +15,9 @@ import VueComponentBase from '../VueComponentBase';
 export default class HourrangeInputComponent extends VueComponentBase {
 
     @Prop({ default: false })
+    private inline_input_mode: boolean;
+
+    @Prop({ default: false })
     private required: boolean;
 
     @Prop({ default: false })

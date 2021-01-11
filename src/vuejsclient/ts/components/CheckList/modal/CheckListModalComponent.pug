@@ -12,6 +12,8 @@
                     :inline_input_read_value="checklist_item[editable_field.module_table_field_id]"
                     :key='checklist_item.id + "_" + editable_field.module_table_field_id'
                     :inline_input_show_clear='true'
+                    :inline_input_mode_semaphore='true'
+                    :show_insert_or_update_target='false'
                 )
         template(v-else)
             .no_fields {{ label('checklist_modal.no_fields') }}

@@ -32,6 +32,9 @@ export default class CRUDComponentManager {
     public callback_routes: string[] = [];
     public idistantvo_init: IDistantVOBase[] = [];
 
+    public inline_input_mode_semaphore: boolean = false;
+    public inline_input_mode_semaphore_disable_cb: { [ii_id: number]: () => void } = {};
+
     public registerCRUDs<T extends IDistantVOBase>(
         API_TYPE_IDs: string[],
         menuPointers: MenuPointer[],

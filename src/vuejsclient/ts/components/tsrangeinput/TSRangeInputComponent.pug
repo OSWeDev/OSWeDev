@@ -13,6 +13,6 @@
             .col-sm-6
                 Datepicker(:clear-button="!required" v-model="tsrange_date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control max-width':'max-width'" @input="emitInput")
             .col-sm-3
-                input.form-control.max-width(v-model="tsrange_start_time", type="time", id="tsrange_start_time" :disabled="disabled")
+                input.max-width(:class="{'form-control': !inline_input_mode}" v-model="tsrange_start_time", type="time", id="tsrange_start_time" :disabled="disabled")
             .col-sm-3
-                input.form-control.max-width(v-model="tsrange_end_time", type="time", id="tsrange_end_time" :disabled="disabled")
+                input.max-width(:class="{'form-control': !inline_input_mode}" v-model="tsrange_end_time", type="time", id="tsrange_end_time" :disabled="disabled")

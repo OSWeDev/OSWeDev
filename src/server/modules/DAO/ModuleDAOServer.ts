@@ -295,6 +295,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }, 'editable_page_switch.read.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler les modifications en cours ?'
+        }, 'crud.inline_input_mode_semaphore.confirm.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Des modifications sont en cours'
+        }, 'crud.inline_input_mode_semaphore.confirm.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Demande refusée : Le système est en lecture seule'
         }, 'dao.global_update_blocker.actif'));
 

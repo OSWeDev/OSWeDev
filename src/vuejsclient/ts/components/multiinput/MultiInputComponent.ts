@@ -13,6 +13,9 @@ import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 })
 export default class MultiInputComponent extends VueComponentBase {
 
+    @Prop({ default: false })
+    private inline_input_mode: boolean;
+
     @Prop({ default: null })
     private value_constructor: () => any;
 
