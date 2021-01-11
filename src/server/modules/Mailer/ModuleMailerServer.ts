@@ -2,7 +2,9 @@ import * as nodemailer from 'nodemailer';
 import { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
+import PrepareHTMLParamVO from '../../../shared/modules/Mailer/vos/PrepareHTMLParamVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TypesHandler from '../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -51,6 +53,20 @@ export default class ModuleMailerServer extends ModuleServerBase {
                 secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
             });
         }
+    }
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTMLAPI.bind(this));
+    }
+
+    public async prepareHTMLAPI(param: PrepareHTMLParamVO): Promise<string> {
+
+        let template: string = param.template;
+        let lang_id: number = param.lang_id;
+        let vars: { [name: string]: string } = param.vars;
+
+        return this.prepareHTML(template, lang_id, vars);
     }
 
     public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
