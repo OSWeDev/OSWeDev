@@ -1,4 +1,6 @@
 import { ChildProcess, fork } from 'child_process';
+import { Moment } from 'moment';
+import * as moment from 'moment';
 import { Server, Socket } from 'net';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -30,7 +32,7 @@ export default class ForkServerController {
      */
     public forks_are_initialized: boolean = false;
     public forks_waiting_to_be_alive: number = 0;
-    public forks_availability: { [uid: number]: boolean } = {};
+    public forks_availability: { [uid: number]: Moment } = {};
     public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false });
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
@@ -92,7 +94,7 @@ export default class ForkServerController {
                 continue;
             }
 
-            ForkServerController.getInstance().forks_availability[i] = true;
+            ForkServerController.getInstance().forks_availability[i] = moment().utc(true);
 
             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
@@ -105,6 +107,17 @@ export default class ForkServerController {
                     serialization: "advanced"
                 });
             }
+
+            if (ForkMessageController.getInstance().stacked_msg_waiting && ForkMessageController.getInstance().stacked_msg_waiting.length) {
+                for (let j in ForkMessageController.getInstance().stacked_msg_waiting) {
+                    let stacked_msg_waiting = ForkMessageController.getInstance().stacked_msg_waiting[j];
+
+                    if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
+                        stacked_msg_waiting.sendHandle = forked.child_process;
+                    }
+                }
+            }
+
             forked.child_process.on('message', async (msg: IForkMessage) => {
                 msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
                 ForkMessageController.getInstance().message_handler(msg, forked.child_process);
@@ -194,7 +207,7 @@ export default class ForkServerController {
                 continue;
             }
 
-            ForkMessageController.getInstance().send(new PingForkMessage(), forked.child_process, forked);
+            ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
         }
 
         setTimeout(this.checkForksAvailability.bind(this), 10000);

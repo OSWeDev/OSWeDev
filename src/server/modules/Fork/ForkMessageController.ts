@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import { ChildProcess } from 'child_process';
 import { throttle } from 'lodash';
 import { Server, Socket } from 'net';
@@ -24,8 +25,8 @@ export default class ForkMessageController {
     /**
      * Local thread cache -----
      */
+    public stacked_msg_waiting: IForkMessageWrapper[] = [];
     private registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess) => Promise<boolean> } = {};
-    private stacked_msg_waiting: IForkMessageWrapper[] = [];
     /**
      * ----- Local thread cache
      */
@@ -132,8 +133,13 @@ export default class ForkMessageController {
              * On informe qu'un thread est plus accessible
              */
             if (msg_wrapper.forked_target) {
-                ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = false;
-                ForkServerController.getInstance().throttled_reload_unavailable_threads();
+
+                if (ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] &&
+                    moment().utc(true).add(-1, 'minute').isAfter(ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
+                    ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
+                    ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
+                    ForkServerController.getInstance().throttled_reload_unavailable_threads();
+                }
             }
         }
     }

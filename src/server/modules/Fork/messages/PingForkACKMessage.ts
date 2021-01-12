@@ -1,10 +1,10 @@
 import IForkMessage from '../interfaces/IForkMessage';
 
-export default class PingForkMessage implements IForkMessage {
+export default class PingForkACKMessage implements IForkMessage {
 
-    public static FORK_MESSAGE_TYPE: string = "Ping";
+    public static FORK_MESSAGE_TYPE: string = "PingACK";
 
-    public message_type: string = PingForkMessage.FORK_MESSAGE_TYPE;
+    public message_type: string = PingForkACKMessage.FORK_MESSAGE_TYPE;
 
     /**
      * On envoie l'id du thread par le ping et on attend qu'il nous le renvoie

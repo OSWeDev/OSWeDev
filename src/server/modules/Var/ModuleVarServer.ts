@@ -208,6 +208,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             fr: 'Invalider le cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Invalider l\'arbre en cache par intersection'
+        }, 'vars_datas_explorer_actions.invalidate_cache_intersection_and_depstree.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Supprimer le cache et les imports par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
