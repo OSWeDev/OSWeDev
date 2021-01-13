@@ -1317,6 +1317,9 @@ export default class RangeHandler {
      * On passe par une version text pour simplifier
      */
     public translate_range_to_api(range: NumRange): string {
+        if (!range) {
+            return '';
+        }
 
         let elt = '';
         elt += range.segment_type;

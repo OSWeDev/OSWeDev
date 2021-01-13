@@ -59,10 +59,12 @@ export default class ModuleRequestServer extends ModuleServerBase {
                 res.on('end', () => {
                     let buffer: Buffer = Buffer.concat(result);
 
-                    try {
-                        buffer = JSON.parse(buffer.toString());
-                    } catch (e) {
-                        ConsoleHandler.getInstance().error(e);
+                    if (buffer && buffer.length > 0) {
+                        try {
+                            buffer = JSON.parse(buffer.toString());
+                        } catch (e) {
+                            ConsoleHandler.getInstance().error(e);
+                        }
                     }
 
                     resolve(buffer);

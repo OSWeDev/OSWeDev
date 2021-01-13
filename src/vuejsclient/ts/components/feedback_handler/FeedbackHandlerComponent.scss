@@ -25,10 +25,11 @@
         padding: 1em;
         border-radius: 10px;
         box-shadow: 1px 1px 6px -2px;
-        max-height: 50em;
+        max-height: 80%;
         overflow-y: scroll;
         overflow-x: hidden;
         z-index: 99999;
+        max-width: 95%;
 
         .feedback_handler_modal_header {
 
@@ -37,16 +38,22 @@
             margin-bottom: 1em;
         }
 
-        input[type~="text"]{
+        textarea,
+        input[type~="text"] {
             padding: 0.5em;
-            width: 42em;
+            width: 100%;
+            margin-left: 0;
         }
 
-        input[type~="radio"]{
+        input[type~="radio"] {
             height: 1.5em;
             width: 1.5em;
             vertical-align: middle;
             cursor: pointer;
+
+            &+label {
+                max-width: 80%;
+            }
         }
 
         label i.fa.fa-asterisk.mandatory {
@@ -64,14 +71,14 @@
         }
 
         .dz-preview.dz-file-preview.dz-processing {
-            display:none;
+            display: none;
         }
 
         .spacer {
             display: block;
             height: 1em;
         }
-            
+
     }
 
     .feedback_handler_modal.hidden {

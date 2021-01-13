@@ -19,7 +19,10 @@ import DatatableField from './DatatableField';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
-    public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string): any {
+        if (this.computed_value && this.computed_value[datatable_field_uid]) {
+            return this.computed_value[datatable_field_uid](field_value, moduleTableField, vo, datatable_field_uid);
+        }
         if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -217,7 +220,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string): any {
         if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -253,7 +256,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 default:
-                    return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                    return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo, datatable_field_uid);
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -476,10 +479,10 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public dataToReadIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableField.defaultDataToReadIHM(e, this.moduleTableField, vo) as any;
+        return SimpleDatatableField.defaultDataToReadIHM(e, this.moduleTableField, vo, this.datatable_field_uid) as any;
     }
     public dataToUpdateIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableField.defaultDataToUpdateIHM(e, this.moduleTableField, vo) as any;
+        return SimpleDatatableField.defaultDataToUpdateIHM(e, this.moduleTableField, vo, this.datatable_field_uid) as any;
     }
     public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
         return this.dataToUpdateIHM(e, vo);
