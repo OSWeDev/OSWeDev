@@ -1,5 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
@@ -27,9 +27,9 @@ export default class ModuleCron extends Module {
 
     private static instance: ModuleCron = null;
 
-    public run_manual_task: (name: string) => void = ModuleAPI.sah(ModuleCron.APINAME_run_manual_task);
-    public executeWorkersManually: () => void = ModuleAPI.sah(ModuleCron.APINAME_executeWorkersManually);
-    public executeWorkerManually: (worker_uid: string) => void = ModuleAPI.sah(ModuleCron.APINAME_executeWorkerManually);
+    public run_manual_task: (name: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_run_manual_task);
+    public executeWorkersManually: () => void = APIControllerWrapper.sah(ModuleCron.APINAME_executeWorkersManually);
+    public executeWorkerManually: (worker_uid: string) => void = APIControllerWrapper.sah(ModuleCron.APINAME_executeWorkerManually);
 
     private constructor() {
 
@@ -38,19 +38,19 @@ export default class ModuleCron extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkersManually,
             [CronWorkerPlanification.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkerManually,
             [CronWorkerPlanification.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_run_manual_task,
             [CronWorkerPlanification.API_TYPE_ID],

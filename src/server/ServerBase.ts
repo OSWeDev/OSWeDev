@@ -22,7 +22,7 @@ import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
+import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
@@ -253,7 +253,7 @@ export default abstract class ServerBase {
                 }
 
                 // On check le cas du MSGPack qui est pas géré pour le moment pour indiquer compressible
-                if (req.headers['content-type'] == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                if (req.headers['content-type'] == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
                     return true;
                 }
 

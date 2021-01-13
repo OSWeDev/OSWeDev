@@ -3,7 +3,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -56,7 +56,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
     }
 
     public async configure() {

@@ -1,7 +1,7 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
@@ -89,32 +89,32 @@ export default class ModuleAccessPolicy extends Module {
 
     private static instance: ModuleAccessPolicy = null;
 
-    public begininitpwd: (email: string) => Promise<void> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_begininitpwd);
-    public begininitpwdsms: (email: string) => Promise<void> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_begininitpwdsms);
-    public begininitpwd_uid: (uid: number) => Promise<void> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_begininitpwd_uid);
-    public getSelfUser: () => Promise<UserVO> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_getSelfUser);
-    public getMyLang: () => Promise<LangVO> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_getMyLang);
-    public change_lang: (lang_id: number) => Promise<void> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_change_lang);
-    public getLoggedUserId: () => Promise<number> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
-    public getLoggedUserName: () => Promise<string> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
-    public impersonateLogin: (email: string) => Promise<number> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
-    public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
-    public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
-    public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
+    public begininitpwd: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd);
+    public begininitpwdsms: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwdsms);
+    public begininitpwd_uid: (uid: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd_uid);
+    public getSelfUser: () => Promise<UserVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getSelfUser);
+    public getMyLang: () => Promise<LangVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getMyLang);
+    public change_lang: (lang_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_change_lang);
+    public getLoggedUserId: () => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
+    public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
+    public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
+    public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
+    public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
     /**
      * WARN : Uniquement à usage côté client, côté serveur pour les performances préférer l'appel directement à checkAccessSync sur le module server
      * @param policy_name Le titre de la policy, qui doit être unique sur tous les groupes de toutes façons
      */
-    public checkAccess: (policy_name: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_CHECK_ACCESS);
-    public beginRecover: (email: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER);
-    public beginRecoverSMS: (email: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS);
-    public resetPwd: (email: string, challenge: string, new_pwd1: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_RESET_PWD);
-    public resetPwdUID: (uid: number, challenge: string, new_pwd1: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_RESET_PWDUID);
-    public checkCode: (email: string, challenge: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_checkCode);
-    public checkCodeUID: (uid: number, challenge: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_checkCodeUID);
-    public isAdmin: () => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_IS_ADMIN);
-    public isRole: (role_translatable_name: string) => Promise<boolean> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_IS_ROLE);
-    public getMyRoles: () => Promise<RoleVO[]> = ModuleAPI.sah(ModuleAccessPolicy.APINAME_GET_MY_ROLES);
+    public checkAccess: (policy_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_CHECK_ACCESS);
+    public beginRecover: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER);
+    public beginRecoverSMS: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS);
+    public resetPwd: (email: string, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWD);
+    public resetPwdUID: (uid: number, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWDUID);
+    public checkCode: (email: string, challenge: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_checkCode);
+    public checkCodeUID: (uid: number, challenge: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_checkCodeUID);
+    public isAdmin: () => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_IS_ADMIN);
+    public isRole: (role_translatable_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_IS_ROLE);
+    public getMyRoles: () => Promise<RoleVO[]> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_MY_ROLES);
 
     private constructor() {
 
@@ -123,148 +123,148 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_IS_ADMIN,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
             null,
             ModuleAccessPolicy.APINAME_getSelfUser,
             [UserVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_IS_ROLE,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
             null,
             ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
             [AccessPolicyVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID],
             BooleanParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
             null,
             ModuleAccessPolicy.APINAME_GET_MY_ROLES,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, number>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, number>(
             null,
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID,
             [UserVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, string>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, string>(
             null,
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME,
             [UserVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, LangVO>(
             null,
             ModuleAccessPolicy.APINAME_getMyLang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwdsms,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwd,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwd_uid,
             [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_RESET_PWD,
             [UserVO.API_TYPE_ID],
             ResetPwdParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_RESET_PWDUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_checkCode,
             [UserVO.API_TYPE_ID],
             ResetPwdParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_checkCodeUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_TOGGLE_ACCESS,
             [RolePolicyVO.API_TYPE_ID],
             ToggleAccessParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_impersonateLogin,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
             null,
             ModuleAccessPolicy.APINAME_change_lang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],

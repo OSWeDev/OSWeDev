@@ -2,7 +2,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
@@ -115,9 +115,9 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {

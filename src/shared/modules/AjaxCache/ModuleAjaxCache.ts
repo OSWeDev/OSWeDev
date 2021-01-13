@@ -1,11 +1,9 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ConsoleHandler from '../../tools/ConsoleHandler';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import IAjaxCacheClientController from './interfaces/IAjaxCacheClientController';
 import LightWeightSendableRequestVO from './vos/LightWeightSendableRequestVO';
-import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 
 
 
@@ -17,10 +15,7 @@ export default class ModuleAjaxCache extends Module {
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAjaxCache.MODULE_NAME + ".FO_ACCESS";
 
-    public static MSGPACK_REQUEST_TYPE: string = 'application/x-msgpack; charset=utf-8';
-
     public static APINAME_REQUESTS_WRAPPER: string = "REQUESTS_WRAPPER";
-    public static POST_UID: number = 1;
 
     public static getInstance(): ModuleAjaxCache {
         if (!ModuleAjaxCache.instance) {
@@ -56,23 +51,8 @@ export default class ModuleAjaxCache extends Module {
         this.client_controller = client_controller;
     }
 
-    public getUIDIndex(url: string, postdatas: any, type: number): string {
-        try {
-            switch (type) {
-                case RequestResponseCacheVO.API_TYPE_GET:
-                    return url;
-                case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
-                    return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
-                case RequestResponseCacheVO.API_TYPE_POST:
-                    return url + (postdatas ? '##___##' + (ModuleAjaxCache.POST_UID++) : '');
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
-        }
-    }
-
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LightWeightSendableRequestVO[], LightWeightSendableRequestVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LightWeightSendableRequestVO[], LightWeightSendableRequestVO>(
             null,
             ModuleAjaxCache.APINAME_REQUESTS_WRAPPER,
             []

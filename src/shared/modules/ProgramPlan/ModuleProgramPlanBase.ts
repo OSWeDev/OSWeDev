@@ -1,6 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
@@ -67,9 +67,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
     get RDV_STATE_PREP_OK(): number { return 2; }
     get RDV_STATE_CR_OK(): number { return 3; }
 
-    public getRDVsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDV[]> = ModuleAPI.sah(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT);
-    public getCRsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVCR[]> = ModuleAPI.sah(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT);
-    public getPrepsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVPrep[]> = ModuleAPI.sah(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT);
+    public getRDVsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDV[]> = APIControllerWrapper.sah(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT);
+    public getCRsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVCR[]> = APIControllerWrapper.sah(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT);
+    public getPrepsOfProgramSegment: (program_id: number, timeSegment: TimeSegment) => Promise<IPlanRDVPrep[]> = APIControllerWrapper.sah(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT);
 
     protected constructor(
         name: string,
@@ -145,14 +145,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     public registerApis() {
         let self = this;
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
             null,
             self.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
             () => [self.rdv_type_id],
             ProgramSegmentParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
             null,
             self.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
             () => [self.rdv_type_id, self.rdv_cr_type_id],
@@ -160,7 +160,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         ));
 
         if (!!this.rdv_prep_type_id) {
-            ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
+            APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
                 null,
                 self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
                 () => [self.rdv_type_id, self.rdv_prep_type_id],

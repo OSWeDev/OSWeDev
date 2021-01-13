@@ -1,4 +1,4 @@
-import ModuleAPI from '../../API/ModuleAPI';
+import APIControllerWrapper from '../../API/APIControllerWrapper';
 import NumberAndStringParamVO, { NumberAndStringParamVOStatic } from '../../API/vos/apis/NumberAndStringParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
@@ -37,45 +37,45 @@ export default class ModuleCommande extends Module {
     private static instance: ModuleCommande = null;
 
 
-    public getParamLigneCommandeById: (ligneId: number, vo_type_param: string) => Promise<ParamLigneCommandeVO> = ModuleAPI.sah(ModuleCommande.APINAME_getParamLigneCommandeById);
-    public getCommandesUser: (userId: number) => Promise<CommandeVO[]> = ModuleAPI.sah(ModuleCommande.APINAME_getCommandesUser);
-    public getLignesCommandeByCommandeId: (commandeId: number) => Promise<LigneCommandeVO[]> = ModuleAPI.sah(ModuleCommande.APINAME_getLignesCommandeByCommandeId);
-    public creationPanier: () => Promise<CommandeVO> = ModuleAPI.sah(ModuleCommande.APINAME_creationPanier);
+    public getParamLigneCommandeById: (ligneId: number, vo_type_param: string) => Promise<ParamLigneCommandeVO> = APIControllerWrapper.sah(ModuleCommande.APINAME_getParamLigneCommandeById);
+    public getCommandesUser: (userId: number) => Promise<CommandeVO[]> = APIControllerWrapper.sah(ModuleCommande.APINAME_getCommandesUser);
+    public getLignesCommandeByCommandeId: (commandeId: number) => Promise<LigneCommandeVO[]> = APIControllerWrapper.sah(ModuleCommande.APINAME_getLignesCommandeByCommandeId);
+    public creationPanier: () => Promise<CommandeVO> = APIControllerWrapper.sah(ModuleCommande.APINAME_creationPanier);
 
     private constructor() {
         super(CommandeVO.API_TYPE_ID, 'Commande', 'Commerce/Commande');
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, CommandeVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, CommandeVO[]>(
             null,
             ModuleCommande.APINAME_getCommandesUser,
             [CommandeVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, LigneCommandeVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, LigneCommandeVO[]>(
             null,
             ModuleCommande.APINAME_getLignesCommandeByCommandeId,
             [LigneCommandeVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ProduitsParamLignesParamVO, CommandeVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ProduitsParamLignesParamVO, CommandeVO>(
             null,
             ModuleCommande.APINAME_ajouterAuPanier,
             [CommandeVO.API_TYPE_ID],
             ProduitsParamLignesParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberAndStringParamVO, ParamLigneCommandeVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberAndStringParamVO, ParamLigneCommandeVO>(
             null,
             ModuleCommande.APINAME_getParamLigneCommandeById,
             [],
             NumberAndStringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<null, CommandeVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<null, CommandeVO>(
             null,
             ModuleCommande.APINAME_creationPanier,
             [CommandeVO.API_TYPE_ID],

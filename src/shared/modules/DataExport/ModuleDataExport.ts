@@ -1,7 +1,7 @@
 import IExportableSheet from '../../../server/modules/DataExport/interfaces/IExportableSheet';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -40,7 +40,7 @@ export default class ModuleDataExport extends Module {
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string
-    ) => Promise<string> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
+    ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
     public exportDataToXLSXFile: (
         filename: string,
         datas: any[],
@@ -48,19 +48,19 @@ export default class ModuleDataExport extends Module {
         column_labels: { [field_name: string]: string },
         api_type_id: string,
         is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<FileVO> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
+        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
     public exportDataToMultiSheetsXLSX: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
         is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<string> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
+        file_access_policy_name?: string) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
     public exportDataToMultiSheetsXLSXFile: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
         is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<FileVO> = ModuleAPI.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile);
+        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile);
 
     private constructor() {
         super("data_export", "DataExport");
@@ -76,27 +76,27 @@ export default class ModuleDataExport extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
             [],
             ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile,
             [FileVO.API_TYPE_ID],
             ExportDataToXLSXParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO,
             [],
             ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile,
             [FileVO.API_TYPE_ID],

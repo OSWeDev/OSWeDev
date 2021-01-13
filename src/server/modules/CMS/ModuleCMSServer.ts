@@ -2,6 +2,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import ModuleCMS from '../../../shared/modules/CMS/ModuleCMS';
@@ -30,8 +31,8 @@ export default class ModuleCMSServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
     }
 
     /**

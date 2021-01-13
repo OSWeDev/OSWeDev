@@ -1,5 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
@@ -29,7 +29,7 @@ export default class ModuleVocus extends Module {
      * @param API_TYPE_ID
      * @param id
      */
-    public getVosRefsById: (API_TYPE_ID: string, id: number) => Promise<VocusInfoVO[]> = ModuleAPI.sah(ModuleVocus.APINAME_getVosRefsById);
+    public getVosRefsById: (API_TYPE_ID: string, id: number) => Promise<VocusInfoVO[]> = APIControllerWrapper.sah(ModuleVocus.APINAME_getVosRefsById);
 
     private constructor() {
 
@@ -39,7 +39,7 @@ export default class ModuleVocus extends Module {
 
     public registerApis() {
         // cas particulier d'une interface qui dépend de tous les types potentiellement
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, VocusInfoVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, VocusInfoVO[]>(
             ModuleVocus.POLICY_BO_ACCESS,
             ModuleVocus.APINAME_getVosRefsById,
             Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType),

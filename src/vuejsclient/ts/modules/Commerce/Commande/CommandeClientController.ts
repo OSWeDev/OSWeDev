@@ -1,8 +1,7 @@
-import ModuleAPI from "../../../../../shared/modules/API/ModuleAPI";
-import ProduitParamLigneParamVO from '../../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
-import ProduitsParamLignesParamVO from '../../../../../shared/modules/Commerce/Produit/vos/apis/ProduitsParamLignesParamVO';
-import CommandeVO from '../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
+import APIControllerWrapper from "../../../../../shared/modules/API/APIControllerWrapper";
 import ModuleCommande from '../../../../../shared/modules/Commerce/Commande/ModuleCommande';
+import CommandeVO from '../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
+import ProduitParamLigneParamVO from '../../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
 import AjaxCacheClientController from "../../AjaxCache/AjaxCacheClientController";
 
 export default class CommandeClientController {
@@ -18,7 +17,7 @@ export default class CommandeClientController {
 
     public async ajouterAuPanier(produitsParam: ProduitParamLigneParamVO[]): Promise<CommandeVO> {
         let panier: CommandeVO = await this.getPanierEnCours();
-        return ModuleAPI.sah(ModuleCommande.APINAME_ajouterAuPanier, produitsParam, panier);
+        return await APIControllerWrapper.sah(ModuleCommande.APINAME_ajouterAuPanier)(produitsParam, panier) as CommandeVO;
     }
 
     public async getPanierEnCours(): Promise<CommandeVO> {

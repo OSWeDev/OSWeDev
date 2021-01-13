@@ -1,5 +1,3 @@
-import { ChildProcess } from 'child_process';
-import { Server, Socket } from 'net';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';

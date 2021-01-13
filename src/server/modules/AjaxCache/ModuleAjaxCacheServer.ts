@@ -31,7 +31,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
     }
 
     /**
@@ -67,8 +67,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
-                for (let j in ModuleAPI.getInstance().registered_apis) {
-                    let registered_api = ModuleAPI.getInstance().registered_apis[j];
+                for (let j in APIControllerWrapper.getInstance().registered_apis) {
+                    let registered_api = APIControllerWrapper.getInstance().registered_apis[j];
                     if (APIControllerWrapper.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getInstance().getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;

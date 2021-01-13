@@ -1,7 +1,7 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -22,6 +22,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
+import TranslationsServerController from './TranslationsServerController';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -590,16 +591,16 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
@@ -628,53 +629,6 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {
         return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, text_id]);
-    }
-
-    public addCodeToLocales(ALL_LOCALES: { [code_lang: string]: any }, code_lang: string, code_text: string, translated: string): { [code_lang: string]: any } {
-
-        if (!ALL_LOCALES) {
-            ALL_LOCALES = {};
-        }
-
-        if ((!code_lang) || (!code_text)) {
-            return ALL_LOCALES;
-        }
-
-        if (!translated) {
-            translated = "";
-        }
-
-        let tmp_code_text_segs: string[] = code_text.split('.');
-        let code_text_segs: string[] = [];
-
-        for (let i in tmp_code_text_segs) {
-            if (tmp_code_text_segs[i] && (tmp_code_text_segs[i] != "")) {
-                code_text_segs.push(tmp_code_text_segs[i]);
-            }
-        }
-
-        if (!ALL_LOCALES[code_lang]) {
-            ALL_LOCALES[code_lang] = {};
-        }
-
-        let locale_pointer = ALL_LOCALES[code_lang];
-        for (let i in code_text_segs) {
-            let code_text_seg = code_text_segs[i];
-
-            if (parseInt(i.toString()) == (code_text_segs.length - 1)) {
-
-                locale_pointer[code_text_seg] = translated;
-                break;
-            }
-
-            if (!locale_pointer[code_text_seg]) {
-                locale_pointer[code_text_seg] = {};
-            }
-
-            locale_pointer = locale_pointer[code_text_seg];
-        }
-
-        return ALL_LOCALES;
     }
 
     private async trigger_oncreate_lang(lang: LangVO) {
@@ -713,7 +667,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
                     continue;
                 }
 
-                res = this.addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+                res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
             }
         }
         return res;

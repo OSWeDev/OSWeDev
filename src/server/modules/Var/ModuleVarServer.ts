@@ -2,7 +2,7 @@ import { Duration, Moment } from 'moment';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
@@ -479,23 +479,23 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
     }
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();
@@ -564,53 +564,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
 
-    public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
-
-        let varsdata: VarDataBaseVO[] = await VarsDatasProxy.getInstance().get_exact_params_from_buffer_or_bdd(params);
-
-        if (varsdata) {
-
-            varsdata.forEach((vardata) => {
-                if (VarsServerController.getInstance().has_valid_value(vardata)) {
-                    notifyable_vars.push(vardata);
-                }
-            });
-        }
-
-        if ((!varsdata) || (varsdata.length != params.length)) {
-
-            /**
-             * On doit chercher les datas manquantes, et les prepend sur le proxy
-             */
-            let vars_datas_by_index: { [index: string]: VarDataBaseVO } = {};
-            if (varsdata) {
-                varsdata.forEach((vardata) => {
-                    vars_datas_by_index[vardata.index] = vardata;
-                });
-            }
-
-            let to_prepend: VarDataBaseVO[] = [];
-            for (let i in params) {
-                let param = params[i];
-
-                let vardata = vars_datas_by_index[param.index];
-                if (vardata) {
-                    continue;
-                }
-
-                // On a rien en base, on le crée et on attend le résultat
-                param.value_ts = null;
-                param.value = null;
-                param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-
-                to_prepend.push(param);
-                needs_computation.push(param);
-            }
-
-            // On push dans le buffer de mise à jour de la BDD
-            VarsDatasProxy.getInstance().prepend_var_datas(to_prepend);
-        }
-    }
 
     // public async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
 
@@ -738,7 +691,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let notifyable_vars: VarDataBaseVO[] = [];
         let needs_computation: VarDataBaseVO[] = [];
 
-        await ModuleVarServer.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
+        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
 
         if (notifyable_vars && notifyable_vars.length) {
             let vars_to_notif: VarDataValueResVO[] = [];

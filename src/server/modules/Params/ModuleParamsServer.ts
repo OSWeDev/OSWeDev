@@ -3,7 +3,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
@@ -37,9 +37,9 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue, this.setParamValue.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue_if_not_exists, this.setParamValue_if_not_exists.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue, this.setParamValue.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue_if_not_exists, this.setParamValue_if_not_exists.bind(this));
     }
 
     /**

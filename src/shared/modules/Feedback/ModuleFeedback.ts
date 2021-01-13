@@ -1,6 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -31,7 +31,7 @@ export default class ModuleFeedback extends Module {
 
     private static instance: ModuleFeedback = null;
 
-    public feedback: (feedback: FeedbackVO) => Promise<boolean> = ModuleAPI.sah(ModuleFeedback.APINAME_feedback);
+    public feedback: (feedback: FeedbackVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleFeedback.APINAME_feedback);
 
     private constructor() {
 
@@ -41,7 +41,7 @@ export default class ModuleFeedback extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
             ModuleFeedback.POLICY_FO_ACCESS,
             ModuleFeedback.APINAME_feedback,
             [FeedbackVO.API_TYPE_ID],

@@ -1,5 +1,5 @@
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import GeneratePdfParamVO, { GeneratePdfParamVOStatic } from './params/GeneratePdfParamVO';
@@ -25,14 +25,14 @@ export default class ModuleGeneratePDF extends Module {
      * @param save_to_desktop Forcer la sauvegarde sur l'ordinateur du client
      * @param options Options du PDF : default { encoding: 'utf-8' }
      */
-    public generatePDF: (sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options?: {}) => Promise<string> = ModuleAPI.sah(ModuleGeneratePDF.APINAME_generatePDF);
+    public generatePDF: (sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options?: {}) => Promise<string> = APIControllerWrapper.sah(ModuleGeneratePDF.APINAME_generatePDF);
 
     private constructor() {
         super("generate_pdf", 'GeneratePDF');
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<GeneratePdfParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<GeneratePdfParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleGeneratePDF.APINAME_generatePDF,
             [],

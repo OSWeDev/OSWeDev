@@ -1,4 +1,4 @@
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
@@ -26,10 +26,10 @@ export default class ModuleDataRender extends Module {
 
     private static instance: ModuleDataRender = null;
 
-    public getDataRenderers: () => Promise<DataRendererVO[]> = ModuleAPI.sah(ModuleDataRender.APINAME_GET_DATA_RENDERERS);
-    public getDataRenderer: (renderer_name: string) => Promise<DataRendererVO> = ModuleAPI.sah(ModuleDataRender.APINAME_GET_DATA_RENDERER);
-    public getDataRenderingLogs: () => Promise<DataRenderingLogVO[]> = ModuleAPI.sah(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS);
-    public getLatestAvailableSegment: (api_name: string) => Promise<TimeSegment> = ModuleAPI.sah(ModuleDataRender.APINAME_getLatestAvailableSegment);
+    public getDataRenderers: () => Promise<DataRendererVO[]> = APIControllerWrapper.sah(ModuleDataRender.APINAME_GET_DATA_RENDERERS);
+    public getDataRenderer: (renderer_name: string) => Promise<DataRendererVO> = APIControllerWrapper.sah(ModuleDataRender.APINAME_GET_DATA_RENDERER);
+    public getDataRenderingLogs: () => Promise<DataRenderingLogVO[]> = APIControllerWrapper.sah(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS);
+    public getLatestAvailableSegment: (api_name: string) => Promise<TimeSegment> = APIControllerWrapper.sah(ModuleDataRender.APINAME_getLatestAvailableSegment);
 
     private constructor() {
 
@@ -39,23 +39,23 @@ export default class ModuleDataRender extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRendererVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DataRendererVO[]>(
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERERS,
             [DataRendererVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataRendererVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataRendererVO>(
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERER,
             [DataRendererVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS,
             [DataRenderingLogVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TimeSegment>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TimeSegment>(
             null,
             ModuleDataRender.APINAME_getLatestAvailableSegment,
             [DataRendererVO.API_TYPE_ID],

@@ -114,6 +114,9 @@ export default class CheckListComponent extends VueComponentBase {
         if (this.checklistitems[vo.id].archived) {
             delete this.checklistitems[vo.id];
         }
+        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+            this.checklistitems = {};
+        }
     }
 
     private mounted() {
@@ -131,6 +134,14 @@ export default class CheckListComponent extends VueComponentBase {
         });
     }
 
+    get has_checklistitems() {
+        if (!this.checklistitems) {
+            return false;
+        }
+
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems);
+    }
+
     private async loading() {
         let self = this;
         let promises = [];
@@ -144,7 +155,8 @@ export default class CheckListComponent extends VueComponentBase {
         promises.push((async () => {
             let items = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItem>(
                 self.checklist_shared_module.checklistitem_type_id, 'checklist_id', [self.list_id]);
-            checklistitems = VOsTypesManager.getInstance().vosArray_to_vosByIds(items.filter((e) => !e.archived));
+            items = items.filter((e) => !e.archived);
+            checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
@@ -261,6 +273,15 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {
-        await ModuleDAO.getInstance().deleteVOs([item]);
+        let res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([item]);
+        if ((!res) || (!res.length) || (!res[0]) || (!res[0].id)) {
+            this.snotify.error(this.label('CheckListComponent.deleteSelectedItem.failed'));
+            return;
+        }
+        delete this.checklistitems[item.id];
+        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+            this.checklistitems = {};
+        }
+        this.$router.push(this.global_route_path + '/' + this.list_id);
     }
 }

@@ -6,7 +6,7 @@ include ../../../views/mixins/loading.pug
             .col-md-2
                 button.btn.btn-primary(type='button', @click="createNew") {{ label('checklist.createNew') }}
 
-        .row
+        .row(v-if='has_checklistitems')
             .col-md-12
                 table.table-striped.table-hover
                     thead
@@ -35,6 +35,7 @@ include ../../../views/mixins/loading.pug
                         :checklist_item='selected_checklist_item'
                         :checkpoint='selected_checkpoint'
                         :checklist_controller='checklist_controller'
+                        :ordered_checkpoints='ordered_checkpoints' 
                         :key='selected_checklist_item.id')
 
                 .modal-footer

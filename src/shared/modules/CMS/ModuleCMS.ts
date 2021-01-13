@@ -1,5 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import URLHandler from '../../tools/URLHandler';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -48,7 +49,7 @@ export default class ModuleCMS extends Module {
      * ----- Local thread cache
      */
 
-    public getPageComponents: (page_id: number) => Promise<IInstantiatedPageComponent[]> = ModuleAPI.sah(ModuleCMS.APINAME_getPageComponents);
+    public getPageComponents: (page_id: number) => Promise<IInstantiatedPageComponent[]> = APIControllerWrapper.sah(ModuleCMS.APINAME_getPageComponents);
 
     private constructor() {
 
@@ -56,7 +57,7 @@ export default class ModuleCMS extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleCMS.APINAME_getPageComponents,
             (param: NumberParamVO) => {
@@ -72,7 +73,7 @@ export default class ModuleCMS extends Module {
             NumberParamVOStatic
         ));
 
-        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
+        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
         //     null,
         //     ModuleCMS.APINAME_registerTemplateComponent,
         //     [TemplateComponentVO.API_TYPE_ID]
@@ -86,7 +87,7 @@ export default class ModuleCMS extends Module {
     //  * @param templateComponent description of the templateComponent to recover/register
     //  */
     // public async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
-    //     let res: TemplateComponentVO = await ModuleAPI.sah(ModuleCMS.APINAME_registerTemplateComponent, templateComponent);
+    //     let res: TemplateComponentVO = await APIControllerWrapper.sah(ModuleCMS.APINAME_registerTemplateComponent, templateComponent);
 
     //     if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
     //         ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;

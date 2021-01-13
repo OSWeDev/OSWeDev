@@ -1,5 +1,4 @@
 import IAPIController from '../../../shared/modules/API/interfaces/IAPIController';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 
 export default class ServerAPIController implements IAPIController {
@@ -18,10 +17,11 @@ export default class ServerAPIController implements IAPIController {
         api_name: string,
         sanitize_params: (...params) => any[] = null,
         precondition: (...params) => boolean = null,
-        precondition_default_value: any = null): (...params) => Promise<U> {
+        precondition_default_value: any = null,
+        registered_apis: { [api_name: string]: APIDefinition<any, any> } = {}): (...params) => Promise<U> {
 
         return async (...params) => {
-            let apiDefinition: APIDefinition<T, U> = ModuleAPI.getInstance().registered_apis[api_name];
+            let apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
 
             if ((!apiDefinition) || !apiDefinition.SERVER_HANDLER) {
 

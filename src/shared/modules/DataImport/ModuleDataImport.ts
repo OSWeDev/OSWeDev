@@ -1,7 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -77,13 +77,13 @@ export default class ModuleDataImport extends Module {
 
     private static instance: ModuleDataImport = null;
 
-    public reimportdih: (dih: DataImportHistoricVO) => Promise<void> = ModuleAPI.sah(ModuleDataImport.APINAME_reimportdih);
-    public getDataImportHistorics: (data_import_format_id: number) => Promise<DataImportHistoricVO[]> = ModuleAPI.sah(ModuleDataImport.APINAME_getDataImportHistorics);
-    public getDataImportHistoric: (historic_id: number) => Promise<DataImportHistoricVO> = ModuleAPI.sah(ModuleDataImport.APINAME_getDataImportHistoric);
-    public getDataImportLogs: (data_import_format_id: number) => Promise<DataImportLogVO[]> = ModuleAPI.sah(ModuleDataImport.APINAME_getDataImportLogs);
-    public getDataImportFiles: () => Promise<DataImportFormatVO[]> = ModuleAPI.sah(ModuleDataImport.APINAME_getDataImportFiles);
-    public getDataImportFile: (import_uid: string) => Promise<DataImportFormatVO> = ModuleAPI.sah(ModuleDataImport.APINAME_getDataImportFile);
-    public getDataImportColumnsFromFormatId: (data_import_format_id: number) => Promise<DataImportColumnVO[]> = ModuleAPI.sah(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId);
+    public reimportdih: (dih: DataImportHistoricVO) => Promise<void> = APIControllerWrapper.sah(ModuleDataImport.APINAME_reimportdih);
+    public getDataImportHistorics: (data_import_format_id: number) => Promise<DataImportHistoricVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportHistorics);
+    public getDataImportHistoric: (historic_id: number) => Promise<DataImportHistoricVO> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportHistoric);
+    public getDataImportLogs: (data_import_format_id: number) => Promise<DataImportLogVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportLogs);
+    public getDataImportFiles: () => Promise<DataImportFormatVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFiles);
+    public getDataImportFile: (import_uid: string) => Promise<DataImportFormatVO> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFile);
+    public getDataImportColumnsFromFormatId: (data_import_format_id: number) => Promise<DataImportColumnVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId);
 
     private constructor() {
 
@@ -93,41 +93,41 @@ export default class ModuleDataImport extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<DataImportHistoricVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<DataImportHistoricVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_reimportdih,
             [DataImportHistoricVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportHistorics,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportHistoric,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportLogVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportLogs,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFormatVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DataImportFormatVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportFormatVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportFiles,
             [DataImportFormatVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFormatVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFormatVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportFormatVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportFile,
             [DataImportFormatVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportColumnVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportColumnsFromFormatId,
             [DataImportColumnVO.API_TYPE_ID],

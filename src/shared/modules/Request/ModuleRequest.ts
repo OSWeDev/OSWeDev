@@ -1,4 +1,4 @@
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import SendRequestParamVO, { SendRequestParamVOStatic } from './vos/SendRequestParamVO';
@@ -27,7 +27,7 @@ export default class ModuleRequest extends Module {
         path: string,
         posts: {},
         headers: {},
-        sendHttps: boolean) => Promise<any> = ModuleAPI.sah(ModuleRequest.APINAME_sendRequestFromApp);
+        sendHttps: boolean) => Promise<any> = APIControllerWrapper.sah(ModuleRequest.APINAME_sendRequestFromApp);
 
     private constructor() {
 
@@ -42,7 +42,7 @@ export default class ModuleRequest extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
             null,
             ModuleRequest.APINAME_sendRequestFromApp,
             [],

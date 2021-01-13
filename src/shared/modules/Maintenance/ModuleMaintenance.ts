@@ -1,5 +1,5 @@
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -41,9 +41,9 @@ export default class ModuleMaintenance extends Module {
 
     private static instance: ModuleMaintenance = null;
 
-    public start_maintenance: (validation_code: string) => Promise<void> = ModuleAPI.sah(ModuleMaintenance.APINAME_START_MAINTENANCE);
-    public end_maintenance: (maintenance_vo_id: number) => Promise<void> = ModuleAPI.sah(ModuleMaintenance.APINAME_END_MAINTENANCE);
-    public end_planned_maintenance: () => Promise<void> = ModuleAPI.sah(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
+    public start_maintenance: (validation_code: string) => Promise<void> = APIControllerWrapper.sah(ModuleMaintenance.APINAME_START_MAINTENANCE);
+    public end_maintenance: (maintenance_vo_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleMaintenance.APINAME_END_MAINTENANCE);
+    public end_planned_maintenance: () => Promise<void> = APIControllerWrapper.sah(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
 
     private constructor() {
 
@@ -53,18 +53,18 @@ export default class ModuleMaintenance extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, void>(
             null,
             ModuleMaintenance.APINAME_START_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],

@@ -32,7 +32,6 @@ export default class VarDescExplainDsComponent extends VueComponentBase {
         try {
             return this.translate_moments_to_date(JSON.parse(this.ds_data_jsoned));
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
         }
         return this.ds_data_jsoned;
     }

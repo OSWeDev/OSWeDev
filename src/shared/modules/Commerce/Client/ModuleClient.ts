@@ -1,5 +1,5 @@
 import UserVO from '../../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../../API/ModuleAPI';
+import APIControllerWrapper from '../../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import ModuleDAO from '../../DAO/ModuleDAO';
@@ -23,21 +23,21 @@ export default class ModuleClient extends Module {
 
     private static instance: ModuleClient = null;
 
-    public getInformationsClientUser: (userId: number) => Promise<InformationsVO> = ModuleAPI.sah(ModuleClient.APINAME_getInformationsClientUser);
-    public getClientsByUserId: (userId: number) => Promise<ClientVO[]> = ModuleAPI.sah(ModuleClient.APINAME_getClientsByUserId);
+    public getInformationsClientUser: (userId: number) => Promise<InformationsVO> = APIControllerWrapper.sah(ModuleClient.APINAME_getInformationsClientUser);
+    public getClientsByUserId: (userId: number) => Promise<ClientVO[]> = APIControllerWrapper.sah(ModuleClient.APINAME_getClientsByUserId);
 
     private constructor() {
         super(ClientVO.API_TYPE_ID, 'Client', 'Commerce/Client');
     }
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
             null,
             ModuleClient.APINAME_getInformationsClientUser,
             [InformationsVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
             null,
             ModuleClient.APINAME_getClientsByUserId,
             [ClientVO.API_TYPE_ID],

@@ -1,4 +1,5 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
@@ -23,8 +24,8 @@ export default class ModuleClientServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
     }
 
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {

@@ -1,6 +1,6 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ForkedTasksController from '../Fork/ForkedTasksController';
-import ModuleVarServer from './ModuleVarServer';
+import VarsDatasProxy from './VarsDatasProxy';
 
 export default class VarsServerCallBackSubsController {
 
@@ -71,7 +71,7 @@ export default class VarsServerCallBackSubsController {
                 self._cb_subs[param.index].push(cb);
             }
 
-            await ModuleVarServer.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
+            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
 
             if (notifyable_vars && notifyable_vars.length) {
                 this.notify_vardatas(notifyable_vars);
@@ -101,7 +101,7 @@ export default class VarsServerCallBackSubsController {
             }
             self._cb_subs[param.index].push(resolve);
 
-            await ModuleVarServer.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation);
+            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation);
 
             if (notifyable_vars && notifyable_vars.length) {
                 this.notify_vardatas(notifyable_vars);

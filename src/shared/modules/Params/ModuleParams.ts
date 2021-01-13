@@ -1,5 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -30,9 +30,9 @@ export default class ModuleParams extends Module {
 
     private static instance: ModuleParams = null;
 
-    public getParamValue: (param_name: string) => Promise<string> = ModuleAPI.sah(ModuleParams.APINAME_getParamValue);
-    public setParamValue: (param_name: string, param_value: string) => Promise<void> = ModuleAPI.sah(ModuleParams.APINAME_setParamValue);
-    public setParamValue_if_not_exists: (param_name: string, param_value: string) => Promise<void> = ModuleAPI.sah(ModuleParams.APINAME_setParamValue_if_not_exists);
+    public getParamValue: (param_name: string) => Promise<string> = APIControllerWrapper.sah(ModuleParams.APINAME_getParamValue);
+    public setParamValue: (param_name: string, param_value: string) => Promise<void> = APIControllerWrapper.sah(ModuleParams.APINAME_setParamValue);
+    public setParamValue_if_not_exists: (param_name: string, param_value: string) => Promise<void> = APIControllerWrapper.sah(ModuleParams.APINAME_setParamValue_if_not_exists);
 
     private constructor() {
 
@@ -42,21 +42,21 @@ export default class ModuleParams extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, string>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValue,
             [ParamVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue,
             [ParamVO.API_TYPE_ID],
             SetParamParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue_if_not_exists,
             [ParamVO.API_TYPE_ID],

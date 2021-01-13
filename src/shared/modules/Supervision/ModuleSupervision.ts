@@ -1,5 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
@@ -25,7 +25,7 @@ export default class ModuleSupervision extends Module {
 
     private static instance: ModuleSupervision = null;
 
-    public execute_manually: (api_type_id: string) => void = ModuleAPI.sah(ModuleSupervision.APINAME_execute_manually);
+    public execute_manually: (api_type_id: string) => void = APIControllerWrapper.sah(ModuleSupervision.APINAME_execute_manually);
 
     private constructor() {
 
@@ -34,7 +34,7 @@ export default class ModuleSupervision extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleSupervision.POLICY_BO_ACCESS,
             ModuleSupervision.APINAME_execute_manually,
             (param: StringParamVO) => [param.text],

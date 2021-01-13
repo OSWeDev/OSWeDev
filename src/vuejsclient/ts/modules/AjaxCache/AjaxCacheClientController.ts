@@ -2,8 +2,8 @@ import debounce from 'lodash/debounce';
 import { decode, encode } from 'messagepack';
 import * as moment from 'moment';
 import { Duration } from 'moment';
+import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';
 import CacheInvalidationRulesVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import LightWeightSendableRequestVO from '../../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
@@ -88,7 +88,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         return new Promise((resolve, reject) => {
 
             // If in cache
-            let UIDindex = ModuleAjaxCache.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
+            let UIDindex = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
             if (self.cache.requestResponseCaches[UIDindex]) {
 
                 let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[UIDindex];
@@ -190,7 +190,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.invalidateCachesFromApiTypesInvolved(api_types_involved);
             }
 
-            if (contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+            if (contentType == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
 
                 let prepared_postdatas = this.prepare_for_encoding(postdatas);
                 var buffer = encode(prepared_postdatas);
@@ -333,7 +333,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         timeout: number,
         api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void, type: number = RequestResponseCacheVO.API_TYPE_GET) {
 
-        let index = ModuleAjaxCache.getInstance().getUIDIndex(url, postdatas, type);
+        let index = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, type);
         if (!this.cache.requestResponseCaches[index]) {
             this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(apiDefinition, url, api_types_involved, type);
             this.cache.requestResponseCaches[index].postdatas = postdatas;
@@ -531,7 +531,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     let request = requests[i];
 
                     request.index = i.toString();
-                    correspondance[i.toString()] = ModuleAjaxCache.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+                    correspondance[i.toString()] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
 
                     let light_weight = new LightWeightSendableRequestVO(request);
                     sendable_objects.push(light_weight);
@@ -551,7 +551,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         "/api_handler/requests_wrapper", [],
                         (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
                         null, null, false, true) as RequestsWrapperResult;
 
                     if ((!results) || (!results.requests_results)) {
@@ -593,7 +593,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             switch (request.type) {
                 case RequestResponseCacheVO.API_TYPE_GET:
 
-                    if (request.contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                    if (request.contentType == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
 
                         const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
                         axios.get(

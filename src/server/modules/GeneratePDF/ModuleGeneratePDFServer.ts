@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as wkhtmltopdf from 'wkhtmltopdf';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
 import ModuleServerBase from '../ModuleServerBase';
@@ -23,7 +23,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
     public async configure() { }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
     }
 
     public async generatePDF(sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options: {} = { encoding: 'utf-8' }): Promise<string> {

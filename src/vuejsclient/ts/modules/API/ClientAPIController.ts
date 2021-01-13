@@ -1,9 +1,8 @@
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import CacheInvalidationRulesVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import IAPIController from '../../../../shared/modules/API/interfaces/IAPIController';
 import IAPIParamTranslator from '../../../../shared/modules/API/interfaces/IAPIParamTranslator';
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
@@ -23,11 +22,12 @@ export default class ClientAPIController implements IAPIController {
         api_name: string,
         sanitize_params: (...params) => any[] = null,
         precondition: (...params) => boolean = null,
-        precondition_default_value: any = null): (...params) => Promise<U> {
+        precondition_default_value: any = null,
+        registered_apis: { [api_name: string]: APIDefinition<any, any> } = {}): (...params) => Promise<U> {
 
         return async (...params) => {
 
-            let apiDefinition: APIDefinition<T, U> = ModuleAPI.getInstance().registered_apis[api_name];
+            let apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
 
             if (!apiDefinition) {
 
@@ -47,7 +47,7 @@ export default class ClientAPIController implements IAPIController {
     }
 
     private async handleAPI<T extends IAPIParamTranslator<T>, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<U> {
-        let translated_param: IAPIParamTranslator<T> = ModuleAPI.getInstance().translate_param(apiDefinition, ...api_params);
+        let translated_param: IAPIParamTranslator<T> = APIControllerWrapper.getInstance().translate_param(apiDefinition, ...api_params);
         let api_name = apiDefinition.api_name;
 
         let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
@@ -68,7 +68,7 @@ export default class ClientAPIController implements IAPIController {
                     apiDefinition,
                     (APIControllerWrapper.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
                     API_TYPES_IDS_involved,
-                    (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
+                    (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as U;
                 break;
 
             case APIDefinition.API_TYPE_POST_FOR_GET:
@@ -79,7 +79,7 @@ export default class ClientAPIController implements IAPIController {
                     API_TYPES_IDS_involved,
                     ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : null,
                     null,
-                    (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
+                    (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
                     null,
                     null,
                     true) as U;
@@ -94,7 +94,7 @@ export default class ClientAPIController implements IAPIController {
                         API_TYPES_IDS_involved,
                         ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : null,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as string;
 
                     const { default: $ } = await import(/* webpackChunkName: "jquery" */ 'jquery');
 
@@ -108,7 +108,7 @@ export default class ClientAPIController implements IAPIController {
                         API_TYPES_IDS_involved,
                         ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : null,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as U;
                 }
         }
 

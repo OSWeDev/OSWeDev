@@ -81,7 +81,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return true;
         }
 
-        return typeof this.var_data.value === 'undefined';
+        return (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
     }
 
     get filtered_value() {

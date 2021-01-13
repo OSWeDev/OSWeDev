@@ -80,7 +80,7 @@ export default class VarDataSumComponent extends VueComponentBase {
 
         for (let i in this.var_datas) {
             let var_data = this.var_datas[i];
-            if (typeof var_data.value === 'undefined') {
+            if ((!var_data) || (typeof var_data.value === 'undefined') || var_data.is_computing) {
                 return true;
             }
         }

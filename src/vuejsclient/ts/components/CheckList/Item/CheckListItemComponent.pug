@@ -8,14 +8,18 @@ tr.checklistitem
         .step_wrapper(:class='{disabled:state_steps[checkpoint.name] == STATE_DISABLED}' @click='openmodal(checkpoint.name, checkpoint.id)' v-tooltip.top='checkpoint_descriptions[checkpoint.id]')
             template(v-if='state_steps[checkpoint.name] == STATE_DISABLED')
                 i.text-muted.fa.fa-check-circle.fa-fw(aria-hidden="true")
-            template(v-if='state_steps[checkpoint.name] == STATE_TODO')
+            template(v-else-if='state_steps[checkpoint.name] == STATE_TODO')
                 i.text-default.fa.fa-check-circle.fa-fw(aria-hidden="true")
-            template(v-if='state_steps[checkpoint.name] == STATE_ERROR')
+            template(v-else-if='state_steps[checkpoint.name] == STATE_ERROR')
                 i.text-danger.fa.fa-check-circle.fa-fw(aria-hidden="true")
-            template(v-if='state_steps[checkpoint.name] == STATE_WARN')
+            template(v-else-if='state_steps[checkpoint.name] == STATE_WARN')
                 i.text-warning.fa.fa-check-circle.fa-fw(aria-hidden="true")
-            template(v-if='state_steps[checkpoint.name] == STATE_OK')
+            template(v-else-if='state_steps[checkpoint.name] == STATE_OK')
                 i.text-success.fa.fa-check-circle.fa-fw(aria-hidden="true")
+            template(v-else)
+                i.text-default.fa-fw.fa.fa-cog.fa-spin
+
+
 
     td.archive_item(@click="archive_item")
         i.text-primary.fa.fa-archive.fa-fw(aria-hidden="true")

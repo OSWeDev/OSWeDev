@@ -2,7 +2,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
 import DocumentLangVO from '../../../shared/modules/Document/vos/DocumentLangVO';
@@ -162,9 +162,9 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     public registerAccessHooks(): void {
 
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_ds_by_user_lang, this.get_ds_by_user_lang.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dts_by_user_lang, this.get_dts_by_user_lang.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dtgs_by_user_lang, this.get_dtgs_by_user_lang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_ds_by_user_lang, this.get_ds_by_user_lang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dts_by_user_lang, this.get_dts_by_user_lang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dtgs_by_user_lang, this.get_dtgs_by_user_lang.bind(this));
     }
 
     private async force_document_path_from_file_update(vo_update_handler: DAOUpdateVOHolder<DocumentVO>): Promise<boolean> {

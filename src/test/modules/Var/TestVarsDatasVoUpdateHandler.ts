@@ -28,7 +28,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await FakeVarControllerDsDistant.getInstance().initialize();
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
-        await VarsController.getInstance().initialize({
+        await VarsController.getInstance().initializeasync({
             [FakeVarControllerDsDistant.getInstance().varConf.name]: FakeVarControllerDsDistant.getInstance().varConf,
             [FakeVarControllerDsEmpDistant.getInstance().varConf.name]: FakeVarControllerDsEmpDistant.getInstance().varConf,
             [FakeVarControllerDeps.getInstance().varConf.name]: FakeVarControllerDeps.getInstance().varConf
@@ -205,7 +205,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await FakeVarControllerDsDistant.getInstance().initialize();
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
-        await VarsController.getInstance().initialize({
+        await VarsController.getInstance().initializeasync({
             [FakeVarControllerDsDistant.getInstance().varConf.name]: FakeVarControllerDsDistant.getInstance().varConf,
             [FakeVarControllerDsEmpDistant.getInstance().varConf.name]: FakeVarControllerDsEmpDistant.getInstance().varConf,
             [FakeVarControllerDeps.getInstance().varConf.name]: FakeVarControllerDeps.getInstance().varConf
@@ -462,7 +462,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await FakeVarControllerDsDistant.getInstance().initialize();
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
-        await VarsController.getInstance().initialize({
+        await VarsController.getInstance().initializeasync({
             [FakeVarControllerDsDistant.getInstance().varConf.name]: FakeVarControllerDsDistant.getInstance().varConf,
             [FakeVarControllerDsEmpDistant.getInstance().varConf.name]: FakeVarControllerDsEmpDistant.getInstance().varConf,
             [FakeVarControllerDeps.getInstance().varConf.name]: FakeVarControllerDeps.getInstance().varConf
@@ -712,7 +712,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await FakeVarControllerDsDistant.getInstance().initialize();
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
-        await VarsController.getInstance().initialize({
+        await VarsController.getInstance().initializeasync({
             [FakeVarControllerDsDistant.getInstance().varConf.name]: FakeVarControllerDsDistant.getInstance().varConf,
             [FakeVarControllerDsEmpDistant.getInstance().varConf.name]: FakeVarControllerDsEmpDistant.getInstance().varConf,
             [FakeVarControllerDeps.getInstance().varConf.name]: FakeVarControllerDeps.getInstance().varConf

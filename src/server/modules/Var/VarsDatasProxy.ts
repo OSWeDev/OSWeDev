@@ -50,6 +50,54 @@ export default class VarsDatasProxy {
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_append_var_datas, this.append_var_datas.bind(this));
     }
 
+    public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
+
+        let varsdata: VarDataBaseVO[] = await VarsDatasProxy.getInstance().get_exact_params_from_buffer_or_bdd(params);
+
+        if (varsdata) {
+
+            varsdata.forEach((vardata) => {
+                if (VarsServerController.getInstance().has_valid_value(vardata)) {
+                    notifyable_vars.push(vardata);
+                }
+            });
+        }
+
+        if ((!varsdata) || (varsdata.length != params.length)) {
+
+            /**
+             * On doit chercher les datas manquantes, et les prepend sur le proxy
+             */
+            let vars_datas_by_index: { [index: string]: VarDataBaseVO } = {};
+            if (varsdata) {
+                varsdata.forEach((vardata) => {
+                    vars_datas_by_index[vardata.index] = vardata;
+                });
+            }
+
+            let to_prepend: VarDataBaseVO[] = [];
+            for (let i in params) {
+                let param = params[i];
+
+                let vardata = vars_datas_by_index[param.index];
+                if (vardata) {
+                    continue;
+                }
+
+                // On a rien en base, on le crée et on attend le résultat
+                param.value_ts = null;
+                param.value = null;
+                param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+
+                to_prepend.push(param);
+                needs_computation.push(param);
+            }
+
+            // On push dans le buffer de mise à jour de la BDD
+            VarsDatasProxy.getInstance().prepend_var_datas(to_prepend);
+        }
+    }
+
     /**
      * ATTENTION - Appeler uniquement sur le thread du VarsComputer
      * A utiliser pour prioriser normalement la demande - FIFO

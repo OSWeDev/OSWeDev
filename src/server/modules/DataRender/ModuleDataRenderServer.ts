@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import * as moment from 'moment';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
 import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';
@@ -54,10 +54,10 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public registerExpressApis(app: Express): void { }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
     }
 
     public async getLatestAvailableSegment(text: string): Promise<TimeSegment> {

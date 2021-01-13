@@ -30,8 +30,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
     public registerExpressApis(app: Express): void {
 
         // On doit register toutes les APIs
-        for (let i in ModuleAPI.getInstance().registered_apis) {
-            let api: APIDefinition<any, any> = ModuleAPI.getInstance().registered_apis[i];
+        for (let i in APIControllerWrapper.getInstance().registered_apis) {
+            let api: APIDefinition<any, any> = APIControllerWrapper.getInstance().registered_apis[i];
 
             switch (api.api_type) {
                 case APIDefinition.API_TYPE_GET:

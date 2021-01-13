@@ -21,7 +21,8 @@ export default class VarsInitController {
         api_type_id: string,
         constructor: () => VarDataBaseVO,
         var_fields: Array<ModuleTableField<any>>,
-        module: Module = null): ModuleTable<any> {
+        module: Module = null,
+        is_test: boolean = false): ModuleTable<any> {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
         var_fields.unshift(var_id);
@@ -35,7 +36,9 @@ export default class VarsInitController {
         ]);
 
         let datatable = new ModuleTable(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        if (!is_test) {
+            var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        }
         if (!!module) {
             module.datatables.push(datatable);
         }

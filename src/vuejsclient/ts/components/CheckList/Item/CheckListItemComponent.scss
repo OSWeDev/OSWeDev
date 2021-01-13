@@ -5,6 +5,10 @@
         vertical-align: middle;
         font-size: 2em;
 
+        .fa-cog.fa-spin{
+            font-size: .5em;
+        }
+
         cursor: pointer;
         &.disabled{
             cursor: inherit;

@@ -1,6 +1,4 @@
-import ModuleDAO from '../DAO/ModuleDAO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../VOsTypesManager';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 
@@ -28,6 +26,14 @@ export default class VarsController {
     public var_conf_by_id: { [var_id: number]: VarConfVO } = {};
 
     protected constructor() {
+    }
+
+    public async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
+        VarsController.getInstance().var_conf_by_id = var_conf_by_id;
+        for (let i in VarsController.getInstance().var_conf_by_id) {
+            let conf = VarsController.getInstance().var_conf_by_id[i];
+            VarsController.getInstance().var_conf_by_name[conf.name] = conf;
+        }
     }
 
     public get_card_field_code(field_id: string): string {
@@ -93,18 +99,6 @@ export default class VarsController {
 
     public get_translatable_params_desc_code(var_name: string): string {
         return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public async initialize(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
-        if (!var_conf_by_id) {
-            this.var_conf_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID));
-        } else {
-            this.var_conf_by_id = var_conf_by_id;
-        }
-        for (let i in this.var_conf_by_id) {
-            let conf = this.var_conf_by_id[i];
-            this.var_conf_by_name[conf.name] = conf;
-        }
     }
 
     /**

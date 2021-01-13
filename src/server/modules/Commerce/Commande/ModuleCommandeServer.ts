@@ -1,3 +1,4 @@
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import ModuleCommande from '../../../../shared/modules/Commerce/Commande/ModuleCommande';
@@ -31,11 +32,11 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCommande.APINAME_getCommandesUser, this.getCommandesUser.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCommande.APINAME_getLignesCommandeByCommandeId, this.getLignesCommandeByCommandeId.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCommande.APINAME_ajouterAuPanier, this.ajouterAuPanier.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCommande.APINAME_getParamLigneCommandeById, this.getParamLigneCommandeById.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCommande.APINAME_creationPanier, this.creationPanier.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCommande.APINAME_getCommandesUser, this.getCommandesUser.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCommande.APINAME_getLignesCommandeByCommandeId, this.getLignesCommandeByCommandeId.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCommande.APINAME_ajouterAuPanier, this.ajouterAuPanier.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCommande.APINAME_getParamLigneCommandeById, this.getParamLigneCommandeById.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCommande.APINAME_creationPanier, this.creationPanier.bind(this));
     }
 
     public async getCommandesUser(num: number): Promise<CommandeVO[]> {

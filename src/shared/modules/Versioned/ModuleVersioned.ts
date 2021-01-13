@@ -1,4 +1,4 @@
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import IVersionedVO from './interfaces/IVersionedVO';
@@ -18,7 +18,7 @@ export default class ModuleVersioned extends Module {
 
     private static instance: ModuleVersioned = null;
 
-    public restoreTrashedVo: (vo: IVersionedVO) => Promise<boolean> = ModuleAPI.sah(ModuleVersioned.APINAME_RESTORE_TRASHED_VO);
+    public restoreTrashedVo: (vo: IVersionedVO) => Promise<boolean> = APIControllerWrapper.sah(ModuleVersioned.APINAME_RESTORE_TRASHED_VO);
 
     private constructor() {
 
@@ -32,7 +32,7 @@ export default class ModuleVersioned extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVersionedVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IVersionedVO, boolean>(
             null,
             ModuleVersioned.APINAME_RESTORE_TRASHED_VO,
             (param: IVersionedVO) => [param._type]

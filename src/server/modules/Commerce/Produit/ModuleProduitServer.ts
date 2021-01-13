@@ -1,4 +1,4 @@
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ParamLigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/ParamLigneCommandeVO';
 import ModuleProduit from '../../../../shared/modules/Commerce/Produit/ModuleProduit';
 import FacturationProduitVO from '../../../../shared/modules/Commerce/Produit/vos/FacturationProduitVO';
@@ -24,9 +24,9 @@ export default class ModuleProduitServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getProduitAjoutPanier, this.getProduitAjoutPanier.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getFacturationProduitByIdProduit, this.getFacturationProduitByIdProduit.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getPrixProduit, this.getPrixProduit.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getProduitAjoutPanier, this.getProduitAjoutPanier.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getFacturationProduitByIdProduit, this.getFacturationProduitByIdProduit.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getPrixProduit, this.getPrixProduit.bind(this));
     }
 
     // public async getProduitAjoutPanier(text: string): Promise<ProduitVO> {
