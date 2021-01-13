@@ -2,7 +2,7 @@ import * as nodemailer from 'nodemailer';
 import { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
 import PrepareHTMLParamVO from '../../../shared/modules/Mailer/vos/PrepareHTMLParamVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -56,8 +56,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTMLAPI.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTMLAPI.bind(this));
     }
 
     public async prepareHTMLAPI(param: PrepareHTMLParamVO): Promise<string> {

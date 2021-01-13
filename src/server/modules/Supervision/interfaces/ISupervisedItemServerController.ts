@@ -2,7 +2,7 @@ import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/I
 
 export default interface ISupervisedItemServerController<T extends ISupervisedItem> {
 
-    already_work: boolean;
+    already_work?: boolean;
     api_type_id: string;
     get_execute_time_ms(): number;
     work_all(): Promise<boolean>;

@@ -1,9 +1,10 @@
 import { SendMailOptions } from 'nodemailer';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
-import PrepareHTMLParamVO from './vos/PrepareHTMLParamVO';
+import PrepareHTMLParamVO, { PrepareHTMLParamVOStatic } from './vos/PrepareHTMLParamVO';
 
 export default class ModuleMailer extends Module {
 
@@ -29,6 +30,17 @@ export default class ModuleMailer extends Module {
 
     private static instance: ModuleMailer = null;
 
+    public prepareHTML: (
+        template: string,
+        lang_id: number,
+        vars: { [name: string]: string },
+    ) => Promise<any> = APIControllerWrapper.sah<PrepareHTMLParamVO, string>(ModuleMailer.APINAME_prepareHTML);
+
+    public sendMail: (
+        mailOptions: SendMailOptions
+    ) => Promise<any> = APIControllerWrapper.sah<SendMailOptions, any>(
+        ModuleMailer.APINAME_sendMail);
+
     private constructor() {
 
         super("mailer", "MAILER");
@@ -51,39 +63,17 @@ export default class ModuleMailer extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
             null, // droit null ok ???,
             ModuleMailer.APINAME_sendMail,
             [],
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
             null, // droit null ok ???,
             ModuleMailer.APINAME_prepareHTML,
             [],
-            PrepareHTMLParamVO.translateCheckAccessParams
+            PrepareHTMLParamVOStatic
         ));
-    }
-
-    public async sendMail(
-        mailOptions: SendMailOptions
-    ): Promise<any> {
-
-        return await ModuleAPI.getInstance().handleAPI<SendMailOptions, any>(
-            ModuleMailer.APINAME_sendMail,
-            mailOptions);
-    }
-
-    public async prepareHTML(
-        template: string,
-        lang_id: number,
-        vars: { [name: string]: string },
-    ): Promise<any> {
-
-        return await ModuleAPI.getInstance().handleAPI<PrepareHTMLParamVO, string>(
-            ModuleMailer.APINAME_prepareHTML,
-            template,
-            lang_id,
-            vars);
     }
 }
