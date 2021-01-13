@@ -9,6 +9,8 @@ export default class AnimationController {
 
     public static ROUTE_NAME_ANIMATION: string = 'animation';
     public static ROUTE_NAME_ANIMATION_MODULE: string = 'animation_module';
+    public static ROUTE_NAME_ANIMATION_MODULE_FEEDBACK: string = 'animation_module_feedback';
+
 
     public static getInstance(): AnimationController {
         if (!AnimationController.instance) {
@@ -18,6 +20,8 @@ export default class AnimationController {
     }
 
     private static instance: AnimationController = null;
+
+    public skip_home: boolean = false;
 
     private constructor() { }
 
@@ -45,6 +49,16 @@ export default class AnimationController {
         return null;
     }
 
+    public getMessageModuleForPrct(vo: AnimationModuleVO, prct: number): AnimationMessageModuleVO {
+        let mms: AnimationMessageModuleVO[] = this.getMessagesModule(vo);
+
+        if (!mms || !mms.length || prct == null) {
+            return null;
+        }
+
+        return mms.find((m) => (m.min <= prct) && (m.max >= prct));
+    }
+
     public isUserQROk(qr: AnimationQRVO, uqr: AnimationUserQRVO): boolean {
         if (!qr || !uqr || !uqr.reponses) {
             return false;
@@ -69,5 +83,29 @@ export default class AnimationController {
         }
 
         return true;
+    }
+
+    public isMobile(): boolean {
+        let screenWidth: number = window.innerWidth;
+
+        if (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            return true;
+        }
+
+        return (screenWidth <= 500) ? true : false;
+    }
+
+    public isTablette(): boolean {
+        if (this.isMobile()) {
+            return false;
+        }
+
+        if (/iPad|iPod/i.test(navigator.userAgent)) {
+            return true;
+        }
+
+        let screenWidth: number = window.innerWidth;
+
+        return (screenWidth <= 850) ? true : false;
     }
 }

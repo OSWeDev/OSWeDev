@@ -39,6 +39,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
     }
 
     /**
@@ -183,17 +184,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return module_ids;
     }
 
-    private async startModule(param: AnimationModuleParamVO): Promise<boolean> {
-        let res: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-            AnimationUserModuleVO.API_TYPE_ID,
-            'user_id',
-            [param.user_id],
-            'module_id',
-            [param.module_id]
-        );
+    private async startModule(param: AnimationModuleParamVO): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
 
-        if (res && res.length > 0) {
-            return true;
+        if (res) {
+            return res;
         }
 
         let aum: AnimationUserModuleVO = new AnimationUserModuleVO();
@@ -202,15 +197,31 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         aum.module_id = param.module_id;
         await ModuleDAO.getInstance().insertOrUpdateVO(aum);
 
-        return true;
+        return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    }
+
+    private async endModule(param: AnimationModuleParamVO): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+
+        if (!res) {
+            return null;
+        }
+
+        if (!res.end_date) {
+            res.end_date = moment().utc(true);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(res);
+
+        return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
     }
 
     private async initializeTranslations() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vos formations' }, 'animation.titre.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'E-Learning' }, 'client.menu-gauche.animation'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Photo' }, 'animation_module.type_module.photo'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Quizz' }, 'animation_module.type_module.quizz'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vidéo' }, 'animation_module.type_module.video'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Photo' }, 'animation_qr.type_qr.photo'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Quizz' }, 'animation_qr.type_qr.quizz'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vidéo' }, 'animation_qr.type_qr.video'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Animation' }, 'menu.menuelements.AnimationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Modules' }, 'menu.menuelements.AnimationModuleVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Questions/Réponses' }, 'menu.menuelements.AnimationQRVO.___LABEL___'));
@@ -223,5 +234,21 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Réponse' }, 'fields.labels.ref.module_animation_anim_reponse.name.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Valide' }, 'fields.labels.ref.module_animation_anim_reponse.valid.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'N°' }, 'fields.labels.ref.module_animation_anim_reponse.weight.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Réponse valide' }, 'animation.reponse.valid.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Votre réponse' }, 'animation.reponse.votre_reponse.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vous avez totalisé un score de :' }, 'animation.prct_reussite.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vous avez jugé ce module :' }, 'animation.feedback.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'VALIDER' }, 'animation.feedback.valider.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Accéder à mes formations' }, 'animation.retour_formations.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Pas très utile' }, 'animation_um.like_vote.bad'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Utile' }, 'animation_um.like_vote.good'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Très utile' }, 'animation_um.like_vote.very_good'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: ' (en cours)' }, 'animation.module.en_cours.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Voulez-vous recommencer le module' }, 'animation.modal.restart_module.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Merci de confirmer si vous souhaitez redémarrer le module ou consulter le module' }, 'animation.modal.restart_module.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Consulter' }, 'animation.modal.restart_module.consulter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Redémarrer' }, 'animation.modal.restart_module.restart.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'BRAVO!' }, 'animation.qr.is_validated.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'OUPS' }, 'animation.qr.is_validated.nok.___LABEL___'));
     }
 }

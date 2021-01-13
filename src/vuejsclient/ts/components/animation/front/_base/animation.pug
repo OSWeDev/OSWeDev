@@ -1,8 +1,16 @@
 
 .rootElt.animation
-    h1 {{ label('animation.titre') }}
-    template(v-if="themes && themes.length > 0")
-        .row.themes
-            template(v-for="(theme, index) in ordered_themes")
-                .col-md-3.col-sm-6
-                    Animationtheme(:theme="theme", :index_theme="(index + 1)", :modules="modules_by_themes[theme.id]")
+    template(v-if="is_mobile_or_tablette && !skip_home")
+        .home_responsive(@click="skipFormations")
+            .image_home.mb-3(v-if="image_home")
+                img(:src="image_home")
+
+            h1 {{ label('animation.titre') }}
+    template(v-else)
+        h1 {{ label('animation.titre') }}
+
+        template(v-if="themes && themes.length > 0")
+            .row.themes
+                template(v-for="(theme, index) in ordered_themes")
+                    .col-md-3.col-sm-6
+                        Animationtheme(:theme="theme", :index_theme="(index + 1)", :modules="modules_by_themes[theme.id]", :logged_user_id="logged_user_id")

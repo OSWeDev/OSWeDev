@@ -1,8 +1,11 @@
 import { Component, Watch } from "vue-property-decorator";
 import ModuleAccessPolicy from "../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
+import AnimationMessageModuleVO from "../../../../../../shared/modules/Animation/fields/message_module/vos/AnimationMessageModuleVO";
 import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAnimation";
 import ThemeModuleDataParamRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO";
+import ThemeModuleDataRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
+import VarDayPrctAtteinteSeuilAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctAtteinteSeuilAnimationController";
 import VarDayPrctReussiteAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController";
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/AnimationQRVO";
@@ -11,13 +14,18 @@ import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vo
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
+import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
+import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
 import ISimpleNumberVarData from "../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData";
 import IVarDataVOBase from "../../../../../../shared/modules/Var/interfaces/IVarDataVOBase";
+import SimpleNumberVarDataController from "../../../../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController";
+import VarsController from "../../../../../../shared/modules/Var/VarsController";
+import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
 import VueComponentBase from '../../../VueComponentBase';
 import VueAnimationQrComponent from "../qr/qr";
-import './module.scss';
+import '../_base/animation.scss';
 
 @Component({
     template: require("./module.pug"),
@@ -29,12 +37,18 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     private qrs: AnimationQRVO[] = null;
     private theme: AnimationThemeVO = null;
-    private module: AnimationModuleVO = null;
-    private user_module: AnimationUserModuleVO[] = null;
+    private anim_module: AnimationModuleVO = null;
     private uqr_by_qr_ids: { [qr_id: number]: AnimationUserQRVO } = {};
-    private user_id: number = null;
+    private file_by_ids: { [id: number]: FileVO } = {};
+    private logged_user_id: number = null;
+
     private show_recap: boolean = false;
     private recap_is_actif: boolean = false;
+    private prct_reussite_value: number = null;
+
+    private seuil_validation_module_prct: number = null;
+    private prct_atteinte_seuil_module: number = null;
+    private um: AnimationUserModuleVO = null;
 
     private current_qr: AnimationQRVO = null;
 
@@ -42,6 +56,10 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private async reloadAsyncDatas() {
         this.show_recap = false;
         this.recap_is_actif = false;
+        this.prct_reussite_value = null;
+        this.current_qr = null;
+        this.um = null;
+        this.prct_atteinte_seuil_module = null;
 
         if (!this.module_id) {
             return;
@@ -49,25 +67,55 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
         let promises = [];
 
-        promises.push((async () => this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
-        promises.push((async () => this.module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
+        promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
+        promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
+        promises.push((async () => this.seuil_validation_module_prct = await ModuleAnimation.getInstance().getSeuilValidationModulePrct())());
 
         await Promise.all(promises);
 
-        await ModuleAnimation.getInstance().startModule(this.user_id, this.module_id);
-
         promises = [];
 
-        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.module.theme_id))());
+        promises.push((async () =>
+            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id)
+        )());
 
-        promises.push((async () => this.user_module = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-            AnimationUserModuleVO.API_TYPE_ID,
-            'module_id',
-            [this.module_id],
-            'user_id',
-            [this.user_id],
+        promises.push((async () =>
+            this.prct_atteinte_seuil_module = SimpleNumberVarDataController.getInstance().getValueOrDefault(
+                await VarsController.getInstance().registerDataParamAndReturnVarData<ThemeModuleDataParamRangesVO>(
+                    this.prct_atteinte_seuil_module_param, true
+                ) as ThemeModuleDataRangesVO,
+                0
+            )
+        )());
+
+        await Promise.all(promises);
+
+        // Si module terminé et atteinte seuil pas atteint, on propose de recommencer le module
+        if (this.um.end_date && !this.prct_atteinte_seuil_module) {
+            $(this.$refs.restartmodulemodal).modal('show');
+            return;
+        }
+
+        this.reloadAsyncDatasContinue();
+    }
+
+    private async reloadAsyncDatasContinue() {
+        let file_ids: number[] = [];
+
+        for (let i in this.qrs) {
+            if (this.qrs[i].file_id) {
+                file_ids.push(this.qrs[i].file_id);
+            }
+        }
+
+        let promises = [];
+
+        promises.push((async () => this.file_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            await ModuleDAO.getInstance().getVosByIds<FileVO>(FileVO.API_TYPE_ID, file_ids)
         ))());
+
+        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.anim_module.theme_id))());
 
         if (this.qrs && this.qrs.length) {
             promises.push((async () => await this.reloadUqrs())());
@@ -84,7 +132,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             'qr_id',
             this.qrs.map((m) => m.id),
             'user_id',
-            [this.user_id],
+            [this.logged_user_id],
         );
 
         for (let i in user_qrs) {
@@ -98,6 +146,34 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         this.reloadAsyncDatas();
     }
 
+    private async closeModal(restart: boolean) {
+        if (restart) {
+            if (this.um) {
+                let user_qrs: AnimationUserQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserQRVO>(
+                    AnimationUserQRVO.API_TYPE_ID,
+                    'qr_id',
+                    this.qrs.map((m) => m.id),
+                    'user_id',
+                    [this.logged_user_id],
+                );
+
+                let toDelete: IDistantVOBase[] = [this.um];
+                toDelete = toDelete.concat(user_qrs);
+
+                await ModuleDAO.getInstance().deleteVOs(toDelete);
+                this.reloadAsyncDatas();
+
+                $(this.$refs.restartmodulemodal).modal('hide');
+
+                return;
+            }
+        }
+
+        this.reloadAsyncDatasContinue();
+
+        $(this.$refs.restartmodulemodal).modal('hide');
+    }
+
     private switchQR(qr: AnimationQRVO) {
         this.current_qr = qr;
         this.show_recap = false;
@@ -109,7 +185,16 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         });
     }
 
-    private nextQr() {
+    private goToFeedback() {
+        this.$router.push({
+            name: AnimationController.ROUTE_NAME_ANIMATION_MODULE_FEEDBACK,
+            params: {
+                module_id: this.anim_module.id.toString(),
+            }
+        });
+    }
+
+    private async nextQr() {
         let qr: AnimationQRVO = this.qrs.find((q) => q.weight == (this.current_qr.weight + 1));
 
         if (qr) {
@@ -118,12 +203,13 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
 
         if (this.current_qr.weight == this.qrs.length) {
-            this.show_recap = true;
+            this.show_recap_toggle();
         }
     }
 
-    private show_recap_toggle() {
+    private async show_recap_toggle() {
         if (this.recap_is_actif) {
+            await ModuleAnimation.getInstance().endModule(this.logged_user_id, this.anim_module.id);
             this.show_recap = true;
         }
     }
@@ -136,35 +222,55 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         return (this.$route.params && this.$route.params.module_id) ? parseInt(this.$route.params.module_id) : null;
     }
 
-    get module_quizz(): boolean {
-        return this.module && this.module.type_module == AnimationModuleVO.TYPE_MODULE_QUIZZ;
-    }
-
-    get module_photo(): boolean {
-        return this.module && this.module.type_module == AnimationModuleVO.TYPE_MODULE_PHOTO;
-    }
-
-    get module_video(): boolean {
-        return this.module && this.module.type_module == AnimationModuleVO.TYPE_MODULE_VIDEO;
+    get prct_atteinte_seuil_module_param(): ThemeModuleDataParamRangesVO {
+        return ThemeModuleDataParamRangesVO.createNew(
+            VarDayPrctAtteinteSeuilAnimationController.getInstance().varConf.id,
+            null,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+        );
     }
 
     get prct_reussite_module_param(): ThemeModuleDataParamRangesVO {
         return ThemeModuleDataParamRangesVO.createNew(
             VarDayPrctReussiteAnimationController.getInstance().varConf.id,
             null,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
         );
+    }
+
+    get prct_reussite_class(): string {
+        if (this.prct_reussite_value == null) {
+            return null;
+        }
+
+        let classes: string[] = ['p' + Math.round(this.prct_reussite_value * 100).toString()];
+
+        if (this.prct_reussite_value >= 0.8) {
+            classes.push('success');
+        } else {
+            classes.push('warning');
+        }
+
+        return classes.join(' ');
     }
 
     get prct_reussite_module_directive(): IVarDirectiveParams {
         return {
             var_param: this.prct_reussite_module_param,
             on_every_update: (varData: IVarDataVOBase, el, binding, vnode) => {
-                let value: number = (!!varData) ? (varData as ISimpleNumberVarData).value : 0;
-
-                el.className = (value >= 0.8) ? 'alert-success' : (value >= 0.5) ? 'alert-warning' : 'alert-danger';
+                this.prct_reussite_value = (!!varData) ? (varData as ISimpleNumberVarData).value : 0;
             },
             already_register: true,
         };
+    }
+
+    get prct_reussite_message(): string {
+        let mm: AnimationMessageModuleVO = AnimationController.getInstance().getMessageModuleForPrct(this.anim_module, this.prct_reussite_value);
+
+        return mm ? mm.message : null;
+    }
+
+    get is_module_valide(): boolean {
+        return this.prct_reussite_value >= this.seuil_validation_module_prct;
     }
 }

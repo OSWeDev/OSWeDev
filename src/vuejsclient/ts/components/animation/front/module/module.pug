@@ -1,19 +1,76 @@
 
 .rootElt.module_container
-    template(v-if="theme && module")
+    template(v-if="theme && anim_module")
         .back.mb-3
-            .btn.btn-primary(@click='backToFront')
+            .btn(@click='backToFront')
                 i.fa.fa-angle-left
                 span {{ label('animation.back') }}
 
-        h1 {{ theme.name }} : {{ module.name }}
+        h1 {{ theme.name }} : {{ anim_module.name }}
 
-        template(v-if="module_quizz")
-            include ./module_quizz.pug
+        template(v-if="ordered_qrs && ordered_qrs.length > 0")
+            .questions.text-center
+                template(v-if="current_qr")
+                    .current_qr.d-ib {{ label('animation.question') }}
+                    b.d-ib.ml-1
+                        template(v-if="!show_recap")
+                            span {{ current_qr.weight }} / {{ ordered_qrs.length }}
+                .switch_questions
+                    template(v-for="qr in ordered_qrs")
+                        .question(@click="switchQR(qr)", :class="{active: (!show_recap && current_qr && current_qr.id == qr.id), 'fa fa-check': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id)}")
 
-        template(v-if="module_video")
-            include ./module_video.pug
+                    i.fa.fa-trophy.question(@click="show_recap_toggle", :class="{active: show_recap, actif: recap_is_actif}")
 
-        template(v-if="module_photo")
-            include ./module_photo.pug
+            template(v-if="current_qr && !show_recap")
+                Animationqr(:qr="current_qr", :uqr="uqr_by_qr_ids[current_qr.id]", :logged_user_id="logged_user_id", @reload="reloadUqrs", @next="nextQr", :file="file_by_ids[current_qr.file_id]")
 
+            template(v-else-if="show_recap")
+                .prct_reussite.text-center
+                    h2 {{ label('animation.prct_reussite') }}
+
+                    .c100(:class="prct_reussite_class")
+                        span
+                            var-data(
+                                v-var-directive="prct_reussite_module_directive",
+                                :var_param="prct_reussite_module_param",
+                                :filter='const_filters.percent.read',
+                                :filter_additional_params='[]',
+                            )
+                        .slice
+                            .bar
+                            .fill
+
+                    template(v-if="prct_reussite_value != null")
+                        .is_validated
+                            template(v-if="is_module_valide")
+                                .ok
+                                    i.far.fa-smile.mr-2
+                                    span {{ label('animation.qr.is_validated.ok') }}
+                            template(v-else)
+                                .nok
+                                    i.far.fa-surprise.mr-2
+                                    span {{ label('animation.qr.is_validated.nok') }}
+
+                    .prct_reussite_message(v-if="prct_reussite_message", v-html="prct_reussite_message")
+
+                    template(v-if="prct_reussite_value != null")
+                        .retour_formations.next
+                            template(v-if="is_module_valide")
+                                i.fa.fa-long-arrow-right(@click="goToFeedback")
+
+                            template(v-else)
+                                .btn.btn-success.mt-2(@click="backToFront") {{ label('animation.retour_formations') }}
+
+    .modal.fade.in(ref="restartmodulemodal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-sm#restartmodulemodal(role='document')
+            .modal-content
+                .modal-header
+                    .close(@click="closeModal(false)") ×
+                    div {{ label('animation.modal.restart_module.title') }}
+
+                .modal-body
+                    div {{ label('animation.modal.restart_module.body') }}
+
+                .modal-footer.text-center
+                    .btn.btn-info(type="submit", @click="closeModal(false)") {{ label('animation.modal.restart_module.consulter') }}
+                    .btn.btn-success(type="submit", @click="closeModal(true)") {{ label('animation.modal.restart_module.restart') }}

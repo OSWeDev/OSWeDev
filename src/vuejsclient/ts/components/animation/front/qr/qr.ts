@@ -5,6 +5,7 @@ import AnimationReponseVO from "../../../../../../shared/modules/Animation/field
 import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/AnimationQRVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
+import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
@@ -14,7 +15,7 @@ import VueComponentBase from '../../../VueComponentBase';
 export default class VueAnimationQrComponent extends VueComponentBase {
 
     @Prop()
-    private user_id: number;
+    private logged_user_id: number;
 
     @Prop()
     private qr: AnimationQRVO;
@@ -22,9 +23,13 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     @Prop()
     private uqr: AnimationUserQRVO;
 
+    @Prop()
+    private file: FileVO;
+
     private saving: boolean = false;
     private editable_uqr: AnimationUserQRVO = null;
     private is_validated: boolean = false;
+    private is_reponse_valid: boolean = false;
     private selected_reponse: { [reponse_id: number]: boolean } = {};
     private classe_reponses: { [reponse_id: number]: string } = {};
 
@@ -34,6 +39,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         this.saving = false;
         this.editable_uqr = this.uqr;
         this.is_validated = false;
+        this.is_reponse_valid = false;
         this.selected_reponse = {};
         this.classe_reponses = {};
 
@@ -63,7 +69,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
 
         this.saving = true;
         this.editable_uqr.qr_id = this.qr.id;
-        this.editable_uqr.user_id = this.user_id;
+        this.editable_uqr.user_id = this.logged_user_id;
         this.editable_uqr.date = moment().utc(true);
         this.editable_uqr.reponses = [];
 
@@ -92,6 +98,8 @@ export default class VueAnimationQrComponent extends VueComponentBase {
                 this.classe_reponses[reponse.id] = 'opacity';
             }
         }
+
+        this.is_reponse_valid = AnimationController.getInstance().isUserQROk(this.qr, this.editable_uqr);
     }
 
     private next() {
@@ -114,5 +122,13 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
 
         return true;
+    }
+
+    get is_image(): boolean {
+        return (this.file) && (this.file.path) && (this.file.path.match(/\.(jpeg|jpg|gif|png)$/) != null);
+    }
+
+    get is_video(): boolean {
+        return (this.file) && (this.file.path) && (this.file.path.match(/\.(mp4)$/) != null);
     }
 }

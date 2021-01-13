@@ -7,23 +7,20 @@
         .barre(:style="style_barre_avancement")
         .indicateur.text-center
             var-data(
-                :var_param="prct_avancement_theme_param",
+                :var_param="prct_atteinte_seuil_theme_param",
                 :filter='const_filters.percent.read',
                 :filter_additional_params='[]',
-                :var_value_callback="prct_avancement_theme_value_callback",
+                :var_value_callback="prct_atteinte_seuil_theme_value_callback",
             )
-    template(v-if="ordered_modules && ordered_modules.length > 0")
+    template(v-if="ordered_modules && ordered_modules.length > 0 && is_ready")
         .modules
-            template(v-for="module in ordered_modules")
-                .row.module(@click="go_to_route_module(module)")
+            template(v-for="anim_module in ordered_modules")
+                .row.module(@click="go_to_route_module(anim_module)")
                     .col-md-12
                         .text-left.module_infos
-                            .prct_avancement_module
-                                var-data(
-                                    :var_param="get_prct_avancement_module_param(module.id)",
-                                    :filter='const_filters.percent.read',
-                                    :filter_additional_params='[]',
-                                )
-                            i.fa.fa-plus
+                            .prct_avancement_module(:class="{success: prct_atteinte_seuil_module[anim_module.id] == 1, warning: prct_atteinte_seuil_module[anim_module.id] == 0}")
                             .theme_name {{ theme.name }} :
-                            .module_name {{ module.name }}
+                            .module_name
+                                span {{ anim_module.name }}
+                                template(v-if="um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date")
+                                    span.en_cours {{ label('animation.module.en_cours') }}

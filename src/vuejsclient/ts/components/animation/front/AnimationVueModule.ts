@@ -29,6 +29,13 @@ export default class AnimationVueModule extends VueModuleBase {
             props: (route) => ({
                 module_id: parseInt(route.params.module_id),
             })
+        }, {
+            path: '/animation/module/:module_id/feedback',
+            name: AnimationController.ROUTE_NAME_ANIMATION_MODULE_FEEDBACK,
+            component: () => import(/* webpackChunkName: "VueAnimationModuleFeedbackComponent" */ "./feedback/feedback"),
+            props: (route) => ({
+                module_id: parseInt(route.params.module_id),
+            })
         }];
     }
 }

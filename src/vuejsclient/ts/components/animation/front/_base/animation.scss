@@ -1,10 +1,73 @@
 @import 'skin-variables.scss';
 
-.animation {
+$background_animation: #3e3678;
+$orange_animation: #ea911b;
+$rouge_animation: #b7013d;
+$vert_animation: #b6c209;
+
+@import '../module/module.scss';
+@import '../feedback/feedback.scss';
+
+.page-animation,
+.page-animation_module,
+.page-animation_module_feedback {
+    background: $orange_animation;
+
+    .logo {
+        display: none;
+    }
+
+    .home_responsive {
+        text-align: center;
+
+        .image_home img {
+            max-width: 100%;
+        }
+
+        h1:hover {
+            background: $vert_animation;
+        }
+    }
+
+    .wrapper {
+        background-color: $background_animation;
+    }
+
+    .main-footer {
+        background-color: $orange_animation;
+    }
+
+    .main-header {
+
+        .logo,
+        .navbar {
+            background-color: $orange_animation;
+        }
+    }
+
+    .sidebar-menu li a {
+        background-color: $orange_animation !important;
+        color: white;
+    }
+
+    .sidebar-menu li ul li a {
+        background-color: transparent !important;
+        color: $orange_animation !important;
+        border-color: $orange_animation !important;
+    }
+
+    .sidebar-mini.sidebar-collapse .sidebar-menu>li:hover {
+
+        &>a>span:not(.pull-right),
+        .treeview-menu {
+            background-color: $orange_animation;
+        }
+    }
+
     h1 {
         text-align: center;
         color: white;
-        background: $main_box_title_color;
+        background: $orange_animation;
         padding: 15px 10px;
         font-size: 24px;
         margin-top: 0;
@@ -12,6 +75,37 @@
         margin-bottom: 50px;
         font-weight: bold;
     }
+
+    .validation {
+        margin-top: 30px;
+
+        .btn-container {
+            display: inline-block;
+            border: 3px solid white;
+            border-radius: 15px;
+            border: 0;
+
+            .btn {
+                background: $vert_animation;
+                color: white;
+                border-radius: 10px;
+                margin: 3px;
+
+                &:hover {
+                    background: $orange_animation;
+                }
+            }
+        }
+
+        .explication {
+            margin: 30px 0;
+        }
+    }
+}
+
+// FRONT
+.animation {
+    padding: 1em 10em;
 
     .theme {
         background: white;
@@ -24,8 +118,8 @@
 
         .index_theme {
             display: inline-block;
-            background: $table_header_bg_color;
-            color: $main_box_title_color;
+            background: $rouge_animation;
+            color: white;
             padding: 0px 28px;
             border-radius: 28px;
             font-size: 24px;
@@ -69,13 +163,12 @@
             }
 
             .indicateur {
-                color: $table_header_bg_color;
+                font-size: 22px;
             }
         }
 
         .prct_avancement_module {
             float: left;
-            border: 1px solid $table_header_bg_color;
             padding: 2px 6px 1px 4px;
             margin-bottom: 0;
             margin-right: 10px;
@@ -83,6 +176,14 @@
             width: 33px;
             text-align: center;
             min-height: 34px;
+
+            &.success {
+                background: $vert_animation;
+            }
+
+            &.warning {
+                background: $orange_animation;
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
@@ -8,6 +9,7 @@ import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import ModuleParams from '../Params/ModuleParams';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import ModuleVar from '../Var/ModuleVar';
 import VOsTypesManager from '../VOsTypesManager';
@@ -19,6 +21,7 @@ import AnimationModuleParamVO from './params/AnimationModuleParamVO';
 import AnimationParamVO from './params/AnimationParamVO';
 import ThemeModuleDataParamRangesVO from './params/theme_module/ThemeModuleDataParamRangesVO';
 import ThemeModuleDataRangesVO from './params/theme_module/ThemeModuleDataRangesVO';
+import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
 import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
 import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
 import AnimationModuleVO from './vos/AnimationModuleVO';
@@ -31,7 +34,11 @@ export default class ModuleAnimation extends Module {
 
     public static MODULE_NAME: string = "Animation";
 
+    public static PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT = 'animation_seuil_validation_module_prct';
+    public static PARAM_NAME_IMAGE_HOME = 'animation_image_home';
+
     public static APINAME_startModule: string = "startModule";
+    public static APINAME_endModule: string = "endModule";
     public static APINAME_getQRsByThemesAndModules: string = "getQRsByThemesAndModules";
     public static APINAME_getUQRsByThemesAndModules: string = "getUQRsByThemesAndModules";
 
@@ -74,9 +81,15 @@ export default class ModuleAnimation extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, boolean>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, AnimationUserModuleVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserQRVO.API_TYPE_ID),
             ModuleAnimation.APINAME_startModule,
+            [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
+            AnimationModuleParamVO.translateCheckAccessParams
+        ));
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, AnimationUserModuleVO>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserQRVO.API_TYPE_ID),
+            ModuleAnimation.APINAME_endModule,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationModuleParamVO.translateCheckAccessParams
         ));
@@ -94,8 +107,34 @@ export default class ModuleAnimation extends Module {
         ));
     }
 
-    public async startModule(user_id: number, module_id: number): Promise<boolean> {
-        return ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, boolean>(ModuleAnimation.APINAME_startModule, user_id, module_id);
+    public async get_PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT_value(): Promise<number> {
+        let res: string = await ModuleParams.getInstance().getParamValue(ModuleAnimation.PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT);
+
+        return res ? parseFloat(res) : null;
+    }
+
+    public async startModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, AnimationUserModuleVO>(ModuleAnimation.APINAME_startModule, user_id, module_id);
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID]);
+        return res;
+    }
+
+    public async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, AnimationUserModuleVO>(ModuleAnimation.APINAME_endModule, user_id, module_id);
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID]);
+        return res;
+    }
+
+    public async getUserModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
+        let ums: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
+            AnimationUserModuleVO.API_TYPE_ID,
+            'module_id',
+            [module_id],
+            'user_id',
+            [user_id],
+        );
+
+        return ums ? ums[0] : null;
     }
 
     public async getQRsByThemesAndModules(theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
@@ -103,7 +142,7 @@ export default class ModuleAnimation extends Module {
             ModuleAnimation.APINAME_getQRsByThemesAndModules,
             null,
             theme_ids,
-            module_ids
+            module_ids,
         );
     }
 
@@ -112,8 +151,14 @@ export default class ModuleAnimation extends Module {
             ModuleAnimation.APINAME_getUQRsByThemesAndModules,
             user_id,
             theme_ids,
-            module_ids
+            module_ids,
         );
+    }
+
+    public async getSeuilValidationModulePrct(): Promise<number> {
+        let res: string = await ModuleParams.getInstance().getParamValue(ModuleAnimation.PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT);
+
+        return (res && res.length > 0) ? parseFloat(res) : null;
     }
 
     private initializeAnimationThemeVO() {
@@ -138,7 +183,6 @@ export default class ModuleAnimation extends Module {
             name_field,
             new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
-            new ModuleTableField('type_module', ModuleTableField.FIELD_TYPE_enum, "Type module").setEnumValues(AnimationModuleVO.TYPE_MODULE_LABELS),
             new ModuleTableField('messages', AnimationMessageModuleVO.API_TYPE_ID, 'Messages'),
             theme_id_field
         ];
@@ -163,6 +207,8 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('explicatif', ModuleTableField.FIELD_TYPE_html, "Explicatif réponse"),
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             new ModuleTableField('reponses', AnimationReponseVO.API_TYPE_ID, 'Réponses'),
+            new ModuleTableField('type_qr', ModuleTableField.FIELD_TYPE_enum, "Type question / réponse").setEnumValues(AnimationQRVO.TYPE_QR_LABELS),
+            new ModuleTableField('external_video', ModuleTableField.FIELD_TYPE_string, 'Vidéo externe'),
             module_id_field,
             file_id_field,
         ];
@@ -182,7 +228,7 @@ export default class ModuleAnimation extends Module {
         let user_id_field = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, "Utilisateur", true);
 
         let fields = [
-            new ModuleTableField('like_vote', ModuleTableField.FIELD_TYPE_boolean, "Like"),
+            new ModuleTableField('like_vote', ModuleTableField.FIELD_TYPE_enum, "Like").setEnumValues(AnimationUserModuleVO.LIKE_VOTE_LABELS),
             new ModuleTableField('commentaire', ModuleTableField.FIELD_TYPE_html, "Commentaire"),
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
@@ -229,5 +275,6 @@ export default class ModuleAnimation extends Module {
     private async configure_vars() {
         await VarDayPrctAvancementAnimationController.getInstance().initialize();
         await VarDayPrctReussiteAnimationController.getInstance().initialize();
+        await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
     }
 }
