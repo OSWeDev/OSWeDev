@@ -32,7 +32,7 @@ $circle-width-hover: 0.07em;
                 &.fa {
                     font-size: 17px;
                     padding-top: 3px;
-                    color: $orange_animation;
+                    color: $animation_orange;
                     text-align: center;
                     padding-left: 1px;
 
@@ -51,14 +51,14 @@ $circle-width-hover: 0.07em;
 
                 &:hover,
                 &.active {
-                    background: $orange_animation;
+                    background: $animation_orange;
                     color: white;
 
                     &.fa-trophy {
-                        background: $orange_animation;
+                        background: $animation_orange;
 
                         &.actif {
-                            background: $orange_animation;
+                            background: $animation_orange;
                         }
                     }
                 }
@@ -79,13 +79,13 @@ $circle-width-hover: 0.07em;
 
     .back {
         .btn {
-            background: $orange_animation;
+            background: $animation_orange;
             border-radius: 10px;
             color: white;
             border: 0;
 
             &:hover {
-                background: $vert_animation;
+                background: $animation_vert;
             }
         }
     }
@@ -127,7 +127,7 @@ $circle-width-hover: 0.07em;
                             content: ' ';
                             width: 18px;
                             height: 18px;
-                            background: $vert_animation;
+                            background: $animation_vert;
                             z-index: 1;
                             position: absolute;
                             border-radius: 30px;
@@ -180,13 +180,13 @@ $circle-width-hover: 0.07em;
     }
 
     .document_module {
-        color: $orange_animation;
+        color: $animation_orange;
         font-size: 16px;
         display: block;
         margin-bottom: 10px;
 
         &:hover {
-            color: $vert_animation;
+            color: $animation_vert;
         }
 
         i {
@@ -210,31 +210,31 @@ $circle-width-hover: 0.07em;
             }
 
             &.ok {
-                color: $vert_animation;
+                color: $animation_vert;
             }
 
             &.nok {
-                color: $orange_animation;
+                color: $animation_orange;
             }
         }
     }
 
     .retour_formations {
         .btn {
-            background: $orange_animation;
+            background: $animation_orange;
             color: white;
             border: 0;
             border-radius: 10px;
 
             &:hover {
-                background: $vert_animation;
+                background: $animation_vert;
             }
         }
     }
 
     .next {
         i {
-            background: $orange_animation;
+            background: $animation_orange;
             color: white;
             padding: 10px 20px;
             border-radius: 10px;
@@ -244,7 +244,7 @@ $circle-width-hover: 0.07em;
             }
 
             &:hover {
-                background: $vert_animation;
+                background: $animation_vert;
             }
         }
     }
@@ -390,7 +390,7 @@ $circle-width-hover: 0.07em;
             display: block;
             content: " ";
             border-radius: 50%;
-            background-color: $background_animation;
+            background-color: $animation_background;
             width: 1 - (2 * $circle-width);
             height: 1 - (2 * $circle-width);
             transition: all 0.2s ease-in;
@@ -469,32 +469,32 @@ $circle-width-hover: 0.07em;
         }
 
         &.success {
-            color: $vert_animation;
+            color: $animation_vert;
 
             .bar,
             .fill {
-                border-color: $vert_animation !important;
+                border-color: $animation_vert !important;
             }
 
             &:hover {
                 >span {
-                    color: $vert_animation;
+                    color: $animation_vert;
                 }
             }
 
         }
 
         &.warning {
-            color: $orange_animation;
+            color: $animation_orange;
 
             .bar,
             .fill {
-                border-color: $orange_animation !important;
+                border-color: $animation_orange !important;
             }
 
             &:hover {
                 >span {
-                    color: $orange_animation;
+                    color: $animation_orange;
                 }
             }
 
@@ -505,24 +505,24 @@ $circle-width-hover: 0.07em;
         color: black;
 
         .btn-info {
-            background: $orange_animation;
+            background: $animation_orange;
             border: 0;
             color: white;
             border-radius: 10px;
 
             &:hover {
-                background: $vert_animation;
+                background: $animation_vert;
             }
         }
 
         .btn-success {
-            background: $vert_animation;
+            background: $animation_vert;
             border: 0;
             color: white;
             border-radius: 10px;
 
             &:hover {
-                background: $orange_animation;
+                background: $animation_orange;
             }
         }
     }
@@ -545,9 +545,9 @@ $circle-width-hover: 0.07em;
                 position: absolute;
                 top: 10px;
                 left: 10px;
-                border: 2px solid $rouge_animation;
+                border: 2px solid $animation_rouge;
                 padding: 2px 6px;
-                color: $rouge_animation;
+                color: $animation_rouge;
                 opacity: 1;
                 text-shadow: none;
             }

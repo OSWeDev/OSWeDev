@@ -6,6 +6,7 @@ import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/Animat
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
@@ -80,6 +81,8 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(this.editable_uqr);
+
+        VarsController.getInstance().stageUpdateVoUpdate(this.editable_uqr, this.editable_uqr);
 
         this.$emit('reload');
 

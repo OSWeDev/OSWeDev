@@ -33,15 +33,15 @@
             &.active {
 
                 &.very_good td {
-                    color: $vert_animation;
+                    color: $animation_vert;
                 }
 
                 &.good td {
-                    color: $orange_animation;
+                    color: $animation_orange;
                 }
 
                 &.bad td {
-                    color: $rouge_animation;
+                    color: $animation_rouge;
                 }
             }
         }

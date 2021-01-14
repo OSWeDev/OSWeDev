@@ -7,6 +7,7 @@ import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/Ani
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
@@ -66,6 +67,8 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
         this.saving = true;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(this.user_module);
+
+        VarsController.getInstance().stageUpdateVoUpdate(this.user_module, this.user_module);
 
         this.$router.push({
             name: AnimationController.ROUTE_NAME_ANIMATION,

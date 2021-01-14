@@ -1,17 +1,11 @@
 @import 'skin-variables.scss';
-
-$background_animation: #3e3678;
-$orange_animation: #ea911b;
-$rouge_animation: #b7013d;
-$vert_animation: #b6c209;
-
 @import '../module/module.scss';
 @import '../feedback/feedback.scss';
 
 .page-animation,
 .page-animation_module,
 .page-animation_module_feedback {
-    background: $orange_animation;
+    background: $animation_orange;
 
     .logo {
         display: none;
@@ -27,49 +21,49 @@ $vert_animation: #b6c209;
         }
 
         h1:hover {
-            background: $vert_animation;
+            background: $animation_vert;
         }
     }
 
     .wrapper {
-        background-color: $background_animation;
+        background-color: $animation_background;
     }
 
     .main-footer {
-        background-color: $orange_animation;
+        background-color: $animation_orange;
     }
 
     .main-header {
 
         .logo,
         .navbar {
-            background-color: $orange_animation;
+            background-color: $animation_orange;
         }
     }
 
     .sidebar-menu li a {
-        background-color: $orange_animation !important;
+        background-color: $animation_orange !important;
         color: white;
     }
 
     .sidebar-menu li ul li a {
         background-color: transparent !important;
-        color: $orange_animation !important;
-        border-color: $orange_animation !important;
+        color: $animation_orange !important;
+        border-color: $animation_orange !important;
     }
 
     .sidebar-mini.sidebar-collapse .sidebar-menu>li:hover {
 
         &>a>span:not(.pull-right),
         .treeview-menu {
-            background-color: $orange_animation;
+            background-color: $animation_orange;
         }
     }
 
     h1 {
         text-align: center;
         color: white;
-        background: $orange_animation;
+        background: $animation_orange;
         padding: 15px 10px;
         font-size: 24px;
         margin-top: 0;
@@ -88,13 +82,13 @@ $vert_animation: #b6c209;
             border: 0;
 
             .btn {
-                background: $vert_animation;
+                background: $animation_vert;
                 color: white;
                 border-radius: 10px;
                 margin: 3px;
 
                 &:hover {
-                    background: $orange_animation;
+                    background: $animation_orange;
                 }
             }
         }
@@ -125,7 +119,7 @@ $vert_animation: #b6c209;
 
         .index_theme {
             display: inline-block;
-            background: $rouge_animation;
+            background: $animation_rouge;
             color: white;
             padding: 0px 28px;
             border-radius: 28px;
@@ -174,6 +168,7 @@ $vert_animation: #b6c209;
             }
         }
 
+        .documentation,
         .prct_avancement_module {
             float: left;
             padding: 2px 6px 1px 4px;
@@ -184,12 +179,43 @@ $vert_animation: #b6c209;
             text-align: center;
             min-height: 34px;
 
+            &.main {
+                background: $animation_background;
+
+                &:hover {
+                    background: $animation_orange;
+                }
+            }
+
             &.success {
-                background: $vert_animation;
+                background: $animation_vert;
             }
 
             &.warning {
-                background: $orange_animation;
+                background: $animation_orange;
+            }
+
+            &.en_cours {
+                background: linear-gradient(-45deg,
+                        $animation_orange 20%,
+                        $animation_vert 20%,
+                        $animation_vert 40%,
+                        $animation_orange 40%,
+                        $animation_orange 60%,
+                        $animation_vert 60%,
+                        $animation_vert 80%,
+                        $animation_orange 80%,
+                        $animation_orange 100%) !important;
+            }
+
+            i {
+                color: white;
+                font-size: 24px;
+                line-height: 28px;
+
+                &:before {
+                    margin-right: 0;
+                }
             }
         }
     }
@@ -208,11 +234,11 @@ $vert_animation: #b6c209;
         }
 
         a {
-            color: $orange_animation;
+            color: $animation_orange;
 
             &:hover {
                 text-decoration: none;
-                color: $vert_animation;
+                color: $animation_vert;
             }
         }
     }

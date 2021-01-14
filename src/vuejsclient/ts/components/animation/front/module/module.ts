@@ -53,6 +53,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private prct_atteinte_seuil_module: number = null;
     private um: AnimationUserModuleVO = null;
 
+    private is_reponse_valid: { [qr_id: number]: boolean } = {};
     private current_qr: AnimationQRVO = null;
 
     private document: DocumentVO = null;
@@ -151,6 +152,12 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
 
         this.recap_is_actif = user_qrs.length == this.qrs.length;
+
+        for (let i in this.qrs) {
+            let qr: AnimationQRVO = this.qrs[i];
+
+            this.is_reponse_valid[qr.id] = AnimationController.getInstance().isUserQROk(qr, this.uqr_by_qr_ids[qr.id]);
+        }
     }
 
     private async mounted() {

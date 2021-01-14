@@ -17,7 +17,7 @@
                             span {{ current_qr.weight }} / {{ ordered_qrs.length }}
                 .switch_questions
                     template(v-for="qr in ordered_qrs")
-                        .question(@click="switchQR(qr)", :class="{active: (!show_recap && current_qr && current_qr.id == qr.id), 'fa fa-check': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id)}")
+                        .question(@click="switchQR(qr)", :class="{active: (!show_recap && current_qr && current_qr.id == qr.id), 'fa fa-check': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id && is_reponse_valid[qr.id]), 'fa fa-times': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id && !is_reponse_valid[qr.id])}")
 
                     i.fa.fa-trophy.question(@click="show_recap_toggle", :class="{active: show_recap, actif: recap_is_actif}")
 
