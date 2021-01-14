@@ -4,6 +4,7 @@ import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import VarsPerfsController from './perf/VarsPerfsController';
@@ -58,12 +59,16 @@ export default class VarsComputeController {
         let dag: DAG<VarDAGNode> = await this.create_tree(vars_datas, ds_cache);
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", false);
 
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OK...');
+
         /**
          * On a l'arbre. On charge les données qui restent à charger
          */
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.load_nodes_datas", true);
         await this.load_nodes_datas(dag, ds_cache);
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.load_nodes_datas", false);
+
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - load_nodes_datas OK...');
 
         /**
          * Tous les noeuds dont le var_data !has_valid_value sont à calculer
@@ -82,6 +87,8 @@ export default class VarsComputeController {
         }
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.visit_bottom_up_to_node", false);
 
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - compute_node OK...');
+
         /**
          * Mise en cache, suivant stratégie pour chaque param
          */
@@ -89,12 +96,16 @@ export default class VarsComputeController {
         this.cache_datas(dag, vars_datas);
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.cache_datas", false);
 
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - cache_datas OK...');
+
         /**
          * Mise à jour des indicateurs de performances
          */
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.update_cards_in_perfs", true);
         this.update_cards_in_perfs(dag);
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.update_cards_in_perfs", false);
+
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - update_cards_in_perfs OK...');
     }
 
     private update_cards_in_perfs(dag: DAG<VarDAGNode>) {
