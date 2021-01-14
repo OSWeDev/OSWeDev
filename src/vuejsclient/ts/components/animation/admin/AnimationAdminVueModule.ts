@@ -3,6 +3,7 @@ import MessageModuleTableFieldTypeController from '../../../../../shared/modules
 import ReponseTableFieldTypeController from '../../../../../shared/modules/Animation/fields/reponse/ReponseTableFieldTypeController';
 import ModuleAnimation from '../../../../../shared/modules/Animation/ModuleAnimation';
 import AnimationModuleVO from '../../../../../shared/modules/Animation/vos/AnimationModuleVO';
+import AnimationParametersVO from '../../../../../shared/modules/Animation/vos/AnimationParametersVO';
 import AnimationQRVO from '../../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationThemeVO from '../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
@@ -46,6 +47,16 @@ export default class AnimationAdminVueModule extends VueModuleBase {
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnimation.POLICY_BO_ACCESS)) {
             return;
         }
+
+        CRUDComponentManager.getInstance().registerCRUD(
+            AnimationParametersVO.API_TYPE_ID,
+            null,
+            new MenuPointer(
+                new MenuLeaf("AnimationParametersVO", MenuElementBase.PRIORITY_MEDIUM, "fa-cogs"),
+                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            ),
+            this.routes
+        );
 
         CRUDComponentManager.getInstance().registerCRUD(
             AnimationThemeVO.API_TYPE_ID,

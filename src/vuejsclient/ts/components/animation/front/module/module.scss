@@ -9,8 +9,7 @@ $circle-width-hover: 0.07em;
     color: white;
 
     h1 {
-        margin-bottom: 20px;
-        ;
+        margin-bottom: 20px !important;
     }
 
     .questions {
@@ -26,7 +25,8 @@ $circle-width-hover: 0.07em;
                 height: 25px;
                 background: white;
                 border-radius: 30px;
-                margin-right: 10px;
+                margin-right: 5px;
+                margin-top: 5px;
                 cursor: pointer;
 
                 &.fa {
@@ -68,6 +68,7 @@ $circle-width-hover: 0.07em;
 
     .prct_reussite_message {
         margin: 20px 0;
+        text-align: justify;
     }
 
     h2 {
@@ -175,6 +176,22 @@ $circle-width-hover: 0.07em;
                 border: 0;
                 max-width: 100%;
             }
+        }
+    }
+
+    .document_module {
+        color: $orange_animation;
+        font-size: 16px;
+        display: block;
+        margin-bottom: 10px;
+
+        &:hover {
+            color: $vert_animation;
+        }
+
+        i {
+            padding: 6px !important;
+            margin-right: 10px;
         }
     }
 
@@ -452,6 +469,7 @@ $circle-width-hover: 0.07em;
         }
 
         &.success {
+            color: $vert_animation;
 
             .bar,
             .fill {
@@ -467,6 +485,7 @@ $circle-width-hover: 0.07em;
         }
 
         &.warning {
+            color: $orange_animation;
 
             .bar,
             .fill {
@@ -504,6 +523,50 @@ $circle-width-hover: 0.07em;
 
             &:hover {
                 background: $orange_animation;
+            }
+        }
+    }
+
+    .imagezoommodal {
+        z-index: 99999;
+
+        .modal-dialog {
+            width: auto;
+        }
+
+        .modal-content {
+            background: none;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .modal-body {
+            .close {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                border: 2px solid $rouge_animation;
+                padding: 2px 6px;
+                color: $rouge_animation;
+                opacity: 1;
+                text-shadow: none;
+            }
+
+            .rotate {
+                position: relative;
+            }
+
+            @media only screen and (orientation:landscape) {
+                img {
+                    max-width: 100%;
+                    max-height: inherit !important;
+                }
+            }
+
+            @media only screen and (orientation:portrait) {
+                .rotate {
+                    transform: rotate(90deg);
+                }
             }
         }
     }

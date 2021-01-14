@@ -6,14 +6,14 @@
 
         .qr_file
             template(v-if="file")
-                    template(v-if="is_image")
-                        img(:src="file.path")
-                    template(v-if="is_video")
-                        video(controls)
-                            source(:src="file.path" type="video/mp4")
+                template(v-if="is_image")
+                    img(:src="file.path", @click="showModal(true)")
+                template(v-if="is_video")
+                    video(controls)
+                        source(:src="file.path" type="video/mp4")
 
             template(v-if="qr.external_video")
-                iframe(:src="qr.external_video + '?rel=0'" allow="autoplay; encrypted-media" allowfullscreen="false")
+                iframe(:style="style_iframe" :src="qr.external_video + '?rel=0'" allow="autoplay; encrypted-media" allowfullscreen="false")
 
         template(v-if="ordered_reponses && ordered_reponses.length > 0")
             .reponses
@@ -58,3 +58,13 @@
                     .next
                         i.fa.fa-long-arrow-right(@click="next")
 
+
+    .modal.imagezoommodal.fade.in(ref="imagezoommodal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-sm#imagezoommodal(role='document')
+            .modal-content
+                .modal-body
+                    .rotate
+                        .close(@click="showModal(false)") ×
+                        template(v-if="file")
+                            template(v-if="is_image")
+                                img(:src="file.path", :style="style_image")

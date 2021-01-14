@@ -9,10 +9,10 @@ import AnimationController from '../AnimationController';
 import AnimationParamsRangesDatasourceController from '../datasources/AnimationParamsRangesDatasourceController';
 import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
-import ModuleAnimation from '../ModuleAnimation';
 import ThemeModuleDataParamRangesController from '../params/theme_module/ThemeModuleDataParamRangesController';
 import ThemeModuleDataParamRangesVO from '../params/theme_module/ThemeModuleDataParamRangesVO';
 import ThemeModuleDataRangesVO from '../params/theme_module/ThemeModuleDataRangesVO';
+import AnimationParametersVO from '../vos/AnimationParametersVO';
 import AnimationQRVO from '../vos/AnimationQRVO';
 import AnimationUserQRVO from '../vos/AnimationUserQRVO';
 
@@ -90,7 +90,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarContr
 
         let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: AnimationQRVO[] } } = QRsRangesDatasourceController.getInstance().get_data(param);
         let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = UQRsRangesDatasourceController.getInstance().get_data_by_qr_ids(param);
-        let animation_params: { [param_name: string]: any } = AnimationParamsRangesDatasourceController.getInstance().get_data(param);
+        let animation_params: AnimationParametersVO = AnimationParamsRangesDatasourceController.getInstance().get_data(param);
 
         let cpt_modules: number = 0;
         let cpt_modules_ok: number = 0;
@@ -121,7 +121,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarContr
 
                 let prct_reussite: number = cpt_ok / qrs_by_theme_module[theme_id][module_id].length;
 
-                if (prct_reussite >= animation_params[ModuleAnimation.PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT]) {
+                if (prct_reussite >= animation_params.seuil_validation_module_prct) {
                     cpt_modules_ok++;
                 }
             }

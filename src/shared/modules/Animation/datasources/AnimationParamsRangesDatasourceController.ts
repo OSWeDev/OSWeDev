@@ -7,6 +7,7 @@ import VarsController from "../../Var/VarsController";
 import ModuleAnimation from "../ModuleAnimation";
 import ThemeModuleDataParamRangesVO from "../params/theme_module/ThemeModuleDataParamRangesVO";
 import ThemeModuleDataRangesVO from "../params/theme_module/ThemeModuleDataRangesVO";
+import AnimationParametersVO from "../vos/AnimationParametersVO";
 
 export default class AnimationParamsRangesDatasourceController implements IDataSourceController<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
 
@@ -24,7 +25,7 @@ export default class AnimationParamsRangesDatasourceController implements IDataS
     public can_use_server_side: boolean = true;
     public can_use_client_side: boolean = true;
 
-    protected cache_params: { [param_name: string]: any } = {};
+    protected cache_params: AnimationParametersVO = null;
 
     public registerDataSource() {
         DataSourcesController.getInstance().registerDataSource(this, []);
@@ -46,17 +47,11 @@ export default class AnimationParamsRangesDatasourceController implements IDataS
         return res;
     }
 
-    public get_data(param: ThemeModuleDataParamRangesVO): { [param_name: string]: any } {
+    public get_data(param: ThemeModuleDataParamRangesVO): AnimationParametersVO {
         return this.cache_params;
     }
 
     public async load_for_batch(vars_params: { [index: string]: ThemeModuleDataParamRangesVO }): Promise<void> {
-        let promises = [];
-
-        promises.push((async () =>
-            this.cache_params[ModuleAnimation.PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT] = await ModuleAnimation.getInstance().get_PARAM_NAME_SEUIL_VALIDATION_MODULE_PRCT_value()
-        )());
-
-        await Promise.all(promises);
+        this.cache_params = await ModuleAnimation.getInstance().getParameters();
     }
 }

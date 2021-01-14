@@ -250,5 +250,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Redémarrer' }, 'animation.modal.restart_module.restart.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'BRAVO!' }, 'animation.qr.is_validated.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'OUPS' }, 'animation.qr.is_validated.nok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Max' }, 'fields.labels.ref.module_animation_anim_message_module.max.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Message' }, 'fields.labels.ref.module_animation_anim_message_module.message.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Min' }, 'fields.labels.ref.module_animation_anim_message_module.min.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____module_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Parametres' }, 'menu.menuelements.AnimationParametersVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Télécharger le document' }, 'animation.documents.download.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Documentations' }, 'animation.documents.titre.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Consultez la documentation' }, 'animation.module.document.___LABEL___'));
     }
 }

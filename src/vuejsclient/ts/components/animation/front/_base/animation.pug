@@ -14,3 +14,14 @@
                 template(v-for="(theme, index) in ordered_themes")
                     .col-md-3.col-sm-6
                         Animationtheme(:theme="theme", :index_theme="(index + 1)", :modules="modules_by_themes[theme.id]", :logged_user_id="logged_user_id")
+
+        template(v-if="documents && documents.length ")
+            .row.documents
+                .col-md-12
+                    h1 {{ label('animation.documents.titre') }}
+                template(v-for="document in documents")
+                    .col-md-3.col-sm-6
+                        .document
+                            a(:href="document.document_url", target="_blank")
+                                .description {{ document.name }}
+                                .link {{ label('animation.documents.download') }}

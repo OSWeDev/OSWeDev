@@ -8,12 +8,14 @@ import ThemeModuleDataRangesVO from "../../../../../../shared/modules/Animation/
 import VarDayPrctAtteinteSeuilAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctAtteinteSeuilAnimationController";
 import VarDayPrctReussiteAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController";
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
+import AnimationParametersVO from "../../../../../../shared/modules/Animation/vos/AnimationParametersVO";
 import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/AnimationQRVO";
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
+import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
 import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
 import ISimpleNumberVarData from "../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData";
@@ -22,6 +24,7 @@ import SimpleNumberVarDataController from "../../../../../../shared/modules/Var/
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
+import AjaxCacheClientController from "../../../../modules/AjaxCache/AjaxCacheClientController";
 import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
 import VueComponentBase from '../../../VueComponentBase';
 import VueAnimationQrComponent from "../qr/qr";
@@ -46,11 +49,13 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private recap_is_actif: boolean = false;
     private prct_reussite_value: number = null;
 
-    private seuil_validation_module_prct: number = null;
+    private animation_params: AnimationParametersVO = null;
     private prct_atteinte_seuil_module: number = null;
     private um: AnimationUserModuleVO = null;
 
     private current_qr: AnimationQRVO = null;
+
+    private document: DocumentVO = null;
 
     @Watch('module_id')
     private async reloadAsyncDatas() {
@@ -70,15 +75,17 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
-        promises.push((async () => this.seuil_validation_module_prct = await ModuleAnimation.getInstance().getSeuilValidationModulePrct())());
+        promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
 
         await Promise.all(promises);
 
         promises = [];
 
-        promises.push((async () =>
-            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id)
-        )());
+        promises.push((async () => {
+            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id);
+            // On force le vidage de cache
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID]);
+        })());
 
         promises.push((async () =>
             this.prct_atteinte_seuil_module = SimpleNumberVarDataController.getInstance().getValueOrDefault(
@@ -88,6 +95,10 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
                 0
             )
         )());
+
+        if (this.anim_module.document_id) {
+            promises.push((async () => this.document = await ModuleDAO.getInstance().getVoById<DocumentVO>(DocumentVO.API_TYPE_ID, this.anim_module.document_id))());
+        }
 
         await Promise.all(promises);
 
@@ -210,6 +221,8 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private async show_recap_toggle() {
         if (this.recap_is_actif) {
             await ModuleAnimation.getInstance().endModule(this.logged_user_id, this.anim_module.id);
+            // On force le vidage de cache
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID]);
             this.show_recap = true;
         }
     }
@@ -268,6 +281,10 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         let mm: AnimationMessageModuleVO = AnimationController.getInstance().getMessageModuleForPrct(this.anim_module, this.prct_reussite_value);
 
         return mm ? mm.message : null;
+    }
+
+    get seuil_validation_module_prct(): number {
+        return this.animation_params ? this.animation_params.seuil_validation_module_prct : null;
     }
 
     get is_module_valide(): boolean {

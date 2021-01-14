@@ -15,4 +15,5 @@ export default class AnimationModuleVO implements IWeightedItem, INamedVO {
     public weight: number;
 
     public theme_id: number;
+    public document_id: number;
 }

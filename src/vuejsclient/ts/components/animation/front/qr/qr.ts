@@ -106,6 +106,26 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         this.$emit('next');
     }
 
+    private showModal(show: boolean) {
+        if (show) {
+            $(this.$refs.imagezoommodal).modal('show');
+        } else {
+            $(this.$refs.imagezoommodal).modal('hide');
+        }
+    }
+
+    get style_image(): any {
+        return {
+            maxHeight: (window.innerWidth - 50) + 'px',
+        };
+    }
+
+    get style_iframe(): any {
+        return {
+            height: ($('.qr_file').width() / 2) + 'px',
+        };
+    }
+
     get reponses(): AnimationReponseVO[] {
         return AnimationController.getInstance().getReponses(this.qr);
     }
