@@ -85,8 +85,9 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         for (let i in this.var_params) {
+            let var_param = this.var_params[i];
 
-            if ((!this.var_datas) || (!this.var_datas[this.var_params[i].index])) {
+            if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
                 return false;
             }
         }

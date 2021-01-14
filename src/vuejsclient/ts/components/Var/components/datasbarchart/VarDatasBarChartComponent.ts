@@ -71,8 +71,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         }
     }
 
-    private destroyed() {
-
+    private async beforeDestroy() {
         VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
         if (!!this.rendered) {
             // Issu de Bar
@@ -95,7 +94,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 for (let i in var_params) {
                     let var_param = var_params[i];
 
-                    if ((!this.var_datas) || (!this.var_datas[var_param.index])) {
+                    if ((!this.var_datas) || (!this.var_datas[var_param.index]) || (typeof this.var_datas[var_param.index].value === 'undefined')) {
                         return false;
                     }
                 }
