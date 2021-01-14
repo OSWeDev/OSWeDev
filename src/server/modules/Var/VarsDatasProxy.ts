@@ -198,12 +198,15 @@ export default class VarsDatasProxy {
         }
 
         if (var_data.id) {
-            return await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
+            let e = await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
+            this.filter_var_datas_by_indexes([e], false);
+            return e;
         }
 
         let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
 
         if (res && res.length) {
+            this.filter_var_datas_by_indexes([res[0]], false);
             return res[0];
         }
         return null;
@@ -272,11 +275,14 @@ export default class VarsDatasProxy {
      */
     public async get_vars_to_compute_from_buffer_or_bdd(
         client_request_estimated_ms_limit: number,
-        bg_estimated_ms_limit: number
+        client_request_min_nb_vars: number,
+        bg_estimated_ms_limit: number,
+        bg_min_nb_vars: number
     ): Promise<{ [index: string]: VarDataBaseVO }> {
 
         let res: { [index: string]: VarDataBaseVO } = {};
         let estimated_ms: number = 0;
+        let nb_vars: number = 0;
 
         /**
          * On commence par collecter le max de datas depuis le buffer : Les conditions de sélection d'un var :
@@ -285,13 +291,14 @@ export default class VarsDatasProxy {
          */
         for (let i in this.vars_datas_buffer) {
 
-            if (estimated_ms >= client_request_estimated_ms_limit) {
+            if ((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) {
                 return res;
             }
 
             let var_data = this.vars_datas_buffer[i];
 
             if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                nb_vars += res[var_data.index] ? 0 : 1;
                 res[var_data.index] = var_data;
 
                 estimated_ms += (MatroidController.getInstance().get_cardinal(var_data) / 1000)
@@ -307,7 +314,7 @@ export default class VarsDatasProxy {
             return res;
         }
 
-        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(bg_estimated_ms_limit);
+        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(bg_estimated_ms_limit, bg_min_nb_vars);
         for (let i in bdd_datas) {
             let bdd_data = bdd_datas[i];
 
@@ -337,13 +344,14 @@ export default class VarsDatasProxy {
     /**
      * On récupère des packets max de 500 vars, et si besoin on en récupèrera d'autres pour remplir le temps limit
      */
-    private async get_vars_to_compute_from_bdd(estimated_ms_limit: number): Promise<{ [index: string]: VarDataBaseVO }> {
+    private async get_vars_to_compute_from_bdd(estimated_ms_limit: number, bg_min_nb_vars: number): Promise<{ [index: string]: VarDataBaseVO }> {
         let vars_datas: { [index: string]: VarDataBaseVO } = {};
         let estimated_ms: number = 0;
+        let nb_vars: number = 0;
 
         for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
-            if (estimated_ms >= estimated_ms_limit) {
+            if ((estimated_ms >= estimated_ms_limit) && (nb_vars >= bg_min_nb_vars)) {
                 return vars_datas;
             }
 
@@ -352,7 +360,7 @@ export default class VarsDatasProxy {
             let limit: number = 500;
             let offset: number = 0;
 
-            while (may_have_more_datas && (estimated_ms < estimated_ms_limit)) {
+            while (may_have_more_datas && ((estimated_ms < estimated_ms_limit) || (nb_vars < bg_min_nb_vars))) {
                 may_have_more_datas = false;
 
                 let condition = '(';
@@ -389,7 +397,7 @@ export default class VarsDatasProxy {
                 may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
 
                 for (let vars_datas_tmp_i in vars_datas_tmp) {
-                    if (estimated_ms >= estimated_ms_limit) {
+                    if ((estimated_ms >= estimated_ms_limit) && (nb_vars >= bg_min_nb_vars)) {
                         return vars_datas;
                     }
 
@@ -397,10 +405,11 @@ export default class VarsDatasProxy {
                     estimated_ms += (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
                         * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
 
+                    nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
                     vars_datas[var_data_tmp.index] = var_data_tmp;
                 }
             }
-            if (estimated_ms >= estimated_ms_limit) {
+            if ((estimated_ms >= estimated_ms_limit) && (nb_vars >= bg_min_nb_vars)) {
                 return vars_datas;
             }
         }

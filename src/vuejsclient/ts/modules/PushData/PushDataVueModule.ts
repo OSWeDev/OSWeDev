@@ -258,7 +258,8 @@ export default class PushDataVueModule extends VueModuleBase {
                                 'value:' + e.value + ':' +
                                 'value_type:' + e.value_type + ':' +
                                 'value_ts:' + e.value_ts + ':' +
-                                'is_computing:' + e.is_computing + ':'
+                                'is_computing:' + e.is_computing + ':' +
+                                'index:' + e.index + ':'
                             );
                         }
 

@@ -24,6 +24,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
     private static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
+    private static PARAM_NAME_bg_min_nb_vars: string = 'VarsdatasComputerBGThread.bg_min_nb_vars';
+    private static PARAM_NAME_client_request_min_nb_vars: string = 'VarsdatasComputerBGThread.client_request_min_nb_vars';
     private static instance: VarsdatasComputerBGThread = null;
 
     // public current_timeout: number = 100;
@@ -88,6 +90,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             let client_request_estimated_ms_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500);
             let bg_estimated_ms_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000);
+            let bg_min_nb_vars: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75);
+            let client_request_min_nb_vars: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15);
 
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
@@ -105,7 +109,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.selection"], true);
             let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(
-                client_request_estimated_ms_limit, bg_estimated_ms_limit);
+                client_request_estimated_ms_limit, client_request_min_nb_vars, bg_estimated_ms_limit, bg_min_nb_vars);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
 
             if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
