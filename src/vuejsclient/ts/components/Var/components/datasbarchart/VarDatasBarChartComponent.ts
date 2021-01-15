@@ -101,6 +101,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             }
         }
 
+        ConsoleHandler.getInstance().log('all_data_loaded');
         return true;
     }
 
@@ -187,6 +188,8 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         if (!this.all_data_loaded) {
             return null;
         }
+
+        this.debounced_render_chart_js();
 
         return {
             labels: this.labels,

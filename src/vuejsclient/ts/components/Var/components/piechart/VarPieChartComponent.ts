@@ -1,3 +1,4 @@
+import debounce from 'lodash/debounce';
 import { Pie } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
@@ -44,6 +45,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     public reload_on_mount: boolean;
 
     private rendered: boolean = false;
+    private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
     private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
@@ -70,7 +72,9 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     private mounted() {
 
-        this.render_chart_js();
+        if (this.all_data_loaded) {
+            this.debounced_render_chart_js();
+        }
     }
 
     private destroyed() {
@@ -171,6 +175,8 @@ export default class VarPieChartComponent extends VueComponentBase {
             return null;
         }
 
+        this.debounced_render_chart_js();
+
         return {
             labels: this.labels,
             datasets: this.datasets
@@ -264,7 +270,9 @@ export default class VarPieChartComponent extends VueComponentBase {
     @Watch('datasets')
     private onchange_datasets() {
 
-        this.render_chart_js();
+        if (this.all_data_loaded) {
+            this.debounced_render_chart_js();
+        }
     }
 
     get labels(): string[] {
