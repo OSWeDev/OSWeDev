@@ -1407,7 +1407,7 @@ export default class DatatableComponent extends VueComponentBase {
                 defaultOption: this.label('datatable.default_option').replace(/###/g, '{').replace(/-##/g, '}'),
                 columns: this.label('datatable.columns')
             },
-            // pagination: { chunk: 10, dropdown: false },
+            pagination: { edge: true },
             headings: this.datatable_columns_labels,
             skin: 'table-striped table-hover',
             customSorting: this.customSorting,
