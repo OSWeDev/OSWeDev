@@ -18,9 +18,10 @@
                 .row.module
                     .col-md-12
                         .text-left.module_infos
-                            .documentation.main(v-if="document_by_module_id[anim_module.id]")
-                                a(:href="document_by_module_id[anim_module.id].document_url", target="_blank")
-                                    i.fa.fa-book
+                            .documentation.main(:class="{no_doc: !document_by_module_id[anim_module.id]}")
+                                template(v-if="document_by_module_id[anim_module.id]")
+                                    a(:href="document_by_module_id[anim_module.id].document_url", target="_blank")
+                                        i.fa.fa-book
 
                             .theme_container(@click="go_to_route_module(anim_module)")
                                 .prct_avancement_module(:class="{success: (prct_atteinte_seuil_module[anim_module.id] == 1), warning: (prct_atteinte_seuil_module[anim_module.id] == 0), en_cours: um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date}")
@@ -28,4 +29,4 @@
                                 .module_name
                                     span {{ anim_module.name }}
                                     template(v-if="um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date")
-                                        span.en_cours {{ label('animation.module.en_cours') }}
+                                        span.en_cours_message {{ label('animation.module.en_cours') }}

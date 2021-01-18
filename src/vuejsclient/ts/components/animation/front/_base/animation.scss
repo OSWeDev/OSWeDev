@@ -52,10 +52,9 @@
         border-color: $animation_orange !important;
     }
 
-    .sidebar-mini.sidebar-collapse .sidebar-menu>li:hover {
+    &.sidebar-mini.sidebar-collapse .sidebar-menu>li:hover {
 
-        &>a>span:not(.pull-right),
-        .treeview-menu {
+        &>a>span:not(.pull-right) {
             background-color: $animation_orange;
         }
     }
@@ -178,6 +177,7 @@
             width: 33px;
             text-align: center;
             min-height: 34px;
+            min-width: 34px;
 
             &.main {
                 background: $animation_background;
@@ -185,6 +185,11 @@
                 &:hover {
                     background: $animation_orange;
                 }
+            }
+
+            &.no_doc {
+                background: none !important;
+                cursor: initial;
             }
 
             &.success {
@@ -206,6 +211,12 @@
                         $animation_vert 80%,
                         $animation_orange 80%,
                         $animation_orange 100%) !important;
+            }
+
+            .en_cours_message {
+                display: block;
+                font-style: italic;
+                font-size: 12px;
             }
 
             i {
@@ -275,10 +286,12 @@
 
             .theme_name {
                 margin-bottom: 6px;
+                margin-left: 88px;
             }
 
             .module_name {
                 font-weight: bold;
+                margin-left: 88px;
             }
         }
     }
