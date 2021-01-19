@@ -39,6 +39,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     // private invalidations: number = 0;
     private semaphore: boolean = false;
 
+    public exec_in_dedicated_thread: boolean = true;
+
     private throttled_calculation_run = throttle(this.do_calculation_run, 100, { leading: false });
 
     private constructor() { }

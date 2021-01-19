@@ -1,4 +1,7 @@
 /* tslint:disable:no-unused-expression */
+import ServerAPIController from '../../../server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect } from 'chai';
 import 'mocha';
