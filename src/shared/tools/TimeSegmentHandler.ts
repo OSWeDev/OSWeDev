@@ -480,7 +480,7 @@ export default class TimeSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public incMoment(date: Moment, segment_type: number, offset: number): void {
+    public incMoment(date: Moment, segment_type: number, offset: number = 1): void {
 
         switch (segment_type) {
             case TimeSegment.TYPE_HOUR:
@@ -550,7 +550,7 @@ export default class TimeSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public decMoment(date: Moment, segment_type: number, offset: number): void {
+    public decMoment(date: Moment, segment_type: number, offset: number = 1): void {
         this.incMoment(date, segment_type, -offset);
     }
 

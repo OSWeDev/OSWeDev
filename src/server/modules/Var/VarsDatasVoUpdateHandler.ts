@@ -105,7 +105,7 @@ export default class VarsDatasVoUpdateHandler {
         let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
         let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
 
-        let intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] } = {};
+        let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
 
         let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
 
@@ -119,7 +119,7 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     public async invalidate_datas_and_parents(
-        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] },
+        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = null
     ) {
 
@@ -150,17 +150,17 @@ export default class VarsDatasVoUpdateHandler {
      * Recherche en BDD par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
      * @param intersectors_by_var_id
      */
-    private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }) {
+    private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
         for (let var_id_s in intersectors_by_var_id) {
             let intersectors = intersectors_by_var_id[var_id_s];
 
-            if ((!intersectors) || (!intersectors.length)) {
+            if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
                 continue;
             }
 
-            let sample_inter = intersectors[0];
+            let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
 
-            let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, intersectors, null);
+            let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, Object.values(intersectors), null);
 
             /**
              * Tout sauf les imports
@@ -181,7 +181,7 @@ export default class VarsDatasVoUpdateHandler {
     private async compute_intersectors(
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> },
         markers: { [var_id: number]: number },
-        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }) {
+        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
 
@@ -213,10 +213,10 @@ export default class VarsDatasVoUpdateHandler {
 
     private async compute_deps_intersectors_and_union(
         Nx: VarCtrlDAGNode,
-        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }
+        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }
     ) {
         let intersectors = intersectors_by_var_id[Nx.var_controller.varConf.id];
-        intersectors = intersectors ? intersectors : [];
+        intersectors = intersectors ? intersectors : {};
 
         let has_deps_to_compute: boolean = false;
 
@@ -231,9 +231,9 @@ export default class VarsDatasVoUpdateHandler {
             has_deps_to_compute = true;
             let tmp = await Nx.var_controller.get_invalid_params_intersectors_from_dep(
                 dep.dep_name,
-                intersectors_by_var_id[controller.varConf.id]);
+                Object.values(intersectors_by_var_id[controller.varConf.id]));
             if (tmp && tmp.length) {
-                intersectors = intersectors.concat(tmp);
+                tmp.forEach((e) => intersectors[e.index] = e);
             }
         }
 
@@ -241,9 +241,10 @@ export default class VarsDatasVoUpdateHandler {
             return;
         }
 
-        intersectors = MatroidController.getInstance().union(intersectors);
+        intersectors = ObjectHandler.getInstance().mapByStringFieldFromArray(
+            MatroidController.getInstance().union(Object.values(intersectors)), 'index');
 
-        if ((!intersectors) || (!intersectors.length)) {
+        if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
             return;
         }
         intersectors_by_var_id[Nx.var_controller.varConf.id] = intersectors;
@@ -277,7 +278,7 @@ export default class VarsDatasVoUpdateHandler {
      */
     private init_leaf_intersectors(
         vo_types: string[],
-        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] },
+        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
         vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }) {
@@ -297,7 +298,7 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    intersectors = intersectors.concat(tmp);
+                    tmp.forEach((e) => intersectors[e.index] = e);
                 }
 
                 for (let k in vos_update_buffer[vo_type]) {
@@ -307,11 +308,12 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    intersectors = intersectors.concat(tmp);
+                    tmp.forEach((e) => intersectors[e.index] = e);
                 }
 
-                if (intersectors && intersectors.length) {
-                    intersectors_by_var_id[var_controller.varConf.id] = MatroidController.getInstance().union(intersectors);
+                if (intersectors && ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors)) {
+                    intersectors_by_var_id[var_controller.varConf.id] = ObjectHandler.getInstance().mapByStringFieldFromArray(
+                        MatroidController.getInstance().union(Object.values(intersectors)), 'index');
                     ctrls_to_update_1st_stage[var_controller.varConf.id] = var_controller;
                 }
             }

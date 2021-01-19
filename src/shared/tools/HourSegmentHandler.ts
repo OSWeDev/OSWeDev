@@ -165,7 +165,7 @@ export default class HourSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public incElt(time: moment.Duration, segment_type: number, offset: number): void {
+    public incElt(time: moment.Duration, segment_type: number, offset: number = 1): void {
 
         time.add(offset, this.getCorrespondingMomentUnitOfTime(segment_type));
     }
@@ -176,7 +176,7 @@ export default class HourSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public decMoment(date: moment.Duration, segment_type: number, offset: number): void {
+    public decMoment(date: moment.Duration, segment_type: number, offset: number = 1): void {
         this.incElt(date, segment_type, -offset);
     }
 

@@ -62,7 +62,7 @@ export default class MatroidBaseController {
         for (let i in a.ranges) {
             let range_a = a.ranges[i];
 
-            if (RangeHandler.getInstance().range_intersects_any_range(range_a, b.ranges)) {
+            if (RangeHandler.getInstance().range_intersects_any_range_optimized_normalized(range_a, b.ranges)) {
                 return true;
             }
         }

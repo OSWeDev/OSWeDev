@@ -80,7 +80,7 @@ export default class NumSegmentHandler {
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé
      */
-    public incNum(num: number, segment_type: number, offset: number): number {
+    public incNum(num: number, segment_type: number, offset: number = 1): number {
 
         switch (segment_type) {
             case NumSegment.TYPE_INT:
@@ -92,7 +92,7 @@ export default class NumSegmentHandler {
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé
      */
-    public decNum(num: number, segment_type: number, offset: number): number {
+    public decNum(num: number, segment_type: number, offset: number = 1): number {
         return this.incNum(num, segment_type, -offset);
     }
 
