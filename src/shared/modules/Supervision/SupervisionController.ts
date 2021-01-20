@@ -43,7 +43,7 @@ export default class SupervisionController {
 
         this.registered_api_type_by_ids[moduleTable.vo_type] = controller;
 
-        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
         moduleTable.push_field(name.setModuleTable(moduleTable));
 
         let category_id_field = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie').addManyToOneRelation(

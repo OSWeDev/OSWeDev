@@ -52,6 +52,9 @@ export default class VarDAGNode extends DAGNodeBase {
     public has_compute_node_perf: boolean = false;
     public has_load_nodes_datas_perf: boolean = false;
 
+    public already_tried_loading_data_and_deploy: boolean = false;
+    public already_tried_load_cache_complet: boolean = false;
+
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */

@@ -129,10 +129,14 @@ export default class MatroidController {
         }
 
         for (let i in ranges_need_union) {
-            let matroid = res[i];
+            let matroid: T = res[i];
 
             for (let field_id in ranges_need_union[i]) {
                 matroid[field_id] = RangeHandler.getInstance().getRangesUnion(matroid[field_id]);
+            }
+
+            if (matroid['_index']) {
+                matroid['_index'] = null;
             }
         }
 
@@ -603,6 +607,9 @@ export default class MatroidController {
             }
         }
 
+        if (res['_index']) {
+            res['_index'] = null;
+        }
         return res;
     }
 

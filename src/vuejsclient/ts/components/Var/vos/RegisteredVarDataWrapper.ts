@@ -18,7 +18,9 @@ export default class RegisteredVarDataWrapper {
             /**
              * Si on a déjà une valeur pour ce param, on peut appeler le callback directement, on attend rien de plus
              */
-            if (VarsClientController.getInstance().cached_var_datas[this.var_param.index]) {
+            if (VarsClientController.getInstance().cached_var_datas[this.var_param.index] &&
+                (VarsClientController.getInstance().cached_var_datas[this.var_param.index].value != null) &&
+                (VarsClientController.getInstance().cached_var_datas[this.var_param.index].value_ts)) {
                 if (!!callback.callback) {
                     callback.callback(VarsClientController.getInstance().cached_var_datas[this.var_param.index]);
 

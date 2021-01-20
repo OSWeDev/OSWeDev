@@ -6,6 +6,7 @@ import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import MatroidCutResult from '../../../../shared/modules/Matroid/vos/MatroidCutResult';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import VarsInitController from '../../../../shared/modules/Var/VarsInitController';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import FakeEmpDayDataVO from './vos/FakeEmpDayDataVO';
 
@@ -40,6 +41,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -54,6 +56,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -64,6 +67,7 @@ export default class FakeEmpDayDataHandler {
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -74,6 +78,7 @@ export default class FakeEmpDayDataHandler {
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -88,6 +93,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -102,6 +108,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -116,6 +123,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -130,6 +138,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -145,6 +154,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -159,6 +169,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -173,6 +184,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -187,6 +199,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -201,6 +214,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -215,6 +229,7 @@ export default class FakeEmpDayDataHandler {
                 true, false, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -229,6 +244,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -243,6 +259,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -257,6 +274,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -271,6 +289,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -285,6 +304,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -299,6 +319,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -313,6 +334,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -327,6 +349,7 @@ export default class FakeEmpDayDataHandler {
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -354,9 +377,12 @@ export default class FakeEmpDayDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
 
-        return new MatroidCutResult<FakeEmpDayDataVO>(
+        let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_1_zero_()],
             [a, b]);
+        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        return f;
     }
 
     public static matroid_1_2_moins1_zero__moins__matroid_1_moins1(): MatroidCutResult<FakeEmpDayDataVO> {
@@ -383,9 +409,12 @@ export default class FakeEmpDayDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
 
-        return new MatroidCutResult<FakeEmpDayDataVO>(
+        let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_1_moins1_()],
             [a, b]);
+        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        return f;
     }
 
     public static matroid_1_2_moins1_zero__moins__matroid_2_moins1(): MatroidCutResult<FakeEmpDayDataVO> {
@@ -412,9 +441,12 @@ export default class FakeEmpDayDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
 
-        return new MatroidCutResult<FakeEmpDayDataVO>(
+        let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_2_moins1_()],
             [a, b]);
+        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        return f;
     }
 
     public static matroid_1_2_moins1_zero__moins__matroid_2_zero(): MatroidCutResult<FakeEmpDayDataVO> {
@@ -441,8 +473,11 @@ export default class FakeEmpDayDataHandler {
         ];
         b.employee_id_ranges = [NumRange.createNew(2, 2, true, true, NumSegment.TYPE_INT)];
 
-        return new MatroidCutResult<FakeEmpDayDataVO>(
+        let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_2_zero_()],
             [a, b]);
+        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        return f;
     }
 }

@@ -69,6 +69,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_A_index() {
@@ -81,6 +82,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
         ];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -91,6 +93,7 @@ export default class FakeDataHandler {
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY),
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
         ];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -100,6 +103,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_B_index() {
@@ -112,6 +116,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_C_index() {
@@ -124,6 +129,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_E_index() {
@@ -136,6 +142,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_F_index() {
@@ -148,6 +155,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_G_index() {
@@ -160,6 +168,7 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_YEAR)
         ];
+        let a = var_data.index;
         return var_data;
     }
     public static get_expected_var_data_H_index() {
@@ -178,6 +187,7 @@ export default class FakeDataHandler {
                 false,
                 TimeSegment.TYPE_MONTH)
         ];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -200,6 +210,7 @@ export default class FakeDataHandler {
                 false,
                 TimeSegment.TYPE_MONTH)
         ];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -215,6 +226,7 @@ export default class FakeDataHandler {
                 false,
                 TimeSegment.TYPE_MONTH)
         ];
+        let a = var_data.index;
         return var_data;
     }
 
@@ -225,6 +237,7 @@ export default class FakeDataHandler {
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY),
             RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
         ];
+        let a = var_data.index;
         return var_data;
     }
 }

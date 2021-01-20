@@ -78,6 +78,25 @@ export default class VarsPerfsController {
                 current_batch_perf.id = bdd_data.id;
             }
 
+            // Pour limiter les dépassements on fixe un max à ne pas dépasser et on ramène les historiques dans la limite si ça dépasse
+            if ((current_batch_perf.nb_calls < 0) || (current_batch_perf.nb_card < 0) || (current_batch_perf.sum_ms < 0)) {
+                // si déjà <0, on doit juste repartir de 0 c'est n'imp
+                current_batch_perf.nb_calls = 0;
+                current_batch_perf.nb_card = 0;
+                current_batch_perf.sum_ms = 0;
+            }
+
+            if ((current_batch_perf.nb_calls > 1000) || (current_batch_perf.nb_card > 100000) || (current_batch_perf.sum_ms > 300000)) {
+                // on fixe des limites arbitraires
+                let coef_nb_calls = (current_batch_perf.nb_calls / 1000) * 10;
+                let coef_nb_card = (current_batch_perf.nb_card / 100000) * 10;
+                let coef_sum_ms = (current_batch_perf.sum_ms / 300000) * 10;
+                let coef = Math.max(coef_nb_calls, coef_nb_card, coef_sum_ms);
+                current_batch_perf.nb_calls = current_batch_perf.nb_calls / coef;
+                current_batch_perf.nb_card = current_batch_perf.nb_card / coef;
+                current_batch_perf.sum_ms = current_batch_perf.sum_ms / coef;
+            }
+
             current_batch_perf.mean_per_call = current_batch_perf.nb_calls ? (current_batch_perf.sum_ms / current_batch_perf.nb_calls) : null;
             current_batch_perf.mean_per_cardinal_1000 = current_batch_perf.nb_card ? (current_batch_perf.sum_ms / (current_batch_perf.nb_card / 1000)) : null;
 

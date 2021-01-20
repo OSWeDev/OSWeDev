@@ -14,6 +14,7 @@ import MatroidCutResult from '../../../shared/modules/Matroid/vos/MatroidCutResu
 import FakeDataHandler from '../Var/fakes/FakeDataHandler';
 import FakeEmpDayDataHandler from '../Var/fakes/FakeEmpDayDataHandler';
 import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 
 describe('MatroidController', () => {
@@ -25,11 +26,11 @@ describe('MatroidController', () => {
 
         expect(MatroidController.getInstance().cloneFrom(null)).to.deep.equal(null);
 
-        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_1_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_zero_());
-        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_2_moins1())).to.deep.equal(FakeEmpDayDataHandler.matroid_2_moins1_());
-        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_2_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_2_zero_());
-        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_1_2_moins1_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero_());
-        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_1_moins1())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_moins1_());
+        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_1_zero())['index']).to.deep.equal(FakeEmpDayDataHandler.matroid_1_zero_().index);
+        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_2_moins1())['index']).to.deep.equal(FakeEmpDayDataHandler.matroid_2_moins1_().index);
+        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_2_zero())['index']).to.deep.equal(FakeEmpDayDataHandler.matroid_2_zero_().index);
+        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_1_2_moins1_zero())['index']).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero_().index);
+        expect(MatroidController.getInstance().cloneFrom(FakeEmpDayDataHandler.matroid_1_moins1())['index']).to.deep.equal(FakeEmpDayDataHandler.matroid_1_moins1_().index);
     });
 
     it('test matroid_intersects_matroid', () => {
@@ -111,7 +112,9 @@ describe('MatroidController', () => {
         FakeEmpDayDataHandler.initializeFakeEmpDayDataVO();
 
 
-        expect(MatroidController.getInstance().cut_matroids(FakeEmpDayDataHandler.real_1_cutter(), [FakeEmpDayDataHandler.real_2_to_cut()])).to.deep.equal([new MatroidCutResult(
+        let a = MatroidController.getInstance().cut_matroids(FakeEmpDayDataHandler.real_1_cutter(), [FakeEmpDayDataHandler.real_2_to_cut()]);
+        a.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
+        expect(a).to.deep.equal([new MatroidCutResult(
             [FakeEmpDayDataHandler.real_1_cutter_()],
             [])]);
 
@@ -125,12 +128,17 @@ describe('MatroidController', () => {
             [var_data_F]);
 
         expect(remaning_calcs.length).to.eq(1);
-        expect(remaning_calcs[0].chopped_items).deep.eq([Object.assign(FakeDataHandler.get_var_data_C(), { var_id: 4 })]);
+        remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
+        let res = Object.assign(FakeDataHandler.get_var_data_C(), { var_id: 4 });
+        res["_index"] = null;
+        ConsoleHandler.getInstance().log(res["index"]);
+        expect(remaning_calcs[0].chopped_items).deep.eq([res]);
         // Le assign est juste à cause d'un pb de momentjs....
         remaning_calcs[0].remaining_items[0].ts_ranges[1].max['_i'] = "2021-02-01";
         remaning_calcs[0].remaining_items[0].ts_ranges[1].max['_pf'].parsedDateParts = [2021, 1, 1];
         remaning_calcs[0].remaining_items[0].ts_ranges[1].min['_i'] = "2020-04-01";
         remaning_calcs[0].remaining_items[0].ts_ranges[1].min['_pf'].parsedDateParts = [2020, 3, 1];
+        remaning_calcs.forEach((e: MatroidCutResult<any>) => e.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
         expect(remaning_calcs[0].remaining_items).deep.eq([FakeDataHandler.get_var_data_F_moins_C()]);
 
         remaning_calcs = MatroidController.getInstance().cut_matroids(
@@ -138,11 +146,16 @@ describe('MatroidController', () => {
             [var_data_F]);
 
         expect(remaning_calcs.length).to.eq(1);
-        expect(remaning_calcs[0].chopped_items).deep.eq([Object.assign(FakeDataHandler.get_var_data_B(), { var_id: 4 })]);
+        remaning_calcs.forEach((e: MatroidCutResult<any>) => e.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
+        res = Object.assign(FakeDataHandler.get_var_data_B(), { var_id: 4 });
+        res["_index"] = null;
+        ConsoleHandler.getInstance().log(res["index"]);
+        expect(remaning_calcs[0].chopped_items).deep.eq([res]);
         remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_i'] = "2021-02-01";
         remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
         remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_i'] = "2020-03-01";
         remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 2, 1];
+        remaning_calcs.forEach((e: MatroidCutResult<any>) => e.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
         expect(remaning_calcs[0].remaining_items).deep.eq([FakeDataHandler.get_var_data_F_moins_B()]);
     });
 
@@ -156,88 +169,160 @@ describe('MatroidController', () => {
             [FakeEmpDayDataHandler.matroid_1_zero()]
         ));
 
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.real_1_cutter(), FakeEmpDayDataHandler.real_2_to_cut())).to.deep.equal(new MatroidCutResult(
+        let a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.real_1_cutter(), FakeEmpDayDataHandler.real_2_to_cut());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.real_1_cutter_()],
             []));
 
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_1_zero())).to.deep.equal(new MatroidCutResult(
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_1_zero_()],
             []));
         // '{"chopped_items":[{"_type":"matroid_type","var_id":1,"employee_id_ranges":[{"max":1,"max_inclusiv":true,"min":1,' +
         // '"min_inclusiv":true,"api_type_id":"matroid_type","field_id":"employee_id_ranges"}],"ts_ranges":[{"max":"2019-07-12T11:00:00.000Z",' +
         // '"max_inclusiv":true,"min":"2019-07-11T11:00:00.000Z","min_inclusiv":true,"api_type_id":"matroid_type","field_id":"ts_ranges"}]}],"remaining_items":[]}');
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_1_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_1_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_1_moins1excl()],
             [FakeEmpDayDataHandler.matroid_1_moins2excl()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_2_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_2_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_2_moins1()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_2_zero())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])); expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_2_zero())).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_2_zero()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_zero(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_1_zero());
+        expect(a).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_1_zero());
 
 
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_1_zero())).to.deep.equal(new MatroidCutResult(
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_1_moins1excl()],
             [FakeEmpDayDataHandler.matroid_1_zeroexcl()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_1_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_1_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_1_moins1_()],
             []
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_2_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_2_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_2_moins1()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_2_zero())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_2_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_2_zero()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_1_moins1());
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_1_moins1(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_1_moins1());
 
 
-
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_1_zero())).to.deep.equal(new MatroidCutResult(
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_1_zero()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_1_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_1_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_1_moins1()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_2_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_2_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_2_moins1_()],
             []
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_2_zero())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_2_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_2_moins1excl()],
             [FakeEmpDayDataHandler.matroid_2_zeroexcl()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_2_moins1());
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_moins1(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_2_moins1());
 
 
-
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_1_zero())).to.deep.equal(new MatroidCutResult(
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_1_zero()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_1_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_1_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [],
             [FakeEmpDayDataHandler.matroid_1_moins1()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_2_moins1())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_2_moins1());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_2_moins1excl()],
             [FakeEmpDayDataHandler.matroid_2_moins2excl()]
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_2_zero())).to.deep.equal(new MatroidCutResult(
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_2_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(new MatroidCutResult(
             [FakeEmpDayDataHandler.matroid_2_zero_()],
             []
         ));
-        expect(MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero())).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_2_zero());
+
+        a = MatroidController.getInstance().cut_matroid(FakeEmpDayDataHandler.matroid_2_zero(), FakeEmpDayDataHandler.matroid_1_2_moins1_zero());
+        a.chopped_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        a.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index']));
+        expect(a).to.deep.equal(FakeEmpDayDataHandler.matroid_1_2_moins1_zero__moins__matroid_2_zero());
     });
 
     it('test getMatroidBases', () => {
@@ -272,6 +357,8 @@ describe('MatroidController', () => {
         remaning_calcs[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
         remaning_calcs[0].ts_ranges[0].min['_i'] = "2020-04-01";
         remaning_calcs[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 3, 1];
+
+        remaning_calcs.forEach((e) => ConsoleHandler.getInstance().log(e.index));
 
         expect(remaning_calcs).to.deep.eq([FakeDataHandler.get_var_data_F_moins_BC()]);
     });

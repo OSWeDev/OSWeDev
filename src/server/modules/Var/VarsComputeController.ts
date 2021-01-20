@@ -159,7 +159,9 @@ export default class VarsComputeController {
             })());
         }
 
-        await Promise.all(promises);
+        if (promises && promises.length) {
+            await Promise.all(promises);
+        }
     }
 
     /**
@@ -205,13 +207,14 @@ export default class VarsComputeController {
         while (i < vars_datas_as_array.length) {
 
             /**
-             * On fait des packs de 10 promises...
+             * On fait des packs de 5 promises...
              */
-            if (i >= 10) {
+            if (i >= 5) {
                 await Promise.all(promises);
             }
 
             promises.push(this.deploy_deps(VarDAGNode.getInstance(var_dag, vars_datas_as_array[i]), deployed_vars_datas, vars_datas, ds_cache));
+            // await this.deploy_deps(VarDAGNode.getInstance(var_dag, vars_datas_as_array[i]), deployed_vars_datas, vars_datas, ds_cache);
 
             i++;
         }
@@ -255,7 +258,7 @@ export default class VarsComputeController {
         /**
          * Cache step B : cache complet - inutile si on est sur un noeud du vars_datas
          */
-        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
+        if ((!node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
             (VarsCacheController.getInstance().B_use_cache(node))) {
 
             VarsPerfsController.addPerfs(performance.now(), [
@@ -330,11 +333,13 @@ export default class VarsComputeController {
                  */
                 if (promises.length >= 10) {
                     await Promise.all(promises);
+                    promises = [];
                 }
                 let aggregated_node = aggregated_nodes_as_array[i];
 
                 if (!VarsServerController.getInstance().has_valid_value(aggregated_node.var_data)) {
                     promises.push(this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache));
+                    // await this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache);
                 }
 
                 i++;
@@ -392,6 +397,7 @@ export default class VarsComputeController {
              */
             if (deps_promises.length >= 10) {
                 await Promise.all(deps_promises);
+                deps_promises = [];
             }
             let dep = deps_as_array[deps_i];
             let dep_id = deps_ids_as_array[deps_i];
@@ -405,6 +411,12 @@ export default class VarsComputeController {
             let dep_node = VarDAGNode.getInstance(node.dag, dep);
             node.addOutgoingDep(dep_id, dep_node);
 
+            if (dep_node.already_tried_loading_data_and_deploy) {
+                deps_i++;
+                continue;
+            }
+            dep_node.already_tried_loading_data_and_deploy = true;
+
             /**
              *  - Si le noeud n'a pas de valeur :
              *      - on tente de charger une valeur depuis le varsdatas proxy, et si on en trouve on init dans le noeud et plan A
@@ -416,6 +428,9 @@ export default class VarsComputeController {
             if (!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
                 // Premier essai, on tente de trouver des datas en base / cache en cours de mise à jour
                 let existing_var_data: VarDataBaseVO = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(dep_node.var_data);
+
+                // ça revient au même que le test de chargement du cache complet donc on indique qu'on a déjà testé
+                dep_node.already_tried_load_cache_complet = true;
 
                 if (!!existing_var_data) {
                     dep_node.var_data = existing_var_data;
@@ -434,6 +449,7 @@ export default class VarsComputeController {
 
                 VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
                 deps_promises.push(this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache));
+                // await this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache);
             }
 
             deps_i++;
@@ -445,6 +461,7 @@ export default class VarsComputeController {
     }
 
     private async try_load_cache_complet(node: VarDAGNode) {
+        node.already_tried_load_cache_complet = true;
         let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data);
 
         if (!cache_complet) {
