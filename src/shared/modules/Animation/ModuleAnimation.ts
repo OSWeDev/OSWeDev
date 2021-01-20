@@ -208,7 +208,8 @@ export default class ModuleAnimation extends Module {
     private initializeAnimationQRVO() {
         let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
         let module_id_field = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
-        let file_id_field = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Fichier");
+        let question_file_id_field = new ModuleTableField('question_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Fichier Question");
+        let reponse_file_id_field = new ModuleTableField('reponse_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Fichier Réponse");
 
         let fields = [
             module_id_field,
@@ -218,14 +219,16 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('explicatif', ModuleTableField.FIELD_TYPE_html, "Explicatif réponse"),
             new ModuleTableField('reponses', AnimationReponseVO.API_TYPE_ID, 'Réponses'),
             new ModuleTableField('external_video', ModuleTableField.FIELD_TYPE_string, 'Vidéo externe'),
-            file_id_field,
+            question_file_id_field,
+            reponse_file_id_field,
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
         ];
 
         let datatable = new ModuleTable(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");
 
         module_id_field.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
-        file_id_field.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        question_file_id_field.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        reponse_file_id_field.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeController(ReponseTableFieldTypeController.getInstance());
 

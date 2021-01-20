@@ -116,8 +116,11 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         let file_ids: number[] = [];
 
         for (let i in this.qrs) {
-            if (this.qrs[i].file_id) {
-                file_ids.push(this.qrs[i].file_id);
+            if (this.qrs[i].question_file_id) {
+                file_ids.push(this.qrs[i].question_file_id);
+            }
+            if (this.qrs[i].reponse_file_id) {
+                file_ids.push(this.qrs[i].reponse_file_id);
             }
         }
 

@@ -25,7 +25,10 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     private uqr: AnimationUserQRVO;
 
     @Prop()
-    private file: FileVO;
+    private question_file: FileVO;
+
+    @Prop()
+    private reponse_file: FileVO;
 
     private saving: boolean = false;
     private editable_uqr: AnimationUserQRVO = null;
@@ -33,6 +36,8 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     private is_reponse_valid: boolean = false;
     private selected_reponse: { [reponse_id: number]: boolean } = {};
     private classe_reponses: { [reponse_id: number]: string } = {};
+
+    private selected_file: FileVO = null;
 
     @Watch('qr', { deep: true })
     @Watch('uqr', { deep: true })
@@ -109,12 +114,22 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         this.$emit('next');
     }
 
-    private showModal(show: boolean) {
+    private showModal(show: boolean, file: FileVO) {
         if (show) {
             $(this.$refs.imagezoommodal).modal('show');
         } else {
             $(this.$refs.imagezoommodal).modal('hide');
         }
+
+        this.selected_file = file;
+    }
+
+    private get_is_image(file: FileVO): boolean {
+        return (file) && (file.path) && (file.path.match(/\.(jpeg|jpg|gif|png)$/) != null);
+    }
+
+    private get_is_video(file: FileVO): boolean {
+        return (file) && (file.path) && (file.path.match(/\.(mp4)$/) != null);
     }
 
     get style_image(): any {
@@ -145,13 +160,5 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
 
         return true;
-    }
-
-    get is_image(): boolean {
-        return (this.file) && (this.file.path) && (this.file.path.match(/\.(jpeg|jpg|gif|png)$/) != null);
-    }
-
-    get is_video(): boolean {
-        return (this.file) && (this.file.path) && (this.file.path.match(/\.(mp4)$/) != null);
     }
 }

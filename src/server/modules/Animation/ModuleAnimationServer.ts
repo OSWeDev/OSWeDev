@@ -217,8 +217,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async initializeTranslations() {
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vos formations' }, 'animation.titre.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'E-Learning' }, 'client.menu-gauche.animation'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Mes formations' }, 'animation.titre.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Mes formations' }, 'client.menu-gauche.animation'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Photo' }, 'animation_qr.type_qr.photo'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Quizz' }, 'animation_qr.type_qr.quizz'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vidéo' }, 'animation_qr.type_qr.video'));
@@ -234,8 +234,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Réponse' }, 'fields.labels.ref.module_animation_anim_reponse.name.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Valide' }, 'fields.labels.ref.module_animation_anim_reponse.valid.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'N°' }, 'fields.labels.ref.module_animation_anim_reponse.weight.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Réponse valide' }, 'animation.reponse.valid.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Votre réponse' }, 'animation.reponse.votre_reponse.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Réponses justes' }, 'animation.reponse.valid.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Mes réponses' }, 'animation.reponse.votre_reponse.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vous avez totalisé un score de :' }, 'animation.prct_reussite.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Vous avez jugé ce module :' }, 'animation.feedback.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'VALIDER' }, 'animation.feedback.valider.___LABEL___'));

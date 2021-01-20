@@ -5,7 +5,7 @@
 .page-animation,
 .page-animation_module,
 .page-animation_module_feedback {
-    background: $animation_orange;
+    background: $animation_secondary;
 
     .logo {
         display: none;
@@ -20,8 +20,14 @@
             max-width: 70%;
         }
 
-        h1:hover {
-            background: $animation_vert;
+        h1 {
+            border: 0;
+            background: $animation_orange;
+            border-radius: 10px;
+
+            &:hover {
+                background: $animation_vert;
+            }
         }
     }
 
@@ -30,45 +36,44 @@
     }
 
     .main-footer {
-        background-color: $animation_orange;
+        background-color: $animation_secondary;
     }
 
     .main-header {
 
         .logo,
         .navbar {
-            background-color: $animation_orange;
+            background-color: $animation_secondary;
         }
     }
 
     .sidebar-menu li a {
-        background-color: $animation_orange !important;
+        background-color: $animation_secondary !important;
         color: white;
     }
 
     .sidebar-menu li ul li a {
         background-color: transparent !important;
-        color: $animation_orange !important;
-        border-color: $animation_orange !important;
+        color: $animation_secondary !important;
+        border-color: $animation_secondary !important;
     }
 
     &.sidebar-mini.sidebar-collapse .sidebar-menu>li:hover {
 
         &>a>span:not(.pull-right) {
-            background-color: $animation_orange;
+            background-color: $animation_secondary;
         }
     }
 
     h1 {
         text-align: center;
         color: white;
-        background: $animation_orange;
-        padding: 15px 10px;
+        padding: 5px 10px;
         font-size: 24px;
         margin-top: 0;
-        border-radius: 15px;
         margin-bottom: 50px;
         font-weight: bold;
+        border-bottom: 1px solid white;
     }
 
     .validation {
@@ -81,13 +86,13 @@
             border: 0;
 
             .btn {
-                background: $animation_vert;
+                background: $animation_orange;
                 color: white;
                 border-radius: 10px;
                 margin: 3px;
 
                 &:hover {
-                    background: $animation_orange;
+                    background: $animation_vert;
                 }
             }
         }
@@ -131,7 +136,6 @@
         }
 
         .description {
-            margin-top: -22px;
             font-size: 18px;
             color: $main_box_title_color;
             font-weight: bold;
@@ -147,15 +151,15 @@
             position: relative;
 
             .barre {
-                height: 8px;
-                background: $main_header_bg_color;
+                height: 12px;
+                background: $animation_vert;
                 border-radius: 10px;
                 position: relative;
                 width: 0;
             }
 
             .barre-total {
-                height: 2px;
+                height: 4px;
                 background: lightgray;
                 position: absolute;
                 width: 100%;
@@ -170,7 +174,7 @@
         .documentation,
         .prct_avancement_module {
             float: left;
-            padding: 2px 6px 1px 4px;
+            padding: 2px 4px 1px 4px;
             margin-bottom: 0;
             margin-right: 10px;
             border-radius: 5px;
@@ -178,9 +182,11 @@
             text-align: center;
             min-height: 34px;
             min-width: 34px;
+            border: 3px solid;
 
             &.main {
                 background: $animation_background;
+                border: 0;
 
                 &:hover {
                     background: $animation_orange;
@@ -193,24 +199,38 @@
             }
 
             &.success {
-                background: $animation_vert;
+                border-color: $animation_vert;
+                color: $animation_vert;
+
+                &:before {
+                    font: normal normal normal 14px/1 FontAwesome;
+                    content: "\f00c";
+                    font-size: 19px;
+                    line-height: 25px;
+                }
             }
 
             &.warning {
-                background: $animation_orange;
+                border-color: $animation_orange;
+                color: $animation_orange;
+
+                &:before {
+                    font: normal normal normal 14px/1 FontAwesome;
+                    content: "\f00d";
+                    font-size: 22px;
+                }
             }
 
             &.en_cours {
-                background: linear-gradient(-45deg,
-                        $animation_orange 20%,
-                        $animation_vert 20%,
-                        $animation_vert 40%,
-                        $animation_orange 40%,
-                        $animation_orange 60%,
-                        $animation_vert 60%,
-                        $animation_vert 80%,
-                        $animation_orange 80%,
-                        $animation_orange 100%) !important;
+                border-color: $animation_orange;
+                color: $animation_orange;
+
+                &:before {
+                    font: normal normal normal 14px/1 FontAwesome;
+                    content: "\f110";
+                    font-size: 19px;
+                    line-height: 25px;
+                }
             }
 
             .en_cours_message {
@@ -258,27 +278,6 @@
         .module {
             cursor: pointer;
             margin-bottom: 15px;
-
-            .fa-plus {
-                font-size: 32px;
-                color: white;
-                background: $table_header_bg_color;
-                line-height: 1em;
-                padding: 2px 4px 0px 4px;
-                float: left;
-                margin-right: 10px;
-                border-radius: 5px;
-
-                &:before {
-                    margin-right: 0;
-                }
-            }
-
-            &:hover {
-                .fa-plus {
-                    background: $main_header_bg_color;
-                }
-            }
 
             .module_infos {
                 line-height: 1em;

@@ -26,6 +26,7 @@ export default class AnimationQRVO implements IWeightedItem, INamedVO {
     public name: string;
     public weight: number;
 
-    public file_id: number;
+    public question_file_id: number;
+    public reponse_file_id: number;
     public module_id: number;
 }
