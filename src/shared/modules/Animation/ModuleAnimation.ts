@@ -168,12 +168,12 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationThemeVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom du thème", true);
 
         let fields = [
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             name_field,
             new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
         ];
 
         let datatable = new ModuleTable(this, AnimationThemeVO.API_TYPE_ID, () => new AnimationThemeVO(), fields, name_field, "Animation - Thème");
@@ -182,17 +182,17 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationModuleVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom du module", true);
         let theme_id_field = new ModuleTableField('theme_id', ModuleTableField.FIELD_TYPE_foreign_key, "Thème", true);
         let document_id_field = new ModuleTableField('document_id', ModuleTableField.FIELD_TYPE_foreign_key, "Document explicatif");
 
         let fields = [
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             theme_id_field,
             name_field,
             new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
             new ModuleTableField('messages', AnimationMessageModuleVO.API_TYPE_ID, 'Messages'),
             document_id_field,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
         ];
 
         let datatable = new ModuleTable(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, name_field, "Animation - Module");
@@ -206,22 +206,21 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeAnimationQRVO() {
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Type de question", true);
         let module_id_field = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
-        let question_file_id_field = new ModuleTableField('question_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Fichier Question");
-        let reponse_file_id_field = new ModuleTableField('reponse_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Fichier Réponse");
+        let question_file_id_field = new ModuleTableField('question_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la question");
+        let reponse_file_id_field = new ModuleTableField('reponse_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la réponse");
 
         let fields = [
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             module_id_field,
             name_field,
-            new ModuleTableField('type_qr', ModuleTableField.FIELD_TYPE_enum, "Type question / réponse", true).setEnumValues(AnimationQRVO.TYPE_QR_LABELS),
-            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
-            new ModuleTableField('explicatif', ModuleTableField.FIELD_TYPE_html, "Explicatif réponse"),
+            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Question"),
             new ModuleTableField('reponses', AnimationReponseVO.API_TYPE_ID, 'Réponses'),
+            new ModuleTableField('explicatif', ModuleTableField.FIELD_TYPE_html, "Explicatif de la réponse"),
             new ModuleTableField('external_video', ModuleTableField.FIELD_TYPE_string, 'Vidéo externe'),
             question_file_id_field,
             reponse_file_id_field,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
         ];
 
         let datatable = new ModuleTable(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");

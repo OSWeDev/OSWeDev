@@ -71,8 +71,4 @@ export default class VueAnimationComponent extends VueComponentBase {
     get ordered_themes(): AnimationThemeVO[] {
         return this.themes ? this.themes.sort((a, b) => a.weight - b.weight) : null;
     }
-
-    get is_mobile_or_tablette(): boolean {
-        return AnimationController.getInstance().isMobile() || AnimationController.getInstance().isTablette();
-    }
 }

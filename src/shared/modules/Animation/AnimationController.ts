@@ -84,28 +84,4 @@ export default class AnimationController {
 
         return true;
     }
-
-    public isMobile(): boolean {
-        let screenWidth: number = window.innerWidth;
-
-        if (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            return true;
-        }
-
-        return (screenWidth <= 500) ? true : false;
-    }
-
-    public isTablette(): boolean {
-        if (this.isMobile()) {
-            return false;
-        }
-
-        if (/iPad|iPod/i.test(navigator.userAgent)) {
-            return true;
-        }
-
-        let screenWidth: number = window.innerWidth;
-
-        return (screenWidth <= 850) ? true : false;
-    }
 }

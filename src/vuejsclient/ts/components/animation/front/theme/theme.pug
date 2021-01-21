@@ -1,5 +1,6 @@
 
 .rootElt.theme
+    .theme_name {{ theme.name }}
     .description(v-if="theme.description", v-html="theme.description")
     .prct_avancement
         .barre-total
@@ -23,7 +24,7 @@
                                         i.fa.fa-book
 
                             .theme_container(@click="go_to_route_module(anim_module)")
-                                .prct_avancement_module(:class="{success: (prct_atteinte_seuil_module[anim_module.id] == 1), warning: (prct_atteinte_seuil_module[anim_module.id] == 0), en_cours: um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date}")
+                                .prct_avancement_module(:class="get_class_prct_avancement_module(anim_module)")
                                 .module_name
                                     span {{ anim_module.name }}
                                     template(v-if="um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date")

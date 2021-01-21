@@ -79,6 +79,15 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         });
     }
 
+    private get_class_prct_avancement_module(anim_module: AnimationModuleVO) {
+        return {
+            success: (this.prct_atteinte_seuil_module[anim_module.id] == 1),
+            warning: (this.prct_atteinte_seuil_module[anim_module.id] == 0 && this.um_by_module_id[anim_module.id] && this.um_by_module_id[anim_module.id].end_date),
+            not_start: !this.um_by_module_id[anim_module.id],
+            en_cours: (this.um_by_module_id[anim_module.id] && !this.um_by_module_id[anim_module.id].end_date)
+        }
+    }
+
     private prct_atteinte_seuil_theme_value_callback(var_value: IVarDataVOBase, component: VarDataRefComponent): number {
         if (!component || !component.var_param.var_id) {
             return;
