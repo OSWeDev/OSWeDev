@@ -1,0 +1,78 @@
+
+.rootElt.qr.text-center
+    template(v-if="qr")
+        h2 {{ qr.name }}
+        .description_qr(v-if="qr.description", v-html="qr.description")
+
+        .qr_file(v-if="!is_validated")
+            template(v-if="question_file")
+                template(v-if="get_is_image(question_file)")
+                    img(:src="question_file.path", @click="showModal(true, question_file)")
+                template(v-if="get_is_video(question_file)")
+                    video(controls)
+                        source(:src="question_file.path" type="video/mp4")
+
+            template(v-if="qr.external_video")
+                iframe(:style="style_iframe" :src="qr.external_video + '?rel=0'" allow="autoplay; encrypted-media" allowfullscreen="false")
+
+        template(v-if="ordered_reponses && ordered_reponses.length > 0")
+            .reponses
+                template(v-if="is_validated")
+                    .is_validated
+                        template(v-if="is_reponse_valid")
+                            .ok
+                                i.far.fa-smile.mr-2
+                                span {{ label('animation.qr.is_validated.ok') }}
+                        template(v-else)
+                            .nok
+                                i.far.fa-surprise.mr-2
+                                span {{ label('animation.qr.is_validated.nok') }}
+
+                table
+                    thead
+                        tr
+                            th(v-show="is_validated") {{ label('animation.reponse.valid') }}
+                            th(v-show="is_validated") {{ label('animation.reponse.votre_reponse') }}
+                            th(v-show="is_validated")
+
+                    tbody
+                        template(v-for="(reponse, index) in ordered_reponses")
+                            tr.reponse(v-if="reponse.name")
+                                td.valid(v-show="is_validated")
+                                    input(:disabled="true", type="checkbox", :checked="reponse.valid", :class="classe_reponses[reponse.id]")
+                                td
+                                    input(:disabled="is_validated", v-model="selected_reponse[reponse.id]", type="checkbox", :id="'reponse_' + index", :class="classe_reponses[reponse.id]")
+                                td.text-left
+                                    label.text-left(:for="'reponse_' + index") {{ reponse.name }}
+
+            .validation
+                template(v-if="!is_validated")
+                    template(v-if="!saving")
+                        .btn-container
+                            .btn(@click="validation", :disabled="is_disabled") {{ label('animation.validation') }}
+                    template(v-else)
+                        i.loadingspinner.fa.fa-spinner.fa-spin(aria-hidden="true")
+
+                template(v-else)
+                    .qr_file
+                        template(v-if="reponse_file")
+                            template(v-if="get_is_image(reponse_file)")
+                                img(:src="reponse_file.path", @click="showModal(true, reponse_file)")
+                            template(v-if="get_is_video(reponse_file)")
+                                video(controls)
+                                    source(:src="reponse_file.path" type="video/mp4")
+
+                    .explication(v-if="qr.explicatif", v-html="qr.explicatif")
+                    .next
+                        i.fa.fa-long-arrow-right(@click="next")
+
+
+    .modal.imagezoommodal.fade.in(ref="imagezoommodal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-sm#imagezoommodal(role='document')
+            .modal-content
+                .modal-body
+                    .rotate
+                        .close(@click="showModal(false, null)") ×
+                        template(v-if="selected_file")
+                            template(v-if="get_is_image(selected_file)")
+                                img(:src="selected_file.path", :style="style_image")

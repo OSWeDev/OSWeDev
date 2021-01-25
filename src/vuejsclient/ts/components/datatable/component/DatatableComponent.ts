@@ -901,23 +901,24 @@ export default class DatatableComponent extends VueComponentBase {
                             // Limite à 300 cars si c'est du html et strip html
                             if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
 
-                                try {
+                                if (value) {
+                                    try {
+                                        value = value.replace(/&nbsp;/gi, ' ');
+                                        value = value.replace(/<\/div>/gi, '\n');
+                                        value = value.replace(/<\/span>/gi, '\n');
+                                        value = value.replace(/<\/ul>/gi, '\n');
+                                        value = value.replace(/<\/li>/gi, '\n');
+                                        value = value.replace(/<\/p>/gi, '\n');
+                                        value = value.replace(/<br>/gi, '\n');
+                                        value = value.replace(/<(?:.|\n)*?>/gm, '');
+                                        // value = $("<p>" + value + "</p>").text();
+                                    } catch (error) {
+                                        value = value;
+                                    }
 
-                                    value = value.replace(/&nbsp;/gi, ' ');
-                                    value = value.replace(/<\/div>/gi, '\n');
-                                    value = value.replace(/<\/span>/gi, '\n');
-                                    value = value.replace(/<\/ul>/gi, '\n');
-                                    value = value.replace(/<\/li>/gi, '\n');
-                                    value = value.replace(/<\/p>/gi, '\n');
-                                    value = value.replace(/<br>/gi, '\n');
-                                    value = value.replace(/<(?:.|\n)*?>/gm, '');
-                                    // value = $("<p>" + value + "</p>").text();
-                                } catch (error) {
-                                    value = value;
-                                }
-
-                                if (value.length > 300) {
-                                    value = value.substring(0, 300) + '...';
+                                    if (value.length > 300) {
+                                        value = value.substring(0, 300) + '...';
+                                    }
                                 }
                             }
 

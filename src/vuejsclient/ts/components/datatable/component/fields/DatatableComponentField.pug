@@ -1,12 +1,12 @@
 .field(:field_name="field.datatable_field_uid")
     template(v-if='!field.hidden')
         template(v-if="show_label")
-            span {{ t(field.translatable_title) }} : 
+            span {{ t(field.translatable_title) }} :
         template(v-if="field.type == 'Simple'")
             template(v-if="field.moduleTableField.field_type == 'boolean'")
-                template(v-if="field_value == 'true'")
+                template(v-if="field_value == 'true' || field_value === true")
                     i.fa.fa-check
-                template(v-if="field_value == 'false'")
+                template(v-if="field_value == 'false' || field_value === false")
                     i.fa.fa-close
             template(v-else-if="field.moduleTableField.field_type == 'password'")
                 i.fa.fa-lock
@@ -20,9 +20,15 @@
             template(v-else-if="field.moduleTableField.field_type == 'html[]'")
                 ul.multi-input(v-if="field_value")
                     li(v-for="value in field_value")
-                        code {{ value }}
+                        template(v-if="explicit_html")
+                            span(v-html="value")
+                        template(v-else)
+                            code {{ value }}
             template(v-else-if="field.moduleTableField.field_type == 'html'")
-                code {{ field_value }}
+                template(v-if="explicit_html")
+                    span(v-html="field_value")
+                template(v-else)
+                    code {{ field_value }}
             template(v-else-if="field.moduleTableField.field_type == 'enum'")
                 span(:class="transliterate_enum_value_to_class_name") {{ field_value }}
             template(v-else-if="is_custom_field_type && custom_field_types.read_component")
@@ -37,7 +43,7 @@
                     router-link.btn.btn-sm.btn-info.many_to_one(:to="getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___'])" target='_blank')
                         img(src='/vuejsclient/public/img/many_to_one.svg')
                         | {{ field_value }}
-                       
+
                 template(v-else)
                     span {{ field_value }}
         template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany') || (field.type == 'RefRanges')")

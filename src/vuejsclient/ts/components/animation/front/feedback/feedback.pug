@@ -1,0 +1,40 @@
+
+.rootElt.feedback_container
+    template(v-if="anim_module && theme && user_module")
+        h1 {{ theme.name }} : {{ anim_module.name }}
+
+        .text-center
+            h2 {{ label('animation.feedback') }}
+
+            .like_vote.mt-3.mb-3
+                table
+                    tbody
+                        tr.etat_vote.very_good(@click="changeLikeVoteVeryGood", :class="{active: is_like_vote_very_good}")
+                            td
+                                i.far.fa-thumbs-up.mr-2
+                            td {{ t(like_vote_very_good) }}
+
+                        tr.etat_vote.mt-2.good(@click="changeLikeVoteGood", :class="{active: is_like_vote_good}")
+                            td
+                                i.far.fa-hand-point-right.mr-2
+                            td {{ t(like_vote_good) }}
+
+                        tr.etat_vote.mt-2.bad(@click="changeLikeVoteBad", :class="{active: is_like_vote_bad}")
+                            td
+                                i.far.fa-thumbs-down.mr-2
+                            td {{ t(like_vote_bad) }}
+
+            Crudcomponentfield(
+                :field="commentaire_editable_field",
+                :vo="user_module",
+                :show_insert_or_update_target="false",
+                :auto_update_field_value='true',
+            )
+
+            .validation
+                template(v-if="!saving")
+                    .btn-container
+                        .btn.btn-success.mt-2(@click="valider") {{ label('animation.feedback.valider') }}
+                template(v-else)
+                    i.loadingspinner.fa.fa-spinner.fa-spin(aria-hidden="true")
+

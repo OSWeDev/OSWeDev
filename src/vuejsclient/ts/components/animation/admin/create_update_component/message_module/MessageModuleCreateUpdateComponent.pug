@@ -1,0 +1,15 @@
+.container_mms
+    template(v-for="(mm, index) in field_values")
+        fieldset.mm_item(:mm="index")
+            legend {{ label('crud.container_mms.numero') }} {{ index + 1 }}
+            template(v-for="field in fields")
+                Crudcomponentfield(
+                    :field="field",
+                    :vo="mm",
+                    :show_insert_or_update_target="false",
+                    @onchangevo="on_edit",
+                    :auto_update_field_value='true',
+                )
+
+            .btn.btn-danger(@click="remove(index)") {{ label('crud.field.custom_field.remove_item') }}
+    .btn.btn-success.mt-2(@click="add") {{ label('crud.field.custom_field.add') }}

@@ -78,7 +78,7 @@ export default abstract class GeneratorBase {
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
             Patch20191008SupprimerTacheReimport.getInstance(),
-            Patch20200924UpgradeUserVO.getInstance()
+            Patch20200924UpgradeUserVO.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -96,7 +96,7 @@ export default abstract class GeneratorBase {
             Patch20200914InitTeamsWebhookForDailyReports.getInstance(),
             Patch20200924UpgradeUserVOPost.getInstance(),
             Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
-            Patch20201001InitPoliciesFeedback.getInstance()
+            Patch20201001InitPoliciesFeedback.getInstance(),
         ];
     }
 
