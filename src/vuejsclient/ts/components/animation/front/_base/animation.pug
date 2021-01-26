@@ -13,7 +13,13 @@
             .row.themes
                 template(v-for="(theme, index) in ordered_themes")
                     .col-sm-12
-                        Animationtheme(:theme="theme", :index_theme="(index + 1)", :modules="modules_by_themes[theme.id]", :logged_user_id="logged_user_id")
+                        Animationtheme(
+                            v-if="modules_by_themes[theme.id] && modules_by_themes[theme.id].length > 0"
+                            :theme="theme",
+                            :index_theme="(index + 1)",
+                            :modules="modules_by_themes[theme.id]",
+                            :logged_user_id="logged_user_id"
+                        )
 
         template(v-if="documents && documents.length ")
             .row.documents

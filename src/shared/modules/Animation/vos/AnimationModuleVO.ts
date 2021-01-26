@@ -1,5 +1,6 @@
 import INamedVO from '../../../interfaces/INamedVO';
 import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
+import NumRange from '../../DataRender/vos/NumRange';
 
 export default class AnimationModuleVO implements IWeightedItem, INamedVO {
 
@@ -12,8 +13,10 @@ export default class AnimationModuleVO implements IWeightedItem, INamedVO {
     public messages: string;
 
     public name: string;
+    public computed_name: string;
     public weight: number;
 
     public theme_id: number;
     public document_id: number;
+    public role_id_ranges: NumRange[];
 }

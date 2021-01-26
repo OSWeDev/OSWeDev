@@ -3,6 +3,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import AnimationModuleParamVO from '../../../shared/modules/Animation/params/AnimationModuleParamVO';
 import AnimationParamVO from '../../../shared/modules/Animation/params/AnimationParamVO';
@@ -12,11 +13,22 @@ import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/Animati
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import RangeHandler from '../../../shared/tools/RangeHandler';
+import ConfigurationService from '../../env/ConfigurationService';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
@@ -79,8 +91,55 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         admin_access_dependency_fo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo);
     }
 
+    public registerAccessHooks(): void {
+        ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterAnimationModule.bind(this));
+    }
+
     public async configure() {
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
+
+        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
         await this.initializeTranslations();
+    }
+
+    private async handleTriggerPreAnimationModuleVO(vo: AnimationModuleVO): Promise<boolean> {
+        if (!vo) {
+            return false;
+        }
+
+        vo.computed_name = vo.name;
+
+        if (vo.role_id_ranges && vo.role_id_ranges.length) {
+            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID));
+            let role_names: string[] = [];
+
+            RangeHandler.getInstance().foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
+                if (!role_by_ids[role_id]) {
+                    return;
+                }
+
+                role_names.push(role_by_ids[role_id].translatable_name);
+            });
+
+            let langs: LangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<LangVO>(
+                LangVO.API_TYPE_ID,
+                null,
+                null,
+                'code_lang',
+                [ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE]
+            );
+            let lang: LangVO = langs ? langs[0] : null;
+
+            if (lang) {
+                for (let i in role_names) {
+                    vo.computed_name += ' - ' + await ModuleTranslation.getInstance().label(role_names[i], lang.id);
+                }
+            }
+        }
+
+        return true;
     }
 
     private async getQRsByThemesAndModules(param: AnimationParamVO): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
@@ -214,6 +273,68 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
         return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    }
+
+    private async filterAnimationModule(datatable: ModuleTable<AnimationModuleVO>, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
+        if (this.isAdmin()) {
+            return vos;
+        }
+
+        let user_roles: RoleVO[] = AccessPolicyServerController.getInstance().get_user_roles_by_uid(uid);
+        let user_role_id_ranges: NumRange[] = [];
+
+        for (let i in user_roles) {
+            user_role_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(user_roles[i].id, NumSegment.TYPE_INT));
+
+            let parent_role_id: number = user_roles[i].parent_role_id;
+
+            while (parent_role_id) {
+                user_role_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parent_role_id, NumSegment.TYPE_INT));
+
+                let parent_role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(parent_role_id);
+
+                parent_role_id = (parent_role && parent_role.parent_role_id) ? parent_role.parent_role_id : null;
+            }
+        }
+
+        let res: AnimationModuleVO[] = [];
+
+        for (let i in vos) {
+            let vo: AnimationModuleVO = vos[i];
+
+            if (!vo.role_id_ranges || !vo.role_id_ranges.length) {
+                res.push(vo);
+                continue;
+            }
+
+            if (RangeHandler.getInstance().any_range_intersects_any_range(user_role_id_ranges, vo.role_id_ranges)) {
+                res.push(vo);
+                continue;
+            }
+        }
+
+        return res;
+    }
+
+    private isAdmin(): boolean {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            return false;
+        }
+
+        let uid: number = StackContext.getInstance().get('UID');
+
+        if (!uid) {
+            return false;
+        }
+
+        let user_roles: RoleVO[] = AccessPolicyServerController.getInstance().get_user_roles_by_uid(uid);
+
+        for (let i in user_roles) {
+            if (user_roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private async initializeTranslations() {

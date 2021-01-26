@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -183,22 +184,27 @@ export default class ModuleAnimation extends Module {
 
     private initializeAnimationModuleVO() {
         let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom du module", true);
+        let computed_name_field = new ModuleTableField('computed_name', ModuleTableField.FIELD_TYPE_string, "Nom du module computed").hide_from_datatable();
         let theme_id_field = new ModuleTableField('theme_id', ModuleTableField.FIELD_TYPE_foreign_key, "Thème", true);
         let document_id_field = new ModuleTableField('document_id', ModuleTableField.FIELD_TYPE_foreign_key, "Document explicatif");
+        let role_id_ranges = new ModuleTableField('role_id_ranges', ModuleTableField.FIELD_TYPE_refrange_array, "Roles ayant le droit d'accès (si vide, tous)");
 
         let fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
             theme_id_field,
+            role_id_ranges,
             name_field,
             new ModuleTableField('description', ModuleTableField.FIELD_TYPE_html, "Description"),
             new ModuleTableField('messages', AnimationMessageModuleVO.API_TYPE_ID, 'Messages'),
             document_id_field,
+            computed_name_field,
         ];
 
-        let datatable = new ModuleTable(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, name_field, "Animation - Module");
+        let datatable = new ModuleTable(this, AnimationModuleVO.API_TYPE_ID, () => new AnimationModuleVO(), fields, computed_name_field, "Animation - Module");
 
         theme_id_field.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
         document_id_field.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
+        role_id_ranges.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeController(MessageModuleTableFieldTypeController.getInstance());
 

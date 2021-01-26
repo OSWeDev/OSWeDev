@@ -11,7 +11,6 @@ export default class AnimationController {
     public static ROUTE_NAME_ANIMATION_MODULE: string = 'animation_module';
     public static ROUTE_NAME_ANIMATION_MODULE_FEEDBACK: string = 'animation_module_feedback';
 
-
     public static getInstance(): AnimationController {
         if (!AnimationController.instance) {
             AnimationController.instance = new AnimationController();

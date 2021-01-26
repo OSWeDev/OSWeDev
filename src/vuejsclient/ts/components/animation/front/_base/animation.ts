@@ -33,6 +33,8 @@ export default class VueAnimationComponent extends VueComponentBase {
 
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
+        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
+        promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => {
             let animation_modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID);
 
@@ -44,20 +46,24 @@ export default class VueAnimationComponent extends VueComponentBase {
                 this.modules_by_themes[animation_modules[i].theme_id].push(animation_modules[i]);
             }
         })());
-        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
-        promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
 
         await Promise.all(promises);
 
-        if (this.animation_params && this.animation_params.image_home_id) {
-            let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, this.animation_params.image_home_id);
+        promises = [];
 
-            this.image_home = file ? file.path : null;
+        if (this.animation_params && this.animation_params.image_home_id) {
+            promises.push((async () => {
+                let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, this.animation_params.image_home_id);
+
+                this.image_home = file ? file.path : null;
+            })());
         }
 
         if (this.animation_params && this.animation_params.document_id_ranges) {
-            this.documents = await ModuleDAO.getInstance().getVosByIdsRanges<DocumentVO>(DocumentVO.API_TYPE_ID, this.animation_params.document_id_ranges);
+            promises.push((async () => this.documents = await ModuleDAO.getInstance().getVosByIdsRanges<DocumentVO>(DocumentVO.API_TYPE_ID, this.animation_params.document_id_ranges))());
         }
+
+        await Promise.all(promises);
 
         this.skip_home = AnimationController.getInstance().skip_home;
     }

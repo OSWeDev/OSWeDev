@@ -64,6 +64,13 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
     }
 
+    private created() {
+        this.$router.beforeEach((route, redirect, next) => {
+            this.showModal(false, null);
+            next();
+        });
+    }
+
     private async mounted() {
         this.reload_uqr();
     }

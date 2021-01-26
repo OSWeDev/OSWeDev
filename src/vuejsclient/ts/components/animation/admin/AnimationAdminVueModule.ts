@@ -8,6 +8,8 @@ import AnimationQRVO from '../../../../../shared/modules/Animation/vos/Animation
 import AnimationThemeVO from '../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../../../shared/modules/Animation/vos/AnimationUserQRVO';
+import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import VueModuleBase from '../../../modules/VueModuleBase';
 import CRUDComponentManager from '../../crud/CRUDComponentManager';
@@ -110,5 +112,17 @@ export default class AnimationAdminVueModule extends VueModuleBase {
 
         TableFieldTypesManager.getInstance().registerTableFieldTypeComponents(MessageModuleTableFieldTypeController.getInstance().name, MessageModuleReadComponent, MessageModuleCreateUpdateComponent);
         TableFieldTypesManager.getInstance().registerTableFieldTypeComponents(ReponseTableFieldTypeController.getInstance().name, ReponseReadComponent, ReponseCreateUpdateComponent);
+    }
+
+    private pushFieldsCrud(cruds: Array<Datatable<any>>, field: DatatableField<any, any>) {
+        for (let i in cruds) {
+            cruds[i].pushField(field);
+        }
+    }
+
+    private removeFieldsCrud(cruds: Array<Datatable<any>>, module_table_field_ids: string[]) {
+        for (let i in cruds) {
+            cruds[i].removeFields(module_table_field_ids);
+        }
     }
 }
