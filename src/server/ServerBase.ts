@@ -848,6 +848,8 @@ export default abstract class ServerBase {
                 ForkServerController.getInstance().fork_threads();
                 BGThreadServerController.getInstance().server_ready = true;
 
+                TODO maintenance auto off
+
                 ConsoleHandler.getInstance().log('Server ready to go !');
             })
             .catch((err) => {

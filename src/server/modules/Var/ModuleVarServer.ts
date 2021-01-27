@@ -21,7 +21,9 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -51,13 +53,15 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 
 
 
-const moment = require('moment');
+import * as  moment from 'moment';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
     public static TASK_NAME_getSimpleVarDataCachedValueFromParam = ModuleVar.getInstance().name + '.getSimpleVarDataCachedValueFromParam';
     public static TASK_NAME_delete_varcacheconf_from_cache = ModuleVar.getInstance().name + '.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = ModuleVar.getInstance().name + '.update_varcacheconf_from_cache';
+    public static TASK_NAME_wait_for_computation_hole = ModuleVar.getInstance().name + '.wait_for_computation_hole';
+
 
     public static getInstance() {
         if (!ModuleVarServer.instance) {
@@ -223,6 +227,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_wait_for_computation_hole, this.wait_for_computation_hole.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
 
@@ -359,14 +364,14 @@ export default class ModuleVarServer extends ModuleServerBase {
             return true;
         });
 
-        let vos_by_var_id: { [var_id: number]: VarDataBaseVO[] } = {};
+        let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
         for (let i in vos) {
             let vo = vos[i];
 
             if (!vos_by_var_id[vo.var_id]) {
-                vos_by_var_id[vo.var_id] = [];
+                vos_by_var_id[vo.var_id] = {};
             }
-            vos_by_var_id[vo.var_id].push(vo);
+            vos_by_var_id[vo.var_id][vo.index] = vo;
         }
 
         // invalidate intersected && parents
@@ -612,6 +617,37 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     //     return null;
     // }
+
+    /**
+     * Fonction ayant pour but d'être appelée sur le thread de computation des vars
+     */
+    public async wait_for_computation_hole(): Promise<boolean> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+                VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve)) {
+                return;
+            }
+
+            let start_time = moment().utc(true).unix();
+            let real_start_time = start_time;
+            while (
+                ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
+                ||
+                ObjectHandler.getInstance().hasAtLeastOneAttribute(await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(1, 1, 1, 1))
+            ) {
+                await ThreadHandler.getInstance().sleep(10000);
+                let actual_time = moment().utc(true).unix();
+
+                if (actual_time > (start_time + 1000 * 60)) {
+                    start_time = actual_time;
+                    ConsoleHandler.getInstance().warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                }
+            }
+            resolve(true);
+        });
+    }
 
     private async onCVarCacheConf(vcc: VarCacheConfVO) {
         if (!vcc) {

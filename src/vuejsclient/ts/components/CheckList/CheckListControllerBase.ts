@@ -1,6 +1,7 @@
 import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
+import CheckPointVO from '../../../../shared/modules/CheckList/vos/CheckPointVO';
 import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
@@ -43,4 +44,16 @@ export default abstract class CheckListControllerBase {
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
         checklist: ICheckList, checklistitems: { [id: number]: ICheckListItem }, checkpoints: { [id: number]: ICheckPoint }
     ) { }
+
+    public get_infos_cols_labels(): string[] {
+        return [];
+    }
+
+    public get_infos_cols_content(checklist_item: ICheckListItem): string[] {
+        return [];
+    }
+
+    public async get_step_description(checkpoint: CheckPointVO, checklist_item: ICheckListItem): Promise<string> {
+        return null;
+    }
 }

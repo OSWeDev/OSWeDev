@@ -24,4 +24,5 @@ export default interface IEnvParam {
     DEBUG_FORKS: boolean;
     VARS_PERF_MONITORING?: boolean;
     START_MAINTENANCE_ACCEPTATION_CODE: string;
+    AUTO_END_MAINTENANCE_ON_START: boolean;
 }

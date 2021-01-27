@@ -13,6 +13,10 @@
         &.disabled{
             cursor: inherit;
         }
+
+        .fa-magic{
+            font-size: .7em;
+        }
     }
 
     .archive_item {
@@ -20,5 +24,9 @@
         vertical-align: middle;
         cursor: pointer;
         font-size: 2em;
+    }
+
+    .item_info_col_content {
+        text-align: center;
     }
 }

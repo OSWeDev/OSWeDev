@@ -44,7 +44,7 @@ export default class VarsDatasVoUpdateHandler {
 
     private static instance: VarsDatasVoUpdateHandler = null;
 
-    private ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
+    public ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     private last_registration: Moment = null;
 
     protected constructor() {

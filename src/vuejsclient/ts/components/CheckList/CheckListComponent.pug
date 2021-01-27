@@ -12,6 +12,7 @@ include ../../../views/mixins/loading.pug
                     thead
                         tr
                             th
+                            th(v-for='label in infos_cols_labels') {{ t(label) }}
                             th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
                             th  {{ label('checklist.archive') }}
                     tbody

@@ -60,6 +60,9 @@ export default class CheckListComponent extends VueComponentBase {
     private checklist: ICheckList = null;
     private checklistitems: { [id: number]: ICheckListItem } = {};
     private checkpoints: { [id: number]: ICheckPoint } = {};
+
+    private infos_cols_labels: string[] = [];
+
     // private checkpointsdeps: { [check_point_id: number]: number[] } = {};
     // private checklistitemcheckpoints: { [checklistitem_id: number]: { [checkpoint_id: number]: boolean } } = {};
 
@@ -190,6 +193,8 @@ export default class CheckListComponent extends VueComponentBase {
 
         await this.checklist_controller.component_hook_onAsyncLoading(
             this.getStoredDatas, this.storeDatas, this.checklist, this.checklistitems, this.checkpoints);
+
+        this.infos_cols_labels = this.checklist_controller.get_infos_cols_labels();
 
         // this.checkpointsdeps = {};
         // for (let i in checkpointsdeps) {

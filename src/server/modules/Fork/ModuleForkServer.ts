@@ -91,7 +91,18 @@ export default class ModuleForkServer extends ModuleServerBase {
             return false;
         }
 
-        return await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+        let res;
+        try {
+            res = await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
+        } catch (error) {
+            ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:' + error);
+        }
+
+        if (msg.callback_id) {
+            ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(res, msg.callback_id));
+        }
+
+        return true;
     }
 
     private async handle_pingack_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {

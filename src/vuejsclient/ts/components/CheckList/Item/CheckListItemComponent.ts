@@ -31,8 +31,10 @@ export default class CheckListItemComponent extends VueComponentBase {
     @Prop({ default: null })
     private ordered_checkpoints: ICheckPoint[];
 
+    private infos_cols_content: string[] = [];
     private state_steps: { [step_name: string]: number } = {};
     private debounced_update_state_step = debounce(this.update_state_step.bind(this), 100);
+    private checkpoint_descriptions: { [step_id: number]: string } = {};
 
     private openmodal(name: string = null, step_id: number = null) {
         if (!this.checklist_item) {
@@ -48,45 +50,13 @@ export default class CheckListItemComponent extends VueComponentBase {
             this.global_route_path + '/' + this.checklist_item.checklist_id + '/' + this.checklist_item.id);
     }
 
-    get checkpoint_descriptions(): { [step_id: number]: string } {
-
-        if (!this.checklist_item) {
-            return {};
-        }
-
-        let res: { [step_id: number]: string } = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_item._type];
-
-        for (let i in this.ordered_checkpoints) {
-            let checkpoint = this.ordered_checkpoints[i];
-
-            let checkpoint_description = '<p><strong>' + this.label(checkpoint.name) + '</strong></p>';
-
-            if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
-
-                checkpoint_description += '<ul>';
-                for (let j in checkpoint.item_field_ids) {
-                    let item_field_id = checkpoint.item_field_ids[j];
-
-                    let field: DatatableField<any, any> = this.all_editable_fields.find((e) => e.module_table_field_id == item_field_id);
-                    let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
-
-                    checkpoint_description += this.get_field_text(field, table_field);
-                }
-                checkpoint_description += '</ul>';
-            }
-
-            res[checkpoint.id] = checkpoint_description;
-        }
-
-        return res;
-    }
-
     private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableField<any>) {
 
         let res = field.dataToHumanReadableField(this.checklist_item);
         if ((field.type == SimpleDatatableField.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
-            if (res) {
+            if (res == null) {
+                res = '';
+            } else if (res && res == "true") {
                 res = this.label("crud.field.boolean.true");
             } else {
                 res = this.label("crud.field.boolean.false");
@@ -120,6 +90,35 @@ export default class CheckListItemComponent extends VueComponentBase {
         checkpoint_description += '</ul>';
 
         return checkpoint_description;
+    }
+
+    get checkpoints_editable_fields(): { [step_id: number]: Array<DatatableField<any, any>> } {
+
+        if (!this.checklist_item) {
+            return {};
+        }
+
+        let res: { [step_id: number]: Array<DatatableField<any, any>> } = {};
+
+        for (let i in this.ordered_checkpoints) {
+            let checkpoint = this.ordered_checkpoints[i];
+
+            let checkpoint_editable_fields: Array<DatatableField<any, any>> = [];
+
+            if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
+
+                for (let j in checkpoint.item_field_ids) {
+                    let item_field_id = checkpoint.item_field_ids[j];
+
+                    let field: DatatableField<any, any> = this.all_editable_fields.find((e) => e.module_table_field_id == item_field_id);
+                    checkpoint_editable_fields.push(field);
+                }
+            }
+
+            res[checkpoint.id] = checkpoint_editable_fields;
+        }
+
+        return res;
     }
 
     get all_editable_fields(): Array<DatatableField<any, any>> {
@@ -161,12 +160,61 @@ export default class CheckListItemComponent extends VueComponentBase {
     private async update_state_step() {
         let res: { [step_name: string]: number } = {};
 
+        let promises = [];
+        let self = this;
+
         for (let i in this.ordered_checkpoints) {
             let checkpoint = this.ordered_checkpoints[i];
 
-            res[checkpoint.name] = await this.checklist_controller.get_state_step(checkpoint.name, this.checklist_item);
+            promises.push((async () => {
+                res[checkpoint.name] = await self.checklist_controller.get_state_step(checkpoint.name, self.checklist_item);
+            })());
         }
 
         this.state_steps = res;
+        this.infos_cols_content = this.checklist_controller.get_infos_cols_content(this.checklist_item);
+
+        promises.push((async () => {
+            self.checkpoint_descriptions = await self.get_checkpoint_descriptions();
+        })());
+
+        await Promise.all(promises);
+    }
+
+    private async get_checkpoint_descriptions(): Promise<{ [step_id: number]: string }> {
+
+        if (!this.checklist_item) {
+            return {};
+        }
+
+        let res: { [step_id: number]: string } = {};
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_item._type];
+
+        for (let i in this.ordered_checkpoints) {
+            let checkpoint = this.ordered_checkpoints[i];
+
+            let checkpoint_description = '<p><strong>' + this.label(checkpoint.name) + '</strong></p>';
+
+            let step_description = await this.checklist_controller.get_step_description(checkpoint, this.checklist_item);
+            if (step_description) {
+                checkpoint_description += step_description;
+            }
+
+            if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
+
+                checkpoint_description += '<ul>';
+                for (let j in this.checkpoints_editable_fields[checkpoint.id]) {
+                    let field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
+                    let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
+
+                    checkpoint_description += this.get_field_text(field, table_field);
+                }
+                checkpoint_description += '</ul>';
+            }
+
+            res[checkpoint.id] = checkpoint_description;
+        }
+
+        return res;
     }
 }

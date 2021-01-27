@@ -2239,6 +2239,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
                     let clause = this.getWhereClauseForFilterByMatroidIntersection(api_type_id, matroid, fields_ids_mapper);
                     if (!clause) {
+                        ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :api_type_id:' + api_type_id);
+                        ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :matroid:' + (matroid ? JSON.stringify(matroid) : matroid));
+                        ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :api_type_id:' + (fields_ids_mapper ? JSON.stringify(fields_ids_mapper) : fields_ids_mapper));
                         throw new Error('Where clause invalid');
                     }
                     request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + clause + ' ';
@@ -2265,8 +2268,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let where_clauses: string[] = [];
             for (let i in matroids) {
+                if (!matroids[i]) {
+                    ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :matroid null:' + JSON.stringify(matroids));
+                    continue;
+                }
                 let clause = this.getWhereClauseForFilterByMatroidIntersection(api_type_id, matroids[i], fields_ids_mapper);
                 if (!clause) {
+                    ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :api_type_id:' + api_type_id);
+                    ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :matroid:' + (matroids[i] ? JSON.stringify(matroids[i]) : matroids[i]));
+                    ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :api_type_id:' + (fields_ids_mapper ? JSON.stringify(fields_ids_mapper) : fields_ids_mapper));
                     throw new Error('Where clause invalid');
                 }
                 where_clauses.push(clause);
