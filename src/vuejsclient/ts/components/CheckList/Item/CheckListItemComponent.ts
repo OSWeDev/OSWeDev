@@ -45,6 +45,10 @@ export default class CheckListItemComponent extends VueComponentBase {
             return;
         }
 
+        if (!(this.checkpoints_editable_fields[step_id] && this.checkpoints_editable_fields[step_id].length)) {
+            return;
+        }
+
         this.$router.push(step_id ?
             this.global_route_path + '/' + this.checklist_item.checklist_id + '/' + this.checklist_item.id + '/' + step_id :
             this.global_route_path + '/' + this.checklist_item.checklist_id + '/' + this.checklist_item.id);

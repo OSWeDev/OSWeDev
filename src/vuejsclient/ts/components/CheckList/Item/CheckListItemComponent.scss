@@ -9,9 +9,8 @@
             font-size: .5em;
         }
 
-        cursor: pointer;
-        &.disabled{
-            cursor: inherit;
+        &.clickable{
+            cursor: pointer;
         }
 
         .fa-magic{

@@ -27,6 +27,7 @@ import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
+import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
@@ -848,7 +849,9 @@ export default abstract class ServerBase {
                 ForkServerController.getInstance().fork_threads();
                 BGThreadServerController.getInstance().server_ready = true;
 
-                TODO maintenance auto off
+                if (ConfigurationService.getInstance().getNodeConfiguration().AUTO_END_MAINTENANCE_ON_START) {
+                    await ModuleMaintenance.getInstance().end_planned_maintenance();
+                }
 
                 ConsoleHandler.getInstance().log('Server ready to go !');
             })

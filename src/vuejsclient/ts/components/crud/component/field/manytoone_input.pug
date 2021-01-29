@@ -2,7 +2,7 @@
 
     template(v-if='inline_input_mode && (!is_disabled)')
         template(v-if='!inline_input_is_editing')
-            template(v-if='inline_input_show_clear')
+            template(v-if='inline_input_show_clear && !field.is_required')
                 i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
             template(v-else)
                 i.inline_input_hide_clear.fa.fa-arrow-circle-o-right.btn-info(:class="{busy: inline_input_is_busy}")
