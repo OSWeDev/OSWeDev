@@ -1,5 +1,4 @@
 import RangeHandler from "../../../tools/RangeHandler";
-import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import DataSourcesController from "../../DataSource/DataSourcesController";
 import IDataSourceController from "../../DataSource/interfaces/IDataSourceController";
 import IDistantVOBase from "../../IDistantVOBase";
@@ -29,7 +28,6 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
     public can_use_client_side: boolean = true;
 
     protected cache_uqrs_by_theme_module_uqr: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = {};
-    protected cache_logged_user_id: number = null;
 
     public registerDataSource() {
         DataSourcesController.getInstance().registerDataSource(this, [AnimationUserQRVO.API_TYPE_ID]);
@@ -58,6 +56,7 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
 
         let theme_ids: number[] = param.theme_id_ranges ? RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.theme_id_ranges) : [];
         let module_ids: number[] = param.module_id_ranges ? RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges) : [];
+        let user_ids: number[] = param.user_id_ranges ? RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.user_id_ranges) : [];
 
         let res: { [theme_id: number]: { [module_id: number]: AnimationUserQRVO[] } } = {};
 
@@ -80,7 +79,9 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
                 }
 
                 for (let qr_id in this.cache_uqrs_by_theme_module_uqr[theme_id][module_id]) {
-                    res[theme_id][module_id].push(this.cache_uqrs_by_theme_module_uqr[theme_id][module_id][qr_id]);
+                    if (user_ids.indexOf(this.cache_uqrs_by_theme_module_uqr[theme_id][module_id][qr_id].user_id) >= 0) {
+                        res[theme_id][module_id].push(this.cache_uqrs_by_theme_module_uqr[theme_id][module_id][qr_id]);
+                    }
                 }
             }
         }
@@ -88,8 +89,8 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
         return res;
     }
 
-    public get_data_by_qr_ids(param: ThemeModuleDataParamRangesVO): { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } {
-        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = {};
+    public get_data_by_qr_ids(param: ThemeModuleDataParamRangesVO): { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } {
+        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
 
         let datas: { [theme_id: number]: { [module_id: number]: AnimationUserQRVO[] } } = this.get_data(param);
 
@@ -104,7 +105,11 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
                 }
 
                 for (let i in datas[theme_id][module_id]) {
-                    res[theme_id][module_id][datas[theme_id][module_id][i].qr_id] = datas[theme_id][module_id][i];
+                    if (!res[theme_id][module_id][datas[theme_id][module_id][i].qr_id]) {
+                        res[theme_id][module_id][datas[theme_id][module_id][i].qr_id] = [];
+                    }
+
+                    res[theme_id][module_id][datas[theme_id][module_id][i].qr_id].push(datas[theme_id][module_id][i]);
                 }
             }
         }
@@ -116,12 +121,14 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
 
         let module_ids: number[] = [];
         let theme_ids: number[] = [];
+        let user_ids: number[] = [];
 
         for (let i in vars_params) {
             let var_param: ThemeModuleDataParamRangesVO = vars_params[i];
 
             let param_theme_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(var_param.theme_id_ranges);
             let param_module_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(var_param.module_id_ranges);
+            let param_user_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(var_param.user_id_ranges);
 
             if (param_theme_ids) {
                 theme_ids = theme_ids.concat(param_theme_ids);
@@ -130,14 +137,14 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
             if (param_module_ids) {
                 module_ids = module_ids.concat(param_module_ids);
             }
-        }
 
-        if (!this.cache_logged_user_id) {
-            this.cache_logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+            if (param_user_ids) {
+                user_ids = user_ids.concat(param_user_ids);
+            }
         }
 
         let uqrs: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = await ModuleAnimation.getInstance().getUQRsByThemesAndModules(
-            this.cache_logged_user_id,
+            user_ids,
             theme_ids,
             module_ids
         );

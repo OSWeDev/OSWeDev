@@ -4,11 +4,17 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import AnimationController from '../../../shared/modules/Animation/AnimationController';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import AnimationModuleParamVO from '../../../shared/modules/Animation/params/AnimationModuleParamVO';
 import AnimationParamVO from '../../../shared/modules/Animation/params/AnimationParamVO';
+import AnimationReportingParamVO from '../../../shared/modules/Animation/params/AnimationReportingParamVO';
+import ThemeModuleDataParamRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
+import VarDayPrctReussiteAnimationController from '../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
 import AnimationModuleVO from '../../../shared/modules/Animation/vos/AnimationModuleVO';
+import AnimationParametersVO from '../../../shared/modules/Animation/vos/AnimationParametersVO';
 import AnimationQRVO from '../../../shared/modules/Animation/vos/AnimationQRVO';
+import AnimationThemeVO from '../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
@@ -21,6 +27,9 @@ import ModuleTranslation from '../../../shared/modules/Translation/ModuleTransla
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import SimpleNumberVarDataController from '../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController';
+import VarsController from '../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -52,6 +61,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
     }
 
     /**
@@ -86,9 +96,22 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency_fo: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency_fo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency_fo.src_pol_id = bo_access.id;
+        admin_access_dependency_fo.src_pol_id = fo_access.id;
         admin_access_dependency_fo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
         admin_access_dependency_fo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo);
+
+        let fo_reporting_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_reporting_access.group_id = group.id;
+        fo_reporting_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_reporting_access.translatable_name = ModuleAnimation.POLICY_FO_REPORTING_ACCESS;
+        fo_reporting_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_reporting_access, new DefaultTranslation({
+            fr: 'Front Animation Reporting'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let admin_access_dependency_fo_reporting: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_access_dependency_fo_reporting.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_access_dependency_fo_reporting.src_pol_id = fo_reporting_access.id;
+        admin_access_dependency_fo_reporting.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        admin_access_dependency_fo_reporting = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_reporting);
     }
 
     public registerAccessHooks(): void {
@@ -191,7 +214,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             'qr_id',
             qr_ids,
             'user_id',
-            [param.user_id]
+            param.user_ids
         );
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
@@ -268,11 +291,166 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         if (!res.end_date) {
             res.end_date = moment().utc(true);
+            res.prct_reussite = SimpleNumberVarDataController.getInstance().getValueOrDefault(
+                await VarsController.getInstance().registerDataParamAndReturnVarData(ThemeModuleDataParamRangesVO.createNew(
+                    VarDayPrctReussiteAnimationController.getInstance().varConf.id,
+                    null,
+                    [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
+                    [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)],
+                ), true, true) as ISimpleNumberVarData,
+                0
+            );
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
         return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    }
+
+    private async getAumsFiltered(param: AnimationReportingParamVO): Promise<AnimationUserModuleVO[]> {
+        let res: AnimationUserModuleVO[] = [];
+
+        let theme_ids: number[] = param.filter_anim_theme_active_options ? param.filter_anim_theme_active_options.map((s) => s.id) : [];
+        let module_ids: number[] = param.filter_anim_module_active_options ? param.filter_anim_module_active_options.map((s) => s.id) : [];
+        let user_ids: number[] = param.filter_user_active_options ? param.filter_user_active_options.map((s) => s.id) : [];
+        let role_ids: number[] = param.filter_role_active_options ? param.filter_role_active_options.map((s) => s.id) : [];
+        let only_module_valide: boolean = null;
+        let only_module_termine: boolean = null;
+
+        let aums: AnimationUserModuleVO[] = null;
+
+        if (module_ids.length > 0 && user_ids.length > 0) {
+            aums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
+                AnimationUserModuleVO.API_TYPE_ID,
+                'module_id',
+                module_ids,
+                'user_id',
+                user_ids,
+            );
+        } else if (module_ids.length > 0) {
+            aums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
+                AnimationUserModuleVO.API_TYPE_ID,
+                'module_id',
+                module_ids,
+            );
+        } else if (user_ids.length > 0) {
+            aums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
+                AnimationUserModuleVO.API_TYPE_ID,
+                'user_id',
+                user_ids,
+            );
+        } else {
+            aums = await ModuleDAO.getInstance().getVos<AnimationUserModuleVO>(AnimationUserModuleVO.API_TYPE_ID);
+        }
+
+        if (!aums) {
+            return res;
+        }
+
+        let anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID)
+        );
+        let anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID)
+        );
+        let anim_param: AnimationParametersVO = await ModuleAnimation.getInstance().getParameters();
+
+        if (!anim_param || !anim_theme_by_ids || !anim_module_by_ids) {
+            return res;
+        }
+
+        if (param.filter_module_valide_active_option) {
+            only_module_valide = param.filter_module_valide_active_option.id == AnimationController.OPTION_YES;
+        }
+
+        if (param.filter_module_termine_active_option) {
+            only_module_termine = param.filter_module_termine_active_option.id == AnimationController.OPTION_YES;
+        }
+
+        for (let i in aums) {
+            let aum: AnimationUserModuleVO = aums[i];
+
+            // Test User IDS
+            if (user_ids.length > 0) {
+                if (user_ids.indexOf(aum.user_id) == -1) {
+                    continue;
+                }
+            }
+
+            // Test module terminé
+            if (only_module_termine != null) {
+                if (only_module_termine) {
+                    if (!aum.end_date) {
+                        continue;
+                    }
+                } else if (aum.end_date) {
+                    continue;
+                }
+            }
+
+            // Test module validé
+            if (only_module_valide != null) {
+                let is_module_valid: boolean = aum.prct_reussite >= anim_param.seuil_validation_module_prct;
+                if (only_module_valide) {
+                    if (!is_module_valid) {
+                        continue;
+                    }
+                } else if (is_module_valid) {
+                    continue;
+                }
+            }
+
+            let module: AnimationModuleVO = anim_module_by_ids[aum.module_id];
+
+            if (!module) {
+                continue;
+            }
+
+            // Test module IDS
+            if (module_ids.length > 0) {
+                if (module_ids.indexOf(module.id) == -1) {
+                    continue;
+                }
+            }
+
+            let has_role: boolean = false;
+
+            // Test Roles IDS
+            if (role_ids.length > 0) {
+                if (module.role_id_ranges && module.role_id_ranges.length > 0) {
+                    RangeHandler.getInstance().foreach_ranges_sync(module.role_id_ranges, (role_id: number) => {
+                        if (role_ids.indexOf(role_id) == -1) {
+                            return;
+                        }
+
+                        has_role = true;
+                    });
+                }
+            } else {
+                has_role = true;
+            }
+
+            if (!has_role) {
+                continue;
+            }
+
+            let theme: AnimationThemeVO = anim_theme_by_ids[module.theme_id];
+
+            if (!theme) {
+                continue;
+            }
+
+            // Test Theme IDS
+            if (theme_ids.length > 0) {
+                if (theme_ids.indexOf(theme.id) == -1) {
+                    continue;
+                }
+            }
+
+            res.push(aum);
+        }
+
+        return res;
     }
 
     private async filterAnimationModule(datatable: ModuleTable<AnimationModuleVO>, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
@@ -340,6 +518,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     private async initializeTranslations() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Mes formations' }, 'animation.titre.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Mes formations' }, 'client.menu-gauche.animation'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Reporting Formations' }, 'client.menu-gauche.animation-reporting'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Animation' }, 'menu.menuelements.AnimationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Modules' }, 'menu.menuelements.AnimationModuleVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Questions/Réponses' }, 'menu.menuelements.AnimationQRVO.___LABEL___'));
@@ -379,5 +558,22 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Modules' }, 'fields.labels.ref.module_animation_anim_module.___LABEL____theme_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Numéro' }, 'crud.container_mms.numero.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Numéro' }, 'crud.container_reponses.numero.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Commentaire' }, 'animation.reporting.commentaire.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Fin' }, 'animation.reporting.end.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Module' }, 'animation.reporting.filtre.anim_module.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Thème' }, 'animation.reporting.filtre.anim_theme.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Rôle' }, 'animation.reporting.filtre.role.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Utilisateur' }, 'animation.reporting.filtre.user.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Feedback' }, 'animation.reporting.like_vote.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Module' }, 'animation.reporting.module.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Réussite' }, 'animation.reporting.prct_reussite.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Début' }, 'animation.reporting.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Thème' }, 'animation.reporting.theme.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Utilisateur' }, 'animation.reporting.user.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Roles' }, 'animation.reporting.roles.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Temps passé' }, 'animation.reporting.temps_passe.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Filtres' }, 'animation.reporting.filtre.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Afficher les modules terminés' }, 'animation.reporting.filtre.module_termine.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Afficher les modules validés' }, 'animation.reporting.filtre.module_valide.___LABEL___'));
     }
 }

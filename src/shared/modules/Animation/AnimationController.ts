@@ -10,6 +10,10 @@ export default class AnimationController {
     public static ROUTE_NAME_ANIMATION: string = 'animation';
     public static ROUTE_NAME_ANIMATION_MODULE: string = 'animation_module';
     public static ROUTE_NAME_ANIMATION_MODULE_FEEDBACK: string = 'animation_module_feedback';
+    public static ROUTE_NAME_ANIMATION_REPORTING: string = 'animation_reporting';
+
+    public static OPTION_YES: number = 1;
+    public static OPTION_NO: number = 2;
 
     public static getInstance(): AnimationController {
         if (!AnimationController.instance) {

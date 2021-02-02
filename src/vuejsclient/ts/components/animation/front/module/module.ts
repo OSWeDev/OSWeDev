@@ -250,6 +250,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             VarDayPrctAtteinteSeuilAnimationController.getInstance().varConf.id,
             null,
             [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
     }
 
@@ -258,6 +259,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             VarDayPrctReussiteAnimationController.getInstance().varConf.id,
             null,
             [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
     }
 

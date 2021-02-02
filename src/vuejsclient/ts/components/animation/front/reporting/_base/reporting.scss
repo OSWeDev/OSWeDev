@@ -1,0 +1,19 @@
+@import 'skin-variables.scss';
+
+.animation_reporting {
+    table {
+        tr {
+            &.total {
+                td {
+                    background: black;
+                    color: white;
+                }
+            }
+
+            td {
+                max-width: 260px;
+                padding: 2px 8px;
+            }
+        }
+    }
+}

@@ -22,6 +22,8 @@ export default class AnimationUserModuleVO implements IDistantVOBase {
     public start_date: Moment;
     public end_date: Moment;
 
+    public prct_reussite: number;
+
     public module_id: number;
     public user_id: number;
 }

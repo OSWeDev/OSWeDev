@@ -8,12 +8,14 @@ import VarControllerBase from '../../Var/VarControllerBase';
 import AnimationController from '../AnimationController';
 import AnimationParamsRangesDatasourceController from '../datasources/AnimationParamsRangesDatasourceController';
 import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
+import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
 import ThemeModuleDataParamRangesController from '../params/theme_module/ThemeModuleDataParamRangesController';
 import ThemeModuleDataParamRangesVO from '../params/theme_module/ThemeModuleDataParamRangesVO';
 import ThemeModuleDataRangesVO from '../params/theme_module/ThemeModuleDataRangesVO';
 import AnimationParametersVO from '../vos/AnimationParametersVO';
 import AnimationQRVO from '../vos/AnimationQRVO';
+import AnimationUserModuleVO from '../vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../vos/AnimationUserQRVO';
 
 export default class VarDayPrctAtteinteSeuilAnimationController extends VarControllerBase<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
@@ -51,6 +53,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarContr
             AnimationParamsRangesDatasourceController.getInstance(),
             QRsRangesDatasourceController.getInstance(),
             UQRsRangesDatasourceController.getInstance(),
+            UMsRangesDatasourceController.getInstance(),
         ];
     }
 
@@ -89,8 +92,9 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarContr
         res.value = null;
 
         let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: AnimationQRVO[] } } = QRsRangesDatasourceController.getInstance().get_data(param);
-        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = UQRsRangesDatasourceController.getInstance().get_data_by_qr_ids(param);
+        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = UQRsRangesDatasourceController.getInstance().get_data_by_qr_ids(param);
         let animation_params: AnimationParametersVO = AnimationParamsRangesDatasourceController.getInstance().get_data(param);
+        let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = UMsRangesDatasourceController.getInstance().get_data(param);
 
         let cpt_modules: number = 0;
         let cpt_modules_ok: number = 0;
@@ -104,22 +108,35 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarContr
                 }
 
                 let cpt_ok: number = 0;
+                let nb_user_has_finished: number = 0;
+                let user_id_check: { [user_id: number]: boolean } = {};
 
                 for (let i in qrs_by_theme_module[theme_id][module_id]) {
                     let qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][i];
 
-                    let uqr: AnimationUserQRVO = null;
-
                     if (uqrs_by_theme_module_qr && uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id]) {
-                        uqr = uqrs_by_theme_module_qr[theme_id][module_id][qr.id];
-                    }
+                        for (let j in uqrs_by_theme_module_qr[theme_id][module_id][qr.id]) {
+                            let uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id][j];
 
-                    if (AnimationController.getInstance().isUserQROk(qr, uqr)) {
-                        cpt_ok++;
+                            if (ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date) {
+                                if (!user_id_check[uqr.user_id]) {
+                                    nb_user_has_finished++;
+                                    user_id_check[uqr.user_id] = true;
+                                }
+                            } else {
+                                continue;
+                            }
+
+                            if (AnimationController.getInstance().isUserQROk(qr, uqr)) {
+                                cpt_ok++;
+                            }
+                        }
                     }
                 }
 
-                let prct_reussite: number = cpt_ok / qrs_by_theme_module[theme_id][module_id].length;
+                let total_qrs: number = (qrs_by_theme_module[theme_id][module_id].length * nb_user_has_finished);
+
+                let prct_reussite: number = total_qrs ? (cpt_ok / total_qrs) : 0;
 
                 if (prct_reussite >= animation_params.seuil_validation_module_prct) {
                     cpt_modules_ok++;
