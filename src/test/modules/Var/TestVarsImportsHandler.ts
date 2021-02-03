@@ -36,6 +36,7 @@ describe('VarsImportsHandler', () => {
          * C dans F et indépendant de E et B
          * card C > card B
          */
+
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
         let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
         let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
