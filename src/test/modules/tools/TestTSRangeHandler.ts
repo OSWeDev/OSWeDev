@@ -73,6 +73,8 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(4);
         expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(4);
         expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(3);
+
+        expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moment(zero).startOf('month'), moment(zero).endOf('month'), true, true, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH)).to.equal(1);
     });
 
     it('test elt_intersects_any_range', () => {

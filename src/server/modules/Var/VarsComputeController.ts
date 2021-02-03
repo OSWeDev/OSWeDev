@@ -1,3 +1,4 @@
+import * as  moment from 'moment';
 import { performance } from 'perf_hooks';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
@@ -122,12 +123,19 @@ export default class VarsComputeController {
      * @param vars_datas
      */
     private cache_datas(dag: DAG<VarDAGNode>, vars_datas: { [index: string]: VarDataBaseVO }) {
-        for (let i in vars_datas) {
-            let var_data = vars_datas[i];
 
-            let node = dag.nodes[var_data.index];
+        // Si on a dans le buffer une version plus ancienne on doit mettre à jour
+        VarsDatasProxy.getInstance().update_existing_buffered_older_datas(Object.values(dag.nodes).map((n) => n.var_data));
+
+        for (let i in dag.nodes) {
+            let node = dag.nodes[i];
+
+            if (vars_datas[node.var_data.index]) {
+                continue;
+            }
+
             if (VarsCacheController.getInstance().A_do_cache_param(node)) {
-                VarsDatasProxy.getInstance().prepend_var_datas([var_data]);
+                VarsDatasProxy.getInstance().prepend_var_datas([node.var_data]);
             }
         }
     }
@@ -325,6 +333,7 @@ export default class VarsComputeController {
             let promises = [];
             let aggregated_nodes_as_array = Object.values(node.aggregated_nodes);
             let i = 0;
+            let values: number[] = [];
 
             while (i < aggregated_nodes_as_array.length) {
 
@@ -338,8 +347,12 @@ export default class VarsComputeController {
                 let aggregated_node = aggregated_nodes_as_array[i];
 
                 if (!VarsServerController.getInstance().has_valid_value(aggregated_node.var_data)) {
-                    promises.push(this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache));
-                    // await this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache);
+                    promises.push((async () => {
+                        await this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache);
+                        values.push(aggregated_node.var_data.value);
+                    })());
+                } else {
+                    values.push(aggregated_node.var_data.value);
                 }
 
                 i++;
@@ -348,6 +361,10 @@ export default class VarsComputeController {
             if (promises.length) {
                 await Promise.all(promises);
             }
+
+            // Et on agrège la donnée ...
+            node.var_data.value = controller.aggregateValues(values);
+            node.var_data.value_ts = moment().utc(true);
 
             node.has_is_aggregator_perf = true;
             VarsPerfsController.addPerfs(performance.now(), [
@@ -433,7 +450,10 @@ export default class VarsComputeController {
                 dep_node.already_tried_load_cache_complet = true;
 
                 if (!!existing_var_data) {
-                    dep_node.var_data = existing_var_data;
+                    dep_node.var_data.id = existing_var_data.id;
+                    dep_node.var_data.value = existing_var_data.value;
+                    dep_node.var_data.value_ts = existing_var_data.value_ts;
+                    dep_node.var_data.value_type = existing_var_data.value_type;
                 }
             }
 
@@ -468,6 +488,7 @@ export default class VarsComputeController {
             return;
         }
 
+        node.var_data.id = cache_complet.id;
         node.var_data.value = cache_complet.value;
         node.var_data.value_ts = cache_complet.value_ts;
         node.var_data.value_type = cache_complet.value_type;

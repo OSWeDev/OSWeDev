@@ -3,6 +3,7 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 
@@ -87,7 +88,7 @@ export default class VarsImportsHandler {
         let cut_result: VarDataBaseVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
 
         // Pour chaque noeud restant, un fils à calculer, pour chaque noeud importé, un fils avec la valeur de l'import
-        this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
+        await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
     }
 
     /**
@@ -126,7 +127,20 @@ export default class VarsImportsHandler {
         return imports_valides;
     }
 
-    public aggregate_imports_and_remaining_datas(node: VarDAGNode, imported_datas: VarDataBaseVO[], remaining_computations: VarDataBaseVO[]) {
+    public async aggregate_imports_and_remaining_datas(node: VarDAGNode, imported_datas: VarDataBaseVO[], remaining_computations: VarDataBaseVO[]) {
+
+        /**
+         * Si on a pas de remaining, et un seul import, on est sur un var_data dont l'import couvre complètement (possible si c'est aussi dans vars_datas)
+         *  et donc on agrège pas, juste on met à jour le var_data
+         */
+        if (imported_datas && (imported_datas.length == 1) && ((!remaining_computations) || (!remaining_computations.length))) {
+            node.var_data.id = imported_datas[0].id;
+            node.var_data.value = imported_datas[0].value;
+            node.var_data.value_ts = imported_datas[0].value_ts;
+            node.var_data.value_type = imported_datas[0].value_type;
+            return;
+        }
+
         let aggregated_nodes: {
             [var_data_index: string]: VarDAGNode;
         } = {};
@@ -147,7 +161,48 @@ export default class VarsImportsHandler {
         node.aggregated_nodes = aggregated_nodes;
 
         if (aggregated_nodes && ObjectHandler.getInstance().hasAtLeastOneAttribute(aggregated_nodes)) {
-            VarsTabsSubsController.getInstance().notify_vardatas(Object.values(aggregated_nodes).map((n) => n.var_data), true);
+            let promises = [];
+
+            for (let i in aggregated_nodes) {
+                let notify_node = aggregated_nodes[i];
+
+                /**
+                 * On fait des packs de 10 promises...
+                 */
+                if (promises.length >= 10) {
+                    await Promise.all(promises);
+                    promises = [];
+                }
+
+                promises.push((async () => {
+
+                    // On tente de charger les datas telles quel depuis la bdd
+                    if ((!notify_node.already_tried_load_cache_complet) && !VarsServerController.getInstance().has_valid_value(notify_node.var_data)) {
+                        // Premier essai, on tente de trouver des datas en base / cache en cours de mise à jour
+                        let existing_var_data: VarDataBaseVO = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(notify_node.var_data);
+
+                        // ça revient au même que le test de chargement du cache complet donc on indique qu'on a déjà testé
+                        notify_node.already_tried_load_cache_complet = true;
+
+                        if (!!existing_var_data) {
+                            notify_node.var_data.id = existing_var_data.id;
+                            notify_node.var_data.value = existing_var_data.value;
+                            notify_node.var_data.value_ts = existing_var_data.value_ts;
+                            notify_node.var_data.value_type = existing_var_data.value_type;
+                        }
+                    }
+                })());
+            }
+
+            if (promises.length) {
+                await Promise.all(promises);
+            }
+
+            let notify_datas = Object.values(aggregated_nodes).map((n) => n.var_data);
+            notify_datas = notify_datas.filter((e) => !VarsServerController.getInstance().has_valid_value(e));
+            if (notify_datas && notify_datas.length) {
+                VarsTabsSubsController.getInstance().notify_vardatas(notify_datas, true);
+            }
         }
     }
 

@@ -1,12 +1,20 @@
+import * as moment from 'moment';
+import debounce from 'lodash/debounce';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -40,6 +48,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: null })
     public suffix: string;
 
+    @Prop({ default: false })
+    public can_inline_edit: boolean;
+
     @Prop({ default: null })
     public null_value_replacement: string;
 
@@ -61,17 +72,82 @@ export default class VarDataRefComponent extends VueComponentBase {
     private entered_once: boolean = false;
 
     private var_data: VarDataValueResVO = null;
-    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false });
+    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false });
+
+    // Pour éviter de rentrer en conflit avec le clic
+    private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
+
+    private is_inline_editing: boolean = false;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this))
     };
+
+
+    private async onchangevo(data: VarDataBaseVO, field, value) {
+
+        if ((!data) || (!data.id)) {
+            return;
+        }
+
+        if (data.index != this.var_param.index) {
+            return;
+        }
+
+        let clone = VarDataBaseVO.cloneFromVarId(this.var_param);
+
+        if ((value == null) || isNaN(value) || (value === '')) {
+
+            // Si on envoie une value null || '', on veut en fait supprimer l'import de la base et refresh l'arbre depuis cette var
+            clone.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+            clone.value_ts = null;
+            clone.value = null;
+            clone.id = data.id;
+
+            this.var_data.value = null;
+            this.var_data.value_ts = null;
+            this.var_data.is_computing = true;
+            this.var_data.id = data.id;
+            this.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+        } else {
+
+            // Sinon on set le type import, et on met à jour la var puis on invalide l'arbre
+            clone.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
+            clone.value = value;
+            clone.value_ts = moment().utc(true);
+            clone.id = data.id;
+
+            this.var_data.value = value;
+            this.var_data.value_ts = clone.value_ts;
+            this.var_data.id = data.id;
+            this.var_data.is_computing = false;
+            this.var_data.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
+        }
+        await ModuleDAO.getInstance().insertOrUpdateVO(clone);
+
+        // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
+        VarsClientController.getInstance().inline_editing_cb();
+    }
+
+    private on_cancel_input() {
+        // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
+        VarsClientController.getInstance().inline_editing_cb();
+    }
+
+    get editable_field() {
+        if (!this.var_param) {
+            return null;
+        }
+        return new SimpleDatatableField("value").setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.var_param._type]);
+    }
 
     private var_data_updater() {
         if (!this.var_param) {
             this.var_data = null;
             return;
         }
+
+
         this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
     }
 
@@ -178,11 +254,46 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
+    private close_inline_editing() {
+        this.is_inline_editing = false;
+        VarsClientController.getInstance().inline_editing_cb = null;
+    }
+
     private selectVar() {
+
+        if (this.can_inline_edit && !this.is_inline_editing) {
+            this.is_inline_editing = true;
+
+            if (VarsClientController.getInstance().inline_editing_cb) {
+                VarsClientController.getInstance().inline_editing_cb();
+            }
+            VarsClientController.getInstance().inline_editing_cb = this.close_inline_editing.bind(this);
+        }
+
         if (!this.isDescMode) {
             return;
         }
 
         this.setDescSelectedVarParam(this.var_param);
+    }
+
+    get var_data_value_import_tooltip() {
+
+        if (!this.var_data_value_is_imported) {
+            return null;
+        }
+
+        return this.label('VarDataRefComponent.var_data_value_import_tooltip', {
+            value: this.var_data_value,
+            formatted_date: ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.var_data.value_ts)
+        });
+    }
+
+    get var_data_value_is_imported() {
+        if (!this.var_data) {
+            return false;
+        }
+
+        return this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
     }
 }

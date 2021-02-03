@@ -1,6 +1,6 @@
 .form-group(:class="{[field_type]:true, inline_input_mode:inline_input_mode}")
 
-    template(v-if='inline_input_mode && (!is_disabled)')
+    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only)')
         template(v-if='!inline_input_is_editing')
             template(v-if='inline_input_show_clear && !field.is_required')
                 i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
@@ -22,19 +22,19 @@
                     i.fa.fa-asterisk.mandatory
 
     template(v-if="field_type == 'password'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'text') || (field_type == 'email')")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'textarea'")
-        textarea(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        textarea(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'translatable_text'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'boolean'")
@@ -49,123 +49,133 @@
         template(v-else)
             template(v-if="field.is_required")
                 toggle-button(
+                    @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape'
+                    ref='input_elt'
                     @change="validateToggle" 
                     :value="field_value" 
                     :sync="true"
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"
-                    :id="field.datatable_field_uid")
+                    :id="input_elt_id")
             template(v-else)
                 .form-checks
                     .form-check
-                        input.form-check-input(type="radio" v-model="field_value" :value="null" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + field.datatable_field_uid + '___N_A_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)")
-                        label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___N_A_' + random_number") {{ label('crud.field.boolean.n_a') }}
+                        input.form-check-input(type="radio" v-model="field_value" :value="null" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___N_A_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)")
+                        label.form-check-label(:for="'materialChecked_' + input_elt_id + '___N_A_' + random_number") {{ label('crud.field.boolean.n_a') }}
                     .form-check
-                        input.form-check-input(type="radio" v-model="field_value" :value="true" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + field.datatable_field_uid + '___TRUE_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)")
-                        label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___TRUE_' + random_number") {{ label('crud.field.boolean.true') }}
+                        input.form-check-input(type="radio" v-model="field_value" :value="true" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___TRUE_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)")
+                        label.form-check-label(:for="'materialChecked_' + input_elt_id + '___TRUE_' + random_number") {{ label('crud.field.boolean.true') }}
                     .form-check
-                        input.form-check-input(type="radio" v-model="field_value" :value="false" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + field.datatable_field_uid + '___FALSE_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)")
-                        label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___FALSE_' + random_number") {{ label('crud.field.boolean.false') }}
+                        input.form-check-input(type="radio" v-model="field_value" :value="false" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___FALSE_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)")
+                        label.form-check-label(:for="'materialChecked_' + input_elt_id + '___FALSE_' + random_number") {{ label('crud.field.boolean.false') }}
     template(v-else-if="field_type == 'number'")
-        input(:class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id")
     template(v-else-if="field_type == 'amount'")
-        input(:class="{'form-control': !inline_input_mode}" v-on:keyup.enter="inline_input_submit" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" v-on:keyup.enter="inline_input_submit" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'float'")
-        input(:class="{'form-control': !inline_input_mode}" type="number" step="0.01" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid")
+        input(@focus="on_focus" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" step="0.01" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id")
     template(v-else-if="field_type == 'pct'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'HourAndMinuteWithoutLimit'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'HourAndMinute'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'date') || (field_type == 'day')")
-        input(:class="{'form-control': !inline_input_mode}" type="date" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="date" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id")
     template(v-else-if="field_type == 'month'")
-        input(:class="{'form-control': !inline_input_mode}" type="month" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="month" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id")
     template(v-else-if="field_type == 'daterange'")
-        input(:class="{'form-control': !inline_input_mode}" type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid")
-        input(:class="{'form-control': !inline_input_mode}" type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="$emit('blur', $event.target.value)" :id="input_elt_id")
     template(v-else-if="field_type == 'daterange[]'")
         // FIXME TODO ASAP
     // FIXME TODO ASAP field_type == 'tstzrange[]' autres segmentations
     template(v-else-if="is_segmented_day_tsrange_array")
         Tsrangesinputcomponent(
+            ref="input_elt"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="input_elt_id")
 
     template(v-else-if="field_type == 'numrange[]'")
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'numrange'")
         Numrangeinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="input_elt_id")
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'isoweekdays'")
         Isoweekdaysinputcomponent(
+            ref="input_elt"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="input_elt_id")
 
     template(v-else-if="field_type == 'hourrange[]'")
         Multiinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
             :custom_field_component="hourrange_input_component"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" type_input="custom" @input_with_infos="validateMultiInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" type_input="custom" @input_with_infos="validateMultiInput" :id="input_elt_id")
 
     template(v-else-if="field_type == 'hourrange'")
         Hourrangeinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="input_elt_id")
 
     template(v-else-if="field_type == 'hour'")
         // FIXME TODO ASAP
 
     template(v-else-if="field_type == 'tstz'")
         Tstzinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="input_elt_id")
 
     template(v-else-if="field_type == 'tsrange'")
         Tsrangeinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="input_elt_id")
     template(v-else-if="field_type == 'timestamp'")
-        input(:class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="input_elt_id")
     template(v-else-if="field_type == 'html'")
         template(v-if="inline_input_mode && !inline_input_is_editing")
             .html_field_inline_readonly_value(v-html='field_value')
         template(v-else)
-            Vuequilleditor(v-model="field_value" ref="quilleditor" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput" :id="field.datatable_field_uid")
+            Vuequilleditor(v-model="field_value" ref="input_elt" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput" :id="input_elt_id")
     template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
-        Filecomponent(:filevo="vo" @uploaded="uploadedFile(...arguments)" :id="field.datatable_field_uid" :disabled="is_readonly")
+        Filecomponent(ref="input_elt" :filevo="vo" @uploaded="uploadedFile(...arguments)" :id="input_elt_id" :disabled="is_readonly")
     template(v-else-if="(field_type == 'image')&&(vo._type == 'image')")
-        Imagecomponent(:filevo="vo" @uploaded="uploadedFile(...arguments)", :id="field.datatable_field_uid" :disabled="is_readonly")
+        Imagecomponent(ref="input_elt" :filevo="vo" @uploaded="uploadedFile(...arguments)", :id="input_elt_id" :disabled="is_readonly")
     template(v-else-if="field_type == 'timewithouttimezone'")
-        input(:class="{'form-control': !inline_input_mode}" type="time" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="time" v-model="field_value" :id="input_elt_id", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'unix_timestamp'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :maxlength="maxlength")
+        input(@keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :id="input_elt_id", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'enum'")
         multiselect(
+            ref="input_elt"
             v-model="field_value"
             :custom-label="field.enumIdToHumanReadable",
             :options="select_options",
             :loading="isLoadingOptions",
-            :id="field.datatable_field_uid",
+            :id="input_elt_id",
             :searchable="true",
             :internal-search="false",
             :allow-empty="!field.is_required",
@@ -183,25 +193,29 @@
             :deselect-group-label='label("multiselect.deselectGroupLabel")')
     template(v-else-if="field_type == 'number[]'")
         Multiinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
-            v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field",
+            v-model="field_value", :id="input_elt_id" :vo="vo", :field="field",
             :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", 
             type_input="number", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
         Multiinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
-            v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field", :required="field.is_required", 
+            v-model="field_value", :id="input_elt_id" :vo="vo", :field="field", :required="field.is_required", 
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", 
             @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html[]'")
         Multiinputcomponent(
+            ref="input_elt"
             :inline_input_mode='inline_input_mode'
-            :id="field.datatable_field_uid" :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", 
+            :id="input_elt_id" :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", 
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", 
             @input_with_infos="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
-            :id="field.datatable_field_uid",
+            ref="input_elt"
+            :id="input_elt_id",
             :is="custom_field_types[field_type].create_update_component",
             :vo="vo",
             :field="field",
@@ -212,7 +226,7 @@
     template(v-else-if="field_type == 'point'")
         // FIXME TODO ASAP
 
-    template(v-if='inline_input_mode && (!is_disabled)')
+    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only)')
         template(v-if='inline_input_is_editing')
             i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy}")
         template(v-else)

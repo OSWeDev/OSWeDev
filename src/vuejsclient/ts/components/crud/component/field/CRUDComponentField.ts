@@ -122,6 +122,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: null })
     private maxlength: number;
 
+    @Prop({ default: false })
+    private force_input_is_editing: boolean;
+
+    @Prop({ default: false })
+    private inline_input_mode_input_only: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];
@@ -130,10 +136,10 @@ export default class CRUDComponentField extends VueComponentBase
     private field_value_range: { [type_date: string]: string } = {};
     private field_value_refranges_selected_ids: number[] = [];
 
-    private inline_input_is_editing: boolean = false;
     private inline_input_is_busy: boolean = false;
 
     private can_insert_or_update_target: boolean = false;
+    private inline_input_is_editing: boolean = false;
 
     private select_options_enabled: number[] = [];
 
@@ -142,6 +148,13 @@ export default class CRUDComponentField extends VueComponentBase
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
 
     public async mounted() {
+
+        this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
+        this.inline_input_is_editing = this.force_input_is_editing;
+        if (this.inline_input_mode && this.force_input_is_editing) {
+            let self = this;
+            this.$nextTick(() => self.$refs.input_elt['focus']());
+        }
 
         this.select_options_enabled = this.field.select_options_enabled; // (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
 
@@ -152,8 +165,6 @@ export default class CRUDComponentField extends VueComponentBase
          *  a voir à l'usage ce qu'on en fait
          */
         this.field.vue_component = this;
-
-        this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
 
         if (this.inline_input_mode_semaphore) {
             CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID] = this.cancel_input;
@@ -868,7 +879,10 @@ export default class CRUDComponentField extends VueComponentBase
         if (this.inline_input_mode_semaphore) {
             CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
         }
-        this.inline_input_is_editing = false;
+
+        if (!this.force_input_is_editing) {
+            this.inline_input_is_editing = false;
+        }
 
         this.inline_input_is_busy = false;
     }
@@ -936,10 +950,16 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private cancel_input() {
+
+        this.$emit('on_cancel_input', this.vo, this.field, this);
+
         if (this.inline_input_mode_semaphore) {
             CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
         }
-        this.inline_input_is_editing = false;
+
+        if (!this.force_input_is_editing) {
+            this.inline_input_is_editing = false;
+        }
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
 
@@ -1024,6 +1044,56 @@ export default class CRUDComponentField extends VueComponentBase
         delete CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID];
         if (this.inline_input_mode_semaphore && this.inline_input_is_editing) {
             CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
+        }
+    }
+
+    get input_elt_id() {
+
+        if (this.vo && this.vo.id) {
+            return this.vo._type + '.' + this.vo.id + '.' + this.field.datatable_field_uid;
+        }
+        if (this.vo) {
+            return this.vo._type + '.' + this.field.datatable_field_uid;
+        }
+        if (this.field && this.field.moduleTable && this.field.moduleTable.name) {
+            return this.field.moduleTable.name + '.' + this.field.datatable_field_uid;
+        }
+
+        return this.field.datatable_field_uid;
+    }
+
+    private async onkeypress(e) {
+        if (!this.inline_input_mode) {
+            return;
+        }
+
+        let keynum;
+
+        keynum = e.key;
+
+        if (keynum == 'Enter') {
+
+            await this.validate_inline_input();
+            return;
+        }
+
+        if (keynum == 'Escape') {
+
+            return;
+        }
+    }
+
+    private async onkeypress_escape() {
+        if (!this.inline_input_mode) {
+            return;
+        }
+
+        await this.cancel_input();
+    }
+
+    private on_focus($event) {
+        if (this.inline_input_mode && this.force_input_is_editing) {
+            $event.target.select();
         }
     }
 }

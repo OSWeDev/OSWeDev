@@ -291,6 +291,8 @@ export default class PushDataVueModule extends VueModuleBase {
             for (let i in vos) {
                 let vo = vos[i];
 
+                // ConsoleHandler.getInstance().log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
+
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {
 

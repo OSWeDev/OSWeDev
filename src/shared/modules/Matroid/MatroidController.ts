@@ -524,7 +524,7 @@ export default class MatroidController {
     }
 
     /**
-     * Clones all but id
+     * Clones all but id and value, value_type, value_ts for vars
      * @param from
      */
     public cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
@@ -544,15 +544,15 @@ export default class MatroidController {
         if (typeof from['var_id'] !== 'undefined') {
             res['var_id'] = from['var_id'];
         }
-        if (typeof from['value'] !== 'undefined') {
-            res['value'] = from['value'];
-        }
-        if (typeof from['value_type'] !== 'undefined') {
-            res['value_type'] = from['value_type'];
-        }
-        if (typeof from['value_ts'] !== 'undefined') {
-            res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
-        }
+        // if (typeof from['value'] !== 'undefined') {
+        //     res['value'] = from['value'];
+        // }
+        // if (typeof from['value_type'] !== 'undefined') {
+        //     res['value_type'] = from['value_type'];
+        // }
+        // if (typeof from['value_ts'] !== 'undefined') {
+        //     res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
+        // }
 
         let needs_mapping: boolean = moduletable_from != moduletable_to;
         let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];

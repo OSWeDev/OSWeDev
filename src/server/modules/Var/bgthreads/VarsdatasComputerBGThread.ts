@@ -35,11 +35,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 1;
 
+    public exec_in_dedicated_thread: boolean = true;
+
     // private enabled: boolean = true;
     // private invalidations: number = 0;
     private semaphore: boolean = false;
-
-    public exec_in_dedicated_thread: boolean = true;
 
     private throttled_calculation_run = throttle(this.do_calculation_run, 100, { leading: false });
 
@@ -90,10 +90,25 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             }
             this.semaphore = true;
 
-            let client_request_estimated_ms_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500);
-            let bg_estimated_ms_limit: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000);
-            let bg_min_nb_vars: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75);
-            let client_request_min_nb_vars: number = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15);
+            let promises = [];
+            let client_request_estimated_ms_limit: number = 0;
+            let bg_estimated_ms_limit: number = 0;
+            let bg_min_nb_vars: number = 0;
+            let client_request_min_nb_vars: number = 0;
+
+            promises.push((async () => client_request_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500))());
+            promises.push((async () => bg_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000))());
+            promises.push((async () => bg_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75))());
+            promises.push((async () => client_request_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15))());
+
+            /**
+             * On commence par mettre à jour la bdd si nécessaire
+             */
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", true);
+            promises.push(VarsDatasProxy.getInstance().handle_buffer());
+
+            await Promise.all(promises);
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
 
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
@@ -101,13 +116,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *  Dans tous les cas la plus grosse optimisation est certainement sur le choix des vars à grouper pour un calcul le plus efficace possible et dans la limite
              *      de temps par batch qu'on veut se donner (si le plus efficace c'est de calculer toute la base d'un coup mais que ça prend 1H on fera pas ça dans tous les cas)
              */
-
-            /**
-             * On commence par mettre à jour la bdd si nécessaire
-             */
-            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", true);
-            await VarsDatasProxy.getInstance().handle_buffer();
-            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
 
             VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.selection"], true);
             let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(

@@ -115,6 +115,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             fr: 'Actualiser la HeatMap des deps'
         }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valeur brute importée ou saisie manuellement le {formatted_date} : {value}'
+        }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Matroids calculés'
@@ -253,6 +256,10 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 preCTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_c);
                 preUTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_u);
+
+                // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
+                postCTrigger.registerHandler(api_type_id, this.invalidate_imports_for_c);
+                postUTrigger.registerHandler(api_type_id, this.invalidate_imports_for_u);
             }
 
             VarsServerController.getInstance().init_varcontrollers_dag();
@@ -294,6 +301,20 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
+    public async invalidate_imports_for_c(vo: VarDataBaseVO) {
+        // Si on crée une data en import, on doit forcer le recalcul, si on crée en calcul aucun impact
+        if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
+        }
+    }
+
+    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>) {
+        // Si on modifier la valeur d'un import, ou si on change le type de valeur, on doit invalider l'arbre
+        if ((vo_update_handler.post_update_vo.value_type != vo_update_handler.pre_update_vo.value_type) ||
+            ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
+            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
+        }
+    }
 
     public async prepare_bdd_index_for_c(vo: VarDataBaseVO) {
 
@@ -348,6 +369,52 @@ export default class ModuleVarServer extends ModuleServerBase {
                 await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
             }
         }
+    }
+
+    public async invalidate_cache_exact_and_parents(vos: VarDataBaseVO[]) {
+
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
+
+        vos = vos.filter((vo) => {
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                return false;
+            }
+            return true;
+        });
+
+        let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (!vos_by_type_id[vo._type]) {
+                vos_by_type_id[vo._type] = [];
+            }
+            vos_by_type_id[vo._type].push(vo);
+        }
+
+        let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+        for (let api_type_id in vos_by_type_id) {
+            let vos_type = vos_by_type_id[api_type_id];
+
+            let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
+
+            if (bdd_vos && bdd_vos.length) {
+
+                for (let j in bdd_vos) {
+                    let bdd_vo = bdd_vos[j];
+
+                    if (!vos_by_var_id[bdd_vo.var_id]) {
+                        vos_by_var_id[bdd_vo.var_id] = {};
+                    }
+                    vos_by_var_id[bdd_vo.var_id][bdd_vo.index] = bdd_vo;
+                }
+            }
+        }
+
+        await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
     }
 
     public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]) {
@@ -500,6 +567,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
     }
     public registerCrons(): void {

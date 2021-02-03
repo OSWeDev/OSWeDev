@@ -52,6 +52,7 @@ export default class ModuleVar extends Module {
     public static APINAME_delete_cache_and_imports_intersection: string = 'delete_cache_and_imports_intersection';
 
     public static APINAME_invalidate_cache_exact: string = 'invalidate_cache_exact';
+    public static APINAME_invalidate_cache_exact_and_parents: string = 'invalidate_cache_exact_and_parents';
     public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
 
     public static MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache = 'force_empty_cars_datas_vu_update_cache';
@@ -66,6 +67,7 @@ export default class ModuleVar extends Module {
     private static instance: ModuleVar = null;
 
     public invalidate_cache_exact: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact);
+    public invalidate_cache_exact_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact_and_parents);
     public invalidate_cache_intersection_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection_and_parents);
     public invalidate_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection);
     public delete_cache_and_imports_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_delete_cache_and_imports_intersection);
@@ -185,6 +187,24 @@ export default class ModuleVar extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_delete_cache_intersection,
+            (params: VarDataBaseVO[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_invalidate_cache_exact_and_parents,
             (params: VarDataBaseVO[]) => {
                 let res: string[] = [];
 

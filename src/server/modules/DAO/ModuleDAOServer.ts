@@ -2030,7 +2030,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (!fields_ids_mapper) {
-            return null;
+            fields_ids_mapper = {};
         }
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];

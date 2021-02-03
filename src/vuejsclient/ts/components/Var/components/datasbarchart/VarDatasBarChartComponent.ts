@@ -101,7 +101,6 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             }
         }
 
-        ConsoleHandler.getInstance().log('all_data_loaded');
         return true;
     }
 

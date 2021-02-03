@@ -50,7 +50,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     // public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
     public var_cache_conf: VarCacheConfVO = null;
-    protected aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
+    public aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
 
     protected constructor(
         public varConf: VarConfVO,

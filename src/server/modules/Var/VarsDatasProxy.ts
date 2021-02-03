@@ -151,6 +151,7 @@ export default class VarsDatasProxy {
         // let handled: VarDataBaseVO[] = [];
 
         let vars_datas_buffer_copy = Array.from(this.vars_datas_buffer);
+        let promises = [];
 
         let i = 0;
         while (i < vars_datas_buffer_copy.length) {
@@ -163,28 +164,42 @@ export default class VarsDatasProxy {
                 continue;
             }
 
-            // ConsoleHandler.getInstance().log('REMOVETHIS:handle_buffer:' + handle_var.index + ':');
-            // handled.push(handle_var);
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-            if ((!res) || (!res.id)) {
-                ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                /**
-                 * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
-                 *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
-                 */
-                let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(handle_var._type, [handle_var], null);
-                if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
-                    ((!datas[0].value_ts) || (datas[0].value_ts < handle_var.value_ts))) {
-                    handle_var.id = datas[0].id;
-                    res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                    if ((!res) || (!res.id)) {
-                        ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+            /**
+             * On fait des packs de 10 promises...
+             */
+            if (promises.length >= 10) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                // ConsoleHandler.getInstance().log('REMOVETHIS:handle_buffer:' + handle_var.index + ':');
+                // handled.push(handle_var);
+                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+                if ((!res) || (!res.id)) {
+                    ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                    /**
+                     * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
+                     *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
+                     */
+                    let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(handle_var._type, [handle_var], null);
+                    if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
+                        ((!datas[0].value_ts) || (datas[0].value_ts < handle_var.value_ts))) {
+                        handle_var.id = datas[0].id;
+                        res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+                        if ((!res) || (!res.id)) {
+                            ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                        }
                     }
                 }
-            }
-            delete this.vars_datas_buffer_indexes[handle_var.index];
-            this.vars_datas_buffer.splice(this.vars_datas_buffer.indexOf(handle_var), 1);
+                delete this.vars_datas_buffer_indexes[handle_var.index];
+                this.vars_datas_buffer.splice(this.vars_datas_buffer.indexOf(handle_var), 1);
+            })());
             i++;
+        }
+
+        if (promises.length) {
+            await Promise.all(promises);
         }
     }
 
@@ -266,6 +281,10 @@ export default class VarsDatasProxy {
         return res;
     }
 
+    public update_existing_buffered_older_datas(var_datas: VarDataBaseVO[]): void {
+        this.filter_var_datas_by_indexes(var_datas, false, true);
+    }
+
     /**
      * On charge en priorité depuis le buffer, puisque si le client demande des calculs on va les mettre en priorité ici, avant de calculer puis les remettre en attente d'insertion en base
      *  (dont en fait elles partent juste jamais)
@@ -293,6 +312,7 @@ export default class VarsDatasProxy {
 
             // ajout cas spécifique isolement d'une var trop gourmande
             if ((estimated_ms >= client_request_estimated_ms_limit) && ((nb_vars >= client_request_min_nb_vars) || (nb_vars == 1))) {
+                ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
                 return res;
             }
 
@@ -338,8 +358,11 @@ export default class VarsDatasProxy {
              *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
              *  des ids reste relativement dense)...
              */
-            if (!!this.vars_datas_buffer.find((var_data: VarDataBaseVO) => var_data.index == bdd_data.index)) {
-                continue;
+            if (!!this.vars_datas_buffer_indexes[bdd_data.index]) {
+                let buffered = this.vars_datas_buffer_indexes[bdd_data.index];
+                if (VarsServerController.getInstance().has_valid_value(buffered)) {
+                    continue;
+                }
             }
 
             res[bdd_data.index] = bdd_data;
@@ -452,7 +475,7 @@ export default class VarsDatasProxy {
      * On met à jour la map des indexs au passage
      * @param var_datas
      */
-    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean): VarDataBaseVO[] {
+    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean = false): VarDataBaseVO[] {
 
         let self = this;
 
@@ -467,17 +490,28 @@ export default class VarsDatasProxy {
                  */
                 if ((!!var_data.value_ts) && ((!this.vars_datas_buffer_indexes[var_data.index].value_ts) ||
                     (this.vars_datas_buffer_indexes[var_data.index].value_ts < var_data.value_ts))) {
+
+                    // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
+                    if ((!var_data.id) && (this.vars_datas_buffer_indexes[var_data.index].id)) {
+                        var_data.id = this.vars_datas_buffer_indexes[var_data.index].id;
+                    }
+
                     this.vars_datas_buffer[this.vars_datas_buffer.indexOf(this.vars_datas_buffer_indexes[var_data.index])] = var_data;
                     this.vars_datas_buffer_indexes[var_data.index] = var_data;
                     // On push pas puisque c'était déjà en attente d'action
                 }
                 continue;
             }
+
+            if (donot_insert_if_absent) {
+                continue;
+            }
+
             this.vars_datas_buffer_indexes[var_data.index] = var_data;
             res.push(var_data);
         }
 
-        if (res && res.length) {
+        if ((!donot_insert_if_absent) && res && res.length) {
 
             if (prepend) {
                 res.forEach((vd) => self.vars_datas_buffer.unshift(vd));

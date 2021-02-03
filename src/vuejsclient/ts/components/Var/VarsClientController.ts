@@ -37,6 +37,11 @@ export default class VarsClientController {
     public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 250, { leading: false });
     public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 2000, { leading: false });
 
+    /**
+     * Utilisé comme sémaphore pour l'édition inline des vars
+     */
+    public inline_editing_cb = null;
+
     private timeout_check_registrations: number = 30000;
 
     protected constructor() {
