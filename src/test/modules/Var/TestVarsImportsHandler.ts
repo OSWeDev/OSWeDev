@@ -46,7 +46,7 @@ describe('VarsImportsHandler', () => {
             [var_data_F]);
 
         let node_F = VarDAGNode.getInstance(new DAG(), var_data_F);
-        await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
+        await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs, true);
         expect(node_F.is_aggregator).to.equal(true);
         expect(node_F.aggregated_nodes).to.deep.equal({
             [var_data_C.index]: VarDAGNode.getInstance(node_F.dag, var_data_C),

@@ -127,7 +127,7 @@ export default class VarsImportsHandler {
         return imports_valides;
     }
 
-    public async aggregate_imports_and_remaining_datas(node: VarDAGNode, imported_datas: VarDataBaseVO[], remaining_computations: VarDataBaseVO[]) {
+    public async aggregate_imports_and_remaining_datas(node: VarDAGNode, imported_datas: VarDataBaseVO[], remaining_computations: VarDataBaseVO[], is_TU: boolean = false) {
 
         /**
          * Si on a pas de remaining, et un seul import, on est sur un var_data dont l'import couvre complètement (possible si c'est aussi dans vars_datas)
@@ -177,7 +177,7 @@ export default class VarsImportsHandler {
                 promises.push((async () => {
 
                     // On tente de charger les datas telles quel depuis la bdd
-                    if ((!notify_node.already_tried_load_cache_complet) && !VarsServerController.getInstance().has_valid_value(notify_node.var_data)) {
+                    if ((!notify_node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(notify_node.var_data)) && !is_TU) {
                         // Premier essai, on tente de trouver des datas en base / cache en cours de mise à jour
                         let existing_var_data: VarDataBaseVO = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(notify_node.var_data);
 
