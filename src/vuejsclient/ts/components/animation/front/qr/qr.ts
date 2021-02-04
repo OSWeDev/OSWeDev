@@ -5,8 +5,10 @@ import AnimationReponseVO from "../../../../../../shared/modules/Animation/field
 import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/AnimationQRVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
@@ -29,6 +31,9 @@ export default class VueAnimationQrComponent extends VueComponentBase {
 
     @Prop()
     private reponse_file: FileVO;
+
+    @Prop()
+    private inline_input_mode: boolean;
 
     private saving: boolean = false;
     private editable_uqr: AnimationUserQRVO = null;
@@ -139,6 +144,16 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         return (file) && (file.path) && (file.path.match(/\.(mp4)$/) != null);
     }
 
+    private async on_edit_reponse_name(vo: AnimationReponseVO, field: SimpleDatatableField<any, any>, data: any): Promise<void> {
+        vo.name = data;
+
+        this.qr.reponses = JSON.stringify(this.reponses);
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.qr);
+
+        this.snotify.success(this.label('field.auto_update_field_value.succes'));
+    }
+
     get style_image(): any {
         return {
             maxHeight: (window.innerWidth - 50) + 'px',
@@ -167,5 +182,17 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
 
         return true;
+    }
+
+    get name_editable_field() {
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+    }
+
+    get description_editable_field() {
+        return new SimpleDatatableField('description').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+    }
+
+    get explicatif_editable_field() {
+        return new SimpleDatatableField('explicatif').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 }

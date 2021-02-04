@@ -14,6 +14,7 @@ import ModuleTableField from '../ModuleTableField';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import ModuleVar from '../Var/ModuleVar';
 import VOsTypesManager from '../VOsTypesManager';
+import AnimationController from './AnimationController';
 import MessageModuleTableFieldTypeController from './fields/message_module/MessageModuleTableFieldTypeController';
 import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessageModuleVO';
 import ReponseTableFieldTypeController from './fields/reponse/ReponseTableFieldTypeController';
@@ -26,6 +27,7 @@ import ThemeModuleDataRangesVO from './params/theme_module/ThemeModuleDataRanges
 import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
 import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
 import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
+import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
 import AnimationModuleVO from './vos/AnimationModuleVO';
 import AnimationParametersVO from './vos/AnimationParametersVO';
 import AnimationQRVO from './vos/AnimationQRVO';
@@ -37,6 +39,8 @@ export default class ModuleAnimation extends Module {
 
     public static MODULE_NAME: string = "Animation";
 
+    public static EXPORT_API_TYPE_ID: string = 'AnimationReportingExport';
+
     public static APINAME_startModule: string = "startModule";
     public static APINAME_endModule: string = "endModule";
     public static APINAME_getQRsByThemesAndModules: string = "getQRsByThemesAndModules";
@@ -46,6 +50,7 @@ export default class ModuleAnimation extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAnimation.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".FO_ACCESS";
+    public static POLICY_FO_INLINE_EDIT_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".FO_INLINE_EDIT_ACCESS";
     public static POLICY_FO_REPORTING_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".REPORTING.FO_ACCESS";
 
     public static getInstance(): ModuleAnimation {
@@ -117,7 +122,12 @@ export default class ModuleAnimation extends Module {
     }
 
     public async startModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
-        return ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, AnimationUserModuleVO>(ModuleAnimation.APINAME_startModule, user_id, module_id);
+        return ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, AnimationUserModuleVO>(
+            ModuleAnimation.APINAME_startModule,
+            user_id,
+            module_id,
+            AnimationController.getInstance().getSupport(),
+        );
     }
 
     public async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
@@ -185,6 +195,7 @@ export default class ModuleAnimation extends Module {
 
         let fields = [
             new ModuleTableField('seuil_validation_module_prct', ModuleTableField.FIELD_TYPE_prct, "Seuil validation module"),
+            new ModuleTableField('limite_temps_passe_module', ModuleTableField.FIELD_TYPE_hours_and_minutes, "Limite temps passé par module"),
             image_home_id,
             document_id_ranges,
         ];
@@ -277,6 +288,7 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('like_vote', ModuleTableField.FIELD_TYPE_enum, "Like").setEnumValues(AnimationUserModuleVO.LIKE_VOTE_LABELS),
+            new ModuleTableField('support', ModuleTableField.FIELD_TYPE_enum, "Support utilisé").setEnumValues(AnimationUserModuleVO.SUPPORT_LABELS),
             new ModuleTableField('commentaire', ModuleTableField.FIELD_TYPE_html, "Commentaire"),
             new ModuleTableField('prct_reussite', ModuleTableField.FIELD_TYPE_prct, "Pourcentage réussite"),
             module_id_field,
@@ -324,5 +336,6 @@ export default class ModuleAnimation extends Module {
         await VarDayPrctAvancementAnimationController.getInstance().initialize();
         await VarDayPrctReussiteAnimationController.getInstance().initialize();
         await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
+        await VarDayTempsPasseAnimationController.getInstance().initialize();
     }
 }

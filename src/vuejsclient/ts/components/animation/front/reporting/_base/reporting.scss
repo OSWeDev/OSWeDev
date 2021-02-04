@@ -2,17 +2,36 @@
 
 .animation_reporting {
     table {
+        thead {
+            th {
+                background: $main_box_body_bg_color !important;
+                color: $main_box_title_color;
+
+                &.separateur_ligne {
+                    border-left: 1px solid $main_box_title_color;
+                }
+            }
+        }
+
         tr {
             &.total {
                 td {
                     background: black;
                     color: white;
+
+                    &.separateur_ligne {
+                        border-left: 1px solid white;
+                    }
                 }
             }
 
             td {
                 max-width: 260px;
                 padding: 2px 8px;
+
+                &.separateur_ligne {
+                    border-left: 1px solid black;
+                }
             }
         }
     }

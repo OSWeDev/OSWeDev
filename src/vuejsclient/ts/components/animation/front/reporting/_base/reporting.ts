@@ -6,17 +6,23 @@ import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO'
 import UserVO from '../../../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import AnimationController from '../../../../../../../shared/modules/Animation/AnimationController';
 import ModuleAnimation from '../../../../../../../shared/modules/Animation/ModuleAnimation';
+import AnimationReportingParamVO from '../../../../../../../shared/modules/Animation/params/AnimationReportingParamVO';
 import ThemeModuleDataParamRangesVO from '../../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
 import VarDayPrctReussiteAnimationController from '../../../../../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
+import VarDayTempsPasseAnimationController from '../../../../../../../shared/modules/Animation/vars/VarDayTempsPasseAnimationController';
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
+import APIController from '../../../../../../../shared/modules/API/APIController';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
+import VueAppController from '../../../../../../VueAppController';
+import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleAnimationReportingVuexAction, ModuleAnimationReportingVuexGetter } from '../../../store/AnimationReportingVuexStore';
 import VueAnimationReportingFiltresComponent from '../filtres/reporting_filtres';
@@ -94,6 +100,38 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     @Watch('get_filter_module_valide_active_option')
     private onchange_filters() {
         this.debounced_reloadAums();
+    }
+
+    @Watch('$route', { immediate: true })
+    private onRouteChange() {
+        AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.export_xlsx.bind(this));
+    }
+
+    private async export_xlsx() {
+        /**
+         * On lance une demande d'export BGThread et on renvoie null pour éviter de passer par l'export client
+         */
+
+        let exhi: ExportHistoricVO = new ExportHistoricVO();
+
+        exhi.export_file_access_policy_name = ModuleAnimation.POLICY_FO_ACCESS;
+        exhi.export_is_secured = true;
+
+        let export_params: AnimationReportingParamVO = new AnimationReportingParamVO(
+            this.get_filter_anim_theme_active_options,
+            this.get_filter_anim_module_active_options,
+            this.get_filter_role_active_options,
+            this.get_filter_user_active_options,
+            this.get_filter_module_termine_active_option,
+            this.get_filter_module_valide_active_option,
+        );
+        exhi.export_params_stringified = JSON.stringify(APIController.getInstance().try_translate_vo_to_api(export_params));
+        exhi.export_to_uid = VueAppController.getInstance().data_user.id;
+        exhi.export_type_id = ModuleAnimation.EXPORT_API_TYPE_ID;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
+
+        return null;
     }
 
     private async mounted() {
@@ -220,13 +258,18 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         return date ? date.format('DD/MM/YYYY HH:mm') : null;
     }
 
-    private get_temps_passe_en_h(aum: AnimationUserModuleVO): number {
-        return aum && aum.start_date && aum.end_date ? (aum.end_date.diff(aum.start_date, 'hours', true)) : null;
-    }
-
     private get_prct_reussite_total_param(aum: AnimationUserModuleVO): ThemeModuleDataParamRangesVO {
         return ThemeModuleDataParamRangesVO.createNew(
             VarDayPrctReussiteAnimationController.getInstance().varConf.id,
+            null,
+            [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
+        );
+    }
+
+    private get_temps_passe_total_param(aum: AnimationUserModuleVO): ThemeModuleDataParamRangesVO {
+        return ThemeModuleDataParamRangesVO.createNew(
+            VarDayTempsPasseAnimationController.getInstance().varConf.id,
             null,
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
@@ -253,6 +296,19 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
 
     get like_vote_labels(): { [like_vote_id: number]: string } {
         return AnimationUserModuleVO.LIKE_VOTE_LABELS;
+    }
+
+    get support_labels(): { [support_id: number]: string } {
+        return AnimationUserModuleVO.SUPPORT_LABELS;
+    }
+
+    get temps_passe_total_param(): ThemeModuleDataParamRangesVO {
+        return ThemeModuleDataParamRangesVO.createNew(
+            VarDayTempsPasseAnimationController.getInstance().varConf.id,
+            this.get_anim_theme_id_ranges,
+            this.get_anim_module_id_ranges,
+            this.get_user_id_ranges,
+        );
     }
 
     get prct_reussite_total_param(): ThemeModuleDataParamRangesVO {
