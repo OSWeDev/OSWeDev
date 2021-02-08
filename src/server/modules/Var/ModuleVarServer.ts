@@ -304,6 +304,14 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_imports_for_c(vo: VarDataBaseVO) {
         // Si on crée une data en import, on doit forcer le recalcul, si on crée en calcul aucun impact
         if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+            // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
+            VarsTabsSubsController.getInstance().notify_vardatas([vo]);
+            VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
+
+            // et mettre à jour la version potentiellement en cache actuellement
+            VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
+
             await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
         }
     }
@@ -312,6 +320,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         // Si on modifier la valeur d'un import, ou si on change le type de valeur, on doit invalider l'arbre
         if ((vo_update_handler.post_update_vo.value_type != vo_update_handler.pre_update_vo.value_type) ||
             ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
+
+            // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
+            VarsTabsSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+            VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+
+            // et mettre à jour la version potentiellement en cache actuellement
+            VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
+
             await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
         }
     }

@@ -23,7 +23,7 @@ describe('DAG', () => {
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A);
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800000,1577923200000)]");
-        expect(dagnodeA.aggregated_nodes).to.deep.equal({});
+        expect(dagnodeA.aggregated_datas).to.deep.equal({});
         expect(dagnodeA.hasIncoming).to.equal(false);
         expect(dagnodeA.hasOutgoing).to.equal(false);
         expect(dagnodeA.incoming_deps).to.deep.equal({});
@@ -41,7 +41,7 @@ describe('DAG', () => {
         let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B);
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200000,1583020800000)]");
-        expect(dagnodeB.aggregated_nodes).to.deep.equal({});
+        expect(dagnodeB.aggregated_datas).to.deep.equal({});
         expect(dagnodeB.hasIncoming).to.equal(false);
         expect(dagnodeB.hasOutgoing).to.equal(false);
         expect(dagnodeB.is_aggregator).to.equal(false);
@@ -84,7 +84,7 @@ describe('DAG', () => {
         expect(dag.roots).to.deep.equal({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200000,1583020800000)]");
-        expect(dagnodeB.aggregated_nodes).to.deep.equal({});
+        expect(dagnodeB.aggregated_datas).to.deep.equal({});
         expect(dagnodeB.is_aggregator).to.equal(false);
         expect(dagnodeB.hasIncoming).to.equal(false);
         expect(dagnodeB.hasOutgoing).to.equal(false);
@@ -92,7 +92,7 @@ describe('DAG', () => {
         expect(dagnodeB.outgoing_deps).to.deep.equal({});
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800000,1577923200000)]");
-        expect(dagnodeA.aggregated_nodes).to.deep.equal({});
+        expect(dagnodeA.aggregated_datas).to.deep.equal({});
         expect(dagnodeA.is_aggregator).to.equal(false);
         expect(dagnodeA.hasIncoming).to.equal(false);
         expect(dagnodeA.hasOutgoing).to.equal(false);
@@ -112,14 +112,14 @@ describe('DAG', () => {
         expect(dag.leafs).to.deep.equal({ [var_data_B.index]: dagnodeB });
         expect(dag.roots).to.deep.equal({ [var_data_A.index]: dagnodeA });
 
-        expect(dagnodeB.aggregated_nodes).to.deep.equal({});
+        expect(dagnodeB.aggregated_datas).to.deep.equal({});
         expect(dagnodeB.is_aggregator).to.equal(false);
         expect(dagnodeB.hasIncoming).to.equal(true);
         expect(dagnodeB.hasOutgoing).to.equal(false);
         expect(dagnodeB.incoming_deps).to.deep.equal({ AB: dep_ab });
         expect(dagnodeB.outgoing_deps).to.deep.equal({});
 
-        expect(dagnodeA.aggregated_nodes).to.deep.equal({});
+        expect(dagnodeA.aggregated_datas).to.deep.equal({});
         expect(dagnodeA.is_aggregator).to.equal(false);
         expect(dagnodeA.hasIncoming).to.equal(false);
         expect(dagnodeA.hasOutgoing).to.equal(true);

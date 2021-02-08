@@ -174,7 +174,7 @@ export default class VarsDatasVoUpdateHandler {
                 });
             }
 
-            VarsDatasProxy.getInstance().append_var_datas(var_datas);
+            await VarsDatasProxy.getInstance().append_var_datas(var_datas);
         }
     }
 

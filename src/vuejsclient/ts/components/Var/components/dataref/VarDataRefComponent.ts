@@ -86,7 +86,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private async onchangevo(data: VarDataBaseVO, field, value) {
 
-        if ((!data) || (!data.id)) {
+        if (!data) {
             return;
         }
 
@@ -123,10 +123,18 @@ export default class VarDataRefComponent extends VueComponentBase {
             this.var_data.is_computing = false;
             this.var_data.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(clone);
 
-        // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
-        VarsClientController.getInstance().inline_editing_cb();
+        // On va enregistrer un cb qui attend le retour de validation de prise en compte de la nouvelle valeur importée
+        let cb = () => {
+            // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
+            VarsClientController.getInstance().inline_editing_cb();
+        };
+
+        VarsClientController.getInstance().registerParams([clone], {
+            [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this))
+        });
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(clone);
     }
 
     private on_cancel_input() {

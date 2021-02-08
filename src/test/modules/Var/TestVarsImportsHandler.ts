@@ -1,16 +1,16 @@
 /* tslint:disable:no-unused-expression */
-import ServerAPIController from '../../../server/modules/API/ServerAPIController';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
-
 import { expect } from 'chai';
 import 'mocha';
+import ServerAPIController from '../../../server/modules/API/ServerAPIController';
 import VarsImportsHandler from '../../../server/modules/Var/VarsImportsHandler';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeDataVO from './fakes/vos/FakeDataVO';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
 
 describe('VarsImportsHandler', () => {
 
@@ -47,12 +47,12 @@ describe('VarsImportsHandler', () => {
             [var_data_F]);
 
         let node_F = VarDAGNode.getInstance(new DAG(), var_data_F);
-        await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs, true);
+        await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
         expect(node_F.is_aggregator).to.equal(true);
-        expect(node_F.aggregated_nodes).to.deep.equal({
-            [var_data_C.index]: VarDAGNode.getInstance(node_F.dag, var_data_C),
-            [var_data_B.index]: VarDAGNode.getInstance(node_F.dag, var_data_B),
-            [remaning_calcs[0].index]: VarDAGNode.getInstance(node_F.dag, remaning_calcs[0])
+        expect(node_F.aggregated_datas).to.deep.equal({
+            [var_data_C.index]: var_data_C,
+            [var_data_B.index]: var_data_B,
+            [remaning_calcs[0].index]: remaning_calcs[0]
         });
         expect(remaning_calcs.length).to.equal(1);
     });

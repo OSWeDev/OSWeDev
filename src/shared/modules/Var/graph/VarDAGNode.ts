@@ -1,4 +1,3 @@
-import VarsController from '../VarsController';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
 import DAG from './dagbase/DAG';
 import DAGNodeBase from './dagbase/DAGNodeBase';
@@ -34,7 +33,7 @@ export default class VarDAGNode extends DAGNodeBase {
     /**
      * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés
      */
-    public aggregated_nodes: { [var_data_index: string]: VarDAGNode } = {};
+    public aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
 
     /**
      * Toutes les données chargées pour ce noeud sont disponibles directement ici, classées par datasource
@@ -96,18 +95,6 @@ export default class VarDAGNode extends DAGNodeBase {
         if (!!this.dag.leafs[this.var_data.index]) {
             delete this.dag.leafs[this.var_data.index];
         }
-    }
-
-    /**
-     * Fonction qui switch le noeud actuel en mode aggrégateur, et qui met à jour les deps
-     *  FIXME TODO : Vérifier cette phrase après avoir refondu le processus de compute, Si on essaie de d'abord générer les deps et ensuite de charger les précals même partiels, c'est surement faux :
-     *          "Normalement à ce stade on a pas de dépendances sur ce noeud"
-     *          Si c'est faux il faut gérer de supprimer les deps de ce noeud, tout en ne supprimant rien que l'on a pas le droit de supprimer
-     * @param splitted_nodes Tableau de VarDAGNode qui doit couvrir le var_data du noeud actuel
-     */
-    public split_node(splitted_nodes: { [index: string]: VarDAGNode }) {
-        this.is_aggregator = true;
-        this.aggregated_nodes = splitted_nodes;
     }
 
     /**

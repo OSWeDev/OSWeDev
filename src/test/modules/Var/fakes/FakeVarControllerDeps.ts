@@ -1,7 +1,6 @@
 import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-import DataConvertionsController from '../../../../shared/modules/Var/DataConvertionsController';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
@@ -53,9 +52,8 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
         return {
             [FakeVarControllerDeps.DEP_DsDistant]:
-                DataConvertionsController.getInstance().convertVarDataFromVarName(
-                    VarDataBaseVO.cloneFromVarName(varDAGNode.var_data as FakeEmpDayDataVO),
-                    FakeVarControllerDsDistant.getInstance().varConf.name),
+                VarDataBaseVO.cloneFromVarName(varDAGNode.var_data as FakeEmpDayDataVO, FakeVarControllerDsDistant.getInstance().varConf.name),
+
             [FakeVarControllerDeps.DEP_DsEmpDistant]:
                 VarDataBaseVO.cloneFromVarName(varDAGNode.var_data as FakeEmpDayDataVO, FakeVarControllerDsEmpDistant.getInstance().varConf.name)
         };

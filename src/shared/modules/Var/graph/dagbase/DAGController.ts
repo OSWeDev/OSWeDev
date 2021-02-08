@@ -33,7 +33,7 @@ export default class DAGController {
         for (let i in target_node.outgoing_deps) {
             let outgoing_dep = target_node.outgoing_deps[i];
 
-            if ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node)) {
+            if ((outgoing_dep.outgoing_node != target_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition);
             }
         }
@@ -62,7 +62,7 @@ export default class DAGController {
         for (let i in source_node.outgoing_deps) {
             let outgoing_dep = source_node.outgoing_deps[i];
 
-            if ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node)) {
+            if ((outgoing_dep.outgoing_node != source_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition);
             }
         }
@@ -89,7 +89,7 @@ export default class DAGController {
         for (let i in source_node.incoming_deps) {
             let incoming_dep = source_node.incoming_deps[i];
 
-            if ((!visit_condition) || visit_condition(incoming_dep.incoming_node)) {
+            if ((incoming_dep.incoming_node != source_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                 await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition);
             }
         }
@@ -114,7 +114,7 @@ export default class DAGController {
         for (let i in target_node.incoming_deps) {
             let incoming_dep = target_node.incoming_deps[i];
 
-            if ((!visit_condition) || visit_condition(incoming_dep.incoming_node)) {
+            if ((incoming_dep.incoming_node != target_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                 await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition);
             }
         }
@@ -141,7 +141,7 @@ export default class DAGController {
         for (let i in through_node.outgoing_deps) {
             let outgoing_dep = through_node.outgoing_deps[i];
 
-            if ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node)) {
+            if ((outgoing_dep.outgoing_node != through_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition);
             }
         }
@@ -151,7 +151,7 @@ export default class DAGController {
         for (let i in through_node.incoming_deps) {
             let incoming_dep = through_node.incoming_deps[i];
 
-            if ((!visit_condition) || visit_condition(incoming_dep.incoming_node)) {
+            if ((incoming_dep.incoming_node != through_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                 await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition);
             }
         }
@@ -176,7 +176,7 @@ export default class DAGController {
         for (let i in through_node.incoming_deps) {
             let incoming_dep = through_node.incoming_deps[i];
 
-            if ((!visit_condition) || visit_condition(incoming_dep.incoming_node)) {
+            if ((incoming_dep.incoming_node != through_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
                 await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition);
             }
         }
@@ -186,7 +186,7 @@ export default class DAGController {
         for (let i in through_node.outgoing_deps) {
             let outgoing_dep = through_node.outgoing_deps[i];
 
-            if ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node)) {
+            if ((outgoing_dep.outgoing_node != through_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
                 await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition);
             }
         }

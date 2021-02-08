@@ -9,6 +9,7 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -24,6 +25,7 @@ export default class VarsDatasProxy {
 
     public static TASK_NAME_prepend_var_datas = 'VarsDatasProxy.prepend_var_datas';
     public static TASK_NAME_append_var_datas = 'VarsDatasProxy.append_var_datas';
+    public static TASK_NAME_update_existing_buffered_older_datas = 'VarsDatasProxy.update_existing_buffered_older_datas';
 
     /**
      * Multithreading notes :
@@ -45,9 +47,12 @@ export default class VarsDatasProxy {
     private vars_datas_buffer: VarDataBaseVO[] = [];
     private vars_datas_buffer_indexes: { [index: string]: VarDataBaseVO } = {};
 
+    private semaphore_handle_buffer: boolean = false;
+
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_prepend_var_datas, this.prepend_var_datas.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_append_var_datas, this.append_var_datas.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, this.update_existing_buffered_older_datas.bind(this));
     }
 
     public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
@@ -103,7 +108,7 @@ export default class VarsDatasProxy {
      * A utiliser pour prioriser normalement la demande - FIFO
      *  Cas standard
      */
-    public append_var_datas(var_datas: VarDataBaseVO[]) {
+    public async append_var_datas(var_datas: VarDataBaseVO[]) {
         if ((!var_datas) || (!var_datas.length)) {
             return;
         }
@@ -112,7 +117,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        var_datas = this.filter_var_datas_by_indexes(var_datas, false);
+        var_datas = await this.filter_var_datas_by_indexes(var_datas, false);
     }
 
     /**
@@ -121,7 +126,7 @@ export default class VarsDatasProxy {
      *  Principalement pour le cas d'une demande du navigateur client, on veut répondre ASAP
      *  et si on doit ajuster le calcul on renverra l'info plus tard
      */
-    public prepend_var_datas(var_datas: VarDataBaseVO[]) {
+    public async prepend_var_datas(var_datas: VarDataBaseVO[]) {
         if ((!var_datas) || (!var_datas.length)) {
             return;
         }
@@ -130,7 +135,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        var_datas = this.filter_var_datas_by_indexes(var_datas, true);
+        var_datas = await this.filter_var_datas_by_indexes(var_datas, true);
 
         if ((!var_datas) || (!var_datas.length)) {
             return;
@@ -148,9 +153,18 @@ export default class VarsDatasProxy {
      */
     public async handle_buffer(): Promise<void> {
 
+        while (this.semaphore_handle_buffer) {
+            await ThreadHandler.getInstance().sleep(9);
+        }
+        this.semaphore_handle_buffer = true;
+
         // let handled: VarDataBaseVO[] = [];
+        // if (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.vars_datas_buffer_indexes)) {
+        //     this.debug('start:handle_buffer:');
+        // }
 
         let vars_datas_buffer_copy = Array.from(this.vars_datas_buffer);
+        let self = this;
         let promises = [];
 
         let i = 0;
@@ -184,7 +198,7 @@ export default class VarsDatasProxy {
                      */
                     let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(handle_var._type, [handle_var], null);
                     if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
-                        ((!datas[0].value_ts) || (datas[0].value_ts < handle_var.value_ts))) {
+                        ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts.unix() < handle_var.value_ts.unix())))) {
                         handle_var.id = datas[0].id;
                         res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
                         if ((!res) || (!res.id)) {
@@ -192,8 +206,44 @@ export default class VarsDatasProxy {
                         }
                     }
                 }
-                delete this.vars_datas_buffer_indexes[handle_var.index];
-                this.vars_datas_buffer.splice(this.vars_datas_buffer.indexOf(handle_var), 1);
+
+                let index_to_delete: number = -1;
+                for (let buffered_i in self.vars_datas_buffer) {
+
+                    if (self.vars_datas_buffer[buffered_i].index == handle_var.index) {
+                        index_to_delete = parseInt(buffered_i.toString());
+                        break;
+                    }
+                }
+
+                // if (handle_var.index == '50_[[-9007199254740991,9007199254740992)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
+                //     ConsoleHandler.getInstance().log('WTF');
+                // }
+                // ConsoleHandler.getInstance().log('delete self.vars_datas_buffer_indexes:' + handle_var.index + ':' + index_to_delete);
+                // let index_data = self.vars_datas_buffer_indexes['50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]'];
+                // let has_index = !!index_data;
+                // let buffered_data = self.vars_datas_buffer.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]');
+                // let has_data = !!buffered_data;
+                // if (handle_var.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
+                //     self.debug('before:splice');
+                // }
+                self.vars_datas_buffer.splice(index_to_delete, 1);
+                // if (handle_var.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
+                //     self.debug('before:delete');
+                // }
+                delete self.vars_datas_buffer_indexes[handle_var.index];
+                // if (handle_var.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
+                //     self.debug('after');
+                // }
+
+                // let _index_data = self.vars_datas_buffer_indexes['50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]'];
+                // let _has_index = !!_index_data;
+                // let _buffered_data = self.vars_datas_buffer.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]');
+                // let _has_data = !!_buffered_data;
+
+                // if (has_index && _has_index && has_data && !_has_data) {
+                //     ConsoleHandler.getInstance().error('handle_var:index:' + handle_var.index);
+                // }
             })());
             i++;
         }
@@ -201,6 +251,11 @@ export default class VarsDatasProxy {
         if (promises.length) {
             await Promise.all(promises);
         }
+
+        // if (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.vars_datas_buffer_indexes)) {
+        //     this.debug('end:handle_buffer:');
+        // }
+        this.semaphore_handle_buffer = false;
     }
 
     /**
@@ -214,14 +269,14 @@ export default class VarsDatasProxy {
 
         if (var_data.id) {
             let e = await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
-            this.filter_var_datas_by_indexes([e], false);
+            await this.filter_var_datas_by_indexes([e], false);
             return e;
         }
 
         let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
 
         if (res && res.length) {
-            this.filter_var_datas_by_indexes([res[0]], false);
+            await this.filter_var_datas_by_indexes([res[0]], false);
             return res[0];
         }
         return null;
@@ -281,8 +336,20 @@ export default class VarsDatasProxy {
         return res;
     }
 
-    public update_existing_buffered_older_datas(var_datas: VarDataBaseVO[]): void {
-        this.filter_var_datas_by_indexes(var_datas, false, true);
+    /**
+     * On force l'appel sur le thread du computer de vars
+     */
+    public async update_existing_buffered_older_datas(var_datas: VarDataBaseVO[]) {
+
+        if ((!var_datas) || (!var_datas.length)) {
+            return;
+        }
+
+        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
+            return;
+        }
+
+        await this.filter_var_datas_by_indexes(var_datas, false, true);
     }
 
     /**
@@ -372,7 +439,7 @@ export default class VarsDatasProxy {
          * Si on fait les calculs depuis la Bdd, on mets les vardats dans la pile de mise en cache
          */
         if (bdd_datas && ObjectHandler.getInstance().hasAtLeastOneAttribute(bdd_datas)) {
-            this.prepend_var_datas(Object.values(bdd_datas));
+            await this.prepend_var_datas(Object.values(bdd_datas));
         }
 
         if (params.bg_nb_vars) {
@@ -473,15 +540,27 @@ export default class VarsDatasProxy {
      * On filtre les demande de append ou prepend par les indexes déjà en attente par ce qu'on peut pas avoir 2 fois le même index dans la liste
      * Du coup si on demande quelque chose sur un index déjà listé, on ignore juste la demande pour le moment
      * On met à jour la map des indexs au passage
+     * On doit s'assurer par contre de pas rentrer en conflit avec un handle du buffer
      * @param var_datas
      */
-    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean = false): VarDataBaseVO[] {
+    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean = false): Promise<VarDataBaseVO[]> {
 
-        let self = this;
+        while (this.semaphore_handle_buffer) {
+            await ThreadHandler.getInstance().sleep(9);
+        }
+        this.semaphore_handle_buffer = true;
+
+        // if (var_datas.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]')) {
+        //     this.debug('start:filter_var_datas_by_indexes:');
+        // }
 
         let res: VarDataBaseVO[] = [];
         for (let i in var_datas) {
             let var_data = var_datas[i];
+
+            // if (var_data.index == '50_[[-9007199254740991,9007199254740992)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
+            //     ConsoleHandler.getInstance().error('filter_var_datas_by_indexes:INDEX CHELOU');
+            // }
 
             if (this.vars_datas_buffer_indexes[var_data.index]) {
 
@@ -489,14 +568,26 @@ export default class VarsDatasProxy {
                  * Si ça existe déjà dans la liste d'attente on l'ajoute pas mais on met à jour pour intégrer les calculs faits le cas échéant
                  */
                 if ((!!var_data.value_ts) && ((!this.vars_datas_buffer_indexes[var_data.index].value_ts) ||
-                    (this.vars_datas_buffer_indexes[var_data.index].value_ts < var_data.value_ts))) {
+                    (var_data.value_ts && (this.vars_datas_buffer_indexes[var_data.index].value_ts.unix() < var_data.value_ts.unix())))) {
 
                     // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
                     if ((!var_data.id) && (this.vars_datas_buffer_indexes[var_data.index].id)) {
                         var_data.id = this.vars_datas_buffer_indexes[var_data.index].id;
                     }
 
-                    this.vars_datas_buffer[this.vars_datas_buffer.indexOf(this.vars_datas_buffer_indexes[var_data.index])] = var_data;
+                    let not_found = true;
+                    for (let buffered_i in this.vars_datas_buffer) {
+
+                        if (this.vars_datas_buffer[buffered_i].index == var_data.index) {
+                            this.vars_datas_buffer[buffered_i] = var_data;
+                            not_found = false;
+                            break;
+                        }
+                    }
+
+                    // if (not_found) {
+                    //     ConsoleHandler.getInstance().error('filter_var_datas_by_indexes:did not find:' + var_data.index);
+                    // }
                     this.vars_datas_buffer_indexes[var_data.index] = var_data;
                     // On push pas puisque c'était déjà en attente d'action
                 }
@@ -514,12 +605,28 @@ export default class VarsDatasProxy {
         if ((!donot_insert_if_absent) && res && res.length) {
 
             if (prepend) {
-                res.forEach((vd) => self.vars_datas_buffer.unshift(vd));
+                this.vars_datas_buffer.unshift(...res);
             } else {
                 this.vars_datas_buffer = this.vars_datas_buffer.concat(res);
             }
         }
 
+        // TODO FIXME REMOVE DEBUG
+        // if (var_datas.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]')) {
+        //     this.debug('end:filter_var_datas_by_indexes:');
+        // }
+
+        this.semaphore_handle_buffer = false;
+
         return res;
     }
+
+    // // TODO FIXME REMOVE DEBUG
+    // private debug(from: string) {
+    //     let index_data = this.vars_datas_buffer_indexes['50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]'];
+    //     let has_index = !!index_data;
+    //     let buffered_data = this.vars_datas_buffer.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]');
+    //     let has_data = !!buffered_data;
+    //     ConsoleHandler.getInstance().log('TODO FIXME REMOVE DEBUG:' + from + ':has_index:' + has_index + ':buffered_data == indexed_data:' + (buffered_data == index_data) + ':has_data:' + has_data + ':');
+    // }
 }

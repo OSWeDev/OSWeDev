@@ -1,4 +1,4 @@
-import * as  moment from 'moment';
+import * as moment from 'moment';
 import { performance } from 'perf_hooks';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
@@ -94,7 +94,7 @@ export default class VarsComputeController {
          * Mise en cache, suivant stratégie pour chaque param
          */
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.cache_datas", true);
-        this.cache_datas(dag, vars_datas);
+        await this.cache_datas(dag, vars_datas);
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.cache_datas", false);
 
         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - cache_datas OK...');
@@ -122,10 +122,10 @@ export default class VarsComputeController {
      * @param dag
      * @param vars_datas
      */
-    private cache_datas(dag: DAG<VarDAGNode>, vars_datas: { [index: string]: VarDataBaseVO }) {
+    private async cache_datas(dag: DAG<VarDAGNode>, vars_datas: { [index: string]: VarDataBaseVO }) {
 
         // Si on a dans le buffer une version plus ancienne on doit mettre à jour
-        VarsDatasProxy.getInstance().update_existing_buffered_older_datas(Object.values(dag.nodes).map((n) => n.var_data));
+        await VarsDatasProxy.getInstance().update_existing_buffered_older_datas(Object.values(dag.nodes).map((n) => n.var_data));
 
         for (let i in dag.nodes) {
             let node = dag.nodes[i];
@@ -135,7 +135,7 @@ export default class VarsComputeController {
             }
 
             if (VarsCacheController.getInstance().A_do_cache_param(node)) {
-                VarsDatasProxy.getInstance().prepend_var_datas([node.var_data]);
+                await VarsDatasProxy.getInstance().prepend_var_datas([node.var_data]);
             }
         }
     }
@@ -185,7 +185,22 @@ export default class VarsComputeController {
         ], true);
 
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-        controller.computeValue(node);
+        if (node.is_aggregator) {
+            let values: number[] = [];
+
+            for (let i in node.aggregated_datas) {
+                let aggregated_data = node.aggregated_datas[i];
+
+                values.push(aggregated_data.value);
+            }
+
+            // Et on agrège la donnée ...
+            node.var_data.value = controller.aggregateValues(values);
+            node.var_data.value_ts = moment().utc(true);
+        } else {
+
+            controller.computeValue(node);
+        }
         VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
         VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
         node.has_compute_node_perf = true;
@@ -320,60 +335,6 @@ export default class VarsComputeController {
                 "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
                 node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
             ], false);
-        }
-
-        // Si on est sur un aggrégateur, on déploie les deps des noeuds restants à calculer
-        if (node.is_aggregator && node.aggregated_nodes) {
-
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.is_aggregator",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.is_aggregator"
-            ], true);
-
-            let promises = [];
-            let aggregated_nodes_as_array = Object.values(node.aggregated_nodes);
-            let i = 0;
-            let values: number[] = [];
-
-            while (i < aggregated_nodes_as_array.length) {
-
-                /**
-                 * On fait des packs de 10 promises...
-                 */
-                if (promises.length >= 10) {
-                    await Promise.all(promises);
-                    promises = [];
-                }
-                let aggregated_node = aggregated_nodes_as_array[i];
-
-                if (!VarsServerController.getInstance().has_valid_value(aggregated_node.var_data)) {
-                    promises.push((async () => {
-                        await this.deploy_deps(aggregated_node, deployed_vars_datas, vars_datas, ds_cache);
-                        values.push(aggregated_node.var_data.value);
-                    })());
-                } else {
-                    values.push(aggregated_node.var_data.value);
-                }
-
-                i++;
-            }
-
-            if (promises.length) {
-                await Promise.all(promises);
-            }
-
-            // Et on agrège la donnée ...
-            node.var_data.value = controller.aggregateValues(values);
-            node.var_data.value_ts = moment().utc(true);
-
-            node.has_is_aggregator_perf = true;
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.deploy_deps",
-                "__computing_bg_thread.compute.create_tree.is_aggregator",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.is_aggregator"
-            ], false);
-
-            return;
         }
 
         VarsPerfsController.addPerfs(performance.now(), [
@@ -529,6 +490,17 @@ export default class VarsComputeController {
      *      - Chargement des deps
      */
     private async get_node_deps(node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+
+        if (node.is_aggregator) {
+            let aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+            let index = 0;
+
+            for (let i in node.aggregated_datas) {
+                aggregated_deps['AGG_' + (index++)] = node.aggregated_datas[i];
+            }
+            return aggregated_deps;
+        }
+
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
         /**

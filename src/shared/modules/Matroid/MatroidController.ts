@@ -125,7 +125,7 @@ export default class MatroidController {
                 continue;
             }
 
-            res.push(tested_matroid);
+            res.push(this.cloneFrom(tested_matroid));
         }
 
         for (let i in ranges_need_union) {
