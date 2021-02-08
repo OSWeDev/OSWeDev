@@ -40,6 +40,9 @@ export default class TextHandler {
     private constructor() {
     }
 
+    /*
+    * retire les accents de la chaine de caracteres src
+    */
     public sanityze(src: string): string {
 
         if (!src) {
