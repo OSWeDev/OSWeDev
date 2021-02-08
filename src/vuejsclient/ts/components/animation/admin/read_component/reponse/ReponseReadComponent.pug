@@ -1,0 +1,10 @@
+.container_reponses
+    template(v-if="field_values", v-for="(reponse, index) in field_values")
+        .reponse_item(:reponse="index")
+            template(v-for="field in fields")
+                Datatablecomponentfield(
+                    :field="field",
+                    :vo="reponse",
+                    :show_label="true",
+                    :explicit_html='true',
+                )

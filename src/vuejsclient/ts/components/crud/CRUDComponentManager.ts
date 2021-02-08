@@ -3,7 +3,6 @@ import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
-import CRUDComponent from '../../components/crud/component/CRUDComponent';
 import MenuBranch from '../../components/menu/vos/MenuBranch';
 import MenuElementBase from '../../components/menu/vos/MenuElementBase';
 import MenuPointer from '../../components/menu/vos/MenuPointer';
@@ -72,7 +71,9 @@ export default class CRUDComponentManager {
         menuPointer: MenuPointer,
         routes: RouteConfig[],
         read_query: any = null,
-        routes_meta: any = null) {
+        routes_meta: any = null,
+        sort_id_descending: boolean = true,
+    ) {
 
         let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
         let route_name: string = 'Manage ' + API_TYPE_ID;
@@ -90,7 +91,8 @@ export default class CRUDComponentManager {
             props: () => ({
                 crud: crud,
                 key: '__manage__' + API_TYPE_ID,
-                read_query: read_query
+                read_query: read_query,
+                sort_id_descending: sort_id_descending,
             }),
             meta: routes_meta ? routes_meta : undefined
         });
@@ -103,7 +105,8 @@ export default class CRUDComponentManager {
                 crud: crud,
                 key: '__manage__' + API_TYPE_ID,
                 modal_show_update: true,
-                modal_vo_id: parseInt(route.params.id)
+                modal_vo_id: parseInt(route.params.id),
+                sort_id_descending: sort_id_descending,
             }),
             meta: routes_meta ? routes_meta : undefined
         });
@@ -116,7 +119,8 @@ export default class CRUDComponentManager {
                 props: (route) => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
-                    modal_show_create: true
+                    modal_show_create: true,
+                    sort_id_descending: sort_id_descending,
                 }),
                 meta: routes_meta ? routes_meta : undefined
             });
@@ -129,7 +133,8 @@ export default class CRUDComponentManager {
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
                     modal_show_delete: true,
-                    modal_vo_id: parseInt(route.params.id)
+                    modal_vo_id: parseInt(route.params.id),
+                    sort_id_descending: sort_id_descending,
                 }),
                 meta: routes_meta ? routes_meta : undefined
             });
@@ -141,13 +146,13 @@ export default class CRUDComponentManager {
         }
     }
 
-
-
     public defineMenuRouteToCRUD(
         API_TYPE_ID: string,
         menuPointer: MenuPointer,
         routes: RouteConfig[],
-        read_query: any = null) {
+        read_query: any = null,
+        sort_id_descending: boolean = true,
+    ) {
         let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
         let route_name: string = menuPointer.leaf.UID;
 
@@ -158,7 +163,8 @@ export default class CRUDComponentManager {
             props: () => ({
                 crud: CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID],
                 key: '__manage__' + API_TYPE_ID,
-                read_query: read_query
+                read_query: read_query,
+                sort_id_descending: sort_id_descending
             })
         });
 

@@ -363,6 +363,8 @@ describe('NamedVOHandler', () => {
             _type: "osef"
         }])).to.deep.equal(['s']);
     });
+
+
     it('test sortByNames', () => {
         let vos: INamedVO[] = null;
         NamedVOHandler.getInstance().sortByNames(vos);

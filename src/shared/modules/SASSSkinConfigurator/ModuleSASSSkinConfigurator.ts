@@ -1,6 +1,4 @@
 import Module from '../Module';
-import ModuleParams from '../Params/ModuleParams';
-import ParamVO from '../Params/vos/ParamVO';
 
 export default class ModuleSASSSkinConfigurator extends Module {
 
@@ -61,7 +59,12 @@ export default class ModuleSASSSkinConfigurator extends Module {
         main_background_header_url: '',
         logo_url: '',
         picto_product_url: '',
-        picto_saisonnalite_url: ''
+        picto_saisonnalite_url: '',
+        animation_background: '#332765',
+        animation_secondary: '#b8b6be',
+        animation_orange: '#ea911b',
+        animation_rouge: '#b7013d',
+        animation_vert: '#b6c209',
     };
 
     public static getInstance(): ModuleSASSSkinConfigurator {

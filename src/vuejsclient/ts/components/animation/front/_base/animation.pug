@@ -1,0 +1,33 @@
+
+.rootElt.animation
+    template(v-if="!skip_home")
+        .home_responsive(@click="skipFormations")
+            .image_home.mb-3(v-if="image_home")
+                img(:src="image_home")
+
+            h1 {{ label('animation.titre') }}
+    template(v-else)
+        h1 {{ label('animation.titre') }}
+
+        template(v-if="themes && themes.length > 0")
+            .row.themes
+                template(v-for="(theme, index) in ordered_themes")
+                    .col-sm-12
+                        Animationtheme(
+                            v-if="modules_by_themes[theme.id] && modules_by_themes[theme.id].length > 0"
+                            :theme="theme",
+                            :index_theme="(index + 1)",
+                            :modules="modules_by_themes[theme.id]",
+                            :logged_user_id="logged_user_id"
+                        )
+
+        template(v-if="documents && documents.length ")
+            .row.documents
+                .col-md-12
+                    h1 {{ label('animation.documents.titre') }}
+                template(v-for="document in documents")
+                    .col-sm-12
+                        .document
+                            a(:href="document.document_url", target="_blank")
+                                .document_name {{ document.name }}
+                                .link {{ label('animation.documents.download') }}

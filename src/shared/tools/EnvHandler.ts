@@ -16,7 +16,7 @@ export default class EnvHandler {
     public MSGPCK: boolean = false;
     public COMPRESS: boolean = false;
     public BASE_URL: string = null;
+    public CODE_GOOGLE_ANALYTICS: string = null;
 
-    private constructor() {
-    }
+    private constructor() { }
 }

@@ -12,6 +12,30 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 
 describe('TimeSegmentHandler', () => {
 
+    it('test getBiggestTimeSegmentationType', () => {
+        // expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(null, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(null);
+        // expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(null, null)).to.equal(null);
+        // expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, null)).to.equal(null);
+        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_YEAR, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_YEAR);
+        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_YEAR)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_DAY)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_DAY, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_MINUTE, TimeSegment.TYPE_MS)).to.equal(TimeSegment.TYPE_MINUTE);
+    });
+
+    it('test getSmallestTimeSegmentationType', () => {
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(null, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(undefined);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(null, null)).to.equal(undefined);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, null)).to.equal(4);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_YEAR, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_YEAR);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_YEAR)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_DAY)).to.equal(TimeSegment.TYPE_DAY);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_DAY, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_DAY);
+        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_MINUTE, TimeSegment.TYPE_MS)).to.equal(TimeSegment.TYPE_MS);
+    });
+
     it('test getAllDataTimeSegments', () => {
         expect(TimeSegmentHandler.getInstance().getAllDataTimeSegments(null, null, null)).to.equal(null);
 
@@ -201,6 +225,52 @@ describe('TimeSegmentHandler', () => {
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-15', TimeSegment.TYPE_DAY))).to.deep.equal(moment('2019-05-15').startOf('day').utc(true));
     });
 
+    it('test getInclusiveEndTimeSegment', () => {
+        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(null)).to.equal(null);
+
+        let timeSeg = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-12', TimeSegment.TYPE_MONTH);
+        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, null)).to.deep.equal(moment('2019-05-01').utc(true).add(1, "month").add(-1, "day"));
+        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg)).to.deep.equal(
+            moment('2019-05-01').utc(true).add(1, "month").add(-1, "day")
+        );
+
+        timeSeg = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2009-09-18', TimeSegment.TYPE_YEAR);
+        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, TimeSegment.TYPE_HOUR)).to.deep.equal(
+            moment('2009-01-01').utc(true).add(1, "year").add(-1, "hour")
+        );
+
+        timeSeg = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2021-11-05', TimeSegment.TYPE_MINUTE);
+        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, TimeSegment.TYPE_DAY)).to.deep.equal(
+            moment('2021-11-05').utc(true).add(1, "minute").add(-1, "day"));
+
+    });
+
+    it('test isEltInSegment', () => {
+        let momentTest1 = moment('2019-05-01');
+        let momentTest2 = moment('2019-05-02');
+        let momentTest3 = moment('2020-05-01');
+        let momentTest4 = moment('2020-05-02');
+        let timeSegmentTest = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
+
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(null, timeSegmentTest)).to.equal(false);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, null)).to.equal(false);
+
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, timeSegmentTest)).to.equal(false);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest2, timeSegmentTest)).to.equal(true);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest3, timeSegmentTest)).to.equal(true);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest4, timeSegmentTest)).to.equal(false);
+
+        timeSegmentTest = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_YEAR);
+        momentTest1 = moment('2019-01-01');
+        momentTest2 = moment('2019-01-02');
+        momentTest3 = moment('2020-01-01');
+        momentTest4 = moment('2020-01-02');
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, timeSegmentTest)).to.equal(false);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest2, timeSegmentTest)).to.equal(true);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest3, timeSegmentTest)).to.equal(true);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest4, timeSegmentTest)).to.equal(false);
+
+    });
     it('test isInSameSegmentType', () => {
         expect(TimeSegmentHandler.getInstance().isInSameSegmentType(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_MONTH), null)).to.equal(false);
@@ -342,4 +412,33 @@ describe('TimeSegmentHandler', () => {
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-02-01', TimeSegment.TYPE_MONTH),
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-01-01', TimeSegment.TYPE_MONTH))).to.equal(false);
     });
+
+    it('test get_date_indexes', () => {
+        let timeSegmentTests = [TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-11-17', TimeSegment.TYPE_YEAR),
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2020-03-29', TimeSegment.TYPE_MONTH)
+        ];
+        let res = ['2019-05-01', '2019-01-01', '2020-03-01'];
+
+        expect(TimeSegmentHandler.getInstance().get_date_indexes(null)).to.deep.equal([]);
+        //expect(TimeSegmentHandler.getInstance().get_date_indexes([null])).to.deep.equal([]);
+
+        expect(TimeSegmentHandler.getInstance().get_date_indexes(timeSegmentTests)).to.deep.equal(res);
+
+    });
+
+    it('test get_ts_ranges', () => {
+        let timeSegmentTests = [TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-11-17', TimeSegment.TYPE_YEAR),
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2020-03-29', TimeSegment.TYPE_MONTH)
+        ];
+        let res = ['2019-05-01', '2019-01-01', '2020-03-01'];
+
+        expect(TimeSegmentHandler.getInstance().get_ts_ranges(null)).to.deep.equal(null);
+        //expect(TimeSegmentHandler.getInstance().get_ts_ranges([null])).to.deep.equal([]);
+
+        //expect(TimeSegmentHandler.getInstance().get_ts_ranges(timeSegmentTests)).to.deep.equal(res);
+
+    });
+
 });

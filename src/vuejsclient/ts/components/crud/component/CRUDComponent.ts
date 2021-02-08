@@ -34,7 +34,7 @@ import "./CRUDComponent.scss";
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
-        datatable: DatatableComponent
+        Datatable: DatatableComponent
     },
 })
 export default class CRUDComponent extends VueComponentBase {
@@ -84,7 +84,7 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: null })
     private perpage: number;
 
-    @Prop({ default: false })
+    @Prop({ default: true })
     private sort_id_descending: boolean;
 
     @Prop({ default: true })

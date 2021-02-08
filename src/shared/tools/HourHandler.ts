@@ -118,7 +118,7 @@ export default class HourHandler {
     }
 
     private force2DigitMin(e: number): string {
-        if (!e) {
+        if (!e || e == null) {
             return '00';
         }
 

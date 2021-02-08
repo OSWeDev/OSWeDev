@@ -294,3 +294,15 @@ i.fa.fa-spin:before {
     display: block;
   }
 }
+
+.custom_read_field_component {
+  fieldset {
+    border: 1px solid lightgrey;
+    padding: 10px;
+
+    legend {
+      width: auto;
+      padding: 0 10px;
+    }
+  }
+}

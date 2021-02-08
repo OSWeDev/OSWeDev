@@ -2,6 +2,7 @@ import { Express } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
+import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
@@ -45,6 +46,7 @@ import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
+import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
@@ -431,7 +433,8 @@ export default abstract class ModuleServiceBase {
             ModuleFork.getInstance(),
             ModuleImageFormat.getInstance(),
             ModuleSupervision.getInstance(),
-            ModuleTeamsAPI.getInstance()
+            ModuleTeamsAPI.getInstance(),
+            ModuleAnimation.getInstance(),
         ];
     }
 
@@ -473,7 +476,8 @@ export default abstract class ModuleServiceBase {
             ModuleForkServer.getInstance(),
             ModuleImageFormatServer.getInstance(),
             ModuleSupervisionServer.getInstance(),
-            ModuleTeamsAPIServer.getInstance()
+            ModuleTeamsAPIServer.getInstance(),
+            ModuleAnimationServer.getInstance(),
         ];
     }
 }

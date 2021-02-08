@@ -1,0 +1,62 @@
+.feedback_container {
+    @extend .module_container;
+
+    .like_vote {
+
+        i,
+        span {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        i {
+            font-size: 28px;
+            border: 1px solid;
+            border-radius: 100px;
+            padding: 6px 5px 6px 8px;
+        }
+
+        table {
+            text-align: left;
+            margin: 0 auto;
+
+            td {
+                padding: 4px;
+                color: white;
+            }
+        }
+
+        .etat_vote {
+            cursor: pointer;
+
+            &:hover,
+            &.active {
+
+                &.very_good td {
+                    color: $animation_vert;
+                }
+
+                &.good td {
+                    color: $animation_orange;
+                }
+
+                &.bad td {
+                    color: $animation_rouge;
+                }
+            }
+        }
+    }
+
+    .quill-editor {
+        .ql-toolbar {
+            display: none;
+        }
+
+        .ql-container {
+            border: 1px solid lightgrey !important;
+            border-radius: 10px;
+            background: white;
+            color: black;
+        }
+    }
+}

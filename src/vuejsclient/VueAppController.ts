@@ -96,4 +96,41 @@ export default abstract class VueAppController {
         })(navigator.userAgent || navigator.vendor || window['opera']);
         return check;
     }
+
+    public hasCodeGoogleAnalytics(code_google_analytics: string) {
+        if (!code_google_analytics || !code_google_analytics.length || code_google_analytics == 'null') {
+            return false;
+        }
+
+        return true;
+    }
+
+    public initGoogleAnalytics(code_google_analytics: string) {
+        if (!this.hasCodeGoogleAnalytics(code_google_analytics)) {
+            return;
+        }
+
+        $('head').prepend('<script async src="//www.googletagmanager.com/gtag/js?id=' + code_google_analytics + '"></script>');
+
+    }
+
+    public sendToGoogleAnalytics(page_title: string, page_location: string, page_path: string, code_google_analytics: string) {
+        if (!this.hasCodeGoogleAnalytics(code_google_analytics)) {
+            return;
+        }
+
+        $('head').prepend('<script>' +
+            'window.dataLayer = window.dataLayer || [];' +
+            'function gtag(){dataLayer.push(arguments);}' +
+            'gtag("js", new Date());' +
+
+            'gtag("event", "page_view", {' +
+            ' page_title: "' + page_title + '",' +
+            ' page_location: "' + page_location + '",' +
+            ' page_path: "' + page_path + '",' +
+            ' send_to: "' + code_google_analytics + '"' +
+            '});' +
+            '</script>'
+        );
+    }
 }

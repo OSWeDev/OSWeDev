@@ -25,6 +25,9 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private show_label: boolean;
 
+    @Prop({ default: false })
+    private explicit_html: boolean;
+
     public async mounted() { }
 
     get simple_field(): SimpleDatatableField<any, any> {
