@@ -97,8 +97,25 @@ export default abstract class VueAppController {
         return check;
     }
 
+    public hasCodeGoogleAnalytics(code_google_analytics: string) {
+        if (!code_google_analytics || !code_google_analytics.length || code_google_analytics == 'null') {
+            return false;
+        }
+
+        return true;
+    }
+
+    public initGoogleAnalytics(code_google_analytics: string) {
+        if (!this.hasCodeGoogleAnalytics(code_google_analytics)) {
+            return;
+        }
+
+        $('head').prepend('<script async src="//www.googletagmanager.com/gtag/js?id=' + code_google_analytics + '"></script>');
+
+    }
+
     public sendToGoogleAnalytics(page_title: string, page_location: string, page_path: string, code_google_analytics: string) {
-        if (!code_google_analytics || !code_google_analytics.length) {
+        if (!this.hasCodeGoogleAnalytics(code_google_analytics)) {
             return;
         }
 
