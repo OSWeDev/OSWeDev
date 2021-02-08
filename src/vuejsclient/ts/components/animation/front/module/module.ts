@@ -14,6 +14,7 @@ import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/Ani
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
+import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
@@ -57,6 +58,8 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private current_qr: AnimationQRVO = null;
 
     private document: DocumentVO = null;
+    private inline_input_mode: boolean = false;
+    private has_access_inline_input_mode: boolean = false;
 
     @Watch('module_id')
     private async reloadAsyncDatas() {
@@ -77,6 +80,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
+        promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
         await Promise.all(promises);
 
@@ -237,6 +241,18 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
     }
 
+    private set_inline_input_mode() {
+        this.inline_input_mode = !this.inline_input_mode;
+    }
+
+    get name_theme_editable_field() {
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
+    }
+
+    get name_module_editable_field() {
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
+    }
+
     get ordered_qrs(): AnimationQRVO[] {
         return this.qrs ? this.qrs.sort((a, b) => a.weight - b.weight) : null;
     }
@@ -250,6 +266,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             VarDayPrctAtteinteSeuilAnimationController.getInstance().varConf.id,
             null,
             [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
     }
 
@@ -258,6 +275,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             VarDayPrctReussiteAnimationController.getInstance().varConf.id,
             null,
             [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
     }
 

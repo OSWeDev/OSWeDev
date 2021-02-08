@@ -263,7 +263,17 @@ export default abstract class VueAppBase {
             }
         }
 
+        let code_google_analytics: string = EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS;
+
+        VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
+
         this.vueRouter.beforeEach((route, redirect, next) => {
+            VueAppController.getInstance().sendToGoogleAnalytics(
+                route.name,
+                route.fullPath,
+                route.fullPath,
+                code_google_analytics
+            );
 
             if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
                 VueAppController.getInstance().routes_log.shift();

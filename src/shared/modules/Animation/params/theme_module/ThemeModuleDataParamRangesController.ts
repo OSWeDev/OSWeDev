@@ -20,7 +20,7 @@ export default class ThemeModuleDataParamRangesController extends VarDataParamCo
     }
 
     public cloneParam(param: ThemeModuleDataParamRangesVO): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(param.var_id, param.theme_id_ranges, param.module_id_ranges);
+        return ThemeModuleDataParamRangesVO.createNew(param.var_id, param.theme_id_ranges, param.module_id_ranges, param.user_id_ranges);
     }
 
     public getImpactedParamsList(paramUpdated: ThemeModuleDataParamRangesVO, paramsRegisteredByIndex: { [index: string]: ThemeModuleDataParamRangesVO }): ThemeModuleDataParamRangesVO[] {
@@ -63,6 +63,19 @@ export default class ThemeModuleDataParamRangesController extends VarDataParamCo
                 continue;
             }
 
+            found = false;
+            for (let i in paramRegistered.user_id_ranges) {
+                let employee_id_range = paramRegistered.user_id_ranges[i];
+
+                if (RangeHandler.getInstance().range_intersects_any_range(employee_id_range, paramUpdated.user_id_ranges)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                continue;
+            }
+
             res.push(paramRegistered);
         }
         return res;
@@ -83,6 +96,12 @@ export default class ThemeModuleDataParamRangesController extends VarDataParamCo
         for (let i in param.module_id_ranges) {
             res += (param.module_id_ranges[i].min_inclusiv ? "[" : "(") + param.module_id_ranges[i].min + "-" +
                 param.module_id_ranges[i].max + (param.module_id_ranges[i].max_inclusiv ? "]" : ")");
+        }
+
+        res += "_";
+        for (let i in param.user_id_ranges) {
+            res += (param.user_id_ranges[i].min_inclusiv ? "[" : "(") + param.user_id_ranges[i].min + "-" +
+                param.user_id_ranges[i].max + (param.user_id_ranges[i].max_inclusiv ? "]" : ")");
         }
 
         return res;

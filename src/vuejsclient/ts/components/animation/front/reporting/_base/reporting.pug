@@ -1,0 +1,85 @@
+.rootElt.animation_reporting
+  template(v-if="is_init")
+    .row
+      .col-md-12
+        Filtres
+
+    .row
+      .col-md-12
+        .table-responsive.double-scroll-bottom.tblNeedsScrolling(scrolify-height="600")
+          table.double-scroll-sizer.table.table-striped.table-bordered.table-hover.table-condensed.table-header&attributes(attributes)
+            thead
+              tr
+                th {{ label('animation.reporting.theme') }}
+                th.separateur_ligne {{ label('animation.reporting.module') }}
+                th {{ label('animation.reporting.roles') }}
+                th.separateur_ligne {{ label('animation.reporting.user') }}
+                th {{ label('animation.reporting.start') }}
+                th {{ label('animation.reporting.end') }}
+                th {{ label('animation.reporting.temps_passe') }}
+                th {{ label('animation.reporting.prct_reussite') }}
+                th.separateur_ligne {{ label('animation.reporting.like_vote') }}
+                th {{ label('animation.reporting.support') }}
+
+            tbody
+              tr.total
+                td.text-center
+                  span.d-ib {{ label('animation.reporting.total') }}
+                  span.d-ib ({{ get_anim_theme_id_ranges.length }})
+                td.separateur_ligne.text-center {{ get_anim_module_id_ranges.length }}
+                td.text-center
+                td.separateur_ligne.text-center {{ get_user_id_ranges.length }}
+                td.text-center
+                td.text-center
+                  template(v-if="!is_filter_module_termine_active_no")
+                    span {{ const_filters.percent.read(get_percent_module_finished) }}
+                td.text-center
+                    var-data(
+                      :var_param="temps_passe_total_param",
+                      :filter='const_filters.hour.read',
+                      :filter_additional_params='[]',
+                    )
+                td.text-center
+                  template(v-if="!is_filter_module_termine_active_no")
+                    var-data(
+                      :var_param="prct_reussite_total_param",
+                      :filter='const_filters.percent.read',
+                      :filter_additional_params='[]',
+                    )
+                td.separateur_ligne.text-center
+                td.text-center
+
+              template(v-for="(aum_module_user, theme_id) in get_all_aum_by_theme_module_user")
+                template(v-for="(aum_user, module_id) in aum_module_user")
+                  template(v-for="aum in aum_user")
+                    tr(v-if="get_all_anim_theme_by_ids[theme_id]")
+                      td
+                        template(v-if="get_all_anim_theme_by_ids[theme_id]")
+                          span {{ get_all_anim_theme_by_ids[theme_id].name }}
+                      td.separateur_ligne
+                        template(v-if="get_all_anim_module_by_ids[module_id]")
+                          span {{ get_all_anim_module_by_ids[module_id].name }}
+                      td {{ get_roles_anim_module(get_all_anim_module_by_ids[module_id]) }}
+                      td.separateur_ligne
+                        template(v-if="get_all_user_by_ids[aum.user_id]")
+                          span {{ get_all_user_by_ids[aum.user_id].name }}
+                      td.text-center {{ get_formatted_date(aum.start_date) }}
+                      td.text-center {{ get_formatted_date(aum.end_date) }}
+                      td.text-center
+                        var-data(
+                          :var_param="get_temps_passe_total_param(aum)",
+                          :filter='const_filters.hour.read',
+                          :filter_additional_params='[]',
+                        )
+                      td.text-center
+                        var-data(
+                          :var_param="get_prct_reussite_total_param(aum)",
+                          :filter='const_filters.percent.read',
+                          :filter_additional_params='[]',
+                        )
+                      td.text-center.separateur_ligne
+                        template(v-if="aum.like_vote !== null")
+                          span {{ t(like_vote_labels[aum.like_vote]) }}
+                      td.text-center
+                        template(v-if="aum.support !== null")
+                          span {{ t(support_labels[aum.support]) }}

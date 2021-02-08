@@ -5,7 +5,7 @@ export default class ThemeModuleDataParamRangesVO implements IVarDataParamVOBase
 
     public static API_TYPE_ID: string = "theme_module_param_ranges";
 
-    public static createNew(var_id: number, theme_id_ranges: NumRange[], module_id_ranges: NumRange[]): ThemeModuleDataParamRangesVO {
+    public static createNew(var_id: number, theme_id_ranges: NumRange[], module_id_ranges: NumRange[], user_id_ranges: NumRange[]): ThemeModuleDataParamRangesVO {
         let res = new ThemeModuleDataParamRangesVO();
 
         res.var_id = var_id;
@@ -26,8 +26,17 @@ export default class ThemeModuleDataParamRangesVO implements IVarDataParamVOBase
             }
         }
 
+        if (user_id_ranges) {
+            for (let i in user_id_ranges) {
+                if (!user_id_ranges[i]) {
+                    return null;
+                }
+            }
+        }
+
         res.theme_id_ranges = theme_id_ranges;
         res.module_id_ranges = module_id_ranges;
+        res.user_id_ranges = user_id_ranges;
 
         return res;
     }
@@ -39,4 +48,5 @@ export default class ThemeModuleDataParamRangesVO implements IVarDataParamVOBase
 
     public theme_id_ranges: NumRange[];
     public module_id_ranges: NumRange[];
+    public user_id_ranges: NumRange[];
 }

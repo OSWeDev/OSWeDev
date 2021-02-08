@@ -4,6 +4,7 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
+import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import DocumentVO from '../Document/vos/DocumentVO';
 import FileVO from '../File/vos/FileVO';
@@ -13,17 +14,20 @@ import ModuleTableField from '../ModuleTableField';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import ModuleVar from '../Var/ModuleVar';
 import VOsTypesManager from '../VOsTypesManager';
+import AnimationController from './AnimationController';
 import MessageModuleTableFieldTypeController from './fields/message_module/MessageModuleTableFieldTypeController';
 import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessageModuleVO';
 import ReponseTableFieldTypeController from './fields/reponse/ReponseTableFieldTypeController';
 import AnimationReponseVO from './fields/reponse/vos/AnimationReponseVO';
 import AnimationModuleParamVO from './params/AnimationModuleParamVO';
 import AnimationParamVO from './params/AnimationParamVO';
+import AnimationReportingParamVO from './params/AnimationReportingParamVO';
 import ThemeModuleDataParamRangesVO from './params/theme_module/ThemeModuleDataParamRangesVO';
 import ThemeModuleDataRangesVO from './params/theme_module/ThemeModuleDataRangesVO';
 import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
 import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
 import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
+import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
 import AnimationModuleVO from './vos/AnimationModuleVO';
 import AnimationParametersVO from './vos/AnimationParametersVO';
 import AnimationQRVO from './vos/AnimationQRVO';
@@ -35,14 +39,19 @@ export default class ModuleAnimation extends Module {
 
     public static MODULE_NAME: string = "Animation";
 
+    public static EXPORT_API_TYPE_ID: string = 'AnimationReportingExport';
+
     public static APINAME_startModule: string = "startModule";
     public static APINAME_endModule: string = "endModule";
     public static APINAME_getQRsByThemesAndModules: string = "getQRsByThemesAndModules";
     public static APINAME_getUQRsByThemesAndModules: string = "getUQRsByThemesAndModules";
+    public static APINAME_getAumsFiltered: string = "getAumsFiltered";
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAnimation.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".FO_ACCESS";
+    public static POLICY_FO_INLINE_EDIT_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".FO_INLINE_EDIT_ACCESS";
+    public static POLICY_FO_REPORTING_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + ".REPORTING.FO_ACCESS";
 
     public static getInstance(): ModuleAnimation {
         if (!ModuleAnimation.instance) {
@@ -81,13 +90,13 @@ export default class ModuleAnimation extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, AnimationUserModuleVO>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserQRVO.API_TYPE_ID),
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
             ModuleAnimation.APINAME_startModule,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationModuleParamVO.translateCheckAccessParams
         ));
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<AnimationModuleParamVO, AnimationUserModuleVO>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserQRVO.API_TYPE_ID),
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
             ModuleAnimation.APINAME_endModule,
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationModuleParamVO.translateCheckAccessParams
@@ -104,10 +113,21 @@ export default class ModuleAnimation extends Module {
             [AnimationQRVO.API_TYPE_ID, AnimationUserModuleVO.API_TYPE_ID, AnimationUserQRVO.API_TYPE_ID, AnimationModuleVO.API_TYPE_ID],
             AnimationParamVO.translateCheckAccessParams,
         ));
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<AnimationReportingParamVO, AnimationUserModuleVO[]>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, AnimationUserModuleVO.API_TYPE_ID),
+            ModuleAnimation.APINAME_getAumsFiltered,
+            [AnimationUserModuleVO.API_TYPE_ID],
+            AnimationReportingParamVO.translateCheckAccessParams,
+        ));
     }
 
     public async startModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
-        return ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, AnimationUserModuleVO>(ModuleAnimation.APINAME_startModule, user_id, module_id);
+        return ModuleAPI.getInstance().handleAPI<AnimationModuleParamVO, AnimationUserModuleVO>(
+            ModuleAnimation.APINAME_startModule,
+            user_id,
+            module_id,
+            AnimationController.getInstance().getSupport(),
+        );
     }
 
     public async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
@@ -141,12 +161,31 @@ export default class ModuleAnimation extends Module {
         );
     }
 
-    public async getUQRsByThemesAndModules(user_id: number, theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }> {
+    public async getUQRsByThemesAndModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }> {
         return ModuleAPI.getInstance().handleAPI<AnimationParamVO, { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }>(
             ModuleAnimation.APINAME_getUQRsByThemesAndModules,
-            user_id,
+            user_ids,
             theme_ids,
             module_ids,
+        );
+    }
+
+    public async getAumsFiltered(
+        filter_anim_theme_active_options: DataFilterOption[],
+        filter_anim_module_active_options: DataFilterOption[],
+        filter_role_active_options: DataFilterOption[],
+        filter_user_active_options: DataFilterOption[],
+        filter_module_termine_active_option: DataFilterOption,
+        filter_module_valide_active_option: DataFilterOption,
+    ): Promise<AnimationUserModuleVO[]> {
+        return ModuleAPI.getInstance().handleAPI<AnimationReportingParamVO, AnimationUserModuleVO[]>(
+            ModuleAnimation.APINAME_getAumsFiltered,
+            filter_anim_theme_active_options,
+            filter_anim_module_active_options,
+            filter_role_active_options,
+            filter_user_active_options,
+            filter_module_termine_active_option,
+            filter_module_valide_active_option,
         );
     }
 
@@ -156,6 +195,7 @@ export default class ModuleAnimation extends Module {
 
         let fields = [
             new ModuleTableField('seuil_validation_module_prct', ModuleTableField.FIELD_TYPE_prct, "Seuil validation module"),
+            new ModuleTableField('limite_temps_passe_module', ModuleTableField.FIELD_TYPE_hours_and_minutes, "Limite temps passé par module"),
             image_home_id,
             document_id_ranges,
         ];
@@ -248,7 +288,9 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, "Début").set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, "Fin").set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('like_vote', ModuleTableField.FIELD_TYPE_enum, "Like").setEnumValues(AnimationUserModuleVO.LIKE_VOTE_LABELS),
+            new ModuleTableField('support', ModuleTableField.FIELD_TYPE_enum, "Support utilisé").setEnumValues(AnimationUserModuleVO.SUPPORT_LABELS),
             new ModuleTableField('commentaire', ModuleTableField.FIELD_TYPE_html, "Commentaire"),
+            new ModuleTableField('prct_reussite', ModuleTableField.FIELD_TYPE_prct, "Pourcentage réussite"),
             module_id_field,
             user_id_field,
         ];
@@ -283,7 +325,8 @@ export default class ModuleAnimation extends Module {
     private initializeThemeModuleDataRangesVO() {
         let datatable_fields = [
             new ModuleTableField('theme_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Themes'),
-            new ModuleTableField('module_id_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Modules'),
+            new ModuleTableField('module_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Modules'),
+            new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Users'),
         ];
 
         ModuleVar.getInstance().register_simple_number_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, ThemeModuleDataParamRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields);
@@ -293,5 +336,6 @@ export default class ModuleAnimation extends Module {
         await VarDayPrctAvancementAnimationController.getInstance().initialize();
         await VarDayPrctReussiteAnimationController.getInstance().initialize();
         await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
+        await VarDayTempsPasseAnimationController.getInstance().initialize();
     }
 }

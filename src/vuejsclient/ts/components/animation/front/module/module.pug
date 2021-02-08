@@ -1,12 +1,41 @@
 
 .rootElt.module_container
     template(v-if="theme && anim_module")
-        //- .back.mb-3
-        //-     .btn(@click='backToFront')
-        //-         i.fa.fa-angle-left
-        //-         span {{ label('animation.back') }}
+        template(v-if="has_access_inline_input_mode")
+            .text-right
+                toggle-button(
+                    @change="set_inline_input_mode"
+                    :value="inline_input_mode"
+                    :sync="true"
+                    :width="200"
+                    :labels="{checked: label('animation.inline_input_mode.on'), unchecked: label('animation.inline_input_mode.off')}"
+                )
 
-        h1 {{ theme.name }} : {{ anim_module.name }}
+        h1
+            template(v-if="inline_input_mode")
+                span
+                    Crudcomponentfield(
+                        :field="name_theme_editable_field",
+                        :vo="theme",
+                        :show_insert_or_update_target="false",
+                        :auto_update_field_value='true',
+                        :inline_input_mode="inline_input_mode"
+                        :inline_input_show_clear="false"
+                        :show_title="false"
+                    )
+                span
+                    Crudcomponentfield(
+                        :field="name_module_editable_field",
+                        :vo="anim_module",
+                        :show_insert_or_update_target="false",
+                        :auto_update_field_value='true',
+                        :inline_input_mode="inline_input_mode"
+                        :inline_input_show_clear="false"
+                        :show_title="false"
+                    )
+
+            template(v-else)
+                span {{ theme.name }} : {{ anim_module.name }}
 
         template(v-if="ordered_qrs && ordered_qrs.length > 0")
             .questions.text-center
@@ -28,6 +57,7 @@
                     :logged_user_id="logged_user_id",
                     :question_file="file_by_ids[current_qr.question_file_id]",
                     :reponse_file="file_by_ids[current_qr.reponse_file_id]",
+                    :inline_input_mode="inline_input_mode",
                     @reload="reloadUqrs",
                     @next="nextQr"
                 )

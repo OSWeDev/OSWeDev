@@ -29,6 +29,7 @@ import Patch20200914InitTeamsWebhookForDailyReports from './patchs/postmodules/P
 import Patch20200924UpgradeUserVOPost from './patchs/postmodules/Patch20200924UpgradeUserVOPost';
 import Patch20200926InitPoliciesINSERTORUPDATEUserLogs from './patchs/postmodules/Patch20200926InitPoliciesINSERTORUPDATEUserLogs';
 import Patch20201001InitPoliciesFeedback from './patchs/postmodules/Patch20201001InitPoliciesFeedback';
+import Patch20210202AnimationPrctReussite from './patchs/postmodules/Patch20210202AnimationPrctReussite';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -97,6 +98,7 @@ export default abstract class GeneratorBase {
             Patch20200924UpgradeUserVOPost.getInstance(),
             Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
             Patch20201001InitPoliciesFeedback.getInstance(),
+            Patch20210202AnimationPrctReussite.getInstance(),
         ];
     }
 

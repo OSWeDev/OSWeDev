@@ -1,8 +1,30 @@
 
 .rootElt.qr.text-center
     template(v-if="qr")
-        h2 {{ qr.name }}
-        .description_qr(v-if="qr.description", v-html="qr.description")
+        template(v-if="inline_input_mode")
+            Crudcomponentfield(
+                :field="name_editable_field",
+                :vo="qr",
+                :show_insert_or_update_target="false",
+                :auto_update_field_value='true',
+                :inline_input_mode="inline_input_mode"
+                :inline_input_show_clear="false"
+                :show_title="false"
+            )
+
+            Crudcomponentfield(
+                :field="description_editable_field",
+                :vo="qr",
+                :show_insert_or_update_target="false",
+                :auto_update_field_value='true',
+                :inline_input_mode="inline_input_mode"
+                :inline_input_show_clear="false"
+                :show_title="false"
+            )
+        template(v-else)
+            h2 {{ qr.name }}
+
+            .description_qr(v-if="qr.description", v-html="qr.description")
 
         .qr_file(v-if="!is_validated")
             template(v-if="question_file")
@@ -43,7 +65,19 @@
                                 td
                                     input(:disabled="is_validated", v-model="selected_reponse[reponse.id]", type="checkbox", :id="'reponse_' + index", :class="classe_reponses[reponse.id]")
                                 td.text-left
-                                    label.text-left(:for="'reponse_' + index") {{ reponse.name }}
+                                    template(v-if="inline_input_mode")
+                                        Crudcomponentfield(
+                                            :field="name_editable_field",
+                                            :vo="reponse",
+                                            :show_insert_or_update_target="false",
+                                            :auto_update_field_value='false',
+                                            :inline_input_mode="inline_input_mode"
+                                            :inline_input_show_clear="false"
+                                            :show_title="false",
+                                            @onchangevo="on_edit_reponse_name"
+                                        )
+                                    template(v-else)
+                                        label.text-left(:for="'reponse_' + index") {{ reponse.name }}
 
             .validation
                 template(v-if="!is_validated")
@@ -62,7 +96,18 @@
                                 video(controls)
                                     source(:src="reponse_file.path" type="video/mp4")
 
-                    .explication(v-if="qr.explicatif", v-html="qr.explicatif")
+                    template(v-if="inline_input_mode")
+                        Crudcomponentfield(
+                            :field="explicatif_editable_field",
+                            :vo="qr",
+                            :show_insert_or_update_target="false",
+                            :auto_update_field_value='true',
+                            :inline_input_mode="inline_input_mode"
+                            :inline_input_show_clear="false"
+                            :show_title="false"
+                        )
+                    template(v-else)
+                        .explication(v-if="qr.explicatif", v-html="qr.explicatif")
                     .next
                         i.fa.fa-long-arrow-right(@click="next")
 

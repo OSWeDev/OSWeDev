@@ -121,6 +121,36 @@
             margin: 30px 0;
         }
     }
+
+    .inline_input_mode {
+
+        input,
+        .html_field_inline_readonly_value {
+            background: none !important;
+            border: 1px solid white !important;
+            color: white !important;
+        }
+
+        .inline_input_is_not_editing,
+        .inline_input_is_editing {
+            line-height: 1.2em;
+
+            &:before {
+                margin-right: 0;
+            }
+        }
+
+        .inline_input_cancel_input,
+        .inline_input_hide_clear {
+            display: none;
+        }
+
+        .quill-editor {
+            .ql-toolbar {
+                display: none;
+            }
+        }
+    }
 }
 
 // FRONT
