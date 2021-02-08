@@ -40,7 +40,7 @@ describe('ObjectHandler', () => {
         );
 
         expect(ObjectHandler.getInstance().mapFromIdsArray(null)).to.deep.equal({});
-        expect(ObjectHandler.getInstance().mapFromIdsArray({ 47: null, 7: 'b', 3: 'a' })).to.deep.equal({ 'a': true, 'b': true, null: true });
+        expect(ObjectHandler.getInstance().mapFromIdsArray([47, 7, 3])).to.deep.equal({ 3: true, 7: true, 47: true });
 
     });
 
