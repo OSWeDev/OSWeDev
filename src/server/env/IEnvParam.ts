@@ -22,4 +22,5 @@ export default interface IEnvParam {
     SERVER_ENCODING: string;
     CONSOLE_LOG_TO_FILE: boolean;
     DEBUG_FORKS: boolean;
+    CODE_GOOGLE_ANALYTICS: string;
 }

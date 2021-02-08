@@ -2,7 +2,6 @@ import { Route } from 'vue-router/types/router';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -96,5 +95,25 @@ export default abstract class VueAppController {
             }
         })(navigator.userAgent || navigator.vendor || window['opera']);
         return check;
+    }
+
+    public sendToGoogleAnalytics(page_title: string, page_location: string, page_path: string, code_google_analytics: string) {
+        if (!code_google_analytics || !code_google_analytics.length) {
+            return;
+        }
+
+        $('head').prepend('<script>' +
+            'window.dataLayer = window.dataLayer || [];' +
+            'function gtag(){dataLayer.push(arguments);}' +
+            'gtag("js", new Date());' +
+
+            'gtag("event", "page_view", {' +
+            ' page_title: "' + page_title + '",' +
+            ' page_location: "' + page_location + '",' +
+            ' page_path: "' + page_path + '",' +
+            ' send_to: "' + code_google_analytics + '"' +
+            '});' +
+            '</script>'
+        );
     }
 }

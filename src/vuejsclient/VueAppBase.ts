@@ -263,7 +263,19 @@ export default abstract class VueAppBase {
             }
         }
 
+        let code_google_analytics: string = EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS;
+
+        if (code_google_analytics && code_google_analytics.length > 0) {
+            $('head').prepend('<script async src="//www.googletagmanager.com/gtag/js?id=' + code_google_analytics + '"></script>');
+        }
+
         this.vueRouter.beforeEach((route, redirect, next) => {
+            VueAppController.getInstance().sendToGoogleAnalytics(
+                route.name,
+                route.fullPath,
+                route.fullPath,
+                code_google_analytics
+            );
 
             if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
                 VueAppController.getInstance().routes_log.shift();

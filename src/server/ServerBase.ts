@@ -27,18 +27,22 @@ import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
+import FileVO from '../shared/modules/File/vos/FileVO';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
+import ThreadHandler from '../shared/tools/ThreadHandler';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
+import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from './modules/API/ServerAPIController';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
@@ -46,10 +50,6 @@ import MaintenanceServerController from './modules/Maintenance/MaintenanceServer
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import FileVO from '../shared/modules/File/vos/FileVO';
-import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
-import FileLoggerHandler from './FileLoggerHandler';
-import ThreadHandler from '../shared/tools/ThreadHandler';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
 
@@ -122,6 +122,7 @@ export default abstract class ServerBase {
         EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
         EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
         EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
+        EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         this.version = this.getVersion();
 
         this.connectionString = this.envParam.CONNECTION_STRING;
