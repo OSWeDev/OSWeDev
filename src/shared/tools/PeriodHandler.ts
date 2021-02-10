@@ -7,7 +7,7 @@ import TimeSegmentHandler from './TimeSegmentHandler';
 export default class PeriodHandler {
 
 
-
+    /** istanbul ignore next: nothing to test here */
     public static getInstance(): PeriodHandler {
         if (!PeriodHandler.instance) {
             PeriodHandler.instance = new PeriodHandler();

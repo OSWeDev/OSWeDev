@@ -5,6 +5,7 @@ import ConsoleHandler from './ConsoleHandler';
 
 export default class HourHandler {
 
+    /* istanbul ignore next: nothing to test here*/
     public static getInstance(): HourHandler {
         if (!HourHandler.instance) {
             HourHandler.instance = new HourHandler();

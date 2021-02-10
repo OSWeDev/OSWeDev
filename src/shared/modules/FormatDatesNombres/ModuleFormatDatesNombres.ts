@@ -13,6 +13,7 @@ export default class ModuleFormatDatesNombres extends Module {
     public static PARAM_NAME_nombre_separateur_1000 = 'nombre_separateur_1000';
     public static PARAM_NAME_nombre_separateur_decimal = 'nombre_separateur_decimal';
 
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): ModuleFormatDatesNombres {
         if (!ModuleFormatDatesNombres.instance) {
             ModuleFormatDatesNombres.instance = new ModuleFormatDatesNombres();
@@ -30,6 +31,9 @@ export default class ModuleFormatDatesNombres extends Module {
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date
     public getMomentFromDate(dateToConvert: moment.Moment | string): moment.Moment {
+        if (!dateToConvert) {
+            return null;
+        }
 
         return moment(dateToConvert).utc(true);
     }
@@ -295,6 +299,7 @@ export default class ModuleFormatDatesNombres extends Module {
         return '' + res;
     }
 
+    /* istanbul ignore next: nothing to test here */
     public initialize() {
         this.fields = [
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01)', true, true, 'DD/MM'),

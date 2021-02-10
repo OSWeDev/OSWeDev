@@ -71,14 +71,14 @@ describe('HourHandler', () => {
 
 
     it('test: diffDuration', () => {
-        let s = (((22 * 60) + 59 * 60) + 45 * 1000) + 999;
-        let e = (((22 * 60) + 59 * 60) + 47 * 1000) + 991;
+        let s = "22:59:45.999";
+        let e = "22:59:47.991";
         let start = moment.duration(s);
         var end = moment.duration(e);
         expect(HourHandler.getInstance().diffDuration(null, null, TimeSegment.TYPE_MINUTE)).to.deep.equal(null);
         expect(HourHandler.getInstance().diffDuration(null, end, TimeSegment.TYPE_MINUTE)).to.deep.equal(null);
         expect(HourHandler.getInstance().diffDuration(start, null, TimeSegment.TYPE_MINUTE)).to.deep.equal(null);
-        expect(HourHandler.getInstance().diffDuration(end, start, TimeSegment.TYPE_SECOND)).to.deep.equal(Math.ceil(((((45 * 1000) + 999) - ((47 * 1000) + 991)) / 1000)));
+        expect(HourHandler.getInstance().diffDuration(end, start, TimeSegment.TYPE_SECOND)).to.deep.equal(Math.ceil(((((45 - 47) * 1000 + 999 - 991)) / 1000)));
         expect(HourHandler.getInstance().diffDuration(start, end, TimeSegment.TYPE_HOUR)).to.deep.equal(1 / 60 / 60);
 
     });

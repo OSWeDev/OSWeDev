@@ -28,6 +28,7 @@ export default class TextHandler {
             ç: 'c',
         };
 
+    /** istanbul ignore next: nothing to test here */
     public static getInstance(): TextHandler {
         if (!TextHandler.instance) {
             TextHandler.instance = new TextHandler();
@@ -123,6 +124,7 @@ export default class TextHandler {
         return txt ? txt.trim().toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/__+/g, '_') : null;
     }
 
+    /*a tester avec un regex? */
     public generateChallenge(): string {
         // On génère un code à 8 caractères, chiffres et lettres.
         let res: string = "";
@@ -136,6 +138,7 @@ export default class TextHandler {
         return res;
     }
 
+    /*a tester avec un regex? */
     public generatePassword(): string {
         // On génère un code à 12 caractères, chiffres, minuscules, majuscules, caractères spéciaux.
         let res: string = "";

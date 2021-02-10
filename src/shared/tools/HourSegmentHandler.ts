@@ -6,6 +6,8 @@ import RangeHandler from './RangeHandler';
 import { deepEqual, deepStrictEqual } from 'assert';
 
 export default class HourSegmentHandler {
+
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): HourSegmentHandler {
         if (!HourSegmentHandler.instance) {
             HourSegmentHandler.instance = new HourSegmentHandler();
