@@ -1143,7 +1143,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 hours: this.program_plan_controller.slot_interval
             },
             navLinks: false,
-            eventOverlap: false,
+            eventOverlap: this.program_plan_controller.event_overlap_hook ? this.program_plan_controller.event_overlap_hook : false,
             resourceAreaWidth: this.program_plan_controller.resourceAreaWidth,
             resourceLabelText: this.label('programplan.' + this.program_plan_shared_module.name + '.fc.resourcelabeltext.name'),
             slotLabelFormat,

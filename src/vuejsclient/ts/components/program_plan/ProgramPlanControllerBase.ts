@@ -50,6 +50,8 @@ export default abstract class ProgramPlanControllerBase {
         ProgramPlanControllerBase.controller_by_name[name] = this;
     }
 
+    public abstract event_overlap_hook(stillEvent, movingEvent): boolean;
+
     get shared_module(): Module {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
