@@ -47,11 +47,18 @@ describe('TextHandler', () => {
     });
 
     it('TextHandler: generateChallenge', () => {
+
         let charL = TextHandler.Challenge_Cars;
+
+        // special characters of regex that needs to be escaped
         let speChars = '^*$\\.-+|()[]{},?/';
+
+        //  the final regex that will be built
         let chars = '';
 
         for (let char of charL) {
+
+            // if a special character is found, add a backslash to escape it in the regex
             if (speChars.includes(char)) {
                 chars = chars + "\\" + char;
             } else {
@@ -61,6 +68,12 @@ describe('TextHandler', () => {
 
         let regexp = new RegExp("^[" + chars + "]{8}$");
 
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
         expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
     });
 
@@ -79,6 +92,12 @@ describe('TextHandler', () => {
 
         let regexp = new RegExp("^[" + chars + "]{12}$");
 
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
         expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
     });
 });
