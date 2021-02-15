@@ -1,0 +1,83 @@
+include ../../../../../../views/mixins/box.pug
+
+
+.rootElt.reporting_filtres
+  +box("{{ label('animation.reporting.filtre') }}", 'fa-filter', "8px", "0px", 'false')
+    .row
+      .col-md-6
+        Multipleselectfiltercomponent(
+          :placeholder="label('animation.reporting.filtre.anim_theme')",
+          store_module_uid="AnimationReportingVuexStore",
+          api_type_id="anim_theme"
+          :depends_on_call_condition_on_empty_active_options='{}'
+        )
+
+        Multipleselectfiltercomponent(
+          :placeholder="label('animation.reporting.filtre.anim_module')",
+          store_module_uid="AnimationReportingVuexStore",
+          api_type_id="anim_module"
+          :depends_on_api_type_ids="['anim_theme']",
+          :depends_on_mandatory="{anim_theme: false}",
+          :depends_on_condition="{anim_theme: condition_by_anim_theme }"
+          :depends_on_call_condition_on_empty_active_options='{}'
+        )
+
+        Multipleselectfiltercomponent(
+          :placeholder="label('animation.reporting.filtre.role')",
+          store_module_uid="AnimationReportingVuexStore",
+          api_type_id="role"
+          :option_label_func='get_role_name'
+          :depends_on_call_condition_on_empty_active_options='{}'
+        )
+
+        Multipleselectfiltercomponent(
+          :placeholder="label('animation.reporting.filtre.user')",
+          store_module_uid="AnimationReportingVuexStore",
+          api_type_id="user"
+          :depends_on_call_condition_on_empty_active_options='{}'
+        )
+
+      .col-md-6
+        multiselect.mb-4(
+          :preselect-first="false"
+          :multiple="false"
+          v-model="tmp_filter_module_termine"
+          :placeholder="label('animation.reporting.filtre.module_termine')"
+          :options="filter_options"
+          :custom-label="multiselectOptionLabel"
+
+          :searchable="true"
+          :internal-search="true"
+
+          track-by="id"
+
+          :id="'multifilter_module_termine'"
+
+          :select-label='label("multiselect.selectLabel")'
+          :select-group-label='label("multiselect.selectGroupLabel")'
+          :selected-label='label("multiselect.selectedLabel")'
+          :deselect-label='label("multiselect.deselectLabel")'
+          :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )
+
+        multiselect(
+          :preselect-first="false"
+          :multiple="false"
+          v-model="tmp_filter_module_valide"
+          :placeholder="label('animation.reporting.filtre.module_valide')"
+          :options="filter_options"
+          :custom-label="multiselectOptionLabel"
+
+          :searchable="true"
+          :internal-search="true"
+
+          track-by="id"
+
+          :id="'multifilter_module_valide'"
+
+          :select-label='label("multiselect.selectLabel")'
+          :select-group-label='label("multiselect.selectGroupLabel")'
+          :selected-label='label("multiselect.selectedLabel")'
+          :deselect-label='label("multiselect.deselectLabel")'
+          :deselect-group-label='label("multiselect.deselectGroupLabel")'
+        )

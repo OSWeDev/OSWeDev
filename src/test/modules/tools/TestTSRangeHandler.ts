@@ -10,6 +10,8 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import { Moment } from 'moment';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 
 describe('TSRangeHandler', () => {
 
@@ -50,6 +52,69 @@ describe('TSRangeHandler', () => {
             TSRange.createNew(moment(zero_startofmonth), moment(zero_startofnextmonth), true, false, TimeSegment.TYPE_MONTH)
         ]);
     });
+
+    it('test get_all_segmented_elements_from_range', () => {
+
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(null)).to.equal(null);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(TSRange.createNew(zero, zero, false, false, NumSegment.TYPE_INT))).to.equal(null);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(TSRange.createNew(zero, zero, false, true, NumSegment.TYPE_INT))).to.equal(null);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(TSRange.createNew(zero, zero, true, false, NumSegment.TYPE_INT))).to.equal(null);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(0, 0, true, true, 0))).to.deep.equal([0]);
+
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.deep.equal([0, 1]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.deep.equal([1]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.deep.equal([0]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.deep.equal(null);
+
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT))).to.deep.equal([-1, 0]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT))).to.deep.equal([0]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT))).to.deep.equal([-1]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT))).to.deep.equal(null);
+
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-2, 2, true, true, NumSegment.TYPE_INT))).to.deep.equal([-2, -1, 0, 1, 2]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-2, 2, false, true, NumSegment.TYPE_INT))).to.deep.equal([-1, 0, 1, 2]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-2, 2, true, false, NumSegment.TYPE_INT))).to.deep.equal([-2, -1, 0, 1]);
+        expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-2, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal([-1, 0, 1]);
+    });
+
+    // it('test get_all_segmented_elements_from_ranges', () => {
+
+    //     expect(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(null)).to.equal(null);
+    // });
+
+    it('test isValid', () => {
+
+        expect(RangeHandler.getInstance().isValid(null)).to.equal(false);
+        expect(RangeHandler.getInstance().isValid(NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isValid(NumRange.createNew(2, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+    });
+
+    it('test range_includes_ranges', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(1, 3, true, true, NumSegment.TYPE_INT);
+        expect(RangeHandler.getInstance().range_includes_ranges(null, null)).to.equal(true);
+        expect(RangeHandler.getInstance().range_includes_ranges(numRange1, [numRange2, numRange3])).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_ranges(numRange2, [numRange1, numRange3])).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_ranges(numRange2, [numRange3])).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_ranges(numRange3, [numRange2])).to.equal(false);
+    });
+
+    it('test range_includes_range', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(1, 3, true, true, NumSegment.TYPE_INT);
+        expect(RangeHandler.getInstance().range_includes_range(null, null)).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_range(numRange1, numRange2)).to.equal(true);
+        expect(RangeHandler.getInstance().range_includes_range(numRange1, numRange3)).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_range(numRange2, numRange1)).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_range(numRange2, numRange3)).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_range(numRange3, numRange2)).to.equal(false);
+        expect(RangeHandler.getInstance().range_includes_range(numRange3, numRange1)).to.equal(false);
+    });
+
 
 
     it('test getCardinal', () => {
@@ -555,6 +620,18 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero));
         expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(moins_un));
+    });
+
+    it('test getCardinalFromArray', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().getCardinalFromArray(null)).to.equal(null);
+        expect(RangeHandler.getInstance().getCardinalFromArray([numRange1, numRange3])).to.equal(5);
+        expect(RangeHandler.getInstance().getCardinalFromArray([numRange2, numRange1])).to.equal(4);
+        expect(RangeHandler.getInstance().getCardinalFromArray([numRange2, numRange3])).to.equal(3);
     });
 
     it('test getMinSurroundingRange', () => {
@@ -2412,6 +2489,18 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
     });
 
+    it('test create_single_elt_range', () => {
+
+        let numRange1 = NumRange.createNew(6, 7, true, false, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().create_single_elt_range(null, null, null)).to.equal(null);
+        expect(RangeHandler.getInstance().create_single_elt_range(1, 6, 0)).to.deep.equal(numRange1);
+        expect(RangeHandler.getInstance().create_single_elt_range(1, 1, 0)).to.deep.equal(numRange2);
+        expect(RangeHandler.getInstance().create_single_elt_range(1, 0, 0)).to.deep.equal(numRange3);
+    });
+
     it('test is_elt_inf_min', () => {
         expect(RangeHandler.getInstance().is_elt_inf_min(null, TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().is_elt_inf_min(null, TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -2472,6 +2561,108 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
+    it('test cloneArrayFrom', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        let numRange1Bis = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2Bis = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3Bis = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().cloneArrayFrom(null)).to.equal(null);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1])).to.deep.equal([numRange1]);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2])).to.deep.equal([numRange1Bis, numRange2Bis]);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2, numRange3])).to.deep.equal([numRange1Bis, numRange2Bis, numRange3Bis]);
+    });
+
+    it('test getIndex', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().getIndex(null)).to.equal(null);
+        expect(RangeHandler.getInstance().getIndex(numRange1)).to.equal("[0,3)");
+        expect(RangeHandler.getInstance().getIndex(numRange2)).to.equal("[3,4)");
+        expect(RangeHandler.getInstance().getIndex(numRange3)).to.equal("[2,4)");
+    });
+
+    it('test humanize', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().humanize(null)).to.equal(null);
+        expect(RangeHandler.getInstance().humanize(numRange1)).to.equal("[0,3)");
+        expect(RangeHandler.getInstance().humanize(numRange2)).to.equal("[3,4)");
+        expect(RangeHandler.getInstance().humanize(numRange3)).to.equal("[2,4)");
+    });
+
+    it('test getIndexRanges', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().getIndexRanges(null)).to.equal(null);
+        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)");
+    });
+
+    it('test humanizeRanges', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().humanizeRanges(null)).to.equal(null);
+        expect(RangeHandler.getInstance().humanizeRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)");
+    });
+
+    it('test ranges_intersect_themselves', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().ranges_intersect_themselves(null)).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_intersect_themselves([numRange1, numRange3])).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_intersect_themselves([numRange2, numRange1])).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_intersect_themselves([numRange2, numRange3])).to.equal(true);
+    });
+
+    it('test any_range_intersects_any_range', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, false, NumSegment.TYPE_INT);
+        let numRange4 = NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().any_range_intersects_any_range(null, null)).to.equal(false);
+        expect(RangeHandler.getInstance().any_range_intersects_any_range([numRange1, numRange2], [numRange3, numRange4])).to.equal(true);
+        expect(RangeHandler.getInstance().any_range_intersects_any_range([numRange1, numRange3], [numRange2, numRange4])).to.equal(false);
+        expect(RangeHandler.getInstance().any_range_intersects_any_range([numRange2, numRange3], [numRange1, numRange4])).to.equal(true);
+    });
+
+    it('test get_ranges_any_range_intersects_any_range', () => {
+
+        let numRange1 = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3 = NumRange.createNew(2, 3, true, false, NumSegment.TYPE_INT);
+        let numRange4 = NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT);
+
+        expect(RangeHandler.getInstance().get_ranges_any_range_intersects_any_range(null, null)).to.equal(null);
+        expect(RangeHandler.getInstance().get_ranges_any_range_intersects_any_range([numRange1, numRange2], [numRange3, numRange4])).to.deep.equal([numRange1, numRange2]);
+        expect(RangeHandler.getInstance().get_ranges_any_range_intersects_any_range([numRange1, numRange3], [numRange2, numRange4])).to.deep.equal(null);
+        expect(RangeHandler.getInstance().get_ranges_any_range_intersects_any_range([numRange2, numRange3], [numRange1, numRange4])).to.deep.equal([numRange2, numRange3]);
     });
 
     it('test range_intersects_range', () => {

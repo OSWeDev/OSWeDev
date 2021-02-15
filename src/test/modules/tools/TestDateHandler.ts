@@ -20,6 +20,12 @@ describe('DateHandler', () => {
         expect(DateHandler.getInstance().formatDateTimeForBDD(moment('2020-02-01').startOf('day').utc(true))).to.equal('2020-02-01 00:00:00');
         expect(DateHandler.getInstance().formatDateTimeForBDD(moment('2020-02-01').endOf('day').utc(true))).to.equal('2020-02-01 23:59:59');
     });
+
+    it('test humanizeDurationTo', () => {
+        expect(DateHandler.getInstance().humanizeDurationTo(null)).to.equal('');
+        expect(DateHandler.getInstance().humanizeDurationTo(moment('2020-02-01').startOf('day').utc(true))).to.equal('a year');
+        expect(DateHandler.getInstance().humanizeDurationTo(moment('2020-02-27').endOf('day').utc(true))).to.equal('a year');
+    });
     it('test formatDayForApi', () => {
         expect(DateHandler.getInstance().formatDayForApi(null)).to.equal(null);
         expect(DateHandler.getInstance().formatDayForApi(moment('2020-02-01').startOf('day').utc(true))).to.equal('2020-02-01');

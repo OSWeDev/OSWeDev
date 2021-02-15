@@ -12,6 +12,21 @@ import { ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_CEIL, ARRONDI_TYPE_ROUND } from '../..
 
 describe('ModuleFormatDatesNombres', () => {
 
+    it('getMomentFromDate', () => {
+        expect(ModuleFormatDatesNombres.getInstance().getMomentFromDate(null)).to.deep.equal(null);
+        let expected = moment("19-12-20").utc(true);
+        expect(ModuleFormatDatesNombres.getInstance().getMomentFromDate("19-12-20")).to.deep.equal(expected);
+
+        expected = moment("19:12:20").utc(true);
+        expect(ModuleFormatDatesNombres.getInstance().getMomentFromDate("19:12:20")).to.deep.equal(expected);
+
+        expected = moment("'01/01/2000 00:00:00'").utc(true);
+        expect(ModuleFormatDatesNombres.getInstance().getMomentFromDate("'01/01/2000 00:00:00'")).to.deep.equal(expected);
+
+        expected = moment("01/01/2000 00:00:00").utc(true);
+        expect(ModuleFormatDatesNombres.getInstance().getMomentFromDate("01/01/2000 00:00:00")).to.deep.equal(expected);
+    });
+
 
     it('formatMoment_to_YYYYMMDD_HHmmss', () => {
         expect(ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(null)).to.equal(null);

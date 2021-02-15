@@ -3,6 +3,8 @@ import NumSegment from '../modules/DataRender/vos/NumSegment';
 import RangeHandler from './RangeHandler';
 
 export default class NumSegmentHandler {
+
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): NumSegmentHandler {
         if (!NumSegmentHandler.instance) {
             NumSegmentHandler.instance = new NumSegmentHandler();

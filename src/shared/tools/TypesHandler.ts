@@ -2,6 +2,7 @@ import { isMoment, isDuration, Moment } from 'moment';
 
 export default class TypesHandler {
 
+    /* istanbul ignore next: ,othing to test here */
     public static getInstance(): TypesHandler {
         if (!TypesHandler.instance) {
             TypesHandler.instance = new TypesHandler();

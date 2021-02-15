@@ -121,6 +121,7 @@ export default abstract class ServerBase {
         EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
         EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
         EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
+        EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         this.version = this.getVersion();
 
         this.connectionString = this.envParam.CONNECTION_STRING;

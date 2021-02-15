@@ -79,6 +79,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.getInstance().MSGPCK = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().BASE_URL = '" + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "';\n";
+        fileContent += "    EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.getInstance().getNodeConfiguration().CODE_GOOGLE_ANALYTICS + "';\n";
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 

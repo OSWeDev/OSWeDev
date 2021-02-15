@@ -6,6 +6,7 @@ export default class DateHandler {
     public static DateTime_FOR_BDD_FORMAT: string = 'YYYY-MM-DD HH:mm:ss';
     public static DateTime_FOR_API_FORMAT: string = 'x';
 
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): DateHandler {
         if (!DateHandler.instance) {
             DateHandler.instance = new DateHandler();

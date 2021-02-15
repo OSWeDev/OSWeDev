@@ -3,8 +3,11 @@ import { Moment } from 'moment';
 import HourSegment from '../modules/DataRender/vos/HourSegment';
 import HourRange from '../modules/DataRender/vos/HourRange';
 import RangeHandler from './RangeHandler';
+import { deepEqual, deepStrictEqual } from 'assert';
 
 export default class HourSegmentHandler {
+
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): HourSegmentHandler {
         if (!HourSegmentHandler.instance) {
             HourSegmentHandler.instance = new HourSegmentHandler();
@@ -118,16 +121,16 @@ export default class HourSegmentHandler {
                 return null;
             case HourSegment.TYPE_MINUTE:
                 type = HourSegment.TYPE_HOUR;
-                ms = hourSegment.index.asHours() * 60 * 60 * 1000;
+                ms = Math.floor(hourSegment.index.asHours()) * 60 * 60 * 1000;
                 break;
             case HourSegment.TYPE_SECOND:
                 type = HourSegment.TYPE_MINUTE;
-                ms = hourSegment.index.asMinutes() * 60 * 1000;
+                ms = Math.floor(hourSegment.index.asMinutes()) * 60 * 1000;
                 break;
             case HourSegment.TYPE_MS:
             default:
                 type = HourSegment.TYPE_SECOND;
-                ms = hourSegment.index.asSeconds() * 1000;
+                ms = Math.floor(hourSegment.index.asSeconds()) * 1000;
         }
 
         let res: HourSegment = HourSegment.createNew(moment.duration(ms), type);
@@ -166,6 +169,9 @@ export default class HourSegmentHandler {
      * @param offset
      */
     public incElt(time: moment.Duration, segment_type: number, offset: number = 1): void {
+        if (time == null || segment_type == null) {
+            return null;
+        }
 
         time.add(offset, this.getCorrespondingMomentUnitOfTime(segment_type));
     }
@@ -206,11 +212,11 @@ export default class HourSegmentHandler {
 
         switch (segment_type) {
             case HourSegment.TYPE_HOUR:
-                return moment.duration(time.asHours() * 60 * 60 * 1000);
+                return moment.duration(Math.floor(time.asHours()) * 60 * 60 * 1000);
             case HourSegment.TYPE_MINUTE:
-                return moment.duration(time.asMinutes() * 60 * 1000);
+                return moment.duration(Math.floor(time.asMinutes()) * 60 * 1000);
             case HourSegment.TYPE_SECOND:
-                return moment.duration(time.asSeconds() * 1000);
+                return moment.duration(Math.floor(time.asSeconds()) * 1000);
             case HourSegment.TYPE_MS:
             default:
                 return time.clone();
@@ -224,7 +230,7 @@ export default class HourSegmentHandler {
      */
     public getEndHourSegment(hourSegment: HourSegment): moment.Duration {
 
-        if ((!hourSegment) || (!hourSegment.index)) {
+        if ((!hourSegment) || (!hourSegment.index) || (hourSegment.type == null)) {
             return null;
         }
 
@@ -254,7 +260,7 @@ export default class HourSegmentHandler {
      */
     public getInclusiveEndHourSegment(hourSegment: HourSegment, type_inclusion: number = HourSegment.TYPE_MS): moment.Duration {
 
-        if (!hourSegment) {
+        if (!hourSegment || !hourSegment.index || hourSegment.type == null) {
             return null;
         }
 
@@ -298,8 +304,12 @@ export default class HourSegmentHandler {
      * @returns new HourSegment
      */
     public getPreviousHourSegment(hourSegment: HourSegment, type: number = null, offset: number = 1): HourSegment {
-        if (!hourSegment) {
+        if (!hourSegment || !hourSegment.index || hourSegment.type == null) {
             return null;
+        }
+
+        if (type == null) {
+            type = hourSegment.type;
         }
 
         let start: moment.Duration = this.getStartHourSegment(hourSegment);
@@ -348,6 +358,9 @@ export default class HourSegmentHandler {
     }
 
     public getCorrespondingHourSegment(time: moment.Duration, type: number, offset: number = 0): HourSegment {
+        if (time == null) {
+            return null;
+        }
 
         if ((type === null) || (typeof type === 'undefined')) {
             type = HourSegment.TYPE_MS;
@@ -398,8 +411,6 @@ export default class HourSegmentHandler {
     }
 
     public segmentsAreEquivalent(ts1: HourSegment, ts2: HourSegment): boolean {
-
-
         if ((!ts1) && ts2) {
             return false;
         }
@@ -436,6 +447,10 @@ export default class HourSegmentHandler {
             return null;
         }
 
+        if (segment_type == null) {
+            segment_type = HourSegment.TYPE_MINUTE;
+        }
+
         let min = RangeHandler.getInstance().getSegmentedMin(ts_range, segment_type);
         return this.getCorrespondingHourSegment(min, segment_type);
     }
@@ -443,6 +458,10 @@ export default class HourSegmentHandler {
     public get_segment_from_range_end(ts_range: HourRange, segment_type: number): HourSegment {
         if (!ts_range) {
             return null;
+        }
+
+        if (segment_type == null) {
+            segment_type = HourSegment.TYPE_MINUTE;
         }
 
         let max = RangeHandler.getInstance().getSegmentedMax(ts_range, segment_type);

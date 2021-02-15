@@ -59,7 +59,11 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 new MenuPointer(
                     new MenuLeaf("UserVO", 0, "fa-lock"),
                     accessPolicyMenuBranch),
-                this.routes);
+                this.routes,
+                null,
+                null,
+                false
+            );
         }
 
         // if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {

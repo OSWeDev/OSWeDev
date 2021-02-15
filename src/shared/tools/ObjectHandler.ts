@@ -6,6 +6,8 @@ import RangeHandler from './RangeHandler';
 const moment = require('moment');
 
 export default class ObjectHandler {
+
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): ObjectHandler {
         if (!ObjectHandler.instance) {
             ObjectHandler.instance = new ObjectHandler();

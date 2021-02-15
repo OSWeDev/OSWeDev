@@ -1095,6 +1095,8 @@ export default class RangeHandler {
             case TSRange.RANGE_TYPE:
                 return this.create_single_elt_TSRange(elt as any as Moment, segment_type) as any as IRange<T>;
         }
+
+        return null;
     }
 
     public create_single_elt_HourRange(elt: Duration, segment_type: number): HourRange {
