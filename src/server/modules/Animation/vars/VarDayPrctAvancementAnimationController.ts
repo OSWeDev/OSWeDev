@@ -1,19 +1,12 @@
+import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
-import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
-import VarDAG from '../../Var/graph/var/VarDAG';
-import VarDAGNode from '../../Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
-import SimpleVarConfVO from '../../Var/simple_vars/SimpleVarConfVO';
-import VarControllerBase from '../../Var/VarControllerBase';
 import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
-import ThemeModuleDataParamRangesController from '../params/theme_module/ThemeModuleDataParamRangesController';
-import ThemeModuleDataParamRangesVO from '../params/theme_module/ThemeModuleDataParamRangesVO';
 import ThemeModuleDataRangesVO from '../params/theme_module/ThemeModuleDataRangesVO';
 import AnimationQRVO from '../vos/AnimationQRVO';
 import AnimationUserQRVO from '../vos/AnimationUserQRVO';
 
-export default class VarDayPrctAvancementAnimationController extends VarControllerBase<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
+export default class VarDayPrctAvancementAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
 
     public static VAR_NAME: string = 'VarDayPrctAvancementAnimationController';
 

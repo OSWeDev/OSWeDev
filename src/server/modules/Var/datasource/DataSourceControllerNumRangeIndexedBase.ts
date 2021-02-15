@@ -57,5 +57,5 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
      * Dans ce cas la fonction qui load les datas doit aussi faire le lien entre le int qui vient du numrange et chaque valeur
      * @param param
      */
-    public abstract async get_data(param: VarDataBaseVO, ds_cache: { [ds_data_index: string]: any }): Promise<{ [i: number]: any }>;
+    public abstract get_data(param: VarDataBaseVO, ds_cache: { [ds_data_index: string]: any }): Promise<{ [i: number]: any }>;
 }

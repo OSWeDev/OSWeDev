@@ -1,14 +1,5 @@
-import RangeHandler from "../../../tools/RangeHandler";
-import ModuleDAO from "../../DAO/ModuleDAO";
-import DataSourcesController from "../../DataSource/DataSourcesController";
-import IDataSourceController from "../../DataSource/interfaces/IDataSourceController";
-import IDistantVOBase from "../../IDistantVOBase";
-import VarDAG from "../../Var/graph/var/VarDAG";
-import IVarDataParamVOBase from "../../Var/interfaces/IVarDataParamVOBase";
-import VarsController from "../../Var/VarsController";
-import ThemeModuleDataParamRangesVO from "../params/theme_module/ThemeModuleDataParamRangesVO";
-import ThemeModuleDataRangesVO from "../params/theme_module/ThemeModuleDataRangesVO";
-import AnimationModuleVO from "../vos/AnimationModuleVO";
+import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
+
 
 
 export default class ModulesRangesDatasourceController implements IDataSourceController<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
@@ -76,7 +67,7 @@ export default class ModulesRangesDatasourceController implements IDataSourceCon
         return res;
     }
 
-    public async load_for_batch(vars_params: { [index: string]: ThemeModuleDataParamRangesVO }): Promise<void> {
+    public async load_for_batch(vars_params: { [index: string]: ThemeModuleDataRangesVO }): Promise<void> {
 
         let module_ids: number[] = [];
         let theme_ids: number[] = [];

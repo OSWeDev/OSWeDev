@@ -1,24 +1,8 @@
-import TimeSegment from '../../DataRender/vos/TimeSegment';
-import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
-import VarDAG from '../../Var/graph/var/VarDAG';
-import VarDAGNode from '../../Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
-import SimpleVarConfVO from '../../Var/simple_vars/SimpleVarConfVO';
-import VarControllerBase from '../../Var/VarControllerBase';
-import AnimationController from '../AnimationController';
-import AnimationParamsRangesDatasourceController from '../datasources/AnimationParamsRangesDatasourceController';
-import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
-import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceController';
-import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
-import ThemeModuleDataParamRangesController from '../params/theme_module/ThemeModuleDataParamRangesController';
-import ThemeModuleDataParamRangesVO from '../params/theme_module/ThemeModuleDataParamRangesVO';
-import ThemeModuleDataRangesVO from '../params/theme_module/ThemeModuleDataRangesVO';
-import AnimationParametersVO from '../vos/AnimationParametersVO';
-import AnimationQRVO from '../vos/AnimationQRVO';
-import AnimationUserModuleVO from '../vos/AnimationUserModuleVO';
-import AnimationUserQRVO from '../vos/AnimationUserQRVO';
+import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
+import VarServerControllerBase from "../../Var/VarServerControllerBase";
 
-export default class VarDayPrctAtteinteSeuilAnimationController extends VarControllerBase<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
+
+export default class VarDayPrctAtteinteSeuilAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
     public static VAR_NAME: string = 'VarDayPrctAtteinteSeuilAnimationController';
 

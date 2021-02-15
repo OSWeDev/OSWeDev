@@ -1,12 +1,12 @@
 import { IDatabase } from 'pg-promise';
+import VarServerControllerBase from '../../../server/modules/Var/VarServerControllerBase';
+import VarsServerCallBackSubsController from '../../../server/modules/Var/VarsServerCallBackSubsController';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import ThemeModuleDataParamRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
 import VarDayPrctReussiteAnimationController from '../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import SimpleNumberVarDataController from '../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
@@ -42,7 +42,14 @@ export default class Patch20210202AnimationPrctReussite implements IGeneratorWor
                 continue;
             }
 
-            aums[i].prct_reussite = SimpleNumberVarDataController.getInstance().getValueOrDefault(
+            let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataParamRangesVO.createNew(
+                VarDayPrctReussiteAnimationController.getInstance().varConf.id,
+                null,
+                [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].module_id, NumSegment.TYPE_INT)],
+                [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].user_id, NumSegment.TYPE_INT)],
+            ), true, true)
+
+            aums[i].prct_reussite =
                 await VarsController.getInstance().registerDataParamAndReturnVarData(ThemeModuleDataParamRangesVO.createNew(
                     VarDayPrctReussiteAnimationController.getInstance().varConf.id,
                     null,
