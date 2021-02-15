@@ -158,7 +158,17 @@ export default class CheckListComponent extends VueComponentBase {
         promises.push((async () => {
             let items = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItem>(
                 self.checklist_shared_module.checklistitem_type_id, 'checklist_id', [self.list_id]);
-            items = items.filter((e) => !e.archived);
+            items = items.filter((e) => !e.archived).sort((a: ICheckListItem, b: ICheckListItem) => {
+                if (a.id > b.id) {
+                    return -1;
+                }
+
+                if (a.id < b.id) {
+                    return 1;
+                }
+
+                return 0;
+            });
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 
