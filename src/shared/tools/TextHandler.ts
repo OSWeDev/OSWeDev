@@ -28,6 +28,7 @@ export default class TextHandler {
             ç: 'c',
         };
 
+    /** istanbul ignore next: nothing to test here */
     public static getInstance(): TextHandler {
         if (!TextHandler.instance) {
             TextHandler.instance = new TextHandler();
@@ -40,6 +41,9 @@ export default class TextHandler {
     private constructor() {
     }
 
+    /*
+    * retire les accents de la chaine de caracteres src
+    */
     public sanityze(src: string): string {
 
         if (!src) {
