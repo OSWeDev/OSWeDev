@@ -379,6 +379,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public checkAccessSync<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string): boolean {
 
+        if (!datatable) {
+            ConsoleHandler.getInstance().error('checkAccessSync:!datatable');
+            return false;
+        }
+
         if (!ModuleAccessPolicy.getInstance().actif) {
             return true;
         }

@@ -34,6 +34,11 @@ export default class VarsClientController {
      */
     public cached_var_datas: { [index: string]: VarDataValueResVO } = {};
 
+    /**
+     * On utilise pour se donner un délai de 30 secondes pour les calculs et si on dépasse (entre 30 et 60 secondes) on relance un register sur la var pour rattrapper un oublie de notif
+     */
+    public registered_var_params_to_check_next_time: { [index: string]: boolean } = {};
+
     public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 250, { leading: false });
     public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 2000, { leading: false });
 
@@ -217,8 +222,18 @@ export default class VarsClientController {
                 let var_data: VarDataValueResVO = VarsClientController.getInstance().cached_var_datas[registered_var_param.var_param.index];
 
                 if (var_data && (typeof var_data.value !== 'undefined') && !var_data.is_computing) {
+                    if (this.registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
+                        delete this.registered_var_params_to_check_next_time[registered_var_param.var_param.index];
+                    }
+
                     continue;
                 }
+
+                if (!this.registered_var_params_to_check_next_time[registered_var_param.var_param.index]) {
+                    this.registered_var_params_to_check_next_time[registered_var_param.var_param.index] = true;
+                    continue;
+                }
+
                 check_params[registered_var_param.var_param.index] = registered_var_param.var_param;
             }
 

@@ -95,7 +95,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
-        if (this.last_registration && moment().add(5, 'seconds').isBefore(this.last_registration)) {
+        if (this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration)) {
             return false;
         }
 

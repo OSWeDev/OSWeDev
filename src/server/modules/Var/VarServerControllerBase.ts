@@ -109,15 +109,16 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public computeValue(varDAGNode: VarDAGNode) {
 
+
         let value: number;
         if (varDAGNode.is_aggregator) {
 
             let values: number[] = [];
 
-            for (let i in varDAGNode.outgoing_deps) {
-                let outgoing_dep = varDAGNode.outgoing_deps[i];
+            for (let i in varDAGNode.aggregated_datas) {
+                let aggregated_data = varDAGNode.aggregated_datas[i];
 
-                values.push((outgoing_dep.outgoing_node as VarDAGNode).var_data.value);
+                values.push(aggregated_data.value);
             }
             value = this.aggregateValues(values);
         } else {

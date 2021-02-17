@@ -310,7 +310,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
-            VarsDatasProxy.getInstance().   ([vo]);
+            VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
 
             await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
         }

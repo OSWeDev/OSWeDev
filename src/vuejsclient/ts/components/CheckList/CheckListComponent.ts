@@ -122,6 +122,19 @@ export default class CheckListComponent extends VueComponentBase {
         }
     }
 
+    get ordered_checklistitems() {
+        let res: ICheckListItem[] = [];
+
+        if (!this.checklistitems) {
+            return [];
+        }
+
+        res = Object.values(this.checklistitems);
+
+        res.sort(this.checklist_controller.items_sorter);
+        return res;
+    }
+
     private mounted() {
         let self = this;
         this.stopLoading();
@@ -158,17 +171,7 @@ export default class CheckListComponent extends VueComponentBase {
         promises.push((async () => {
             let items = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItem>(
                 self.checklist_shared_module.checklistitem_type_id, 'checklist_id', [self.list_id]);
-            items = items.filter((e) => !e.archived).sort((a: ICheckListItem, b: ICheckListItem) => {
-                if (a.id > b.id) {
-                    return -1;
-                }
-
-                if (a.id < b.id) {
-                    return 1;
-                }
-
-                return 0;
-            });
+            items = items.filter((e) => !e.archived);
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 

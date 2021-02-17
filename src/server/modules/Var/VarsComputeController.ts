@@ -149,7 +149,7 @@ export default class VarsComputeController {
             let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
             // TODO FIXME promises.length
-            if (promises.length >= 10) {
+            if (promises.length >= 50) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -185,22 +185,8 @@ export default class VarsComputeController {
         ], true);
 
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-        if (node.is_aggregator) {
-            let values: number[] = [];
+        controller.computeValue(node);
 
-            for (let i in node.aggregated_datas) {
-                let aggregated_data = node.aggregated_datas[i];
-
-                values.push(aggregated_data.value);
-            }
-
-            // Et on agrège la donnée ...
-            node.var_data.value = controller.aggregateValues(values);
-            node.var_data.value_ts = moment().utc(true);
-        } else {
-
-            controller.computeValue(node);
-        }
         VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
         VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
         node.has_compute_node_perf = true;
@@ -373,7 +359,7 @@ export default class VarsComputeController {
             /**
              * On fait des packs de 10 promises...
              */
-            if (deps_promises.length >= 10) {
+            if (deps_promises.length >= 50) {
                 await Promise.all(deps_promises);
                 deps_promises = [];
             }

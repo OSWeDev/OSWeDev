@@ -3,6 +3,8 @@ import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
@@ -14,6 +16,7 @@ import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsServerController from './VarsServerController';
 
 /**
@@ -173,15 +176,15 @@ export default class VarsDatasProxy {
             let handle_var = vars_datas_buffer_copy[i];
             // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage => surtout pas sinon on tourne en boucle
             if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
-                // break;
-                i++;
-                continue;
+                break;
+                // i++;
+                // continue;
             }
 
             /**
              * On fait des packs de 10 promises...
              */
-            if (promises.length >= 10) {
+            if (promises.length >= 50) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -378,7 +381,7 @@ export default class VarsDatasProxy {
         for (let i in this.vars_datas_buffer) {
 
             // ajout cas spécifique isolement d'une var trop gourmande
-            if ((estimated_ms >= client_request_estimated_ms_limit) && ((nb_vars >= client_request_min_nb_vars) || (nb_vars == 1))) {
+            if ((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) {
                 ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
                 return res;
             }
@@ -389,10 +392,10 @@ export default class VarsDatasProxy {
 
                 let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
                     * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
-                // cas spécifique isolement d'une var trop gourmande
-                if ((estimated_ms_var > bg_estimated_ms_limit) && (nb_vars > 0)) {
-                    continue;
-                }
+                // // cas spécifique isolement d'une var trop gourmande
+                // if ((estimated_ms_var > client_request_estimated_ms_limit) && (nb_vars > 0) && (nb_vars < client_request_min_nb_vars)) {
+                //     continue;
+                // }
 
                 nb_vars += res[var_data.index] ? 0 : 1;
                 res[var_data.index] = var_data;
@@ -450,6 +453,7 @@ export default class VarsDatasProxy {
 
     /**
      * On récupère des packets max de 500 vars, et si besoin on en récupèrera d'autres pour remplir le temps limit
+     * -- 02/21 Changement méthode on parcours l'arbre des var controller en commençant par le bas pour remonter depuis les DS vers les calculs
      */
     private async get_vars_to_compute_from_bdd(
         params: {
@@ -461,33 +465,21 @@ export default class VarsDatasProxy {
 
         let vars_datas: { [index: string]: VarDataBaseVO } = {};
 
-        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+        for (let i in VarsServerController.getInstance().varcontrollers_dag.leafs) {
+            let leaf = VarsServerController.getInstance().varcontrollers_dag.leafs[i];
 
-            // ajout cas spécifique isolement d'une var trop gourmande
-            if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars == 1))) {
-                return vars_datas;
-            }
+            await DAGController.getInstance().visit_bottom_up_from_node(leaf, async (Ny: VarCtrlDAGNode) => {
 
-            let varcacheconf_by_var_ids = VarsServerController.getInstance().varcacheconf_by_api_type_ids[api_type_id];
-            let may_have_more_datas: boolean = true;
-            let limit: number = 500;
-            let offset: number = 0;
+                let may_have_more_datas: boolean = true;
+                let limit: number = 500;
+                let offset: number = 0;
 
-            while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || ((params.bg_nb_vars < params.bg_min_nb_vars) && (params.bg_nb_vars != 1)))) {
-                may_have_more_datas = false;
+                while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
+                    may_have_more_datas = false;
 
-                let condition = '(';
-                let first: boolean = true;
+                    let condition = '';
 
-                for (let var_id in varcacheconf_by_var_ids) {
-                    let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
-
-                    if (!first) {
-                        condition += ' OR (';
-                    } else {
-                        condition += '(';
-                    }
-                    first = false;
+                    let varcacheconf: VarCacheConfVO = Ny.var_controller.var_cache_conf;
 
                     if (!!varcacheconf.cache_timeout_ms) {
                         let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
@@ -496,45 +488,131 @@ export default class VarsDatasProxy {
                         condition += 'var_id = ' + varcacheconf.var_id + ' and value_ts is null';
                     }
 
-                    condition += ')';
-                }
-                condition += ')';
+                    condition += ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ' limit ' + limit + ' offset ' + offset + ';';
+                    offset += limit;
 
-                condition += ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ' limit ' + limit + ' offset ' + offset + ';';
-                offset += limit;
+                    // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
+                    //  Attention les données importées ne doivent pas être remises en question
+                    let vars_datas_tmp: VarDataBaseVO[] = [];
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(Ny.var_controller.varConf.var_data_vo_type, ' where ' + condition);
+                    may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
 
-                // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
-                //  Attention les données importées ne doivent pas être remises en question
-                let vars_datas_tmp: VarDataBaseVO[] = [];
-                vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' + condition);
-                may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
+                    for (let vars_datas_tmp_i in vars_datas_tmp) {
+                        if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                            return;
+                        }
 
-                for (let vars_datas_tmp_i in vars_datas_tmp) {
-                    if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
-                        return vars_datas;
+                        let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
+
+                        let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
+                            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
+
+                        params.bg_estimated_ms += estimated_ms_var;
+                        params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
+                        vars_datas[var_data_tmp.index] = var_data_tmp;
                     }
-
-                    let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
-
-                    let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
-                        * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
-                    // cas spécifique isolement d'une var trop gourmande
-                    if ((estimated_ms_var > params.bg_estimated_ms_limit) && (params.bg_nb_vars > 0)) {
-                        continue;
-                    }
-
-                    params.bg_estimated_ms += estimated_ms_var;
-                    params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
-                    vars_datas[var_data_tmp.index] = var_data_tmp;
                 }
-            }
-            if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars == 1))) {
+                if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                    return;
+                }
+            }, (node: VarDAGNode) => {
+                return (params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars);
+            });
+
+            if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
                 return vars_datas;
             }
         }
-
         return vars_datas;
     }
+
+
+    // /**
+    //  * On récupère des packets max de 500 vars, et si besoin on en récupèrera d'autres pour remplir le temps limit
+    //  */
+    // private async get_vars_to_compute_from_bdd(
+    //     params: {
+    //         bg_estimated_ms_limit: number,
+    //         bg_min_nb_vars: number,
+    //         bg_estimated_ms: number,
+    //         bg_nb_vars: number
+    //     }): Promise<{ [index: string]: VarDataBaseVO }> {
+
+    //     let vars_datas: { [index: string]: VarDataBaseVO } = {};
+
+    //     for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+
+    //         if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+    //             return vars_datas;
+    //         }
+
+    //         let varcacheconf_by_var_ids = VarsServerController.getInstance().varcacheconf_by_api_type_ids[api_type_id];
+    //         let may_have_more_datas: boolean = true;
+    //         let limit: number = 500;
+    //         let offset: number = 0;
+
+    //         while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
+    //             may_have_more_datas = false;
+
+    //             let condition = '(';
+    //             let first: boolean = true;
+
+    //             for (let var_id in varcacheconf_by_var_ids) {
+    //                 let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
+
+    //                 if (!first) {
+    //                     condition += ' OR (';
+    //                 } else {
+    //                     condition += '(';
+    //                 }
+    //                 first = false;
+
+    //                 if (!!varcacheconf.cache_timeout_ms) {
+    //                     let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
+    //                     condition += 'var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ')';
+    //                 } else {
+    //                     condition += 'var_id = ' + varcacheconf.var_id + ' and value_ts is null';
+    //                 }
+
+    //                 condition += ')';
+    //             }
+    //             condition += ')';
+
+    //             condition += ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ' limit ' + limit + ' offset ' + offset + ';';
+    //             offset += limit;
+
+    //             // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
+    //             //  Attention les données importées ne doivent pas être remises en question
+    //             let vars_datas_tmp: VarDataBaseVO[] = [];
+    //             vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' + condition);
+    //             may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
+
+    //             for (let vars_datas_tmp_i in vars_datas_tmp) {
+    //                 if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+    //                     return vars_datas;
+    //                 }
+
+    //                 let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
+
+    //                 let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
+    //                     * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
+    //                 // // cas spécifique isolement d'une var trop gourmande
+    //                 // if ((estimated_ms_var > params.bg_estimated_ms_limit) && (params.bg_nb_vars > params.bg_min_nb_vars)) {
+    //                 //     continue;
+    //                 // }
+
+    //                 params.bg_estimated_ms += estimated_ms_var;
+    //                 params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
+    //                 vars_datas[var_data_tmp.index] = var_data_tmp;
+    //             }
+    //         }
+    //         if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars == 1))) {
+    //             return vars_datas;
+    //         }
+    //     }
+
+    //     return vars_datas;
+    // }
 
     /**
      * On filtre les demande de append ou prepend par les indexes déjà en attente par ce qu'on peut pas avoir 2 fois le même index dans la liste
