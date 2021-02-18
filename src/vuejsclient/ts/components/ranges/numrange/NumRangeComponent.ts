@@ -66,12 +66,12 @@ export default class NumRangeComponent extends VueComponentBase {
             NumRangeComponentController.getInstance().num_ranges_enum_handler &&
             NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type] &&
             NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id]) {
-            this.segmented_min = await
+            this.segmented_min = segmented_min + ' | ' + await
                 NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id].label_handler(
                     segmented_min
                 );
             if (segmented_min != segmented_max) {
-                this.segmented_max =
+                this.segmented_max = segmented_max + ' | ' +
                     await NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id].label_handler(
                         RangeHandler.getInstance().getSegmentedMax(this.range)
                     );

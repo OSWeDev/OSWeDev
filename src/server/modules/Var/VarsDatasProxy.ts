@@ -578,6 +578,11 @@ export default class VarsDatasProxy {
                     this.add_read_stat(wrapper);
                     this.vars_datas_buffer[this.vars_datas_buffer.findIndex((e) => e.index == var_data.index)] = var_data;
                     // On push pas puisque c'était déjà en attente d'action
+
+                    // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
+                    if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                        VarsdatasComputerBGThread.getInstance().work();
+                    }
                 }
                 continue;
             }
@@ -589,6 +594,11 @@ export default class VarsDatasProxy {
             this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, !just_been_loaded_from_db, 0);
             this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
             res.push(var_data);
+
+            // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
+            if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                VarsdatasComputerBGThread.getInstance().work();
+            }
         }
 
         if ((!donot_insert_if_absent) && res && res.length) {
