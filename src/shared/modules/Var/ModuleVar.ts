@@ -47,7 +47,7 @@ export default class ModuleVar extends Module {
     public static APINAME_getVarControllerDSDeps: string = 'getVarControllerDSDeps';
     public static APINAME_getVarParamDatas: string = 'getVarParamDatas';
 
-    public static APINAME_invalidate_cache_intersection: string = 'invalidate_cache_intersection';
+    // public static APINAME_invalidate_cache_intersection: string = 'invalidate_cache_intersection';
     public static APINAME_delete_cache_intersection: string = 'delete_cache_intersection';
     public static APINAME_delete_cache_and_imports_intersection: string = 'delete_cache_and_imports_intersection';
 
@@ -69,7 +69,7 @@ export default class ModuleVar extends Module {
     public invalidate_cache_exact: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact);
     public invalidate_cache_exact_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact_and_parents);
     public invalidate_cache_intersection_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection_and_parents);
-    public invalidate_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection);
+    // public invalidate_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection);
     public delete_cache_and_imports_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_delete_cache_and_imports_intersection);
     public delete_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_delete_cache_intersection);
     public getVarControllerDSDeps: (var_name: string) => Promise<string[]> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarControllerDSDeps);
@@ -148,23 +148,23 @@ export default class ModuleVar extends Module {
             [VarConfVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
-            ModuleVar.POLICY_DESC_MODE_ACCESS,
-            ModuleVar.APINAME_invalidate_cache_intersection,
-            (params: VarDataBaseVO[]) => {
-                let res: string[] = [];
+        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        //     ModuleVar.POLICY_DESC_MODE_ACCESS,
+        //     ModuleVar.APINAME_invalidate_cache_intersection,
+        //     (params: VarDataBaseVO[]) => {
+        //         let res: string[] = [];
 
-                for (let i in params) {
-                    let param = params[i];
+        //         for (let i in params) {
+        //             let param = params[i];
 
-                    if (res.indexOf(param._type) < 0) {
-                        res.push(param._type);
-                    }
-                }
+        //             if (res.indexOf(param._type) < 0) {
+        //                 res.push(param._type);
+        //             }
+        //         }
 
-                return res;
-            }
-        ));
+        //         return res;
+        //     }
+        // ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
@@ -290,6 +290,7 @@ export default class ModuleVar extends Module {
                 [VarDataBaseVO.VALUE_TYPE_COMPUTED]: VarDataBaseVO.VALUE_TYPE_LABELS[VarDataBaseVO.VALUE_TYPE_COMPUTED]
             }).index(),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND).index(),
+            new ModuleTableField('last_reads_ts', ModuleTableField.FIELD_TYPE_tstz_array, 'Dates derniers accès').set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', false, false).index().unique(), // TODO FIXME passer obligatoire quand tous les projets ont migrés en V3 ça sera plus simple
         ]);
 

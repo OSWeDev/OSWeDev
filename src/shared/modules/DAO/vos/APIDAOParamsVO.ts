@@ -21,6 +21,10 @@ export default class APIDAOParamsVO implements IAPIParamTranslator<APIDAOParamsV
         return new APIDAOParamsVO(API_TYPE_ID, ids);
     }
 
+    public static getAPIParams(param: APIDAOParamsVO): any[] {
+        return [param.API_TYPE_ID, param.ids];
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public ids: number[]) {
@@ -29,10 +33,6 @@ export default class APIDAOParamsVO implements IAPIParamTranslator<APIDAOParamsV
     public translateToURL(): string {
 
         return this.API_TYPE_ID + '/' + this.ids.join('_');
-    }
-
-    public static getAPIParams(param: APIDAOParamsVO): any[] {
-        return [param.API_TYPE_ID, param.ids];
     }
 }
 

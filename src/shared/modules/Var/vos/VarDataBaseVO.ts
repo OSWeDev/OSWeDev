@@ -187,6 +187,8 @@ export default class VarDataBaseVO implements IMatroid {
     public value_type: number;
     public value_ts: Moment;
 
+    public last_reads_ts: Moment[];
+
     /**
      * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
      *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.

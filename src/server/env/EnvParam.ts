@@ -27,4 +27,5 @@ export default class EnvParam implements IEnvParam {
     public VARS_PERF_MONITORING?: boolean = true;
     public START_MAINTENANCE_ACCEPTATION_CODE: string;
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
+    public DEBUG_VARS: boolean = false;
 }

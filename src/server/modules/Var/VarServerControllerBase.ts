@@ -8,6 +8,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
+import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
 const moment = require('moment');
 
@@ -129,6 +130,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value = value;
         varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
         varDAGNode.var_data.value_ts = moment().utc(true);
+        VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data]);
     }
 
     /**

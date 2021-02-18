@@ -753,7 +753,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-    public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, distinct: boolean = false, ranges: Array<IRange<any>> = null): Promise<T[]> {
+    public async selectAll<T extends IDistantVOBase>(
+        API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
+        distinct: boolean = false, ranges: Array<IRange<any>> = null, limit: number = 0, offset: number = 0): Promise<T[]> {
+
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
@@ -779,22 +782,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // UNION ALL plutôt que x requetes non ? => attention dans ce cas la query doit surtout pas avoir un ;
                 //  Grosse blague TODO FIXME : quid d'un limit ???? il se lance à chaque requête... résultat on a bcp plus de res que la limit
+                // OFFSET complètement invalide sur une table segmentée ....
 
                 if (!self.has_segmented_known_database(moduleTable, segment_value)) {
                     return;
                 }
 
-                let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
+                let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
+                    "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " +
+                    (query ? query : '') + (limit ? ' limit ' + limit : ''), queryParams ? queryParams : []) as T[]);
                 for (let i in segment_res) {
                     segmented_res.push(segment_res[i]);
                 }
             }, moduleTable.table_segmented_field_segment_type);
 
+            if (limit) {
+                segmented_res.splice(limit, segmented_res.length - limit);
+            }
+
             // On filtre les res suivant les droits d'accès
             return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_res);
         }
 
-        let res: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
+        let res: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
+            "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
+            (query ? query : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
 
         // On filtre les res suivant les droits d'accès
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, res);
@@ -951,6 +963,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
                 return field.field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + " and " + field.field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + DateHandler.getInstance().getUnixForBDD(intersector_range.max);
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + "," + DateHandler.getInstance().getUnixForBDD(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
 
             case ModuleTableField.FIELD_TYPE_int_array:
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
@@ -1135,6 +1150,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
                     preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id);
+
+                    if (!preUpdate) {
+                        // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
+                        isUpdate = false;
+                        vo.id = null;
+                    }
                 }
             }
 
@@ -1923,11 +1944,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
     }
 
-    private async getVos<T extends IDistantVOBase>(text: string): Promise<T[]> {
+    private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {
 
         // On filtre les res suivant les droits d'accès
         // return await this.selectAll(apiDAOParamVOs);
-        return await this.selectAll<T>(text);
+        return await this.selectAll<T>(text, null, null, null, false, null, limit, offset);
     }
 
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
@@ -2567,6 +2588,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tstz:
                 res += table_name + '.' + field.field_id + "::numeric <@ " + ranges_query;
                 break;
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numeric[])";
+                break;
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
@@ -2628,6 +2652,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_geopoint:
                 return true;
 
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -2684,6 +2709,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_geopoint:
                 // TODO
                 break;
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -2814,6 +2840,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // TODO
                 break;
 
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -2917,6 +2944,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_tstz:
                 return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(range.min) + "," + DateHandler.getInstance().getUnixForBDD(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
             case ModuleTableField.FIELD_TYPE_timestamp:
@@ -2980,6 +3008,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 return DateHandler.getInstance().formatDayForIndex(segmented_value);
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_tstz:
                 return DateHandler.getInstance().getUnixForBDD(segmented_value).toString();
             case ModuleTableField.FIELD_TYPE_timestamp:

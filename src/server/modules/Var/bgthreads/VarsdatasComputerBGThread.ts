@@ -8,6 +8,7 @@ import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import VarsPerfsController from '../perf/VarsPerfsController';
+import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
@@ -40,6 +41,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     // private enabled: boolean = true;
     // private invalidations: number = 0;
     private semaphore: boolean = false;
+
+    private partial_clean_next_ms: number = 0;
 
     private throttled_calculation_run = throttle(this.do_calculation_run, 100, { leading: false });
 
@@ -153,6 +156,13 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     this.throttled_calculation_run();
                     return;
                 } else {
+
+                    // Si on fait rien c'est qu'on a le temps de nettoyer un peu la BDD
+                    if (performance.now() > this.partial_clean_next_ms) {
+                        // On limite à un appel toutes les secondes
+                        this.partial_clean_next_ms = performance.now() + 1000;
+                        await VarsCacheController.getInstance().partially_clean_bdd_cache();
+                    }
                     return;
                 }
             }

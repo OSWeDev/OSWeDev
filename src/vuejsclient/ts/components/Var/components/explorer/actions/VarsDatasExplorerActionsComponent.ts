@@ -119,17 +119,17 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
         this.busy = false;
     }
 
-    private async invalidate_cache_intersection() {
-        if (!this.can_act) {
-            return;
-        }
+    // private async invalidate_cache_intersection() {
+    //     if (!this.can_act) {
+    //         return;
+    //     }
 
-        this.busy = true;
+    //     this.busy = true;
 
-        await ModuleVar.getInstance().invalidate_cache_intersection(this.get_filter_params);
+    //     await ModuleVar.getInstance().invalidate_cache_intersection(this.get_filter_params);
 
-        this.busy = false;
-    }
+    //     this.busy = false;
+    // }
 
     private async delete_cache_intersection() {
         if (!this.can_act) {
