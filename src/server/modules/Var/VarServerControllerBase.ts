@@ -8,6 +8,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
+import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
 const moment = require('moment');
 
@@ -109,15 +110,16 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public computeValue(varDAGNode: VarDAGNode) {
 
+
         let value: number;
         if (varDAGNode.is_aggregator) {
 
             let values: number[] = [];
 
-            for (let i in varDAGNode.outgoing_deps) {
-                let outgoing_dep = varDAGNode.outgoing_deps[i];
+            for (let i in varDAGNode.aggregated_datas) {
+                let aggregated_data = varDAGNode.aggregated_datas[i];
 
-                values.push((outgoing_dep.outgoing_node as VarDAGNode).var_data.value);
+                values.push(aggregated_data.value);
             }
             value = this.aggregateValues(values);
         } else {
@@ -128,6 +130,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value = value;
         varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
         varDAGNode.var_data.value_ts = moment().utc(true);
+        VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data]);
     }
 
     /**

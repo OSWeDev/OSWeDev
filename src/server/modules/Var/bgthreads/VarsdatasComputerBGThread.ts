@@ -8,6 +8,7 @@ import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import VarsPerfsController from '../perf/VarsPerfsController';
+import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
@@ -31,8 +32,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     // public current_timeout: number = 100;
     // public MAX_timeout: number = 500;
     // public MIN_timeout: number = 1;
-    public current_timeout: number = 1000;
-    public MAX_timeout: number = 2000;
+    public current_timeout: number = 10000;
+    public MAX_timeout: number = 20000;
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
@@ -40,6 +41,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     // private enabled: boolean = true;
     // private invalidations: number = 0;
     private semaphore: boolean = false;
+
+    private partial_clean_next_ms: number = 0;
 
     private throttled_calculation_run = throttle(this.do_calculation_run, 100, { leading: false });
 
@@ -82,11 +85,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         // return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
     }
 
-    private async do_calculation_run(): Promise<number> {
+    private async do_calculation_run(): Promise<void> {
         try {
 
             if (this.semaphore) {
-                return null;
+                return;
             }
             this.semaphore = true;
 
@@ -101,6 +104,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             promises.push((async () => bg_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75))());
             promises.push((async () => client_request_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15))());
 
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", true);
+
             /**
              * On commence par mettre à jour la bdd si nécessaire
              */
@@ -110,6 +115,15 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             await Promise.all(promises);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
 
+
+            /**
+             * On dépile les CUD sur les VOs et faire les invalidations
+             */
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
+            let has_done_something = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", false);
+
+
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
              *  soit on fait un batch par appel au bgthread soit on dépile x vars, soit on se donne x ms et on essaie d'estimer le temps de calcul en fonction des vars en attente, ...
@@ -117,19 +131,20 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *      de temps par batch qu'on veut se donner (si le plus efficace c'est de calculer toute la base d'un coup mais que ça prend 1H on fera pas ça dans tous les cas)
              */
 
-            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.selection"], true);
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", true);
             let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(
                 client_request_estimated_ms_limit, client_request_min_nb_vars, bg_estimated_ms_limit, bg_min_nb_vars);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
 
             if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
 
-                /**
-                 * On dépile les CUD sur les VOs et faire les invalidations
-                 */
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
-                let has_done_something = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
-                VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"], false);
+                // /**
+                //  * On dépile les CUD sur les VOs et faire les invalidations
+                //  */
+                // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
+                // let has_done_something = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
+                // VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"], false);
+                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", false);
 
                 if (has_done_something && ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                     await VarsPerfsController.update_perfs_in_bdd();
@@ -138,9 +153,17 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 this.semaphore = false;
 
                 if (has_done_something) {
-                    return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+                    this.throttled_calculation_run();
+                    return;
                 } else {
-                    return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
+
+                    // Si on fait rien c'est qu'on a le temps de nettoyer un peu la BDD
+                    if (performance.now() > this.partial_clean_next_ms) {
+                        // On limite à un appel toutes les secondes
+                        this.partial_clean_next_ms = performance.now() + 1000;
+                        await VarsCacheController.getInstance().partially_clean_bdd_cache();
+                    }
+                    return;
                 }
             }
 
@@ -169,8 +192,15 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasProxy.buffer"].sum_ms + ' ms] handling proxy buffer, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"].sum_ms + ' ms] handling update buffer, [' +
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread.selection"].sum_ms + ' ms] selecting, [' +
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute"].sum_ms + ' ms] computing, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.create_tree"].sum_ms + ' ms] computing.create_tree, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.load_nodes_datas"].sum_ms + ' ms] computing.load_nodes_datas, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.visit_bottom_up_to_node"].sum_ms + ' ms] computing.visit_bottom_up_to_node, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.cache_datas"].sum_ms + ' ms] computing.cache_datas, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.update_cards_in_perfs"].sum_ms + ' ms] computing.update_cards_in_perfs, [' +
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread.notify_vardatas_computing"].sum_ms + ' ms] notifying');
                 await VarsPerfsController.update_perfs_in_bdd();
             }
@@ -179,6 +209,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         }
 
         this.semaphore = false;
-        return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+        this.throttled_calculation_run();
     }
 }

@@ -218,6 +218,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_hour:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_day:
@@ -682,6 +683,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     }
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[new_id] = e[field.field_id];
+                    } else {
+                        res[new_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.unix() : ts);
+                    }
+                    break;
+
+
                 default:
                     res[new_id] = e[field.field_id];
             }
@@ -769,6 +779,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : e[old_id];
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((e[old_id] === null) || (typeof e[old_id] === 'undefined')) {
+                        res[field.field_id] = e[old_id];
+                    } else {
+                        let field_as_moment: Moment[] = (e[old_id] as string[]).map((ts: string) => moment(parseInt(ts) * 1000).utc(true));
+                        res[field.field_id] = field_as_moment;
+                    }
+                    break;
+
                 default:
                     res[field.field_id] = e[old_id];
             }
@@ -803,6 +822,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                     let field_as_moment: Moment = moment(res[field.field_id]).utc(true);
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((res[field.field_id] === null) || (typeof res[field.field_id] === 'undefined')) {
+                        res[field.field_id] = res[field.field_id];
+                    } else {
+                        res[field.field_id] = (res[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.unix() : ts);
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
@@ -920,6 +947,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     res[field.field_id] = moment(parseInt(field_value) * 1000).utc();
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((field_value === null) || (typeof field_value === 'undefined')) {
+                        res[field.field_id] = field_value;
+                    } else {
+                        res[field.field_id] = field_value.map((ts: string) => moment(parseInt(ts) * 1000).utc(true));
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:

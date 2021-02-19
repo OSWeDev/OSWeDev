@@ -49,6 +49,18 @@ export default abstract class CheckListControllerBase {
         return [];
     }
 
+    public items_sorter(a: ICheckListItem, b: ICheckListItem): number {
+        if (a.id > b.id) {
+            return -1;
+        }
+
+        if (a.id < b.id) {
+            return 1;
+        }
+
+        return 0;
+    }
+
     public get_infos_cols_content(checklist_item: ICheckListItem): string[] {
         return [];
     }

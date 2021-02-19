@@ -383,6 +383,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                     bdd_vo.value_ts = null;
                 }
                 await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
+                await VarsDatasProxy.getInstance().append_var_datas(bdd_vos);
             }
         }
     }
@@ -461,40 +462,47 @@ export default class ModuleVarServer extends ModuleServerBase {
         await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
     }
 
-    public async invalidate_cache_intersection(vos: VarDataBaseVO[]) {
+    // public async invalidate_cache_intersection(vos: VarDataBaseVO[]) {
 
-        if ((!vos) || (!vos.length)) {
-            return;
-        }
+    //     if ((!vos) || (!vos.length)) {
+    //         return;
+    //     }
 
-        for (let i in vos) {
-            let vo = vos[i];
+    //     this.invalidate_cache_intersection_and_parents(vos);
 
-            if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                continue;
-            }
 
-            let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-            let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+    //     for (let i in vos) {
+    //         let vo = vos[i];
 
-            if (moduletable_vardata.is_segmented) {
+    //         if (!vo.check_param_is_valid(vo._type)) {
+    //             ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+    //             continue;
+    //         }
 
-                let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+    //         let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+    //         let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
-                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
-                    let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value=null, value_ts=null where ' +
-                        query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-                    await ModuleServiceBase.getInstance().db.query(request);
-                }, moduletable_vardata.table_segmented_field_segment_type);
+    //         if (moduletable_vardata.is_segmented) {
 
-            } else {
-                let request: string = 'update ' + moduletable_vardata.full_name + ' t set value=null, value_ts=null where ' +
-                    query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-                await ModuleServiceBase.getInstance().db.query(request);
-            }
-        }
-    }
+    //             let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+    //             await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+    //                 let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value=null, value_ts=null where ' +
+    //                     query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+    //                 await ModuleServiceBase.getInstance().db.query(request);
+
+    //                 TODO mettre à jour le cache aussi
+    //             }, moduletable_vardata.table_segmented_field_segment_type);
+
+    //         } else {
+    //             let request: string = 'update ' + moduletable_vardata.full_name + ' t set value=null, value_ts=null where ' +
+    //                 query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+    //             await ModuleServiceBase.getInstance().db.query(request);
+
+    //             TODO mettre à jour le cache aussi
+    //         }
+    //     }
+    // }
 
     public async delete_cache_intersection(vos: VarDataBaseVO[]) {
 
@@ -579,7 +587,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
@@ -651,56 +659,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency.depends_on_pol_id = bo_access.id;
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
-
-
-
-    // public async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
-
-    //     // TODO FIXME OPTI - ou pas ... - on peut aller demander aussi aux vars en attente de maj en bdd - mais une perte de perf légère tout le temps pour un gain très ponctuel mais probablement élevé
-    //     let varsdata: VarDataBaseVO[] = await VarsDatasProxy.getInstance().get_exact_params_from_buffer_or_bdd([param]);
-
-    //     // Si on a plus de 1 vardata il faut supprimer les plus anciens et logger un pb
-    //     let vardata: VarDataBaseVO = null;
-
-    //     if (varsdata && (varsdata.length > 1)) {
-    //         ConsoleHandler.getInstance().error('get_var_data_or_ask_to_bgthread:On ne devrait trouver qu\'une var de cet index :' + param.index + ':on en trouve:' + varsdata.length + ':Suppression auto des plus anciennes...');
-
-    //         let maxid = 0;
-    //         let maxi = 0;
-    //         for (let i in varsdata) {
-    //             let tmp = varsdata[i];
-    //             if (maxid < tmp.id) {
-    //                 maxid = tmp.id;
-    //                 maxi = parseInt(i.toString());
-    //                 vardata = tmp;
-    //             }
-    //         }
-
-    //         varsdata.splice(maxi, 1);
-    //         await ModuleDAO.getInstance().deleteVOs(varsdata);
-    //     }
-
-    //     vardata = vardata ? vardata : ((varsdata && (varsdata.length == 1)) ? varsdata[0] : null);
-
-    //     if (!vardata) {
-
-    //         // On a rien en base, on le crée et on attend le résultat
-    //         param.value_ts = null;
-    //         param.value = null;
-    //         param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-
-    //         // On push dans le buffer de mise à jour de la BDD
-    //         VarsDatasProxy.getInstance().prepend_var_datas([param]);
-    //         return null;
-    //     } else {
-
-    //         if (VarsServerController.getInstance().has_valid_value(vardata)) {
-    //             return vardata;
-    //         }
-    //     }
-
-    //     return null;
-    // }
 
     /**
      * Fonction ayant pour but d'être appelée sur le thread de computation des vars

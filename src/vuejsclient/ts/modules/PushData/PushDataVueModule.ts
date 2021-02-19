@@ -263,6 +263,11 @@ export default class PushDataVueModule extends VueModuleBase {
                             );
                         }
 
+                        // Si on a une notif qui indique une value pas computing et valide, on met à jour pour éviter de relancer un register
+                        if ((!e.is_computing) && (e.value_ts) && VarsClientController.getInstance().registered_var_params_to_check_next_time[e.index]) {
+                            delete VarsClientController.getInstance().registered_var_params_to_check_next_time[e.index];
+                        }
+
                         // On check les dates aussi
                         if ((!var_by_indexes[e.index]) || (!var_by_indexes[e.index].value_ts)) {
                             var_by_indexes[e.index] = e;

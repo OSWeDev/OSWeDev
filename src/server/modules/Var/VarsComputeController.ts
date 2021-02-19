@@ -135,7 +135,7 @@ export default class VarsComputeController {
             }
 
             if (VarsCacheController.getInstance().A_do_cache_param(node)) {
-                await VarsDatasProxy.getInstance().prepend_var_datas([node.var_data]);
+                await VarsDatasProxy.getInstance().prepend_var_datas([node.var_data], false);
             }
         }
     }
@@ -144,12 +144,18 @@ export default class VarsComputeController {
         let promises = [];
         for (let i in dag.nodes) {
             let node = dag.nodes[i];
+
+            // Si le noeud a une valeur on se fout de load les datas
+            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                continue;
+            }
+
             let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
             let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
             // TODO FIXME promises.length
-            if (promises.length >= 10) {
+            if (promises.length >= 50) {
                 await Promise.all(promises);
                 promises = [];
             }
@@ -185,22 +191,8 @@ export default class VarsComputeController {
         ], true);
 
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-        if (node.is_aggregator) {
-            let values: number[] = [];
+        controller.computeValue(node);
 
-            for (let i in node.aggregated_datas) {
-                let aggregated_data = node.aggregated_datas[i];
-
-                values.push(aggregated_data.value);
-            }
-
-            // Et on agrège la donnée ...
-            node.var_data.value = controller.aggregateValues(values);
-            node.var_data.value_ts = moment().utc(true);
-        } else {
-
-            controller.computeValue(node);
-        }
         VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
         VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
         node.has_compute_node_perf = true;
@@ -373,7 +365,7 @@ export default class VarsComputeController {
             /**
              * On fait des packs de 10 promises...
              */
-            if (deps_promises.length >= 10) {
+            if (deps_promises.length >= 50) {
                 await Promise.all(deps_promises);
                 deps_promises = [];
             }
@@ -410,6 +402,7 @@ export default class VarsComputeController {
                 // ça revient au même que le test de chargement du cache complet donc on indique qu'on a déjà testé
                 dep_node.already_tried_load_cache_complet = true;
 
+                // NOTE : On peut éditer directement la vardata ici puisque celle en cache a déjà été mise à jour par get_exact_param_from_buffer_or_bdd au besoin
                 if (!!existing_var_data) {
                     dep_node.var_data.id = existing_var_data.id;
                     dep_node.var_data.value = existing_var_data.value;
@@ -449,6 +442,7 @@ export default class VarsComputeController {
             return;
         }
 
+        // NOTE : On peut éditer directement la vardata ici puisque celle en cache a déjà été mise à jour par get_exact_param_from_buffer_or_bdd au besoin
         node.var_data.id = cache_complet.id;
         node.var_data.value = cache_complet.value;
         node.var_data.value_ts = cache_complet.value_ts;

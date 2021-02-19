@@ -20,6 +20,7 @@ import APIDAOParamVO, { APIDAOParamVOStatic } from './vos/APIDAOParamVO';
 import APIDAORefFieldParamsVO, { APIDAORefFieldParamsVOStatic } from './vos/APIDAORefFieldParamsVO';
 import APIDAORefFieldsAndFieldsStringParamsVO, { APIDAORefFieldsAndFieldsStringParamsVOStatic } from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import APIDAORefFieldsParamsVO, { APIDAORefFieldsParamsVOStatic } from './vos/APIDAORefFieldsParamsVO';
+import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 
 export default class ModuleDAO extends Module {
@@ -251,7 +252,7 @@ export default class ModuleDAO extends Module {
                 return true;
             });
 
-    public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
+    public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string, limit?: number, offset?: number) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
 
     private constructor() {
 
@@ -389,11 +390,11 @@ export default class ModuleDAO extends Module {
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
             APIDAOParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, IDistantVOBase[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS,
-            (API_TYPE_ID: StringParamVO) => [API_TYPE_ID.text],
-            StringParamVOStatic
+            (API_TYPE_ID: APIDAOTypeLimitOffsetVO) => [API_TYPE_ID.API_TYPE_ID],
+            APIDAOTypeLimitOffsetVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, string>(

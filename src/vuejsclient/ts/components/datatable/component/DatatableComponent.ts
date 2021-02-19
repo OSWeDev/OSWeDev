@@ -215,6 +215,9 @@ export default class DatatableComponent extends VueComponentBase {
                                 this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true));
                             }
                             continue;
+
+                        case ModuleTableField.FIELD_TYPE_tstz_array:
+                        // TODO ?
                     }
                 }
 
@@ -442,6 +445,8 @@ export default class DatatableComponent extends VueComponentBase {
                         res.push(field);
                         break;
 
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    //TODO ?
                     default:
                 }
 
@@ -475,6 +480,8 @@ export default class DatatableComponent extends VueComponentBase {
                         res.push(field);
                         break;
 
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    //TODO ?
                     default:
                 }
 
@@ -509,6 +516,9 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_html_array:
+
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                        //TODO ?
                         continue;
                 }
             }
@@ -723,6 +733,9 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
+
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    //TODO ?
                     default:
                         this.changeTextFilterValue(field.datatable_field_uid);
                 }
@@ -1330,6 +1343,8 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
                                     return false;
 
+                                case ModuleTableField.FIELD_TYPE_tstz_array:
+                                //TODO ?
                                 default:
                                     if (!query) {
                                         return true;

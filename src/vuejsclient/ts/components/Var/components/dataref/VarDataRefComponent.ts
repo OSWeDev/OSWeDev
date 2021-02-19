@@ -127,7 +127,9 @@ export default class VarDataRefComponent extends VueComponentBase {
         // On va enregistrer un cb qui attend le retour de validation de prise en compte de la nouvelle valeur importée
         let cb = () => {
             // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
-            VarsClientController.getInstance().inline_editing_cb();
+            if (VarsClientController.getInstance().inline_editing_cb) {
+                VarsClientController.getInstance().inline_editing_cb();
+            }
         };
 
         VarsClientController.getInstance().registerParams([clone], {
@@ -163,7 +165,9 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     private on_cancel_input() {
         // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
-        VarsClientController.getInstance().inline_editing_cb();
+        if (VarsClientController.getInstance().inline_editing_cb) {
+            VarsClientController.getInstance().inline_editing_cb();
+        }
     }
 
     get editable_field() {

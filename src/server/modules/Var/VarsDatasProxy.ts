@@ -3,8 +3,11 @@ import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
@@ -14,6 +17,7 @@ import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsServerController from './VarsServerController';
 
 /**
@@ -45,7 +49,7 @@ export default class VarsDatasProxy {
      * Version liste pour prioriser les demandes
      */
     private vars_datas_buffer: VarDataBaseVO[] = [];
-    private vars_datas_buffer_indexes: { [index: string]: VarDataBaseVO } = {};
+    private vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     private semaphore_handle_buffer: boolean = false;
 
@@ -53,6 +57,10 @@ export default class VarsDatasProxy {
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_prepend_var_datas, this.prepend_var_datas.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_append_var_datas, this.append_var_datas.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, this.update_existing_buffered_older_datas.bind(this));
+    }
+
+    public has_cached_index(index: string) {
+        return !!this.vars_datas_buffer_wrapped_indexes[index];
     }
 
     public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
@@ -66,6 +74,8 @@ export default class VarsDatasProxy {
                     notifyable_vars.push(vardata);
                 }
             });
+            // On insère quand même dans le cache par ce qu'on veut stocker l'info du read
+            VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
         }
 
         if ((!varsdata) || (varsdata.length != params.length)) {
@@ -99,7 +109,7 @@ export default class VarsDatasProxy {
             }
 
             // On push dans le buffer de mise à jour de la BDD
-            VarsDatasProxy.getInstance().prepend_var_datas(to_prepend);
+            VarsDatasProxy.getInstance().prepend_var_datas(to_prepend, false);
         }
     }
 
@@ -117,7 +127,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        var_datas = await this.filter_var_datas_by_indexes(var_datas, false);
+        var_datas = await this.filter_var_datas_by_indexes(var_datas, false, false, false);
     }
 
     /**
@@ -126,7 +136,7 @@ export default class VarsDatasProxy {
      *  Principalement pour le cas d'une demande du navigateur client, on veut répondre ASAP
      *  et si on doit ajuster le calcul on renverra l'info plus tard
      */
-    public async prepend_var_datas(var_datas: VarDataBaseVO[]) {
+    public async prepend_var_datas(var_datas: VarDataBaseVO[], does_not_need_insert_or_update: boolean) {
         if ((!var_datas) || (!var_datas.length)) {
             return;
         }
@@ -135,7 +145,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        var_datas = await this.filter_var_datas_by_indexes(var_datas, true);
+        var_datas = await this.filter_var_datas_by_indexes(var_datas, true, false, does_not_need_insert_or_update);
 
         if ((!var_datas) || (!var_datas.length)) {
             return;
@@ -158,37 +168,47 @@ export default class VarsDatasProxy {
         }
         this.semaphore_handle_buffer = true;
 
-        // let handled: VarDataBaseVO[] = [];
-        // if (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.vars_datas_buffer_indexes)) {
-        //     this.debug('start:handle_buffer:');
-        // }
-
-        let vars_datas_buffer_copy = Array.from(this.vars_datas_buffer);
+        let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
         let self = this;
         let promises = [];
 
-        let i = 0;
-        while (i < vars_datas_buffer_copy.length) {
+        for (let i in indexes) {
+            let index = indexes[i];
+            let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+            let handle_var = wrapper.var_data;
 
-            let handle_var = vars_datas_buffer_copy[i];
             // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage => surtout pas sinon on tourne en boucle
             if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
                 // break;
-                i++;
+                continue;
+            }
+
+            // Si on a pas de modif à gérer et que le dernier accès date, on nettoie
+            if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && wrapper.last_insert_or_update.isBefore(moment().utc(true).add(-5, 'minute')))) {
+                this.vars_datas_buffer.splice(this.vars_datas_buffer.findIndex((e) => e.index == index), 1);
+                delete this.vars_datas_buffer_wrapped_indexes[index];
+                continue;
+            }
+
+            // Si on a pas de modif à gérer && (pas assez de read à mettre à jour en base ou pas assez anciens) on ignore
+            if (
+                (!wrapper.needs_insert_or_update) &&
+                (!(
+                    (wrapper.nb_reads_since_last_insert_or_update >= 10) ||
+                    (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || wrapper.last_insert_or_update.isBefore(moment().utc(true).add(-2, 'minute'))))))) {
                 continue;
             }
 
             /**
              * On fait des packs de 10 promises...
              */
-            if (promises.length >= 10) {
+            if (promises.length >= 50) {
                 await Promise.all(promises);
                 promises = [];
             }
 
             promises.push((async () => {
-                // ConsoleHandler.getInstance().log('REMOVETHIS:handle_buffer:' + handle_var.index + ':');
-                // handled.push(handle_var);
+
                 let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
                 if ((!res) || (!res.id)) {
                     ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
@@ -207,54 +227,28 @@ export default class VarsDatasProxy {
                     }
                 }
 
-                let index_to_delete: number = -1;
-                for (let buffered_i in self.vars_datas_buffer) {
+                wrapper.nb_reads_since_last_insert_or_update = 0;
+                wrapper.needs_insert_or_update = false;
+                wrapper.last_insert_or_update = moment().utc(true);
 
-                    if (self.vars_datas_buffer[buffered_i].index == handle_var.index) {
-                        index_to_delete = parseInt(buffered_i.toString());
-                        break;
-                    }
-                }
+                // let index_to_delete: number = -1;
+                // for (let buffered_i in self.vars_datas_buffer) {
 
-                // if (handle_var.index == '50_[[-9007199254740991,9007199254740992)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
-                //     ConsoleHandler.getInstance().log('WTF');
-                // }
-                // ConsoleHandler.getInstance().log('delete self.vars_datas_buffer_indexes:' + handle_var.index + ':' + index_to_delete);
-                // let index_data = self.vars_datas_buffer_indexes['50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]'];
-                // let has_index = !!index_data;
-                // let buffered_data = self.vars_datas_buffer.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]');
-                // let has_data = !!buffered_data;
-                // if (handle_var.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
-                //     self.debug('before:splice');
-                // }
-                self.vars_datas_buffer.splice(index_to_delete, 1);
-                // if (handle_var.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
-                //     self.debug('before:delete');
-                // }
-                delete self.vars_datas_buffer_indexes[handle_var.index];
-                // if (handle_var.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
-                //     self.debug('after');
+                //     if (self.vars_datas_buffer[buffered_i].index == handle_var.index) {
+                //         index_to_delete = parseInt(buffered_i.toString());
+                //         break;
+                //     }
                 // }
 
-                // let _index_data = self.vars_datas_buffer_indexes['50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]'];
-                // let _has_index = !!_index_data;
-                // let _buffered_data = self.vars_datas_buffer.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]');
-                // let _has_data = !!_buffered_data;
-
-                // if (has_index && _has_index && has_data && !_has_data) {
-                //     ConsoleHandler.getInstance().error('handle_var:index:' + handle_var.index);
-                // }
+                // self.vars_datas_buffer.splice(index_to_delete, 1);
+                // delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
             })());
-            i++;
         }
 
         if (promises.length) {
             await Promise.all(promises);
         }
 
-        // if (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.vars_datas_buffer_indexes)) {
-        //     this.debug('end:handle_buffer:');
-        // }
         this.semaphore_handle_buffer = false;
     }
 
@@ -263,20 +257,27 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
-        if (this.vars_datas_buffer_indexes[var_data.index]) {
-            return this.vars_datas_buffer_indexes[var_data.index] as T;
+        if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
+
+            // TODO On stocke l'info de l'accès
+            let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
+            this.add_read_stat(wrapper);
+            return wrapper.var_data as T;
         }
 
         if (var_data.id) {
             let e = await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
-            await this.filter_var_datas_by_indexes([e], false);
-            return e;
+
+            if (e) {
+                await this.filter_var_datas_by_indexes([e], false, false, true);
+                return e;
+            }
         }
 
         let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
 
         if (res && res.length) {
-            await this.filter_var_datas_by_indexes([res[0]], false);
+            await this.filter_var_datas_by_indexes([res[0]], false, false, true);
             return res[0];
         }
         return null;
@@ -299,8 +300,12 @@ export default class VarsDatasProxy {
             }
 
             let e = null;
-            if (this.vars_datas_buffer_indexes[var_data.index]) {
-                e = this.vars_datas_buffer_indexes[var_data.index] as T;
+            if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
+
+                // Stocker l'info de lecture
+                let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
+                this.add_read_stat(wrapper);
+                e = wrapper.var_data as T;
             }
 
             if (e) {
@@ -349,7 +354,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        await this.filter_var_datas_by_indexes(var_datas, false, true);
+        await this.filter_var_datas_by_indexes(var_datas, false, true, false);
     }
 
     /**
@@ -378,7 +383,7 @@ export default class VarsDatasProxy {
         for (let i in this.vars_datas_buffer) {
 
             // ajout cas spécifique isolement d'une var trop gourmande
-            if ((estimated_ms >= client_request_estimated_ms_limit) && ((nb_vars >= client_request_min_nb_vars) || (nb_vars == 1))) {
+            if ((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) {
                 ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
                 return res;
             }
@@ -389,10 +394,10 @@ export default class VarsDatasProxy {
 
                 let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
                     * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
-                // cas spécifique isolement d'une var trop gourmande
-                if ((estimated_ms_var > bg_estimated_ms_limit) && (nb_vars > 0)) {
-                    continue;
-                }
+                // // cas spécifique isolement d'une var trop gourmande
+                // if ((estimated_ms_var > client_request_estimated_ms_limit) && (nb_vars > 0) && (nb_vars < client_request_min_nb_vars)) {
+                //     continue;
+                // }
 
                 nb_vars += res[var_data.index] ? 0 : 1;
                 res[var_data.index] = var_data;
@@ -425,9 +430,9 @@ export default class VarsDatasProxy {
              *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
              *  des ids reste relativement dense)...
              */
-            if (!!this.vars_datas_buffer_indexes[bdd_data.index]) {
-                let buffered = this.vars_datas_buffer_indexes[bdd_data.index];
-                if (VarsServerController.getInstance().has_valid_value(buffered)) {
+            if (!!this.vars_datas_buffer_wrapped_indexes[bdd_data.index]) {
+                let buffered = this.vars_datas_buffer_wrapped_indexes[bdd_data.index];
+                if (VarsServerController.getInstance().has_valid_value(buffered.var_data)) {
                     continue;
                 }
             }
@@ -439,7 +444,7 @@ export default class VarsDatasProxy {
          * Si on fait les calculs depuis la Bdd, on mets les vardats dans la pile de mise en cache
          */
         if (bdd_datas && ObjectHandler.getInstance().hasAtLeastOneAttribute(bdd_datas)) {
-            await this.prepend_var_datas(Object.values(bdd_datas));
+            await this.prepend_var_datas(Object.values(bdd_datas), true);
         }
 
         if (params.bg_nb_vars) {
@@ -450,6 +455,7 @@ export default class VarsDatasProxy {
 
     /**
      * On récupère des packets max de 500 vars, et si besoin on en récupèrera d'autres pour remplir le temps limit
+     * -- 02/21 Changement méthode on parcours l'arbre des var controller en commençant par le bas pour remonter depuis les DS vers les calculs
      */
     private async get_vars_to_compute_from_bdd(
         params: {
@@ -461,33 +467,21 @@ export default class VarsDatasProxy {
 
         let vars_datas: { [index: string]: VarDataBaseVO } = {};
 
-        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+        for (let i in VarsServerController.getInstance().varcontrollers_dag.leafs) {
+            let leaf = VarsServerController.getInstance().varcontrollers_dag.leafs[i];
 
-            // ajout cas spécifique isolement d'une var trop gourmande
-            if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars == 1))) {
-                return vars_datas;
-            }
+            await DAGController.getInstance().visit_bottom_up_from_node(leaf, async (Ny: VarCtrlDAGNode) => {
 
-            let varcacheconf_by_var_ids = VarsServerController.getInstance().varcacheconf_by_api_type_ids[api_type_id];
-            let may_have_more_datas: boolean = true;
-            let limit: number = 500;
-            let offset: number = 0;
+                let may_have_more_datas: boolean = true;
+                let limit: number = 500;
+                let offset: number = 0;
 
-            while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || ((params.bg_nb_vars < params.bg_min_nb_vars) && (params.bg_nb_vars != 1)))) {
-                may_have_more_datas = false;
+                while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
+                    may_have_more_datas = false;
 
-                let condition = '(';
-                let first: boolean = true;
+                    let condition = '';
 
-                for (let var_id in varcacheconf_by_var_ids) {
-                    let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
-
-                    if (!first) {
-                        condition += ' OR (';
-                    } else {
-                        condition += '(';
-                    }
-                    first = false;
+                    let varcacheconf: VarCacheConfVO = Ny.var_controller.var_cache_conf;
 
                     if (!!varcacheconf.cache_timeout_ms) {
                         let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
@@ -496,43 +490,46 @@ export default class VarsDatasProxy {
                         condition += 'var_id = ' + varcacheconf.var_id + ' and value_ts is null';
                     }
 
-                    condition += ')';
-                }
-                condition += ')';
+                    condition += ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ' limit ' + limit + ' offset ' + offset + ';';
+                    offset += limit;
 
-                condition += ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ' limit ' + limit + ' offset ' + offset + ';';
-                offset += limit;
+                    // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
+                    //  Attention les données importées ne doivent pas être remises en question
+                    let vars_datas_tmp: VarDataBaseVO[] = [];
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(Ny.var_controller.varConf.var_data_vo_type, ' where ' + condition);
+                    may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
 
-                // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
-                //  Attention les données importées ne doivent pas être remises en question
-                let vars_datas_tmp: VarDataBaseVO[] = [];
-                vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' + condition);
-                may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
+                    for (let vars_datas_tmp_i in vars_datas_tmp) {
+                        if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                            return;
+                        }
 
-                for (let vars_datas_tmp_i in vars_datas_tmp) {
-                    if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
-                        return vars_datas;
+                        let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
+
+                        // Si la data est déjà dans le cache on doit surtout pas la prendre en compte à ce stade, car ça veut dire qu'on a peut-etre juste pas encore mis la bdd à jour
+                        if (this.vars_datas_buffer_wrapped_indexes[var_data_tmp.index]) {
+                            continue;
+                        }
+
+                        let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
+                            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
+
+                        params.bg_estimated_ms += estimated_ms_var;
+                        params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
+                        vars_datas[var_data_tmp.index] = var_data_tmp;
                     }
-
-                    let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
-
-                    let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
-                        * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
-                    // cas spécifique isolement d'une var trop gourmande
-                    if ((estimated_ms_var > params.bg_estimated_ms_limit) && (params.bg_nb_vars > 0)) {
-                        continue;
-                    }
-
-                    params.bg_estimated_ms += estimated_ms_var;
-                    params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
-                    vars_datas[var_data_tmp.index] = var_data_tmp;
                 }
-            }
-            if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && ((params.bg_nb_vars >= params.bg_min_nb_vars) || (params.bg_nb_vars == 1))) {
+                if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                    return;
+                }
+            }, (node: VarDAGNode) => {
+                return (params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars);
+            });
+
+            if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
                 return vars_datas;
             }
         }
-
         return vars_datas;
     }
 
@@ -543,53 +540,49 @@ export default class VarsDatasProxy {
      * On doit s'assurer par contre de pas rentrer en conflit avec un handle du buffer
      * @param var_datas
      */
-    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean = false): Promise<VarDataBaseVO[]> {
+    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
 
         while (this.semaphore_handle_buffer) {
             await ThreadHandler.getInstance().sleep(9);
         }
         this.semaphore_handle_buffer = true;
 
-        // if (var_datas.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]')) {
-        //     this.debug('start:filter_var_datas_by_indexes:');
-        // }
-
         let res: VarDataBaseVO[] = [];
         for (let i in var_datas) {
             let var_data = var_datas[i];
 
-            // if (var_data.index == '50_[[-9007199254740991,9007199254740992)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]') {
-            //     ConsoleHandler.getInstance().error('filter_var_datas_by_indexes:INDEX CHELOU');
-            // }
+            if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
-            if (this.vars_datas_buffer_indexes[var_data.index]) {
+                let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
 
                 /**
                  * Si ça existe déjà dans la liste d'attente on l'ajoute pas mais on met à jour pour intégrer les calculs faits le cas échéant
+                 *  Si on vide le value_ts on prend la modif aussi ça veut dire qu'on invalide la valeur en cache
                  */
-                if ((!!var_data.value_ts) && ((!this.vars_datas_buffer_indexes[var_data.index].value_ts) ||
-                    (var_data.value_ts && (this.vars_datas_buffer_indexes[var_data.index].value_ts.unix() < var_data.value_ts.unix())))) {
+                if ((!var_data.value_ts) || ((!!var_data.value_ts) && ((!wrapper.var_data.value_ts) ||
+                    (var_data.value_ts && (wrapper.var_data.value_ts.unix() < var_data.value_ts.unix()))))) {
 
                     // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
-                    if ((!var_data.id) && (this.vars_datas_buffer_indexes[var_data.index].id)) {
-                        var_data.id = this.vars_datas_buffer_indexes[var_data.index].id;
+                    if ((!var_data.id) && (wrapper.var_data.id)) {
+                        var_data.id = wrapper.var_data.id;
                     }
 
-                    let not_found = true;
-                    for (let buffered_i in this.vars_datas_buffer) {
+                    // FIXME On devrait checker les champs pour voir si il y a une différence non ?
+                    wrapper.needs_insert_or_update = !just_been_loaded_from_db;
 
-                        if (this.vars_datas_buffer[buffered_i].index == var_data.index) {
-                            this.vars_datas_buffer[buffered_i] = var_data;
-                            not_found = false;
-                            break;
-                        }
+                    // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
+                    if (just_been_loaded_from_db) {
+                        wrapper.last_insert_or_update = moment().utc(true);
                     }
-
-                    // if (not_found) {
-                    //     ConsoleHandler.getInstance().error('filter_var_datas_by_indexes:did not find:' + var_data.index);
-                    // }
-                    this.vars_datas_buffer_indexes[var_data.index] = var_data;
+                    wrapper.var_data = var_data;
+                    this.add_read_stat(wrapper);
+                    this.vars_datas_buffer[this.vars_datas_buffer.findIndex((e) => e.index == var_data.index)] = var_data;
                     // On push pas puisque c'était déjà en attente d'action
+
+                    // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
+                    if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                        VarsdatasComputerBGThread.getInstance().work();
+                    }
                 }
                 continue;
             }
@@ -598,8 +591,14 @@ export default class VarsDatasProxy {
                 continue;
             }
 
-            this.vars_datas_buffer_indexes[var_data.index] = var_data;
+            this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, !just_been_loaded_from_db, 0);
+            this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
             res.push(var_data);
+
+            // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
+            if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                VarsdatasComputerBGThread.getInstance().work();
+            }
         }
 
         if ((!donot_insert_if_absent) && res && res.length) {
@@ -611,22 +610,19 @@ export default class VarsDatasProxy {
             }
         }
 
-        // TODO FIXME REMOVE DEBUG
-        // if (var_datas.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]')) {
-        //     this.debug('end:filter_var_datas_by_indexes:');
-        // }
-
         this.semaphore_handle_buffer = false;
 
         return res;
     }
 
-    // // TODO FIXME REMOVE DEBUG
-    // private debug(from: string) {
-    //     let index_data = this.vars_datas_buffer_indexes['50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]'];
-    //     let has_index = !!index_data;
-    //     let buffered_data = this.vars_datas_buffer.find((e) => e.index == '50_[[1,2)]_[[3604,3605)]_[[1609459200000,1612137600000)]_[[1,2),[2,3),[3,4)]_[[2,3)]_[[1,2),[2,3)]_[[1,2),[2,3)]');
-    //     let has_data = !!buffered_data;
-    //     ConsoleHandler.getInstance().log('TODO FIXME REMOVE DEBUG:' + from + ':has_index:' + has_index + ':buffered_data == indexed_data:' + (buffered_data == index_data) + ':has_data:' + has_data + ':');
-    // }
+    private add_read_stat(var_data_wrapper: VarDataProxyWrapperVO<VarDataBaseVO>) {
+        var_data_wrapper.nb_reads_since_last_insert_or_update++;
+        if (!var_data_wrapper.var_data.last_reads_ts) {
+            var_data_wrapper.var_data.last_reads_ts = [];
+        }
+        var_data_wrapper.var_data.last_reads_ts.push(moment().utc(true));
+        if (var_data_wrapper.var_data.last_reads_ts.length > 20) {
+            var_data_wrapper.var_data.last_reads_ts.shift();
+        }
+    }
 }

@@ -16,7 +16,7 @@ include ../../../views/mixins/loading.pug
                             th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
                             th  {{ label('checklist.archive') }}
                     tbody
-                        tr(v-for='checklist_item in checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
+                        tr(v-for='checklist_item in ordered_checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
                             :checklist_item='checklist_item' 
                             :checklist_controller='checklist_controller'
                             :ordered_checkpoints='ordered_checkpoints' 

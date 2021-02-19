@@ -3,6 +3,10 @@ import DefaultTranslation from '../../../../shared/modules/Translation/vos/Defau
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import DataSourceControllerBase from './DataSourceControllerBase';
 import VarsController from '../../../../shared/modules/Var/VarsController';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { createWriteStream } from 'fs';
+import ConfigurationService from '../../../env/ConfigurationService';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 
 export default class DataSourcesController {
 
@@ -21,6 +25,9 @@ export default class DataSourcesController {
 
     public registeredDataSourcesController: { [name: string]: DataSourceControllerBase } = {};
     public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: DataSourceControllerBase[] } = {};
+
+    private is_first_log: boolean = true;
+
     /**
      * ----- Local thread cache
      */
@@ -42,9 +49,23 @@ export default class DataSourcesController {
             }
 
             // TODO FIXME promises.length
-            if (promises.length >= 10) {
+            if (promises.length >= 50) {
                 await Promise.all(promises);
                 promises = [];
+            }
+
+            // TODO FIXME ne pas livrer !!!
+            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+
+                let logger = (!this.is_first_log) ?
+                    createWriteStream('log.txt', {
+                        flags: 'a' // 'a' means appending (old data will be preserved)
+                    }) :
+                    createWriteStream('log.txt');
+                this.is_first_log = false;
+
+                logger.write(node.var_data.index + ':' + ds.name + ':' + (ObjectHandler.getInstance().hasAtLeastOneAttribute(ds_cache[ds.name]) ? 'has_cache' : 'no_cache') + '\n'); // append string to your file
+                logger.close();
             }
 
             promises.push(ds.load_node_data(node, ds_cache[ds.name]));

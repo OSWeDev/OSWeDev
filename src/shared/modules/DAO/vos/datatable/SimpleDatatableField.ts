@@ -201,6 +201,32 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).utc(true).format('Y-MM-DD');
                     }
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    let res_tstz_array = '';
+
+                    for (let i in field_value) {
+                        let fv = field_value[i];
+
+                        if (res_tstz_array != '') {
+                            res_tstz_array += ', ';
+                        }
+
+                        switch (moduleTableField.segmentation_type) {
+                            case TimeSegment.TYPE_MONTH:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).startOf('month').utc(true).format('Y-MM-DD');
+                            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).startOf('day').utc(true).format('Y-MM-DD');
+                            case TimeSegment.TYPE_WEEK:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).startOf('isoWeek').utc(true).format('Y-MM-DD');
+                            case TimeSegment.TYPE_YEAR:
+                                res_tstz_array += fv.year();
+                            case TimeSegment.TYPE_DAY:
+                            default:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).utc(true).format('Y-MM-DD');
+                        }
+                    }
+                    return res_tstz_array;
+
                 case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
@@ -252,6 +278,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_tstz_array:
                 case ModuleTableField.FIELD_TYPE_tstz:
                     return field_value;
 
@@ -354,6 +381,30 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                         default:
                             return value ? this.getMomentDateFieldInclusif(moment(value).utc(true), moduleTableField, false) : null;
                     }
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    let res_tstz_array = [];
+
+                    for (let i in value) {
+                        let v = value[i];
+
+                        switch (moduleTableField.segmentation_type) {
+                            case TimeSegment.TYPE_MONTH:
+                                res_tstz_array.push(v ? moment(v).startOf('month').utc(true) : null);
+                            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('day').utc(true), moduleTableField, false) : null);
+                            case TimeSegment.TYPE_WEEK:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('isoWeek').utc(true), moduleTableField, false) : null);
+                            case TimeSegment.TYPE_YEAR:
+                                res_tstz_array.push(moment().year(parseInt(v)).startOf('year').utc(true));
+                            case TimeSegment.TYPE_DAY:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('day').utc(true), moduleTableField, false) : null);
+                            default:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).utc(true), moduleTableField, false) : null);
+                        }
+                    }
+
+                    return res_tstz_array;
 
                 case ModuleTableField.FIELD_TYPE_textarea:
                 default:
