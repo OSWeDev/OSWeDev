@@ -16,6 +16,9 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @Prop()
     private item: ISupervisedItem;
 
+    @Prop({ default: false })
+    private noclick: boolean;
+
     get state_classname(): string {
         if (!this.item) {
             return "STATE_UNKNOWN";

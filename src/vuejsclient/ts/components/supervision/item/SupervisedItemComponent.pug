@@ -2,7 +2,7 @@
     template(v-if='!!supervised_item')
         .row
             .col-md-7.supervised_item_header
-                Supervisiondashboarditemcomponent(:item='supervised_item' :switch_paused='switch_paused')
+                Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true')
 
         .row
             .col-md-4.supervised_item_graph
