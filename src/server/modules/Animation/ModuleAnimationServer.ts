@@ -9,15 +9,14 @@ import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import AnimationModuleParamVO from '../../../shared/modules/Animation/params/AnimationModuleParamVO';
 import AnimationParamVO from '../../../shared/modules/Animation/params/AnimationParamVO';
 import AnimationReportingParamVO from '../../../shared/modules/Animation/params/AnimationReportingParamVO';
-import ThemeModuleDataParamRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
-import VarDayPrctReussiteAnimationController from '../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
+import ThemeModuleDataRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationModuleVO from '../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationParametersVO from '../../../shared/modules/Animation/vos/AnimationParametersVO';
 import AnimationQRVO from '../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationThemeVO from '../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
@@ -27,9 +26,6 @@ import ModuleTranslation from '../../../shared/modules/Translation/ModuleTransla
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import SimpleNumberVarDataController from '../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -37,11 +33,17 @@ import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
 import AnimationReportingExportHandler from './exports/AnimationReportingExportHandler';
+import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
+import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
+import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
+import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
 
 export default class ModuleAnimationServer extends ModuleServerBase {
 
@@ -59,11 +61,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
     }
 
     /**
@@ -134,12 +136,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     public async configure() {
+        await this.configure_vars();
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
 
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
         await this.initializeTranslations();
     }
@@ -309,15 +312,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         if (!res.end_date) {
             res.end_date = moment().utc(true);
-            res.prct_reussite = SimpleNumberVarDataController.getInstance().getValueOrDefault(
-                await VarsController.getInstance().registerDataParamAndReturnVarData(ThemeModuleDataParamRangesVO.createNew(
-                    VarDayPrctReussiteAnimationController.getInstance().varConf.id,
-                    null,
-                    [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
-                    [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)],
-                ), true, true) as ISimpleNumberVarData,
-                0
-            );
+            let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
+                VarDayPrctReussiteAnimationController.getInstance().varConf.name,
+                false,
+                [RangeHandler.getInstance().getMaxNumRange()],
+                [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
+                [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
+            ));
+            res.prct_reussite = (data && data.value) ? data.value : 0;
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
@@ -601,5 +603,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Activer mode édition' }, 'animation.inline_input_mode.off.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Désactiver mode édition' }, 'animation.inline_input_mode.on.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Total' }, 'animation.reporting.total.___LABEL___'));
+    }
+
+    private async configure_vars() {
+        await VarDayPrctAvancementAnimationController.getInstance().initialize();
+        await VarDayPrctReussiteAnimationController.getInstance().initialize();
+        await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
+        await VarDayTempsPasseAnimationController.getInstance().initialize();
     }
 }

@@ -2,29 +2,25 @@ import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAnimation from '../../../../shared/modules/Animation/ModuleAnimation';
 import AnimationReportingParamVO from '../../../../shared/modules/Animation/params/AnimationReportingParamVO';
-import ThemeModuleDataParamRangesVO from '../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
-import VarDayPrctReussiteAnimationController from '../../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
-import VarDayTempsPasseAnimationController from '../../../../shared/modules/Animation/vars/VarDayTempsPasseAnimationController';
+import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationModuleVO from '../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationThemeVO from '../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
-import APIController from '../../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
-import ISimpleNumberVarData from '../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import SimpleNumberVarDataController from '../../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController';
-import VarsController from '../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { hourFilter, percentFilter } from '../../../../shared/tools/Filters';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import ThreadHandler from '../../../../shared/tools/ThreadHandler';
 import ExportHandlerBase from '../../DataExport/ExportHandlerBase';
 import IExportableDatas from '../../DataExport/interfaces/IExportableDatas';
-import VarsdatasComputerBGThread from '../../Var/bgthreads/VarsdatasComputerBGThread';
+import VarsServerCallBackSubsController from '../../Var/VarsServerCallBackSubsController';
+import VarDayPrctReussiteAnimationController from '../vars/VarDayPrctReussiteAnimationController';
+import VarDayTempsPasseAnimationController from '../vars/VarDayTempsPasseAnimationController';
 import ExportAnimationReportingLine from './ExportAnimationReportingLine';
 
 export default class AnimationReportingExportHandler extends ExportHandlerBase {
@@ -67,7 +63,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         }
 
         let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
-        let import_params: AnimationReportingParamVO = APIController.getInstance().try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
+        let import_params: AnimationReportingParamVO = APIControllerWrapper.getInstance().try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
         let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID));
         let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID));
@@ -154,9 +150,6 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByIds<RoleVO>(RoleVO.API_TYPE_ID, role_ids));
         }
 
-        VarsdatasComputerBGThread.getInstance().disable();
-        await ThreadHandler.getInstance().sleep(1000);
-
         // Si on a plus de 1 aums, on calcul le total
         if (aums.length > 1) {
             ConsoleHandler.getInstance().log('AnimationReportingExportHandler:export_total');
@@ -188,8 +181,6 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             }
         }
 
-        VarsdatasComputerBGThread.getInstance().enable();
-
         return res;
     }
 
@@ -208,19 +199,13 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.utilisateur = user_id_ranges ? user_id_ranges.length.toString() : null;
         res.debut = null;
         res.fin = this.filterValue('fin', percent_module_finished);
-        res.temps_passe = this.filterValue('temps_passe', SimpleNumberVarDataController.getInstance().getValueOrDefault(
-            await VarsController.getInstance().registerDataParamAndReturnVarData(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), true, false) as ISimpleNumberVarData,
-            null
-        ));
+        let data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+        res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
         res.feedback = null;
         res.commentaire = null;
         res.support = null;
-        res.prct_reussite = this.filterValue('prct_reussite', SimpleNumberVarDataController.getInstance().getValueOrDefault(
-            await VarsController.getInstance().registerDataParamAndReturnVarData(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), true, false) as ISimpleNumberVarData,
-            null
-        ));
-
-        VarsController.getInstance().clean_caches_and_vardag();
+        data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+        res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
 
         return res;
     }
@@ -259,35 +244,31 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.utilisateur = all_user_by_ids[aum.user_id] ? all_user_by_ids[aum.user_id].name : null;
         res.debut = aum.start_date ? aum.start_date.format('DD/MM/YYYY HH:mm') : null;
         res.fin = aum.end_date ? aum.end_date.format('DD/MM/YYYY HH:mm') : null;
-        res.temps_passe = this.filterValue('temps_passe', SimpleNumberVarDataController.getInstance().getValueOrDefault(
-            await VarsController.getInstance().registerDataParamAndReturnVarData(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges), true, false) as ISimpleNumberVarData,
-            null
-        ));
+        let data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges));
+        res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
         res.feedback = (aum.like_vote != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.LIKE_VOTE_LABELS[aum.like_vote], user.lang_id) : null;
         res.commentaire = aum.commentaire;
         res.support = (aum.support != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.SUPPORT_LABELS[aum.support], user.lang_id) : null;
-        res.prct_reussite = this.filterValue('prct_reussite', SimpleNumberVarDataController.getInstance().getValueOrDefault(
-            await VarsController.getInstance().registerDataParamAndReturnVarData(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges), true, false) as ISimpleNumberVarData,
-            null
-        ));
-
-        VarsController.getInstance().clean_caches_and_vardag();
+        data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges));
+        res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
 
         return res;
     }
 
-    private get_DayPrctReussiteAnimation_param(anim_theme_id_ranges: NumRange[], anim_module_id_ranges: NumRange[], user_id_ranges: NumRange[]): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctReussiteAnimationController.getInstance().varConf.id,
+    private get_DayPrctReussiteAnimation_param(anim_theme_id_ranges: NumRange[], anim_module_id_ranges: NumRange[], user_id_ranges: NumRange[]): ThemeModuleDataRangesVO {
+        return ThemeModuleDataRangesVO.createNew(
+            VarDayPrctReussiteAnimationController.getInstance().varConf.name,
+            true,
             anim_theme_id_ranges,
             anim_module_id_ranges,
             user_id_ranges,
         );
     }
 
-    private get_DayTempsPasseAnimation_param(anim_theme_id_ranges: NumRange[], anim_module_id_ranges: NumRange[], user_id_ranges: NumRange[]): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayTempsPasseAnimationController.getInstance().varConf.id,
+    private get_DayTempsPasseAnimation_param(anim_theme_id_ranges: NumRange[], anim_module_id_ranges: NumRange[], user_id_ranges: NumRange[]): ThemeModuleDataRangesVO {
+        return ThemeModuleDataRangesVO.createNew(
+            VarDayTempsPasseAnimationController.getInstance().varConf.name,
+            true,
             anim_theme_id_ranges,
             anim_module_id_ranges,
             user_id_ranges,

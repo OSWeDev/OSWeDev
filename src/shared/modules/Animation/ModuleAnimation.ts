@@ -2,7 +2,6 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
-import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
@@ -15,7 +14,6 @@ import ModuleTableField from '../ModuleTableField';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import VarsInitController from '../Var/VarsInitController';
 import VOsTypesManager from '../VOsTypesManager';
-import AnimationController from './AnimationController';
 import MessageModuleTableFieldTypeController from './fields/message_module/MessageModuleTableFieldTypeController';
 import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessageModuleVO';
 import ReponseTableFieldTypeController from './fields/reponse/ReponseTableFieldTypeController';
@@ -24,10 +22,6 @@ import AnimationModuleParamVO, { AnimationModuleParamVOStatic } from './params/A
 import AnimationParamVO, { AnimationParamVOStatic } from './params/AnimationParamVO';
 import AnimationReportingParamVO, { AnimationReportingParamVOStatic } from './params/AnimationReportingParamVO';
 import ThemeModuleDataRangesVO from './params/theme_module/ThemeModuleDataRangesVO';
-import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
-import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
-import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
-import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
 import AnimationModuleVO from './vos/AnimationModuleVO';
 import AnimationParametersVO from './vos/AnimationParametersVO';
 import AnimationQRVO from './vos/AnimationQRVO';
@@ -89,16 +83,6 @@ export default class ModuleAnimation extends Module {
         this.initializeAnimationUserModuleVO();
         this.initializeAnimationUserQRVO();
         this.initializeThemeModuleDataRangesVO();
-    }
-
-    public async hook_module_async_client_admin_initialization(): Promise<any> {
-        await this.configure_vars();
-        return true;
-    }
-
-    public async hook_module_configure(): Promise<boolean> {
-        await this.configure_vars();
-        return true;
     }
 
     public registerApis() {
@@ -293,12 +277,5 @@ export default class ModuleAnimation extends Module {
         ];
 
         VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields);
-    }
-
-    private async configure_vars() {
-        await VarDayPrctAvancementAnimationController.getInstance().initialize();
-        await VarDayPrctReussiteAnimationController.getInstance().initialize();
-        await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
-        await VarDayTempsPasseAnimationController.getInstance().initialize();
     }
 }

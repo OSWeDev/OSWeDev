@@ -1,22 +1,21 @@
-import TimeSegment from '../../DataRender/vos/TimeSegment';
-import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
-import VarDAG from '../../Var/graph/var/VarDAG';
-import VarDAGNode from '../../Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
-import SimpleVarConfVO from '../../Var/simple_vars/SimpleVarConfVO';
-import VarControllerBase from '../../Var/VarControllerBase';
-import AnimationController from '../AnimationController';
+import AnimationController from '../../../../shared/modules/Animation/AnimationController';
+import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
+import AnimationQRVO from '../../../../shared/modules/Animation/vos/AnimationQRVO';
+import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
+import AnimationUserQRVO from '../../../../shared/modules/Animation/vos/AnimationUserQRVO';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
+import RangeHandler from '../../../../shared/tools/RangeHandler';
+import DAOUpdateVOHolder from '../../DAO/vos/DAOUpdateVOHolder';
+import DataSourceControllerBase from '../../Var/datasource/DataSourceControllerBase';
+import VarServerControllerBase from '../../Var/VarServerControllerBase';
 import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
 import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
-import ThemeModuleDataParamRangesController from '../params/theme_module/ThemeModuleDataParamRangesController';
-import ThemeModuleDataParamRangesVO from '../params/theme_module/ThemeModuleDataParamRangesVO';
-import ThemeModuleDataRangesVO from '../params/theme_module/ThemeModuleDataRangesVO';
-import AnimationQRVO from '../vos/AnimationQRVO';
-import AnimationUserModuleVO from '../vos/AnimationUserModuleVO';
-import AnimationUserQRVO from '../vos/AnimationUserQRVO';
 
-export default class VarDayPrctReussiteAnimationController extends VarControllerBase<ThemeModuleDataRangesVO, ThemeModuleDataParamRangesVO> {
+export default class VarDayPrctReussiteAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
     public static VAR_NAME: string = 'VarDayPrctReussiteAnimationController';
 
@@ -29,68 +28,78 @@ export default class VarDayPrctReussiteAnimationController extends VarController
 
     protected static instance: VarDayPrctReussiteAnimationController = null;
 
-    public segment_type: number = TimeSegment.TYPE_DAY;
-
-    protected constructor(conf: SimpleVarConfVO = null, controller: ThemeModuleDataParamRangesController = null) {
+    protected constructor() {
         super(
-            conf ? conf : {
-                _type: SimpleVarConfVO.API_TYPE_ID,
-                id: null,
-                var_data_vo_type: ThemeModuleDataRangesVO.API_TYPE_ID,
-                name: VarDayPrctReussiteAnimationController.VAR_NAME,
-            } as SimpleVarConfVO,
-            controller ? controller : ThemeModuleDataParamRangesController.getInstance()
-        );
+            new VarConfVO(VarDayPrctReussiteAnimationController.VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            { fr: 'Prct réussite animation' },
+            {
+                fr: 'Prctage de réussite de l\'animation.'
+            },
+            {}, {});
+
+        this.optimization__has_no_imports = true;
     }
 
-    /**
-     * Returns the datasources this var depends on
-     */
-    public getDataSourcesDependencies(): Array<IDataSourceController<any, any>> {
+    public getDataSourcesDependencies(): DataSourceControllerBase[] {
         return [
             QRsRangesDatasourceController.getInstance(),
             UQRsRangesDatasourceController.getInstance(),
-            UMsRangesDatasourceController.getInstance(),
+            UMsRangesDatasourceController.getInstance()
         ];
     }
 
-    /**
-     * Returns the datasources this var depends on predeps
-     */
-    public getDataSourcesPredepsDependencies(): Array<IDataSourceController<any, any>> {
-        return [];
+    public get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): ThemeModuleDataRangesVO[] {
+
+        return [this.get_invalid_params_intersectors_from_vo(this.varConf.name, c_or_d_vo)];
     }
 
-    /**
-     * Returns the var_ids that we depend upon (or might depend)
-     * @param BATCH_UID
-     */
-    public getVarsIdsDependencies(): number[] {
-        return [];
+    public get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): ThemeModuleDataRangesVO[] {
+
+        /**
+         * Si on a pas touché aux champs utiles, on esquive la mise à jour
+         */
+        if (!this.has_changed_important_field(u_vo_holder as any)) {
+            return null;
+        }
+
+        return [
+            this.get_invalid_params_intersectors_from_vo(this.varConf.name, u_vo_holder.pre_update_vo as any),
+            this.get_invalid_params_intersectors_from_vo(this.varConf.name, u_vo_holder.post_update_vo as any)
+        ];
     }
 
+    public has_changed_important_field<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): boolean {
 
-    /**
-     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
-     * @param BATCH_UID
-     * @param param
-     */
-    public getParamDependencies(varDAGNode: VarDAGNode, varDAG: VarDAG): IVarDataParamVOBase[] {
-        return [];
+        // TODO FIXME On peut peut-etre faire mieux que ça d'un point de vue métier
+        return true;
+    }
+
+    public get_invalid_params_intersectors_from_vo<T extends IDistantVOBase>(var_name: string, vo: T): ThemeModuleDataRangesVO {
+
+        switch (vo._type) {
+            case AnimationQRVO.API_TYPE_ID:
+            case AnimationUserQRVO.API_TYPE_ID:
+            case AnimationUserModuleVO.API_TYPE_ID:
+
+                return ThemeModuleDataRangesVO.createNew(
+                    var_name,
+                    false,
+                    [RangeHandler.getInstance().getMaxNumRange()],
+                    [RangeHandler.getInstance().getMaxNumRange()],
+                    [RangeHandler.getInstance().getMaxNumRange()]
+                    // TODO FIXME Améliorer ce matroid point de vue métier
+                );
+        }
     }
 
     /**
      * Fonction qui prépare la mise à jour d'une data
      */
-    public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): ThemeModuleDataRangesVO {
+    protected getValue(varDAGNode: VarDAGNode): number {
 
-        let param: ThemeModuleDataParamRangesVO = varDAGNode.param as ThemeModuleDataParamRangesVO;
-        let res: ThemeModuleDataRangesVO = ThemeModuleDataParamRangesController.getInstance().cloneParam(param) as ThemeModuleDataRangesVO;
-        res.value = null;
-
-        let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: AnimationQRVO[] } } = QRsRangesDatasourceController.getInstance().get_data(param);
-        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = UQRsRangesDatasourceController.getInstance().get_data_by_qr_ids(param);
-        let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = UMsRangesDatasourceController.getInstance().get_data(param);
+        let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
+        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
         let cpt_ok: number = 0;
@@ -123,18 +132,14 @@ export default class VarDayPrctReussiteAnimationController extends VarController
                     }
                 }
 
-                cpt_qrs += (qrs_by_theme_module[theme_id][module_id].length * nb_user_has_finished);
+                cpt_qrs += ((qrs_by_theme_module[theme_id][module_id] ? Object.values(qrs_by_theme_module[theme_id][module_id]).length : 0) * nb_user_has_finished);
             }
         }
 
-        res.datafound = !!cpt_qrs;
-
-        if (!res.datafound) {
-            return res;
+        if (!cpt_qrs) {
+            return null;
         }
 
-        res.value = cpt_ok / cpt_qrs;
-
-        return res;
+        return cpt_ok / cpt_qrs;
     }
 }
