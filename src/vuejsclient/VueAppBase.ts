@@ -1,18 +1,11 @@
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
-import "fullcalendar-scheduler";
-import "fullcalendar-scheduler/dist/scheduler.min.css";
-import "fullcalendar/dist/fullcalendar.min.css";
-import "fullcalendar/dist/locale/de.js";
-import "fullcalendar/dist/locale/es.js";
-import "fullcalendar/dist/locale/fr.js";
 import * as moment from 'moment';
 import 'select2';
 import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueDraggableResizable from 'vue-draggable-resizable';
-import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
 import Intersect from 'vue-intersect';
 import VModal from 'vue-js-modal';
@@ -317,7 +310,6 @@ export default abstract class VueAppBase {
         Vue.use(VTooltip);
         Vue.use(Snotify);
         Vue.use(VueRouter);
-        Vue.use(FullCalendar);
         Vue.use(VueFlags, {
             iconPath: '/client/public/img/flags/',
         });
