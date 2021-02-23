@@ -1,5 +1,6 @@
 import ModuleAnimation from "../../../../shared/modules/Animation/ModuleAnimation";
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
+import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 

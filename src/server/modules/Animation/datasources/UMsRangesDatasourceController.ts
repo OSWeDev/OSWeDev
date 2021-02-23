@@ -1,6 +1,7 @@
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationUserModuleVO from "../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
+import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 

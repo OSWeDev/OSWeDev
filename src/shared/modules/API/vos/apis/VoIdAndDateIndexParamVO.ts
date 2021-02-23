@@ -1,7 +1,7 @@
 import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
 
-export default class VoIdAndDateIndexParamVO implements IAPIParamTranslator<VoIdAndDateIndexParamVO>{
+export default class VoIdAndDateIndexParamVO implements IAPIParamTranslator<VoIdAndDateIndexParamVO> {
 
     public static URL: string = ':vo_id/:date_index';
 
