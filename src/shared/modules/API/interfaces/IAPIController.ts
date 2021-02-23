@@ -6,5 +6,6 @@ export default interface IAPIController {
         sanitize_params: (...params) => any[],
         precondition: (...params) => boolean,
         precondition_default_value: any,
-        registered_apis: { [api_name: string]: APIDefinition<any, any> }): (...params) => Promise<U>;
+        registered_apis: { [api_name: string]: APIDefinition<any, any> },
+        sanitize_result: (res: any) => any): (...params) => Promise<U>;
 }

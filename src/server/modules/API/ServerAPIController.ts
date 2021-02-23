@@ -18,7 +18,9 @@ export default class ServerAPIController implements IAPIController {
         sanitize_params: (...params) => any[] = null,
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
-        registered_apis: { [api_name: string]: APIDefinition<any, any> } = {}): (...params) => Promise<U> {
+        registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
+        sanitize_result: (res: any) => any = null,
+    ): (...params) => Promise<U> {
 
         return async (...params) => {
             let apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
@@ -36,7 +38,13 @@ export default class ServerAPIController implements IAPIController {
                 return precondition_default_value;
             }
 
-            return await apiDefinition.SERVER_HANDLER(...params);
+            let res = await apiDefinition.SERVER_HANDLER(...params);
+
+            if (sanitize_result) {
+                res = sanitize_result(res);
+            }
+
+            return res;
         };
     }
 }
