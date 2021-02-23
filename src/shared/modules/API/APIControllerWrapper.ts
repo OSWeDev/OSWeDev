@@ -38,7 +38,7 @@ export default class APIControllerWrapper {
         sanitize_params: (...params) => any[] = null,
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
-        sanitize_result: (res: any) => any = null,
+        sanitize_result: (res: any, ...params) => any = null,
     ): (...params) => Promise<U> {
         return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.getInstance().registered_apis, sanitize_result);
     }
