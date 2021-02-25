@@ -626,6 +626,8 @@ export default class CRUDComponent extends VueComponentBase {
                 if (errorMsg) {
                     this.snotify.error(this.label(errorMsg));
                     this.updating_vo = false;
+                    //comme il a eut une erreur on abandonne la création
+                    this.creating_vo = false;
                     return;
                 }
             }
