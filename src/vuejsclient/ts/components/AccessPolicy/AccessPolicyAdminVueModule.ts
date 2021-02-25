@@ -11,6 +11,7 @@ import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLogVO';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import TextHandler from '../../../../shared/tools/TextHandler';
@@ -166,16 +167,17 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("invalidated"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_challenge"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
+            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("creation_date"));
         }
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
 
         crud.reset_newvo_after_each_creation = true;
-        crud.hook_prepare_new_vo_for_creation = async (vo: UserVO) => {
+        crud.hook_prepare_new_vo_for_creation = async (vo: IDistantVOBase) => {
             // On génère un mot de passe par défaut
 
-            vo.password = TextHandler.getInstance().generatePassword();
+            (vo as UserVO).password = TextHandler.getInstance().generatePassword();
         };
 
         return crud;

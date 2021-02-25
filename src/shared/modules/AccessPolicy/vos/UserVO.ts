@@ -1,6 +1,7 @@
 import { Moment } from 'moment';
+import IDistantVOBase from '../../IDistantVOBase';
 
-export default class UserVO {
+export default class UserVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "user";
 
     public static createNew(
@@ -52,6 +53,8 @@ export default class UserVO {
 
     public recovery_challenge: string;
     public recovery_expiration: Moment;
+
+    public creation_date: Moment;
 
     public lang_id: number;
 }
