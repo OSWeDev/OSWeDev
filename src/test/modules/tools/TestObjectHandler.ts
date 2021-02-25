@@ -10,13 +10,13 @@ describe('ObjectHandler', () => {
 
     it('test sortObjectByKey', () => {
         expect(ObjectHandler.getInstance().sortObjectByKey(
-            { 2: 'j', 7: 'b', 3: 'a' }, (n1, n2) => n1 < n2)
+            { 2: 'j', 7: 'b', 3: 'a' }, (n1: any, n2: any) => n1 < n2)
         ).to.deep.equal(
             { 2: "j", 3: "a", 7: "b" }
         );
 
-        expect(ObjectHandler.getInstance().sortObjectByKey(null, (n1, n2) => n1 < n2)).to.deep.equal({});
-        expect(ObjectHandler.getInstance().sortObjectByKey({ null: 1, 7: 'b', 3: 'a' }, (n1, n2) => n1 < n2)).to.deep.equal({ 3: "a", 7: "b", null: 1 });
+        expect(ObjectHandler.getInstance().sortObjectByKey(null, (n1: any, n2: any) => n1 < n2)).to.deep.equal({});
+        expect(ObjectHandler.getInstance().sortObjectByKey({ null: 1, 7: 'b', 3: 'a' }, (n1: any, n2: any) => n1 < n2)).to.deep.equal({ 3: "a", 7: "b", null: 1 });
 
     });
 
@@ -283,8 +283,8 @@ describe('ObjectHandler', () => {
             3: 'c'
         });
     });
-    it('test filterVosDateIndexesByTSRange', () => {
-    });
-    it('test filterVosDateIndexesByTSRanges', () => {
-    });
+    // it('test filterVosDateIndexesByTSRange', () => {
+    // });
+    // it('test filterVosDateIndexesByTSRanges', () => {
+    // });
 });

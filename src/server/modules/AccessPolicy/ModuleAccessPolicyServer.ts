@@ -31,10 +31,9 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import StackContext from '../../StackContext';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -1189,8 +1188,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async handleTriggerUserVOCreate(vo: UserVO): Promise<boolean> {
-
-
         if ((!vo) || (!vo.password)) {
             return true;
         }
@@ -1200,6 +1197,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+
+        // On ajoute la date de création
+        if (!vo.creation_date) {
+            vo.creation_date = moment().utc(true);
+        }
 
         return true;
     }

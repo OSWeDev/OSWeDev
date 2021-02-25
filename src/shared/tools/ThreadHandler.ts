@@ -1,3 +1,5 @@
+/* istanbul ignore file: nothing to test here */
+
 export default class ThreadHandler {
 
     public static getInstance(): ThreadHandler {

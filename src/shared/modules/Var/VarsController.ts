@@ -583,11 +583,13 @@ export default class VarsController {
         if (this.updateSemaphore) {
             return;
         }
+        this.updateSemaphore = true;
         VarsController.getInstance().varDAG.clearDAG();
         this.imported_datas_by_index = {};
         this.imported_datas_by_var_id = {};
         this.checked_var_indexes = {};
         this.loaded_imported_datas_of_vars_ids = {};
+        this.updateSemaphore = false;
     }
 
     public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): Moment {

@@ -24,11 +24,11 @@ describe('ConversionHandler', () => {
         expect(ConversionHandler.getInstance().forceNumbers([1, "2"])).to.deep.equal([1, 2]);
     });
 
-    it('test urlBase64ToUint8Array', () => {
-        expect(ConversionHandler.getInstance().urlBase64ToUint8Array(null)).to.equal(null);
-        // expect(ConversionHandler.getInstance().urlBase64ToUint8Array("2be2")).to.equal([0xd9, 0xb7, 0xb6]);
+    // it('test urlBase64ToUint8Array', () => {
+    //     expect(ConversionHandler.getInstance().urlBase64ToUint8Array(null)).to.equal(null);
+    //     // expect(ConversionHandler.getInstance().urlBase64ToUint8Array("2be2")).to.equal([0xd9, 0xb7, 0xb6]);
 
-    });
+    // });
 
 });
 

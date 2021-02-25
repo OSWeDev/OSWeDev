@@ -1,3 +1,4 @@
+import SendInBlueSmsFormatVO from "./SendInBlueSmsFormatVO";
 
 export default class SendInBlueContactVO {
 
@@ -12,7 +13,7 @@ export default class SendInBlueContactVO {
         res.email = email;
         res.lastname = lastname;
         res.firstname = firstname;
-        res.sms = sms;
+        res.sms = SendInBlueSmsFormatVO.formate(sms);
 
         return res;
     }

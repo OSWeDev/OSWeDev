@@ -46,10 +46,10 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().get_all_segmented_elements_from_range(NumRange.createNew(-2, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal([-1, 0, 1]);
     });
 
-    it('test get_all_segmented_elements_from_ranges', () => {
+    // it('test get_all_segmented_elements_from_ranges', () => {
 
-        expect(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(null)).to.equal(null);
-    });
+    //     expect(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(null)).to.equal(null);
+    // });
 
     it('test isValid', () => {
 
@@ -2143,10 +2143,14 @@ describe('TSRangeHandler', () => {
         let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
+        let numRange1Bis = NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT);
+        let numRange2Bis = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
+        let numRange3Bis = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
+
         expect(RangeHandler.getInstance().cloneArrayFrom(null)).to.equal(null);
         expect(RangeHandler.getInstance().cloneArrayFrom([numRange1])).to.deep.equal([numRange1]);
-        expect(RangeHandler.getInstance().cloneArrayFrom([numRange2])).to.deep.equal([numRange2]);
-        expect(RangeHandler.getInstance().cloneArrayFrom([numRange3])).to.deep.equal([numRange3]);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2])).to.deep.equal([numRange1Bis, numRange2Bis]);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2, numRange3])).to.deep.equal([numRange1Bis, numRange2Bis, numRange3Bis]);
     });
 
     it('test getIndex', () => {

@@ -2,6 +2,7 @@ import GeoPointVO from '../modules/GeoPoint/vos/GeoPointVO';
 
 export default class GeoPointHandler {
 
+    /* istanbul ignore next: nothing to test here */
     public static HOST_API: string = 'api-adresse.data.gouv.fr';
     public static URL_API: string = '/search/?q=';
     public static MILE_TO_KM: number = 1.60934;

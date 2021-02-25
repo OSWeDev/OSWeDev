@@ -45,4 +45,59 @@ describe('TextHandler', () => {
         expect(TextHandler.getInstance().formatTextToID("A")).to.equal("a");
         expect(TextHandler.getInstance().formatTextToID("this is a test")).to.equal("this_is_a_test");
     });
+
+    it('TextHandler: generateChallenge', () => {
+
+        let charL = TextHandler.Challenge_Cars;
+
+        // special characters of regex that needs to be escaped
+        let speChars = '^*$\\.-+|()[]{},?/';
+
+        //  the final regex that will be built
+        let chars = '';
+
+        for (let char of charL) {
+
+            // if a special character is found, add a backslash to escape it in the regex
+            if (speChars.includes(char)) {
+                chars = chars + "\\" + char;
+            } else {
+                chars += char;
+            }
+        }
+
+        let regexp = new RegExp("^[" + chars + "]{8}$");
+
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generateChallenge())).to.equal(true);
+    });
+
+    it('TextHandler: generatePassword', () => {
+        let charL = TextHandler.Password_Cars;
+        let speChars = '^*$\\.-+|()[]{},?/';
+        let chars = '';
+
+        for (let char of charL) {
+            if (speChars.includes(char)) {
+                chars = chars + "\\" + char;
+            } else {
+                chars += char;
+            }
+        }
+
+        let regexp = new RegExp("^[" + chars + "]{12}$");
+
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+        expect(regexp.test(TextHandler.getInstance().generatePassword())).to.equal(true);
+    });
 });

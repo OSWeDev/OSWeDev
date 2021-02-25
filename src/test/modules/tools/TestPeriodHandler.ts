@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import * as moment from 'moment';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import PeriodHandler from '../../../shared/tools/PeriodHandler';
 
 
@@ -52,11 +53,16 @@ describe('PeriodHandler', () => {
     it('PeriodHandler: lowerMoment', () => {
 
         expect(PeriodHandler.getInstance().lowerMoment(null, null)).to.equal(null);
+        expect(PeriodHandler.getInstance().lowerMoment("['2019-07-01','2019-06-30']", "hours")).to.deep.equal(moment("'2019-07-01'").utc(true));
+        expect(PeriodHandler.getInstance().upperMoment("['2019-06-30','2019-07-01']", "hours")).to.deep.equal(moment("'2019-07-01'").utc(true));
+
     });
 
     it('PeriodHandler: upperMoment', () => {
 
         expect(PeriodHandler.getInstance().upperMoment(null, null)).to.equal(null);
+        expect(PeriodHandler.getInstance().upperMoment("['2019-07-01','2019-06-30']", "hours")).to.deep.equal(moment("'2019-06-30'").utc(true));
+        expect(PeriodHandler.getInstance().upperMoment("['2019-06-30','2019-07-01']", "hours")).to.deep.equal(moment("'2019-07-01'").utc(true));
     });
 
     it('PeriodHandler: hasUpper', () => {
@@ -83,8 +89,13 @@ describe('PeriodHandler', () => {
     });
 
     it('PeriodHandler: get_ts_range_from_period', () => {
-
         expect(PeriodHandler.getInstance().get_ts_range_from_period(null, null)).to.equal(null);
+
+        let expected = TSRange.createNew(moment("'2020-02-25'").utc(true), moment("'2020-03-17'").utc(true).add(-1, 'days'), true, true, 1);
+        expect(PeriodHandler.getInstance().get_ts_range_from_period("['2020-02-25','2020-03-17']", 1)).to.deep.equal(expected);
+
+        expected = TSRange.createNew(moment("2020-02-25").utc(true), moment("2020-03-17").utc(true).add(-1, 'days'), true, true, 1);
+        expect(PeriodHandler.getInstance().get_ts_range_from_period("[2020-02-25,2020-03-17]", 1)).to.deep.equal(expected);
     });
 
 });

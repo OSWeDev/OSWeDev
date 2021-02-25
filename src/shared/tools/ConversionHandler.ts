@@ -2,6 +2,7 @@ import ConsoleHandler from './ConsoleHandler';
 
 export default class ConversionHandler {
 
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): ConversionHandler {
         if (!ConversionHandler.instance) {
             ConversionHandler.instance = new ConversionHandler();

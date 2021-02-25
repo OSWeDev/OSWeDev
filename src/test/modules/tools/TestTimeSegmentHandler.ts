@@ -423,18 +423,18 @@ describe('TimeSegmentHandler', () => {
 
     });
 
-    it('test get_ts_ranges', () => {
-        let timeSegmentTests = [TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
-        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-11-17', TimeSegment.TYPE_YEAR),
-        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2020-03-29', TimeSegment.TYPE_MONTH)
-        ];
-        let res = ['2019-05-01', '2019-01-01', '2020-03-01'];
+    // it('test get_ts_ranges', () => {
+    //     let timeSegmentTests = [TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-05-01', TimeSegment.TYPE_ROLLING_YEAR_MONTH_START),
+    //     TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2019-11-17', TimeSegment.TYPE_YEAR),
+    //     TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2020-03-29', TimeSegment.TYPE_MONTH)
+    //     ];
+    //     let res = ['2019-05-01', '2019-01-01', '2020-03-01'];
 
-        expect(TimeSegmentHandler.getInstance().get_ts_ranges(null)).to.deep.equal(null);
-        //expect(TimeSegmentHandler.getInstance().get_ts_ranges([null])).to.deep.equal([]);
+    //     expect(TimeSegmentHandler.getInstance().get_ts_ranges(null)).to.deep.equal(null);
+    //     expect(TimeSegmentHandler.getInstance().get_ts_ranges([null])).to.deep.equal([]);
 
-        //expect(TimeSegmentHandler.getInstance().get_ts_ranges(timeSegmentTests)).to.deep.equal(res);
+    //     expect(TimeSegmentHandler.getInstance().get_ts_ranges(timeSegmentTests)).to.deep.equal(res);
 
-    });
+    // });
 
 });

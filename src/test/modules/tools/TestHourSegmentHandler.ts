@@ -83,24 +83,24 @@ describe('HourSegmentHandler', () => {
         expect(HourSegmentHandler.getInstance().getStartHour(durationTest, null)).to.deep.equal(null);
 
         //la fonction n'a pas l'air de garder juste l'heure, je supose qu'elle convertit en ms de maniere exacte (impact peut-etre tests getStartHourSegment)
-        let durationExpectation = moment.duration(23 * 60 * 60 * 1000);
-        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_HOUR)).to.deep.equal(durationExpectation);
+        let durationExpected = moment.duration(23 * 60 * 60 * 1000);
+        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_HOUR)).to.deep.equal(durationExpected);
 
-        durationExpectation = moment.duration(23 * 60 * 60 * 1000 + 59 * 60 * 1000);
-        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_MINUTE)).to.deep.equal(durationExpectation);
+        durationExpected = moment.duration(23 * 60 * 60 * 1000 + 59 * 60 * 1000);
+        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_MINUTE)).to.deep.equal(durationExpected);
 
-        durationExpectation = moment.duration(23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 45 * 1000);
-        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_SECOND)).to.deep.equal(durationExpectation);
+        durationExpected = moment.duration(23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 45 * 1000);
+        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_SECOND)).to.deep.equal(durationExpected);
 
-        durationExpectation = moment.duration(23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 45 * 1000 + 999);
-        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_MS)).to.deep.equal(durationExpectation);
+        durationExpected = moment.duration(23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 45 * 1000 + 999);
+        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, HourSegment.TYPE_MS)).to.deep.equal(durationExpected);
 
         durationTest = moment.duration(2, 'hours');
-        durationExpectation = moment.duration(7200000);
-        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, 1)).to.deep.equal(durationExpectation);
+        durationExpected = moment.duration(7200000);
+        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, 1)).to.deep.equal(durationExpected);
         durationTest = moment.duration('23:59');
-        durationExpectation = moment.duration(86340000);
-        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, 2)).to.deep.equal(durationExpectation);
+        durationExpected = moment.duration(86340000);
+        expect(HourSegmentHandler.getInstance().getStartHour(durationTest, 2)).to.deep.equal(durationExpected);
     });
 
     it('test: getStartHourSegment', () => {
@@ -117,7 +117,6 @@ describe('HourSegmentHandler', () => {
         let msExpected = moment.duration('23:59:45.999');
 
         expect(HourSegmentHandler.getInstance().getStartHourSegment(null)).equal(null);
-        //la fonction renvoie ce qu'elle recoit en entrée?
         expect(HourSegmentHandler.getInstance().getStartHourSegment(hour)).to.deep.equal(hourExpected);
         expect(HourSegmentHandler.getInstance().getStartHourSegment(minute)).to.deep.equal(minuteExpected);
         expect(HourSegmentHandler.getInstance().getStartHourSegment(second)).to.deep.equal(secondExpected);
@@ -168,6 +167,26 @@ describe('HourSegmentHandler', () => {
         expect(HourSegmentHandler.getInstance().getInclusiveEndHourSegment(ms)).to.deep.equal(msExpected);
     });
 
+    it('test: getPreviousHourSegments', () => {
+        let date = (((23 * 60 + 45) * 60 + 59) * 1000) + 999;
+        let duration = moment.duration(date);
+
+        let hour: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+        let minute: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration, HourSegment.TYPE_MINUTE);
+        let second: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration, HourSegment.TYPE_SECOND);
+        let ms: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration, HourSegment.TYPE_MS);
+
+        let hourExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration((((23 * 60 + 0) * 60 + 0) * 1000) + 0 - 60 * 60 * 1000), HourSegment.TYPE_HOUR);
+        let minuteExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration((((23 * 60 + 45) * 60 + 0) * 1000) + 0 - 1000 * 60), HourSegment.TYPE_MINUTE);
+        let secondExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration((((23 * 60 + 45) * 60 + 59) * 1000) + 0 - 1000), HourSegment.TYPE_SECOND);
+        let msExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration((((23 * 60 + 45) * 60 + 59) * 1000) + 999 - 1), HourSegment.TYPE_MS);
+
+        expect(HourSegmentHandler.getInstance().getPreviousHourSegments(null)).equal(null);
+        expect(HourSegmentHandler.getInstance().getPreviousHourSegments([null])).to.deep.equal([null]);
+        expect(HourSegmentHandler.getInstance().getPreviousHourSegments([hour, minute, second, ms])).to.deep.equal([hourExpected, minuteExpected, secondExpected, msExpected]);
+        expect(HourSegmentHandler.getInstance().getPreviousHourSegments([hour, null])).to.deep.equal([hourExpected, null]);
+    });
+
     it('test: getPreviousHourSegment', () => {
         let date = (((23 * 60 + 45) * 60 + 59) * 1000) + 999;
         let duration = moment.duration(date);
@@ -183,8 +202,6 @@ describe('HourSegmentHandler', () => {
         let msExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration((((23 * 60 + 45) * 60 + 59) * 1000) + 999 - 1), HourSegment.TYPE_MS);
 
         expect(HourSegmentHandler.getInstance().getPreviousHourSegment(null)).equal(null);
-
-        //si type == null => type = hour.type? + renvoie la meme chose
         expect(HourSegmentHandler.getInstance().getPreviousHourSegment(hour)).to.deep.equal(hourExpected);
         expect(HourSegmentHandler.getInstance().getPreviousHourSegment(minute)).to.deep.equal(minuteExpected);
         expect(HourSegmentHandler.getInstance().getPreviousHourSegment(second)).to.deep.equal(secondExpected);
@@ -195,6 +212,25 @@ describe('HourSegmentHandler', () => {
         expect(HourSegmentHandler.getInstance().decHourSegment(null, null, null)).equal(null);
         expect(HourSegmentHandler.getInstance().decHourSegment(null, null, 0)).equal(null);
         expect(HourSegmentHandler.getInstance().decHourSegment(null, HourSegment.TYPE_MS, 0)).equal(null);
+
+        let duration = moment.duration("18:27:49.673");
+        let hourSeg: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration, HourSegment.TYPE_HOUR);
+
+        HourSegmentHandler.getInstance().decHourSegment(hourSeg, HourSegment.TYPE_HOUR, 1);
+        let hourSegExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration("17:00"), HourSegment.TYPE_HOUR);
+        expect(hourSeg).to.deep.equal(hourSegExpected);
+
+        HourSegmentHandler.getInstance().decHourSegment(hourSeg, HourSegment.TYPE_HOUR, 1);
+        hourSegExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration("16:00"), HourSegment.TYPE_HOUR);
+        expect(hourSeg).to.deep.equal(hourSegExpected);
+
+        HourSegmentHandler.getInstance().decHourSegment(hourSeg, null, 1);
+        hourSegExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration("15:00"), HourSegment.TYPE_HOUR);
+        expect(hourSeg).to.deep.equal(hourSegExpected);
+
+        HourSegmentHandler.getInstance().decHourSegment(hourSeg, HourSegment.TYPE_MINUTE, -60);
+        hourSegExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(moment.duration("16:00"), HourSegment.TYPE_HOUR);
+        expect(hourSeg).to.deep.equal(hourSegExpected);
     });
 
     it('test: incHourSegment', () => {
