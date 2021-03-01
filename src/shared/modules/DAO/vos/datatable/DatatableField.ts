@@ -79,6 +79,9 @@ export default abstract class DatatableField<T, U> {
 
     public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
 
+    //definit comment trier le field si besoin
+    public sort: (vos: IDistantVOBase[]) => void;
+
 
     /**
      *
@@ -134,6 +137,13 @@ export default abstract class DatatableField<T, U> {
 
     public setOnChange(onChange: (vo: IDistantVOBase) => void): DatatableField<T, U> {
         this.onChange = onChange;
+
+        return this;
+    }
+
+    //permet de definir une fonction de tri
+    public setSort(sort: (vos: IDistantVOBase[]) => void): DatatableField<T, U> {
+        this.sort = sort;
 
         return this;
     }

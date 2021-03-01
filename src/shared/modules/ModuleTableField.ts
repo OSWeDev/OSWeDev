@@ -128,12 +128,14 @@ export default class ModuleTableField<T> {
      */
 
     constructor(
-        public field_id: string,
-        public field_type: string,
-        field_label: string | DefaultTranslation,
-        public field_required: boolean = false,
-        public has_default: boolean = false,
-        public field_default: T = null) {
+        public field_id: string,                    //titre de la colonne en base
+        public field_type: string,                  //type de donnée dans la colonne
+        field_label: string | DefaultTranslation,   //titre de la colonne a afficher
+        public field_required: boolean = false,     //si champ obligatoire
+        public has_default: boolean = false,        //si valeur par defaut
+        public field_default: T = null              //valeur par defaut
+    ) {
+
         this.field_value = this.field_default;
         this.field_loaded = false;
         this.cascade_on_delete = field_required;
@@ -150,12 +152,12 @@ export default class ModuleTableField<T> {
             }
         }
 
-        this.validate = this.defaultValidator.bind(this);
-        this.field_label = field_label;
-        this.has_relation = false;
-        this.target_database = null;
-        this.target_table = null;
-        this.target_field = null;
+        this.validate = this.defaultValidator.bind(this);   //permet de valider si le champ est conforme
+        this.field_label = field_label;                     //titre colonne a afficher
+        this.has_relation = false;                          //si relation avec dautres tables
+        this.target_database = null;                        //la database en base avec laquelle il y a une relation (generalement "ref")
+        this.target_table = null;                           //la table de la database en base avec laquelle il y a une relation
+        this.target_field = null;                           //le champ de la table en base avec laquelle il y a une relation
     }
 
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {

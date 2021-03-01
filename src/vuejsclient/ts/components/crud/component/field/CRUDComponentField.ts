@@ -531,6 +531,7 @@ export default class CRUDComponentField extends VueComponentBase
              * TODO refondre cette logique de filtrage des options ça parait absolument suboptimal
              */
             let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
                 options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
@@ -549,8 +550,16 @@ export default class CRUDComponentField extends VueComponentBase
                 }
             }
 
-            for (let j in options) {
-                let option = options[j];
+            //transforme les options en arrays pour le tri
+            let optionsArray: IDistantVOBase[] = ObjectHandler.getInstance().arrayFromMap(options);
+
+            //tri
+            if (this.field.sort && optionsArray) {
+                this.field.sort(optionsArray);
+            }
+
+            for (let j in optionsArray) {
+                let option = optionsArray[j];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
