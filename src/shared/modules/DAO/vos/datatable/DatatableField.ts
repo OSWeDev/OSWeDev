@@ -82,6 +82,9 @@ export default abstract class DatatableField<T, U> {
     //definit comment trier le field si besoin
     public sort: (vos: IDistantVOBase[]) => void;
 
+    //definit la fonction qui permet de filtrer
+    public keepOn: (vos: IDistantVOBase[]) => IDistantVOBase[];
+
 
     /**
      *
@@ -144,6 +147,16 @@ export default abstract class DatatableField<T, U> {
     //permet de definir une fonction de tri
     public setSort(sort: (vos: IDistantVOBase[]) => void): DatatableField<T, U> {
         this.sort = sort;
+
+        return this;
+    }
+
+    /**
+     * permet de definir une fonction de tri sur les elts à afficher
+     * @param condition - la condition pour garder les elements (>10 gardes les elts >10)
+     */
+    public setKeepOn(condition: (vos: IDistantVOBase) => boolean): DatatableField<T, U> {
+        this.keepOn = (vos: IDistantVOBase[]) => vos.filter(condition);
 
         return this;
     }

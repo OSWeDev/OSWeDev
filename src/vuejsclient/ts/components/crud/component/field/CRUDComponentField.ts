@@ -558,8 +558,13 @@ export default class CRUDComponentField extends VueComponentBase
                 this.field.sort(optionsArray);
             }
 
+            //s'il y a une fonction de filtrage on filtre
+            if (this.field.keepOn) {
+                optionsArray = this.field.keepOn(optionsArray);
+            }
+
             for (let j in optionsArray) {
-                let option = optionsArray[j];
+                let option: IDistantVOBase = optionsArray[j];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
