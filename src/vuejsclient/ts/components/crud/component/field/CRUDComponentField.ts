@@ -448,7 +448,7 @@ export default class CRUDComponentField extends VueComponentBase
             if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
-                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+                let options: { [id: number]: IDistantVOBase; } = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
 
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
@@ -517,6 +517,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('uploadedfile', this.vo, this.field, fileVo);
     }
 
+    //prepare la listes des options
     private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
@@ -530,6 +531,7 @@ export default class CRUDComponentField extends VueComponentBase
             /**
              * TODO refondre cette logique de filtrage des options ça parait absolument suboptimal
              */
+
             let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
 
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
@@ -537,12 +539,19 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
+
+            //filtre et tri
+            options = this.field.triFiltrage(options);
+
+
+
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
                 }
             }
+
             if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
                 let refRangesReferenceDatatableField: RefRangesReferenceDatatableField<any> = (this.field as RefRangesReferenceDatatableField<any>);
                 if (!!refRangesReferenceDatatableField.filterOptionsForUpdateOrCreateOnRefRanges) {
@@ -550,21 +559,10 @@ export default class CRUDComponentField extends VueComponentBase
                 }
             }
 
-            //transforme les options en arrays pour le tri
-            let optionsArray: IDistantVOBase[] = ObjectHandler.getInstance().arrayFromMap(options);
 
-            //tri
-            if (this.field.sort && optionsArray) {
-                this.field.sort(optionsArray);
-            }
 
-            //s'il y a une fonction de filtrage on filtre
-            if (this.field.keepOn) {
-                optionsArray = this.field.keepOn(optionsArray);
-            }
-
-            for (let j in optionsArray) {
-                let option: IDistantVOBase = optionsArray[j];
+            for (let j in options) {
+                let option: IDistantVOBase = options[j];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
@@ -617,6 +615,8 @@ export default class CRUDComponentField extends VueComponentBase
             options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
+
+        options = this.field.triFiltrage(options);
 
         let newOptions: number[] = [];
 
@@ -687,6 +687,8 @@ export default class CRUDComponentField extends VueComponentBase
                 options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(refrangesField.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
             }
+
+            options = this.field.triFiltrage(options);
 
             if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
                 options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
@@ -957,4 +959,5 @@ export default class CRUDComponentField extends VueComponentBase
             return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
         }
     }
+
 }

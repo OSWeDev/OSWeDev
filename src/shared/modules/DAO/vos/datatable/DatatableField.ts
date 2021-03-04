@@ -1,5 +1,6 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ObjectHandler from '../../../../tools/ObjectHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
@@ -83,7 +84,8 @@ export default abstract class DatatableField<T, U> {
     public sort: (vos: IDistantVOBase[]) => void;
 
     //definit la fonction qui permet de filtrer
-    public keepOn: (vos: IDistantVOBase[]) => IDistantVOBase[];
+    public sieve: (vos: IDistantVOBase[]) => IDistantVOBase[];
+    public sieveCondition: (e: any) => boolean;
 
 
     /**
@@ -145,20 +147,52 @@ export default abstract class DatatableField<T, U> {
     }
 
     //permet de definir une fonction de tri
-    public setSort(sort: (vos: IDistantVOBase[]) => void): DatatableField<T, U> {
-        this.sort = sort;
+    public setSort(fonctionComparaison: (vo1: IDistantVOBase, vo2: IDistantVOBase) => number): DatatableField<T, U> {
+        this.sort = (vos: IDistantVOBase[]): IDistantVOBase[] => vos.sort(fonctionComparaison);
 
         return this;
     }
 
     /**
-     * permet de definir une fonction de tri sur les elts à afficher
+     * permet de definir une fonction de filtrage sur les elts à afficher (sieve: passer au tamis)
+     * par defaut laisse tout passer (pas de tri)
      * @param condition - la condition pour garder les elements (>10 gardes les elts >10)
      */
-    public setKeepOn(condition: (vos: IDistantVOBase) => boolean): DatatableField<T, U> {
-        this.keepOn = (vos: IDistantVOBase[]) => vos.filter(condition);
+    public setSieveCondition(condition: (vos: IDistantVOBase) => boolean = null): DatatableField<T, U> {
+
+        this.sieve = (vos: IDistantVOBase[]): IDistantVOBase[] => vos.filter((elt) => true);
+        this.sieveCondition = (e) => true;
+
+        if (condition != null) {
+            this.sieve = (vos: IDistantVOBase[]): IDistantVOBase[] => vos.filter(condition);
+            this.sieveCondition = condition;
+        }
 
         return this;
+    }
+
+    //applique tri et filtrage aux options
+    public triFiltrage(options: { [id: number]: IDistantVOBase; }) {
+
+        //transforme les options en arrays pour le tri
+        let optionsArray: IDistantVOBase[] = ObjectHandler.getInstance().arrayFromMap(options);
+
+        //tri
+        if (this.sort && optionsArray) {
+            this.sort(optionsArray);
+        }
+
+        //s'il y a une fonction de filtrage on filtre
+        if (this.sieve) {
+            optionsArray = this.sieve(optionsArray);
+        }
+
+        options = {};
+
+        optionsArray.forEach((vo) => {
+            options[vo.id] = vo;
+        });
+        return options;
     }
 
     public setValidator(validator: (data: any) => string): DatatableField<T, U> {
