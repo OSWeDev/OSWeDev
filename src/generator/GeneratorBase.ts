@@ -44,6 +44,7 @@ import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/P
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924UpgradeUserVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
+import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305affichageIconePDF';
 
 export default abstract class GeneratorBase {
 
@@ -101,6 +102,7 @@ export default abstract class GeneratorBase {
             Patch20201001InitPoliciesFeedback.getInstance(),
             Patch20210202AnimationPrctReussite.getInstance(),
             Patch20210225AjoutDateCreationCompteUtilisateur.getInstance(),
+            Patch20210305affichageIconePDF.getInstance(),
         ];
     }
 

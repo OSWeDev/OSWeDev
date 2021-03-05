@@ -23,7 +23,7 @@
                                 .document_type
                                     template(v-if='d.type==type_video')
                                         i.fa.fa-youtube-play.fa-fw(aria-hidden="true")
-                                    template(v-if='d.type==type_pdf')
+                                    template(v-if='d.type==type_pdf && d.show_icon')
                                         i.fa.fa-file-pdf-o.fa-fw(aria-hidden="true")
                                     template(v-if='d.type==type_xls')
                                         i.fa.fa-file-excel-o.fa-fw(aria-hidden="true")
