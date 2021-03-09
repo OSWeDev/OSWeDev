@@ -757,9 +757,9 @@ export default class CRUDComponent extends VueComponentBase {
                 }
 
                 let field: ManyToManyReferenceDatatableField<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableField<any, any>;
-                let interSrcRefField = field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
+                let interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
                 let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.interModuleTable.vo_type, interSrcRefField.field_id, [db_vo.id]);
-                let interDestRefField = field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
+                let interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
                 let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
 
                 let need_add_links: IDistantVOBase[] = [];
