@@ -1,7 +1,6 @@
 import ModuleAnimation from "../../../../shared/modules/Animation/ModuleAnimation";
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationUserQRVO from "../../../../shared/modules/Animation/vos/AnimationUserQRVO";
-import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
@@ -13,7 +12,7 @@ export default class UQRsRangesDatasourceController extends DataSourceController
         if (!UQRsRangesDatasourceController.instance) {
             UQRsRangesDatasourceController.instance = new UQRsRangesDatasourceController(
                 'UQRsRangesDatasourceController',
-                [ThemeModuleDataRangesVO.API_TYPE_ID],
+                [AnimationUserQRVO.API_TYPE_ID],
                 { fr: 'Lien User-Question/Réponse' });
         }
         return UQRsRangesDatasourceController.instance;

@@ -1,7 +1,6 @@
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationUserModuleVO from "../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
-import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
@@ -11,7 +10,7 @@ export default class UMsRangesDatasourceController extends DataSourceControllerM
         if (!UMsRangesDatasourceController.instance) {
             UMsRangesDatasourceController.instance = new UMsRangesDatasourceController(
                 'UMsRangesDatasourceController',
-                [ThemeModuleDataRangesVO.API_TYPE_ID],
+                [AnimationUserModuleVO.API_TYPE_ID],
                 { fr: 'Lien User-Module animation' });
         }
         return UMsRangesDatasourceController.instance;

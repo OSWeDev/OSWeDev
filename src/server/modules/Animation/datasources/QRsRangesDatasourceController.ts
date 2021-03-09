@@ -1,6 +1,6 @@
 import ModuleAnimation from "../../../../shared/modules/Animation/ModuleAnimation";
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
-import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
+import AnimationQRVO from "../../../../shared/modules/Animation/vos/AnimationQRVO";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
@@ -10,7 +10,7 @@ export default class QRsRangesDatasourceController extends DataSourceControllerM
         if (!QRsRangesDatasourceController.instance) {
             QRsRangesDatasourceController.instance = new QRsRangesDatasourceController(
                 'QRsRangesDatasourceController',
-                [ThemeModuleDataRangesVO.API_TYPE_ID],
+                [AnimationQRVO.API_TYPE_ID],
                 { fr: 'Question/Réponse' });
         }
         return QRsRangesDatasourceController.instance;
