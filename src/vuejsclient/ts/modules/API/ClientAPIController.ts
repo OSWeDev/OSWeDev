@@ -40,6 +40,11 @@ export default class ClientAPIController implements IAPIController {
             }
 
             if (precondition && !precondition(...params)) {
+
+                if (sanitize_result) {
+                    return sanitize_result(precondition_default_value, ...params);
+                }
+
                 return precondition_default_value;
             }
 
