@@ -12,4 +12,6 @@ export default class AnimationThemeVO implements IWeightedItem, INamedVO {
 
     public name: string;
     public weight: number;
+
+    public id_import: number;
 }
