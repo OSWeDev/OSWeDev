@@ -1,3 +1,4 @@
+import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -54,6 +55,10 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private nb_unknowns: number = 0;
     private ordered_supervised_items: ISupervisedItem[] = null;
 
+    private debounced_on_change_show = debounce(this.debounce_on_change_show, 300);
+
+    private cpt: number = 1;
+
     @Watch('get_show_errors')
     @Watch('get_show_errors_read')
     @Watch('get_show_warns')
@@ -62,6 +67,10 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     @Watch('get_show_pauseds')
     @Watch('get_show_unknowns')
     private on_change_show() {
+        this.debounced_on_change_show();
+    }
+
+    private debounce_on_change_show() {
         this.set_nb_elems();
         this.set_ordered_supervised_items();
     }
@@ -141,23 +150,20 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         this.supervised_items_by_names = new_supervised_items_by_names;
 
-        this.set_nb_elems();
-        this.set_ordered_supervised_items();
+        this.debounced_on_change_show();
     }
 
     private selectCategory(category: SupervisedCategoryVO) {
         this.selected_category = category;
         this.selected_api_type_id = null;
 
-        this.set_nb_elems();
-        this.set_ordered_supervised_items();
+        this.debounced_on_change_show();
     }
 
     private selectApiTypeId(api_type_id: string) {
         this.selected_api_type_id = api_type_id;
 
-        this.set_nb_elems();
-        this.set_ordered_supervised_items();
+        this.debounced_on_change_show();
     }
 
     private set_nb_elems() {
