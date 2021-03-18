@@ -41,6 +41,8 @@ export default class ModuleAnimation extends Module {
 
     public static EXPORT_API_TYPE_ID: string = 'AnimationReportingExport';
 
+    // public static POLICY_BO_OTHERS_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAnimation.MODULE_NAME + '.BO_OTHERS_ACCESS';
+
     public static APINAME_startModule: string = "startModule";
     public static APINAME_endModule: string = "endModule";
     public static APINAME_getQRsByThemesAndModules: string = "getQRsByThemesAndModules";
@@ -210,7 +212,7 @@ export default class ModuleAnimation extends Module {
 
     private initializeAnimationThemeVO() {
         let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom du thème", true);
-        let id_import = new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_int, "id for import");
+        let id_import = new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_string, "id for import");
 
         let fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
@@ -230,8 +232,7 @@ export default class ModuleAnimation extends Module {
         let theme_id_field = new ModuleTableField('theme_id', ModuleTableField.FIELD_TYPE_foreign_key, "Thème", true);
         let document_id_field = new ModuleTableField('document_id', ModuleTableField.FIELD_TYPE_foreign_key, "Document explicatif");
         let role_id_ranges = new ModuleTableField('role_id_ranges', ModuleTableField.FIELD_TYPE_refrange_array, "Roles ayant le droit d'accès (si vide, tous)");
-        let theme_id_import = new ModuleTableField('theme_id_import', ModuleTableField.FIELD_TYPE_foreign_key, "id import of theme");
-        let id_import = new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_int, "id for import");
+        let id_import = new ModuleTableField('id_import', ModuleTableField.FIELD_TYPE_string, "id for import");
 
         let fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
@@ -242,7 +243,6 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('messages', AnimationMessageModuleVO.API_TYPE_ID, 'Messages'),
             document_id_field,
             computed_name_field,
-            theme_id_import,
             id_import,
         ];
 
@@ -262,7 +262,6 @@ export default class ModuleAnimation extends Module {
         let module_id_field = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, "Module", true);
         let question_file_id_field = new ModuleTableField('question_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la question");
         let reponse_file_id_field = new ModuleTableField('reponse_file_id', ModuleTableField.FIELD_TYPE_foreign_key, "Photo ou Vidéo pour la réponse");
-        let module_id_import = new ModuleTableField('module_id_import', ModuleTableField.FIELD_TYPE_foreign_key, "id import of module");
 
         let fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, "Ordre d'affichage"),
@@ -274,7 +273,6 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('external_video', ModuleTableField.FIELD_TYPE_string, 'Vidéo externe'),
             question_file_id_field,
             reponse_file_id_field,
-            module_id_import,
         ];
 
         let datatable = new ModuleTable(this, AnimationQRVO.API_TYPE_ID, () => new AnimationQRVO(), fields, name_field, "Animation - Question/Réponses");

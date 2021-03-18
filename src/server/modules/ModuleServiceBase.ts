@@ -2,6 +2,9 @@ import { Express } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
+import ModuleAnimationImportModule from '../../shared/modules/Animation/import/Module/ModuleAnimationImportModule';
+import ModuleAnimationImportQR from '../../shared/modules/Animation/import/QR/ModuleAnimationImportQR';
+import ModuleAnimationImportTheme from '../../shared/modules/Animation/import/Theme/ModuleAnimationImportTheme';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
@@ -46,6 +49,9 @@ import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
+import ModuleAnimationImportModuleServer from './Animation/import/module/ModuleAnimationImportModuleServer';
+import ModuleAnimationImportQRServer from './Animation/import/QR/ModuleAnimationImportQRServer';
+import ModuleAnimationImportThemeServer from './Animation/import/theme/ModuleAnimationImportThemeServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
@@ -424,6 +430,9 @@ export default abstract class ModuleServiceBase {
             ModuleSupervision.getInstance(),
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
+            ModuleAnimationImportModule.getInstance(),
+            ModuleAnimationImportTheme.getInstance(),
+            ModuleAnimationImportQR.getInstance(),
         ];
     }
 
@@ -467,6 +476,9 @@ export default abstract class ModuleServiceBase {
             ModuleSupervisionServer.getInstance(),
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
+            ModuleAnimationImportModuleServer.getInstance(),
+            ModuleAnimationImportThemeServer.getInstance(),
+            ModuleAnimationImportQRServer.getInstance(),
         ];
     }
 }

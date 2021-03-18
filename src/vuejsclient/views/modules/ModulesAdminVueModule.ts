@@ -8,7 +8,6 @@ import MenuPointer from '../../ts/components/menu/vos/MenuPointer';
 import MenuLeaf from '../../ts/components/menu/vos/MenuLeaf';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import Module from '../../../shared/modules/Module';
-import VueAppController from '../../VueAppController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 export default class ModulesAdminVueModule extends VueModuleBase {

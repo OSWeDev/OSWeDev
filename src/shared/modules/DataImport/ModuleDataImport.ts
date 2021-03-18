@@ -216,7 +216,8 @@ export default class ModuleDataImport extends Module {
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
         fields.unshift(field_historic_id);
         let importTable: ModuleTable<any> = new ModuleTable<any>(
-            targetModuleTable.module, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type,
+            targetModuleTable.module,
+            ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type,
             () => ({} as any), fields, null, "Import " + targetModuleTable.name);
         importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
         field_historic_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);

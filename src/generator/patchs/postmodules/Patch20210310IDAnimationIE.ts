@@ -34,10 +34,8 @@ export default class Patch20210310IDAnimationIE implements IGeneratorWorker {
             let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID);
             let QRs: AnimationQRVO[] = await ModuleDAO.getInstance().getVos<AnimationQRVO>(AnimationQRVO.API_TYPE_ID);
 
-            themes.forEach((theme) => { theme.id_import = theme.id; });
-            modules.forEach((module) => { module.id_import = module.id; });
-            modules.forEach((module) => { module.theme_id_import = module.theme_id; });
-            QRs.forEach((QR) => { QR.module_id_import = QR.module_id; });
+            themes.forEach((theme) => { theme.id_import = theme.name; });
+            modules.forEach((module) => { module.id_import = module.name; });
 
             await ModuleDAO.getInstance().insertOrUpdateVOs(themes);
             await ModuleDAO.getInstance().insertOrUpdateVOs(modules);
