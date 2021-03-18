@@ -349,7 +349,7 @@ export default class CRUD<T extends IDistantVOBase> {
         return this;
     }
 
-    public setIsReadOnlyData(isReadOnlyData: (dataVO: IDistantVOBase) => boolean): CRUD<T> {
+    public setIsReadOnlyData<P extends IDistantVOBase>(isReadOnlyData: (dataVO: P) => boolean): CRUD<T> {
         this.isReadOnlyData = isReadOnlyData;
 
         return this;

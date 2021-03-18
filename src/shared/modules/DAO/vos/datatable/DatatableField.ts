@@ -76,6 +76,7 @@ export default abstract class DatatableField<T, U> {
 
     public validate: (data: any) => string;
     public onChange: (vo: IDistantVOBase) => void;
+    public onEndOfChange: (vo: IDistantVOBase) => void;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
     public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
@@ -98,6 +99,7 @@ export default abstract class DatatableField<T, U> {
         this.module_table_field_id = this.datatable_field_uid;
         this.validate = null;
         this.onChange = null;
+        this.onEndOfChange = null;
         this.isVisibleUpdateOrCreate = () => true;
     }
 
@@ -134,21 +136,27 @@ export default abstract class DatatableField<T, U> {
     }
 
 
-    public setIsVisibleUpdateOrCreate(isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean): DatatableField<T, U> {
+    public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): DatatableField<T, U> {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
 
         return this;
     }
 
-    public setOnChange(onChange: (vo: IDistantVOBase) => void): DatatableField<T, U> {
+    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): DatatableField<T, U> {
         this.onChange = onChange;
 
         return this;
     }
 
+    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): DatatableField<T, U> {
+        this.onEndOfChange = onEndOfChange;
+
+        return this;
+    }
+
     //permet de definir une fonction de tri
-    public setSort(fonctionComparaison: (vo1: IDistantVOBase, vo2: IDistantVOBase) => number): DatatableField<T, U> {
-        this.sort = (vos: IDistantVOBase[]): IDistantVOBase[] => vos.sort(fonctionComparaison);
+    public setSort<P extends IDistantVOBase>(fonctionComparaison: (vo1: P, vo2: P) => number): DatatableField<T, U> {
+        this.sort = (vos: P[]): P[] => vos.sort(fonctionComparaison);
 
         return this;
     }
@@ -158,13 +166,13 @@ export default abstract class DatatableField<T, U> {
      * par defaut laisse tout passer (pas de tri)
      * @param condition - la condition pour garder les elements (>10 gardes les elts >10)
      */
-    public setSieveCondition(condition: (vos: IDistantVOBase) => boolean = null): DatatableField<T, U> {
+    public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): DatatableField<T, U> {
 
-        this.sieve = (vos: IDistantVOBase[]): IDistantVOBase[] => vos.filter((elt) => true);
+        this.sieve = (vos: P[]): P[] => vos.filter((elt) => true);
         this.sieveCondition = (e) => true;
 
         if (condition != null) {
-            this.sieve = (vos: IDistantVOBase[]): IDistantVOBase[] => vos.filter(condition);
+            this.sieve = (vos: P[]): P[] => vos.filter(condition);
             this.sieveCondition = condition;
         }
 
