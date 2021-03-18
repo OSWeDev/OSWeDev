@@ -85,9 +85,11 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
             let dt_dtgs: DocumentTagDocumentTagGroupVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentTagDocumentTagGroupVO>(
                 DocumentTagDocumentTagGroupVO.API_TYPE_ID,
                 'dt_id', ObjectHandler.getInstance().getIdsList(tmp_dt_by_ids),
-                'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids));
+                'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids)
+            );
+
             tmp_dts_by_dtg_ids = {};
-            let tmp_dts_by_weight: DocumentTagVO[] = [];
+
             for (let i in dt_dtgs) {
                 let dt_dtg = dt_dtgs[i];
 
@@ -95,25 +97,41 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
                     tmp_dts_by_dtg_ids[dt_dtg.dtg_id] = [];
                 }
                 tmp_dts_by_dtg_ids[dt_dtg.dtg_id].push(tmp_dt_by_ids[dt_dtg.dt_id]);
-                valid_dt_by_ids[dt_dtg.dt_id] = tmp_dt_by_ids[dt_dtg.dt_id];
-                tmp_dts_by_weight.push(tmp_dt_by_ids[dt_dtg.dt_id]);
+
+                if (!valid_dt_by_ids[dt_dtg.dt_id]) {
+                    valid_dt_by_ids[dt_dtg.dt_id] = tmp_dt_by_ids[dt_dtg.dt_id];
+                }
             }
 
             let d_dts: DocumentDocumentTagVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentDocumentTagVO>(
                 DocumentDocumentTagVO.API_TYPE_ID,
                 'd_id', ObjectHandler.getInstance().getIdsList(tmp_d_by_ids),
-                'dt_id', ObjectHandler.getInstance().getIdsList(valid_dt_by_ids));
+                'dt_id', ObjectHandler.getInstance().getIdsList(valid_dt_by_ids)
+            );
             tmp_ds_by_dt_ids_and_by_ids = {};
-            let tmp_list = [];
+
+            let tmp_list: DocumentVO[] = [];
+            let tmp_dts_by_weight: DocumentTagVO[] = [];
+            let already_add_dts: { [dt_id: number]: boolean } = {};
+
             for (let i in d_dts) {
                 let d_dt = d_dts[i];
 
                 if (!tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id]) {
                     tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id] = {};
                 }
+
                 tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id][d_dt.d_id] = tmp_d_by_ids[d_dt.d_id];
-                valid_d_by_ids[d_dt.d_id] = tmp_d_by_ids[d_dt.d_id];
-                tmp_list.push(tmp_d_by_ids[d_dt.d_id]);
+
+                if (!valid_d_by_ids[d_dt.d_id]) {
+                    valid_d_by_ids[d_dt.d_id] = tmp_d_by_ids[d_dt.d_id];
+                    tmp_list.push(tmp_d_by_ids[d_dt.d_id]);
+                }
+
+                if (!already_add_dts[d_dt.dt_id]) {
+                    already_add_dts[d_dt.dt_id] = true;
+                    tmp_dts_by_weight.push(tmp_dt_by_ids[d_dt.dt_id]);
+                }
             }
 
             WeightHandler.getInstance().sortByWeight(tmp_list);
