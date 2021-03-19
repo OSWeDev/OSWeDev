@@ -105,8 +105,8 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     }
 
     private alreadyPresent(themeData: AnimationImportThemeVO, themes: AnimationThemeVO[]): boolean {
-        let themeName = this.tryParse(themeData.name);
-        let alreadyPresentTheme = themes.find((theme: AnimationThemeVO) => theme.name == themeName);
+        let theme_data_id_import = this.tryParse(themeData.id_import);
+        let alreadyPresentTheme = themes.find((theme: AnimationThemeVO) => theme.id_import == theme_data_id_import);
         if (alreadyPresentTheme) {
             return true;
         }

@@ -88,9 +88,8 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         for (let i in QRDatas) {
             let QRData: AnimationImportQRVO = QRDatas[i];
 
-            if (!this.alreadyPresent(QRData, QRsInDB)) {
+            if (!this.alreadyPresent(QRData, QRsInDB, modules)) {
                 let QR = this.createQRBase(QRData, modules);
-                QR = this.verificationFiles(QR, filesInDB);
                 let queryRes = await ModuleDAO.getInstance().insertOrUpdateVO(QR);
 
                 if (!queryRes) {
@@ -102,30 +101,30 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
         return succeeded;
     }
-    private verificationFiles(QR: AnimationQRVO, filesInDB: FileVO[]): AnimationQRVO {
-        if (QR.question_file_id) {
-            let question_file = filesInDB.find((file) => QR.question_file_id == file.id);
-            if (!question_file) {
-                QR.question_file_id = null;
+
+    /**
+     * searches on weight and module associated
+     * @param QRData imported data
+     * @param QRs Q&A in db
+     * @param modules modules in db
+     * @returns true if present in database
+     */
+    private alreadyPresent(QRData: AnimationImportQRVO, QRs: AnimationQRVO[], modules: AnimationModuleVO[]): boolean {
+        let QR_data_weight = this.tryParse(QRData.weight);
+        let QR_data_module_id_import = this.tryParse(QRData.module_id_import);
+        let QR_data_associated_module = modules.find((module) => module.id_import == QR_data_module_id_import);
+
+        if (QR_data_associated_module) {
+            let QR_data_associated_module_id = QR_data_associated_module.id;
+
+            //if there is a Q&A that has same weight and module as the one imported
+            let alreadyPresentQR = QRs.find((QR: AnimationQRVO) => QR.weight == QR_data_weight && QR.module_id == QR_data_associated_module_id);
+
+            if (alreadyPresentQR) {
+                return true;
             }
         }
 
-        if (QR.reponse_file_id) {
-            let reponse_file = filesInDB.find((file) => QR.reponse_file_id == file.id);
-            if (!reponse_file) {
-                QR.reponse_file_id = null;
-            }
-        }
-
-        return QR;
-    }
-
-    private alreadyPresent(QRData: AnimationImportQRVO, QRs: AnimationQRVO[]): boolean {
-        let QRName = this.tryParse(QRData.name);
-        let alreadyPresentQR = QRs.find((QR: AnimationQRVO) => QR.name == QRName);
-        if (alreadyPresentQR) {
-            return true;
-        }
         return false;
     }
 
@@ -138,8 +137,6 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         QR.external_video = this.tryParse(QRData.external_video);
         QR.name = this.tryParse(QRData.name);
         QR.weight = this.tryParse(QRData.weight);
-        QR.question_file_id = this.tryParse(QRData.question_file_id);
-        QR.reponse_file_id = this.tryParse(QRData.reponse_file_id);
 
         let QR_module = this.tryParse(QRData.module_id_import);
         let associated_module = modules.find((module) => module.id_import == QR_module);

@@ -63,7 +63,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         let res: boolean = true;
         try {
 
-            res = res && await this.merge_imported_datas(moduleDatas, historic);
+            res = res && await this.merge_imported_datas(moduleDatas);
 
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -77,7 +77,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         await ModuleAnimationImportModuleDefaultFormats.getInstance().AnimationImportModuleDefaultFormatLabels();
     }
 
-    private async merge_imported_datas(moduleDatas: AnimationImportModuleVO[], historic: DataImportHistoricVO): Promise<boolean> {
+    private async merge_imported_datas(moduleDatas: AnimationImportModuleVO[]): Promise<boolean> {
 
         if (!moduleDatas || !moduleDatas.length) {
             return false;
@@ -105,9 +105,15 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         return succeeded;
     }
 
+    /**
+     * looks if the data module is in db already by checking on id_import
+     * @param moduleData imported datas
+     * @param modules modules in db
+     * @returns true if already in db
+     */
     private alreadyPresent(moduleData: AnimationImportModuleVO, modules: AnimationModuleVO[]): boolean {
-        let moduleName = this.tryParse(moduleData.name);
-        let alreadyPresentModule = modules.find((module: AnimationModuleVO) => module.name == moduleName);
+        let module_data_id_import = this.tryParse(moduleData.id_import);
+        let alreadyPresentModule = modules.find((module: AnimationModuleVO) => module.id_import == module_data_id_import);
         if (alreadyPresentModule) {
             return true;
         }
