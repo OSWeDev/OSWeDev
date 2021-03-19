@@ -81,6 +81,9 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         }
 
         let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        console.log("modules en base: ");
+        console.log(modules);
+
         let QRsInDB: AnimationQRVO[] = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
         let filesInDB: FileVO[] = await ModuleDAO.getInstance().getVos(FileVO.API_TYPE_ID);
 
@@ -94,6 +97,8 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
                 if (!queryRes) {
                     succeeded = false;
+                    console.log("Import error for: ");
+                    console.log(`${QRData.name} with ${QRData.module_id_import} as module_id_import`);
                 }
             }
 

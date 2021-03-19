@@ -96,6 +96,8 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
                 if (!queryRes) {
                     succeeded = false;
+                    console.log("Import error for: ");
+                    console.log(`${themeData.name} with ${themeData.id_import} as id_import`);
                 }
 
             }

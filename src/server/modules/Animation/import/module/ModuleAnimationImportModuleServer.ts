@@ -84,11 +84,12 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         }
 
         let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        console.log("themes en base: ");
+        console.log(themes);
 
         let modulesInDB: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
 
         let succeeded = true;
-
         for (let i in moduleDatas) {
             let moduleData: AnimationImportModuleVO = moduleDatas[i];
             if (!this.alreadyPresent(moduleData, modulesInDB)) {
@@ -98,6 +99,8 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
                 if (!queryRes) {
                     succeeded = false;
+                    console.log("Import error for: ");
+                    console.log(`${moduleData.name} with ${moduleData.id_import} as id_import`);
                 }
             }
         }
