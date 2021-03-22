@@ -1,4 +1,6 @@
+import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
+import { Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
@@ -44,6 +46,35 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private api_type_ids_by_category_ids: { [id: number]: string[] } = {};
     private selected_api_type_id: string = null;
 
+    private nb_errors: number = 0;
+    private nb_warns: number = 0;
+    private nb_oks: number = 0;
+    private nb_pauses: number = 0;
+    private nb_errors_read: number = 0;
+    private nb_warns_read: number = 0;
+    private nb_unknowns: number = 0;
+    private ordered_supervised_items: ISupervisedItem[] = null;
+
+    private debounced_on_change_show = debounce(this.debounce_on_change_show, 300);
+
+    private cpt: number = 1;
+
+    @Watch('get_show_errors')
+    @Watch('get_show_errors_read')
+    @Watch('get_show_warns')
+    @Watch('get_show_warns_read')
+    @Watch('get_show_oks')
+    @Watch('get_show_pauseds')
+    @Watch('get_show_unknowns')
+    private on_change_show() {
+        this.debounced_on_change_show();
+    }
+
+    private debounce_on_change_show() {
+        this.set_nb_elems();
+        this.set_ordered_supervised_items();
+    }
+
     private async mounted() {
 
         this.continue_reloading = true;
@@ -60,8 +91,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
         await this.load_supervised_items(first_build);
-        setTimeout(this.load_supervised_items_and_continue.bind(this), 20000);
 
+        // On recharge toutes les 20 secondes
+        setTimeout(this.load_supervised_items_and_continue.bind(this), 20000);
     }
 
     private async load_supervised_items(first_build: boolean) {
@@ -117,208 +149,78 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         await Promise.all(promises);
 
         this.supervised_items_by_names = new_supervised_items_by_names;
+
+        this.debounced_on_change_show();
     }
 
     private selectCategory(category: SupervisedCategoryVO) {
         this.selected_category = category;
         this.selected_api_type_id = null;
+
+        this.debounced_on_change_show();
     }
 
     private selectApiTypeId(api_type_id: string) {
         this.selected_api_type_id = api_type_id;
+
+        this.debounced_on_change_show();
     }
 
-    get nb_errors(): number {
-        let res: number = 0;
+    private set_nb_elems() {
+        this.nb_errors = 0;
+        this.nb_warns = 0;
+        this.nb_oks = 0;
+        this.nb_pauses = 0;
+        this.nb_errors_read = 0;
+        this.nb_warns_read = 0;
+        this.nb_unknowns = 0;
+
         for (let i in this.supervised_items_by_names) {
             let supervised_item = this.supervised_items_by_names[i];
+
+            // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
+            if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
+                continue;
+            }
+
+            // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
+            if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
+                continue;
+            }
 
             if (supervised_item.state == SupervisionController.STATE_ERROR) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_errors++;
             }
-        }
-
-        return res;
-    }
-
-    get nb_warns(): number {
-        let res: number = 0;
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
 
             if (supervised_item.state == SupervisionController.STATE_WARN) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_warns++;
             }
-        }
-
-        return res;
-    }
-
-    get nb_oks(): number {
-        let res: number = 0;
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
 
             if (supervised_item.state == SupervisionController.STATE_OK) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_oks++;
             }
-        }
-
-        return res;
-    }
-
-    get nb_pauses(): number {
-        let res: number = 0;
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
 
             if (supervised_item.state == SupervisionController.STATE_PAUSED) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_pauses++;
             }
-        }
-
-        return res;
-    }
-
-    get nb_errors_read(): number {
-        let res: number = 0;
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
 
             if (supervised_item.state == SupervisionController.STATE_ERROR_READ) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_errors_read++;
             }
-        }
-
-        return res;
-    }
-
-    get nb_warns_read(): number {
-        let res: number = 0;
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
 
             if (supervised_item.state == SupervisionController.STATE_WARN_READ) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_warns_read++;
             }
-        }
-
-        return res;
-    }
-
-    get nb_unknowns(): number {
-        let res: number = 0;
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
 
             if (supervised_item.state == SupervisionController.STATE_UNKOWN) {
-                let is_ok: boolean = true;
-
-                // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-                if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                    is_ok = false;
-                }
-
-                // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-                if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                    is_ok = false;
-                }
-
-                if (is_ok) {
-                    res++;
-                }
+                this.nb_unknowns++;
             }
         }
-
-        return res;
     }
 
-    get ordered_supervised_items(): ISupervisedItem[] {
+    private set_ordered_supervised_items() {
         let res: ISupervisedItem[] = [];
+
         for (let i in this.supervised_items_by_names) {
             let supervised_item = this.supervised_items_by_names[i];
 
@@ -406,7 +308,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             return 0;
         });
 
-        return res;
+        this.ordered_supervised_items = res;
     }
 
     get filtered_api_type_ids(): string[] {
