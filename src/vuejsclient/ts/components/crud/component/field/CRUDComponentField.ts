@@ -196,7 +196,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
-
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     // @Watch('field_select_options_enabled')
     @Watch('field', { immediate: true })
@@ -296,7 +295,7 @@ export default class CRUDComponentField extends VueComponentBase
         return DateHandler.getInstance().formatDayForIndex(moment().utc(true).year(parseInt(dateCut[2])).month(parseInt(dateCut[1]) - 1).date(parseInt(dateCut[0])));
     }
 
-    private validateInput(input: any) {
+    private getInputValue(input: any): any {
 
         if (this.inline_input_mode) {
             return;
@@ -365,8 +364,12 @@ export default class CRUDComponentField extends VueComponentBase
 
             input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
         }
+        return input_value;
+    }
 
-        this.field_value = input_value;
+    private validateInput(input: any) {
+
+        this.field_value = this.getInputValue(input);
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
@@ -374,6 +377,18 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (this.field.onChange) {
             this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+    }
+
+    private validateEndOfInput(input: any) {
+
+        this.field_value = this.getInputValue(input);
+
+        if (this.field.onEndOfChange) {
+            this.field.onEndOfChange(this.vo);
             this.datatable.refresh();
         }
 
