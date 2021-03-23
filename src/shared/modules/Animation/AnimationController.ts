@@ -77,12 +77,9 @@ export default class AnimationController {
         if (!reponses || !reponses.length) {
             return false;
         }
-        // JFE debug anim
-        console.log('-----------------------------' + qr.id + '-----------------------------');
 
         for (let i in reponses) {
             let u_reponse: boolean = uqr.reponses.indexOf(reponses[i].id) >= 0;
-            console.log(uqr.date.format('YYYY-MM-DD HH:mm:ss') + ' ; ' + (reponses[i].valid != u_reponse ? 'error' : 'ok   ') + ' ; u_rep : ' + u_reponse + ' ; valid : ' + reponses[i].valid + ' ; name : ' + reponses[i].name);
 
             if (reponses[i].valid != u_reponse) {
                 return false;

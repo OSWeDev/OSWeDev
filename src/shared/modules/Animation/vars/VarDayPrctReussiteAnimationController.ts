@@ -99,8 +99,6 @@ export default class VarDayPrctReussiteAnimationController extends VarController
             for (let module_id in qrs_by_theme_module[theme_id]) {
                 let nb_user_has_finished: number = 0;
                 let user_id_check: { [user_id: number]: boolean } = {};
-                // JFE debug anim
-                console.log('----------------------------- module_id : ' + module_id + '-----------------------------');
 
                 for (let i in qrs_by_theme_module[theme_id][module_id]) {
                     let qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][i];
