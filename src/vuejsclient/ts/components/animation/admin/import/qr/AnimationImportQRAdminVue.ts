@@ -47,11 +47,11 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
         description: "description",
         reponses: "reponses",
         explicatif: "explicatif",
-        external_video: "external_video",
+        // external_video: "external_video",
         name: "name",
         weight: "weight",
-        question_file_id: "question_file_id",
-        reponse_file_id: "reponse_file_id",
+        // question_file_id: "question_file_id",
+        // reponse_file_id: "reponse_file_id",
         module_id_import: "module_id_import",
     };
     private column_titles: string[] = Object.keys(this.column_labels);
@@ -59,6 +59,8 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
 
     private qrs: AnimationQRVO[];
     private modules: AnimationModuleVO[];
+
+    private accepted_types = ["string", "number"];
     //---
 
     public mounted() {
@@ -132,16 +134,26 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
             let data: AnimationImportQRVO = new AnimationImportQRVO();
 
             for (let property of this.column_titles) {
-                data[property] = JSON.stringify(qr[property]);
+                data[property] = this.exportData(qr[property]);
             }
 
             let associated_module = this.modules.find((module) => module.id == qr.module_id);
-            data["module_id_import"] = JSON.stringify(associated_module.id_import);
+            data["module_id_import"] = this.exportData(associated_module.id_import);
 
             this.qrs_for_export.push(data);
         }
 
         return this.qrs_for_export;
+    }
+
+    private exportData(value: any): any {
+        if (this.accepted_types.includes(typeof value)) {
+            return value;
+        }
+        if (value == null || value == undefined) {
+            return undefined;
+        }
+        return JSON.stringify(value);
     }
     //---
 }

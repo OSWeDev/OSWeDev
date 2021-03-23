@@ -115,8 +115,8 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
      * @returns true if present in database
      */
     private alreadyPresent(QRData: AnimationImportQRVO, QRs: AnimationQRVO[], modules: AnimationModuleVO[]): boolean {
-        let QR_data_weight = this.tryParse(QRData.weight);
-        let QR_data_module_id_import = this.tryParse(QRData.module_id_import);
+        let QR_data_weight = this.restoreData(QRData.weight);
+        let QR_data_module_id_import = this.restoreData(QRData.module_id_import);
         let QR_data_associated_module = modules.find((module) => module.id_import == QR_data_module_id_import);
 
         if (QR_data_associated_module) {
@@ -136,14 +136,14 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
     private createQRBase(QRData: AnimationImportQRVO, modules: AnimationModuleVO[]): AnimationQRVO {
         let QR: AnimationQRVO = new AnimationQRVO();
 
-        QR.description = this.tryParse(QRData.description);
-        QR.reponses = this.tryParse(QRData.reponses);
-        QR.explicatif = this.tryParse(QRData.explicatif);
-        QR.external_video = this.tryParse(QRData.external_video);
-        QR.name = this.tryParse(QRData.name);
-        QR.weight = this.tryParse(QRData.weight);
+        QR.description = this.restoreData(QRData.description);
+        QR.reponses = this.restoreData(QRData.reponses);
+        QR.explicatif = this.restoreData(QRData.explicatif);
+        QR.external_video = this.restoreData(QRData.external_video);
+        QR.name = this.restoreData(QRData.name);
+        QR.weight = this.restoreData(QRData.weight);
 
-        let QR_module = this.tryParse(QRData.module_id_import);
+        let QR_module = this.restoreData(QRData.module_id_import);
         let associated_module = modules.find((module) => module.id_import == QR_module);
         if (associated_module) {
             QR.module_id = associated_module.id;
@@ -152,12 +152,12 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         return QR;
     }
 
-    private tryParse(QRDtataValue: string): any {
+    private restoreData(QRDtataValue: string): any {
         let value: any;
         try {
             value = JSON.parse(QRDtataValue);
         } catch (error) {
-            value = null;
+            value = QRDtataValue;
         }
         return value;
     }

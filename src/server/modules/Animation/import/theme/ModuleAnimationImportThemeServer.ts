@@ -107,7 +107,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     }
 
     private alreadyPresent(themeData: AnimationImportThemeVO, themes: AnimationThemeVO[]): boolean {
-        let theme_data_id_import = this.tryParse(themeData.id_import);
+        let theme_data_id_import = this.restoreData(themeData.id_import);
         let alreadyPresentTheme = themes.find((theme: AnimationThemeVO) => theme.id_import == theme_data_id_import);
         if (alreadyPresentTheme) {
             return true;
@@ -123,20 +123,20 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     private createThemeBase(themeData: AnimationImportThemeVO): AnimationThemeVO {
         let theme: AnimationThemeVO = new AnimationThemeVO();
 
-        theme.description = this.tryParse(themeData.description);
-        theme.name = this.tryParse(themeData.name);
-        theme.weight = this.tryParse(themeData.weight);
-        theme.id_import = this.tryParse(themeData.id_import);
+        theme.description = this.restoreData(themeData.description);
+        theme.name = this.restoreData(themeData.name);
+        theme.weight = this.restoreData(themeData.weight);
+        theme.id_import = this.restoreData(themeData.id_import);
 
         return theme;
     }
 
-    private tryParse(QRDtataValue: string): any {
+    private restoreData(QRDtataValue: string): any {
         let value: any;
         try {
             value = JSON.parse(QRDtataValue);
         } catch (error) {
-            value = null;
+            value = QRDtataValue;
         }
         return value;
     }

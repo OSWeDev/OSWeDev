@@ -44,9 +44,17 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
 
     //--- pour l'export
     private themes: AnimationThemeVO[];
-    private column_labels: { [field_name: string]: string } = { name: "name", description: "description", weight: "weight", id_import: "id_import" };
+    private column_labels: { [field_name: string]: string } = {
+        name: "name",
+        description: "description",
+        weight: "weight",
+        id_import: "id_import"
+    };
     private column_titles: string[] = Object.keys(this.column_labels);
     private themes_for_export: any[] = [];
+
+    private accepted_types = ["string", "number"];
+
     //---
 
     public mounted() {
@@ -108,12 +116,22 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
         for (let theme of this.themes) {
             let data: AnimationImportThemeVO = new AnimationImportThemeVO();
             for (let property of this.column_titles) {
-                data[property] = JSON.stringify(theme[property]);
+                data[property] = this.exportData(theme[property]);
             }
             this.themes_for_export.push(data);
         }
 
         return this.themes_for_export;
+    }
+
+    private exportData(value: any): any {
+        if (this.accepted_types.includes(typeof value)) {
+            return value;
+        }
+        if (value == null || value == undefined) {
+            return undefined;
+        }
+        return JSON.stringify(value);
     }
     //---
 }

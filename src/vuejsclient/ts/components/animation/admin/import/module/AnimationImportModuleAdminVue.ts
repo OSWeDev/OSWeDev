@@ -50,7 +50,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
         computed_name: "computed_name",
         weight: "weight",
         theme_id_import: "theme_id_import",
-        document_id: "document_id",
+        // document_id: "document_id",
         role_id_ranges: "role_id_ranges",
         id_import: "id_import",
     };
@@ -59,6 +59,8 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
 
     private modules: AnimationModuleVO[];
     private themes: AnimationThemeVO[];
+
+    private accepted_types = ["string", "number"];
     //---
 
     public mounted() {
@@ -131,16 +133,26 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
             let data: AnimationImportModuleVO = new AnimationImportModuleVO();
 
             for (let property of this.column_titles) {
-                data[property] = JSON.stringify(module[property]);
+                data[property] = this.exportData(module[property]);
             }
 
             let associated_theme = this.themes.find((theme) => theme.id == module.theme_id);
-            data.theme_id_import = JSON.stringify(associated_theme.id_import);
+            data.theme_id_import = this.exportData(associated_theme.id_import);
 
             this.modules_for_export.push(data);
         }
 
         return this.modules_for_export;
+    }
+
+    private exportData(value: any): any {
+        if (this.accepted_types.includes(typeof value)) {
+            return value;
+        }
+        if (value == null || value == undefined) {
+            return undefined;
+        }
+        return JSON.stringify(value);
     }
     //---
 }

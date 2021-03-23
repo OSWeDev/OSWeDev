@@ -115,7 +115,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
      * @returns true if already in db
      */
     private alreadyPresent(moduleData: AnimationImportModuleVO, modules: AnimationModuleVO[]): boolean {
-        let module_data_id_import = this.tryParse(moduleData.id_import);
+        let module_data_id_import = this.restoreData(moduleData.id_import);
         let alreadyPresentModule = modules.find((module: AnimationModuleVO) => module.id_import == module_data_id_import);
         if (alreadyPresentModule) {
             return true;
@@ -127,16 +127,16 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
         let module: AnimationModuleVO = new AnimationModuleVO();
 
-        module.name = this.tryParse(moduleData.name);
-        module.description = this.tryParse(moduleData.description);
-        module.messages = this.tryParse(moduleData.messages);
-        module.computed_name = this.tryParse(moduleData.computed_name);
-        module.weight = this.tryParse(moduleData.weight);
-        module.document_id = this.tryParse(moduleData.document_id);
-        module.role_id_ranges = this.tryParse(moduleData.role_id_ranges);
-        module.id_import = this.tryParse(moduleData.id_import);
+        module.name = this.restoreData(moduleData.name);
+        module.description = this.restoreData(moduleData.description);
+        module.messages = this.restoreData(moduleData.messages);
+        module.computed_name = this.restoreData(moduleData.computed_name);
+        module.weight = this.restoreData(moduleData.weight);
+        module.document_id = this.restoreData(moduleData.document_id);
+        module.role_id_ranges = this.restoreData(moduleData.role_id_ranges);
+        module.id_import = this.restoreData(moduleData.id_import);
 
-        let module_theme = this.tryParse(moduleData.theme_id_import);
+        let module_theme = this.restoreData(moduleData.theme_id_import);
         let associated_theme = themes.find((theme) => theme.id_import == module_theme);
 
         if (associated_theme) {
@@ -148,12 +148,12 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         return module;
     }
 
-    private tryParse(QRDtataValue: string): any {
+    private restoreData(QRDtataValue: string): any {
         let value: any;
         try {
             value = JSON.parse(QRDtataValue);
         } catch (error) {
-            value = null;
+            value = QRDtataValue;
         }
         return value;
     }
