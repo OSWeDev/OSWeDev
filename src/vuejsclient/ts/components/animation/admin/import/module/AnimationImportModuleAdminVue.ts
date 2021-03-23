@@ -13,6 +13,9 @@ import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
+import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
+import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { namespace } from 'vuex-class/lib/bindings';
 
 @Component({
     template: require('./AnimationImportModuleAdminVue.pug'),
@@ -108,7 +111,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
 
         await Promise.all(promises);
 
-        this.set_modules_for_export();
+        await this.set_modules_for_export();
 
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
         this.stopLoading();
@@ -126,7 +129,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
     }
 
 
-    private set_modules_for_export(): AnimationImportModuleVO[] {
+    private async set_modules_for_export(): Promise<AnimationImportModuleVO[]> {
         this.modules_for_export = [];
 
         for (let module of this.modules) {
@@ -136,8 +139,12 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
                 data[property] = this.exportData(module[property]);
             }
 
-            let associated_theme = this.themes.find((theme) => theme.id == module.theme_id);
+            let associated_theme: AnimationThemeVO = this.themes.find((theme) => theme.id == module.theme_id);
             data.theme_id_import = this.exportData(associated_theme.id_import);
+
+            let role_id_ranges: NumRange[] = module.role_id_ranges;
+            let role_names: string[] = await this.getRoleNamesFromRange(role_id_ranges);
+            data.role_id_ranges = this.exportData(role_names);
 
             this.modules_for_export.push(data);
         }
@@ -153,6 +160,18 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
             return undefined;
         }
         return JSON.stringify(value);
+    }
+
+    private async getRoleNamesFromRange(role_id_ranges: NumRange[]): Promise<string[]> {
+        let roles: RoleVO[] = await ModuleDAO.getInstance().getVosByIdsRanges(RoleVO.API_TYPE_ID, role_id_ranges);
+        let names: string[] = [];
+
+        if (roles && roles.length > 0) {
+            for (let role of roles) {
+                names.push(role.translatable_name);
+            }
+        }
+        return names;
     }
     //---
 }

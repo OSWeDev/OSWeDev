@@ -1,3 +1,4 @@
+import RoleVO from "../../../../../shared/modules/AccessPolicy/vos/RoleVO";
 import ModuleAnimationImportModule from "../../../../../shared/modules/Animation/import/Module/ModuleAnimationImportModule";
 import AnimationImportModuleVO from "../../../../../shared/modules/Animation/import/Module/vos/AnimationImportModuleVO";
 import AnimationModuleVO from "../../../../../shared/modules/Animation/vos/AnimationModuleVO";
@@ -7,6 +8,8 @@ import InsertOrDeleteQueryResult from "../../../../../shared/modules/DAO/vos/Ins
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
+import NumRange from "../../../../../shared/modules/DataRender/vos/NumRange";
+import NumSegment from "../../../../../shared/modules/DataRender/vos/NumSegment";
 import LangVO from "../../../../../shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
@@ -84,17 +87,16 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         }
 
         let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
-        console.log("themes en base: ");
-        console.log(themes);
 
         let modulesInDB: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos(RoleVO.API_TYPE_ID);
 
         let succeeded = true;
         for (let i in moduleDatas) {
             let moduleData: AnimationImportModuleVO = moduleDatas[i];
             if (!this.alreadyPresent(moduleData, modulesInDB)) {
 
-                let module: AnimationModuleVO = this.createModuleBase(moduleData, themes);
+                let module: AnimationModuleVO = this.createModuleBase(moduleData, themes, roles);
                 let queryRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(module);
 
                 if (!queryRes) {
@@ -123,7 +125,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         return false;
     }
 
-    private createModuleBase(moduleData: AnimationImportModuleVO, themes: AnimationThemeVO[]): AnimationModuleVO {
+    private createModuleBase(moduleData: AnimationImportModuleVO, themes: AnimationThemeVO[], roles: RoleVO[]): AnimationModuleVO {
 
         let module: AnimationModuleVO = new AnimationModuleVO();
 
@@ -133,7 +135,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
         module.computed_name = this.restoreData(moduleData.computed_name);
         module.weight = this.restoreData(moduleData.weight);
         module.document_id = this.restoreData(moduleData.document_id);
-        module.role_id_ranges = this.restoreData(moduleData.role_id_ranges);
+        module.role_id_ranges = this.restoreRoleIdRanges(moduleData.role_id_ranges, roles);
         module.id_import = this.restoreData(moduleData.id_import);
 
         let module_theme = this.restoreData(moduleData.theme_id_import);
@@ -156,6 +158,31 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
             value = QRDtataValue;
         }
         return value;
+    }
+
+    private restoreRoleIdRanges(stringified_role_names: string, roles: RoleVO[]): NumRange[] {
+        let role_names = this.restoreData(stringified_role_names);
+        let role_ids = [];
+        for (let role_name of role_names) {
+            let referenced_role = roles.find((role) => role.translatable_name == role_name);
+            role_ids.push(referenced_role.id);
+        }
+
+        role_ids = role_ids.sort();
+        let role_numranges: NumRange[] = [];
+
+        for (let id of role_ids) {
+
+            if (role_ids.includes(id - 1)) {
+                let role_numrange = role_numranges[role_numranges.length - 1];
+                role_numrange.max += 1;
+            } else {
+                let numRange = NumRange.createNew(id, id + 1, true, false, NumSegment.TYPE_INT);
+                role_numranges.push(numRange);
+            }
+        }
+
+        return role_numranges;
     }
 
 }
