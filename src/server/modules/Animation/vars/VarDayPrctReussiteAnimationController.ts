@@ -17,8 +17,6 @@ import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceC
 
 export default class VarDayPrctReussiteAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
-    public static VAR_NAME: string = 'VarDayPrctReussiteAnimationController';
-
     public static getInstance(): VarDayPrctReussiteAnimationController {
         if (!VarDayPrctReussiteAnimationController.instance) {
             VarDayPrctReussiteAnimationController.instance = new VarDayPrctReussiteAnimationController();
@@ -30,7 +28,7 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
 
     protected constructor() {
         super(
-            new VarConfVO(VarDayPrctReussiteAnimationController.VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
             { fr: 'Prct réussite animation' },
             {
                 fr: 'Prctage de réussite de l\'animation.'

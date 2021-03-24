@@ -11,7 +11,6 @@ import VarsController from "../../../../../../shared/modules/Var/VarsController"
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
-
 @Component({
     template: require("./feedback.pug"),
     components: {}
@@ -67,8 +66,6 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
         this.saving = true;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(this.user_module);
-
-        VarsController.getInstance().stageUpdateVoUpdate(this.user_module, this.user_module);
 
         this.$router.push({
             name: AnimationController.ROUTE_NAME_ANIMATION,

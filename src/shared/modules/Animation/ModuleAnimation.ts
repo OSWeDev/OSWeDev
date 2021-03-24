@@ -276,6 +276,6 @@ export default class ModuleAnimation extends Module {
             new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Users'),
         ];
 
-        VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields);
+        VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields, this);
     }
 }

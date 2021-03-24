@@ -101,6 +101,10 @@ export default class VarsController {
         return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
+    public getValueOrDefault(data: VarDataBaseVO, default_value: any): number {
+        return (data && (data.value != null)) ? data.value : default_value;
+    }
+
     /**
      * Compare params. Return true if same and in same order
      * @param ps1

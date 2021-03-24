@@ -27,14 +27,22 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_to_node(target_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
+    public async visit_bottom_up_to_node(
+        target_node: DAGNodeBase,
+        callback: (node: DAGNodeBase) => Promise<any>,
+        visit_condition: (node: DAGNodeBase) => boolean = null,
+        visited: DAGNodeBase[] = []): Promise<void> {
 
+        if (visited.indexOf(target_node) >= 0) {
+            return;
+        }
+        visited.push(target_node);
 
         for (let i in target_node.outgoing_deps) {
             let outgoing_dep = target_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != target_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
-                await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition);
+                await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
             }
         }
 
@@ -55,7 +63,16 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_from_node(source_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
+    public async visit_top_bottom_from_node(
+        source_node: DAGNodeBase,
+        callback: (node: DAGNodeBase) => Promise<any>,
+        visit_condition: (node: DAGNodeBase) => boolean = null,
+        visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (visited.indexOf(source_node) >= 0) {
+            return;
+        }
+        visited.push(source_node);
 
         await callback(source_node);
 
@@ -63,7 +80,7 @@ export default class DAGController {
             let outgoing_dep = source_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != source_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
-                await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition);
+                await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
             }
         }
     }
@@ -82,7 +99,16 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_from_node(source_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
+    public async visit_bottom_up_from_node(
+        source_node: DAGNodeBase,
+        callback: (node: DAGNodeBase) => Promise<any>,
+        visit_condition: (node: DAGNodeBase) => boolean = null,
+        visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (visited.indexOf(source_node) >= 0) {
+            return;
+        }
+        visited.push(source_node);
 
         await callback(source_node);
 
@@ -90,7 +116,7 @@ export default class DAGController {
             let incoming_dep = source_node.incoming_deps[i];
 
             if ((incoming_dep.incoming_node != source_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
-                await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition);
+                await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition, visited);
             }
         }
     }
@@ -109,13 +135,22 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_to_node(target_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
+    public async visit_top_bottom_to_node(
+        target_node: DAGNodeBase,
+        callback: (node: DAGNodeBase) => Promise<any>,
+        visit_condition: (node: DAGNodeBase) => boolean = null,
+        visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (visited.indexOf(target_node) >= 0) {
+            return;
+        }
+        visited.push(target_node);
 
         for (let i in target_node.incoming_deps) {
             let incoming_dep = target_node.incoming_deps[i];
 
             if ((incoming_dep.incoming_node != target_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
-                await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition);
+                await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition, visited);
             }
         }
 
@@ -136,13 +171,22 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_through_node(through_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
+    public async visit_bottom_up_through_node(
+        through_node: DAGNodeBase,
+        callback: (node: DAGNodeBase) => Promise<any>,
+        visit_condition: (node: DAGNodeBase) => boolean = null,
+        visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (visited.indexOf(through_node) >= 0) {
+            return;
+        }
+        visited.push(through_node);
 
         for (let i in through_node.outgoing_deps) {
             let outgoing_dep = through_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != through_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
-                await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition);
+                await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
             }
         }
 
@@ -152,7 +196,7 @@ export default class DAGController {
             let incoming_dep = through_node.incoming_deps[i];
 
             if ((incoming_dep.incoming_node != through_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
-                await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition);
+                await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition, visited);
             }
         }
     }
@@ -171,13 +215,22 @@ export default class DAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_through_node(through_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
+    public async visit_top_bottom_through_node(
+        through_node: DAGNodeBase,
+        callback: (node: DAGNodeBase) => Promise<any>,
+        visit_condition: (node: DAGNodeBase) => boolean = null,
+        visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (visited.indexOf(through_node) >= 0) {
+            return;
+        }
+        visited.push(through_node);
 
         for (let i in through_node.incoming_deps) {
             let incoming_dep = through_node.incoming_deps[i];
 
             if ((incoming_dep.incoming_node != through_node) && ((!visit_condition) || visit_condition(incoming_dep.incoming_node))) {
-                await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition);
+                await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition, visited);
             }
         }
 
@@ -187,7 +240,7 @@ export default class DAGController {
             let outgoing_dep = through_node.outgoing_deps[i];
 
             if ((outgoing_dep.outgoing_node != through_node) && ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node))) {
-                await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition);
+                await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition, visited);
             }
         }
     }

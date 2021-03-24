@@ -79,9 +79,9 @@ export default class VarsServerCallBackSubsController {
         });
     }
 
-    public async get_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
-        let notifyable_vars: VarDataBaseVO[] = [];
-        let needs_computation: VarDataBaseVO[] = [];
+    public async get_var_data<T extends VarDataBaseVO>(param: T): Promise<T> {
+        let notifyable_vars: T[] = [];
+        let needs_computation: T[] = [];
 
         if (!param) {
             return;
@@ -99,7 +99,7 @@ export default class VarsServerCallBackSubsController {
             if (!self._cb_subs[param.index]) {
                 self._cb_subs[param.index] = [];
             }
-            self._cb_subs[param.index].push(resolve);
+            self._cb_subs[param.index].push(resolve as (var_data: VarDataBaseVO) => any);
 
             await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation);
 

@@ -21,8 +21,6 @@ import UQRsRangesDatasourceController from "../datasources/UQRsRangesDatasourceC
 
 export default class VarDayPrctAtteinteSeuilAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
-    public static VAR_NAME: string = 'VarDayPrctAtteinteSeuilAnimationController';
-
     public static getInstance(): VarDayPrctAtteinteSeuilAnimationController {
         if (!VarDayPrctAtteinteSeuilAnimationController.instance) {
             VarDayPrctAtteinteSeuilAnimationController.instance = new VarDayPrctAtteinteSeuilAnimationController();
@@ -34,7 +32,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
 
     protected constructor() {
         super(
-            new VarConfVO(VarDayPrctAtteinteSeuilAnimationController.VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
             { fr: 'Prct atteinte seuil animation' },
             {
                 fr: 'Prctage atteinte seuil de l\'animation.'

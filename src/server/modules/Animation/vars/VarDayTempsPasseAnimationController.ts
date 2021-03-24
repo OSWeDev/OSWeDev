@@ -1,3 +1,4 @@
+import AnimationController from '../../../../shared/modules/Animation/AnimationController';
 import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationParametersVO from '../../../../shared/modules/Animation/vos/AnimationParametersVO';
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
@@ -14,8 +15,6 @@ import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceCon
 
 export default class VarDayTempsPasseAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
-    public static VAR_NAME: string = 'VarDayTempsPasseAnimationController';
-
     public static getInstance(): VarDayTempsPasseAnimationController {
         if (!VarDayTempsPasseAnimationController.instance) {
             VarDayTempsPasseAnimationController.instance = new VarDayTempsPasseAnimationController();
@@ -27,7 +26,7 @@ export default class VarDayTempsPasseAnimationController extends VarServerContro
 
     protected constructor() {
         super(
-            new VarConfVO(VarDayTempsPasseAnimationController.VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayTempsPasseAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
             { fr: 'Tps passé animation' },
             {
                 fr: 'Temps passé - animation.'

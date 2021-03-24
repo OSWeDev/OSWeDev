@@ -1,7 +1,6 @@
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import DataSourceControllerBase from './DataSourceControllerBase';
-import DataSourcesController from './DataSourcesController';
 
 export default abstract class DataSourceControllerSimpleCacheBase extends DataSourceControllerBase {
 

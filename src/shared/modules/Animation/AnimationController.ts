@@ -8,6 +8,11 @@ import AnimationUserQRVO from './vos/AnimationUserQRVO';
 
 export default class AnimationController {
 
+    public static VarDayPrctAtteinteSeuilAnimationController_VAR_NAME: string = 'VarDayPrctAtteinteSeuilAnimationController';
+    public static VarDayPrctReussiteAnimationController_VAR_NAME: string = 'VarDayPrctReussiteAnimationController';
+    public static VarDayPrctAvancementAnimationController_VAR_NAME: string = 'VarDayPrctAvancementAnimationController';
+    public static VarDayTempsPasseAnimationController_VAR_NAME: string = 'VarDayTempsPasseAnimationController';
+
     public static ROUTE_NAME_ANIMATION: string = 'animation';
     public static ROUTE_NAME_ANIMATION_MODULE: string = 'animation_module';
     public static ROUTE_NAME_ANIMATION_MODULE_FEEDBACK: string = 'animation_module_feedback';

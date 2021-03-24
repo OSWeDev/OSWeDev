@@ -1,21 +1,18 @@
 import { Component, Prop } from "vue-property-decorator";
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
 import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAnimation";
-import ThemeModuleDataParamRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO";
 import ThemeModuleDataRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
-import VarDayPrctAtteinteSeuilAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctAtteinteSeuilAnimationController";
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
-import ISimpleNumberVarData from "../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData";
-import IVarDataVOBase from "../../../../../../shared/modules/Var/interfaces/IVarDataVOBase";
-import SimpleNumberVarDataController from "../../../../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
+import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
+import VarsClientController from "../../../Var/VarsClientController";
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
@@ -51,9 +48,9 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
             let anim_module: AnimationModuleVO = this.modules[i];
 
             promises.push((async () =>
-                this.prct_atteinte_seuil_module[anim_module.id] = SimpleNumberVarDataController.getInstance().getValueOrDefault(
-                    await VarsController.getInstance().registerDataParamAndReturnVarData<ThemeModuleDataParamRangesVO>(
-                        this.get_prct_atteinte_seuil_module_param(anim_module.id), true
+                this.prct_atteinte_seuil_module[anim_module.id] = VarsController.getInstance().getValueOrDefault(
+                    await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(
+                        this.get_prct_atteinte_seuil_module_param(anim_module.id)
                     ) as ThemeModuleDataRangesVO,
                     0
                 )
@@ -85,23 +82,24 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
             warning: (this.prct_atteinte_seuil_module[anim_module.id] == 0 && this.um_by_module_id[anim_module.id] && this.um_by_module_id[anim_module.id].end_date),
             not_start: !this.um_by_module_id[anim_module.id],
             en_cours: (this.um_by_module_id[anim_module.id] && !this.um_by_module_id[anim_module.id].end_date)
-        }
+        };
     }
 
-    private prct_atteinte_seuil_theme_value_callback(var_value: IVarDataVOBase, component: VarDataRefComponent): number {
+    private prct_atteinte_seuil_theme_value_callback(var_value: VarDataBaseVO, component: VarDataRefComponent): number {
         if (!component || !component.var_param.var_id) {
             return;
         }
 
-        this.prct_atteinte_seuil_theme = (var_value as ISimpleNumberVarData).value;
+        this.prct_atteinte_seuil_theme = var_value.value;
 
         return this.prct_atteinte_seuil_theme;
     }
 
-    private get_prct_atteinte_seuil_module_param(module_id: number): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctAtteinteSeuilAnimationController.getInstance().varConf.id,
-            null,
+    private get_prct_atteinte_seuil_module_param(module_id: number): ThemeModuleDataRangesVO {
+        return ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
+            false,
+            [RangeHandler.getInstance().getMaxNumRange()],
             [RangeHandler.getInstance().create_single_elt_NumRange(module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
@@ -125,11 +123,12 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         };
     }
 
-    get prct_atteinte_seuil_theme_param(): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctAtteinteSeuilAnimationController.getInstance().varConf.id,
+    get prct_atteinte_seuil_theme_param(): ThemeModuleDataRangesVO {
+        return ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
+            false,
             [RangeHandler.getInstance().create_single_elt_NumRange(this.theme.id, NumSegment.TYPE_INT)],
-            null,
+            [RangeHandler.getInstance().getMaxNumRange()],
             [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
     }

@@ -1,4 +1,5 @@
 import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
+import AnimationController from '../../../../shared/modules/Animation/AnimationController';
 import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationQRVO from '../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationUserQRVO from '../../../../shared/modules/Animation/vos/AnimationUserQRVO';
@@ -14,8 +15,6 @@ import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceC
 
 export default class VarDayPrctAvancementAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
-    public static VAR_NAME: string = 'VarDayPrctAvancementAnimationController';
-
     public static getInstance(): VarDayPrctAvancementAnimationController {
         if (!VarDayPrctAvancementAnimationController.instance) {
             VarDayPrctAvancementAnimationController.instance = new VarDayPrctAvancementAnimationController();
@@ -27,7 +26,7 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
 
     protected constructor() {
         super(
-            new VarConfVO(VarDayPrctAvancementAnimationController.VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
             { fr: 'Prct avancement animation' },
             {
                 fr: 'Prctage d\'avancement de l\'animation.'

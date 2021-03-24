@@ -128,9 +128,21 @@ export default class VarsClientController {
             });
             callbacks[callback.UID] = callback;
 
-            this.registerParams(var_params, [callback]);
+            this.registerParams(var_params, callbacks);
         });
     }
+
+    public async registerParamAndWait<T extends VarDataBaseVO>(var_param: T): Promise<T> {
+
+        return new Promise((resolve, reject) => {
+            let callback = VarUpdateCallback.newCallbackOnce(async (varData: T) => {
+                resolve(varData);
+            });
+
+            this.registerParams([var_param], { [callback.UID]: callback });
+        });
+    }
+
 
     /**
      * Retire 1 sur le nb d'enregistrement de chaque var_param passé en paramètre de la fonction
