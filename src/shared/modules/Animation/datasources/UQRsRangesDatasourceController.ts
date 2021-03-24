@@ -118,6 +118,7 @@ export default class UQRsRangesDatasourceController implements IDataSourceContro
     }
 
     public async load_for_batch(vars_params: { [index: string]: ThemeModuleDataParamRangesVO }): Promise<void> {
+        this.cache_uqrs_by_theme_module_uqr = {};
 
         let module_ids: number[] = [];
         let theme_ids: number[] = [];
