@@ -131,7 +131,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
         module.name = this.restoreData(moduleData.name);
         module.description = this.restoreData(moduleData.description);
-        module.messages = this.restoreData(moduleData.messages);
+        module.messages = moduleData.messages; //no need to parse otherwise it becomes an object (no bueno)
         module.computed_name = this.restoreData(moduleData.computed_name);
         module.weight = this.restoreData(moduleData.weight);
         module.document_id = this.restoreData(moduleData.document_id);

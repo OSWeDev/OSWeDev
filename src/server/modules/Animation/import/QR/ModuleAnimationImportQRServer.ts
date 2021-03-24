@@ -135,7 +135,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         let QR: AnimationQRVO = new AnimationQRVO();
 
         QR.description = this.restoreData(QRData.description);
-        QR.reponses = this.restoreData(QRData.reponses);
+        QR.reponses = QRData.reponses;
         QR.explicatif = this.restoreData(QRData.explicatif);
         QR.external_video = this.restoreData(QRData.external_video);
         QR.name = this.restoreData(QRData.name);
