@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import { Duration, Moment } from 'moment';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -53,7 +54,6 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 
 
 
-import * as  moment from 'moment';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -884,7 +884,20 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        return var_controller.UT__getParamDependencies(param, await this.getVarParamDatas(param));
+        let dag: DAG<VarDAGNode> = new DAG();
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
+
+        let predeps = var_controller.getDataSourcesPredepsDependencies();
+        if (predeps) {
+            for (let i in predeps) {
+                let predep = predeps[i];
+                let cache = {};
+                await predep.get_data(param, cache);
+                await predep.load_node_data(varDAGNode, cache);
+            }
+        }
+
+        return var_controller.getParamDependencies(varDAGNode);
     }
 
     private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {

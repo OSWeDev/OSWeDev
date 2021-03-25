@@ -134,6 +134,12 @@ export default class VarsCacheController {
             // On charge des packs de vars, et on test des conditions de suppression du cache (on parle bien de suppression)
             //  On doit refuser de toucher des vars qui seraient en ce moment dans le cache du proxy
             let var_datas = await ModuleDAO.getInstance().getVos<VarDataBaseVO>(controller.var_data_vo_type, 100, this.partially_clean_bdd_cache_offset);
+            let go_to_next_table = false;
+            if ((!var_datas) || (var_datas.length < 100)) {
+                go_to_next_table = true;
+            }
+            var_datas = var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED);
+
             let invalidateds = [];
 
             // TODO FIXME Les seuils dépendent de la segmentation temps de la var si il y en a une
@@ -202,7 +208,7 @@ export default class VarsCacheController {
                 await ModuleDAO.getInstance().deleteVOs(invalidateds);
             }
 
-            if ((!var_datas) || (var_datas.length < 100)) {
+            if (go_to_next_table) {
                 this.partially_clean_bdd_cache_offset = 0;
                 this.partially_clean_bdd_cache_var_id_i++;
             } else {
