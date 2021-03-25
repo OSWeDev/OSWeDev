@@ -2,6 +2,7 @@ import ModuleAnimationImportTheme from "../../../../../shared/modules/Animation/
 import AnimationImportThemeVO from "../../../../../shared/modules/Animation/import/Theme/vos/AnimationImportThemeVO";
 import AnimationThemeVO from "../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
+import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
@@ -54,6 +55,21 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     public get_merged_api_type_ids(): string[] {
         return [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, AnimationThemeVO.API_TYPE_ID];
+    }
+
+    public async validate_formatted_data(themes_data: AnimationImportThemeVO[]): Promise<AnimationImportThemeVO[]> {
+
+        let themes_db: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+
+        for (let theme_data of themes_data) {
+
+            if (this.alreadyPresent(theme_data, themes_db)) {
+                theme_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+                theme_data.not_validated_msg = `Already present in database`;
+                continue;
+            }
+        }
+        return themes_data;
     }
 
     public async hook_merge_imported_datas_in_database(themeDatas: AnimationImportThemeVO[], historic: DataImportHistoricVO): Promise<boolean> {

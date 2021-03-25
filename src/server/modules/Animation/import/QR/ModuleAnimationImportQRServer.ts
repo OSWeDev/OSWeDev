@@ -56,15 +56,22 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     public async validate_formatted_data(qr_datas: AnimationImportQRVO[]): Promise<AnimationImportQRVO[]> {
 
-        let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        let modules_db: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        let qr_db: AnimationQRVO[] = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
 
         for (let qr_data of qr_datas) {
 
-            let associated_module: AnimationModuleVO = modules.find((module) => module.id_import == qr_data.module_id_import);
+            if (this.alreadyPresent(qr_data, qr_db, modules_db)) {
+                qr_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+                qr_data.not_validated_msg = `Already present in database`;
+                continue;
+            }
+
+            let associated_module: AnimationModuleVO = modules_db.find((module) => module.id_import == qr_data.module_id_import);
 
             if (!associated_module) {
                 qr_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-                qr_data.not_validated_msg = `Aucun module ne coressond au module_id ${qr_data.module_id_import}`;
+                qr_data.not_validated_msg = `No module corresponding to module_id ${qr_data.module_id_import}`;
                 continue;
             }
         }

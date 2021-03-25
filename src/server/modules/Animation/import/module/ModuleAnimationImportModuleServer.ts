@@ -63,16 +63,24 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
     public async validate_formatted_data(module_datas: AnimationImportModuleVO[]): Promise<AnimationImportModuleVO[]> {
 
         let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let modules_db: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
 
         for (let module_data of module_datas) {
+
+            if (this.alreadyPresent(module_data, modules_db)) {
+                module_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+                module_data.not_validated_msg = `Already present in database`;
+                continue;
+            }
 
             let associated_theme: AnimationThemeVO = themes.find((theme) => theme.id_import == module_data.theme_id_import);
 
             if (!associated_theme) {
                 module_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-                module_data.not_validated_msg = `Aucun theme ne coressond au theme_id ${module_data.theme_id_import}`;
+                module_data.not_validated_msg = `No theme corrresponding to theme_id ${module_data.theme_id_import}`;
                 continue;
             }
+
         }
 
         return module_datas;
