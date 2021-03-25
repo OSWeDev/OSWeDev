@@ -3,6 +3,7 @@ import AnimationImportQRVO from "../../../../../shared/modules/Animation/import/
 import AnimationModuleVO from "../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationQRVO from "../../../../../shared/modules/Animation/vos/AnimationQRVO";
 import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
+import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
@@ -51,6 +52,24 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     public get_merged_api_type_ids(): string[] {
         return [AnimationQRVO.API_TYPE_ID];
+    }
+
+    public async validate_formatted_data(qr_datas: AnimationImportQRVO[]): Promise<AnimationImportQRVO[]> {
+
+        let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+
+        for (let qr_data of qr_datas) {
+
+            let associated_module: AnimationModuleVO = modules.find((module) => module.id_import == qr_data.module_id_import);
+
+            if (!associated_module) {
+                qr_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+                qr_data.not_validated_msg = `Aucun module ne coressond au module_id ${qr_data.module_id_import}`;
+                continue;
+            }
+        }
+
+        return qr_datas;
     }
 
     public async hook_merge_imported_datas_in_database(QRDatas: AnimationImportQRVO[], historic: DataImportHistoricVO): Promise<boolean> {

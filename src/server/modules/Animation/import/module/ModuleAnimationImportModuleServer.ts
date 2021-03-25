@@ -5,6 +5,7 @@ import AnimationModuleVO from "../../../../../shared/modules/Animation/vos/Anima
 import AnimationThemeVO from "../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import InsertOrDeleteQueryResult from "../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult";
+import ModuleDataImport from "../../../../../shared/modules/DataImport/ModuleDataImport";
 import DataImportFormatVO from "../../../../../shared/modules/DataImport/vos/DataImportFormatVO";
 import DataImportHistoricVO from "../../../../../shared/modules/DataImport/vos/DataImportHistoricVO";
 import DataImportLogVO from "../../../../../shared/modules/DataImport/vos/DataImportLogVO";
@@ -57,6 +58,24 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     public get_merged_api_type_ids(): string[] {
         return [AnimationModuleVO.API_TYPE_ID];
+    }
+
+    public async validate_formatted_data(module_datas: AnimationImportModuleVO[]): Promise<AnimationImportModuleVO[]> {
+
+        let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+
+        for (let module_data of module_datas) {
+
+            let associated_theme: AnimationThemeVO = themes.find((theme) => theme.id_import == module_data.theme_id_import);
+
+            if (!associated_theme) {
+                module_data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+                module_data.not_validated_msg = `Aucun theme ne coressond au theme_id ${module_data.theme_id_import}`;
+                continue;
+            }
+        }
+
+        return module_datas;
     }
 
     public async hook_merge_imported_datas_in_database(moduleDatas: AnimationImportModuleVO[], historic: DataImportHistoricVO): Promise<boolean> {
