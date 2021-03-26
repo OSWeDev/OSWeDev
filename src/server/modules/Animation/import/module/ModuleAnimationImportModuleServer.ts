@@ -189,6 +189,9 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     private restoreRoleIdRanges(stringified_role_names: string, roles: RoleVO[]): NumRange[] {
         let role_names = this.restoreData(stringified_role_names);
+        if (!role_names) {
+            return role_names;
+        }
         let role_ids = [];
         for (let role_name of role_names) {
             let referenced_role = roles.find((role) => role.translatable_name == role_name);
