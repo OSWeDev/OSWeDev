@@ -171,7 +171,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      *  Par défaut si on a pas de Datasources on renvoie null.
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): TData[] {
+    public async get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): Promise<TData[]> {
         return null;
     }
 
@@ -180,7 +180,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): TData[] {
+    public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<TData[]> {
         return null;
     }
 

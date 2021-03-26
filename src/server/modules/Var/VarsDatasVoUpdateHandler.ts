@@ -111,7 +111,7 @@ export default class VarsDatasVoUpdateHandler {
 
         limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
-        this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+        await this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
 
         await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
 
@@ -276,7 +276,7 @@ export default class VarsDatasVoUpdateHandler {
      * Pour chaque vo_type, on prend tous les varcontrollers concernés et on demande les intersecteurs en CD et en U
      *  On combinera les intersecteurs en CD et U via une union quand on aura validé qu'on a pas une autre variable qui pourrait impacter celle-ci
      */
-    private init_leaf_intersectors(
+    private async init_leaf_intersectors(
         vo_types: string[],
         intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
@@ -294,7 +294,7 @@ export default class VarsDatasVoUpdateHandler {
                 for (let k in vos_create_or_delete_buffer[vo_type]) {
                     let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
 
-                    let tmp = var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
@@ -304,7 +304,7 @@ export default class VarsDatasVoUpdateHandler {
                 for (let k in vos_update_buffer[vo_type]) {
                     let vo_update_buffer = vos_update_buffer[vo_type][k];
 
-                    let tmp = var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }

@@ -43,12 +43,12 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
         ];
     }
 
-    public get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): ThemeModuleDataRangesVO[] {
+    public async get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): Promise<ThemeModuleDataRangesVO[]> {
 
         return [this.get_invalid_params_intersectors_from_vo(this.varConf.name, c_or_d_vo)];
     }
 
-    public get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): ThemeModuleDataRangesVO[] {
+    public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<ThemeModuleDataRangesVO[]> {
 
         /**
          * Si on a pas touché aux champs utiles, on esquive la mise à jour

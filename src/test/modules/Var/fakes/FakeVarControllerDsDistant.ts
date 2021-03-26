@@ -45,7 +45,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         ];
     }
 
-    public get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: FakeDistantVO): FakeDataVO[] {
+    public async get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: FakeDistantVO): Promise<FakeDataVO[]> {
 
         return [
             VarDataBaseVO.createNew(
@@ -56,7 +56,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         ];
     }
 
-    public get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): FakeDataVO[] {
+    public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<FakeDataVO[]> {
 
         let typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeDistantVO>;
 
