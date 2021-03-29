@@ -532,7 +532,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('uploadedfile', this.vo, this.field, fileVo);
     }
 
-    //prepare la listes des options
     private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||

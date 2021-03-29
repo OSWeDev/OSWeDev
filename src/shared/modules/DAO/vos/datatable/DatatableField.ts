@@ -164,7 +164,9 @@ export default abstract class DatatableField<T, U> {
     /**
      * permet de definir une fonction de filtrage sur les elts à afficher (sieve: passer au tamis)
      * par defaut laisse tout passer (pas de tri)
-     * @param condition - la condition pour garder les elements (>10 gardes les elts >10)
+     * @param condition - la condition pour garder les elements
+     * (ex: (vo) => vo_ids.includes(vo.id) ou (vo) => vo.id>10)
+     * @returns datafield
      */
     public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): DatatableField<T, U> {
 
@@ -179,7 +181,11 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-    //applique tri et filtrage aux options
+    /**
+     * applique tri et filtrage aux options
+     * @param options liste d'options non triée/filtrée
+     * @returns liste d'options triée/filtrée
+     */
     public triFiltrage(options: { [id: number]: IDistantVOBase; }) {
 
         //transforme les options en arrays pour le tri

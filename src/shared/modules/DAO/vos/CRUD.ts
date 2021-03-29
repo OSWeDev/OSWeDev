@@ -372,4 +372,23 @@ export default class CRUD<T extends IDistantVOBase> {
 
         return this;
     }
+
+    /**
+     * will only show VOs with ids referenced in allowed_vo_ids for manyToOne fields that shows vo with specified api_type_id
+     * @param api_type_id
+     * @param allowed_vo_ids id array of VOs to show
+     */
+    public filterManyToOnes(api_type_id: string, allowed_vo_ids: number[]) {
+        let create_update_fields = this.createDatatable.fields.concat(this.updateDatatable.fields);
+        let MTO_fields: Array<ManyToOneReferenceDatatableField<any>> = create_update_fields.filter((f) => f.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) as Array<ManyToOneReferenceDatatableField<any>>;
+        let target_fields: Array<ManyToOneReferenceDatatableField<any>> = MTO_fields.filter((f) => f.targetModuleTable.vo_type == api_type_id);
+
+        if (target_fields) {
+            for (let field of target_fields) {
+                field = field.setSieveCondition((vo: IDistantVOBase) => allowed_vo_ids.includes(vo.id)) as ManyToOneReferenceDatatableField<any>;
+            }
+        }
+
+        return this;
+    }
 }
