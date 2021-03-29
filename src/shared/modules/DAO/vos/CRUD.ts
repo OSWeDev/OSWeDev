@@ -385,7 +385,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
         if (target_fields) {
             for (let field of target_fields) {
-                field = field.setSieveCondition((vo: IDistantVOBase) => allowed_vo_ids.includes(vo.id)) as ManyToOneReferenceDatatableField<any>;
+                field.setSelectOptionsEnabled(allowed_vo_ids);
             }
         }
 
