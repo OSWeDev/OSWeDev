@@ -138,6 +138,7 @@ export default abstract class DatatableField<T, U> {
 
     public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): DatatableField<T, U> {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
+        console.log(isVisibleUpdateOrCreate);
 
         return this;
     }
@@ -323,12 +324,17 @@ export default abstract class DatatableField<T, U> {
         return null;
     }
 
+    /**
+     * VO to show in options
+     * @param options VO ids
+     * @returns
+     */
     public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
-        this.select_options_enabled = options;
+        this.select_options_enabled = Array.from(options);
 
         if (!!this.vue_component) {
             // on informe
-            this.vue_component.$data.select_options_enabled = options;
+            this.vue_component.$data.select_options_enabled = Array.from(options);
             this.vue_component.on_reload_field_value();
         }
 

@@ -469,8 +469,18 @@ export default class CRUDComponentField extends VueComponentBase
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
                 }
 
+                let newOptions: IDistantVOBase[] = [];
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (!manyToOneField.select_options_enabled || manyToOneField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
                 if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(newOptions).map((elem) => elem.id));
                 }
             }
 
@@ -483,8 +493,18 @@ export default class CRUDComponentField extends VueComponentBase
                     options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
                 }
 
+                let newOptions: IDistantVOBase[] = [];
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (!refrangesField.select_options_enabled || refrangesField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
                 if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(newOptions).map((elem) => elem.id));
                 }
             }
         }
