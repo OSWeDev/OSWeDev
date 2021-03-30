@@ -80,7 +80,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     private is_inline_editing: boolean = false;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this))
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
     };
 
 
@@ -133,7 +133,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         };
 
         VarsClientController.getInstance().registerParams([clone], {
-            [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this))
+            [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
         });
 
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);

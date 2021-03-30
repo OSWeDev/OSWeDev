@@ -70,13 +70,13 @@ export default class VarDirective {
         if (!!on_every_update) {
             let on_every_update_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
                 await on_every_update(varData, el, binding, vnode);
-            });
+            }, VarUpdateCallback.VALUE_TYPE_VALID);
             varUpdateCallbacks[VarsClientController.get_CB_UID()] = on_every_update_callback;
         }
         if (!!on_update_once) {
             let on_update_once_callback = VarUpdateCallback.newCallbackEvery(async (varData: VarDataBaseVO | VarDataValueResVO) => {
                 await on_update_once(varData, el, binding, vnode);
-            });
+            }, VarUpdateCallback.VALUE_TYPE_VALID);
             varUpdateCallbacks[VarsClientController.get_CB_UID()] = on_update_once_callback;
         }
 

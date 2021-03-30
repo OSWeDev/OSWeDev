@@ -59,7 +59,7 @@ export default class VarDataSumComponent extends VueComponentBase {
     private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this))
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
     private var_datas_updater() {
@@ -113,6 +113,11 @@ export default class VarDataSumComponent extends VueComponentBase {
 
         for (let i in this.var_datas) {
             let var_data = this.var_datas[i];
+
+            if ((!var_data) || (!var_data.value)) {
+                continue;
+            }
+
             res += var_data.value;
         }
 
@@ -217,7 +222,7 @@ export default class VarDataSumComponent extends VueComponentBase {
         for (let i in this.var_datas) {
             let var_data = this.var_datas[i];
 
-            if (var_data.is_computing) {
+            if (var_data && var_data.is_computing) {
                 return true;
             }
         }

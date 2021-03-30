@@ -112,7 +112,7 @@ export default class VarsClientController {
      * @param var_params les params sur lesquels on veut s'abonner
      * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
      */
-    public async registerParamsAndWait(var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }): Promise<{ [index: string]: VarDataBaseVO }> {
+    public async registerParamsAndWait(var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<{ [index: string]: VarDataBaseVO }> {
 
         return new Promise((resolve, reject) => {
             let callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
@@ -125,19 +125,19 @@ export default class VarsClientController {
                 if (nb_waited_cbs <= 0) {
                     resolve(res);
                 }
-            });
+            }, value_type);
             callbacks[callback.UID] = callback;
 
             this.registerParams(var_params, callbacks);
         });
     }
 
-    public async registerParamAndWait<T extends VarDataBaseVO>(var_param: T): Promise<T> {
+    public async registerParamAndWait<T extends VarDataBaseVO>(var_param: T, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<T> {
 
         return new Promise((resolve, reject) => {
             let callback = VarUpdateCallback.newCallbackOnce(async (varData: T) => {
                 resolve(varData);
-            });
+            }, value_type);
 
             this.registerParams([var_param], { [callback.UID]: callback });
         });
@@ -202,6 +202,15 @@ export default class VarsClientController {
 
             for (let j in registered_var.callbacks) {
                 let callback = registered_var.callbacks[j];
+
+                // cas d'un callback en VALID uniquement
+                if ((callback.value_type == VarUpdateCallback.VALUE_TYPE_VALID) && (
+                    (!var_data) ||
+                    (typeof VarsClientController.getInstance().cached_var_datas[var_data.index].value == 'undefined') ||
+                    (!VarsClientController.getInstance().cached_var_datas[var_data.index].value_ts))
+                ) {
+                    continue;
+                }
 
                 if (!!callback.callback) {
                     await callback.callback(var_data);
