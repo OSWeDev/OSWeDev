@@ -18,6 +18,9 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         }
 
         let self = this;
+
+        //par defaut on trie par id
+        this.setSort((vo1, vo2) => vo1.id - vo2.id);
     }
 
     public voIdToHumanReadable: (id: number) => string = (id: number) => {

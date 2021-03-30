@@ -54,4 +54,6 @@ export default class DocumentVO implements IVersionedVO, INamedVO, IWeightedItem
     public version_timestamp: Moment;
     public version_edit_author_id: number;
     public version_edit_timestamp: Moment;
+
+    public show_icon: boolean;
 }

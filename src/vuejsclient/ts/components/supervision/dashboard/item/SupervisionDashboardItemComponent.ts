@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
@@ -19,68 +19,108 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @Prop({ default: false })
     private noclick: boolean;
 
-    get state_classname(): string {
+    private state_classname: string = 'STATE_UNKNOWN';
+    private fa_class_name: string = null;
+    private formatted_date: string = null;
+    private formatted_last_value: string = null;
+
+    @Watch('item', { immediate: true })
+    private onchange_item() {
+        this.set_state_classname();
+        this.set_fa_class_name();
+        this.set_formatted_date();
+        this.set_formatted_last_value();
+    }
+
+    private set_state_classname() {
         if (!this.item) {
-            return "STATE_UNKNOWN";
+            this.state_classname = "STATE_UNKNOWN";
+            return;
         }
+
+        let state_classname: string = null;
 
         switch (this.item.state) {
             case SupervisionController.STATE_ERROR:
-                return "STATE_ERROR";
+                state_classname = "STATE_ERROR";
+                break;
             case SupervisionController.STATE_ERROR_READ:
-                return "STATE_ERROR_READ";
+                state_classname = "STATE_ERROR_READ";
+                break;
             case SupervisionController.STATE_OK:
-                return "STATE_OK";
+                state_classname = "STATE_OK";
+                break;
             case SupervisionController.STATE_PAUSED:
-                return "STATE_PAUSED";
+                state_classname = "STATE_PAUSED";
+                break;
             case SupervisionController.STATE_UNKOWN:
-                return "STATE_UNKOWN";
+                state_classname = "STATE_UNKOWN";
+                break;
             case SupervisionController.STATE_WARN:
-                return "STATE_WARN";
+                state_classname = "STATE_WARN";
+                break;
             case SupervisionController.STATE_WARN_READ:
-                return "STATE_WARN_READ";
+                state_classname = "STATE_WARN_READ";
+                break;
             default:
                 break;
         }
+
+        this.state_classname = state_classname;
     }
 
-    get fa_class_name(): string {
+    private set_fa_class_name() {
         if (!this.state_classname) {
-            return "";
+            this.fa_class_name = "";
+            return;
         }
+
+        let fa_class_name: string = null;
 
         switch (this.state_classname) {
             case "STATE_ERROR":
-                return "fa-exclamation-triangle";
+                fa_class_name = "fa-exclamation-triangle";
+                break;
             case "STATE_ERROR_READ":
-                return "fa-exclamation-triangle";
+                fa_class_name = "fa-exclamation-triangle";
+                break;
             case "STATE_OK":
-                return "fa-check";
+                fa_class_name = "fa-check";
+                break;
             case "STATE_PAUSED":
-                return "fa-pause";
+                fa_class_name = "fa-pause";
+                break;
             case "STATE_UNKOWN":
-                return "fa-question";
+                fa_class_name = "fa-question";
+                break;
             case "STATE_WARN":
-                return "fa-exclamation";
+                fa_class_name = "fa-exclamation";
+                break;
             case "STATE_WARN_READ":
-                return "fa-exclamation";
+                fa_class_name = "fa-exclamation";
+                break;
             default:
                 break;
         }
+
+        this.fa_class_name = fa_class_name;
     }
 
-    get formatted_date(): string {
+    private set_formatted_date() {
         if (!this.item) {
-            return null;
+            this.formatted_date = null;
+            return;
         }
-        return this.item.last_update ? ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.item.last_update) : "-";
+
+        this.formatted_date = this.item.last_update ? ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.item.last_update) : "-";
     }
 
-    get formatted_last_value(): string {
+    private set_formatted_last_value() {
         if (!this.item) {
-            return null;
+            this.formatted_last_value = null;
+            return;
         }
-        return this.item.last_value == null ? "-" : this.item.last_value.toLocaleString();
+        this.formatted_last_value = this.item.last_value == null ? "-" : this.item.last_value.toLocaleString();
     }
 
     get supervised_item_controller(): ISupervisedItemController<any> {

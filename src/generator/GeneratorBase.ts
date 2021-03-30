@@ -33,6 +33,7 @@ import Patch20201214InitFrontVarsPolicies2 from './patchs/postmodules/Patch20201
 import Patch20201218AddMaintenanceCreationPolicy from './patchs/postmodules/Patch20201218AddMaintenanceCreationPolicy';
 import Patch20210107InitLoggedOnce from './patchs/postmodules/Patch20210107InitLoggedOnce';
 import Patch20210202AnimationPrctReussite from './patchs/postmodules/Patch20210202AnimationPrctReussite';
+import Patch20210225AjoutDateCreationCompteUtilisateur from './patchs/postmodules/Patch20210225AjoutDateCreationCompteUtilisateur';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -47,6 +48,7 @@ import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch2020
 import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924UpgradeUserVO';
 import Patch20201123UpdateVarCacheConfVO from './patchs/premodules/Patch20201123UpdateVarCacheConfVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
+import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305affichageIconePDF';
 
 export default abstract class GeneratorBase {
 
@@ -107,6 +109,8 @@ export default abstract class GeneratorBase {
             Patch20201218AddMaintenanceCreationPolicy.getInstance(),
             Patch20210107InitLoggedOnce.getInstance(),
             Patch20210202AnimationPrctReussite.getInstance(),
+            Patch20210225AjoutDateCreationCompteUtilisateur.getInstance(),
+            Patch20210305affichageIconePDF.getInstance(),
         ];
     }
 

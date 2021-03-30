@@ -76,6 +76,10 @@ export default class FileComponent extends VueComponentBase {
         this.uid = FileComponent.__UID++;
     }
 
+    private removeFile() {
+        this.$emit('uploaded', null);
+    }
+
     get dropzoneOptions() {
         let self = this;
 

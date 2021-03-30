@@ -19,8 +19,8 @@
                         isotope.documents_wrapper(ref="isotope" :options='options' :list="list" @filter="filterOption=arguments[0]" @sort="sortOption=arguments[0]")
                             .document.grid-item(v-for="d in list" :key="d.id" @click="open_document(d.document_url)" target='_blank' v-tooltip.top="d.description" :class='classnames[d.importance]')
                                 .document_name {{ d.name }}
-                                
-                                .document_type
+
+                                .document_type(v-if="d.show_icon")
                                     template(v-if='d.type==type_video')
                                         i.fa.fa-youtube-play.fa-fw(aria-hidden="true")
                                     template(v-if='d.type==type_pdf')
@@ -33,4 +33,3 @@
                                         i.fa.fa-file-powerpoint-o.fa-fw(aria-hidden="true")
                                     template(v-if='d.type==type_other')
                                         i.fa.fa-file-o.fa-fw(aria-hidden="true")
-                                        

@@ -6,6 +6,9 @@ import DefaultTranslation from '../../../../../shared/modules/Translation/vos/De
 
 export default class ManyToManyReferenceDatatableField<Target extends IDistantVOBase, Inter extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
+    public interTargetRefFieldId: string = null;
+    public interSrcRefFieldId: string = null;
+
     public constructor(
         datatable_field_uid: string,
         targetModuleTable: ModuleTable<Target>,
@@ -13,6 +16,16 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         sortedTargetFields: Array<DatatableField<any, any>>,
         translatable_title: string = null) {
         super(DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields, translatable_title);
+    }
+
+    public set_interTargetRefFieldId(interTargetRefFieldId: string): ManyToManyReferenceDatatableField<Target, Inter> {
+        this.interTargetRefFieldId = interTargetRefFieldId;
+        return this;
+    }
+
+    public set_interSrcRefFieldId(interSrcRefFieldId: string): ManyToManyReferenceDatatableField<Target, Inter> {
+        this.interSrcRefFieldId = interSrcRefFieldId;
+        return this;
     }
 
     public setModuleTable(moduleTable: ModuleTable<any>): ManyToManyReferenceDatatableField<Target, Inter> {
@@ -33,8 +46,8 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         let res = "";
 
         let dest_ids: number[] = [];
-        let interTargetRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
-        let interSrcRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
+        let interTargetRefField = this.interTargetRefFieldId ? this.interModuleTable.getFieldFromId(this.interTargetRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
+        let interSrcRefField = this.interSrcRefFieldId ? this.interModuleTable.getFieldFromId(this.interSrcRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
         let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let interi in vos[this.interModuleTable.vo_type]) {
@@ -60,8 +73,8 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
             return dest_ids;
         }
 
-        let interTargetRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
-        let interSrcRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
+        let interTargetRefField = this.interTargetRefFieldId ? this.interModuleTable.getFieldFromId(this.interTargetRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
+        let interSrcRefField = this.interSrcRefFieldId ? this.interModuleTable.getFieldFromId(this.interSrcRefFieldId) : this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
         let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let interi in vos[this.interModuleTable.vo_type]) {

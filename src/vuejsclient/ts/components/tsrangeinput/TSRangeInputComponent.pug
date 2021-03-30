@@ -11,8 +11,11 @@
     template(v-if='is_segmentation_minute')
         .row
             .col-sm-6
-                Datepicker(:clear-button="!required" v-model="tsrange_date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control max-width':'max-width'" @input="emitInput")
-            .col-sm-3
+                Datepicker(:clear-button="!required" v-model="tsrange_start" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" class="form_control?'form-control max-width':'max-width'" @input="emitInput")
+            .col-sm-6
                 input.max-width(:class="{'form-control': !inline_input_mode}" v-model="tsrange_start_time", type="time", id="tsrange_start_time" :disabled="disabled")
-            .col-sm-3
+        .row
+            .col-sm-6
+                Datepicker(:clear-button="!required" v-model="tsrange_end" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_fin')" :required="required" :disabled="disabled" :format="format_datepicker_day" class="form_control?'form-control max-width':'max-width'" @input="emitInput")
+            .col-sm-6
                 input.max-width(:class="{'form-control': !inline_input_mode}" v-model="tsrange_end_time", type="time", id="tsrange_end_time" :disabled="disabled")

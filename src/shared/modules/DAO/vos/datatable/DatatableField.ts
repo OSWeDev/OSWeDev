@@ -1,5 +1,6 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ObjectHandler from '../../../../tools/ObjectHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
@@ -75,9 +76,17 @@ export default abstract class DatatableField<T, U> {
 
     public validate: (data: any) => string;
     public onChange: (vo: IDistantVOBase) => void;
+    public onEndOfChange: (vo: IDistantVOBase) => void;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
     public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
+
+    //definit comment trier le field si besoin
+    public sort: (vos: IDistantVOBase[]) => void;
+
+    //definit la fonction qui permet de filtrer
+    public sieve: (vos: IDistantVOBase[]) => IDistantVOBase[];
+    public sieveCondition: (e: any) => boolean;
 
 
     /**
@@ -90,6 +99,7 @@ export default abstract class DatatableField<T, U> {
         this.module_table_field_id = this.datatable_field_uid;
         this.validate = null;
         this.onChange = null;
+        this.onEndOfChange = null;
         this.isVisibleUpdateOrCreate = () => true;
     }
 
@@ -126,16 +136,71 @@ export default abstract class DatatableField<T, U> {
     }
 
 
-    public setIsVisibleUpdateOrCreate(isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean): DatatableField<T, U> {
+    public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): DatatableField<T, U> {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
 
         return this;
     }
 
-    public setOnChange(onChange: (vo: IDistantVOBase) => void): DatatableField<T, U> {
+    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): DatatableField<T, U> {
         this.onChange = onChange;
 
         return this;
+    }
+
+    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): DatatableField<T, U> {
+        this.onEndOfChange = onEndOfChange;
+
+        return this;
+    }
+
+    //permet de definir une fonction de tri
+    public setSort<P extends IDistantVOBase>(fonctionComparaison: (vo1: P, vo2: P) => number): DatatableField<T, U> {
+        this.sort = (vos: P[]): P[] => vos.sort(fonctionComparaison);
+
+        return this;
+    }
+
+    /**
+     * permet de definir une fonction de filtrage sur les elts à afficher (sieve: passer au tamis)
+     * par defaut laisse tout passer (pas de tri)
+     * @param condition - la condition pour garder les elements (>10 gardes les elts >10)
+     */
+    public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): DatatableField<T, U> {
+
+        this.sieve = (vos: P[]): P[] => vos.filter((elt) => true);
+        this.sieveCondition = (e) => true;
+
+        if (condition != null) {
+            this.sieve = (vos: P[]): P[] => vos.filter(condition);
+            this.sieveCondition = condition;
+        }
+
+        return this;
+    }
+
+    //applique tri et filtrage aux options
+    public triFiltrage(options: { [id: number]: IDistantVOBase; }) {
+
+        //transforme les options en arrays pour le tri
+        let optionsArray: IDistantVOBase[] = ObjectHandler.getInstance().arrayFromMap(options);
+
+        //tri
+        if (this.sort && optionsArray) {
+            this.sort(optionsArray);
+        }
+
+        //s'il y a une fonction de filtrage on filtre
+        if (this.sieve) {
+            optionsArray = this.sieve(optionsArray);
+        }
+
+        options = {};
+
+        optionsArray.forEach((vo) => {
+            options[vo.id] = vo;
+        });
+        return options;
     }
 
     public setValidator(validator: (data: any) => string): DatatableField<T, U> {

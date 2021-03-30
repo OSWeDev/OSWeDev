@@ -66,10 +66,10 @@ export default class CRUDComponentManager {
      * @param routes
      */
     public registerCRUD<T extends IDistantVOBase>(
-        API_TYPE_ID: string,
-        crud: CRUD<T>,
-        menuPointer: MenuPointer,
-        routes: RouteConfig[],
+        API_TYPE_ID: string,                //id du VO
+        crud: CRUD<T>,                      //le crud
+        menuPointer: MenuPointer,           //menu
+        routes: RouteConfig[],              //routes (urls)
         read_query: any = null,
         routes_meta: any = null,
         sort_id_descending: boolean = true,

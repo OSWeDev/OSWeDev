@@ -1175,8 +1175,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async handleTriggerUserVOCreate(vo: UserVO): Promise<boolean> {
-
-
         if ((!vo) || (!vo.password)) {
             return true;
         }
@@ -1186,6 +1184,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+
+        // On ajoute la date de création
+        if (!vo.creation_date) {
+            vo.creation_date = moment().utc(true);
+        }
 
         return true;
     }

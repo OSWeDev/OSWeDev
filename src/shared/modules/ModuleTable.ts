@@ -181,6 +181,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
 
+        //remplis fields_ et fields_by_ids avec le champ tmp_fields
         this.set_fields(tmp_fields);
 
         if (this.module && this.module.name) {
@@ -415,6 +416,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.set_sortedFields();
     }
 
+    //remplis fields_ avec les ModuleTableField et fields_by_ids avec le ModuleTableField et leur field_id
     public set_fields(fields: Array<ModuleTableField<any>>) {
         this.fields_ = fields;
 
