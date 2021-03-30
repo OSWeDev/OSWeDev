@@ -479,8 +479,8 @@ export default class CRUDComponentField extends VueComponentBase
                     }
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(newOptions).map((elem) => elem.id));
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
 
@@ -503,8 +503,8 @@ export default class CRUDComponentField extends VueComponentBase
                     }
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(newOptions).map((elem) => elem.id));
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
         }

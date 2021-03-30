@@ -138,8 +138,6 @@ export default abstract class DatatableField<T, U> {
 
     public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): DatatableField<T, U> {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
-        console.log(isVisibleUpdateOrCreate);
-
         return this;
     }
 
