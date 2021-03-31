@@ -10,7 +10,7 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 
-Component({
+@Component({
     template: require("./qr.pug"),
     components: {}
 })

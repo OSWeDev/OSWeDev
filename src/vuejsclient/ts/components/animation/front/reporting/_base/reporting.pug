@@ -34,13 +34,14 @@
                   template(v-if="!is_filter_module_termine_active_no")
                     span {{ const_filters.percent.read(get_percent_module_finished) }}
                 td.text-center
+                  template(v-if="temps_passe_total_param")
                     var-data(
                       :var_param="temps_passe_total_param",
                       :filter='const_filters.hour.read',
                       :filter_additional_params='[]',
                     )
                 td.text-center
-                  template(v-if="!is_filter_module_termine_active_no")
+                  template(v-if="!is_filter_module_termine_active_no && prct_reussite_total_param")
                     var-data(
                       :var_param="prct_reussite_total_param",
                       :filter='const_filters.percent.read',
@@ -67,13 +68,13 @@
                       td.text-center {{ get_formatted_date(aum.end_date) }}
                       td.text-center
                         var-data(
-                          :var_param="get_temps_passe_total_param(aum)",
+                          :var_param="get_temps_passe_param(aum)",
                           :filter='const_filters.hour.read',
                           :filter_additional_params='[]',
                         )
                       td.text-center
                         var-data(
-                          :var_param="get_prct_reussite_total_param(aum)",
+                          :var_param="get_prct_reussite_param(aum)",
                           :filter='const_filters.percent.read',
                           :filter_additional_params='[]',
                         )

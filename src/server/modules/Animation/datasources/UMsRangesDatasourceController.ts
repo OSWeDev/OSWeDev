@@ -18,19 +18,40 @@ export default class UMsRangesDatasourceController extends DataSourceControllerM
 
     protected static instance: UMsRangesDatasourceController = null;
 
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<any> {
+    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [module_id: number]: { [user_id: number]: AnimationUserModuleVO } }> {
 
-        let user_ids: number[] = param.user_id_ranges ? RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.user_id_ranges) : [];
-        let module_ids: number[] = param.module_id_ranges ? RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges) : [];
+        // Protection/ Détection Max_ranges
+        let user_ids: number[] = (param.user_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.user_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.user_id_ranges) :
+            null;
+        let module_ids: number[] = (param.module_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges) :
+            null;
 
         let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = {};
-        let ums: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
-            AnimationUserModuleVO.API_TYPE_ID,
-            'module_id',
-            module_ids,
-            'user_id',
-            user_ids,
-        );
+        let ums: AnimationUserModuleVO[] = null;
+
+        if (module_ids && user_ids) {
+            ums = await ModuleDAO.getInstance().getVosByRefFieldsIds<AnimationUserModuleVO>(
+                AnimationUserModuleVO.API_TYPE_ID,
+                'module_id',
+                module_ids,
+                'user_id',
+                user_ids,
+            );
+        } else if (module_ids) {
+            ums = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationUserModuleVO>(
+                AnimationUserModuleVO.API_TYPE_ID,
+                'module_id',
+                module_ids,
+            );
+        } else if (user_ids) {
+            ums = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationUserModuleVO>(
+                AnimationUserModuleVO.API_TYPE_ID,
+                'user_id',
+                user_ids,
+            );
+        }
 
         for (let i in ums) {
             let um: AnimationUserModuleVO = ums[i];

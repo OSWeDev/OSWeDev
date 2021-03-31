@@ -18,13 +18,18 @@ export default class QRsRangesDatasourceController extends DataSourceControllerM
 
     protected static instance: QRsRangesDatasourceController = null;
 
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<any> {
+    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
 
         let module_ids: number[] = [];
         let theme_ids: number[] = [];
 
-        let param_theme_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.theme_id_ranges);
-        let param_module_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges);
+        // Protection/ Détection Max_ranges
+        let param_theme_ids: number[] = (param.theme_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.theme_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.theme_id_ranges) :
+            null;
+        let param_module_ids: number[] = (param.module_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges) :
+            null;
 
         if (param_theme_ids) {
             theme_ids = theme_ids.concat(param_theme_ids);
@@ -34,6 +39,6 @@ export default class QRsRangesDatasourceController extends DataSourceControllerM
             module_ids = module_ids.concat(param_module_ids);
         }
 
-        return await ModuleAnimation.getInstance().getQRsByThemesAndModules(theme_ids, module_ids);
+        return ModuleAnimation.getInstance().getQRsByThemesAndModules(theme_ids, module_ids);
     }
 }

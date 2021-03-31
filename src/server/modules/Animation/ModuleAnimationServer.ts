@@ -18,6 +18,7 @@ import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/Animati
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import ModuleTable from '../../../shared/modules/ModuleTable';
@@ -185,14 +186,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return true;
     }
 
-    private async getQRsByThemesAndModules(param: AnimationParamVO): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
+    private async getQRsByThemesAndModules(theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
         let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = {};
 
-        let module_ids: number[] = await this.getAllModuleIds(param);
-        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', module_ids);
+        let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
+        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, module_ids)
+            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
         );
 
         for (let i in qrs) {
@@ -216,11 +217,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return res;
     }
 
-    private async getUQRsByThemesAndModules(param: AnimationParamVO): Promise<{ [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }> {
-        let res: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = {};
+    private async getUQRsByThemesAndModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } }> {
+        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = {};
 
-        let module_ids: number[] = await this.getAllModuleIds(param);
-        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', module_ids);
+        let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
+        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
         let qr_by_ids: { [id: number]: AnimationQRVO } = {};
         let qr_ids: number[] = [];
 
@@ -234,11 +235,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             'qr_id',
             qr_ids,
             'user_id',
-            param.user_ids
+            user_ids
         );
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, module_ids)
+            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
         );
 
         for (let i in uqrs) {
@@ -262,32 +263,32 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             if (!res[module.theme_id][module.id]) {
                 res[module.theme_id][module.id] = {};
             }
-            res[module.theme_id][module.id][uqr.id] = uqr;
+            res[module.theme_id][module.id][qr.id] = uqr;
         }
 
         return res;
     }
 
-    private async getAllModuleIds(param: AnimationParamVO): Promise<number[]> {
-        let module_ids: number[] = [];
+    private async getAllModuleIds(theme_ids: number[], module_ids: number[]): Promise<number[]> {
+        let res: number[] = [];
 
-        if (param.module_ids) {
-            module_ids = param.module_ids;
+        if (module_ids) {
+            res = module_ids;
         }
 
-        if (param.theme_ids) {
-            let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', param.theme_ids);
+        if (theme_ids) {
+            let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', theme_ids);
 
             if (modules && modules.length > 0) {
-                module_ids = module_ids.concat(modules.map((m) => m.id));
+                res = res.concat(modules.map((m) => m.id));
             }
         }
 
-        return module_ids;
+        return res;
     }
 
-    private async startModule(param: AnimationModuleParamVO): Promise<AnimationUserModuleVO> {
-        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    private async startModule(user_id: number, module_id: number, support: number): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 
         if (res) {
             return res;
@@ -295,16 +296,16 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         let aum: AnimationUserModuleVO = new AnimationUserModuleVO();
         aum.start_date = moment().utc(true);
-        aum.user_id = param.user_id;
-        aum.module_id = param.module_id;
-        aum.support = param.support;
+        aum.user_id = user_id;
+        aum.module_id = module_id;
+        aum.support = support;
         await ModuleDAO.getInstance().insertOrUpdateVO(aum);
 
-        return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+        return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
-    private async endModule(param: AnimationModuleParamVO): Promise<AnimationUserModuleVO> {
-        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    private async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 
         if (!res) {
             return null;
@@ -324,16 +325,23 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
-        return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+        return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
-    private async getAumsFiltered(param: AnimationReportingParamVO): Promise<AnimationUserModuleVO[]> {
+    private async getAumsFiltered(
+        filter_anim_theme_active_options: DataFilterOption[],
+        filter_anim_module_active_options: DataFilterOption[],
+        filter_role_active_options: DataFilterOption[],
+        filter_user_active_options: DataFilterOption[],
+        filter_module_termine_active_option: DataFilterOption,
+        filter_module_valide_active_option: DataFilterOption,
+    ): Promise<AnimationUserModuleVO[]> {
         let res: AnimationUserModuleVO[] = [];
 
-        let theme_ids: number[] = param.filter_anim_theme_active_options ? param.filter_anim_theme_active_options.map((s) => s.id) : [];
-        let module_ids: number[] = param.filter_anim_module_active_options ? param.filter_anim_module_active_options.map((s) => s.id) : [];
-        let user_ids: number[] = param.filter_user_active_options ? param.filter_user_active_options.map((s) => s.id) : [];
-        let role_ids: number[] = param.filter_role_active_options ? param.filter_role_active_options.map((s) => s.id) : [];
+        let theme_ids: number[] = filter_anim_theme_active_options ? filter_anim_theme_active_options.map((s) => s.id) : [];
+        let module_ids: number[] = filter_anim_module_active_options ? filter_anim_module_active_options.map((s) => s.id) : [];
+        let user_ids: number[] = filter_user_active_options ? filter_user_active_options.map((s) => s.id) : [];
+        let role_ids: number[] = filter_role_active_options ? filter_role_active_options.map((s) => s.id) : [];
         let only_module_valide: boolean = null;
         let only_module_termine: boolean = null;
 
@@ -379,12 +387,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return res;
         }
 
-        if (param.filter_module_valide_active_option) {
-            only_module_valide = param.filter_module_valide_active_option.id == AnimationController.OPTION_YES;
+        if (filter_module_valide_active_option) {
+            only_module_valide = filter_module_valide_active_option.id == AnimationController.OPTION_YES;
         }
 
-        if (param.filter_module_termine_active_option) {
-            only_module_termine = param.filter_module_termine_active_option.id == AnimationController.OPTION_YES;
+        if (filter_module_termine_active_option) {
+            only_module_termine = filter_module_termine_active_option.id == AnimationController.OPTION_YES;
         }
 
         for (let i in aums) {

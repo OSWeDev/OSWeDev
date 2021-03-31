@@ -92,7 +92,7 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
     protected getValue(varDAGNode: VarDAGNode): number {
 
         let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let uqrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        let uqrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
         let cpt_uqrs: number = 0;

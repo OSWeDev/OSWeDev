@@ -83,7 +83,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises = [];
 
         promises.push((async () => {
-            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id);
+            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id, AnimationController.getInstance().getSupport());
             // On force le vidage de cache
             AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID]);
         })());

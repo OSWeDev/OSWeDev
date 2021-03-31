@@ -56,7 +56,7 @@ export default class ModuleAnimation extends Module {
 
     private static instance: ModuleAnimation = null;
 
-    public startModule: (user_id: number, module_id: number) => Promise<AnimationUserModuleVO> = APIControllerWrapper.sah(ModuleAnimation.APINAME_startModule);
+    public startModule: (user_id: number, module_id: number, support: number) => Promise<AnimationUserModuleVO> = APIControllerWrapper.sah(ModuleAnimation.APINAME_startModule);
     public endModule: (user_id: number, module_id: number) => Promise<AnimationUserModuleVO> = APIControllerWrapper.sah(ModuleAnimation.APINAME_endModule);
     public getQRsByThemesAndModules: (theme_ids: number[], module_ids: number[]) => Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getQRsByThemesAndModules);
     public getUQRsByThemesAndModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<{ [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getUQRsByThemesAndModules);

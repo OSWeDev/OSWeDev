@@ -4,8 +4,6 @@ import AnimationUserQRVO from "../../../../shared/modules/Animation/vos/Animatio
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
-
-
 export default class UQRsRangesDatasourceController extends DataSourceControllerMatroidIndexedBase {
 
     public static getInstance(): UQRsRangesDatasourceController {
@@ -20,13 +18,20 @@ export default class UQRsRangesDatasourceController extends DataSourceController
 
     protected static instance: UQRsRangesDatasourceController = null;
 
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<any> {
+    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } }> {
 
-        let param_theme_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges((param as any as ThemeModuleDataRangesVO).theme_id_ranges);
-        let param_module_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges((param as any as ThemeModuleDataRangesVO).module_id_ranges);
-        let param_user_ids: number[] = RangeHandler.getInstance().get_all_segmented_elements_from_ranges((param as any as ThemeModuleDataRangesVO).user_id_ranges);
+        // Protection/ Détection Max_ranges
+        let param_theme_ids: number[] = (param.theme_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.theme_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.theme_id_ranges) :
+            null;
+        let param_module_ids: number[] = (param.module_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges) :
+            null;
+        let param_user_ids: number[] = (param.user_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.user_id_ranges) >= 0) ?
+            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.user_id_ranges) :
+            null;
 
-        let uqrs: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = await ModuleAnimation.getInstance().getUQRsByThemesAndModules(
+        let uqrs: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = await ModuleAnimation.getInstance().getUQRsByThemesAndModules(
             param_user_ids,
             param_theme_ids,
             param_module_ids

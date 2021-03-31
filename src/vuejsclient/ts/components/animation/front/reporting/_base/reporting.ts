@@ -87,6 +87,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     private get_filter_module_valide_active_option: DataFilterOption;
 
     private is_init: boolean = false;
+    private temps_passe_total_param: ThemeModuleDataRangesVO = null;
+    private prct_reussite_total_param: ThemeModuleDataRangesVO = null;
 
     private debounced_reloadAums = debounce(this.reloadAums, 300);
 
@@ -209,6 +211,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         });
 
         this.is_init = true;
+
+        this.reload_params();
     }
 
     private async reloadAums() {
@@ -250,13 +254,33 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         }
 
         this.set_all_aum_by_theme_module_user(all_aum_by_theme_module_user);
+
+        this.reload_params();
+    }
+
+    private reload_params() {
+        this.temps_passe_total_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
+            true,
+            this.get_anim_theme_id_ranges,
+            this.get_anim_module_id_ranges,
+            this.get_user_id_ranges,
+        );
+
+        this.prct_reussite_total_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
+            true,
+            this.get_anim_theme_id_ranges,
+            this.get_anim_module_id_ranges,
+            this.get_user_id_ranges,
+        );
     }
 
     private get_formatted_date(date: Moment): string {
         return date ? date.format('DD/MM/YYYY HH:mm') : null;
     }
 
-    private get_prct_reussite_total_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
+    private get_prct_reussite_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
         return ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
             false,
@@ -266,7 +290,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         );
     }
 
-    private get_temps_passe_total_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
+    private get_temps_passe_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
         return ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
             true,
@@ -300,26 +324,6 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
 
     get support_labels(): { [support_id: number]: string } {
         return AnimationUserModuleVO.SUPPORT_LABELS;
-    }
-
-    get temps_passe_total_param(): ThemeModuleDataRangesVO {
-        return ThemeModuleDataRangesVO.createNew(
-            AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
-            true,
-            this.get_anim_theme_id_ranges,
-            this.get_anim_module_id_ranges,
-            this.get_user_id_ranges,
-        );
-    }
-
-    get prct_reussite_total_param(): ThemeModuleDataRangesVO {
-        return ThemeModuleDataRangesVO.createNew(
-            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
-            true,
-            this.get_anim_theme_id_ranges,
-            this.get_anim_module_id_ranges,
-            this.get_user_id_ranges,
-        );
     }
 
     get is_filter_module_termine_active_no(): boolean {

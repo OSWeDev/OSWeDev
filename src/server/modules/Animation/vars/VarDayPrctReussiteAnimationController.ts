@@ -96,7 +96,7 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
     protected getValue(varDAGNode: VarDAGNode): number {
 
         let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
         let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
@@ -111,21 +111,23 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
                     let qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][i];
 
                     if (uqrs_by_theme_module_qr && uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id]) {
-                        for (let j in uqrs_by_theme_module_qr[theme_id][module_id][qr.id]) {
-                            let uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id][j];
+                        let uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id];
 
-                            if (ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date) {
-                                if (!user_id_check[uqr.user_id]) {
-                                    nb_user_has_finished++;
-                                    user_id_check[uqr.user_id] = true;
-                                }
-                            } else {
-                                continue;
-                            }
+                        if (!uqr) {
+                            continue;
+                        }
 
-                            if (AnimationController.getInstance().isUserQROk(qr, uqr)) {
-                                cpt_ok++;
+                        if (ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date) {
+                            if (!user_id_check[uqr.user_id]) {
+                                nb_user_has_finished++;
+                                user_id_check[uqr.user_id] = true;
                             }
+                        } else {
+                            continue;
+                        }
+
+                        if (AnimationController.getInstance().isUserQROk(qr, uqr)) {
+                            cpt_ok++;
                         }
                     }
                 }
