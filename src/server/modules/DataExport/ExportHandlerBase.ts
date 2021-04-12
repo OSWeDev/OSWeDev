@@ -30,6 +30,9 @@ export default abstract class ExportHandlerBase implements IExportHandler {
     public async export(exhi: ExportHistoricVO, datas: IExportableDatas): Promise<boolean> {
 
         try {
+            if (!datas.datas) {
+                throw new Error('Pas de datas à exporter pour l\'export :' + exhi.id + ':' + exhi.export_type_id + ':');
+            }
 
             let file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSXFile(
                 datas.filename, datas.datas, datas.ordered_column_list, datas.column_labels, datas.api_type_id,
