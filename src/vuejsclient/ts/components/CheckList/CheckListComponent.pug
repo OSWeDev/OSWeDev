@@ -5,8 +5,15 @@ include ../../../views/mixins/loading.pug
         .row 
             .col-md-2
                 button.btn.btn-primary(type='button', @click="createNew") {{ label('checklist.createNew') }}
+        
+        .row 
+            .col-md-12 
 
-        .row(v-if='has_checklistitems')
+        .row 
+            .col-md-4
+                input(type='text' :placeholder='label("checklist.filter_text")' v-model="filter_text")
+
+        .row(v-if='has_checklistitems && ordered_checklistitems && ordered_checklistitems.length')
             .col-md-12
                 table.table-striped.table-hover
                     thead
@@ -22,6 +29,10 @@ include ../../../views/mixins/loading.pug
                             :ordered_checkpoints='ordered_checkpoints' 
                             :global_route_path='global_route_path'
                             @onchangevo='onchangevo')
+
+        .row(v-else)
+            .col-md-12
+                .no_elts {{ label('checklist.no_elts') }}
 
     #checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')
         .modal-dialog.modal-lg(role='document')

@@ -44,6 +44,7 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
+import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
@@ -163,10 +164,13 @@ export default class ModuleVarServer extends ModuleServerBase {
             fr: 'Taille de l\'arbre'
         }, 'var_desc_registrations.vardag_size.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Données importées/aggrégées'
+        }, 'var_desc.aggregated_var_datas.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
-        }, 'force_empty_cars_datas_vu_update_cache.done'));
+        }, 'force_empty_vars_datas_vo_update_cache.done'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -205,6 +209,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Afficher les données exactes'
         }, 'vars_datas_explorer_actions.get_exact.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Calculer ce paramètre'
+        }, 'vars_datas_explorer_actions.show_exact.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Afficher les données incluses'
         }, 'vars_datas_explorer_actions.get_included.___LABEL___'));
@@ -265,7 +272,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             VarsServerController.getInstance().init_varcontrollers_dag();
         });
 
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache] =
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] =
             VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache;
     }
 
@@ -278,7 +285,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_cd(vo: IDistantVOBase): Promise<void> {
 
         try {
-            VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
+            await VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
             BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
@@ -294,7 +301,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_u(vo_update_handler: DAOUpdateVOHolder<IDistantVOBase>): Promise<void> {
 
         try {
-            VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
+            await VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
             BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
@@ -587,6 +594,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
@@ -898,6 +906,19 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         return var_controller.getParamDependencies(varDAGNode);
+    }
+
+    private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
+        let var_dag: DAG<VarDAGNode> = new DAG();
+        let deployed_vars_datas: { [index: string]: boolean } = {};
+        let vars_datas: { [index: string]: VarDataBaseVO } = {
+            [param.index]: param
+        };
+        let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
+        let node = VarDAGNode.getInstance(var_dag, param);
+        await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas, ds_cache);
+
+        return node.aggregated_datas;
     }
 
     private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {

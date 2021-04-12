@@ -295,15 +295,22 @@ export default class VarDataRefComponent extends VueComponentBase {
         VarsClientController.getInstance().inline_editing_cb = null;
     }
 
+    @Watch('can_inline_edit')
+    private onchange_can_inline_edit() {
+        if (!this.can_inline_edit) {
+            this.is_inline_editing = false;
+        }
+    }
+
     private selectVar() {
 
         if (this.can_inline_edit && !this.is_inline_editing) {
-            this.is_inline_editing = true;
-
             if (VarsClientController.getInstance().inline_editing_cb) {
                 VarsClientController.getInstance().inline_editing_cb();
             }
             VarsClientController.getInstance().inline_editing_cb = this.close_inline_editing.bind(this);
+
+            this.is_inline_editing = true;
         }
 
         if (!this.isDescMode) {

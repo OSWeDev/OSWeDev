@@ -46,6 +46,7 @@ export default class ModuleVar extends Module {
     public static APINAME_getParamDependencies: string = 'getParamDependencies';
     public static APINAME_getVarControllerDSDeps: string = 'getVarControllerDSDeps';
     public static APINAME_getVarParamDatas: string = 'getVarParamDatas';
+    public static APINAME_getAggregatedVarDatas: string = 'getAggregatedVarDatas';
 
     // public static APINAME_invalidate_cache_intersection: string = 'invalidate_cache_intersection';
     public static APINAME_delete_cache_intersection: string = 'delete_cache_intersection';
@@ -55,7 +56,7 @@ export default class ModuleVar extends Module {
     public static APINAME_invalidate_cache_exact_and_parents: string = 'invalidate_cache_exact_and_parents';
     public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
 
-    public static MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache = 'force_empty_cars_datas_vu_update_cache';
+    public static MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache = 'force_empty_vars_datas_vo_update_cache';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -76,6 +77,7 @@ export default class ModuleVar extends Module {
     public getVarControllerVarsDeps: (var_name: string) => Promise<{ [dep_name: string]: string }> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarControllerVarsDeps);
     public getParamDependencies: (param: VarDataBaseVO) => Promise<{ [dep_id: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getParamDependencies);
     public getVarParamDatas: (param: VarDataBaseVO) => Promise<{ [ds_name: string]: string }> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamDatas);
+    public getAggregatedVarDatas: (param: VarDataBaseVO) => Promise<{ [var_data_index: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getAggregatedVarDatas);
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
@@ -95,7 +97,7 @@ export default class ModuleVar extends Module {
         this.initializeVarDataValueResVO();
         this.initializeVarPerfVO();
 
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_cars_datas_vu_update_cache] = null;
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
     }
 
     public registerApis() {
@@ -138,6 +140,13 @@ export default class ModuleVar extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarParamDatas,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            APISimpleVOParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [var_data_index: string]: VarDataBaseVO }>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_getAggregatedVarDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic
         ));

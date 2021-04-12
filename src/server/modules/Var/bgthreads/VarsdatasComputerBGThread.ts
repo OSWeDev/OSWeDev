@@ -120,9 +120,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              * On dépile les CUD sur les VOs et faire les invalidations
              */
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
-            let has_done_something = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
+            let refuse_computation = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", false);
-
 
             /**
              * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
@@ -132,7 +131,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              */
 
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", true);
-            let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(
+            let vars_datas: { [index: string]: VarDataBaseVO } = refuse_computation ? null : await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(
                 client_request_estimated_ms_limit, client_request_min_nb_vars, bg_estimated_ms_limit, bg_min_nb_vars);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
 
@@ -146,13 +145,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 // VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"], false);
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", false);
 
-                if (has_done_something && ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
+                if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something &&
+                    ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                     await VarsPerfsController.update_perfs_in_bdd();
                 }
 
                 this.semaphore = false;
 
-                if (has_done_something) {
+                if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
                     this.throttled_calculation_run();
                     return;
                 } else {

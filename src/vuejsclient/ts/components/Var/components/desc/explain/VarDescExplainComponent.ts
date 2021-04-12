@@ -18,7 +18,8 @@ import './VarDescExplainComponent.scss';
     template: require('./VarDescExplainComponent.pug'),
     components: {
         Vardescexplaindepcomponent: () => import(/* webpackChunkName: "VarDescExplainDepComponent" */ './dep/VarDescExplainDepComponent'),
-        Vardescexplaindscomponent: () => import(/* webpackChunkName: "VarDescExplainDsComponent" */ './ds/VarDescExplainDsComponent')
+        Vardescexplaindscomponent: () => import(/* webpackChunkName: "VarDescExplainDsComponent" */ './ds/VarDescExplainDsComponent'),
+        Vardescexplainimportscomponent: () => import(/* webpackChunkName: "VarDescExplainImportsComponent" */ './imports/VarDescExplainImportsComponent'),
     }
 })
 export default class VarDescExplainComponent extends VueComponentBase {
@@ -35,14 +36,19 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
     private var_data: VarDataValueResVO = null;
     private var_datas_deps: VarDataValueResVO[] = [];
+
+    private aggregated_var_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+
     private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
-    private var_datas_updater() {
+    private async var_datas_updater() {
 
+        let old_value_type = this.var_data ? this.var_data.value_type : null;
+        let old_value = this.var_data ? this.var_data.value : null;
         this.var_data = this.var_param ? VarsClientController.getInstance().cached_var_datas[this.var_param.index] : null;
 
         let var_datas: VarDataValueResVO[] = [];
@@ -51,6 +57,26 @@ export default class VarDescExplainComponent extends VueComponentBase {
             var_datas.push(VarsClientController.getInstance().cached_var_datas[dep_param.index]);
         }
         this.var_datas_deps = var_datas;
+
+        let promises = [];
+
+        // Si on a une nouvelle data on recharge les DS
+        if (this.var_data && (!this.var_data.is_computing) && (old_value != null) && (old_value != this.var_data.value)) {
+            promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
+        }
+
+        // Si on change de type de valeur on recharge les deps et les aggregated
+        if (this.var_data && (!this.var_data.is_computing) && (old_value_type != null) && (old_value_type != this.var_data.value_type)) {
+            promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
+            promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.getInstance().var_conf_by_id[this.var_param.var_id].name))());
+            promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
+        }
+
+        await Promise.all(promises);
+    }
+
+    get is_aggregator(): boolean {
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.aggregated_var_datas);
     }
 
     private var_id_from_name(name: string): number {
@@ -79,9 +105,14 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         this.deps_loading = true;
 
-        this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param);
-        this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.getInstance().var_conf_by_id[this.var_param.var_id].name);
-        this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param);
+        let promises = [];
+
+        promises.push((async () => this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param))());
+        promises.push((async () => this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.getInstance().var_conf_by_id[this.var_param.var_id].name))());
+        promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
+        promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
+
+        await Promise.all(promises);
 
         this.deps_loading = false;
     }
@@ -135,6 +166,10 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return null;
         }
 
+        if (!this.var_data) {
+            return null;
+        }
+
         let res = {
             self: this.var_data.value
         };
@@ -153,6 +188,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
             let values: number[] = [];
             for (let param_dep_id in this.deps_params) {
                 if (!param_dep_id.startsWith(var_dep_id)) {
+                    continue;
+                }
+                if (!VarsClientController.getInstance().cached_var_datas[this.deps_params[param_dep_id].index]) {
                     continue;
                 }
                 values.push(VarsClientController.getInstance().cached_var_datas[this.deps_params[param_dep_id].index].value);

@@ -1,7 +1,11 @@
 import { Component } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import MatroidBaseController from '../../../../../../../shared/modules/Matroid/MatroidBaseController';
+import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarsDatasExplorerVuexAction, ModuleVarsDatasExplorerVuexGetter } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerActionsComponent.scss';
@@ -25,6 +29,47 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
 
     get can_act(): boolean {
         return this.visible && !this.busy;
+    }
+
+    get can_show_exact(): boolean {
+
+        if ((!this.get_filter_params) || (this.get_filter_params.length != 1)) {
+            return false;
+        }
+
+        let filter_param = this.get_filter_params[0];
+
+        if (!filter_param.var_id) {
+            return false;
+        }
+
+        // Pour des raisons de sécurité pour le moment on empeche de faire les demandes avec des maxranges
+        let matroid_bases = MatroidController.getInstance().getMatroidBases(filter_param);
+        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[filter_param._type];
+        for (let i in matroid_bases) {
+            let matroid_base = matroid_bases[i];
+
+            let max_range = RangeHandler.getInstance().getMaxRange(moduleTable.get_field_by_id(matroid_base.field_id));
+
+            if ((RangeHandler.getInstance().getSegmentedMax_from_ranges(matroid_base.ranges) == RangeHandler.getInstance().getSegmentedMax(max_range)) ||
+                (RangeHandler.getInstance().getSegmentedMin_from_ranges(matroid_base.ranges) == RangeHandler.getInstance().getSegmentedMin(max_range))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private show_exact() {
+        if (!this.can_show_exact) {
+            return;
+        }
+
+        let filter_param = this.get_filter_params[0];
+
+        this.set_filtered_datas({
+            [filter_param.index]: filter_param
+        });
     }
 
     private async get_exact() {

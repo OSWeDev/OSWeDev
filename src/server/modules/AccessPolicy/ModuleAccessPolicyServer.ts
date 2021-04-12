@@ -744,6 +744,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async generate_challenge(user: UserVO) {
 
         // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
+        // Si un code existe déjà et n'a pas encore expiré, on le prolonge et on le renvoie pour pas invalider un mail qui serait très récent
+        if (user.recovery_challenge && user.recovery_expiration && user.recovery_expiration.isSameOrAfter(moment().utc(true))) {
+            console.debug("challenge - pushing expiration:" + user.email + ':' + user.recovery_challenge + ':');
+            user.recovery_expiration = moment().utc(true).add(await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
+            await ModuleDAO.getInstance().insertOrUpdateVO(user);
+            return;
+        }
+
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         console.debug("challenge:" + user.email + ':' + challenge + ':');
@@ -1331,9 +1339,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (user.invalidated) {
 
                 // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
-                if ((!user.recovery_expiration) || user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
-                    await PasswordRecovery.getInstance().beginRecovery(user.email);
-                }
+                // if ((!user.recovery_expiration) || user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
+                await PasswordRecovery.getInstance().beginRecovery(user.email);
+                // }
                 return null;
             }
 

@@ -23,6 +23,14 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Aucun élément à afficher'
+        }, 'checklist.no_elts.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtrer'
+        }, 'checklist.filter_text.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Supprimer'
         }, 'checklist.checklist_item_modal.delete.___LABEL___'));
 

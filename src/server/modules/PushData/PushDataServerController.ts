@@ -7,6 +7,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
@@ -21,6 +23,9 @@ export default class PushDataServerController {
 
     public static NOTIF_INTERVAL_MS: number = 1000;
 
+    public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+
+    public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
     public static TASK_NAME_notifyVarsDatasBySocket: string = 'PushDataServerController' + '.notifyVarsDatasBySocket';
@@ -59,6 +64,7 @@ export default class PushDataServerController {
     private constructor() {
 
         // Conf des taches qui dépendent du thread
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, this.notifyRedirectHomeAndDisconnect.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarData, this.notifyVarData.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsDatas, this.notifyVarsDatas.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsDatasBySocket, this.notifyVarsDatasBySocket.bind(this));
@@ -192,6 +198,9 @@ export default class PushDataServerController {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
+        // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
+        this.notifyRedirectHomeAndDisconnect(session.uid);
+
         // No user or session, don't save this socket
         if ((!session) || (!session.id) || (!session.uid)) {
             return;
@@ -265,6 +274,25 @@ export default class PushDataServerController {
         }
 
         let notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vo ? [vo] : null);
+        if (!notification) {
+            return;
+        }
+
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
+    /**
+     * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
+     */
+    public async notifyRedirectHomeAndDisconnect(user_id: number) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, user_id)) {
+            return;
+        }
+
+        let notification: NotificationVO = this.getTechNotif(user_id, null, null, NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
         if (!notification) {
             return;
         }
@@ -597,6 +625,27 @@ export default class PushDataServerController {
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
         notification.vos = JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(vos));
+        return notification;
+    }
+
+    private getTechNotif(user_id: number, client_tab_id: string, socket_id: string, marker: string): NotificationVO {
+
+        if (!user_id) {
+            return null;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = null;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_TECH;
+        notification.read = false;
+        notification.socket_id = socket_id;
+        notification.client_tab_id = client_tab_id;
+        notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
+        notification.vos = JSON.stringify([{
+            marker
+        }]);
         return notification;
     }
 

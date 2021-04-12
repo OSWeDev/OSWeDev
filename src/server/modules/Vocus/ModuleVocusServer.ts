@@ -53,6 +53,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
             fr: 'Type'
         }, 'vocus.vo_type.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Limité à 1000 lignes...'
+        }, 'vocus.limit1000.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vocus'
         }, 'vocus.vocus.___LABEL___'));
     }
@@ -96,6 +99,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
     ): Promise<VocusInfoVO[]> {
 
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
+        let limit = 1000;
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -161,6 +165,14 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 }
 
                 res_map[refvo._type][refvo.id] = tmp;
+
+                limit--;
+                if (limit <= 0) {
+                    break;
+                }
+            }
+            if (limit <= 0) {
+                break;
             }
         }
 

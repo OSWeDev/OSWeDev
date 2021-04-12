@@ -125,6 +125,13 @@ export default class PushDataVueModule extends VueModuleBase {
 
             self.throttled_notifications_handler([notification]);
         });
+
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
+
+            self.throttled_notifications_handler([notification]);
+        });
+
+
         // TODO: Handle other notif types
     }
 
@@ -141,6 +148,7 @@ export default class PushDataVueModule extends VueModuleBase {
         let TYPE_NOTIF_SIMPLE: NotificationVO[] = [];
         let TYPE_NOTIF_DAO: NotificationVO[] = [];
         let TYPE_NOTIF_VARDATA: NotificationVO[] = [];
+        let TYPE_NOTIF_TECH: NotificationVO[] = [];
 
         for (let i in notifications) {
             let notification = notifications[i];
@@ -155,6 +163,9 @@ export default class PushDataVueModule extends VueModuleBase {
                 case NotificationVO.TYPE_NOTIF_VARDATA:
                     TYPE_NOTIF_VARDATA.push(notification);
                     break;
+                case NotificationVO.TYPE_NOTIF_TECH:
+                    TYPE_NOTIF_TECH.push(notification);
+                    break;
             }
         }
 
@@ -168,6 +179,10 @@ export default class PushDataVueModule extends VueModuleBase {
 
         if (TYPE_NOTIF_VARDATA && TYPE_NOTIF_VARDATA.length) {
             this.notifications_handler_TYPE_NOTIF_VARDATA(TYPE_NOTIF_VARDATA);
+        }
+
+        if (TYPE_NOTIF_TECH && TYPE_NOTIF_TECH.length) {
+            this.notifications_handler_TYPE_NOTIF_TECH(TYPE_NOTIF_TECH);
         }
     }
 
@@ -320,6 +335,36 @@ export default class PushDataVueModule extends VueModuleBase {
             }
             // VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
             await VarsClientController.getInstance().notifyCallbacks(vos);
+        }
+    }
+
+
+    private async notifications_handler_TYPE_NOTIF_TECH(notifications: NotificationVO[]) {
+
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            if (!!notification.vos) {
+                let tmp = APIControllerWrapper.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
+                if (tmp && tmp.length) {
+                    for (let j in tmp) {
+                        let vo = tmp[j];
+
+                        switch (vo.marker) {
+                            case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
+
+                                let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
+                                VueAppBase.instance_.vueInstance.snotify.warning(content);
+                                setTimeout(() => {
+                                    location.href = '/';
+                                }, 10000);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

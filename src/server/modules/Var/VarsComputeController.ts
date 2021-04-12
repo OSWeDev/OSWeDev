@@ -109,6 +109,117 @@ export default class VarsComputeController {
         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - update_cards_in_perfs OK...');
     }
 
+    /**
+ *  - On entame en vérifiant qu'on a testé le cas des imports parcellaires :
+ *      - Si on a des imports, on split et on relance le déploiement sur les nouveaux noeuds restants à calculer
+ *      - sinon, on continue en déployant normalement les deps de ce noeud
+ *  - Pour chaque DEP :
+ *      - Si la dep est déjà dans la liste des vars_datas, aucun impact, on continue normalement ce cas est géré au moment de créer les noeuds pour les params
+ *      - Si le noeud existe dans l'arbre, on s'assure juste que la liaison existe vers le noeud qui a tenté de générer la dep et on fuit.
+ *      - Si le noeud est nouveau on le crée, et on met le lien vers le noeud source de la dep :
+ *          - si le var_data possède une data on valide directement le point suivant
+ *          - si on a une data précompilée ou importée en cache ou en BDD, on récupère cette data et on la met dans le var_data actuel puis on arrête de propager
+ *          - sinon
+ *              - on essaie de charger une ou plusieurs donnée(s) intersectant ce param
+ *              - si on en trouve, on sélectionne celles qu'on veut prioriser, et on découpe le noeud qu'on transforme en aggrégateur
+ *              - sur chaque nouveau noeud sans valeur / y compris si on a pas trouvé d'intersecteurs on deploy_deps
+ *                  (et donc pour lesquels on sait qu'on a de valeur ni en base ni en buffer ni dans l'arbre)
+ * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on ne peut pas vouloir donner un import complet en résultat, donc inutile de faire cette recherche
+ *  par contre un import partiel oui
+ */
+    public async deploy_deps(
+        node: VarDAGNode,
+        deployed_vars_datas: { [index: string]: boolean },
+        vars_datas: { [index: string]: VarDataBaseVO },
+        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+
+        if (deployed_vars_datas[node.var_data.index]) {
+            return;
+        }
+        deployed_vars_datas[node.var_data.index] = true;
+
+        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", true);
+        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+
+        /**
+         * Cache step B : cache complet - inutile si on est sur un noeud du vars_datas
+         */
+        if ((!node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
+            (VarsCacheController.getInstance().B_use_cache(node))) {
+
+            VarsPerfsController.addPerfs(performance.now(), [
+                "__computing_bg_thread.compute.create_tree.try_load_cache_complet",
+                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
+            ], true);
+            await this.try_load_cache_complet(node);
+            node.has_try_load_cache_complet_perf = true;
+            VarsPerfsController.addPerfs(performance.now(), [
+                "__computing_bg_thread.compute.create_tree.try_load_cache_complet",
+                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
+            ], false);
+        }
+
+        /**
+         * Imports
+         */
+        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller.optimization__has_no_imports)) {
+
+            /**
+             * On doit essayer de récupérer des données parcellaires
+             *  si on a des données parcellaires par définition on doit quand même déployer les deps
+             */
+
+            VarsPerfsController.addPerfs(performance.now(), [
+                "__computing_bg_thread.compute.create_tree.load_imports_and_split_nodes",
+                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
+            ], true);
+            await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, vars_datas, ds_cache);
+            node.has_load_imports_and_split_nodes_perf = true;
+            VarsPerfsController.addPerfs(performance.now(), [
+                "__computing_bg_thread.compute.create_tree.load_imports_and_split_nodes",
+                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
+            ], false);
+        }
+
+        /**
+         * Cache step C : cache partiel : uniquement si on a pas splitt sur import
+         */
+        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
+            (!node.is_aggregator) &&
+            (VarsCacheController.getInstance().C_use_partial_cache(node))) {
+
+            VarsPerfsController.addPerfs(performance.now(), [
+                "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
+                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
+            ], true);
+            await this.try_load_cache_partiel(node, vars_datas, ds_cache);
+            node.has_try_load_cache_partiel_perf = true;
+            VarsPerfsController.addPerfs(performance.now(), [
+                "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
+                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
+            ], false);
+        }
+
+        VarsPerfsController.addPerfs(performance.now(), [
+            "__computing_bg_thread.compute.create_tree.ds_cache",
+            node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.ds_cache"
+        ], true);
+
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
+        node.has_ds_cache_perf = true;
+
+        VarsPerfsController.addPerfs(performance.now(), [
+            "__computing_bg_thread.compute.create_tree.ds_cache",
+            node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.ds_cache"
+        ], false);
+
+        if (deps) {
+            await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
+        }
+
+        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+    }
+
     private update_cards_in_perfs(dag: DAG<VarDAGNode>) {
         for (let i in dag.nodes) {
             let node = dag.nodes[i];
@@ -236,117 +347,6 @@ export default class VarsComputeController {
         await Promise.all(promises);
 
         return var_dag;
-    }
-
-    /**
-     *  - On entame en vérifiant qu'on a testé le cas des imports parcellaires :
-     *      - Si on a des imports, on split et on relance le déploiement sur les nouveaux noeuds restants à calculer
-     *      - sinon, on continue en déployant normalement les deps de ce noeud
-     *  - Pour chaque DEP :
-     *      - Si la dep est déjà dans la liste des vars_datas, aucun impact, on continue normalement ce cas est géré au moment de créer les noeuds pour les params
-     *      - Si le noeud existe dans l'arbre, on s'assure juste que la liaison existe vers le noeud qui a tenté de générer la dep et on fuit.
-     *      - Si le noeud est nouveau on le crée, et on met le lien vers le noeud source de la dep :
-     *          - si le var_data possède une data on valide directement le point suivant
-     *          - si on a une data précompilée ou importée en cache ou en BDD, on récupère cette data et on la met dans le var_data actuel puis on arrête de propager
-     *          - sinon
-     *              - on essaie de charger une ou plusieurs donnée(s) intersectant ce param
-     *              - si on en trouve, on sélectionne celles qu'on veut prioriser, et on découpe le noeud qu'on transforme en aggrégateur
-     *              - sur chaque nouveau noeud sans valeur / y compris si on a pas trouvé d'intersecteurs on deploy_deps
-     *                  (et donc pour lesquels on sait qu'on a de valeur ni en base ni en buffer ni dans l'arbre)
-     * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on ne peut pas vouloir donner un import complet en résultat, donc inutile de faire cette recherche
-     *  par contre un import partiel oui
-     */
-    private async deploy_deps(
-        node: VarDAGNode,
-        deployed_vars_datas: { [index: string]: boolean },
-        vars_datas: { [index: string]: VarDataBaseVO },
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
-
-        if (deployed_vars_datas[node.var_data.index]) {
-            return;
-        }
-        deployed_vars_datas[node.var_data.index] = true;
-
-        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", true);
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-
-        /**
-         * Cache step B : cache complet - inutile si on est sur un noeud du vars_datas
-         */
-        if ((!node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
-            (VarsCacheController.getInstance().B_use_cache(node))) {
-
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.try_load_cache_complet",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
-            ], true);
-            await this.try_load_cache_complet(node);
-            node.has_try_load_cache_complet_perf = true;
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.try_load_cache_complet",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
-            ], false);
-        }
-
-        /**
-         * Imports
-         */
-        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller.optimization__has_no_imports)) {
-
-            /**
-             * On doit essayer de récupérer des données parcellaires
-             *  si on a des données parcellaires par définition on doit quand même déployer les deps
-             */
-
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.load_imports_and_split_nodes",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
-            ], true);
-            await VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, vars_datas, ds_cache);
-            node.has_load_imports_and_split_nodes_perf = true;
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.load_imports_and_split_nodes",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
-            ], false);
-        }
-
-        /**
-         * Cache step C : cache partiel : uniquement si on a pas splitt sur import
-         */
-        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
-            (!node.is_aggregator) &&
-            (VarsCacheController.getInstance().C_use_partial_cache(node))) {
-
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
-            ], true);
-            await this.try_load_cache_partiel(node, vars_datas, ds_cache);
-            node.has_try_load_cache_partiel_perf = true;
-            VarsPerfsController.addPerfs(performance.now(), [
-                "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
-                node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
-            ], false);
-        }
-
-        VarsPerfsController.addPerfs(performance.now(), [
-            "__computing_bg_thread.compute.create_tree.ds_cache",
-            node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.ds_cache"
-        ], true);
-
-        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
-        node.has_ds_cache_perf = true;
-
-        VarsPerfsController.addPerfs(performance.now(), [
-            "__computing_bg_thread.compute.create_tree.ds_cache",
-            node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.ds_cache"
-        ], false);
-
-        if (deps) {
-            await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
-        }
-
-        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
     }
 
     private async handle_deploy_deps(

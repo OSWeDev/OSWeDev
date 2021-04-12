@@ -33,4 +33,16 @@
             word-break: break-word;
         }
     }
+
+    .aggregated_var_datas {
+        border: solid 1px #DDD;
+        border-radius: 4px;
+        padding: 1em 0em;
+        margin: 2px;
+
+        .aggregated_var_datas_label {
+            text-align: right;
+            color: darkgrey;
+        }
+    }
 }

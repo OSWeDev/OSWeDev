@@ -9,6 +9,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
+import PushDataServerController from './PushDataServerController';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -40,6 +41,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate);
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre session a été invalidée, la page va être rechargée automatiquement...'
+        }, PushDataServerController.NOTIFY_SESSION_INVALIDATED));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Aucune notification en attente'

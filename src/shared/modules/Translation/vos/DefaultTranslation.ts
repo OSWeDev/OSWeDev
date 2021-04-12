@@ -1,4 +1,3 @@
-import DefaultTranslationManager from '../DefaultTranslationManager';
 
 export default class DefaultTranslation {
 

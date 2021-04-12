@@ -1,8 +1,10 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -10,6 +12,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -28,6 +31,8 @@ import VarsServerController from './VarsServerController';
  */
 export default class VarsDatasVoUpdateHandler {
 
+    public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+
     public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
 
     /**
@@ -45,7 +50,10 @@ export default class VarsDatasVoUpdateHandler {
     private static instance: VarsDatasVoUpdateHandler = null;
 
     public ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
+    public last_call_handled_something: boolean = false;
     private last_registration: Moment = null;
+
+    private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 100, { leading: false });
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
@@ -65,7 +73,7 @@ export default class VarsDatasVoUpdateHandler {
                 let uid: number = StackContext.getInstance().get('UID');
                 let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
                 if (uid) {
-                    PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_cars_datas_vu_update_cache.done', true);
+                    PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_vars_datas_vo_update_cache.done', true);
                 }
                 ConsoleHandler.getInstance().warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
                 return;
@@ -74,7 +82,7 @@ export default class VarsDatasVoUpdateHandler {
         }
     }
 
-    public register_vo_cud(vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase) {
+    public async register_vo_cud(vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vo_cud)) {
             return;
@@ -82,21 +90,31 @@ export default class VarsDatasVoUpdateHandler {
 
         this.ordered_vos_cud.push(vo_cud);
         this.last_registration = moment();
+
+        this.throttled_update_param();
     }
 
     /**
      * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
-     * @returns true si dépile quelque chose
+     * @returns true si on a des invalidations trop récentes et qu'on veut donc éviter de calculer des vars
      */
     public async handle_buffer(): Promise<boolean> {
 
+        this.last_call_handled_something = false;
         if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
-            return false;
+
+            this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
+                VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+
+            if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+                return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
+            }
         }
 
         // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
-        if (this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration)) {
-            return false;
+        // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
+        if ((this.ordered_vos_cud.length < 1000) && this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration)) {
+            return true;
         }
 
         let limit = this.ordered_vos_cud.length;
@@ -115,7 +133,13 @@ export default class VarsDatasVoUpdateHandler {
 
         await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
 
-        return true;
+        // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
+        this.throttled_update_param();
+
+        this.last_call_handled_something = true;
+
+        // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
+        return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
     }
 
     public async invalidate_datas_and_parents(
@@ -144,6 +168,12 @@ export default class VarsDatasVoUpdateHandler {
          *  et on les enfilent dans le buffer de calcul / mise à jour des var_datas
          */
         this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
+    }
+
+    private async update_param() {
+        await ModuleParams.getInstance().setParamValue(
+            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
+            this.getJSONFrom_ordered_vos_cud());
     }
 
     /**
@@ -332,6 +362,7 @@ export default class VarsDatasVoUpdateHandler {
         while ((limit > 0) && this.ordered_vos_cud && this.ordered_vos_cud.length) {
 
             let vo_cud = this.ordered_vos_cud.shift();
+
             // Si on a un champ _type, on est sur un VO, sinon c'est un update
             if (!!vo_cud['_type']) {
                 if (!vos_create_or_delete_buffer[vo_cud['_type']]) {
@@ -356,5 +387,50 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return limit;
+    }
+
+    private getJSONFrom_ordered_vos_cud(): string {
+        let res: any[] = [];
+
+        for (let i in this.ordered_vos_cud) {
+            let vo_cud = this.ordered_vos_cud[i];
+
+            if (!!vo_cud['_type']) {
+                let tmp = APIControllerWrapper.getInstance().try_translate_vo_to_api(vo_cud);
+                res.push(tmp);
+            } else {
+                let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
+                    APIControllerWrapper.getInstance().try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
+                    APIControllerWrapper.getInstance().try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
+                );
+                res.push(tmp);
+            }
+        }
+
+        return JSON.stringify(res);
+    }
+
+    private set_ordered_vos_cud_from_JSON(jsoned: string): void {
+
+        try {
+            let res: any[] = JSON.parse(jsoned);
+
+            for (let i in res) {
+                let vo_cud = res[i];
+
+                if (!!vo_cud['_type']) {
+                    let tmp = APIControllerWrapper.getInstance().try_translate_vo_from_api(vo_cud);
+                    this.ordered_vos_cud.push(tmp);
+                } else {
+                    let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
+                        APIControllerWrapper.getInstance().try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
+                        APIControllerWrapper.getInstance().try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
+                    );
+                    res.push(tmp);
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error('Impossible de recharger le ordered_vos_cud from params :' + jsoned + ':');
+        }
     }
 }

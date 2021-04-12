@@ -441,7 +441,7 @@ export default abstract class ServerBase {
                     if (!this.check_session_validity(session)) {
                         session.destroy(() => {
                             PushDataServerController.getInstance().unregisterSession(session);
-                            this.redirect_login_or_home(req, res);
+                            ServerBase.getInstance().redirect_login_or_home(req, res);
                         });
                         return;
                     }
@@ -449,6 +449,21 @@ export default abstract class ServerBase {
             }
 
             if (session && session.uid) {
+
+                if ((!session.last_check_blocked_or_expired) ||
+                    (moment().utc(true).add(-1, 'minute').unix() >= session.last_check_blocked_or_expired)) {
+
+                    // On doit vérifier que le compte est ni bloqué ni expiré
+                    let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                    if ((!user) || user.blocked || user.invalidated) {
+                        session.destroy(() => {
+                            PushDataServerController.getInstance().unregisterSession(session);
+                            ServerBase.getInstance().redirect_login_or_home(req, res);
+                        });
+                        return;
+                    }
+                    session.last_check_blocked_or_expired = moment().utc(true).unix();
+                }
 
                 PushDataServerController.getInstance().registerSession(session);
 
@@ -602,6 +617,17 @@ export default abstract class ServerBase {
 
             if (session && session.uid) {
                 let uid: number = session.uid;
+
+                // On doit vérifier que le compte est ni bloqué ni expiré
+                let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                if (user && (user.blocked || user.invalidated)) {
+                    session.destroy(() => {
+                        PushDataServerController.getInstance().unregisterSession(session);
+                        ServerBase.getInstance().redirect_login_or_home(req, res);
+                    });
+                    return;
+                }
+                session.last_check_blocked_or_expired = moment().utc(true).unix();
 
                 PushDataServerController.getInstance().registerSession(session);
 
