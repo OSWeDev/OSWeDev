@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import debounce from 'lodash/debounce';
+import cloneDeep from 'lodash/cloneDeep';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -15,6 +16,7 @@ import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -69,6 +71,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public add_infos_additional_params: any[];  // tableau des params pour chacun des champs présents dans add_infos
 
+    @Prop({ default: false })
+    public show_import_aggregated: boolean;
+
     private entered_once: boolean = false;
 
     private var_data: VarDataValueResVO = null;
@@ -83,6 +88,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
     };
 
+    private aggregated_var_param: VarDataBaseVO = null;
 
     private async onchangevo(data: VarDataBaseVO, field, value) {
 
@@ -258,6 +264,17 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         if (var_param || this.var_param) {
             VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+
+            if (this.show_import_aggregated) {
+                ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                    for (let var_data_index in datas) {
+                        if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+                            this.aggregated_var_param = cloneDeep(datas[var_data_index]);
+                            break;
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -320,15 +337,33 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.setDescSelectedVarParam(this.var_param);
     }
 
+    get is_show_import_aggregated(): boolean {
+        return (this.show_import_aggregated && this.aggregated_var_param) ? true : false;
+    }
+
     get var_data_value_import_tooltip() {
 
-        if (!this.var_data_value_is_imported) {
+        if (!this.var_data_value_is_imported && !this.is_show_import_aggregated) {
             return null;
         }
 
+        let formatted_date: string = null;
+
+        if (this.is_show_import_aggregated) {
+            if ((this.aggregated_var_param as any).ts_ranges) {
+                formatted_date = RangeHandler.getInstance().getSegmentedMax_from_ranges<moment.Moment>((this.aggregated_var_param as any).ts_ranges).format(
+                    ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)
+                );
+            } else {
+                formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.aggregated_var_param.value_ts);
+            }
+        } else {
+            formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.var_data.value_ts);
+        }
+
         return this.label('VarDataRefComponent.var_data_value_import_tooltip', {
-            value: this.var_data_value,
-            formatted_date: ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.var_data.value_ts)
+            value: (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value,
+            formatted_date: formatted_date,
         });
     }
 
