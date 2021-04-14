@@ -1,5 +1,6 @@
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
+import IRange from "../../DataRender/interfaces/IRange";
 
 export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParamTranslator<APIDAORefFieldsAndFieldsStringParamsVO> {
 
@@ -12,9 +13,10 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
         field_name2: string = null,
         values2: string[] = null,
         field_name3: string = null,
-        values3: string[] = null): APIDAORefFieldsAndFieldsStringParamsVO {
+        values3: string[] = null,
+        segmentation_ranges: Array<IRange<any>> = null): APIDAORefFieldsAndFieldsStringParamsVO {
 
-        return new APIDAORefFieldsAndFieldsStringParamsVO(API_TYPE_ID, field_name1, ids1, field_name2, values2, field_name3, values3);
+        return new APIDAORefFieldsAndFieldsStringParamsVO(API_TYPE_ID, field_name1, ids1, field_name2, values2, field_name3, values3, segmentation_ranges);
     }
 
     public static fromREQ(req): APIDAORefFieldsAndFieldsStringParamsVO {
@@ -61,7 +63,8 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
             param.field_name2,
             param.values2,
             param.field_name3,
-            param.values3
+            param.values3,
+            param.segmentation_ranges
         ];
     }
 
@@ -72,7 +75,8 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
         public field_name2: string = null,
         public values2: string[] = null,
         public field_name3: string = null,
-        public values3: string[] = null) {
+        public values3: string[] = null,
+        public segmentation_ranges: Array<IRange<any>> = null) {
     }
 
     public translateToURL(): string {

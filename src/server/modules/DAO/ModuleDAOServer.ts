@@ -1764,7 +1764,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         field_name2: string = null,
         values2: string[] = null,
         field_name3: string = null,
-        values3: string[] = null
+        values3: string[] = null,
+        segmentation_ranges: Array<IRange<any>> = null
     ): Promise<T[]> {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -1795,12 +1796,62 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        if (moduleTable.is_segmented) {
+        if (moduleTable.is_segmented && (!segmentation_ranges)) {
             // TODO FIXME segmented moduletable
             throw new Error('Not Implemented');
         }
 
-        let request: string = "SELECT t.* FROM " + moduleTable.full_name + " t WHERE ";
+        if (moduleTable.is_segmented) {
+
+            // ATTENTION ne pas utiliser le MAX range en param
+            let vos: T[] = [];
+            await RangeHandler.getInstance().foreach_ranges(segmentation_ranges, async (segmentation: number) => {
+                let temp = await this.get_request_for_getVosByRefFieldsIdsAndFieldsString(
+                    field_name1,
+                    ids1,
+                    field_name2,
+                    values2,
+                    field_name3,
+                    values3,
+                    moduleTable,
+                    segmentation
+                );
+                vos = vos.concat(temp);
+            }, NumSegment.TYPE_INT);
+
+            return vos;
+        }
+
+        return await this.get_request_for_getVosByRefFieldsIdsAndFieldsString(
+            field_name1,
+            ids1,
+            field_name2,
+            values2,
+            field_name3,
+            values3,
+            moduleTable
+        );
+    }
+
+    private async get_request_for_getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(
+        field_name1: string,
+        ids1: number[],
+        field_name2: string,
+        values2: string[],
+        field_name3: string,
+        values3: string[],
+        moduleTable: ModuleTable<T>,
+        segmentation: number = null,
+    ): Promise<T[]> {
+
+        let request: string;
+
+        if (!!segmentation) {
+            request = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segmentation) + " t WHERE ";
+        } else {
+            request = "SELECT t.* FROM " + moduleTable.full_name + " t WHERE ";
+        }
+
         let first: boolean = true;
         let request_params = [];
         if (field_name1 && ((!!ids1) && (ids1.length > 0))) {

@@ -1,12 +1,3 @@
-import * as moment from 'moment';
-import RangeHandler from '../../tools/RangeHandler';
-import TypesHandler from '../../tools/TypesHandler';
-import IRange from '../DataRender/interfaces/IRange';
-import HourRange from '../DataRender/vos/HourRange';
-import NumRange from '../DataRender/vos/NumRange';
-import TSRange from '../DataRender/vos/TSRange';
-import IDistantVOBase from '../IDistantVOBase';
-import VOsTypesManager from '../VOsTypesManager';
 
 export default class ManualTasksController {
 

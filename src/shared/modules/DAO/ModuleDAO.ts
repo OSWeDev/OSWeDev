@@ -83,7 +83,8 @@ export default class ModuleDAO extends Module {
         API_TYPE_ID: string,
         field_name1: string, ids1: number[],
         field_name2?: string, values2?: string[],
-        field_name3?: string, values3?: string[]) => Promise<T[]> = APIControllerWrapper.sah(
+        field_name3?: string, values3?: string[],
+        segmentation_ranges?: Array<IRange<any>>) => Promise<T[]> = APIControllerWrapper.sah(
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
             null, (
                 API_TYPE_ID: string,

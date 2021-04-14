@@ -943,6 +943,14 @@ export default class RangeHandler {
         }
     }
 
+    /**
+     * Les elts sont chargés en // on await le tableau
+     * @param ranges
+     * @param callback
+     * @param segment_type
+     * @param min_inclusiv
+     * @param max_inclusiv
+     */
     public async foreach_ranges_batch_await<T>(ranges: Array<IRange<T>>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
 
         let promises = [];
