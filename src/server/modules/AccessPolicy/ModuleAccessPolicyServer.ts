@@ -1171,9 +1171,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let user: UserVO = null;
-
-        if ((!user) || (user.password == vo_update_holder.pre_update_vo.password)) {
+        if ((!vo_update_holder.pre_update_vo) || (vo_update_holder.pre_update_vo.password == vo_update_holder.post_update_vo.password)) {
             return true;
         }
 
