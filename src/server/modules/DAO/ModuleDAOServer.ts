@@ -32,6 +32,8 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
+import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -47,6 +49,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -331,7 +334,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Tous/Toutes'
         }, 'numrange.max_range.___LABEL___'));
-
     }
 
     public registerCrons(): void {
@@ -1239,6 +1241,36 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (!BooleanHandler.getInstance().AND(res, true)) {
                     continue;
                 }
+
+                /**
+                 * AJOUT de la suppression Dep by Dep => on ne laisse plus la BDD fait marcher les triggers de suppression, on gère
+                 *  ça directement applicativement => attention à l'impact sur les perfs. L'objectif est surtout de s'assurer qu'on
+                 *  appelle bien tous les triggers et entre autre les droits de suppression des dépendances
+                 */
+                let deps: VocusInfoVO[] = await ModuleVocus.getInstance().getVosRefsById(vo._type, vo.id);
+
+                // Si on a une interdiction de supprimer un item à mi-chemin, il faudrait restaurer tout ceux qui ont été supprimés
+                //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
+                //  deps sont définitivement perdues...
+                let deps_to_delete: IDistantVOBase[] = [];
+                for (let dep_i in deps) {
+                    let dep = deps[dep_i];
+
+                    if (!dep.is_cascade) {
+                        continue;
+                    }
+                    deps_to_delete.push(await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id));
+                }
+
+                if (deps_to_delete && deps_to_delete.length) {
+                    let dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(deps_to_delete);
+
+                    if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
+                        ConsoleHandler.getInstance().error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION:');
+                        continue;
+                    }
+                }
+
 
                 let full_name = null;
 

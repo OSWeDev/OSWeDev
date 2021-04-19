@@ -67,6 +67,11 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
         ));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Supprimer' },
+            'file.trash.___LABEL___'
+        ));
+
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf);
