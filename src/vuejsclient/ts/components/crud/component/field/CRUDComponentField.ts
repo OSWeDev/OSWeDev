@@ -297,10 +297,6 @@ export default class CRUDComponentField extends VueComponentBase
 
     private getInputValue(input: any): any {
 
-        if (this.inline_input_mode) {
-            return;
-        }
-
         let input_value: any = null;
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
@@ -369,6 +365,10 @@ export default class CRUDComponentField extends VueComponentBase
 
     private validateInput(input: any) {
 
+        if (this.inline_input_mode) {
+            return;
+        }
+
         this.field_value = this.getInputValue(input);
 
         if (this.auto_update_field_value) {
@@ -384,6 +384,10 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private validateEndOfInput(input: any) {
+
+        if (this.inline_input_mode) {
+            return;
+        }
 
         this.field_value = this.getInputValue(input);
 
