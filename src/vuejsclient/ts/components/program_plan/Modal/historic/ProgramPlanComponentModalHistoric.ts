@@ -59,10 +59,6 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
     @Prop()
     private can_edit: boolean;
 
-    get has_prep() {
-        return !!this.program_plan_shared_module.rdv_prep_type_id;
-    }
-
     private facilitatorAndManagerName(rdv_historic: IPlanRDV): string {
         return this.facilitatorName(rdv_historic) + (this.managerName(rdv_historic) ? " / " + this.managerName(rdv_historic) : "");
     }
@@ -96,5 +92,13 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
         }
 
         return ProgramPlanTools.getResourceName(manager.firstname, manager.lastname);
+    }
+
+    private has_prep(rdv: IPlanRDV) {
+        return (!!this.program_plan_shared_module.rdv_prep_type_id) && ((!this.program_plan_shared_module.hook_has_rdv_prep) || (this.program_plan_shared_module.hook_has_rdv_prep(rdv)));
+    }
+
+    private has_cr(rdv: IPlanRDV) {
+        return (!!this.program_plan_shared_module.rdv_cr_type_id) && ((!this.program_plan_shared_module.hook_has_rdv_cr) || (this.program_plan_shared_module.hook_has_rdv_cr(rdv)));
     }
 }

@@ -39,7 +39,11 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
     private active_view: string = 'rdv_target_infos';
 
     get has_prep() {
-        return !!this.program_plan_shared_module.rdv_prep_type_id;
+        return (!!this.program_plan_shared_module.rdv_prep_type_id) && ((!this.program_plan_shared_module.hook_has_rdv_prep) || (this.program_plan_shared_module.hook_has_rdv_prep(this.selected_rdv)));
+    }
+
+    get has_cr() {
+        return (!!this.program_plan_shared_module.rdv_cr_type_id) && ((!this.program_plan_shared_module.hook_has_rdv_cr) || (this.program_plan_shared_module.hook_has_rdv_cr(this.selected_rdv)));
     }
 
     get is_facilitator_specific(): boolean {

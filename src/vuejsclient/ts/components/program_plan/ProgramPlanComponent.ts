@@ -1311,8 +1311,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if (max_weight < 0) {
                         task = task_type_tasks[0];
                     } else {
+                        // si on est sous le nombre limite pour ce poids on cherche la tache avec ce poids
+                        if (nb_maxed_weight < max_weight_task.limit_on_same_target) {
+                            task = task_type_tasks.find((t) => t.weight == max_weight);
 
-                        if (max_weight_task.limit_on_same_target <= nb_maxed_weight) {
+                        } else {
+                            // sinon on cherche la tache avec le poids suivant
                             task = WeightHandler.getInstance().findNextHeavierItemByWeight(task_type_tasks, max_weight);
                         }
                     }
