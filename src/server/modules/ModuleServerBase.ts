@@ -33,4 +33,9 @@ export default abstract class ModuleServerBase implements IModuleBase {
     public registerServerApiHandlers(): void { }
     public async configure(): Promise<void> { }
     public async registerImport(): Promise<void> { }
+
+    /**
+     * Called after all modules have been configured and initialized
+     */
+    public async late_configuration(): Promise<void> { }
 }

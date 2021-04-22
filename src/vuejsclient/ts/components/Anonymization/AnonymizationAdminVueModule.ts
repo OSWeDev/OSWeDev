@@ -1,6 +1,6 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AnonymizationFieldConfVO from '../../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
-import ParamVO from '../../../../shared/modules/Params/vos/ParamVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
@@ -8,24 +8,24 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 
-export default class ParamsAdminVueModule extends VueModuleBase {
+export default class AnonymizationAdminVueModule extends VueModuleBase {
 
     public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "ParamsAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-upload",
+        "AnonymizationAdminVueModule",
+        MenuElementBase.PRIORITY_ULTRALOW,
+        "fa-user-secret",
         []
     );
 
-    public static getInstance(): ParamsAdminVueModule {
-        if (!ParamsAdminVueModule.instance) {
-            ParamsAdminVueModule.instance = new ParamsAdminVueModule();
+    public static getInstance(): AnonymizationAdminVueModule {
+        if (!AnonymizationAdminVueModule.instance) {
+            AnonymizationAdminVueModule.instance = new AnonymizationAdminVueModule();
         }
 
-        return ParamsAdminVueModule.instance;
+        return AnonymizationAdminVueModule.instance;
     }
 
-    private static instance: ParamsAdminVueModule = null;
+    private static instance: AnonymizationAdminVueModule = null;
 
     private constructor() {
 
@@ -34,17 +34,18 @@ export default class ParamsAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = ParamsAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
+        let menuBranch: MenuBranch = AnonymizationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleParams.POLICY_BO_ACCESS)) {
             return;
         }
 
+
         CRUDComponentManager.getInstance().registerCRUD(
-            ParamVO.API_TYPE_ID,
+            AnonymizationFieldConfVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf(ParamVO.API_TYPE_ID, MenuElementBase.PRIORITY_MEDIUM, "fa-cogs")
+                new MenuLeaf(AnonymizationFieldConfVO.API_TYPE_ID, MenuElementBase.PRIORITY_MEDIUM, "fa-user-secret")
             ),
             this.routes);
     }

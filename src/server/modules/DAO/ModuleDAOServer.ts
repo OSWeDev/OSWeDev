@@ -1030,6 +1030,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        // On ajoute un filtrage via hook
+        let tmp_vos = [];
+        for (let i in vos) {
+            let vo = vos[i];
+            let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+            if (!!tmp_vo) {
+                tmp_vos.push(tmp_vo);
+            }
+        }
+        if ((!tmp_vos) || (!tmp_vos.length)) {
+            return null;
+        }
+        vos = tmp_vos;
+
         return new Promise<any[]>(async (resolve, reject) => {
 
             let isUpdates: boolean[] = [];
@@ -1133,6 +1148,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        // On ajoute un filtrage via hook
+        let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+        if (!tmp_vo) {
+            return null;
+        }
+        vo = tmp_vo;
+
         return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
             let isUpdate: boolean = vo.id ? true : false;
@@ -1213,6 +1236,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (!this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
             return null;
         }
+
+        // On ajoute un filtrage via hook
+        let tmp_vos = [];
+        for (let i in vos) {
+            let vo = vos[i];
+            let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+            if (!!tmp_vo) {
+                tmp_vos.push(tmp_vo);
+            }
+        }
+        if ((!tmp_vos) || (!tmp_vos.length)) {
+            return null;
+        }
+        vos = tmp_vos;
 
         let deleted_vos: IDistantVOBase[] = [];
 
@@ -1327,6 +1365,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // En fait avec les triggers qui prennent en param le vo, on est obligé de faire une requete sur le vo avant d'en demander la suppression...
         let vos: IDistantVOBase[] = await this.getVosByIds(API_TYPE_ID, ids);
+
+        // On ajoute un filtrage via hook
+        let tmp_vos = [];
+        for (let i in vos) {
+            let vo = vos[i];
+            let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+            if (!!tmp_vo) {
+                tmp_vos.push(tmp_vo);
+            }
+        }
+        if ((!tmp_vos) || (!tmp_vos.length)) {
+            return null;
+        }
+        vos = tmp_vos;
+
         return await this.deleteVOs(vos);
     }
 
