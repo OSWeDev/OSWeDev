@@ -54,7 +54,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return moment(field_value).utc(true).format('MMM YYYY');
 
                 case ModuleTableField.FIELD_TYPE_timestamp:
-                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true)) + ' ' + moment(field_value).utc(true).format('HH:mm:ss');
+                    switch (moduleTableField.segmentation_type) {
+                        case TimeSegment.TYPE_YEAR:
+                        case TimeSegment.TYPE_MONTH:
+                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                        case TimeSegment.TYPE_WEEK:
+                        case TimeSegment.TYPE_DAY:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true));
+                        default:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true)) + ' ' + moment(field_value).utc(true).format('HH:mm:ss');
+                    }
 
                 case ModuleTableField.FIELD_TYPE_daterange:
 
