@@ -417,9 +417,10 @@ export default class CRUDComponentField extends VueComponentBase
 
     private validateEndOfInput(input: any) {
 
-        if (!this.inline_input_mode) {
-            return;
-        }
+        //TODO checker impact sur le crud employee GR notement avec la mise en majuscule nom/prenom et le numéro employée
+        // if (!this.inline_input_mode) {
+        //     return;
+        // }
 
         this.field_value = this.getInputValue(input);
 

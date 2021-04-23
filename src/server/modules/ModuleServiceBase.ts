@@ -3,6 +3,7 @@ import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
+import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
@@ -47,6 +48,7 @@ import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
+import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
 import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
@@ -305,6 +307,16 @@ export default abstract class ModuleServiceBase {
         }
     }
 
+    public async late_server_modules_configurations() {
+        for (let i in this.server_modules) {
+            let server_module: ModuleServerBase = this.server_modules[i];
+
+            if (server_module.actif) {
+                await server_module.late_configuration();
+            }
+        }
+    }
+
     public get_modules_infos(env) {
         //  Si on a des sous-modules à définir pour front / admin / server, on peut le faire
         //      et en faisant le lien dans le typescript, on importera que le fichier qui nous est utile.
@@ -387,7 +399,8 @@ export default abstract class ModuleServiceBase {
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
-            ModuleBGThread.getInstance()
+            ModuleBGThread.getInstance(),
+            ModuleAnonymization.getInstance()
         ];
     }
 
@@ -435,6 +448,7 @@ export default abstract class ModuleServiceBase {
             ModuleSupervision.getInstance(),
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
+            ModuleAnonymization.getInstance()
         ];
     }
 
@@ -478,6 +492,7 @@ export default abstract class ModuleServiceBase {
             ModuleSupervisionServer.getInstance(),
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
+            ModuleAnonymizationServer.getInstance()
         ];
     }
 }

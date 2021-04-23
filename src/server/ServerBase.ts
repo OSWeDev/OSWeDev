@@ -539,6 +539,9 @@ export default abstract class ServerBase {
         // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
+        // Derniers chargements
+        await this.modulesService.late_server_modules_configurations();
+
         let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
