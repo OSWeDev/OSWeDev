@@ -1,12 +1,14 @@
 import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
+import CategorieProduitVO from '../../../../../shared/modules/Commerce/Produit/vos/CategorieProduitVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
 import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionGetter } from './SupervisionDashboardStore';
@@ -20,6 +22,9 @@ import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWi
     }
 })
 export default class SupervisionDashboardComponent extends VueComponentBase {
+
+    @Prop({ default: null })
+    private dashboard_key: string;
 
     @ModuleSupervisionGetter
     private get_show_errors: boolean;
@@ -58,6 +63,14 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private debounced_on_change_show = debounce(this.debounce_on_change_show, 300);
 
     private cpt: number = 1;
+
+
+    @Watch('dashboard_key')
+    private reload() {
+        this.api_type_ids = [];
+        this.api_type_ids_by_category_ids = {};
+        this.load_supervised_items(true);
+    }
 
     @Watch('get_show_errors')
     @Watch('get_show_errors_read')
@@ -144,12 +157,20 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             })());
         }
 
-        promises.push((async () => this.categorys = await ModuleDAO.getInstance().getVos<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID))());
+        promises.push(
+            (
+                async () => {
+                    this.categorys = await ModuleDAO.getInstance().getVos<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID);
+                    this.categorys = this.categorys.filter((category) => !this.enabled_categories || this.enabled_categories.includes(category.name));
+                }
+            )()
+        );
 
         await Promise.all(promises);
 
         this.supervised_items_by_names = new_supervised_items_by_names;
 
+        this.filter_objects();
         this.debounced_on_change_show();
     }
 
@@ -311,6 +332,39 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.ordered_supervised_items = res;
     }
 
+    /**
+     * filtre les objets pour ne garder que les infos associés aux categories voulues
+     */
+    private filter_objects(): void {
+        let enabled_categories_ids = this.categorys.map((cat) => cat.id);
+
+        // api_type_ids_by_category_ids
+        let new_api_type_ids_by_category_ids: { [id: number]: string[]; } = {};
+        for (const category_id of enabled_categories_ids) {
+            new_api_type_ids_by_category_ids[category_id] = this.api_type_ids_by_category_ids[category_id];
+        }
+
+        // supervised_items_by_names
+        // let i = 0;
+        let new_supervised_items_by_names: { [name: string]: ISupervisedItem; } = {};
+        for (const name in this.supervised_items_by_names) {
+            // i += 1;
+
+            let supervised_item = this.supervised_items_by_names[name];
+            if (this.is_item_accepted(supervised_item/*, (i % 1000 == 0) */) && enabled_categories_ids.includes(supervised_item.category_id)) {
+                new_supervised_items_by_names[name] = supervised_item;
+            }
+        }
+
+        // api_type_ids
+        let new_api_type_ids: string[] = [].concat(...Object.values(new_api_type_ids_by_category_ids));
+
+
+        this.api_type_ids_by_category_ids = new_api_type_ids_by_category_ids;
+        this.supervised_items_by_names = new_supervised_items_by_names;
+        this.api_type_ids = new_api_type_ids;
+    }
+
     get filtered_api_type_ids(): string[] {
         if (!this.api_type_ids) {
             return this.api_type_ids;
@@ -322,4 +376,21 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         return this.api_type_ids_by_category_ids[this.selected_category.id];
     }
+
+    /**
+     * recupere les restrictions sur les categories s'il y en a une dans SupervisionAdminVueModule sinon null
+     */
+    get enabled_categories(): string[] {
+        let enabled_categories_by_url_key = SupervisionAdminVueModule.getInstance().enabled_categories_by_key;
+        return enabled_categories_by_url_key[this.dashboard_key];
+    }
+
+    /**
+     * recupere le filtre definit sur les items dans SupervisionAdminVueModule sinon renvoie une fonction qui retourne true (aucun filtre)
+     */
+    get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
+        let item_filter_conditions_by_url_key = SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key;
+        return item_filter_conditions_by_url_key[this.dashboard_key] ? item_filter_conditions_by_url_key[this.dashboard_key] : () => true;
+    }
+
 }
