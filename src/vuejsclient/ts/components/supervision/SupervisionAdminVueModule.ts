@@ -35,22 +35,10 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
     public enabled_categories_by_key: { [key: string]: string[] } = {};
     public item_filter_conditions_by_key: { [key: string]: (supervised_item: ISupervisedItem) => boolean } = {};
 
+
     private constructor() {
 
         super(ModuleSupervision.getInstance().name);
-    }
-
-    /**
-     * permet de choisir les catégories à activer dans la supervision
-     * @param key mot clé dans l'url pour faire le lien
-     * @param categories_names les noms des catégories voulues
-     */
-    public enable_categories_for_key(key: string, categories_names: string[]): void {
-        this.enabled_categories_by_key[key] = categories_names;
-    }
-
-    public set_item_filter_condition_for_url_key(key: string, condition: (supervised_item: ISupervisedItem) => boolean): void {
-        this.item_filter_conditions_by_key[key] = condition;
     }
 
     public async initializeAsync() {
@@ -116,5 +104,21 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         );
     }
 
+    /**
+     * permet de choisir les catégories à activer dans la supervision
+     * @param key mot clé passé dans prop pour faire la liaison
+     * @param categories_names les noms des catégories voulues
+     */
+    public enable_categories_for_key(key: string, categories_names: string[]): void {
+        this.enabled_categories_by_key[key] = categories_names;
+    }
 
+    /**
+     * permet de définir une fonction de test pour filtrer les Items affichées dans le dashboard de la supervision
+     * @param key mot clé passé dans prop pour faire la liaison
+     * @param condition fonction faisant le test sur l'item
+     */
+    public set_item_filter_condition_for_key(key: string, condition: (supervised_item: ISupervisedItem) => boolean): void {
+        this.item_filter_conditions_by_key[key] = condition;
+    }
 }

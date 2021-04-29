@@ -1,7 +1,6 @@
 import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import CategorieProduitVO from '../../../../../shared/modules/Commerce/Produit/vos/CategorieProduitVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
@@ -157,6 +156,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             })());
         }
 
+        // récupération des catégories et filtrage en fonction de enabled_categories
         promises.push(
             (
                 async () => {
@@ -333,7 +333,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     /**
-     * filtre les objets pour ne garder que les infos associés aux categories voulues
+     * filtre les objets pour ne garder que ce qui est associé aux categories voulues
      */
     private filter_objects(): void {
         let enabled_categories_ids = this.categorys.map((cat) => cat.id);
@@ -365,6 +365,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.api_type_ids = new_api_type_ids;
     }
 
+    /**
+     * recupere les api_type_ids (liste des items) filtrés en fonction de la catégories selectionnée
+     */
     get filtered_api_type_ids(): string[] {
         if (!this.api_type_ids) {
             return this.api_type_ids;
