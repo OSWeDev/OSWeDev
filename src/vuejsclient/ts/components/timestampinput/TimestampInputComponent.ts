@@ -120,11 +120,22 @@ export default class TimestampInputComponent extends VueComponentBase {
         this.new_value = null;
 
         if (this.date) {
-            this.new_value = DateHandler.getInstance().formatDayForIndex(moment(this.date).utc(true));
+            let value: string = DateHandler.getInstance().formatDayForIndex(moment(this.date).utc(true));
 
-            if (this.new_value && this.date_time) {
-                this.new_value += ' ' + this.date_time;
+            switch (this.segmentation_type_) {
+                case TimeSegment.TYPE_YEAR:
+                case TimeSegment.TYPE_MONTH:
+                case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                case TimeSegment.TYPE_WEEK:
+                case TimeSegment.TYPE_DAY:
+                    break;
+                default:
+                    if (this.date_time) {
+                        value += this.date_time + ':00';
+                    }
             }
+
+            this.new_value = value;
         }
     }
 

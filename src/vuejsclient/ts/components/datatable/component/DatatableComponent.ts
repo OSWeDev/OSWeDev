@@ -1420,9 +1420,13 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.datatable.fields) {
             let field: DatatableField<any, any> = this.datatable.fields[i];
 
+            let class_name: string[] = ['field_' + field.datatable_field_uid];
+
             if (field.hidden_print) {
-                res[field.datatable_field_uid] = 'hidden-print';
+                class_name.push('hidden-print');
             }
+
+            res[field.datatable_field_uid] = class_name.join(' ');
         }
 
         return res;

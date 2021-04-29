@@ -904,7 +904,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_timestamp:
                     // A priori c'est without time zone du coup....
                     // e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
-                    res[field.field_id] = moment(field_value).utc(true).format('Y-MM-DDTHH:mm:SS.sss');
+                    let value: string = null;
+                    let date: Moment = moment(field_value).utc(true);
+
+                    switch (field.segmentation_type) {
+                        case TimeSegment.TYPE_YEAR:
+                        case TimeSegment.TYPE_MONTH:
+                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                        case TimeSegment.TYPE_WEEK:
+                        case TimeSegment.TYPE_DAY:
+                            value = DateHandler.getInstance().formatDayForIndex(date);
+                            break;
+                        default:
+                            value = DateHandler.getInstance().formatDayForIndex(date) + ' ' + date.format('HH:mm:ss');
+                    }
+
+                    res[field.field_id] = value;
                     break;
 
                 case ModuleTableField.FIELD_TYPE_float:
