@@ -37,6 +37,7 @@ import ImageComponent from '../../../image/ImageComponent';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import NumRangeInputComponent from '../../../numrangeinput/NumRangeInputComponent';
+import TimestampInputComponent from '../../../timestampinput/TimestampInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
@@ -55,6 +56,7 @@ let debounce = require('lodash/debounce');
         Tsrangesinputcomponent: TSRangesInputComponent,
         Isoweekdaysinputcomponent: IsoWeekDaysInputComponent,
         Tsrangeinputcomponent: TSRangeInputComponent,
+        Timestampinputcomponent: TimestampInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
         Numrangeinputcomponent: NumRangeInputComponent,
     }
@@ -254,12 +256,14 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        this.field_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
+        let field_value: any = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
-            this.field_value = this.field.dataToUpdateIHM(this.field_value, this.vo);
+            field_value = this.field.dataToUpdateIHM(field_value, this.vo);
         }
+
+        this.field_value = field_value;
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
         if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
