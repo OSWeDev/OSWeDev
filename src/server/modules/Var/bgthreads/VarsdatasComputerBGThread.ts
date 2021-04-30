@@ -44,6 +44,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     // private enabled: boolean = true;
     // private invalidations: number = 0;
     private semaphore: boolean = false;
+    private reload: boolean = false;
 
     private partial_clean_next_ms: number = 0;
 
@@ -89,10 +90,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     }
 
     private async do_calculation_run(): Promise<void> {
-        let reload = false;
         if (this.semaphore) {
+            this.reload = true;
             return;
         }
+        this.reload = false;
         this.semaphore = true;
 
         await PerfMonServerController.getInstance().monitor_async_root(
@@ -156,7 +158,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         }
 
                         if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
-                            reload = true;
+                            this.reload = true;
                             return;
                         } else {
 
@@ -211,13 +213,13 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     console.error(error);
                 }
 
-                reload = true;
+                this.reload = true;
             },
             this
         );
 
         this.semaphore = false;
-        if (reload) {
+        if (this.reload) {
             this.throttled_calculation_run();
         }
     }
