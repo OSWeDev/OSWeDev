@@ -93,7 +93,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         this.ordered_vos_cud.push(vo_cud);
-        this.last_registration = moment();
+        this.last_registration = moment().utc(true);
 
         this.throttled_update_param();
     }
@@ -114,14 +114,14 @@ export default class VarsDatasVoUpdateHandler {
                     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
                         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
-                    if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
-                        return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
-                    }
+                    return false; // je vois pas pourquoi .... this.last_registration && moment().utc(true).add(-500, 'ms').isBefore(this.last_registration);
                 }
+
+                this.last_call_handled_something = true;
 
                 // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
                 // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
-                if ((this.ordered_vos_cud.length < 1000) && this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration)) {
+                if ((this.ordered_vos_cud.length < 1000) && this.last_registration && moment().utc(true).add(-500, 'ms').isBefore(this.last_registration)) {
                     return true;
                 }
 
@@ -144,10 +144,8 @@ export default class VarsDatasVoUpdateHandler {
                 // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
                 this.throttled_update_param();
 
-                this.last_call_handled_something = true;
-
                 // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
-                return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
+                return this.last_registration && moment().utc(true).add(-500, 'ms').isBefore(this.last_registration);
             },
             this
         );

@@ -157,7 +157,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
                         if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
                             reload = true;
-                            this.semaphore = false;
                             return;
                         } else {
 
@@ -167,7 +166,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                                 this.partial_clean_next_ms = performance.now() + 1000;
                                 await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
                             }
-                            this.semaphore = false;
                             return;
                         }
                     }
