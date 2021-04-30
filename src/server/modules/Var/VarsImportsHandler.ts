@@ -2,6 +2,9 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
 
 export default class VarsImportsHandler {
@@ -37,14 +40,21 @@ export default class VarsImportsHandler {
      */
     public async load_imports_and_split_nodes(node: VarDAGNode, vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }, FOR_TU_imports: VarDataBaseVO[] = null) {
 
-        let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null);
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsImportsHandler__load_imports_and_split_nodes],
+            async () => {
 
-        if ((!imports) || (!imports.length)) {
-            return;
-        }
+                let imports: VarDataBaseVO[] = FOR_TU_imports ? FOR_TU_imports : await ModuleDAO.getInstance().getVarImportsByMatroidParams(node.var_data._type, [node.var_data], null);
 
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-        await this.split_nodes(node, vars_datas, ds_cache, imports, controller.optimization__has_only_atomic_imports);
+                if ((!imports) || (!imports.length)) {
+                    return;
+                }
+
+                let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+                await this.split_nodes(node, vars_datas, ds_cache, imports, controller.optimization__has_only_atomic_imports);
+            },
+            this
+        );
     }
 
     /**
@@ -62,30 +72,37 @@ export default class VarsImportsHandler {
         imports: VarDataBaseVO[],
         optimization__has_only_atomic_imports: boolean) {
 
-        if ((!imports) || (!imports.length)) {
-            return;
-        }
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsImportsHandler__split_nodes],
+            async () => {
 
-        imports.sort(this.sort_matroids_per_cardinal_desc);
+                if ((!imports) || (!imports.length)) {
+                    return;
+                }
 
-        let imports_valides: VarDataBaseVO[];
+                imports.sort(this.sort_matroids_per_cardinal_desc);
 
-        // Si on a que des imports isolés, on prend toujours tous les imports, inutile de suivre une stratégie
-        if (optimization__has_only_atomic_imports) {
-            imports_valides = imports;
-        } else {
-            imports_valides = this.get_selection_imports(imports, node.var_data);
-        }
+                let imports_valides: VarDataBaseVO[];
 
-        if ((!imports_valides) || (!imports_valides.length)) {
-            return;
-        }
+                // Si on a que des imports isolés, on prend toujours tous les imports, inutile de suivre une stratégie
+                if (optimization__has_only_atomic_imports) {
+                    imports_valides = imports;
+                } else {
+                    imports_valides = this.get_selection_imports(imports, node.var_data);
+                }
 
-        // on cut par les imports, et pour chaque résultat on crée un noeud fils du noeud actuel, et le noeud actuel devient un aggrégateur
-        let cut_result: VarDataBaseVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
+                if ((!imports_valides) || (!imports_valides.length)) {
+                    return;
+                }
 
-        // Pour chaque noeud restant, un fils à calculer, pour chaque noeud importé, un fils avec la valeur de l'import
-        await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
+                // on cut par les imports, et pour chaque résultat on crée un noeud fils du noeud actuel, et le noeud actuel devient un aggrégateur
+                let cut_result: VarDataBaseVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(imports_valides, [node.var_data]);
+
+                // Pour chaque noeud restant, un fils à calculer, pour chaque noeud importé, un fils avec la valeur de l'import
+                await this.aggregate_imports_and_remaining_datas(node, imports_valides, cut_result);
+            },
+            this
+        );
     }
 
     /**
@@ -126,36 +143,43 @@ export default class VarsImportsHandler {
 
     public async aggregate_imports_and_remaining_datas(node: VarDAGNode, imported_datas: VarDataBaseVO[], remaining_computations: VarDataBaseVO[]) {
 
-        /**
-         * Si on a pas de remaining, et un seul import, on est sur un var_data dont l'import couvre complètement (possible si c'est aussi dans vars_datas)
-         *  et donc on agrège pas, juste on met à jour le var_data
-         */
-        if (imported_datas && (imported_datas.length == 1) && ((!remaining_computations) || (!remaining_computations.length))) {
-            node.var_data.id = imported_datas[0].id;
-            node.var_data.value = imported_datas[0].value;
-            node.var_data.value_ts = imported_datas[0].value_ts;
-            node.var_data.value_type = imported_datas[0].value_type;
-            return;
-        }
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsImportsHandler__aggregate_imports_and_remaining_datas],
+            async () => {
 
-        let aggregated_datas: {
-            [var_data_index: string]: VarDataBaseVO;
-        } = {};
+                /**
+                 * Si on a pas de remaining, et un seul import, on est sur un var_data dont l'import couvre complètement (possible si c'est aussi dans vars_datas)
+                 *  et donc on agrège pas, juste on met à jour le var_data
+                 */
+                if (imported_datas && (imported_datas.length == 1) && ((!remaining_computations) || (!remaining_computations.length))) {
+                    node.var_data.id = imported_datas[0].id;
+                    node.var_data.value = imported_datas[0].value;
+                    node.var_data.value_ts = imported_datas[0].value_ts;
+                    node.var_data.value_type = imported_datas[0].value_type;
+                    return;
+                }
 
-        for (let i in imported_datas) {
-            let imported_data = imported_datas[i];
+                let aggregated_datas: {
+                    [var_data_index: string]: VarDataBaseVO;
+                } = {};
 
-            aggregated_datas[imported_data.index] = imported_data;
-        }
+                for (let i in imported_datas) {
+                    let imported_data = imported_datas[i];
 
-        for (let i in remaining_computations) {
-            let remaining_computation = remaining_computations[i];
+                    aggregated_datas[imported_data.index] = imported_data;
+                }
 
-            aggregated_datas[remaining_computation.index] = remaining_computation;
-        }
+                for (let i in remaining_computations) {
+                    let remaining_computation = remaining_computations[i];
 
-        node.is_aggregator = true;
-        node.aggregated_datas = aggregated_datas;
+                    aggregated_datas[remaining_computation.index] = remaining_computation;
+                }
+
+                node.is_aggregator = true;
+                node.aggregated_datas = aggregated_datas;
+            },
+            this
+        );
     }
 
     /**

@@ -118,6 +118,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_get_manual_tasks, this.get_manual_tasks.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {
@@ -194,5 +195,14 @@ export default class ModuleCronServer extends ModuleServerBase {
         } catch (error) {
             PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.failed');
         }
+    }
+
+    private async get_manual_tasks(): Promise<string[]> {
+        let res: string[] = [];
+
+        for (let text in ManualTasksController.getInstance().registered_manual_tasks_by_name) {
+            res.push(text);
+        }
+        return res;
     }
 }

@@ -55,6 +55,27 @@ export default class RangeHandler {
 
     private constructor() { }
 
+    public is_max_range<T>(range: IRange<T>): boolean {
+
+        if (!range) {
+            return false;
+        }
+
+        switch (range.range_type) {
+            case TSRange.RANGE_TYPE:
+                return range.min_inclusiv && ((range.min as any as Moment).unix() == RangeHandler.MIN_TS.unix()) &&
+                    (!range.max_inclusiv) && ((range.max as any as Moment).unix() == RangeHandler.MAX_TS.unix());
+            case NumRange.RANGE_TYPE:
+                return range.min_inclusiv && ((range.min as any as number) == RangeHandler.MIN_INT) &&
+                    (!range.max_inclusiv) && ((range.max as any as number) == RangeHandler.MAX_INT);
+            case HourRange.RANGE_TYPE:
+                return range.min_inclusiv && ((range.min as any as Duration).asMilliseconds() == RangeHandler.MIN_HOUR.asMilliseconds()) &&
+                    (!range.max_inclusiv) && ((range.max as any as Duration).asMilliseconds() == RangeHandler.MAX_HOUR.asMilliseconds());
+        }
+
+        return false;
+    }
+
     /**
      * Renvoi une liste (union) de ranges optimisée pour correspondre au nouveau segment_type
      * si le segment_type est le même que celui actuellement en place dans le param, on renvoie le param
@@ -1305,15 +1326,15 @@ export default class RangeHandler {
     }
 
     public getMaxNumRange(): NumRange {
-        return this.createNew(NumRange.RANGE_TYPE, RangeHandler.MIN_INT, RangeHandler.MAX_INT, true, true, NumSegment.TYPE_INT);
+        return this.createNew(NumRange.RANGE_TYPE, RangeHandler.MIN_INT, RangeHandler.MAX_INT, true, false, NumSegment.TYPE_INT);
     }
 
     public getMaxTSRange(): TSRange {
-        return this.createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MS);
+        return this.createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MS);
     }
 
     public getMaxHourRange(): HourRange {
-        return this.createNew(HourRange.RANGE_TYPE, RangeHandler.MIN_HOUR, RangeHandler.MAX_HOUR, true, true, HourSegment.TYPE_MS);
+        return this.createNew(HourRange.RANGE_TYPE, RangeHandler.MIN_HOUR, RangeHandler.MAX_HOUR, true, false, HourSegment.TYPE_MS);
     }
 
     /**

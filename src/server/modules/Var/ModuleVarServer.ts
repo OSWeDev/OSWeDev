@@ -40,6 +40,8 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import PerfMonAdminTasksController from '../PerfMon/PerfMonAdminTasksController';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -48,6 +50,7 @@ import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
@@ -58,10 +61,10 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
-    public static TASK_NAME_getSimpleVarDataCachedValueFromParam = ModuleVar.getInstance().name + '.getSimpleVarDataCachedValueFromParam';
-    public static TASK_NAME_delete_varcacheconf_from_cache = ModuleVar.getInstance().name + '.delete_varcacheconf_from_cache';
-    public static TASK_NAME_update_varcacheconf_from_cache = ModuleVar.getInstance().name + '.update_varcacheconf_from_cache';
-    public static TASK_NAME_wait_for_computation_hole = ModuleVar.getInstance().name + '.wait_for_computation_hole';
+    public static TASK_NAME_getSimpleVarDataCachedValueFromParam = 'Var.getSimpleVarDataCachedValueFromParam';
+    public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
+    public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
+    public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
 
 
     public static getInstance() {
@@ -78,6 +81,87 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        let PML__VarsdatasComputerBGThread__do_calculation_run = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsdatasComputerBGThread__do_calculation_run);
+
+        let PML__VarServerControllerBase__computeValue = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarServerControllerBase__computeValue);
+
+        let PML__VarsDatasProxy__handle_buffer = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__handle_buffer);
+        let PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd);
+        let PML__VarsDatasProxy__prepend_var_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__prepend_var_datas);
+        let PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread);
+        let PML__VarsDatasProxy__append_var_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__append_var_datas);
+        let PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd);
+        let PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd);
+        let PML__VarsDatasProxy__update_existing_buffered_older_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__update_existing_buffered_older_datas);
+        let PML__VarsDatasProxy__get_vars_to_compute_from_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_vars_to_compute_from_bdd);
+        let PML__VarsDatasProxy__filter_var_datas_by_indexes = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes);
+
+        let PML__VarsComputeController__compute = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__compute);
+        let PML__VarsComputeController__cache_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__cache_datas);
+        let PML__VarsComputeController__deploy_deps = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__deploy_deps);
+        let PML__VarsComputeController__load_nodes_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__load_nodes_datas);
+        let PML__VarsComputeController__compute_node = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__compute_node);
+        let PML__VarsComputeController__create_tree = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__create_tree);
+        let PML__VarsComputeController__handle_deploy_deps = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__handle_deploy_deps);
+        let PML__VarsComputeController__try_load_cache_complet = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_complet);
+        let PML__VarsComputeController__try_load_cache_partiel = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_partiel);
+        let PML__VarsComputeController__get_node_deps = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__get_node_deps);
+
+        let PML__DataSourcesController__load_node_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__DataSourcesController__load_node_datas);
+
+        let PML__DataSourceControllerBase__load_node_data = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data);
+
+        let PML__VarsPerfsController__update_perfs_in_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsPerfsController__update_perfs_in_bdd);
+        let PML__VarsDatasVoUpdateHandler__handle_buffer = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__handle_buffer);
+        let PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents);
+        let PML__VarsDatasVoUpdateHandler__update_param = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__update_param);
+        let PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update);
+        let PML__VarsCacheController__partially_clean_bdd_cache = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsCacheController__partially_clean_bdd_cache);
+        let PML__VarsImportsHandler__load_imports_and_split_nodes = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsImportsHandler__load_imports_and_split_nodes);
+        let PML__VarsImportsHandler__split_nodes = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsImportsHandler__split_nodes);
+        let PML__VarsImportsHandler__aggregate_imports_and_remaining_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsImportsHandler__aggregate_imports_and_remaining_datas);
+
+        PerfMonAdminTasksController.getInstance().register_perfmon_pack("VARs", [
+            PML__VarsdatasComputerBGThread__do_calculation_run,
+
+            PML__VarServerControllerBase__computeValue,
+
+            PML__VarsDatasProxy__handle_buffer,
+            PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd,
+            PML__VarsDatasProxy__prepend_var_datas,
+            PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread,
+            PML__VarsDatasProxy__append_var_datas,
+            PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd,
+            PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd,
+            PML__VarsDatasProxy__update_existing_buffered_older_datas,
+            PML__VarsDatasProxy__get_vars_to_compute_from_bdd,
+            PML__VarsDatasProxy__filter_var_datas_by_indexes,
+
+            PML__VarsComputeController__compute,
+            PML__VarsComputeController__cache_datas,
+            PML__VarsComputeController__deploy_deps,
+            PML__VarsComputeController__load_nodes_datas,
+            PML__VarsComputeController__compute_node,
+            PML__VarsComputeController__create_tree,
+            PML__VarsComputeController__handle_deploy_deps,
+            PML__VarsComputeController__try_load_cache_complet,
+            PML__VarsComputeController__try_load_cache_partiel,
+            PML__VarsComputeController__get_node_deps,
+
+            PML__DataSourcesController__load_node_datas,
+            PML__DataSourceControllerBase__load_node_data,
+
+            PML__VarsPerfsController__update_perfs_in_bdd,
+            PML__VarsDatasVoUpdateHandler__handle_buffer,
+            PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents,
+            PML__VarsDatasVoUpdateHandler__update_param,
+            PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update,
+            PML__VarsCacheController__partially_clean_bdd_cache,
+            PML__VarsImportsHandler__load_imports_and_split_nodes,
+            PML__VarsImportsHandler__split_nodes,
+            PML__VarsImportsHandler__aggregate_imports_and_remaining_datas
+        ]);
 
         VarsTabsSubsController.getInstance();
         VarsServerCallBackSubsController.getInstance();
@@ -313,11 +397,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
 
             // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-            VarsTabsSubsController.getInstance().notify_vardatas([vo]);
+            await VarsTabsSubsController.getInstance().notify_vardatas([vo]);
             VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
-            VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
+            await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
 
             await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
         }
@@ -329,11 +413,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
 
             // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-            VarsTabsSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+            await VarsTabsSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
             VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
-            VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
+            await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
 
             await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
         }

@@ -1,3 +1,4 @@
+import { templateSettings } from 'lodash';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
@@ -127,5 +128,26 @@ export default class VarsController {
             }
         }
         return true;
+    }
+
+    /**
+     * Renvoie var_datas - cutter
+     */
+    public substract_vars_datas(var_datas: VarDataBaseVO[], cutter: VarDataBaseVO[]): VarDataBaseVO[] {
+        let temp: { [index: string]: VarDataBaseVO } = {};
+
+        for (let i in var_datas) {
+            let var_data = var_datas[i];
+
+            temp[var_data.index] = var_data;
+        }
+
+        for (let j in cutter) {
+            let cut = cutter[j];
+
+            delete temp[cut.index];
+        }
+
+        return Object.values(temp);
     }
 }

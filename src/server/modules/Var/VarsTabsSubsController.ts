@@ -1,12 +1,16 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ForkedTasksController from '../Fork/ForkedTasksController';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
 
 export default class VarsTabsSubsController {
 
     public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
+    public static TASK_NAME_filter_by_subs: string = 'VarsTabsSubsController.filter_by_subs';
 
     /**
      * Multithreading notes :
@@ -28,6 +32,7 @@ export default class VarsTabsSubsController {
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsTabsSubsController.TASK_NAME_filter_by_subs, this.filter_by_subs.bind(this));
     }
 
     /**
@@ -76,10 +81,10 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    public notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, is_computing: boolean = false): boolean {
+    public async notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, is_computing: boolean = false): Promise<boolean> {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, var_datas, is_computing)) {
-            return;
+            return false;
         }
 
         let datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
@@ -115,5 +120,57 @@ export default class VarsTabsSubsController {
             PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
         }
         return true;
+    }
+
+    /**
+     * Méthode qui permet de filtrer un tableau de vars et de récupérer les vars actuellement subscribed par des utilisateurs.
+     *  On peut ainsi prioriser une mise en cache avec les variables actuellement consultées
+     */
+    public async filter_by_subs(var_datas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+
+        let res: VarDataBaseVO[] = [];
+
+        if ((!var_datas) || (!var_datas.length)) {
+            return null;
+        }
+
+        let self = this;
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+                VarsTabsSubsController.TASK_NAME_filter_by_subs, resolve, var_datas)) {
+                return;
+            }
+
+            for (let i in var_datas) {
+                let var_data = var_datas[i];
+
+                if (self.has_registered_user(var_data.index)) {
+                    res.push(var_data);
+                }
+            }
+
+            resolve(res);
+        });
+    }
+
+    private has_registered_user(index: string): boolean {
+
+        if (!this._tabs_subs[index]) {
+            return false;
+        }
+
+        for (let i in this._tabs_subs[index]) {
+            let subs = this._tabs_subs[index][i];
+
+            for (let j in subs) {
+
+                if (subs[j]) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

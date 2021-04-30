@@ -1,10 +1,9 @@
 import Component from 'vue-class-component';
 import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
-import ManualTasksController from '../../../../shared/modules/Cron/ManualTasksController';
-import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
-import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import CronWorkerPlanification from '../../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
+import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './CronComponent.scss';
 
@@ -17,6 +16,7 @@ export default class CronComponent extends VueComponentBase {
     private is_running: boolean = false;
 
     private cron_workers: CronWorkerPlanification[] = [];
+    private manual_tasks: string[] = [];
 
     private async run_cron() {
         this.is_running = true;
@@ -31,10 +31,6 @@ export default class CronComponent extends VueComponentBase {
         }, 1000);
     }
 
-    get manual_tasks(): string[] {
-        return Object.keys(ManualTasksController.getInstance().registered_manual_tasks_by_name);
-    }
-
     private async run_manual_task(name: string) {
         this.snotify.info(this.label('CronComponent.info.run_manual_task.started'));
         await ModuleCron.getInstance().run_manual_task(name);
@@ -43,6 +39,7 @@ export default class CronComponent extends VueComponentBase {
 
     private async mounted() {
         this.cron_workers = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
+        this.manual_tasks = await ModuleCron.getInstance().get_manual_tasks();
     }
 
     private async run_cron_individuel(cron_worker: CronWorkerPlanification) {

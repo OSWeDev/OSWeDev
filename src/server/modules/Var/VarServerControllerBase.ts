@@ -7,8 +7,11 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsDatasProxy from './VarsDatasProxy';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
 const moment = require('moment');
 
@@ -108,29 +111,37 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      *  Si on est sur un noeud aggrégé, on calcul via la fonction d'aggrégat, sinon on calcul par la fonction getValue
      * @param varDAGNode
      */
-    public computeValue(varDAGNode: VarDAGNode) {
+    public async computeValue(varDAGNode: VarDAGNode) {
 
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarServerControllerBase__computeValue],
+            async () => {
 
-        let value: number;
-        if (varDAGNode.is_aggregator) {
+                let value: number;
+                if (varDAGNode.is_aggregator) {
 
-            let values: number[] = [];
+                    let values: number[] = [];
 
-            for (let i in varDAGNode.aggregated_datas) {
-                let aggregated_data = varDAGNode.aggregated_datas[i];
+                    for (let i in varDAGNode.outgoing_deps) {
+                        let dep = varDAGNode.outgoing_deps[i];
 
-                values.push(aggregated_data.value);
-            }
-            value = this.aggregateValues(values);
-        } else {
+                        values.push((dep.outgoing_node as VarDAGNode).var_data.value);
+                    }
+                    value = this.aggregateValues(values);
+                } else {
 
-            value = this.getValue(varDAGNode);
-        }
+                    value = this.getValue(varDAGNode);
+                }
 
-        varDAGNode.var_data.value = value;
-        varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-        varDAGNode.var_data.value_ts = moment().utc(true);
-        VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data]);
+                varDAGNode.var_data.value = value;
+                varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+                varDAGNode.var_data.value_ts = moment().utc(true);
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data]);
+            },
+            this,
+            null,
+            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(varDAGNode)
+        );
     }
 
     /**

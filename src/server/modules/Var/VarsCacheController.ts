@@ -10,6 +10,9 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsServerController from './VarsServerController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -108,112 +111,120 @@ export default class VarsCacheController {
      * Méthode qu'on appelle quand on peut avancer sur le nettoyage de la bdd, et qui n'agit que pendant un temps donné
      */
     public async partially_clean_bdd_cache() {
-        let timeout = performance.now() + 1000;
 
-        let max_earliest_read_days: number = 33;
-        let min_earliest_read_days: number = 8;
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsCacheController__partially_clean_bdd_cache],
+            async () => {
 
-        let max_second_earliest_read_days: number = 34;
-        let min_second_earliest_read_days: number = 10;
+                let timeout = performance.now() + 1000;
 
-        let max_third_earliest_read_days: number = 35;
-        let min_third_earliest_read_days: number = 11;
+                let max_earliest_read_days: number = 33;
+                let min_earliest_read_days: number = 8;
 
-        let max_thourth_earliest_read_days: number = 36;
+                let max_second_earliest_read_days: number = 34;
+                let min_second_earliest_read_days: number = 10;
 
-        while (performance.now() < timeout) {
+                let max_third_earliest_read_days: number = 35;
+                let min_third_earliest_read_days: number = 11;
 
-            let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
-            if (this.partially_clean_bdd_cache_var_id_i > (var_ids.length - 1)) {
-                this.partially_clean_bdd_cache_var_id_i = 0;
-            }
+                let max_thourth_earliest_read_days: number = 36;
 
-            let var_id = var_ids[this.partially_clean_bdd_cache_var_id_i];
-            let controller: VarConfVO = VarsController.getInstance().var_conf_by_id[var_id];
+                while (performance.now() < timeout) {
 
-            // On charge des packs de vars, et on test des conditions de suppression du cache (on parle bien de suppression)
-            //  On doit refuser de toucher des vars qui seraient en ce moment dans le cache du proxy
-            let var_datas = await ModuleDAO.getInstance().getVos<VarDataBaseVO>(controller.var_data_vo_type, 100, this.partially_clean_bdd_cache_offset);
-            let go_to_next_table = false;
-            if ((!var_datas) || (var_datas.length < 100)) {
-                go_to_next_table = true;
-            }
-            var_datas = var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED);
-
-            let invalidateds = [];
-
-            // TODO FIXME Les seuils dépendent de la segmentation temps de la var si il y en a une
-
-            for (let i in var_datas) {
-                let var_data = var_datas[i];
-
-                if (VarsDatasProxy.getInstance().has_cached_index(var_data.index)) {
-                    continue;
-                }
-
-                if ((!var_data.last_reads_ts) || (!var_data.last_reads_ts.length)) {
-                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:!last_reads_ts:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                    let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
+                    if (this.partially_clean_bdd_cache_var_id_i > (var_ids.length - 1)) {
+                        this.partially_clean_bdd_cache_var_id_i = 0;
                     }
-                    invalidateds.push(var_data);
-                    continue;
-                }
 
-                if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1].isBefore(moment().utc(true).add(-max_earliest_read_days, 'days'))) {
-                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                    let var_id = var_ids[this.partially_clean_bdd_cache_var_id_i];
+                    let controller: VarConfVO = VarsController.getInstance().var_conf_by_id[var_id];
+
+                    // On charge des packs de vars, et on test des conditions de suppression du cache (on parle bien de suppression)
+                    //  On doit refuser de toucher des vars qui seraient en ce moment dans le cache du proxy
+                    let var_datas = await ModuleDAO.getInstance().getVos<VarDataBaseVO>(controller.var_data_vo_type, 100, this.partially_clean_bdd_cache_offset);
+                    let go_to_next_table = false;
+                    if ((!var_datas) || (var_datas.length < 100)) {
+                        go_to_next_table = true;
                     }
-                    invalidateds.push(var_data);
-                    continue;
-                }
+                    var_datas = var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED);
 
-                if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1].isAfter(moment().utc(true).add(-min_earliest_read_days, 'days'))) {
-                    continue;
-                }
+                    let invalidateds = [];
 
-                if ((var_data.last_reads_ts.length <= 1) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isBefore(moment().utc(true).add(-max_second_earliest_read_days, 'days')))) {
-                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                    // TODO FIXME Les seuils dépendent de la segmentation temps de la var si il y en a une
+
+                    for (let i in var_datas) {
+                        let var_data = var_datas[i];
+
+                        if (VarsDatasProxy.getInstance().has_cached_index(var_data.index)) {
+                            continue;
+                        }
+
+                        if ((!var_data.last_reads_ts) || (!var_data.last_reads_ts.length)) {
+                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('Invalidation:!last_reads_ts:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                            }
+                            invalidateds.push(var_data);
+                            continue;
+                        }
+
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1].isBefore(moment().utc(true).add(-max_earliest_read_days, 'days'))) {
+                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('Invalidation:<max_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                            }
+                            invalidateds.push(var_data);
+                            continue;
+                        }
+
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1].isAfter(moment().utc(true).add(-min_earliest_read_days, 'days'))) {
+                            continue;
+                        }
+
+                        if ((var_data.last_reads_ts.length <= 1) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isBefore(moment().utc(true).add(-max_second_earliest_read_days, 'days')))) {
+                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                            }
+                            invalidateds.push(var_data);
+                            continue;
+                        }
+
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isAfter(moment().utc(true).add(-min_second_earliest_read_days, 'days'))) {
+                            continue;
+                        }
+
+                        if ((var_data.last_reads_ts.length <= 2) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isBefore(moment().utc(true).add(-max_third_earliest_read_days, 'days')))) {
+                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                            }
+                            invalidateds.push(var_data);
+                            continue;
+                        }
+
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isAfter(moment().utc(true).add(-min_third_earliest_read_days, 'days'))) {
+                            continue;
+                        }
+
+                        if ((var_data.last_reads_ts.length <= 3) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 4].isBefore(moment().utc(true).add(-max_thourth_earliest_read_days, 'days')))) {
+                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                            }
+                            invalidateds.push(var_data);
+                            continue;
+                        }
                     }
-                    invalidateds.push(var_data);
-                    continue;
-                }
 
-                if (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isAfter(moment().utc(true).add(-min_second_earliest_read_days, 'days'))) {
-                    continue;
-                }
-
-                if ((var_data.last_reads_ts.length <= 2) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isBefore(moment().utc(true).add(-max_third_earliest_read_days, 'days')))) {
-                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                    if (invalidateds && invalidateds.length) {
+                        await ModuleDAO.getInstance().deleteVOs(invalidateds);
                     }
-                    invalidateds.push(var_data);
-                    continue;
-                }
 
-                if (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isAfter(moment().utc(true).add(-min_third_earliest_read_days, 'days'))) {
-                    continue;
-                }
-
-                if ((var_data.last_reads_ts.length <= 3) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 4].isBefore(moment().utc(true).add(-max_thourth_earliest_read_days, 'days')))) {
-                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                    if (go_to_next_table) {
+                        this.partially_clean_bdd_cache_offset = 0;
+                        this.partially_clean_bdd_cache_var_id_i++;
+                    } else {
+                        this.partially_clean_bdd_cache_offset += var_datas.length;
                     }
-                    invalidateds.push(var_data);
-                    continue;
                 }
-            }
-
-            if (invalidateds && invalidateds.length) {
-                await ModuleDAO.getInstance().deleteVOs(invalidateds);
-            }
-
-            if (go_to_next_table) {
-                this.partially_clean_bdd_cache_offset = 0;
-                this.partially_clean_bdd_cache_var_id_i++;
-            } else {
-                this.partially_clean_bdd_cache_offset += var_datas.length;
-            }
-        }
+            },
+            this
+        );
     }
 }

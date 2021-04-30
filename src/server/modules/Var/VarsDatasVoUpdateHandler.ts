@@ -17,12 +17,16 @@ import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarServerControllerBase from './VarServerControllerBase';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
+import VarsTabsSubsController from './VarsTabsSubsController';
 
 /**
  * On gère le buffer des mises à jour de vos en lien avec des vars pour invalider au plus vite les vars en cache en cas de modification d'un VO
@@ -100,46 +104,53 @@ export default class VarsDatasVoUpdateHandler {
      */
     public async handle_buffer(): Promise<boolean> {
 
-        this.last_call_handled_something = false;
-        if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+        return await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__handle_buffer],
+            async () => {
 
-            this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
-                VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+                this.last_call_handled_something = false;
+                if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
 
-            if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+                    this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
+                        VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+
+                    if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+                        return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
+                    }
+                }
+
+                // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
+                // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
+                if ((this.ordered_vos_cud.length < 1000) && this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration)) {
+                    return true;
+                }
+
+                let limit = this.ordered_vos_cud.length;
+
+                let vo_types: string[] = [];
+                let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
+                let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
+
+                let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+
+                let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
+
+                limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+
+                await this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+
+                await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
+
+                // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
+                this.throttled_update_param();
+
+                this.last_call_handled_something = true;
+
+                // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
                 return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
-            }
-        }
-
-        // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
-        // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
-        if ((this.ordered_vos_cud.length < 1000) && this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration)) {
-            return true;
-        }
-
-        let limit = this.ordered_vos_cud.length;
-
-        let vo_types: string[] = [];
-        let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
-        let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
-
-        let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-
-        let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
-
-        limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
-
-        await this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
-
-        await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
-
-        // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
-        this.throttled_update_param();
-
-        this.last_call_handled_something = true;
-
-        // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
-        return this.last_registration && moment().add(500, 'ms').isBefore(this.last_registration);
+            },
+            this
+        );
     }
 
     public async invalidate_datas_and_parents(
@@ -147,33 +158,48 @@ export default class VarsDatasVoUpdateHandler {
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = null
     ) {
 
-        // Si on veut juste invalider directement des vos, on a pas besoin de fournir le ctrls to update
-        if (!ctrls_to_update_1st_stage) {
-            ctrls_to_update_1st_stage = {};
-            for (let var_id_s in intersectors_by_var_id) {
-                ctrls_to_update_1st_stage[var_id_s] = VarsServerController.getInstance().registered_vars_controller_[
-                    VarsController.getInstance().var_conf_by_id[var_id_s].name];
-            }
-        }
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents],
+            async () => {
 
-        /**
-         * ALGO en photo... TODO FIXME a remettre au propre
-         */
-        let markers: { [var_id: number]: number } = {};
-        await this.init_markers(ctrls_to_update_1st_stage, markers);
-        await this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+                // Si on veut juste invalider directement des vos, on a pas besoin de fournir le ctrls to update
+                if (!ctrls_to_update_1st_stage) {
+                    ctrls_to_update_1st_stage = {};
+                    for (let var_id_s in intersectors_by_var_id) {
+                        ctrls_to_update_1st_stage[var_id_s] = VarsServerController.getInstance().registered_vars_controller_[
+                            VarsController.getInstance().var_conf_by_id[var_id_s].name];
+                    }
+                }
 
-        /**
-         * Une fois qu'on a tous les intercepteurs à appliquer, on charge tous les var_data correspondant de la base
-         *  et on les enfilent dans le buffer de calcul / mise à jour des var_datas
-         */
-        this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
+                /**
+                 * ALGO en photo... TODO FIXME a remettre au propre
+                 */
+                let markers: { [var_id: number]: number } = {};
+                await this.init_markers(ctrls_to_update_1st_stage, markers);
+                await this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+
+                /**
+                 * Une fois qu'on a tous les intercepteurs à appliquer, on charge tous les var_data correspondant de la base
+                 *  et on les enfilent dans le buffer de calcul / mise à jour des var_datas
+                 */
+                await this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
+            },
+            this
+        );
     }
 
     private async update_param() {
-        await ModuleParams.getInstance().setParamValue(
-            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
-            this.getJSONFrom_ordered_vos_cud());
+
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__update_param],
+            async () => {
+
+                await ModuleParams.getInstance().setParamValue(
+                    VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME,
+                    this.getJSONFrom_ordered_vos_cud());
+            },
+            this
+        );
     }
 
     /**
@@ -181,31 +207,45 @@ export default class VarsDatasVoUpdateHandler {
      * @param intersectors_by_var_id
      */
     private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
-        for (let var_id_s in intersectors_by_var_id) {
-            let intersectors = intersectors_by_var_id[var_id_s];
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update],
+            async () => {
 
-            if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
-                continue;
-            }
+                for (let var_id_s in intersectors_by_var_id) {
+                    let intersectors = intersectors_by_var_id[var_id_s];
 
-            let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
+                    if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
+                        continue;
+                    }
 
-            let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, Object.values(intersectors), null);
+                    let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
 
-            /**
-             * Tout sauf les imports
-             */
-            var_datas = var_datas.filter((vd: VarDataBaseVO) => vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT);
+                    let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, Object.values(intersectors), null);
 
-            if (var_datas && var_datas.length) {
-                var_datas.forEach((vd: VarDataBaseVO) => {
-                    delete vd.value;
-                    vd.value_ts = null;
-                });
-            }
+                    /**
+                     * Tout sauf les imports
+                     */
+                    var_datas = var_datas.filter((vd: VarDataBaseVO) => vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT);
 
-            await VarsDatasProxy.getInstance().append_var_datas(var_datas);
-        }
+                    if (var_datas && var_datas.length) {
+                        var_datas.forEach((vd: VarDataBaseVO) => {
+                            delete vd.value;
+                            vd.value_ts = null;
+                        });
+                    }
+
+                    /**
+                     * On priorise les abonnements actuels
+                     */
+                    let registered_var_datas: VarDataBaseVO[] = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                    let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas, registered_var_datas);
+
+                    await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);
+                    await VarsDatasProxy.getInstance().append_var_datas(unregistered_var_datas);
+                }
+            },
+            this
+        );
     }
 
     private async compute_intersectors(

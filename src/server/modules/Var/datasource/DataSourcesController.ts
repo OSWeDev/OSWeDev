@@ -7,6 +7,9 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { createWriteStream } from 'fs';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import PerfMonServerController from '../../PerfMon/PerfMonServerController';
+import PerfMonConfController from '../../PerfMon/PerfMonConfController';
+import VarsPerfMonServerController from '../VarsPerfMonServerController';
 
 export default class DataSourcesController {
 
@@ -40,37 +43,54 @@ export default class DataSourcesController {
      */
     public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<void> {
 
-        let promises = [];
-        for (let i in dss) {
-            let ds = dss[i];
+        await PerfMonServerController.getInstance().monitor_async(
+            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourcesController__load_node_datas],
+            async () => {
 
-            if (!ds_cache[ds.name]) {
-                ds_cache[ds.name] = {};
-            }
+                let promises = [];
+                for (let i in dss) {
+                    let ds = dss[i];
 
-            // TODO FIXME promises.length
-            if (promises.length >= 50) {
+                    if (!ds_cache[ds.name]) {
+                        ds_cache[ds.name] = {};
+                    }
+
+                    // TODO FIXME promises.length
+                    if (promises.length >= 50) {
+                        await Promise.all(promises);
+                        promises = [];
+                    }
+
+                    // TODO FIXME ne pas livrer !!!
+                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+
+                        let logger = (!this.is_first_log) ?
+                            createWriteStream('log.txt', {
+                                flags: 'a' // 'a' means appending (old data will be preserved)
+                            }) :
+                            createWriteStream('log.txt');
+                        this.is_first_log = false;
+
+                        logger.write(node.var_data.index + ':' + ds.name + ':' + (ObjectHandler.getInstance().hasAtLeastOneAttribute(ds_cache[ds.name]) ? 'has_cache' : 'no_cache') + '\n'); // append string to your file
+                        logger.close();
+                    }
+
+                    promises.push((async () => {
+                        await PerfMonServerController.getInstance().monitor_async(
+                            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data],
+                            ds.load_node_data,
+                            ds,
+                            [node, ds_cache[ds.name]],
+                            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node_and_ds(node, ds)
+                        );
+                    })());
+                }
                 await Promise.all(promises);
-                promises = [];
-            }
-
-            // TODO FIXME ne pas livrer !!!
-            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-
-                let logger = (!this.is_first_log) ?
-                    createWriteStream('log.txt', {
-                        flags: 'a' // 'a' means appending (old data will be preserved)
-                    }) :
-                    createWriteStream('log.txt');
-                this.is_first_log = false;
-
-                logger.write(node.var_data.index + ':' + ds.name + ':' + (ObjectHandler.getInstance().hasAtLeastOneAttribute(ds_cache[ds.name]) ? 'has_cache' : 'no_cache') + '\n'); // append string to your file
-                logger.close();
-            }
-
-            promises.push(ds.load_node_data(node, ds_cache[ds.name]));
-        }
-        await Promise.all(promises);
+            },
+            this,
+            null,
+            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
+        );
     }
 
     public registerDataSource(

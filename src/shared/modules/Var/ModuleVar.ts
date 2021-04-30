@@ -15,6 +15,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import VarsController from './VarsController';
+import VarsPerfMonController from './VarsPerfMonController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
@@ -96,6 +97,10 @@ export default class ModuleVar extends Module {
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarPerfVO();
+
+        VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
+        VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
+        VarsPerfMonController.getInstance().initialize_MatroidBasePMLInfoVO(this);
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
     }

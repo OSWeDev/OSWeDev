@@ -1,6 +1,6 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleAnonymization from '../../../../shared/modules/Anonymization/ModuleAnonymization';
 import AnonymizationFieldConfVO from '../../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
@@ -29,14 +29,14 @@ export default class AnonymizationAdminVueModule extends VueModuleBase {
 
     private constructor() {
 
-        super(ModuleParams.getInstance().name);
+        super(ModuleAnonymization.getInstance().name);
     }
 
     public async initializeAsync() {
 
         let menuBranch: MenuBranch = AnonymizationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleParams.POLICY_BO_ACCESS)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnonymization.POLICY_BO_ACCESS)) {
             return;
         }
 
