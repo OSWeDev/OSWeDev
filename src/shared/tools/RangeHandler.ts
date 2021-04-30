@@ -835,27 +835,34 @@ export default class RangeHandler {
         return res;
     }
 
-    public getIndexRanges<T>(ranges: Array<IRange<T>>): string {
+    public getIndexRanges<T>(ranges: Array<IRange<T>>, cut_max_range: boolean = false): string {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
         }
 
         let res: string = "[";
-        this.sort_ranges(ranges);
 
-        for (let i in ranges) {
-            let range = ranges[i];
+        // Si on est sur un maxrange et qu'on veut le cut, on fait un traitement particulier pour gagner du temps
+        if (cut_max_range && RangeHandler.getInstance().getCardinalFromArray(ranges) > 1000) {
+            res += '0';
+        } else {
+            this.sort_ranges(ranges);
 
-            let range_index = this.getIndex(range);
+            for (let i in ranges) {
+                let range = ranges[i];
 
-            if (!range_index) {
-                return null;
+                let range_index = this.getIndex(range);
+
+                if (!range_index) {
+                    return null;
+                }
+
+                res += (res == '[' ? '' : ',');
+                res += range_index;
             }
-
-            res += (res == '[' ? '' : ',');
-            res += range_index;
         }
+
         res += ']';
 
         return res;
