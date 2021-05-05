@@ -302,17 +302,23 @@ export default class VarsComputeController {
                         promises = [];
                     }
 
-                    promises.push((async () => {
-
-                        VarsPerfsController.addPerfs(performance.now(), [
-                            node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
-                        ], true);
+                    let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourcesController__load_node_datas];
+                    // Si on est sur du perf monitoring on doit faire les appels séparément...
+                    if (perfmon.is_active) {
                         await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
-                        node.has_load_nodes_datas_perf = true;
-                        VarsPerfsController.addPerfs(performance.now(), [
-                            node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
-                        ], false);
-                    })());
+                    } else {
+                        promises.push((async () => {
+
+                            VarsPerfsController.addPerfs(performance.now(), [
+                                node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
+                            ], true);
+                            await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
+                            node.has_load_nodes_datas_perf = true;
+                            VarsPerfsController.addPerfs(performance.now(), [
+                                node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
+                            ], false);
+                        })());
+                    }
                 }
 
                 if (promises && promises.length) {
@@ -385,6 +391,7 @@ export default class VarsComputeController {
                      */
                     if (i >= 5) {
                         await Promise.all(promises);
+                        promises = [];
                     }
 
                     promises.push(this.deploy_deps(VarDAGNode.getInstance(var_dag, vars_datas_as_array[i]), deployed_vars_datas, vars_datas, ds_cache));

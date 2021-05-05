@@ -740,12 +740,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (!self.has_segmented_known_database(datatable, segment_value)) {
                         return;
                     }
-                    await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.get_segmented_full_name(segment_value) + ";");
+                    await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.get_segmented_full_name(segment_value) + " CASCADE;");
 
                 }, datatable.table_segmented_field_segment_type);
+            } else {
+                await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + " CASCADE;");
             }
-
-            await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             let uid: number = StackContext.getInstance().get('UID');

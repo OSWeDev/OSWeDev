@@ -75,17 +75,24 @@ export default class DataSourcesController {
                         logger.close();
                     }
 
-                    promises.push((async () => {
+                    // Si on est sur du perf monitoring on doit faire les appels séparément...
+                    let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data];
+                    if (perfmon.is_active) {
                         await PerfMonServerController.getInstance().monitor_async(
-                            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data],
+                            perfmon,
                             ds.load_node_data,
                             ds,
                             [node, ds_cache[ds.name]],
                             VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node_and_ds(node, ds)
                         );
-                    })());
+                    } else {
+                        promises.push(ds.load_node_data(node, ds_cache[ds.name]));
+                    }
                 }
-                await Promise.all(promises);
+
+                if (promises && promises.length) {
+                    await Promise.all(promises);
+                }
             },
             this,
             null,

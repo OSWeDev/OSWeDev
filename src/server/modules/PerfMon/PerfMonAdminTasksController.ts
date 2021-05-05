@@ -82,10 +82,8 @@ export default class PerfMonAdminTasksController {
 
                 bdd_perf_type.is_active = false;
                 await ModuleDAO.getInstance().insertOrUpdateVO(bdd_perf_type);
-
-                let perfs = await ModuleDAO.getInstance().getVosByRefFieldIds<PerfMonLineVO>(PerfMonLineVO.API_TYPE_ID, 'line_type_id', [bdd_perf_type.id]);
-                await ModuleDAO.getInstance().deleteVOs(perfs);
             }
+            await ModuleDAO.getInstance().truncate(PerfMonLineVO.API_TYPE_ID);
 
             PerfMonServerController.getInstance().childrens_per_parent_uid = {};
             PerfMonServerController.getInstance().lines_infos_to_update_in_db_by_uid = {};

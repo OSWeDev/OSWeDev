@@ -6,7 +6,6 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
-import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -253,13 +252,16 @@ export default class VarsDatasVoUpdateHandler {
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
 
-            for (let i in ctrls_to_update_1st_stage) {
+            let did_something = false;
+            let tmp_ctrls_to_update_1st_stage = Object.assign({}, ctrls_to_update_1st_stage);
+            for (let i in tmp_ctrls_to_update_1st_stage) {
                 let ctrl = ctrls_to_update_1st_stage[i];
 
                 if (markers[ctrl.varConf.id] != 1) {
                     continue;
                 }
 
+                did_something = true;
                 let Nx = VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl);
 
                 await this.compute_deps_intersectors_and_union(Nx, intersectors_by_var_id);
@@ -274,7 +276,30 @@ export default class VarsDatasVoUpdateHandler {
                 });
 
                 delete ctrls_to_update_1st_stage[i];
-                break;
+            }
+
+            /**
+             * Force get out of deps loops
+             */
+            if (!did_something) {
+                let blocked = true;
+                for (let i in ctrls_to_update_1st_stage) {
+                    let ctrl = ctrls_to_update_1st_stage[i];
+
+                    if (markers[ctrl.varConf.id] > 1) {
+                        blocked = false;
+                        markers[ctrl.varConf.id]--;
+                    }
+                }
+
+                if (blocked) {
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: Check Vars Deps GRAPH - And build it ...');
+
+                    let tmp_ctrls_to_update_1st_stage_ = Object.assign({}, ctrls_to_update_1st_stage);
+                    for (let i in tmp_ctrls_to_update_1st_stage_) {
+                        delete ctrls_to_update_1st_stage[i];
+                    }
+                }
             }
         }
     }
