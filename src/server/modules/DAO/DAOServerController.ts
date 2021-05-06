@@ -42,7 +42,7 @@ export default class DAOServerController {
      */
 
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
-    public access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
+    public access_hooks: { [api_type_id: string]: { [access_type: string]: Array<IHookFilterVos<IDistantVOBase>> } } = {};
 
     public pre_update_trigger_hook: DAOPreUpdateTriggerHook;
     public pre_create_trigger_hook: DAOPreCreateTriggerHook;
