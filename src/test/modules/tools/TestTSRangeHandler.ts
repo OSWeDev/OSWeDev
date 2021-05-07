@@ -1105,23 +1105,24 @@ describe('TSRangeHandler', () => {
             segment_type: TimeSegment.TYPE_DAY
 
         } as TSRange]);
-        expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: un,
-            min_inclusiv: true,
-            max: deux,
-            max_inclusiv: false,
-            range_type: 2,
-            segment_type: TimeSegment.TYPE_DAY
+        expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([
+            {
+                min: moins_un,
+                min_inclusiv: true,
+                max: zero,
+                max_inclusiv: false,
+                range_type: 2,
+                segment_type: TimeSegment.TYPE_DAY
 
-        } as TSRange, {
-            min: moins_un,
-            min_inclusiv: true,
-            max: zero,
-            max_inclusiv: false,
-            range_type: 2,
-            segment_type: TimeSegment.TYPE_DAY
+            } as TSRange, {
+                min: un,
+                min_inclusiv: true,
+                max: deux,
+                max_inclusiv: false,
+                range_type: 2,
+                segment_type: TimeSegment.TYPE_DAY
 
-        } as TSRange]);
+            } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
@@ -1180,7 +1181,7 @@ describe('TSRangeHandler', () => {
             [TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
             [TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
@@ -2576,7 +2577,7 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().cloneArrayFrom(null)).to.equal(null);
         expect(RangeHandler.getInstance().cloneArrayFrom([numRange1])).to.deep.equal([numRange1]);
         expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2])).to.deep.equal([numRange1Bis, numRange2Bis]);
-        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2, numRange3])).to.deep.equal([numRange1Bis, numRange2Bis, numRange3Bis]);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2, numRange3])).to.deep.equal([numRange1Bis, numRange3Bis, numRange2Bis]);
     });
 
     it('test getIndex', () => {
@@ -2610,9 +2611,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().getIndexRanges(null)).to.equal(null);
-        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)]");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[0,3),[3,4)]");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[2,4),[3,4)]");
     });
 
     it('test humanizeRanges', () => {
@@ -2622,9 +2623,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().humanizeRanges(null)).to.equal(null);
-        expect(RangeHandler.getInstance().humanizeRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)");
-        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)");
-        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)]");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)]");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)]");
     });
 
     it('test ranges_intersect_themselves', () => {
