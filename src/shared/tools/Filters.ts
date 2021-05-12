@@ -313,7 +313,9 @@ let readToFixed = (
     fractionalDigits: number = 0,
     arrondi: boolean | number = false,
     arrondi_type: number = ARRONDI_TYPE_ROUND,
-    onlyPositive: boolean = false): string => {
+    onlyPositive: boolean = false,
+    dot_decimal_marker: boolean = false
+): string => {
 
     let result: string = null;
 
@@ -345,7 +347,7 @@ let readToFixed = (
         result = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(parseFloat(result), fractionalDigits);
     }
 
-    return result.replace(".", ",");
+    return dot_decimal_marker ? result.replace(",", ".") : result.replace(".", ",");
 };
 
 export let toFixedFilter = FilterObj.createNew(
