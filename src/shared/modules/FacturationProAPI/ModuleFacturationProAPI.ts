@@ -93,7 +93,7 @@ export default class ModuleFacturationProAPI extends Module {
             let elts: IDistantVOBase[] = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 "www.facturation.pro",
-                url + ModuleRequest.getInstance().get_params_url(
+                (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url(
                     Object.assign({
                         page: page
                     }, params)
@@ -106,8 +106,10 @@ export default class ModuleFacturationProAPI extends Module {
 
             res = res.concat(elts);
             page++;
-            has_more = result_headers && result_headers['total_pages'] && result_headers['current_page'] &&
-                (result_headers['current_page'] < result_headers['total_pages']);
+
+            let pagination = (result_headers && result_headers['x-pagination']) ? JSON.parse(result_headers['x-pagination']) : null;
+            has_more = pagination && pagination['total_pages'] && pagination['current_page'] &&
+                (pagination['current_page'] < pagination['total_pages']);
         }
 
         return res;
@@ -116,11 +118,16 @@ export default class ModuleFacturationProAPI extends Module {
     private async getHeadersRequest(): Promise<any> {
 
         let auth = await ModuleParams.getInstance().getParamValue(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
+        let cle = await ModuleParams.getInstance().getParamValue(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
+        let login = await ModuleParams.getInstance().getParamValue(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
+
+        let authorization = 'Basic ' + Buffer.from(login + ':' + cle).toString('base64');
 
         return {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-User-Agent': auth
+            'X-User-Agent': auth,
+            'Authorization': authorization
         };
     }
 }
