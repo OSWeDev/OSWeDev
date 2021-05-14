@@ -575,7 +575,6 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
-            let newOptions: number[] = [];
 
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
@@ -591,12 +590,6 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-
-            //filtre et tri
-            options = this.field.triFiltrage(options);
-
-
-
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
@@ -611,10 +604,12 @@ export default class CRUDComponentField extends VueComponentBase
                 }
             }
 
+            //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-
-            for (let j in options) {
-                let option: IDistantVOBase = options[j];
+            let newOptions: number[] = [];
+            for (let index in ordered_option_array) {
+                let option: IDistantVOBase = ordered_option_array[index];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
@@ -668,12 +663,13 @@ export default class CRUDComponentField extends VueComponentBase
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
 
-        options = this.field.triFiltrage(options);
+        //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
+        let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
         let newOptions: number[] = [];
 
-        for (let i in options) {
-            let option = options[i];
+        for (let index in ordered_option_array) {
+            let option: IDistantVOBase = ordered_option_array[index];
 
             if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
@@ -740,15 +736,16 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-            options = this.field.triFiltrage(options);
-
             if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
                 options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
             }
 
+            //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
             let newOptions: number[] = [];
-            for (let j in options) {
-                let option = options[j];
+            for (let index in ordered_option_array) {
+                let option: IDistantVOBase = ordered_option_array[index];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
