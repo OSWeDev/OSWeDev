@@ -76,7 +76,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
 
     public registerServerApiHandlers() { }
 
-    public async ask_user_credentials_and_change_ps_user() {
+    public async ask_user_credentials_and_change_cred_value() {
         let login: string = null;
         let pwd: string = null;
 
@@ -103,13 +103,12 @@ export default class ModulePowershellServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:' + error);
         }
 
-        await this.change_ps_user(login, pwd);
+        await this.change_cred_value(login, pwd);
     }
 
-    public async change_ps_user(login: string, pwd: string) {
+    public async change_cred_value(login: string, pwd: string) {
         ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('$password = "' + pwd + '" | ConvertTo-SecureString -AsPlainText -Force'));
         ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('$cred = New-Object System.Management.Automation.PSCredential -ArgumentList "' + login + '",$password'));
-        ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('New-PSSession -Credential $cred | Enter-PSSession'));
     }
 
     public async execute_ps_command_and_get_output(command: string): Promise<string> {
