@@ -33,7 +33,8 @@ export default class ModuleRequestServer extends ModuleServerBase {
         path: string,
         posts: {} = null,
         headers: {} = null,
-        sendHttps: boolean = false
+        sendHttps: boolean = false,
+        result_headers: {} = null
     ): Promise<any> {
 
         return new Promise((resolve, reject) => {
@@ -49,7 +50,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
             //     headers['Content-Length'] = JSON.stringify(posts).length;
             // }
 
-            function callback(res) {
+            function callback(res: http.IncomingMessage) {
                 let result: Buffer[] = [];
 
                 res.on('data', (chunk: Buffer[]) => {
@@ -69,6 +70,14 @@ export default class ModuleRequestServer extends ModuleServerBase {
 
                     resolve(buffer);
                 });
+
+                if ((!!result_headers) && (!!res.headers)) {
+                    for (let i in res.headers) {
+                        let header = res.headers[i];
+
+                        result_headers[i] = header;
+                    }
+                }
             }
 
             let request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);

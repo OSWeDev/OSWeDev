@@ -20,6 +20,7 @@ import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
+import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
 import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
@@ -65,6 +66,7 @@ import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
+import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
@@ -451,7 +453,8 @@ export default abstract class ModuleServiceBase {
             ModuleSupervision.getInstance(),
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
-            ModuleAnonymization.getInstance()
+            ModuleAnonymization.getInstance(),
+            ModuleFacturationProAPI.getInstance(),
         ];
     }
 
@@ -496,7 +499,8 @@ export default abstract class ModuleServiceBase {
             ModuleSupervisionServer.getInstance(),
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
-            ModuleAnonymizationServer.getInstance()
+            ModuleAnonymizationServer.getInstance(),
+            ModuleFacturationProAPIServer.getInstance(),
         ];
     }
 }
