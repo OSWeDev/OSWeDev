@@ -33,6 +33,7 @@ import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenanc
 import Module from '../../shared/modules/Module';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ModulePerfMon from '../../shared/modules/PerfMon/ModulePerfMon';
+import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
@@ -80,6 +81,7 @@ import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePerfMonServer from './PerfMon/ModulePerfMonServer';
+import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
@@ -455,6 +457,7 @@ export default abstract class ModuleServiceBase {
             ModuleAnimation.getInstance(),
             ModuleAnonymization.getInstance(),
             ModuleFacturationProAPI.getInstance(),
+            ModulePowershell.getInstance()
         ];
     }
 
@@ -501,6 +504,7 @@ export default abstract class ModuleServiceBase {
             ModuleAnimationServer.getInstance(),
             ModuleAnonymizationServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
+            ModulePowershellServer.getInstance()
         ];
     }
 }
