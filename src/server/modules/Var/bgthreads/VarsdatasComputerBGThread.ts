@@ -1,6 +1,7 @@
 import { throttle } from 'lodash';
 import { performance } from 'perf_hooks';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -96,6 +97,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         }
         this.reload = false;
         this.semaphore = true;
+
+        if ((!VarsController.getInstance().var_conf_by_id) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsController.getInstance().var_conf_by_id))) {
+            this.semaphore = false;
+            return;
+        }
 
         await PerfMonServerController.getInstance().monitor_async_root(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsdatasComputerBGThread__do_calculation_run],

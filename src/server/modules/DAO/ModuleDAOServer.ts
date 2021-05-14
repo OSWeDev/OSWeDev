@@ -49,7 +49,6 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import PushDataServerController from '../PushData/PushDataServerController';
-import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -344,7 +343,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID]) {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID] = {};
         }
-        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type] = hook;
+        if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type]) {
+            DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type] = [];
+        }
+        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type].push(hook);
     }
 
     public registerServerApiHandlers() {
@@ -1492,12 +1494,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
-        let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
-        if (hook) {
-            if (!StackContext.getInstance().get('IS_CLIENT')) {
-                // Server
-                return vos;
-            }
+        let hooks = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : [];
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            // Server
+            return vos;
+        }
+
+        for (let i in hooks) {
+            let hook = hooks[i];
 
             let uid: number = StackContext.getInstance().get('UID');
             let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
@@ -1538,13 +1542,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
-        let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
-        if (hook) {
+        let hooks = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : [];
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            // Server
+            return vo;
+        }
 
-            if (!StackContext.getInstance().get('IS_CLIENT')) {
-                // Server
-                return vo;
-            }
+        for (let i in hooks) {
+            let hook = hooks[i];
 
             let uid: number = StackContext.getInstance().get('UID');
             let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;

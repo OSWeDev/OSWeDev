@@ -70,12 +70,7 @@ export default class PerfMonServerController {
         perf_line_infos: IPerfMonLineInfo[] = null
     ): Promise<any> {
 
-        if (!line_type) {
-            ConsoleHandler.getInstance().error("monitor_sync:Missing line type");
-            return null;
-        }
-
-        if (!line_type.is_active) {
+        if ((!line_type) || !line_type.is_active) {
             if (monitored_func_params) {
                 return await monitored_func.call(this_obj, ...monitored_func_params);
             } else {

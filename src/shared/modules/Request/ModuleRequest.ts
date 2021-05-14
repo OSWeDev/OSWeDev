@@ -1,3 +1,4 @@
+import ObjectHandler from '../../tools/ObjectHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
@@ -28,7 +29,9 @@ export default class ModuleRequest extends Module {
         path: string,
         posts: {},
         headers: {},
-        sendHttps: boolean) => Promise<any> = APIControllerWrapper.sah(ModuleRequest.APINAME_sendRequestFromApp);
+        sendHttps: boolean,
+        result_headers?: {}
+    ) => Promise<any> = APIControllerWrapper.sah(ModuleRequest.APINAME_sendRequestFromApp);
 
     private constructor() {
 
@@ -49,5 +52,21 @@ export default class ModuleRequest extends Module {
             [],
             SendRequestParamVOStatic
         ));
+    }
+
+    public get_params_url(params: { [i: string]: string }) {
+        let res: string = null;
+
+        if ((!params) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(params))) {
+            return "";
+        }
+
+        for (let i in params) {
+            let param = params[i];
+
+            res = (res ? res + "&" : "?") + i + "=" + param;
+        }
+
+        return res;
     }
 }

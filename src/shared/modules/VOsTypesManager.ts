@@ -1,3 +1,4 @@
+import INamedVO from '../interfaces/INamedVO';
 import ObjectHandler from '../tools/ObjectHandler';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
@@ -33,6 +34,18 @@ export default class VOsTypesManager {
 
             this.moduleTables_by_voType[module_table.vo_type] = module_table;
         }
+    }
+
+    public namedvosArray_to_vosByNames<T extends INamedVO>(vos: T[]): { [name: string]: T } {
+        let res: { [name: string]: T } = {};
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            res[vo.name] = vo;
+        }
+
+        return res;
     }
 
     public vosArray_to_vosByIds<T extends IDistantVOBase>(vos: T[]): { [id: number]: T } {

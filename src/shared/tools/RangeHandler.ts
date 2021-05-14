@@ -275,6 +275,31 @@ export default class RangeHandler {
             }
         }
 
+        if (!res) {
+            return res;
+        }
+
+        // Il faut ordonner les ranges pour aller plus vite
+        res.sort((rangea: IRange<T>, rangeb: IRange<T>) => {
+
+            if (!rangea) {
+                return null;
+            }
+            if (!rangeb) {
+                return null;
+            }
+
+            switch (rangea.range_type) {
+                case TSRange.RANGE_TYPE:
+                    return (rangea.min as any as Moment).unix() - (rangeb.min as any as Moment).unix();
+                case NumRange.RANGE_TYPE:
+                    return (rangea.min as any as number) - (rangeb.min as any as number);
+                case HourRange.RANGE_TYPE:
+                    return (rangea.min as any as Duration).asMilliseconds() - (rangeb.min as any as Duration).asMilliseconds();
+            }
+            return null;
+        });
+
         while (hasContiguousRanges) {
             hasContiguousRanges = false;
 
@@ -289,19 +314,33 @@ export default class RangeHandler {
                 for (let k in res) {
                     let resrangek: IRange<T> = res[k];
 
+                    if (!resrangek) {
+                        continue;
+                    }
+
                     if (k <= j) {
                         continue;
                     }
 
                     if (this.ranges_are_contiguous_or_intersect(resrangej, resrangek)) {
                         hasContiguousRanges = true;
-                        res[j] = this.getMinSurroundingRange([resrangej, resrangek]);
+                        resrangej = this.getMinSurroundingRange([resrangej, resrangek]);
                         res[k] = null;
-                        break;
+                    } else {
+
+                        /**
+                         * Comme on a ordonné les minimums, on sait que si le
+                         *  min de resrangek > max de resrangej on peut plus trouver de collisions dans les k++
+                         *  on sait par convention que resrangej.max_inclusiv = false; (d'ailleurs c'est une notion qu'on devrait
+                         *  supprimer du range c'est devenu inutile puisque conventionnellement min inclusive et max !inclusive)
+                         */
+                        if (resrangek.min > resrangej.max) {
+                            break;
+                        }
                     }
                 }
 
-                newres.push(this.cloneFrom(res[j]));
+                newres.push(this.cloneFrom(resrangej));
             }
 
             res = newres;
@@ -914,6 +953,7 @@ export default class RangeHandler {
             res += (res == '[' ? '' : ',');
             res += range_index;
         }
+        res += ']';
 
         return res;
     }

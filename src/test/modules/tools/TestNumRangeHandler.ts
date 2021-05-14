@@ -1462,21 +1462,22 @@ describe('NumRangeHandler', () => {
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
-        expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
-            range_type: NumRange.RANGE_TYPE,
-            min: 1,
-            min_inclusiv: true,
-            max: 2,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange, {
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: true,
-            max: 0,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange]);
+        expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([
+            {
+                range_type: NumRange.RANGE_TYPE,
+                min: -1,
+                min_inclusiv: true,
+                max: 0,
+                max_inclusiv: false,
+                segment_type: NumSegment.TYPE_INT
+            } as NumRange, {
+                range_type: NumRange.RANGE_TYPE,
+                min: 1,
+                min_inclusiv: true,
+                max: 2,
+                max_inclusiv: false,
+                segment_type: NumSegment.TYPE_INT
+            } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
@@ -1530,7 +1531,7 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(-1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
             [NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)]
