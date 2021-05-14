@@ -8,7 +8,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import Shell from 'node-powershell';
+import * as Shell from 'node-powershell';
 
 export default class ModulePowershellServer extends ModuleServerBase {
 
