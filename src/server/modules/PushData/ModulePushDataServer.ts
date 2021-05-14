@@ -1,9 +1,11 @@
 import * as moment from 'moment';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -32,6 +34,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
         PushDataCronWorkersHandler.getInstance();
     }
 
+    public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
+    }
+
     public async configure() {
 
         // Triggers pour mettre à jour les dates
@@ -40,6 +46,13 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate);
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valider'
+        }, 'snotify.prompt.submit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'snotify.prompt.cancel.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Votre session a été invalidée, la page va être rechargée automatiquement...'
@@ -73,5 +86,19 @@ export default class ModulePushDataServer extends ModuleServerBase {
             vo_update_handler.post_update_vo.read_date = moment().utc(true);
         }
         return true;
+    }
+
+    private async set_prompt_result(notification: NotificationVO) {
+        if (!PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid]) {
+            ConsoleHandler.getInstance().error('set_prompt_result:prompt unknown:' + notification.prompt_uid + ':' + notification.prompt_result + ':');
+            return;
+        }
+
+        let callback = PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid];
+        try {
+            await callback(notification.prompt_result);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
     }
 }

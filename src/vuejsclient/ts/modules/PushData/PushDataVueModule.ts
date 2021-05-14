@@ -1,4 +1,5 @@
 import * as io from 'socket.io-client/dist/socket.io.slim.js';
+import { SnotifyToast } from 'vue-snotify';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -111,23 +112,22 @@ export default class PushDataVueModule extends VueModuleBase {
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
-
             self.throttled_notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
-
             self.throttled_notifications_handler([notification]);
         });
 
-
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
-
             self.throttled_notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_TECH], async function (notification: NotificationVO) {
+            self.throttled_notifications_handler([notification]);
+        });
 
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_PROMPT], async function (notification: NotificationVO) {
             self.throttled_notifications_handler([notification]);
         });
 
@@ -149,6 +149,7 @@ export default class PushDataVueModule extends VueModuleBase {
         let TYPE_NOTIF_DAO: NotificationVO[] = [];
         let TYPE_NOTIF_VARDATA: NotificationVO[] = [];
         let TYPE_NOTIF_TECH: NotificationVO[] = [];
+        let TYPE_NOTIF_PROMPT: NotificationVO[] = [];
 
         for (let i in notifications) {
             let notification = notifications[i];
@@ -165,6 +166,9 @@ export default class PushDataVueModule extends VueModuleBase {
                     break;
                 case NotificationVO.TYPE_NOTIF_TECH:
                     TYPE_NOTIF_TECH.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_PROMPT:
+                    TYPE_NOTIF_PROMPT.push(notification);
                     break;
             }
         }
@@ -184,7 +188,45 @@ export default class PushDataVueModule extends VueModuleBase {
         if (TYPE_NOTIF_TECH && TYPE_NOTIF_TECH.length) {
             this.notifications_handler_TYPE_NOTIF_TECH(TYPE_NOTIF_TECH);
         }
+
+        if (TYPE_NOTIF_PROMPT && TYPE_NOTIF_PROMPT.length) {
+            this.notifications_handler_TYPE_NOTIF_PROMPT(TYPE_NOTIF_PROMPT);
+        }
     }
+
+    private async notifications_handler_TYPE_NOTIF_PROMPT(notifications: NotificationVO[]) {
+
+        let unreads: NotificationVO[] = [];
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+            VueAppBase.instance_.vueInstance.snotify.prompt(content, {
+                timeout: 60000,
+                buttons: [
+                    {
+                        text: LocaleManager.getInstance().i18n.t('snotify.prompt.submit.___LABEL___'), action: async (toast: SnotifyToast) => {
+                            VueAppBase.instance_.vueInstance.snotify.remove(toast.id);
+                            notification.prompt_result = toast.value;
+                            await ModulePushData.getInstance().set_prompt_result(notification);
+                        }, bold: true
+                    },
+                    {
+                        text: LocaleManager.getInstance().i18n.t('snotify.prompt.cancel.___LABEL___'), action: async (toast: SnotifyToast) => {
+                            VueAppBase.instance_.vueInstance.snotify.remove(toast.id);
+                            await ModulePushData.getInstance().set_prompt_result(notification);
+                        }
+                    },
+                ]
+            });
+
+            if (!notification.read) {
+                unreads.push(notification);
+            }
+        }
+        VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+    }
+
 
     private async notifications_handler_TYPE_NOTIF_SIMPLE(notifications: NotificationVO[]) {
 

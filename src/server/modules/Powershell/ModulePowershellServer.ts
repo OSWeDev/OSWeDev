@@ -1,14 +1,18 @@
+import * as Shell from 'node-powershell';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModulePowershell from '../../../shared/modules/Powershell/ModulePowershell';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import * as Shell from 'node-powershell';
+import PushDataServerController from '../PushData/PushDataServerController';
 
 export default class ModulePowershellServer extends ModuleServerBase {
 
@@ -61,9 +65,52 @@ export default class ModulePowershellServer extends ModuleServerBase {
             executionPolicy: 'Bypass',
             noProfile: true
         });
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Identifiant AD'
+        }, 'ActiveDirectory.prompt.login.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mot de passe AD'
+        }, 'ActiveDirectory.prompt.pwd.___LABEL___'));
     }
 
     public registerServerApiHandlers() { }
+
+    public async ask_user_credentials_and_change_ps_user() {
+        let login: string = null;
+        let pwd: string = null;
+
+        try {
+
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+            if ((!uid) || (!CLIENT_TAB_ID)) {
+                //on doit venir d'un onglet précis
+                ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:on doit venir d\'un onglet précis');
+                return null;
+            }
+
+            login = await PushDataServerController.getInstance().notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.login.___LABEL___');
+            pwd = await PushDataServerController.getInstance().notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.pwd.___LABEL___');
+
+            if ((!login) || (!pwd)) {
+                ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:login ou mot de passe manquant');
+                return null;
+            }
+
+        } catch (error) {
+            ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:' + error);
+        }
+
+        await this.change_ps_user(login, pwd);
+    }
+
+    public async change_ps_user(login: string, pwd: string) {
+        ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('$password = "' + pwd + '" | ConvertTo-SecureString -AsPlainText -Force'));
+        ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('$cred = New-Object System.Management.Automation.PSCredential -ArgumentList "' + login + '",$password'));
+        ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('New-PSSession -Credential $cred | Enter-PSSession'));
+    }
 
     public async execute_ps_command_and_get_output(command: string): Promise<string> {
         let self = this;

@@ -7,7 +7,6 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -39,6 +38,8 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySimpleINFO: string = 'PushDataServerController' + '.notifySimpleINFO';
     public static TASK_NAME_notifySimpleWARN: string = 'PushDataServerController' + '.notifySimpleWARN';
     public static TASK_NAME_notifySimpleERROR: string = 'PushDataServerController' + '.notifySimpleERROR';
+    public static TASK_NAME_notifyPrompt: string = 'PushDataServerController' + '.notifyPrompt';
+
 
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
@@ -52,6 +53,9 @@ export default class PushDataServerController {
     /**
      * Global application cache - Handled by Main process -----
      */
+    public registered_prompts_cbs_by_uid: { [prompt_uid: string]: (prompt_result: string) => Promise<void> } = {};
+    private PROMPT_UID: number = 0;
+
     private registeredSockets: { [userId: number]: { [client_tab_id: string]: { [sessId: string]: { [socket_id: string]: SocketWrapper } } } } = {};
     private registeredSessions: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
     private registeredSockets_by_id: { [socket_id: string]: SocketWrapper } = {};
@@ -77,6 +81,7 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleINFO, this.notifySimpleINFO.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleWARN, this.notifySimpleWARN.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyPrompt, this.notifyPrompt.bind(this));
     }
 
     /**
@@ -530,6 +535,49 @@ export default class PushDataServerController {
         }
 
         await this.notifySimple(user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected);
+    }
+
+    public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string): Promise<string> {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyPrompt, user_id, client_tab_id, code_text)) {
+            return null;
+        }
+
+        if ((!user_id) || (!client_tab_id) || (!code_text)) {
+            return null;
+        }
+
+        let self = this;
+
+        // On met aussi un time out à 2 minutes sinon on reste bloqués à vie potentiellement
+        return new Promise(async (resolve, reject) => {
+            let notification: NotificationVO = new NotificationVO();
+            let still_waiting: boolean = true;
+
+            notification.simple_notif_label = code_text;
+            notification.simple_notif_type = null;
+            notification.notification_type = NotificationVO.TYPE_NOTIF_PROMPT;
+            notification.read = false;
+            notification.user_id = user_id;
+            notification.client_tab_id = client_tab_id;
+            notification.auto_read_if_connected = true;
+
+            notification.prompt_result = null;
+            notification.prompt_uid = self.PROMPT_UID++;
+            self.registered_prompts_cbs_by_uid[notification.prompt_uid] = async (prompt_result: string) => {
+                still_waiting = false;
+                await resolve(prompt_result);
+                delete self.registered_prompts_cbs_by_uid[notification.prompt_uid];
+            };
+
+            await self.notify(notification);
+            await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+
+            await ThreadHandler.getInstance().sleep(120000);
+            if (still_waiting) {
+                reject('No Prompt received');
+            }
+        });
     }
 
     private async notifySimple(user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
