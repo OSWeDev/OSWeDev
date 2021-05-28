@@ -769,9 +769,11 @@ export default class CRUDComponentField extends VueComponentBase
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
             }
 
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
             let newOptions: number[] = [];
-            for (let j in options) {
-                let option = options[j];
+            for (let j in ordered_option_array) {
+                let option = ordered_option_array[j];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
