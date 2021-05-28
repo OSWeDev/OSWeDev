@@ -425,12 +425,20 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public async prepare_bdd_index_for_c(vo: VarDataBaseVO) {
 
+        // Si on est sur un import et sans date, on force une date
+        if ((vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!vo.value_ts)) {
+            vo.value_ts = moment().utc(true);
+        }
         vo['_bdd_only_index'] = vo.bdd_only_index;
         return true;
     }
 
     public async prepare_bdd_index_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>) {
 
+        // Si on est sur un import et sans date, on force une date
+        if ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!vo_update_handler.post_update_vo.value_ts)) {
+            vo_update_handler.post_update_vo.value_ts = moment().utc(true);
+        }
         vo_update_handler.post_update_vo['_bdd_only_index'] = vo_update_handler.post_update_vo.bdd_only_index;
         return true;
     }

@@ -361,8 +361,20 @@ export default class VarDataRefComponent extends VueComponentBase {
             formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.var_data.value_ts);
         }
 
+        let value: any = (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value;
+
+        if (this.filter) {
+            let params = [value];
+
+            if (!!this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params);
+            }
+
+            value = this.filter.apply(null, params);
+        }
+
         return this.label('VarDataRefComponent.var_data_value_import_tooltip', {
-            value: (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value,
+            value: value,
             formatted_date: formatted_date,
         });
     }
