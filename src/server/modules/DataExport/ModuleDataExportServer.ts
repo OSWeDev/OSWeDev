@@ -1,6 +1,7 @@
 import * as moment from 'moment';
 import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -10,9 +11,12 @@ import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHisto
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -122,6 +126,82 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.path = filepath;
         file.file_access_policy_name = file_access_policy_name;
         file.is_secured = is_secured;
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            return null;
+        }
+        file.id = res.id;
+
+        return file;
+    }
+
+    /**
+     * WARN : Pour exporter on doit pouvoir récupérer toutes les données, donc attention à la volumétrie avant de faire la demande...
+     */
+    public async exportModuletableDataToXLSXFile(
+        api_type_id: string,
+        lang_id: number = null,
+        filename: string = null,
+        file_access_policy_name: string = null
+    ): Promise<FileVO> {
+
+        let datas: any[] = [];
+        let ordered_column_list: string[] = [];
+        let column_labels: { [field_name: string]: string } = {};
+        let modultable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        filename = filename ? filename : api_type_id + '__' + moment().utc(true).format('YYYY-MM-DD-HHmmss') + '.xlsx';
+
+        if (!lang_id) {
+            let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+            if (!user) {
+                ConsoleHandler.getInstance().error('Une langue doit être définie pour l\'export XLSX');
+                return null;
+            }
+            lang_id = user.lang_id;
+        }
+
+        let vos = await ModuleDAO.getInstance().getVos(api_type_id);
+        for (let i in vos) {
+            let vo = modultable.get_xlsx_version(vos[i]);
+            if (vo) {
+                datas.push(vo);
+            }
+        }
+        let fields = modultable.get_fields();
+        for (let i in fields) {
+            let field = fields[i];
+            ordered_column_list.push(field.field_id);
+
+            let text = await ModuleTranslation.getInstance().getTranslatableText(field.field_label.code_text);
+            if (!text) {
+                ConsoleHandler.getInstance().error('Code texte de colonne introuvable:' + field.field_label.code_text);
+                continue;
+            }
+            let translation = await ModuleTranslation.getInstance().getTranslation(lang_id, text.id);
+            if (!translation) {
+                ConsoleHandler.getInstance().error('Traduction de colonne introuvable:' + field.field_label.code_text);
+                continue;
+            }
+            column_labels[field.field_id] = translation.translated;
+        }
+
+        file_access_policy_name = file_access_policy_name ? file_access_policy_name : ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
+
+        let filepath: string = await this.exportDataToXLSX_base(
+            filename,
+            datas,
+            ordered_column_list,
+            column_labels,
+            api_type_id,
+            true,
+            file_access_policy_name
+        );
+
+        let file: FileVO = new FileVO();
+        file.path = filepath;
+        file.file_access_policy_name = file_access_policy_name;
+        file.is_secured = true;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
             ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);

@@ -70,6 +70,8 @@ export default class ModuleTableField<T> {
     public field_value: T;
     public field_loaded: boolean;
 
+    public custom_translate_to_xlsx: (value: any) => any = null;
+
     public custom_translate_to_api: (value: any) => any = null;
     public custom_translate_from_api: (value: any) => any = null;
 
@@ -208,6 +210,12 @@ export default class ModuleTableField<T> {
 
     public hide_from_datatable(): ModuleTableField<T> {
         this.is_visible_datatable = false;
+
+        return this;
+    }
+
+    public set_custom_translate_to_xlsx(custom_translate_to_xlsx: (value: any) => any): ModuleTableField<T> {
+        this.custom_translate_to_xlsx = custom_translate_to_xlsx;
 
         return this;
     }

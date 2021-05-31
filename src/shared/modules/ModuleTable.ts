@@ -107,6 +107,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public get_bdd_version: (e: T) => T = null;
 
+    public get_xlsx_version: (e: T) => any = null;
+
     public get_api_version: (e: T) => any = null;
     public from_api_version: (e: any) => T = null;
 
@@ -157,6 +159,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
 
+        this.get_xlsx_version = this.default_get_xlsx_version;
         this.get_api_version = this.default_get_api_version;
         this.from_api_version = this.default_from_api_version;
 
@@ -616,6 +619,101 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         return res;
     }
+
+    /**
+     * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
+     * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
+     * @param e Le VO dont on veut une version api
+     */
+    private default_get_xlsx_version(e: T): any {
+        if (!e) {
+            return null;
+        }
+
+        let res = {};
+
+        if (!this.fields_) {
+            return cloneDeep(e);
+        }
+
+        res['_type'] = e._type;
+        res['id'] = e.id;
+
+        // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
+        //  pour réduire au max l'objet envoyé, et l'offusquer un peu
+        let fieldIdToAPIMap: { [field_id: string]: string } = this.getFieldIdToAPIMap();
+
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
+
+            let new_id = fieldIdToAPIMap[field.field_id];
+
+            /**
+             * Si le champ possible un custom_to_api
+             */
+            if (!!field.custom_translate_to_xlsx) {
+                res[new_id] = field.custom_translate_to_xlsx(e[field.field_id]);
+                /**
+                 * Compatibilité MSGPACK : il traduit les undefind en null
+                 */
+                if (typeof res[new_id] === 'undefined') {
+                    delete res[new_id];
+                }
+                continue;
+            }
+
+            switch (field.field_type) {
+
+                // TODO FIXME  export des ranges dans xlsx à réfléchir...
+
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_numrange:
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz:
+
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[new_id] = e[field.field_id];
+                    } else {
+                        let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
+                        res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.toISOString() : null;
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[new_id] = e[field.field_id];
+                    } else {
+                        res[new_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.toISOString() : ts);
+                    }
+                    break;
+
+
+                default:
+                    res[new_id] = e[field.field_id];
+            }
+
+            /**
+             * Compatibilité MSGPACK : il traduit les undefind en null
+             */
+            if (typeof res[new_id] === 'undefined') {
+                delete res[new_id];
+            }
+        }
+
+        return res;
+    }
+
 
     /**
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
