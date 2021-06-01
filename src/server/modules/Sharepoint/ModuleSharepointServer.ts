@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import { IAuthOptions } from 'sp-request';
 import { FileOptions, ICoreOptions, spsave } from "spsave";
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -13,7 +14,6 @@ import FileHandler from '../../../shared/tools/FileHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
-import FileServerController from '../File/FileServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
@@ -100,9 +100,12 @@ export default class ModuleSharepointServer extends ModuleServerBase {
 
             let creds: IAuthOptions = {
                 clientId,
-                clientSecret,
-                realm
+                clientSecret
             };
+
+            if (realm) {
+                creds['realm'] = realm;
+            }
 
             spsave(coreOptions, creds, fileOptions)
                 .then(resolve)
@@ -135,8 +138,8 @@ export default class ModuleSharepointServer extends ModuleServerBase {
 
         await this.save_to_sharepoint(coreOptions, {
             fileName: FileHandler.getInstance().get_file_name(file),
-            fileContent: await FileServerController.getInstance().readFile(file.path),
-            folder: sharepoint_folder,
+            fileContent: readFileSync(file.path),
+            folder: sharepoint_folder + '/' + api_type_id,
         });
     }
 }

@@ -150,7 +150,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let ordered_column_list: string[] = [];
         let column_labels: { [field_name: string]: string } = {};
         let modultable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-        filename = filename ? filename : api_type_id + '__' + moment().utc(true).format('YYYY-MM-DD-HHmmss') + '.xlsx';
+        filename = filename ? filename : api_type_id /*+ '__' + moment().utc(true).format('YYYY-MM-DD-HHmmss')*/ + '.xlsx';
 
         if (!lang_id) {
             let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
@@ -185,6 +185,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             }
             column_labels[field.field_id] = translation.translated;
         }
+
+        ordered_column_list.unshift("id");
+        column_labels['id'] = 'id';
 
         file_access_policy_name = file_access_policy_name ? file_access_policy_name : ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
 

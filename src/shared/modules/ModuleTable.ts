@@ -638,26 +638,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         res['_type'] = e._type;
         res['id'] = e.id;
-
-        // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
-        //  pour réduire au max l'objet envoyé, et l'offusquer un peu
-        let fieldIdToAPIMap: { [field_id: string]: string } = this.getFieldIdToAPIMap();
-
         for (let i in this.fields_) {
             let field = this.fields_[i];
-
-            let new_id = fieldIdToAPIMap[field.field_id];
 
             /**
              * Si le champ possible un custom_to_api
              */
             if (!!field.custom_translate_to_xlsx) {
-                res[new_id] = field.custom_translate_to_xlsx(e[field.field_id]);
+                res[field.field_id] = field.custom_translate_to_xlsx(e[field.field_id]);
                 /**
                  * Compatibilité MSGPACK : il traduit les undefind en null
                  */
-                if (typeof res[new_id] === 'undefined') {
-                    delete res[new_id];
+                if (typeof res[field.field_id] === 'undefined') {
+                    delete res[field.field_id];
                 }
                 continue;
             }
@@ -671,43 +664,40 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
+                    res[field.field_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_hourrange:
-                    res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
+                    res[field.field_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
 
                     if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
-                        res[new_id] = e[field.field_id];
+                        res[field.field_id] = e[field.field_id];
                     } else {
                         let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
-                        res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.toISOString() : null;
+                        res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.toISOString() : null;
                     }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
-                        res[new_id] = e[field.field_id];
+                        res[field.field_id] = e[field.field_id];
                     } else {
-                        res[new_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.toISOString() : ts);
+                        res[field.field_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.toISOString() : ts);
                     }
                     break;
 
 
                 default:
-                    res[new_id] = e[field.field_id];
+                    res[field.field_id] = e[field.field_id];
             }
 
-            /**
-             * Compatibilité MSGPACK : il traduit les undefind en null
-             */
-            if (typeof res[new_id] === 'undefined') {
-                delete res[new_id];
+            if (typeof res[field.field_id] === 'undefined') {
+                delete res[field.field_id];
             }
         }
 
