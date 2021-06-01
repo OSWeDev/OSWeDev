@@ -4,6 +4,7 @@ import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
@@ -39,6 +40,7 @@ export default abstract class VueAppController {
      * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible
      */
     public has_access_to_onpage_translation: boolean = false;
+    public has_access_to_feedback: boolean = false;
 
     protected constructor() {
         VueAppController.instance_ = this;
@@ -67,9 +69,17 @@ export default abstract class VueAppController {
             self.ALL_LOCALES = await ModuleTranslation.getInstance().getALL_LOCALES();
         })());
 
-        promises.push((async () => {
-            self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
-        })());
+        if (ModuleTranslation.getInstance().actif) {
+            promises.push((async () => {
+                self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
+            })());
+        }
+
+        if (ModuleFeedback.getInstance().actif) {
+            promises.push((async () => {
+                self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleFeedback.POLICY_FO_ACCESS);
+            })());
+        }
 
         promises.push((async () => {
             self.SERVER_HEADERS = JSON.parse(await AjaxCacheClientController.getInstance().get(null, '/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);

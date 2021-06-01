@@ -1,4 +1,4 @@
-.feedback_handler.hide_from_screenshot
+.feedback_handler.hide_from_screenshot(v-if="isActive")
     .feedback_handler_switcher
         template(v-if='hidden')
             i.fa.fa-comment.fa-fw(aria-hidden="true" @click='switch_hidden')
