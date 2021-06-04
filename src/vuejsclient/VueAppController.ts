@@ -77,7 +77,7 @@ export default abstract class VueAppController {
 
         if (ModuleFeedback.getInstance().actif) {
             promises.push((async () => {
-                self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleFeedback.POLICY_FO_ACCESS);
+                self.has_access_to_feedback = await ModuleAccessPolicy.getInstance().checkAccess(ModuleFeedback.POLICY_FO_ACCESS);
             })());
         }
 
