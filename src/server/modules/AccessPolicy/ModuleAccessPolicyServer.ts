@@ -596,6 +596,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwdsms, this.begininitpwdsms.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
     }
 
     /**
@@ -632,6 +633,56 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return AccessPolicyServerController.getInstance().checkAccessTo(
             target_policy,
             AccessPolicyServerController.getInstance().getUsersRoles(true, uid));
+    }
+
+    public async logout() {
+
+        let user_log = null;
+        let session = StackContext.getInstance().get('SESSION');
+
+        if (session && session.uid) {
+            let uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.impersonated = false;
+            user_log.log_time = moment().utc(true);
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+        }
+
+        /**
+         * Gestion du impersonate => on restaure la session précédente
+         */
+        if (session && !!session.impersonated_from) {
+
+            PushDataServerController.getInstance().unregisterSession(session);
+
+            session = Object.assign(session, session.impersonated_from);
+            delete session.impersonated_from;
+
+            let uid: number = session.uid;
+            user_log.impersonated = true;
+            user_log.comment = 'Impersonated from user_id [' + uid + ']';
+
+            session.save((err) => {
+                if (err) {
+                    ConsoleHandler.getInstance().log(err);
+                }
+            });
+        } else {
+
+            session.destroy((err) => {
+                PushDataServerController.getInstance().unregisterSession(session);
+
+                if (err) {
+                    ConsoleHandler.getInstance().log(err);
+                }
+            });
+        }
     }
 
     public async begininitpwd(text: string): Promise<void> {
@@ -862,6 +913,64 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error(error);
         }
         return;
+    }
+
+    /**
+     * A n'utiliser que dans des contextes attentifs à la sécu. pas de vérif de mdp ici.
+     * @param uid
+     * @returns
+     */
+    public async login(uid: number): Promise<boolean> {
+
+        try {
+            let session = StackContext.getInstance().get('SESSION');
+
+            if (!uid) {
+                return false;
+            }
+
+            let user: UserVO = null;
+
+            await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, uid);
+            });
+
+            if (!user) {
+                return false;
+            }
+
+            if (user.blocked) {
+                return false;
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+                await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(user);
+                });
+            }
+
+            session.uid = user.id;
+
+            PushDataServerController.getInstance().registerSession(session);
+
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = moment().utc(true);
+            user_log.impersonated = false;
+            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            // On await pas ici on se fiche du résultat
+            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+            return true;
+        } catch (error) {
+            ConsoleHandler.getInstance().error("login uid:" + uid + ":" + error);
+        }
+
+        return false;
     }
 
     public getLoggedUserId(): number {
@@ -1361,7 +1470,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             // On await pas ici on se fiche du résultat
-            ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
             // this.redirectUserPostLogin(redirect_to, res);
 

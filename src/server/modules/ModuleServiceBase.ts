@@ -31,6 +31,7 @@ import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageForma
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
 import Module from '../../shared/modules/Module';
+import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ModulePerfMon from '../../shared/modules/PerfMon/ModulePerfMon';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
@@ -79,6 +80,7 @@ import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleDBService from './ModuleDBService';
 import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
+import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePerfMonServer from './PerfMon/ModulePerfMonServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
@@ -457,7 +459,8 @@ export default abstract class ModuleServiceBase {
             ModuleAnimation.getInstance(),
             ModuleAnonymization.getInstance(),
             ModuleFacturationProAPI.getInstance(),
-            ModulePowershell.getInstance()
+            ModulePowershell.getInstance(),
+            ModuleNFCConnect.getInstance()
         ];
     }
 
@@ -504,7 +507,8 @@ export default abstract class ModuleServiceBase {
             ModuleAnimationServer.getInstance(),
             ModuleAnonymizationServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
-            ModulePowershellServer.getInstance()
+            ModulePowershellServer.getInstance(),
+            ModuleNFCConnectServer.getInstance()
         ];
     }
 }

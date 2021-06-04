@@ -73,6 +73,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_getSelfUser = "getSelfUser";
     public static APINAME_checkCode = "checkCode";
     public static APINAME_checkCodeUID = "checkCodeUID";
+    public static APINAME_logout = "logout";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -94,6 +95,7 @@ export default class ModuleAccessPolicy extends Module {
     public begininitpwd_uid: (uid: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd_uid);
     public getSelfUser: () => Promise<UserVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getSelfUser);
     public getMyLang: () => Promise<LangVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getMyLang);
+    public logout: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_logout);
     public change_lang: (lang_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_change_lang);
     public getLoggedUserId: () => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
@@ -128,6 +130,12 @@ export default class ModuleAccessPolicy extends Module {
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_logout,
+            [UserLogVO.API_TYPE_ID]
         ));
 
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
