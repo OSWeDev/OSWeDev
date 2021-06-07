@@ -105,6 +105,14 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Le Tag NFC est lié à votre compte. Vous pouvez l\'utiliser pour vous connecter.'
         }, 'NFCHandler.addconfirmation.ended.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'NFC activé, passer le Tag pour continuer'
+        }, 'login.nfcconnect.on.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lecture NFC impossible'
+        }, 'login.nfcconnect.off.___LABEL___'));
+
     }
 
     public registerServerApiHandlers() {

@@ -143,6 +143,7 @@ export default class NFCHandler {
         } catch (error) {
             VueAppBase.getInstance().vueInstance.snotify.error(error);
             ConsoleHandler.getInstance().error(error);
+            this.ndef = null;
         }
 
         return false;
