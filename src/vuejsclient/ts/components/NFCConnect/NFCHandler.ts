@@ -6,6 +6,7 @@ import NFCTagUserVO from '../../../../shared/modules/NFCConnect/vos/NFCTagUserVO
 import NFCTagVO from '../../../../shared/modules/NFCConnect/vos/NFCTagVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueAppBase from '../../../VueAppBase';
+import VueAppController from '../../../VueAppController';
 
 export default class NFCHandler {
 
@@ -26,6 +27,8 @@ export default class NFCHandler {
     public async make_sure_nfc_is_initialized(): Promise<boolean> {
         try {
 
+            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader');
+
             if (!!this.ndef) {
                 return true;
             }
@@ -33,14 +36,19 @@ export default class NFCHandler {
             let NDEFReader = window['NDEFReader'];
 
             if (!NDEFReader) {
+                VueAppBase.getInstance().vueInstance.snotify.error('NFCReader is not available');
                 ConsoleHandler.getInstance().log("NFCReader is not available");
 
                 return false;
             }
 
+            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader - constructor');
             this.ndef = new NDEFReader();
 
+            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader - scan');
             await this.ndef.scan();
+
+            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader - NFC Reader ready');
             ConsoleHandler.getInstance().log("> NFC Reader ready");
 
             this.ndef.addEventListener("readingerror", () => {
@@ -133,6 +141,7 @@ export default class NFCHandler {
 
             return true;
         } catch (error) {
+            VueAppBase.getInstance().vueInstance.snotify.error(error);
             ConsoleHandler.getInstance().error(error);
         }
 

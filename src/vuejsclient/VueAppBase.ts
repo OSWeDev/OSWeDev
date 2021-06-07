@@ -357,6 +357,8 @@ export default abstract class VueAppBase {
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 
+        await this.postMountHook();
+
         // this.registerPushWorker();
 
         window.onbeforeunload = function (e) {
@@ -388,4 +390,5 @@ export default abstract class VueAppBase {
     protected abstract createVueMain(): VueComponentBase;
     protected abstract async initializeVueAppModulesDatas();
     protected async postInitializationHook() { }
+    protected async postMountHook() { }
 }
