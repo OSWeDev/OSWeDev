@@ -5,9 +5,13 @@ import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfi
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
+import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
 
 @Component({
-    template: require('./AccessPolicyLoginComponent.pug')
+    template: require('./AccessPolicyLoginComponent.pug'),
+    components: {
+        Nfcconnectlogincomponent: NFCConnectLoginComponent
+    }
 })
 export default class AccessPolicyLoginComponent extends VueComponentBase {
 
@@ -57,12 +61,12 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     }
 
     get nfcconnect_available() {
-        return !!window['NDEFReader'];
+        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
     }
 
     private async nfcconnect() {
 
-        if (NFCHandler.getInstance().make_sure_nfc_is_initialized()) {
+        if (await NFCHandler.getInstance().make_sure_nfc_is_initialized()) {
             this.snotify.info(this.label('login.nfcconnect.on'));
         } else {
             this.snotify.error(this.label('login.nfcconnect.off'));

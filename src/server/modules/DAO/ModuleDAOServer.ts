@@ -907,9 +907,49 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUser(login: string, password: string): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO;
-        vo = datatable.forceNumeric(vo);
-        return vo;
+        try {
+            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) AND password = crypt($2, password)", [login.toLowerCase().trim(), password]) as UserVO;
+            vo = datatable.forceNumeric(vo);
+            return vo;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
+    }
+
+    /**
+     * Cas très spécifique du check d'unicité
+     */
+    public async selectUsersForCheckUnicity(name: string, email: string, phone: string, user_id: number): Promise<boolean> {
+        let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+
+        try {
+            let vos: UserVO[] = await ModuleServiceBase.getInstance().db.query(
+                "SELECT t.* FROM " + datatable.full_name + " t " +
+                " WHERE " +
+                " (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) " + " OR " +
+                " (TRIM(LOWER(name)) = $2 OR TRIM(LOWER(email)) = $2 or TRIM(LOWER(phone)) = $2) " + (phone ? (" OR " +
+                    " (TRIM(LOWER(name)) = $3 OR TRIM(LOWER(email)) = $3 or TRIM(LOWER(phone)) = $3);") : ";"),
+                [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO[];
+            vos = datatable.forceNumerics(vos);
+
+            if ((!vos) || (!vos[0])) {
+                return true;
+            }
+
+            if (vos.length > 1) {
+                return false;
+            }
+
+            if (vos[0].id != user_id) {
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return false;
     }
 
     /**
@@ -918,9 +958,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecovery(login: string): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) and blocked = false", [login]) as UserVO;
-        vo = datatable.forceNumeric(vo);
-        return vo;
+        try {
+            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+            vo = datatable.forceNumeric(vo);
+            return vo;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
     }
 
     /**

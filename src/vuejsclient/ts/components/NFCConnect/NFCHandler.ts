@@ -1,12 +1,7 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleNFCConnect from '../../../../shared/modules/NFCConnect/ModuleNFCConnect';
-import NFCTagUserVO from '../../../../shared/modules/NFCConnect/vos/NFCTagUserVO';
-import NFCTagVO from '../../../../shared/modules/NFCConnect/vos/NFCTagVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueAppBase from '../../../VueAppBase';
-import VueAppController from '../../../VueAppController';
 
 export default class NFCHandler {
 
@@ -19,15 +14,15 @@ export default class NFCHandler {
 
     private static instance: NFCHandler;
 
+    public ndef_active: boolean = false;
     private ndef = null;
+    private is_waiting_to_write: boolean = false;
 
     private constructor() {
     }
 
     public async make_sure_nfc_is_initialized(): Promise<boolean> {
         try {
-
-            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader');
 
             if (!!this.ndef) {
                 return true;
@@ -36,19 +31,15 @@ export default class NFCHandler {
             let NDEFReader = window['NDEFReader'];
 
             if (!NDEFReader) {
-                VueAppBase.getInstance().vueInstance.snotify.error('NFCReader is not available');
                 ConsoleHandler.getInstance().log("NFCReader is not available");
 
                 return false;
             }
 
-            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader - constructor');
             this.ndef = new NDEFReader();
 
-            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader - scan');
             await this.ndef.scan();
 
-            VueAppBase.getInstance().vueInstance.snotify.success('NFCReader - NFC Reader ready');
             ConsoleHandler.getInstance().log("> NFC Reader ready");
 
             this.ndef.addEventListener("readingerror", () => {
@@ -56,7 +47,13 @@ export default class NFCHandler {
                 ConsoleHandler.getInstance().log("Argh! Cannot read data from the NFC tag. Try another one?");
             });
 
+            let self = this;
+
             this.ndef.addEventListener("reading", async ({ message, serialNumber }) => {
+
+                if (self.is_waiting_to_write) {
+                    return;
+                }
 
                 if (!serialNumber) {
                     VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.readingerror.serialNumber'));
@@ -64,49 +61,30 @@ export default class NFCHandler {
                     return;
                 }
 
-                let logged_user_id = VueAppBase.getInstance().appController.data_user.id;
-                let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serialNumber);
-                if (!tag) {
-                    // Le tag est inconnu, si on est connecté on propose de l'ajouter au compte comme mode d'accès
-                    //  - si on est pas connecté on indique que le tag ne permet pas de se connecter, il faut l'enregistrer après une première connexion manuelle
-                    if (!logged_user_id) {
+                let logged_user_id = VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null;
+
+                if (!logged_user_id) {
+
+                    // Si on est pas co :
+                    //  - on tente la connexion. Si ça marche pas, on indique que le tag n'est pas reconnu.
+
+                    let connected = await ModuleNFCConnect.getInstance().connect(serialNumber);
+                    if (!connected) {
                         VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.readinginfo.tag_not_registered'));
                         ConsoleHandler.getInstance().log("NFC tag is not registered and needs to be linked to connected user first...");
                         return;
                     }
-
-                    this.add_tag_confirmation(serialNumber, logged_user_id);
+                    location.href = '/';
                     return;
                 }
 
-                let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
-                if ((!tags_user) || (tags_user.length != 1)) {
-                    // Le tag n'est pas lié à un utilisateur :
-                    //  - si on est déjà connecté avec un compte on propose de rajouter ce tag comme moyen de connexion
-                    //  - si on est pas connecté on indique que le tag ne permet pas de se connecter, il faut l'enregistrer après une première connexion manuelle
-                    if (!logged_user_id) {
-                        VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.readinginfo.tag_not_registered'));
-                        ConsoleHandler.getInstance().log("NFC tag is not registered and needs to be linked to connected user first...");
-                        return;
-                    }
+                // Si on est co :
+                //  - on veut savoir si le tag existe et est lié à un autre compte
+                //      - si oui on propose de se connecter à ce compte
+                //      - si non on propose de lier le tag au compte
 
-                    this.add_tag_confirmation(serialNumber, logged_user_id, tag);
-                    return;
-                }
-
-                let tag_user = tags_user[0];
-                if (tag_user.user_id) {
-                    // Le tag est lié à un utilisateur :
-                    //  - si on est déjà connecté et que le tag n'est pas lié au même compte, on propose de switcher (de compte connecté, pas de compte lié au tag)
-                    //  - si on est pas connecté on lance la connexion
-                    if (!logged_user_id) {
-                        // TODO : sécuriser la requete pour ne pas envoyer en clair le serial_number qui sert de mot de passe du compte en somme
-                        // await ModuleNFCConnect.getInstance().get_temp_encryption_key();
-                        await ModuleNFCConnect.getInstance().connect(serialNumber);
-                        location.href = '/';
-                        return;
-                    }
-
+                let is_other_account: boolean = await ModuleNFCConnect.getInstance().checktag_user(serialNumber, logged_user_id);
+                if (is_other_account) {
                     VueAppBase.getInstance().vueInstance.snotify.confirm(VueAppBase.getInstance().vueInstance.label('NFCHandler.switchconfirmation.body'), VueAppBase.getInstance().vueInstance.label('NFCHandler.switchconfirmation.title'), {
                         timeout: 10000,
                         showProgressBar: true,
@@ -134,14 +112,15 @@ export default class NFCHandler {
                             }
                         ]
                     });
-
                     return;
                 }
+
+                this.add_tag_confirmation(serialNumber);
             });
 
+            this.ndef_active = true;
             return true;
         } catch (error) {
-            VueAppBase.getInstance().vueInstance.snotify.error(error);
             ConsoleHandler.getInstance().error(error);
             this.ndef = null;
         }
@@ -158,7 +137,9 @@ export default class NFCHandler {
         return true;
     }
 
-    private add_tag_confirmation(serialNumber: string, logged_user_id: number, tag: NFCTagVO = null) {
+    private add_tag_confirmation(serialNumber: string) {
+        let self = this;
+
         VueAppBase.getInstance().vueInstance.snotify.confirm(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.body'), VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
@@ -171,32 +152,58 @@ export default class NFCHandler {
                         VueAppBase.getInstance().vueInstance.$snotify.remove(toast.id);
                         VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.start'));
 
-                        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = null;
-                        if (!tag) {
 
-                            tag = new NFCTagVO();
-                            tag.activated = true;
-                            tag.name = serialNumber;
-                            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(tag);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                                VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.failed_add_tag'));
-                                ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon.");
-                                return;
-                            }
-                            tag.id = insertOrDeleteQueryResult.id;
-                        }
-
-                        let add_tag_user = new NFCTagUserVO();
-                        add_tag_user.nfc_tag_id = tag.id;
-                        add_tag_user.user_id = logged_user_id;
-                        insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(add_tag_user);
-                        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                            VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.failed_add_tag_user'));
-                            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag user. Abandon.");
+                        if (!await ModuleNFCConnect.getInstance().add_tag(serialNumber)) {
+                            VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.failed_add_tag'));
+                            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon.");
                             return;
                         }
 
+                        /**
+                         * On tente de rajouter une url dans le tag pour qu'il permette d'accéder à l'appli
+                         */
+                        await self.write_url_to_tag_confirmation(serialNumber);
+
                         VueAppBase.getInstance().vueInstance.snotify.success(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.ended'));
+                    },
+                    bold: false
+                },
+                {
+                    text: VueAppBase.getInstance().vueInstance.t('NO'),
+                    action: (toast) => {
+                        VueAppBase.getInstance().vueInstance.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private write_url_to_tag_confirmation(serialNumber: string) {
+        let self = this;
+
+        VueAppBase.getInstance().vueInstance.snotify.confirm(VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.body'), VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: VueAppBase.getInstance().vueInstance.t('YES'),
+                    action: async (toast) => {
+                        VueAppBase.getInstance().vueInstance.$snotify.remove(toast.id);
+                        VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.start'));
+                        self.is_waiting_to_write = true;
+
+                        self.ndef.write({
+                            records: [{ recordType: "url", data: window.location.origin + "/api_handler/" + ModuleNFCConnect.APINAME_connect_and_redirect + "/" + serialNumber }]
+                        }).then(() => {
+                            VueAppBase.getInstance().vueInstance.snotify.success(VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.ended'));
+                            self.is_waiting_to_write = false;
+                        }).catch((error) => {
+                            VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.failed'));
+                            self.is_waiting_to_write = false;
+                            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon. " + error);
+                        });
                     },
                     bold: false
                 },

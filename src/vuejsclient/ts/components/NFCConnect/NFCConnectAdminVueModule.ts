@@ -45,14 +45,16 @@ export default class NFCConnectAdminVueModule extends VueModuleBase {
             NFCTagVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf(NFCTagVO.API_TYPE_ID, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-wifi")
+                new MenuLeaf(NFCTagVO.API_TYPE_ID, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-wifi"),
+                menuBranch
             ),
             this.routes);
         CRUDComponentManager.getInstance().registerCRUD(
             NFCTagUserVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf(NFCTagUserVO.API_TYPE_ID, MenuElementBase.PRIORITY_HIGH, "fa-wifi")
+                new MenuLeaf(NFCTagUserVO.API_TYPE_ID, MenuElementBase.PRIORITY_HIGH, "fa-wifi"),
+                menuBranch
             ),
             this.routes);
     }

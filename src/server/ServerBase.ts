@@ -439,8 +439,8 @@ export default abstract class ServerBase {
                 } else {
                     // old session - on check qu'on doit pas invalider
                     if (!this.check_session_validity(session)) {
+                        PushDataServerController.getInstance().unregisterSession(session);
                         session.destroy(() => {
-                            PushDataServerController.getInstance().unregisterSession(session);
                             ServerBase.getInstance().redirect_login_or_home(req, res);
                         });
                         return;
@@ -456,8 +456,8 @@ export default abstract class ServerBase {
                     // On doit vérifier que le compte est ni bloqué ni expiré
                     let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                     if ((!user) || user.blocked || user.invalidated) {
+                        PushDataServerController.getInstance().unregisterSession(session);
                         session.destroy(() => {
-                            PushDataServerController.getInstance().unregisterSession(session);
                             ServerBase.getInstance().redirect_login_or_home(req, res);
                         });
                         return;
@@ -624,8 +624,8 @@ export default abstract class ServerBase {
                 // On doit vérifier que le compte est ni bloqué ni expiré
                 let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                 if (user && (user.blocked || user.invalidated)) {
+                    PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
-                        PushDataServerController.getInstance().unregisterSession(session);
                         ServerBase.getInstance().redirect_login_or_home(req, res);
                     });
                     return;
@@ -706,8 +706,8 @@ export default abstract class ServerBase {
                 });
             } else {
 
+                PushDataServerController.getInstance().unregisterSession(req.session);
                 req.session.destroy((err) => {
-                    PushDataServerController.getInstance().unregisterSession(req.session);
 
                     if (err) {
                         ConsoleHandler.getInstance().log(err);
