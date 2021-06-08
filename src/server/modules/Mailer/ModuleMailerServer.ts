@@ -4,13 +4,11 @@ import { Address } from 'nodemailer/lib/mailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
-import PrepareHTMLParamVO from '../../../shared/modules/Mailer/vos/PrepareHTMLParamVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TypesHandler from '../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
 import TemplateHandlerServer from './TemplateHandlerServer';
-
 
 export default class ModuleMailerServer extends ModuleServerBase {
 
@@ -57,20 +55,10 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMailer.APINAME_sendMail, this.sendMail.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTMLAPI.bind(this));
-    }
-
-    public async prepareHTMLAPI(param: PrepareHTMLParamVO): Promise<string> {
-
-        let template: string = param.template;
-        let lang_id: number = param.lang_id;
-        let vars: { [name: string]: string } = param.vars;
-
-        return this.prepareHTML(template, lang_id, vars);
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMailer.APINAME_prepareHTML, this.prepareHTML.bind(this));
     }
 
     public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
-
         return TemplateHandlerServer.getInstance().prepareHTML(template, lang_id, vars);
     }
 
