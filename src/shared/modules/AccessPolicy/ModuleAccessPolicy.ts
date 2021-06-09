@@ -4,6 +4,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -74,6 +75,10 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_checkCode = "checkCode";
     public static APINAME_checkCodeUID = "checkCodeUID";
     public static APINAME_logout = "logout";
+    public static APINAME_get_my_sid = "get_my_sid";
+
+    public static APINAME_send_session_share_email = "send_session_share_email";
+    public static APINAME_send_session_share_sms = "send_session_share_sms";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -97,6 +102,9 @@ export default class ModuleAccessPolicy extends Module {
     public getSelfUser: () => Promise<UserVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getSelfUser);
     public getMyLang: () => Promise<LangVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getMyLang);
     public logout: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_logout);
+    public get_my_sid: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_sid);
+    public send_session_share_email: (url: string, email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_email);
+    public send_session_share_sms: (text: string, phone: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_sms);
     public change_lang: (lang_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_change_lang);
     public getLoggedUserId: () => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
@@ -133,10 +141,30 @@ export default class ModuleAccessPolicy extends Module {
             StringParamVOStatic
         ));
 
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string>(
+            null,
+            ModuleAccessPolicy.APINAME_get_my_sid,
+            []
+        ));
+
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_logout,
             [UserLogVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_send_session_share_email,
+            [],
+            String2ParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_send_session_share_sms,
+            [],
+            String2ParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, boolean>(

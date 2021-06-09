@@ -1,7 +1,34 @@
 @import "skin-variables.scss";
 
+
 .session_share {
 
     background: white;
     padding: 1em;
+    text-align: center;
+
+    .raw_url {
+        >.col-md-12>div {
+            font-size: xx-small;
+            font-stretch: condensed;
+            width: 300px;
+            text-overflow: clip;
+            overflow-x: auto;
+            margin: 0.3em auto;
+        }
+    }
+
+    .send_email,
+    .send_sms {
+        
+        margin-bottom: 0.2em;
+        
+        button {
+            margin-left: 0.5em;
+        }
+
+        input {
+            vertical-align: middle;
+        }
+    }
 }

@@ -18,6 +18,8 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
+import SendInBlueSmsFormatVO from '../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
@@ -38,6 +40,8 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
+import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
 import VarsServerController from '../Var/VarsServerController';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
@@ -602,6 +606,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Envoyer par SMS à ce numéro'
         }, 'session_share.phone.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Partager la session'
+        }, 'session_share.open_show.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
@@ -630,6 +637,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_email, this.send_session_share_email.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
     }
 
     /**
@@ -1721,5 +1731,31 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return true;
+    }
+
+    private async send_session_share_email(url: string, email: string) {
+        let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
+        await SendInBlueMailServerController.getInstance().sendWithTemplate(
+            SendInBlueMailVO.createNew("", email),
+            SEND_IN_BLUE_TEMPLATE_ID,
+            ['session_share'],
+            {
+                SESSION_SHARE_URL: url
+            });
+    }
+
+    private async send_session_share_sms(text: string, phone: string) {
+        await SendInBlueSmsServerController.getInstance().send(
+            SendInBlueSmsFormatVO.createNew(phone),
+            text,
+            'session_share');
+    }
+
+    private get_my_sid() {
+        let session = StackContext.getInstance().get('SESSION');
+        if (!session) {
+            return null;
+        }
+        return session.id;
     }
 }

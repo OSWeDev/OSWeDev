@@ -1,10 +1,5 @@
 import { Component } from "vue-property-decorator";
-import SendInBlueMailServerController from "../../../../server/modules/SendInBlue/SendInBlueMailServerController";
-import SendInBlueSmsServerController from "../../../../server/modules/SendInBlue/sms/SendInBlueSmsServerController";
 import ModuleAccessPolicy from "../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
-import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
-import SendInBlueMailVO from "../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO";
-import SendInBlueSmsFormatVO from "../../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO";
 import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
 import VueComponentBase from "../VueComponentBase";
 import './SessionShareComponent.scss';
@@ -24,12 +19,7 @@ export default class SessionShareComponent extends VueComponentBase {
 
     private async mounted() {
 
-        if (!document.cookie) {
-            return;
-        }
-
-        let groups = /^(.*; ?)?sid=([^;]+)(; ?(.*))?$/.exec(document.cookie);
-        let sessionid = (groups[2] ? groups[2] : null);
+        let sessionid = await ModuleAccessPolicy.getInstance().get_my_sid();
         if (!sessionid) {
             return;
         }
@@ -48,14 +38,7 @@ export default class SessionShareComponent extends VueComponentBase {
             return null;
         }
 
-        let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
-        await SendInBlueMailServerController.getInstance().sendWithTemplate(
-            SendInBlueMailVO.createNew("", this.email),
-            SEND_IN_BLUE_TEMPLATE_ID,
-            ['session_share'],
-            {
-                SESSION_SHARE_URL: this.url
-            });
+        await ModuleAccessPolicy.getInstance().send_session_share_email(this.url, this.email);
 
         this.snotify.info(this.label('session_share.mail_sent'));
     }
@@ -66,10 +49,8 @@ export default class SessionShareComponent extends VueComponentBase {
             return null;
         }
 
-        await SendInBlueSmsServerController.getInstance().send(
-            SendInBlueSmsFormatVO.createNew(this.phone),
-            this.label('session_share.sms_preurl') + this.url,
-            'session_share');
+        await ModuleAccessPolicy.getInstance().send_session_share_sms(
+            this.label('session_share.sms_preurl') + this.url, this.phone);
 
         this.snotify.info(this.label('session_share.sms_sent'));
     }
