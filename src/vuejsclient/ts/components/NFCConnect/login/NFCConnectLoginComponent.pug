@@ -1,0 +1,14 @@
+.nfcconnect-login
+    .nfcconnect-box(v-if="nfcconnect_available")
+        .nfcconnect-box-body
+            form(v-on:submit.prevent="nfcconnect")
+                .center
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.nfcconnect') }}
+                        i.fa.fa-wifi.fa-fw.btn_icon(aria-hidden="true")
+
+    .nfcconnect-box(v-if="nfcconnected")
+        .nfcconnect-box-body
+            form(v-on:submit.prevent="nfcconnect")
+                .center
+                    button.btn.btn-success.btn-block.btn-flat(type="submit") {{ label('login.nfcconnected') }}
+                        i.fa.fa-wifi.fa-fw.btn_icon(aria-hidden="true")

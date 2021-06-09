@@ -10,7 +10,6 @@ import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -239,11 +238,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.trimAndCheckUnicityUser);
 
         // On ajoute un trigger pour la modification du mot de passe
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUserUpdate);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.trimAndCheckUnicityUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
@@ -343,6 +344,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Connecté'
         }, 'access.roles.names.logged.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mon compte'
+        }, 'client.my_account.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Connexion'
@@ -675,8 +680,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             });
         } else {
 
+            PushDataServerController.getInstance().unregisterSession(session);
             session.destroy((err) => {
-                PushDataServerController.getInstance().unregisterSession(session);
 
                 if (err) {
                     ConsoleHandler.getInstance().log(err);
@@ -901,8 +906,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 }
 
                 try {
+                    PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
-                        PushDataServerController.getInstance().unregisterSession(session);
                     });
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
@@ -1607,6 +1612,25 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id);
         }
     }
+
+    private async trimAndCheckUnicityUserUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
+        return ModuleAccessPolicyServer.getInstance().trimAndCheckUnicityUser(vo_update_holder.post_update_vo);
+    }
+
+    private async trimAndCheckUnicityUser(user: UserVO) {
+
+        try {
+            user.name = user.name.trim();
+            user.email = user.email.trim();
+            user.phone = user.phone ? user.phone.trim() : null;
+
+            return await ModuleDAOServer.getInstance().selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return false;
+    }
+
 
     private async checkBlockingOrInvalidatingUserUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(vo_update_holder.post_update_vo, vo_update_holder.pre_update_vo);

@@ -1,26 +1,21 @@
-import { readFileSync } from 'fs';
-import { IAuthOptions } from 'sp-request';
-import { FileOptions, ICoreOptions, spsave } from "spsave";
+import { Response } from 'express';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import ModuleNFCConnect from '../../../shared/modules/NFCConnect/ModuleNFCConnect';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import FileHandler from '../../../shared/tools/FileHandler';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
-import ModuleServerBase from '../ModuleServerBase';
-import ModulesManagerServer from '../ModulesManagerServer';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import NFCTagVO from '../../../shared/modules/NFCConnect/vos/NFCTagVO';
+import ModuleNFCConnect from '../../../shared/modules/NFCConnect/ModuleNFCConnect';
 import NFCTagUserVO from '../../../shared/modules/NFCConnect/vos/NFCTagUserVO';
+import NFCTagVO from '../../../shared/modules/NFCConnect/vos/NFCTagVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../StackContext';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleNFCConnectServer extends ModuleServerBase {
 
@@ -112,33 +107,218 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Lecture NFC impossible'
         }, 'login.nfcconnect.off.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Activer NFC Connect'
+        }, 'login.nfcconnect.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'NFC Connect activé'
+        }, 'login.nfcconnected.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Actualiser'
+        }, 'nfcconnect_user_tag_list.update_list.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'NFC'
+        }, 'nfcconnect_user_tag_list.nfc_header.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ecrire le lien de connexion sur le Tag NFC ?'
+        }, 'NFCHandler.writeurlconfirmation.body.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lien de connexion automatique'
+        }, 'NFCHandler.writeurlconfirmation.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Passer le Tag NFC pour le mettre à jour...'
+        }, 'NFCHandler.writeurlconfirmation.start.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Echec ecriture du Tag NFC.'
+        }, 'NFCHandler.writeurlconfirmation.failed.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tag mis à jour'
+        }, 'NFCHandler.writeurlconfirmation.ended.___LABEL___'));
 
     }
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_connect, this.connect.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_connect_and_redirect, this.connect_and_redirect.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_checktag_user, this.checktag_user.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_add_tag, this.add_tag.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_remove_user_tag, this.remove_user_tag.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_get_own_tags, this.get_own_tags.bind(this));
     }
 
-    private async connect(serial_number: string) {
+    private async get_own_tags(): Promise<NFCTagVO[]> {
+        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
-        let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
-        if (!tag) {
-            ConsoleHandler.getInstance().error('TAG inconnu:' + serial_number);
-            return;
+        if (!user_id) {
+            ConsoleHandler.getInstance().error("Impossible de lister les tags. Pas de user_id:" + user_id);
+            return null;
         }
 
-        let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
-        if ((!tags_user) || (tags_user.length != 1)) {
-            ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
-            return;
+        try {
+            let user_tags: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'user_id', [user_id]);
+            if ((!user_tags) || (!user_tags.length)) {
+                return null;
+            }
+
+            let tags_ids: number[] = user_tags.map((tag: NFCTagUserVO) => tag.nfc_tag_id);
+            return await ModuleDAO.getInstance().getVosByIds<NFCTagVO>(NFCTagVO.API_TYPE_ID, tags_ids);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
+    }
+
+    private async connect_and_redirect(serial_number: string, res: Response): Promise<boolean> {
+        if (!await this.connect(serial_number)) {
+            return false;
         }
 
-        let tag_user = tags_user[0];
-        if (!tag_user.user_id) {
-            ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
-            return;
+        if (res) {
+            res.redirect("/");
+        }
+    }
+
+    private async connect(serial_number: string): Promise<boolean> {
+
+        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+
+            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
+            if (!tag) {
+                ConsoleHandler.getInstance().error('TAG inconnu:' + serial_number);
+                return false;
+            }
+
+            let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
+            if ((!tags_user) || (tags_user.length != 1)) {
+                ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
+                return false;
+            }
+
+            let tag_user = tags_user[0];
+            if (!tag_user.user_id) {
+                ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
+                return false;
+            }
+
+            return await ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
+        });
+    }
+
+    /**
+     *
+     * @param serial_number
+     * @param user_id
+     * @returns true if tag is known and link to an other account
+     */
+    private async checktag_user(serial_number: string, user_id: number): Promise<boolean> {
+
+        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+
+            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
+            if (!tag) {
+                return false;
+            }
+
+            let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
+            if ((!tags_user) || (tags_user.length != 1)) {
+                return false;
+            }
+
+            let tag_user = tags_user[0];
+            if (!tag_user.user_id) {
+                return false;
+            }
+
+            return tag_user.user_id != user_id;
+        });
+    }
+
+    private async add_tag(serial_number: string): Promise<boolean> {
+
+        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+
+        if (!user_id) {
+            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Pas de user_id:" + user_id);
+            return false;
         }
 
-        await ModuleAccessPolicyServer.getInstance().login(tag_user.user_id);
+        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+
+            let insertOrDeleteQueryResult = null;
+            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
+            if (!tag) {
+
+                tag = new NFCTagVO();
+                tag.activated = true;
+                tag.name = serial_number;
+                insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(tag);
+                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+
+                    ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon.");
+                    return false;
+                }
+                tag.id = insertOrDeleteQueryResult.id;
+            }
+
+            let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
+            if ((tags_user) && (tags_user.length > 0)) {
+
+                if ((tags_user.length == 1) && (tags_user[0].user_id == user_id)) {
+                    // Tag déjà lié à cet utilisateur
+                    return true;
+                }
+                ConsoleHandler.getInstance().error('TAG déjà lié à un utilisateur:' + serial_number);
+                return false;
+            }
+
+            let add_tag_user = new NFCTagUserVO();
+            add_tag_user.nfc_tag_id = tag.id;
+            add_tag_user.user_id = user_id;
+            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(add_tag_user);
+            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+
+                ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag user. Abandon.");
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    private async remove_user_tag(serial_number: string): Promise<boolean> {
+
+        let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+
+        if (!user_id) {
+            ConsoleHandler.getInstance().error("Impossible de supprimer le tag. Pas de user_id:" + user_id);
+            return false;
+        }
+
+        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+
+            let insertOrDeleteQueryResult = null;
+            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
+            if (!tag) {
+
+                ConsoleHandler.getInstance().error("Impossible de supprimer le tag. Tag Introuvable.");
+                return false;
+            }
+
+            insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([tag]);
+            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                ConsoleHandler.getInstance().error("Impossible de supprimer le tag user. Abandon.");
+                return false;
+            }
+
+            return true;
+        });
     }
 }

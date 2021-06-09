@@ -222,6 +222,12 @@ export default abstract class VueAppBase {
         }
 
         routerOptions.routes.push({
+            path: '/me',
+            name: 'MyAccount',
+            component: () => import(/* webpackChunkName: "AccessPolicyMyAccountComponent" */ './login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+        });
+
+        routerOptions.routes.push({
             path: '*',
             name: '404',
             component: () => import(/* webpackChunkName: "Error404Component" */ './ts/components/Error404/component/Error404Component')

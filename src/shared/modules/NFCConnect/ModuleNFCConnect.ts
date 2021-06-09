@@ -2,8 +2,11 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserLogVO from '../AccessPolicy/vos/UserLogVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -20,6 +23,11 @@ export default class ModuleNFCConnect extends Module {
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleNFCConnect.MODULE_NAME + '.FO_ACCESS';
 
     public static APINAME_connect = "connect";
+    public static APINAME_connect_and_redirect = "nfco";
+    public static APINAME_checktag_user = "checktag_user";
+    public static APINAME_add_tag = "add_tag";
+    public static APINAME_remove_user_tag = "remove_user_tag";
+    public static APINAME_get_own_tags = "get_own_tags";
 
     public static getInstance(): ModuleNFCConnect {
         if (!ModuleNFCConnect.instance) {
@@ -30,7 +38,12 @@ export default class ModuleNFCConnect extends Module {
 
     private static instance: ModuleNFCConnect = null;
 
-    public connect: (serial_number: string) => Promise<void> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_connect);
+    public connect: (serial_number: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_connect);
+    public connect_and_redirect: (serial_number: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_connect_and_redirect);
+    public checktag_user: (serial_number: string, user_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_checktag_user);
+    public add_tag: (serial_number: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_add_tag);
+    public remove_user_tag: (serial_number: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_remove_user_tag);
+    public get_own_tags: () => Promise<NFCTagVO[]> = APIControllerWrapper.sah(ModuleNFCConnect.APINAME_get_own_tags);
 
     private constructor() {
         super("nfcconnect", ModuleNFCConnect.MODULE_NAME);
@@ -38,11 +51,46 @@ export default class ModuleNFCConnect extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect,
             [UserLogVO.API_TYPE_ID],
             StringParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+            null,
+            ModuleNFCConnect.APINAME_connect_and_redirect,
+            [UserLogVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO, boolean>(
+            null,
+            ModuleNFCConnect.APINAME_checktag_user,
+            [],
+            APIDAOParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+            null,
+            ModuleNFCConnect.APINAME_add_tag,
+            [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+            null,
+            ModuleNFCConnect.APINAME_remove_user_tag,
+            [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, NFCTagVO[]>(
+            null,
+            ModuleNFCConnect.APINAME_get_own_tags,
+            [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID]
         ));
     }
 
@@ -58,8 +106,8 @@ export default class ModuleNFCConnect extends Module {
         let datatable = new ModuleTable(this, NFCTagVO.API_TYPE_ID, () => new NFCTagVO(), datatable_fields, label, "NFC Tags");
         this.datatables.push(datatable);
 
-        let nfc_tag_id = new ModuleTableField('nfc_tag_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
-        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'NFC Tag', true);
+        let nfc_tag_id = new ModuleTableField('nfc_tag_id', ModuleTableField.FIELD_TYPE_foreign_key, 'NFC Tag', true);
+        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
         let datatable_fields_line = [
             nfc_tag_id,
             user_id

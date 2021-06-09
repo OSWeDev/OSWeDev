@@ -18,8 +18,4 @@
                     button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.signIn') }}
             router-link(:to="{ name: 'recover' }") {{ label('login.recoverlink') }}
 
-    .login-box(v-if="nfcconnect_available")
-        .login-box-body
-            form(v-on:submit.prevent="nfcconnect")
-                .center
-                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.nfcconnect') }}
+    Nfcconnectlogincomponent()

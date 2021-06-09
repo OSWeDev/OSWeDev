@@ -1,0 +1,32 @@
+@import "skin-variables.scss";
+
+.nfcconnect_user_tag_list {
+
+    background: white;
+    padding: 1em;
+
+    .row.user_tag {
+        background-color: #F2F2F2;
+        margin: 0.23em 1em;
+        box-shadow: 2px 2px 2px -2px #aaa;
+
+        .user_tag_name {
+            line-height: 2.4em;
+            vertical-align: middle;
+        }
+
+        .col-md-2 {
+            text-align: right;
+            padding-right: 0;
+        }
+    }
+
+    .nfc_header {
+        font-size: 1.2em;
+        margin-bottom: 1em;
+    }
+
+    .nfc_footer {
+        margin-top: 1em;
+    }
+}
