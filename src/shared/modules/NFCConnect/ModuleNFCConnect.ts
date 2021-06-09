@@ -54,14 +54,14 @@ export default class ModuleNFCConnect extends Module {
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect,
-            [UserLogVO.API_TYPE_ID],
+            [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect_and_redirect,
-            [UserLogVO.API_TYPE_ID],
+            [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 

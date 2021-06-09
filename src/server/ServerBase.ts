@@ -403,6 +403,30 @@ export default abstract class ServerBase {
             return next();
         });
 
+        /**
+         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
+         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+         */
+        this.app.use(function getSessionViaQuerystring(req, res, next) {
+            var sessionid = req.query.sessionid;
+            if (!sessionid) {
+                next();
+                return;
+            }
+
+            // Trick the session middleware that you have the cookie;
+            // Make sure you configure the cookie name, and set 'secure' to false
+            // in https://github.com/expressjs/session#cookie-options
+            req.cookies['sid'] = req.query.sessionid;
+
+            if (req.headers['cookie'].indexOf('sid') >= 0) {
+                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+
+                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+            }
+
+            next();
+        });
 
         this.session = expressSession({
             secret: 'vk4s8dq2j4',

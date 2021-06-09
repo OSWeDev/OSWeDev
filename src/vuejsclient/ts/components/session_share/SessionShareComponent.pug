@@ -1,0 +1,32 @@
+.root_elt
+    .session_share(v-if="!!url")
+        template(v-show="!hidden")
+            .row.qr_code_holder
+                .col-md-12
+                    .center
+                        canvas(id="session_share_qr_code")
+
+            .row.send_email
+                .col-md-10
+                    input(type="text" value="email" :placeholder="label('session_share.email')")
+                .col-md-2
+                    button.btn.btn-primary.btn-flat(@click="send_mail")
+                        i.fa.fa-envelope.fa-fw.btn_icon(aria-hidden="true")
+
+            .row.send_sms
+                .col-md-10
+                    input(type="text" value="phone" :placeholder="label('session_share.phone')")
+                .col-md-2
+                    button.btn.btn-primary.btn-flat(@click="send_sms")
+                        i.fa.fa-mobile.fa-fw.btn_icon(aria-hidden="true")
+
+            .row.raw_url
+                .col-md-12 
+                    span {{ url }}
+
+        template(v-if="hidden")
+            .row.open_show
+                .col-md-12 
+                    button.btn.btn-primary.btn-flat(@click="open_show")
+                        i.fa.fa-qrcode.fa-fw.btn_icon(aria-hidden="true")
+                        | label('session_share.open_show')

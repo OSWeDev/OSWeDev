@@ -16,6 +16,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -580,6 +581,28 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Mail renvoyé, merci de consulter votre messagerie'
         }, 'reset.sent_init_pwd.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur lors de l\'envoi du mail'
+        }, 'session_share.mail_not_sent.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail envoyé'
+        }, 'session_share.mail_sent.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur lors de l\'envoi du SMS'
+        }, 'session_share.sms_not_sent.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lien de session partagée : '
+        }, 'session_share.sms_preurl.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'SMS envoyé'
+        }, 'session_share.sms_sent.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Envoyer à cet email'
+        }, 'session_share.email.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Envoyer par SMS à ce numéro'
+        }, 'session_share.phone.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
 
@@ -935,14 +958,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.getInstance().get('SESSION');
 
-            // // Pas connecté donc evidemment ça marche pas super bien...
             if (ModuleDAOServer.getInstance().global_update_blocker) {
-                //     // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                //     await PushDataServerController.getInstance().notifySimpleERROR(
-                //         StackContext.getInstance().get('UID'),
-                //         StackContext.getInstance().get('CLIENT_TAB_ID'),
-                //         'error.global_update_blocker.activated.___LABEL___'
-                //     );
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.getInstance().notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
                 return false;
             }
 
@@ -984,6 +1005,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+            await PushDataServerController.getInstance().notifyReload();
 
             return true;
         } catch (error) {
@@ -1443,14 +1466,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.getInstance().get('SESSION');
 
-            // Pas connecté donc evidemment ça marche pas super bien...
             if (ModuleDAOServer.getInstance().global_update_blocker) {
-                //     // On est en readonly partout, donc on informe sur impossibilité de se connecter
-                //     await PushDataServerController.getInstance().notifySimpleERROR(
-                //         StackContext.getInstance().get('UID'),
-                //         StackContext.getInstance().get('CLIENT_TAB_ID'),
-                //         'error.global_update_blocker.activated.___LABEL___'
-                //     );
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.getInstance().notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
                 return null;
             }
 
@@ -1503,13 +1524,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On await pas ici on se fiche du résultat
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
-            // this.redirectUserPostLogin(redirect_to, res);
+            await PushDataServerController.getInstance().notifyReload();
 
             return user.id;
         } catch (error) {
             ConsoleHandler.getInstance().error("login:" + email + ":" + error);
         }
-        // res.redirect('/login');
 
         return null;
     }
@@ -1570,6 +1590,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             // On await pas ici on se fiche du résultat
             ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+            await PushDataServerController.getInstance().notifyReload();
 
             return user.id;
         } catch (error) {

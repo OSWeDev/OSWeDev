@@ -401,6 +401,11 @@ export default class PushDataVueModule extends VueModuleBase {
                                     location.href = '/';
                                 }, 10000);
                                 break;
+
+                            case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
+                                location.reload();
+                                break;
+
                             default:
                                 break;
                         }

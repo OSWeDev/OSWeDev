@@ -80,6 +80,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_PWD_INVALIDATION_DAYS = 'pwd_invalidation_days';
     public static PARAM_NAME_RECOVERY_HOURS = 'recovery_hours';
     public static PARAM_NAME_CAN_RECOVER_PWD_BY_SMS = 'ModuleAccessPolicy.CAN_RECOVER_PWD_BY_SMS';
+    public static PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID = 'ModuleAccessPolicy.SESSION_SHARE_SEND_IN_BLUE_MAIL_ID';
 
     public static getInstance(): ModuleAccessPolicy {
         if (!ModuleAccessPolicy.instance) {

@@ -1,5 +1,3 @@
-import { Moment } from 'moment';
-
 export default interface IServerUserSession {
     uid: number;
     returning: boolean;

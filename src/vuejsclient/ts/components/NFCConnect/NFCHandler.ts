@@ -74,7 +74,7 @@ export default class NFCHandler {
                         ConsoleHandler.getInstance().log("NFC tag is not registered and needs to be linked to connected user first...");
                         return;
                     }
-                    location.href = '/';
+                    // location.href = '/';
                     return;
                 }
 
@@ -99,7 +99,7 @@ export default class NFCHandler {
 
                                     await ModuleAccessPolicy.getInstance().logout();
                                     await ModuleNFCConnect.getInstance().connect(serialNumber);
-                                    location.href = '/';
+                                    // location.href = '/';
                                     return;
                                 },
                                 bold: false
