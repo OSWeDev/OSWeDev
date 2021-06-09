@@ -37,6 +37,7 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import VarsServerController from '../Var/VarsServerController';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
@@ -397,6 +398,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
         }, 'login.recover.answersms.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Le service est en cours de maintenance. Merci de votre patience.'
+        }, 'error.global_update_blocker.activated.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Récupération...'
@@ -930,6 +935,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.getInstance().get('SESSION');
 
+            // // Pas connecté donc evidemment ça marche pas super bien...
+            if (ModuleDAOServer.getInstance().global_update_blocker) {
+                //     // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                //     await PushDataServerController.getInstance().notifySimpleERROR(
+                //         StackContext.getInstance().get('UID'),
+                //         StackContext.getInstance().get('CLIENT_TAB_ID'),
+                //         'error.global_update_blocker.activated.___LABEL___'
+                //     );
+                return false;
+            }
+
             if (!uid) {
                 return false;
             }
@@ -967,7 +983,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            // On await pas ici on se fiche du résultat
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
             return true;
@@ -1428,6 +1443,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.getInstance().get('SESSION');
 
+            // Pas connecté donc evidemment ça marche pas super bien...
+            if (ModuleDAOServer.getInstance().global_update_blocker) {
+                //     // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                //     await PushDataServerController.getInstance().notifySimpleERROR(
+                //         StackContext.getInstance().get('UID'),
+                //         StackContext.getInstance().get('CLIENT_TAB_ID'),
+                //         'error.global_update_blocker.activated.___LABEL___'
+                //     );
+                return null;
+            }
+
             if (session && session.uid) {
                 return session.uid;
             }
@@ -1493,6 +1519,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.getInstance().get('SESSION');
             let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+            if (ModuleDAOServer.getInstance().global_update_blocker) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.getInstance().notifySimpleERROR(
+                    StackContext.getInstance().get('UID'),
+                    StackContext.getInstance().get('CLIENT_TAB_ID'),
+                    'error.global_update_blocker.activated.___LABEL___'
+                );
+                return null;
+            }
 
             if ((!session) || (!session.uid)) {
                 return null;
