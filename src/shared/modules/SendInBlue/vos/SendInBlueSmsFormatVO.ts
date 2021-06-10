@@ -16,7 +16,7 @@ export default class SendInBlueSmsFormatVO {
         if (tel && code_pays) {
             let new_tel: string = tel;
             new_tel = new_tel.replace(/ /g, '');
-            if (tel[0] == '0') {
+            if (new_tel[0] == '0') {
                 new_tel = new_tel.substr(1);
             }
 

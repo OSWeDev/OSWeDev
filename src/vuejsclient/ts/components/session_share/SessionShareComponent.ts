@@ -23,7 +23,7 @@ export default class SessionShareComponent extends VueComponentBase {
         if (!sessionid) {
             return;
         }
-        this.url = "http://localhost:49407/login?sessionid=" + sessionid + "#/";
+        this.url = window.location.origin + "/login?sessionid=" + sessionid + "#/";
 
         let user = await ModuleAccessPolicy.getInstance().getSelfUser();
         if (user) {
@@ -40,7 +40,7 @@ export default class SessionShareComponent extends VueComponentBase {
 
         await ModuleAccessPolicy.getInstance().send_session_share_email(this.url, this.email);
 
-        this.snotify.info(this.label('session_share.mail_sent'));
+        this.snotify.success(this.label('session_share.mail_sent'));
     }
 
     private async send_sms() {
@@ -52,7 +52,7 @@ export default class SessionShareComponent extends VueComponentBase {
         await ModuleAccessPolicy.getInstance().send_session_share_sms(
             this.label('session_share.sms_preurl') + this.url, this.phone);
 
-        this.snotify.info(this.label('session_share.sms_sent'));
+        this.snotify.success(this.label('session_share.sms_sent'));
     }
 
     private open_show() {
