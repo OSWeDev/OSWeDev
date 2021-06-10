@@ -49,6 +49,7 @@ import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924Upgrade
 import Patch20201123UpdateVarCacheConfVO from './patchs/premodules/Patch20201123UpdateVarCacheConfVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305affichageIconePDF';
+import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO';
 
 export default abstract class GeneratorBase {
 
@@ -84,7 +85,8 @@ export default abstract class GeneratorBase {
             Patch20191008ChangeDILDateType.getInstance(),
             Patch20191008SupprimerTacheReimport.getInstance(),
             Patch20200924UpgradeUserVO.getInstance(),
-            Patch20201123UpdateVarCacheConfVO.getInstance()
+            Patch20201123UpdateVarCacheConfVO.getInstance(),
+            Patch20210608TrimUserVO.getInstance()
         ];
 
         this.post_modules_workers = [

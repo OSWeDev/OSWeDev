@@ -1,0 +1,46 @@
+@import "skin-variables.scss";
+
+.nfcconnect-box {
+    width: 360px;
+    margin: 7% auto;
+    margin-bottom: 2em;
+
+    .nfcconnect-box-body {
+        background: #fff;
+        padding: 20px;
+        border-top: 0;
+        color: #666;
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .h1,
+        .h2,
+        .h3,
+        .h4,
+        .h5,
+        .h6 {
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        
+        .form-group i {
+            position: relative;
+            right: 0.4em;
+            margin-top: -1.7em;
+        }
+
+        .login-box-msg,
+        .register-box-msg {
+            margin: 0;
+            text-align: center;
+            padding: 0 20px 20px 20px;
+        }
+    }
+}
+
+.nfcconnect-box{
+    margin-top: 2em;
+}

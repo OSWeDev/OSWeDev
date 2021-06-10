@@ -1,0 +1,29 @@
+.my_account_page
+    template(v-if='user')
+        .my_account_header
+            .row
+                .col-md-8
+                    .my_account_name {{ user.name }}
+                .col-md-4.right
+                    button.btn.btn-danger.btn-block.btn-flat(@click="logout") {{ label('client.logout') }}
+        .my_account_content
+            .row
+                .col-md-6
+                    .my_account_infos 
+                        .row 
+                            .col-md-12
+                                .my_account_email 
+                                    i.fa.fa-envelope.fa-fw(aria-hidden="true")
+                                    .my_account_infos_content {{ user.email }}
+                        .row(v-if="user.phone")
+                            .col-md-12
+                                .my_account_phone 
+                                    i.fa.fa-mobile.fa-fw(aria-hidden="true")
+                                    .my_account_infos_content {{ user.phone }}
+
+                .col-md-6.my_account_plugins
+                    .row 
+                        .col-md-12
+                            .my_account_nfc 
+                                Nfcconnectlogincomponent()
+                                Nfcusertaglistcomponent()

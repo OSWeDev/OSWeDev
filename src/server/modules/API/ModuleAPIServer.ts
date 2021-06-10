@@ -78,6 +78,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
             let params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
             let returnvalue = null;
             try {
+                if (params && params.length && res) {
+                    params.push(res);
+                } else if (res) {
+                    params = [res];
+                }
                 returnvalue = await StackContext.getInstance().runPromise(
                     ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(...params));
@@ -87,6 +92,10 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 return;
             }
 
+            if (res.headersSent) {
+                // Si les headers sont déjà envoyés, on a plus rien à faire ici
+                return;
+            }
 
             switch (api.api_return_type) {
                 case APIDefinition.API_RETURN_TYPE_JSON:
