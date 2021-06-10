@@ -1,8 +1,11 @@
 import { Moment } from 'moment';
+import ConsoleHandler from '../../../tools/ConsoleHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
+import NumRange from '../../DataRender/vos/NumRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
+import ModuleTableField from '../../ModuleTableField';
 import VOsTypesManager from '../../VOsTypesManager';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
@@ -52,7 +55,24 @@ export default class VarDataBaseVO implements IMatroid {
         for (let i in fields) {
             let field = fields[i];
 
-            res[field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(fields_ordered_as_in_moduletable_definition[param_i]) : fields_ordered_as_in_moduletable_definition[param_i];
+            if ((!fields_ordered_as_in_moduletable_definition[param_i]) || (fields_ordered_as_in_moduletable_definition[param_i].indexOf(null) >= 0)) {
+                ConsoleHandler.getInstance().warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                        res[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                        break;
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        res[field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        res[field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                res[field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(fields_ordered_as_in_moduletable_definition[param_i]) : fields_ordered_as_in_moduletable_definition[param_i];
+            }
             param_i++;
         }
 
