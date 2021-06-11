@@ -49,7 +49,10 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
                     }
                 }
             }
-            node.datasources[this.name][i] = ds_cache[i];
+
+            if (ds_cache[i]) {
+                node.datasources[this.name][i] = ds_cache[i];
+            }
         });
     }
 
