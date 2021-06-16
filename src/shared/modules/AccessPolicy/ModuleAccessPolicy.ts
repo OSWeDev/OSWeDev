@@ -38,6 +38,8 @@ export default class ModuleAccessPolicy extends Module {
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
+    public static POLICY_SESSIONSHARE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SESSIONSHARE_ACCESS";
+
     public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
     public static POLICY_SENDINITPWD: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDINITPWD";
 
@@ -61,6 +63,8 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_BEGIN_RECOVER = "BEGIN_RECOVER";
     public static APINAME_BEGIN_RECOVER_SMS = "BEGIN_RECOVER_SMS";
     public static APINAME_RESET_PWD = "RESET_PWD";
+    public static APINAME_BEGIN_RECOVER_UID = "BEGIN_RECOVER_UID";
+    public static APINAME_BEGIN_RECOVER_SMS_UID = "BEGIN_RECOVER_SMS_UID";
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
@@ -119,6 +123,8 @@ export default class ModuleAccessPolicy extends Module {
     public checkAccess: (policy_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_CHECK_ACCESS);
     public beginRecover: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER);
     public beginRecoverSMS: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS);
+    public beginRecoverUID: (uid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID);
+    public beginRecoverSMSUID: (uid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID);
     public resetPwd: (email: string, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWD);
     public resetPwdUID: (uid: number, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWDUID);
     public checkCode: (email: string, challenge: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_checkCode);
@@ -142,7 +148,7 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string>(
-            null,
+            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
             ModuleAccessPolicy.APINAME_get_my_sid,
             []
         ));
@@ -154,14 +160,14 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
-            null,
+            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
             ModuleAccessPolicy.APINAME_send_session_share_email,
             [],
             String2ParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
-            null,
+            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
             ModuleAccessPolicy.APINAME_send_session_share_sms,
             [],
             String2ParamVOStatic
@@ -234,6 +240,20 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwd_uid,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID,
             [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));

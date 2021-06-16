@@ -9,7 +9,7 @@
 
             form(v-on:submit.prevent="login")
                 .form-group.has-feedback
-                    input.form-control(type='email', v-model='email', :placeholder='label("login.email_placeholder")')
+                    input.form-control(type='text', v-model='email', :placeholder='label("login.email_placeholder")')
                     i.fa.fa-id-card.pull-right.fa-fw(aria-hidden="true")
                 .form-group.has-feedback
                     input.form-control(type='password', v-model='password' :placeholder='label("login.password_placeholder")')

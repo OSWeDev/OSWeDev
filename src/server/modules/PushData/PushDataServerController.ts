@@ -212,16 +212,17 @@ export default class PushDataServerController {
      * WARN : Only on main thread (express).
      * @param session
      */
-    public unregisterSession(session: IServerUserSession) {
+    public async unregisterSession(session: IServerUserSession) {
 
         ForkedTasksController.getInstance().assert_is_main_process();
+
+        await this.notifyRedirectHomeAndDisconnect();
 
         if (this.registeredSockets_by_sessionid[session.id]) {
             delete this.registeredSockets_by_sessionid[session.id];
         }
 
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
-        this.notifyRedirectHomeAndDisconnect(session.uid);
 
         // No user or session, don't save this socket
         if ((!session) || (!session.id) || (!session.uid)) {
@@ -232,6 +233,27 @@ export default class PushDataServerController {
             delete this.registeredSessions[session.uid][session.id];
         }
     }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param session
+     */
+    public async unregisterUserSession(session: IServerUserSession) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        if (!session.uid) {
+            return;
+        }
+
+        // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
+        await this.notifyRedirectHomeAndDisconnect();
+
+        if (this.registeredSessions[session.uid] && this.registeredSessions[session.uid][session.id]) {
+            delete this.registeredSessions[session.uid][session.id];
+        }
+    }
+
 
     /**
      * WARN : Only on main thread (express).
@@ -303,14 +325,23 @@ export default class PushDataServerController {
     /**
      * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      */
-    public async notifyRedirectHomeAndDisconnect(user_id: number) {
+    public async notifyRedirectHomeAndDisconnect() {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, user_id)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect)) {
             return;
         }
 
-        let notification: NotificationVO = this.getTechNotif(user_id, null, null, NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+        let notification: NotificationVO = null;
+        try {
+            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            notification = this.getTechNotif(
+                null, null,
+                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
         if (!notification) {
             return;
         }
@@ -318,6 +349,7 @@ export default class PushDataServerController {
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
+
 
     /**
      * On notifie les sockets de la session qu'il faut un reload (exemple lors du login)
@@ -737,10 +769,6 @@ export default class PushDataServerController {
     }
 
     private getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string): NotificationVO {
-
-        if (!user_id) {
-            return null;
-        }
 
         let notification: NotificationVO = new NotificationVO();
 

@@ -1019,10 +1019,16 @@ export default class RangeHandler {
      * @param min_inclusiv
      * @param max_inclusiv
      */
-    public async foreach_ranges_batch_await<T>(ranges: Array<IRange<T>>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
+    public async foreach_ranges_batch_await<T>(ranges: Array<IRange<T>>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null, batch_size: number = 50) {
 
         let promises = [];
         for (let i in ranges) {
+
+            if (promises && (promises.length >= batch_size)) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
             promises.push(this.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv));
         }
 

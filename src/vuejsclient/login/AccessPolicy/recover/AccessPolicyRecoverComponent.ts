@@ -15,12 +15,18 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
     private message: string = null;
 
     private logo_url: string = null;
+    private redirect_to: string = "/";
 
     private has_sms_activation: boolean = false;
 
     private async mounted() {
 
         this.load_logo_url();
+
+        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (!!logged_id) {
+            window.location = this.redirect_to as any;
+        }
 
         for (let j in this.$route.query) {
             switch (j) {

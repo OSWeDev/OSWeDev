@@ -8,12 +8,12 @@
     text-align: center;
 
     .raw_url {
-        >.col-md-12>div {
+        overflow-x: auto;
+        line-height: 0.7em;
+        
+        >.col-md-12>a {
             font-size: xx-small;
             font-stretch: condensed;
-            width: 300px;
-            text-overflow: clip;
-            overflow-x: auto;
             margin: 0.3em auto;
         }
     }

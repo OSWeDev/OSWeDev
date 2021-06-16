@@ -407,39 +407,46 @@ export default abstract class ServerBase {
          * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
          */
-        // this.app.use(function getSessionViaQuerystring(req, res, next) {
-        //     var sessionid = req.query.sessionid;
-        //     if (!sessionid) {
-        //         next();
-        //         return;
-        //     }
+        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
+            var sessionid = req.query.sessionid;
+            if (!sessionid) {
+                next();
+                return;
+            }
 
-        //     // Trick the session middleware that you have the cookie;
-        //     // Make sure you configure the cookie name, and set 'secure' to false
-        //     // in https://github.com/expressjs/session#cookie-options
-        //     if (req.cookies) {
-        //         req.cookies['sid'] = req.query.sessionid;
-        //     }
+            // Trick the session middleware that you have the cookie;
+            // Make sure you configure the cookie name, and set 'secure' to false
+            // in https://github.com/expressjs/session#cookie-options
+            if (req.cookies) {
+                req.cookies['sid'] = req.query.sessionid;
+            }
 
-        //     if (req.rawHeaders) {
-        //         for (let i in req.rawHeaders) {
-        //             let rawHeader = req.rawHeaders[i];
-        //             if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
+            if (req.rawHeaders) {
+                for (let i in req.rawHeaders) {
+                    let rawHeader = req.rawHeaders[i];
+                    if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
 
-        //                 let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
-        //                 req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
-        //             }
-        //         }
-        //     }
+                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
+                        req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+                    }
+                }
+            }
 
-        //     if (req.headers && (req.headers['cookie'].indexOf('sid') >= 0)) {
+            if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
 
-        //         let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
-        //         req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
-        //     }
+                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+            } else {
+                if (!req.headers) {
+                    req.headers = {};
+                }
+                req.headers['cookie'] = 'sid=' + req.query.sessionid;
+            }
+            // res.setHeader('cookie', req.headers['cookie']);
+            res.cookie('sid', req.query.sessionid);
 
-        //     next();
-        // });
+            next();
+        });
 
         this.session = expressSession({
             secret: 'vk4s8dq2j4',
@@ -457,49 +464,65 @@ export default abstract class ServerBase {
         });
         this.app.use(this.session);
 
-        /**
-         * Seconde option pour tenter de récupérer le session share
-         *  cf: https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
-         */
         this.app.use(function (req, res, next) {
-            var sessionId = req.query.sessionid;
-            if (!sessionId) {
-                next();
-                return;
-            }
+            try {
+                let sid = res.req.cookies['sid'];
 
-            function makeNew(next) {
-                if (req.sessionStore) {
-                    req.sessionStore.get(sessionId, function (err, session) {
-                        if (err) {
-                            console.error("error while restoring a session by id", err);
-                        }
-                        if (session) {
-                            req.sessionStore.createSession(req, session);
-                        }
-                        next();
-                    });
-                } else {
-                    console.error("req.sessionStore isn't available");
-                    next();
+                if (!!sid) {
+                    req.session.sid = sid;
                 }
+            } catch (error) {
             }
-
-            if (sessionId) {
-                if (req.session) {
-                    req.session.destroy(function (err) {
-                        if (err) {
-                            console.error('error while destroying initial session', err);
-                        }
-                        makeNew(next);
-                    });
-                } else {
-                    makeNew(next);
-                }
-            } else {
-                next();
-            }
+            next();
         });
+        // /**
+        //  * Seconde option pour tenter de récupérer le session share
+        //  *  cf: https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+        //  */
+        // this.app.use(function (req, res, next) {
+        //     var sessionId = req.query.sessionid;
+        //     if (!sessionId) {
+        //         next();
+        //         return;
+        //     }
+
+        //     if (req.session.id == sessionId) {
+        //         next();
+        //         return;
+        //     }
+
+        //     function makeNew(next) {
+        //         if (req.sessionStore) {
+        //             req.sessionStore.get(sessionId, function (err, session) {
+        //                 if (err) {
+        //                     console.error("error while restoring a session by id", err);
+        //                 }
+        //                 if (session) {
+        //                     req.sessionStore.createSession(req, session);
+        //                 }
+        //                 next();
+        //             });
+        //         } else {
+        //             console.error("req.sessionStore isn't available");
+        //             next();
+        //         }
+        //     }
+
+        //     if (sessionId) {
+        //         if (req.session) {
+        //             req.session.destroy(function (err) {
+        //                 if (err) {
+        //                     console.error('error while destroying initial session', err);
+        //                 }
+        //                 makeNew(next);
+        //             });
+        //         } else {
+        //             makeNew(next);
+        //         }
+        //     } else {
+        //         next();
+        //     }
+        // });
 
         this.app.use('/admin/js', express.static('dist/admin/public/js'));
 
@@ -521,7 +544,7 @@ export default abstract class ServerBase {
                 } else {
                     // old session - on check qu'on doit pas invalider
                     if (!this.check_session_validity(session)) {
-                        PushDataServerController.getInstance().unregisterSession(session);
+                        await PushDataServerController.getInstance().unregisterSession(session);
                         session.destroy(() => {
                             ServerBase.getInstance().redirect_login_or_home(req, res);
                         });
@@ -538,7 +561,7 @@ export default abstract class ServerBase {
                     // On doit vérifier que le compte est ni bloqué ni expiré
                     let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                     if ((!user) || user.blocked || user.invalidated) {
-                        PushDataServerController.getInstance().unregisterSession(session);
+                        await PushDataServerController.getInstance().unregisterSession(session);
                         session.destroy(() => {
                             ServerBase.getInstance().redirect_login_or_home(req, res);
                         });
@@ -706,7 +729,7 @@ export default abstract class ServerBase {
                 // On doit vérifier que le compte est ni bloqué ni expiré
                 let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                 if (user && (user.blocked || user.invalidated)) {
-                    PushDataServerController.getInstance().unregisterSession(session);
+                    await PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
                         ServerBase.getInstance().redirect_login_or_home(req, res);
                     });
@@ -748,56 +771,10 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            let user_log = null;
-
-            if (req && req.session && req.session.uid) {
-                let uid: number = req.session.uid;
-
-                // On stocke le log de connexion en base
-                user_log = new UserLogVO();
-                user_log.user_id = uid;
-                user_log.impersonated = false;
-                user_log.log_time = moment().utc(true);
-                user_log.referer = req.headers.referer;
-                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-
-                await StackContext.getInstance().runPromise(
-                    ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
-                    async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
-            }
-
-            /**
-             * Gestion du impersonate => on restaure la session précédente
-             */
-            if (req.session && !!req.session.impersonated_from) {
-                PushDataServerController.getInstance().unregisterSession(req.session);
-
-                req.session = Object.assign(req.session, req.session.impersonated_from);
-                delete req.session.impersonated_from;
-
-                let uid: number = req.session.uid;
-                user_log.impersonated = true;
-                user_log.comment = 'Impersonated from user_id [' + uid + ']';
-
-                req.session.save((err) => {
-                    if (err) {
-                        ConsoleHandler.getInstance().log(err);
-                    } else {
-                        res.redirect('/');
-                    }
-                });
-            } else {
-
-                PushDataServerController.getInstance().unregisterSession(req.session);
-                req.session.destroy((err) => {
-
-                    if (err) {
-                        ConsoleHandler.getInstance().log(err);
-                    } else {
-                        res.redirect('/');
-                    }
-                });
-            }
+            await StackContext.getInstance().runPromise(
+                ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
+                async () => await ModuleAccessPolicyServer.getInstance().logout()
+            );
         });
 
         this.app.use('/js', express.static('client/js'));

@@ -26,8 +26,19 @@ export default class DefaultTranslationsServerManager {
             return;
         }
 
+        let promises = [];
         for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
-            await this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]);
+            // TODO FIXME promises.length
+            if (promises.length >= 50) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push(this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]));
+        }
+
+        if (promises && promises.length) {
+            await Promise.all(promises);
         }
 
         await this.cleanTranslationCodes();

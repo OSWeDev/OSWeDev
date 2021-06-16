@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import * as moment from 'moment';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -28,6 +29,7 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
+import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
@@ -104,6 +106,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
         fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Accès au front'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
+        sessionshare_access.group_id = group.id;
+        sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
+        sessionshare_access.translatable_name = ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS;
+        sessionshare_access = await this.registerPolicy(sessionshare_access, new DefaultTranslation({
+            fr: 'Accès au SessionShare'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let POLICY_IMPERSONATE: AccessPolicyVO = new AccessPolicyVO();
@@ -276,7 +286,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO);
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO);
 
-
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Partager la connexion'
+        }, 'session_share.navigator_share_title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Partager votre connexion à l\'outil Wedev'
+        }, 'session_share.navigator_share_content.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Partager la connexion'
+        }, 'session_share.navigator_share.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Connexion partagée !'
+        }, 'session_share.navigator_share_success.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Echec du partage.'
+        }, 'session_share.navigator_share_error.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Gestion des droits'
@@ -368,9 +392,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Login'
         }, 'login.password_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mot de passe'
-        }, 'login.email_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Connexion'
         }, 'login.signIn.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -392,7 +413,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Merci de renseigner votre adresse email.'
         }, 'login.recover.desc.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Login'
+            fr: 'Login/email/n° de téléphone'
         }, 'login.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Envoyer le mail'
@@ -435,9 +456,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Merci de renseigner votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc_simplified.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Login'
-        }, 'login.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Code de sécurité'
         }, 'login.code_placeholder.___LABEL___'));
@@ -491,7 +509,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+            fr: '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'mails.pwd.recovery.sms'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
@@ -575,6 +593,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'login.reset.send_init_pwd.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Renvoyer le SMS'
+        }, 'login.reset.send_init_pwd_sms.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
         }, 'login.reset.code_invalid.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -640,6 +662,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_email, this.send_session_share_email.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID, this.BEGIN_RECOVER_UID.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
     }
 
     /**
@@ -702,7 +726,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          */
         if (session && !!session.impersonated_from) {
 
-            PushDataServerController.getInstance().unregisterSession(session);
+            await PushDataServerController.getInstance().unregisterSession(session);
 
             session = Object.assign(session, session.impersonated_from);
             delete session.impersonated_from;
@@ -718,9 +742,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             });
         } else {
 
-            PushDataServerController.getInstance().unregisterSession(session);
-            session.destroy((err) => {
+            await PushDataServerController.getInstance().unregisterSession(session);
 
+            session.uid = null;
+            session.save((err) => {
                 if (err) {
                     ConsoleHandler.getInstance().log(err);
                 }
@@ -754,6 +779,26 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await PasswordInitialisation.getInstance().beginRecoverySMS(text);
+    }
+
+    public async BEGIN_RECOVER_UID(num: number): Promise<boolean> {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!num)) {
+            return false;
+        }
+
+        return PasswordRecovery.getInstance().beginRecovery_uid(num);
+    }
+
+    public async BEGIN_RECOVER_SMS_UID(num: number): Promise<boolean> {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!num)) {
+            return false;
+        }
+
+        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+            return;
+        }
+
+        return PasswordRecovery.getInstance().beginRecoverySMS_uid(num);
     }
 
     public async begininitpwd_uid(num: number): Promise<void> {
@@ -944,7 +989,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 }
 
                 try {
-                    PushDataServerController.getInstance().unregisterSession(session);
+                    await PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
                     });
                 } catch (error) {
@@ -1486,6 +1531,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
+                await PushDataServerController.getInstance().notifyReload();
                 return session.uid;
             }
 
@@ -1752,11 +1798,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'session_share');
     }
 
-    private get_my_sid() {
-        let session = StackContext.getInstance().get('SESSION');
-        if (!session) {
-            return null;
-        }
-        return session.id;
+    private get_my_sid(res: Response) {
+        // let session = StackContext.getInstance().get('SESSION');
+        // if (!session) {
+        //     return null;
+        // }
+        // return session.id;
+        return res.req.cookies['sid'];
     }
 }

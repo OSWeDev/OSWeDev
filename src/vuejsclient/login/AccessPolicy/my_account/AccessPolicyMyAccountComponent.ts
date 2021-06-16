@@ -25,5 +25,8 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
 
     private async mounted() {
         this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
+        if (!this.user) {
+            this.$router.push('/');
+        }
     }
 }

@@ -1,10 +1,16 @@
 .root_elt
-    .session_share(v-if="!!url")
+    .session_share(v-if="!!session_share_url")
         .row.qr_code_holder(v-show="!hidden")
             .col-md-12
                 .center
                     canvas(id="session_share_qr_code")
 
+        .row.send_email(v-show="(!hidden) && can_use_navigator_share")
+            .col-md-12
+                button.btn.btn-primary.btn-flat(@click="navigator_share")
+                    i.fa.fa-share-alt.fa-fw.btn_icon(aria-hidden="true")
+                    | {{ label('session_share.navigator_share') }}
+                
         .row.send_email(v-show="!hidden")
             .col-md-12
                 form(v-on:submit.prevent="send_mail")
@@ -21,7 +27,7 @@
 
         .row.raw_url(v-show="!hidden")
             .col-md-12 
-                div {{ url }}
+                a(:href="session_share_url" target="_blank") {{ session_share_url }}
 
         template(v-if="hidden")
             .row.open_show

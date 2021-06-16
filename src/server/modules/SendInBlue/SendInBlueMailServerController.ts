@@ -7,6 +7,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import StackContext from '../../StackContext';
 
 export default class SendInBlueMailServerController {
 
@@ -148,6 +150,10 @@ export default class SendInBlueMailServerController {
                 params[i] = envs[i];
             }
         }
+
+        let session = StackContext.getInstance().get('SESSION');
+        let sid = session.sid;
+        params['SESSION_SHARE_SID'] = sid ? encodeURIComponent(sid) : null;
     }
 
     private convert_mails_vo_to_string_list(bcc: SendInBlueMailVO[]): string {
