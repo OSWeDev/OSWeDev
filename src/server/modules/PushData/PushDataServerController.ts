@@ -23,8 +23,10 @@ export default class PushDataServerController {
     public static NOTIF_INTERVAL_MS: number = 1000;
 
     public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public static NOTIFY_USER_LOGGED: string = 'PushDataServerController.user_logged' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
+    public static TASK_NAME_notifyUserLoggedAndRedirectHome: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirectHome';
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
     public static TASK_NAME_notifyVarsDatasBySocket: string = 'PushDataServerController' + '.notifyVarsDatasBySocket';
@@ -86,7 +88,8 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyPrompt, this.notifyPrompt.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
-        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
+        // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
     }
 
     /**
@@ -350,14 +353,13 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
-
     /**
-     * On notifie les sockets de la session qu'il faut un reload (exemple lors du login)
+     * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
      */
-    public async notifyReload() {
+    public async notifyUserLoggedAndRedirectHome() {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyReload)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome)) {
             return;
         }
 
@@ -366,7 +368,7 @@ export default class PushDataServerController {
             let session: IServerUserSession = StackContext.getInstance().get('SESSION');
             notification = this.getTechNotif(
                 null, null,
-                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_RELOAD);
+                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -378,6 +380,35 @@ export default class PushDataServerController {
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
+
+
+    // /**
+    //  * On notifie les sockets de la session qu'il faut un reload (exemple lors du login)
+    //  */
+    // public async notifyReload() {
+
+    //     // Permet d'assurer un lancement uniquement sur le main process
+    //     if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyReload)) {
+    //         return;
+    //     }
+
+    //     let notification: NotificationVO = null;
+    //     try {
+    //         let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+    //         notification = this.getTechNotif(
+    //             null, null,
+    //             Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_RELOAD);
+    //     } catch (error) {
+    //         ConsoleHandler.getInstance().error(error);
+    //     }
+
+    //     if (!notification) {
+    //         return;
+    //     }
+
+    //     await this.notify(notification);
+    //     await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    // }
 
     /**
      * On notifie un utilisateur, via son user_id et son client_tab_id pour notifier la fenêtre abonnée uniquement

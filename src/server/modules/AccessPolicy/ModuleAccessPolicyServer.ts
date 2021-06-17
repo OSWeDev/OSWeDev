@@ -296,6 +296,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Partager la connexion'
         }, 'session_share.navigator_share.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Copier l\'url de partage'
+        }, 'session_share.copy_url.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Connexion partagée !'
         }, 'session_share.navigator_share_success.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -1061,7 +1064,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
-            await PushDataServerController.getInstance().notifyReload();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
             return true;
         } catch (error) {
@@ -1531,7 +1534,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (session && session.uid) {
-                await PushDataServerController.getInstance().notifyReload();
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
                 return session.uid;
             }
 
@@ -1580,7 +1583,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On await pas ici on se fiche du résultat
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
-            await PushDataServerController.getInstance().notifyReload();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
             return user.id;
         } catch (error) {
@@ -1647,7 +1650,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On await pas ici on se fiche du résultat
             ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
-            await PushDataServerController.getInstance().notifyReload();
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
             return user.id;
         } catch (error) {

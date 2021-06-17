@@ -14,6 +14,7 @@ export default class NotificationVO implements IDistantVOBase {
     public static TYPE_NOTIF_PROMPT: number = 6;
 
     public static TECH_DISCONNECT_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_DISCONNECT_AND_REDIRECT_HOME";
+    public static TECH_LOGGED_AND_REDIRECT_HOME: string = "TYPE_NOTIF_TECH_LOGGED_AND_REDIRECT_HOME";
     public static TECH_RELOAD: string = "TYPE_NOTIF_TECH_RELOAD";
 
     public static SIMPLE_NAMES: string[] = ['notification.SIMPLE_SUCCESS', 'notification.SIMPLE_INFO', 'notification.SIMPLE_WARN', 'notification.SIMPLE_ERROR'];

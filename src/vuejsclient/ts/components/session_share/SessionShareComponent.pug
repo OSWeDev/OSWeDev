@@ -27,7 +27,12 @@
 
         .row.raw_url(v-show="!hidden")
             .col-md-12 
-                a(:href="session_share_url" target="_blank") {{ session_share_url }}
+                a(:href="session_share_url" target="_blank" id="session_share_url") {{ session_share_url }}
+        .row(v-show="!hidden")
+            .col-md-12 
+                button.btn.btn-primary.btn-flat(@click="docopy")
+                    i.fa.fa-clipboard.fa-fw.btn_icon(aria-hidden="true")
+                    | {{ label('session_share.copy_url') }}
 
         template(v-if="hidden")
             .row.open_show

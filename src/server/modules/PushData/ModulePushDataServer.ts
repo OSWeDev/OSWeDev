@@ -57,6 +57,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Votre session a été invalidée, la page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_SESSION_INVALIDATED));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Connexion en cours. La page va être rechargée automatiquement...'
+        }, PushDataServerController.NOTIFY_USER_LOGGED));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Aucune notification en attente'

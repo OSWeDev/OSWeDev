@@ -19,6 +19,7 @@ export default class SessionShareComponent extends VueComponentBase {
 
     private has_access_to_session_share: boolean = false;
     private can_use_navigator_share: boolean = false;
+    private can_copy: boolean = false;
 
     private async mounted() {
 
@@ -33,6 +34,7 @@ export default class SessionShareComponent extends VueComponentBase {
         }
         this.session_share_url = window.location.origin + "/login?sessionid=" + encodeURIComponent(sessionid) + "#/";
 
+        this.can_copy = document.queryCommandSupported('copy');
         this.can_use_navigator_share = !!navigator['share'];
         let user = await ModuleAccessPolicy.getInstance().getSelfUser();
         if (user) {
@@ -90,6 +92,36 @@ export default class SessionShareComponent extends VueComponentBase {
                     this.snotify.error(this.label('session_share.navigator_share_error'));
                     ConsoleHandler.getInstance().error('navigator_share:error:' + error);
                 });
+        }
+    }
+
+    private docopy() {
+
+        var range = document.createRange();
+        var fromElement = document.querySelector("#session_share_url");
+        var selection = window.getSelection();
+
+        range.selectNode(fromElement);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        try {
+            var result = document.execCommand('copy');
+            if (result) {
+                // La copie a réussi
+                this.snotify.success(this.label('session_share.docopy.success'));
+            }
+        } catch (err) {
+            // Une erreur est surevnue lors de la tentative de copie
+            this.snotify.error(this.label('session_share.docopy.fail'));
+        }
+
+        selection = window.getSelection();
+
+        if (typeof selection.removeRange === 'function') {
+            selection.removeRange(range);
+        } else if (typeof selection.removeAllRanges === 'function') {
+            selection.removeAllRanges();
         }
     }
 }
