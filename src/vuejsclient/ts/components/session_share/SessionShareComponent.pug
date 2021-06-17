@@ -28,7 +28,7 @@
         .row.raw_url(v-show="!hidden")
             .col-md-12 
                 a(:href="session_share_url" target="_blank" id="session_share_url") {{ session_share_url }}
-        .row(v-show="!hidden")
+        .row.copy_url(v-show="!hidden")
             .col-md-12 
                 button.btn.btn-primary.btn-flat(@click="docopy")
                     i.fa.fa-clipboard.fa-fw.btn_icon(aria-hidden="true")
@@ -40,3 +40,10 @@
                     button.btn.btn-primary.btn-flat(@click="open_show")
                         i.fa.fa-qrcode.fa-fw.btn_icon(aria-hidden="true")
                         | {{ label('session_share.open_show') }}
+
+        template(v-if="!hidden")
+            .row.delete_session
+                .col-md-12 
+                    button.btn.btn-danger.btn-flat(@click="delete_session")
+                        i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true")
+                        | {{ label('session_share.delete_session') }}

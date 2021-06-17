@@ -215,7 +215,7 @@ export default class PushDataServerController {
      * WARN : Only on main thread (express).
      * @param session
      */
-    public async unregisterSession(session: IServerUserSession) {
+    public async unregisterSession(session: IServerUserSession, notify_redirect: boolean = true) {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 

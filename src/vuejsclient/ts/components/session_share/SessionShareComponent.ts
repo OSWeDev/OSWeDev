@@ -124,4 +124,9 @@ export default class SessionShareComponent extends VueComponentBase {
             selection.removeAllRanges();
         }
     }
+
+    private async delete_session() {
+        await ModuleAccessPolicy.getInstance().delete_session();
+        this.snotify.success(this.label('session_share.delete_session.success'));
+    }
 }

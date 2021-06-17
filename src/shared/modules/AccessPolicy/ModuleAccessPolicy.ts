@@ -79,6 +79,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_checkCode = "checkCode";
     public static APINAME_checkCodeUID = "checkCodeUID";
     public static APINAME_logout = "logout";
+    public static APINAME_delete_session = "delete_session";
     public static APINAME_get_my_sid = "get_my_sid";
 
     public static APINAME_send_session_share_email = "send_session_share_email";
@@ -106,6 +107,7 @@ export default class ModuleAccessPolicy extends Module {
     public getSelfUser: () => Promise<UserVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getSelfUser);
     public getMyLang: () => Promise<LangVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getMyLang);
     public logout: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_logout);
+    public delete_session: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_delete_session);
     public get_my_sid: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_sid);
     public send_session_share_email: (url: string, email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_email);
     public send_session_share_sms: (text: string, phone: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_sms);
@@ -156,6 +158,12 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_logout,
+            [UserLogVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_delete_session,
             [UserLogVO.API_TYPE_ID]
         ));
 

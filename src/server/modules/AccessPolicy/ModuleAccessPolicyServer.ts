@@ -634,6 +634,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Partager la session'
         }, 'session_share.open_show.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer la session'
+        }, 'session_share.delete_session.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Session supprimée'
+        }, 'session_share.delete_session.success.___LABEL___'));
+
+
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
@@ -662,6 +670,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_logout, this.logout.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_delete_session, this.delete_session.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_get_my_sid, this.get_my_sid.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_email, this.send_session_share_email.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_send_session_share_sms, this.send_session_share_sms.bind(this));
@@ -716,10 +725,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             user_log = new UserLogVO();
             user_log.user_id = uid;
-            user_log.impersonated = false;
+            user_log.impersonated = (session && !!session.impersonated_from);
             user_log.log_time = moment().utc(true);
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            if (session && !!session.impersonated_from) {
+                user_log.comment = 'Impersonated from user_id [' + uid + ']';
+            }
 
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
         }
@@ -733,10 +745,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session = Object.assign(session, session.impersonated_from);
             delete session.impersonated_from;
-
-            let uid: number = session.uid;
-            user_log.impersonated = true;
-            user_log.comment = 'Impersonated from user_id [' + uid + ']';
 
             session.save((err) => {
                 if (err) {
@@ -1808,5 +1816,71 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // }
         // return session.id;
         return res.req.cookies['sid'];
+    }
+
+    private async delete_session() {
+
+        /**
+         * On veut supprimer la session et déconnecter tout le monde
+         */
+        let user_log = null;
+        let session = StackContext.getInstance().get('SESSION');
+
+        if (session && session.uid) {
+            let uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.impersonated = (session && !!session.impersonated_from);
+            user_log.log_time = moment().utc(true);
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            if (session && !!session.impersonated_from) {
+                user_log.comment = 'Impersonated from user_id [' + uid + ']';
+            }
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+        }
+
+        /**
+         * Gestion du impersonate => dans le cas présent on logout aussi le compte principal
+         */
+        if (session && !!session.impersonated_from) {
+
+            await PushDataServerController.getInstance().unregisterSession(session, false);
+
+            session = Object.assign(session, session.impersonated_from);
+            delete session.impersonated_from;
+
+            let uid: number = session.uid;
+
+            // On stocke le log de connexion en base
+            user_log = new UserLogVO();
+            user_log.user_id = uid;
+            user_log.impersonated = false;
+            user_log.log_time = moment().utc(true);
+            user_log.referer = null;
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+            await PushDataServerController.getInstance().unregisterSession(session, true);
+            session.destroy((err) => {
+                if (err) {
+                    ConsoleHandler.getInstance().log(err);
+                }
+            });
+        } else {
+
+            await PushDataServerController.getInstance().unregisterSession(session, true);
+
+            session.uid = null;
+            session.destroy((err) => {
+                if (err) {
+                    ConsoleHandler.getInstance().log(err);
+                }
+            });
+        }
     }
 }
