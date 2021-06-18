@@ -68,7 +68,7 @@ export default class ConsoleHandler {
     }
 
     private get_text_msg(error: string | Error): string {
-        return process.pid + ':' + this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
+        return ((process && process.pid) ? process.pid + ':' : '') + this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
     }
 
     private get_timestamp(): string {

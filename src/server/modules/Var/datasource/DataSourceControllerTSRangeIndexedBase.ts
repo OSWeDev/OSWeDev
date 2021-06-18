@@ -51,7 +51,10 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
                     }
                 }
             }
-            node.datasources[this.name][ms_i] = ds_cache[ms_i];
+
+            if (ds_cache[ms_i]) {
+                node.datasources[this.name][ms_i] = ds_cache[ms_i];
+            }
         });
     }
 

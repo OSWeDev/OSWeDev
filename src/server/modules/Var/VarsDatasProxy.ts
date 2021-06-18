@@ -11,8 +11,10 @@ import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyW
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -67,6 +69,8 @@ export default class VarsDatasProxy {
     }
 
     public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
+        let env = ConfigurationService.getInstance().getNodeConfiguration();
+
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread],
             async () => {
@@ -77,7 +81,21 @@ export default class VarsDatasProxy {
 
                     varsdata.forEach((vardata) => {
                         if (VarsServerController.getInstance().has_valid_value(vardata)) {
+
+                            if (env.DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log(
+                                    'get_var_datas_or_ask_to_bgthread:notifyable_var:index|' + vardata.bdd_only_index + ":value|" + vardata.value + ":value_ts|" + vardata.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[vardata.value_type]
+                                );
+                            }
+
                             notifyable_vars.push(vardata);
+                        } else {
+
+                            if (env.DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log(
+                                    'get_var_datas_or_ask_to_bgthread:unnotifyable_var:index|' + vardata.bdd_only_index + ":value|" + vardata.value + ":value_ts|" + vardata.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[vardata.value_type]
+                                );
+                            }
                         }
                     });
 
@@ -187,6 +205,8 @@ export default class VarsDatasProxy {
      */
     public async handle_buffer(): Promise<void> {
 
+        let env = ConfigurationService.getInstance().getNodeConfiguration();
+
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__handle_buffer],
             async () => {
@@ -213,6 +233,12 @@ export default class VarsDatasProxy {
 
                     // Si on a pas de modif à gérer et que le dernier accès date, on nettoie
                     if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && wrapper.last_insert_or_update.isBefore(moment().utc(true).add(-5, 'minute')))) {
+                        if (env.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log(
+                                'handle_buffer:pas de modif à gérer et que le dernier accès date:index|' + handle_var.bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
+                                ":wrapper:needs_insert_or_update|" + wrapper.needs_insert_or_update + ":nb_reads_since_last_insert_or_update|" + wrapper.nb_reads_since_last_insert_or_update + ":last_insert_or_update|" + wrapper.last_insert_or_update
+                            );
+                        }
                         this.vars_datas_buffer.splice(this.vars_datas_buffer.findIndex((e) => e.index == index), 1);
                         delete this.vars_datas_buffer_wrapped_indexes[index];
                         continue;
@@ -224,6 +250,13 @@ export default class VarsDatasProxy {
                         (!(
                             (wrapper.nb_reads_since_last_insert_or_update >= 10) ||
                             (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || wrapper.last_insert_or_update.isBefore(moment().utc(true).add(-2, 'minute'))))))) {
+
+                        if (env.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log(
+                                'handle_buffer:pas de modif à gérer:index|' + handle_var.bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
+                                ":wrapper:needs_insert_or_update|" + wrapper.needs_insert_or_update + ":nb_reads_since_last_insert_or_update|" + wrapper.nb_reads_since_last_insert_or_update + ":last_insert_or_update|" + wrapper.last_insert_or_update
+                            );
+                        }
                         continue;
                     }
 
@@ -237,6 +270,9 @@ export default class VarsDatasProxy {
 
                     promises.push((async () => {
 
+                        if (env.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var.bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
+                        }
                         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
                         if ((!res) || (!res.id)) {
                             ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
@@ -256,7 +292,9 @@ export default class VarsDatasProxy {
                         }
 
                         wrapper.nb_reads_since_last_insert_or_update = 0;
-                        wrapper.needs_insert_or_update = false;
+                        wrapper.needs_insert_or_update_ = false;
+                        wrapper.var_data_origin_value = wrapper.var_data.value;
+                        wrapper.var_data_origin_type = wrapper.var_data.value_type;
                         wrapper.last_insert_or_update = moment().utc(true);
 
                         // let index_to_delete: number = -1;
@@ -328,6 +366,9 @@ export default class VarsDatasProxy {
      * On optimise la recherche en base en faisant un seul appel
      */
     public async get_exact_params_from_buffer_or_bdd<T extends VarDataBaseVO>(var_datas: T[]): Promise<T[]> {
+
+        let env = ConfigurationService.getInstance().getNodeConfiguration();
+
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd],
             async () => {
@@ -349,6 +390,12 @@ export default class VarsDatasProxy {
                         let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
                         this.add_read_stat(wrapper);
                         e = wrapper.var_data as T;
+
+                        if (env.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log(
+                                'get_exact_params_from_buffer_or_bdd:vars_datas_buffer:index|' + var_data.bdd_only_index + ":value|" + var_data.value + ":value_ts|" + var_data.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[var_data.value_type]
+                            );
+                        }
                     }
 
                     if (e) {
@@ -375,6 +422,13 @@ export default class VarsDatasProxy {
                         let bdd_res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(_type, check_in_bdd, null);
 
                         if (bdd_res && bdd_res.length) {
+
+                            if (env.DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log(
+                                    'get_exact_params_from_buffer_or_bdd:bdd_res:index|' + bdd_res[0].bdd_only_index + ":value|" + bdd_res[0].value + ":value_ts|" + bdd_res[0].value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[bdd_res[0].value_type]
+                                );
+                            }
+
                             res = (res && res.length) ? res.concat(bdd_res) : bdd_res;
                         }
                     })());
@@ -638,7 +692,7 @@ export default class VarsDatasProxy {
                             }
 
                             // FIXME On devrait checker les champs pour voir si il y a une différence non ?
-                            wrapper.needs_insert_or_update = !just_been_loaded_from_db;
+                            // wrapper.needs_insert_or_update = !just_been_loaded_from_db;
 
                             // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
                             if (just_been_loaded_from_db) {
