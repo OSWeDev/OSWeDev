@@ -110,7 +110,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
         sessionshare_access.group_id = group.id;
-        sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
+        sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         sessionshare_access.translatable_name = ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS;
         sessionshare_access = await this.registerPolicy(sessionshare_access, new DefaultTranslation({
             fr: 'Accès au SessionShare'

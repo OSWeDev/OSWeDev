@@ -730,10 +730,6 @@ export default class PushDataServerController {
 
         try {
 
-            if ((!notification.socket_ids) || (!notification.socket_ids.length)) {
-                return;
-            }
-
             // Broadcast to user's sessions or save in DB if no session available
 
             let socketWrappers: SocketWrapper[] = null;
@@ -746,6 +742,11 @@ export default class PushDataServerController {
                 socketWrappers = notification.socket_ids.map((socket_id: string) => this.registeredSockets_by_id[socket_id]);
             }
             notification.read = false;
+
+            if (socketWrappers && socketWrappers.length) {
+
+                socketWrappers = socketWrappers.filter((s) => !!s);
+            }
 
             if (socketWrappers && socketWrappers.length) {
 
@@ -771,6 +772,10 @@ export default class PushDataServerController {
 
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
+
+                    if (!socketWrapper) {
+                        continue;
+                    }
                     socketWrapper.socket.emit(notification_type, notification);
                 }
             }
@@ -791,7 +796,7 @@ export default class PushDataServerController {
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
         notification.read = false;
-        notification.socket_ids = [socket_id];
+        notification.socket_ids = socket_id ? [socket_id] : null;
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
