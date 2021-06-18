@@ -70,6 +70,7 @@ export default class VarsDatasVoUpdateHandler {
         ModuleDAOServer.getInstance().global_update_blocker = true;
 
         while (true) {
+
             if ((!VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud) ||
                 (!VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud.length)) {
 
@@ -250,7 +251,17 @@ export default class VarsDatasVoUpdateHandler {
         markers: { [var_id: number]: number },
         intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
 
+        let start_time = moment().utc(true).unix();
+        let real_start_time = start_time;
+
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
+
+            let actual_time = moment().utc(true).unix();
+
+            if (actual_time > (start_time + 1000 * 60)) {
+                start_time = actual_time;
+                ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:compute_intersectors:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
 
             let did_something = false;
             let tmp_ctrls_to_update_1st_stage = Object.assign({}, ctrls_to_update_1st_stage);
@@ -422,7 +433,19 @@ export default class VarsDatasVoUpdateHandler {
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
     private prepare_updates(limit: number, vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }, vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }, vo_types: string[]): number {
+
+        let start_time = moment().utc(true).unix();
+        let real_start_time = start_time;
+
         while ((limit > 0) && this.ordered_vos_cud && this.ordered_vos_cud.length) {
+
+
+            let actual_time = moment().utc(true).unix();
+
+            if (actual_time > (start_time + 1000 * 60)) {
+                start_time = actual_time;
+                ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
 
             let vo_cud = this.ordered_vos_cud.shift();
 

@@ -1,7 +1,9 @@
+import * as  moment from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
@@ -124,8 +126,18 @@ export default class VarsImportsHandler {
         /**
          * On prend tous les imports, qui intersecte pas ceux qu'on a déjà sélectionnés, et dont le cardinal est <= cardinal_max
          */
+        let start_time = moment().utc(true).unix();
+        let real_start_time = start_time;
+
         i++;
         while ((cardinal_max > 0) && (i < ordered_imports.length)) {
+
+            let actual_time = moment().utc(true).unix();
+
+            if (actual_time > (start_time + 1000 * 60)) {
+                start_time = actual_time;
+                ConsoleHandler.getInstance().warn('VarsImportsHandler:get_selection_imports:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
 
             tested_import = ordered_imports[i];
 

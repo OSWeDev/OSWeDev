@@ -211,7 +211,17 @@ export default class VarsDatasProxy {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__handle_buffer],
             async () => {
 
+                let start_time = moment().utc(true).unix();
+                let real_start_time = start_time;
+
                 while (this.semaphore_handle_buffer) {
+                    let actual_time = moment().utc(true).unix();
+
+                    if (actual_time > (start_time + 1000 * 60)) {
+                        start_time = actual_time;
+                        ConsoleHandler.getInstance().warn('VarsDatasProxy:handle_buffer:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    }
+
                     await ThreadHandler.getInstance().sleep(9);
                 }
                 this.semaphore_handle_buffer = true;
@@ -593,7 +603,18 @@ export default class VarsDatasProxy {
                         let limit: number = 500;
                         let offset: number = 0;
 
+                        let start_time = moment().utc(true).unix();
+                        let real_start_time = start_time;
+
                         while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
+
+                            let actual_time = moment().utc(true).unix();
+
+                            if (actual_time > (start_time + 1000 * 60)) {
+                                start_time = actual_time;
+                                ConsoleHandler.getInstance().warn('VarsDatasProxy:get_vars_to_compute_from_bdd:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                            }
+
                             may_have_more_datas = false;
 
                             let condition = '';
@@ -666,7 +687,17 @@ export default class VarsDatasProxy {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes],
             async () => {
 
+                let start_time = moment().utc(true).unix();
+                let real_start_time = start_time;
+
                 while (this.semaphore_handle_buffer) {
+                    let actual_time = moment().utc(true).unix();
+
+                    if (actual_time > (start_time + 1000 * 60)) {
+                        start_time = actual_time;
+                        ConsoleHandler.getInstance().warn('VarsDatasProxy:filter_var_datas_by_indexes:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    }
+
                     await ThreadHandler.getInstance().sleep(9);
                 }
                 this.semaphore_handle_buffer = true;
