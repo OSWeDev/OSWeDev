@@ -130,6 +130,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private inline_input_mode_input_only: boolean;
 
+    @Prop({ default: false })
+    private force_toggle_button: boolean;
+
+    @Prop({ default: false })
+    private inverse_label: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];

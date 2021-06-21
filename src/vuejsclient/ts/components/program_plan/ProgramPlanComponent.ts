@@ -1897,4 +1897,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.reset_rdvs();
         this.calendar_key++;
     }
+
+    get show_calendar(): boolean {
+        return this.program_plan_controller.show_calendar;
+    }
+
+    get show_targets_pp(): boolean {
+        return this.program_plan_controller.show_targets_pp;
+    }
 }
