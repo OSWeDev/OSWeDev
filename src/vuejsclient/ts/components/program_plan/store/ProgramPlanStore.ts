@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { Moment } from 'moment';
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
@@ -267,6 +268,19 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                 state.rdvs_by_ids[vo.id] = vo;
             },
 
+            setTargetById(state: IProgramPlanState, vo: IPlanTarget) {
+
+                if (!vo) {
+                    return;
+                }
+
+                if (!state.targets_by_ids[vo.id]) {
+                    Vue.set(state.targets_by_ids as any, vo.id, cloneDeep(vo));
+                    return;
+                }
+                state.targets_by_ids[vo.id] = cloneDeep(vo);
+            },
+
             setCrById(state: IProgramPlanState, vo: IPlanRDVCR) {
 
                 if (!vo) {
@@ -389,6 +403,10 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             setRdvById(context: ProgramPlanContext, vo: IPlanRDV) {
                 commitSetRdvById(context, vo);
             },
+
+            setTargetById(context: ProgramPlanContext, vo: IPlanTarget) {
+                commitSetTargetById(context, vo);
+            },
             setCrById(context: ProgramPlanContext, vo: IPlanRDVCR) {
                 commitSetCrById(context, vo);
             },
@@ -474,6 +492,7 @@ export const commit_set_filter_date_debut = commit(ProgramPlanStore.getInstance(
 export const commit_set_filter_date_fin = commit(ProgramPlanStore.getInstance().mutations.set_filter_date_fin);
 
 export const commitSetRdvById = commit(ProgramPlanStore.getInstance().mutations.setRdvById);
+export const commitSetTargetById = commit(ProgramPlanStore.getInstance().mutations.setTargetById);
 export const commitSetCrById = commit(ProgramPlanStore.getInstance().mutations.setCrById);
 export const commitRemoveRdv = commit(ProgramPlanStore.getInstance().mutations.removeRdv);
 export const commitRemoveCr = commit(ProgramPlanStore.getInstance().mutations.removeCr);

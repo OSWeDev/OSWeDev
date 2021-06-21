@@ -675,7 +675,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanRDV();
-    protected initializePlanRDV(states: { [state_id: number]: string }, additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDV) {
+    protected initializePlanRDV(
+        states: { [state_id: number]: string },
+        additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDV,
+        start_time_segmentation_type: number = TimeSegment.TYPE_DAY,
+        end_time_segmentation_type: number = TimeSegment.TYPE_DAY,
+    ) {
 
         if (!this.rdv_type_id) {
             return;
@@ -690,7 +695,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let task_id;
         let target_id;
-        let label_field = new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_tstz, 'Début', false);
+        let label_field = new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_tstz, 'Début', false).set_segmentation_type(start_time_segmentation_type);
         let facilitator_id;
         let program_id;
 
@@ -706,7 +711,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
+            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false).set_segmentation_type(end_time_segmentation_type),
             new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
                 states)
         );
