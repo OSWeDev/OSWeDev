@@ -396,11 +396,29 @@ export default class PushDataVueModule extends VueModuleBase {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
 
                                 let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.warning(content);
+                                VueAppBase.instance_.vueInstance.snotify.warning(content, {
+                                    timeout: 3000
+                                });
                                 setTimeout(() => {
                                     location.href = '/';
-                                }, 10000);
+                                }, 3000);
                                 break;
+
+                            case NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME:
+
+                                let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
+                                VueAppBase.instance_.vueInstance.snotify.warning(content_user_logged, {
+                                    timeout: 3000
+                                });
+                                setTimeout(() => {
+                                    location.href = '/';
+                                }, 3000);
+                                break;
+
+                            case NotificationVO.TECH_RELOAD:
+                                location.reload();
+                                break;
+
                             default:
                                 break;
                         }

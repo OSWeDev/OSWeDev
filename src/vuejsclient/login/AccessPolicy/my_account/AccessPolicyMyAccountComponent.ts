@@ -5,12 +5,14 @@ import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NF
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './AccessPolicyMyAccountComponent.scss';
 import NFCUserTagListComponent from "../../../ts/components/NFCConnect/user_tag_list/NFCUserTagListComponent";
+import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 
 @Component({
     template: require('./AccessPolicyMyAccountComponent.pug'),
     components: {
         Nfcusertaglistcomponent: NFCUserTagListComponent,
-        Nfcconnectlogincomponent: NFCConnectLoginComponent
+        Nfcconnectlogincomponent: NFCConnectLoginComponent,
+        Sessionsharecomponent: SessionShareComponent
     }
 })
 export default class AccessPolicyMyAccountComponent extends VueComponentBase {
@@ -23,5 +25,8 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
 
     private async mounted() {
         this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
+        if (!this.user) {
+            this.$router.push('/');
+        }
     }
 }

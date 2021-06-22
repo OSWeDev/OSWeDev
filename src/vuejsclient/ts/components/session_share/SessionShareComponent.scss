@@ -1,0 +1,45 @@
+@import "skin-variables.scss";
+
+
+.session_share {
+
+    background: white;
+    padding: 1em;
+    text-align: center;
+
+    .raw_url {
+        overflow-x: auto;
+        line-height: 0.7em;
+        
+        >.col-md-12>a {
+            font-size: xx-small;
+            font-stretch: condensed;
+            margin: 0.3em auto;
+        }
+    }
+
+    .send_email,
+    .send_sms {
+        
+        margin-bottom: 0.2em;
+        
+        button {
+            margin-left: 0.5em;
+        }
+
+        input {
+            vertical-align: middle;
+        }
+    }
+
+    .copy_url button {
+        
+        margin-top: 0.3em;
+    }
+
+    .delete_session button {
+
+        margin-top: 1em;
+        width: 100%;
+    }
+}

@@ -4,6 +4,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import BooleanParamVO, { BooleanParamVOStatic } from '../API/vos/apis/BooleanParamVO';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -37,6 +38,8 @@ export default class ModuleAccessPolicy extends Module {
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
+    public static POLICY_SESSIONSHARE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SESSIONSHARE_ACCESS";
+
     public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
     public static POLICY_SENDINITPWD: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDINITPWD";
 
@@ -60,6 +63,8 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_BEGIN_RECOVER = "BEGIN_RECOVER";
     public static APINAME_BEGIN_RECOVER_SMS = "BEGIN_RECOVER_SMS";
     public static APINAME_RESET_PWD = "RESET_PWD";
+    public static APINAME_BEGIN_RECOVER_UID = "BEGIN_RECOVER_UID";
+    public static APINAME_BEGIN_RECOVER_SMS_UID = "BEGIN_RECOVER_SMS_UID";
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
@@ -74,12 +79,18 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_checkCode = "checkCode";
     public static APINAME_checkCodeUID = "checkCodeUID";
     public static APINAME_logout = "logout";
+    public static APINAME_delete_session = "delete_session";
+    public static APINAME_get_my_sid = "get_my_sid";
+
+    public static APINAME_send_session_share_email = "send_session_share_email";
+    public static APINAME_send_session_share_sms = "send_session_share_sms";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
     public static PARAM_NAME_PWD_INVALIDATION_DAYS = 'pwd_invalidation_days';
     public static PARAM_NAME_RECOVERY_HOURS = 'recovery_hours';
     public static PARAM_NAME_CAN_RECOVER_PWD_BY_SMS = 'ModuleAccessPolicy.CAN_RECOVER_PWD_BY_SMS';
+    public static PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID = 'ModuleAccessPolicy.SESSION_SHARE_SEND_IN_BLUE_MAIL_ID';
 
     public static getInstance(): ModuleAccessPolicy {
         if (!ModuleAccessPolicy.instance) {
@@ -96,6 +107,10 @@ export default class ModuleAccessPolicy extends Module {
     public getSelfUser: () => Promise<UserVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getSelfUser);
     public getMyLang: () => Promise<LangVO> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_getMyLang);
     public logout: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_logout);
+    public delete_session: () => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_delete_session);
+    public get_my_sid: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_get_my_sid);
+    public send_session_share_email: (url: string, email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_email);
+    public send_session_share_sms: (text: string, phone: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_send_session_share_sms);
     public change_lang: (lang_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_change_lang);
     public getLoggedUserId: () => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
@@ -110,6 +125,8 @@ export default class ModuleAccessPolicy extends Module {
     public checkAccess: (policy_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_CHECK_ACCESS);
     public beginRecover: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER);
     public beginRecoverSMS: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS);
+    public beginRecoverUID: (uid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID);
+    public beginRecoverSMSUID: (uid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID);
     public resetPwd: (email: string, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWD);
     public resetPwdUID: (uid: number, challenge: string, new_pwd1: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_RESET_PWDUID);
     public checkCode: (email: string, challenge: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_checkCode);
@@ -132,10 +149,36 @@ export default class ModuleAccessPolicy extends Module {
             StringParamVOStatic
         ));
 
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string>(
+            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
+            ModuleAccessPolicy.APINAME_get_my_sid,
+            []
+        ));
+
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_logout,
             [UserLogVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_delete_session,
+            [UserLogVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
+            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
+            ModuleAccessPolicy.APINAME_send_session_share_email,
+            [],
+            String2ParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
+            ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
+            ModuleAccessPolicy.APINAME_send_session_share_sms,
+            [],
+            String2ParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
@@ -205,6 +248,20 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwd_uid,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID,
+            [UserVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID,
             [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));

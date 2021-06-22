@@ -10,7 +10,8 @@
             div(v-if="!status")
                 p.login-box-msg(v-if='!is_simplified') {{ label('login.reset.desc') }}
                 p.login-box-msg(v-if='!!is_simplified') {{ label('login.reset.desc_simplified') }}
-                .send_init_pwd.btn.btn-primary.btn-block.btn-flat(v-if="show_init_link" @click="send_init_pwd") {{ label('login.reset.send_init_pwd') }}
+                .send_init_pwd.btn.btn-primary.btn-block.btn-flat(v-if="show_init_link" @click="recover") {{ label('login.reset.send_init_pwd') }}
+                .send_init_pwd_sms.btn.btn-light.btn-block.btn-flat(v-if="show_init_link && has_sms_activation" @click="recoversms") {{ label('login.reset.send_init_pwd_sms') }}
                 form(v-on:submit.prevent="")
                     .form-group.has-feedback(v-if='!is_simplified')
                         input.form-control(type='email', v-model='email', name="email", :placeholder='label("login.email_placeholder")', autocomplete="off")

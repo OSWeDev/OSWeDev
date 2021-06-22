@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.20.47",
+    "version": "0.21.4",
     "description": "",
     "repository": {
         "type": "git",
@@ -113,6 +113,7 @@
         "nodemailer": "4.6.5",
         "pg": "7.17.0",
         "pg-promise": "10.3.2",
+        "qrcode": "1.4.4",
         "rimraf": "2.6.2",
         "screenfull": "3.3.2",
         "select2": "4.0.6-rc.1",

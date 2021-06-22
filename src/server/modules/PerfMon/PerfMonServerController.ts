@@ -2,7 +2,6 @@ import { performance } from 'perf_hooks';
 import IPerfMonLineInfo from '../../../shared/modules/PerfMon/interfaces/IPerfMonLineInfo';
 import PerfMonLineTypeVO from '../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
 import PerfMonLineVO from '../../../shared/modules/PerfMon/vos/PerfMonLineVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StackContext from '../../StackContext';
 import PerfMonDBUpdater from './PerfMonDBUpdater';
 

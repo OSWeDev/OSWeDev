@@ -384,7 +384,18 @@ export default class VarsComputeController {
                 let promises = [];
                 let i = 0;
 
+                let start_time = moment().utc(true).unix();
+                let real_start_time = start_time;
+
+
                 while (i < vars_datas_as_array.length) {
+
+                    let actual_time = moment().utc(true).unix();
+
+                    if (actual_time > (start_time + 1000 * 60)) {
+                        start_time = actual_time;
+                        ConsoleHandler.getInstance().warn('VarsComputeController:create_tree:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    }
 
                     /**
                      * On fait des packs de 5 promises...
@@ -423,7 +434,17 @@ export default class VarsComputeController {
                 let deps_ids_as_array = Object.keys(deps);
                 let deps_i = 0;
 
+                let start_time = moment().utc(true).unix();
+                let real_start_time = start_time;
+
                 while (deps_i < deps_as_array.length) {
+
+                    let actual_time = moment().utc(true).unix();
+
+                    if (actual_time > (start_time + 1000 * 60)) {
+                        start_time = actual_time;
+                        ConsoleHandler.getInstance().warn('VarsComputeController:handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    }
 
                     /**
                      * On fait des packs de 10 promises...

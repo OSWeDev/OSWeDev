@@ -1,5 +1,5 @@
 .root_elt
-    template(v-if="user_tags && user_tags.length")
+    template(v-if="has_access_to_nfc && user_tags && user_tags.length")
         .nfcconnect_user_tag_list
             .row
                 .col-md-12

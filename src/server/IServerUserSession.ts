@@ -1,7 +1,6 @@
-import { Moment } from 'moment';
-
 export default interface IServerUserSession {
     uid: number;
+    sid: string;
     returning: boolean;
     impersonated_from: IServerUserSession;
 

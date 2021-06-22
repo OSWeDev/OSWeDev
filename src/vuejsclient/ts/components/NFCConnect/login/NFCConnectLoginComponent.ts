@@ -1,4 +1,6 @@
 import { Component, Prop } from "vue-property-decorator";
+import ModuleAccessPolicy from "../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import ModuleNFCConnect from "../../../../../shared/modules/NFCConnect/ModuleNFCConnect";
 import VueComponentBase from "../../VueComponentBase";
 import NFCHandler from "../NFCHandler";
 import './NFCConnectLoginComponent.scss';
@@ -9,8 +11,15 @@ import './NFCConnectLoginComponent.scss';
 export default class NFCConnectLoginComponent extends VueComponentBase {
 
     private nfcconnected: boolean = false;
+    private has_access_to_nfc: boolean = false;
 
-    private mounted() {
+    private async mounted() {
+        this.has_access_to_nfc = NFCHandler.getInstance().has_access_to_nfc;
+
+        if (!this.has_access_to_nfc) {
+            return;
+        }
+
         this.check_nfc_conf();
     }
 
@@ -23,7 +32,7 @@ export default class NFCConnectLoginComponent extends VueComponentBase {
     }
 
     get nfcconnect_available() {
-        return (!this.nfcconnected) && !!window['NDEFReader'];
+        return this.has_access_to_nfc && (!this.nfcconnected) && !!window['NDEFReader'];
     }
 
     private async nfcconnect() {

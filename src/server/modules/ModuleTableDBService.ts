@@ -137,7 +137,7 @@ export default class ModuleTableDBService {
             let max_id = 0;
 
             // Création / update des structures
-            await RangeHandler.getInstance().foreach_ranges(segments, async (segmented_value) => {
+            await RangeHandler.getInstance().foreach_ranges_batch_await(segments, async (segmented_value) => {
 
                 let table_name = moduleTable.get_segmented_name(segmented_value);
                 await self.do_check_or_update_moduletable(moduleTable, database_name, table_name, segmented_value);
@@ -157,7 +157,7 @@ export default class ModuleTableDBService {
                     // Si la séquence existe déjà, on doit pouvoir directement demander à changer le lien de séquence (pour le cas de création de nouvelle table)
                     await this.db.query("ALTER TABLE " + database_name + "." + table_name + " ALTER COLUMN id SET DEFAULT nextval('" + moduleTable.database + "." + common_id_seq_name + "'::regclass);");
                 }
-            }, moduleTable.table_segmented_field_segment_type);
+            }, moduleTable.table_segmented_field_segment_type, null, null, 20);
 
             if (migration_todo) {
 

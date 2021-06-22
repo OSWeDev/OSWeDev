@@ -14,6 +14,7 @@ export default class NFCHandler {
 
     private static instance: NFCHandler;
 
+    public has_access_to_nfc: boolean = false;
     public ndef_active: boolean = false;
     private ndef = null;
     private is_waiting_to_write: boolean = false;
@@ -27,6 +28,8 @@ export default class NFCHandler {
             if (!!this.ndef) {
                 return true;
             }
+
+            this.has_access_to_nfc = await ModuleAccessPolicy.getInstance().checkAccess(ModuleNFCConnect.POLICY_FO_ACCESS);
 
             let NDEFReader = window['NDEFReader'];
 
@@ -74,7 +77,7 @@ export default class NFCHandler {
                         ConsoleHandler.getInstance().log("NFC tag is not registered and needs to be linked to connected user first...");
                         return;
                     }
-                    location.href = '/';
+                    // location.href = '/';
                     return;
                 }
 
@@ -99,7 +102,7 @@ export default class NFCHandler {
 
                                     await ModuleAccessPolicy.getInstance().logout();
                                     await ModuleNFCConnect.getInstance().connect(serialNumber);
-                                    location.href = '/';
+                                    // location.href = '/';
                                     return;
                                 },
                                 bold: false
@@ -113,6 +116,14 @@ export default class NFCHandler {
                         ]
                     });
                     return;
+                }
+
+                // Pas un autre compte, mais tag existant : on est donc sur un tag assigné au compte, on propose pas de l'ajouter...
+                let own_tags = await ModuleNFCConnect.getInstance().get_own_tags();
+                if (own_tags.find((tag) => tag.name == serialNumber)) {
+                    VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.tag_already_added'));
+
+                    await self.write_url_to_tag_confirmation(serialNumber);
                 }
 
                 this.add_tag_confirmation(serialNumber);

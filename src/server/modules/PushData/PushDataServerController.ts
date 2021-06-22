@@ -23,8 +23,10 @@ export default class PushDataServerController {
     public static NOTIF_INTERVAL_MS: number = 1000;
 
     public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public static NOTIFY_USER_LOGGED: string = 'PushDataServerController.user_logged' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
+    public static TASK_NAME_notifyUserLoggedAndRedirectHome: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirectHome';
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
     public static TASK_NAME_notifyVarsDatasBySocket: string = 'PushDataServerController' + '.notifyVarsDatasBySocket';
@@ -39,6 +41,8 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySimpleWARN: string = 'PushDataServerController' + '.notifySimpleWARN';
     public static TASK_NAME_notifySimpleERROR: string = 'PushDataServerController' + '.notifySimpleERROR';
     public static TASK_NAME_notifyPrompt: string = 'PushDataServerController' + '.notifyPrompt';
+    public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
+    public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
 
 
     public static getInstance(): PushDataServerController {
@@ -59,6 +63,7 @@ export default class PushDataServerController {
     private registeredSockets: { [userId: number]: { [client_tab_id: string]: { [sessId: string]: { [socket_id: string]: SocketWrapper } } } } = {};
     private registeredSessions: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
     private registeredSockets_by_id: { [socket_id: string]: SocketWrapper } = {};
+    private registeredSockets_by_sessionid: { [session_id: string]: { [socket_id: string]: SocketWrapper } } = {};
     private registereduid_by_socketid: { [socket_id: string]: number } = {};
     private registeredclient_tab_id_by_socketid: { [socket_id: string]: string } = {};
     /**
@@ -82,6 +87,9 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleWARN, this.notifySimpleWARN.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyPrompt, this.notifyPrompt.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
+        // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
     }
 
     /**
@@ -93,7 +101,16 @@ export default class PushDataServerController {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
-        // No user or session, don't save this socket
+        let wrapper = new SocketWrapper(session.uid, session.id, socket.id, socket);
+
+        // save in the socket in the session
+        if (!this.registeredSockets_by_sessionid[session.id]) {
+            this.registeredSockets_by_sessionid[session.id] = {};
+        }
+        this.registeredSockets_by_sessionid[session.id][socket.id] = wrapper;
+        this.registeredSockets_by_id[socket.id] = wrapper;
+
+        // No user or session, don't save this socket in registeredSockets
         let client_tab_id = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] : null;
         if ((!session) || (!session.id) || (!session.uid) || (!client_tab_id)) {
             return;
@@ -108,9 +125,7 @@ export default class PushDataServerController {
         if (!this.registeredSockets[session.uid][client_tab_id][session.id]) {
             this.registeredSockets[session.uid][client_tab_id][session.id] = {};
         }
-        let wrapper = new SocketWrapper(session.uid, session.id, socket.id, socket);
         this.registeredSockets[session.uid][client_tab_id][session.id][socket.id] = wrapper;
-        this.registeredSockets_by_id[socket.id] = wrapper;
 
         this.registereduid_by_socketid[socket.id] = session.uid;
         this.registeredclient_tab_id_by_socketid[socket.id] = client_tab_id;
@@ -138,6 +153,7 @@ export default class PushDataServerController {
 
         try {
 
+            delete this.registeredSockets_by_sessionid[session.id][socket.id];
             delete this.registeredSockets_by_id[socket.id];
             delete this.registereduid_by_socketid[socket.id];
             delete this.registeredclient_tab_id_by_socketid[socket.id];
@@ -199,26 +215,48 @@ export default class PushDataServerController {
      * WARN : Only on main thread (express).
      * @param session
      */
-    public unregisterSession(session: IServerUserSession) {
+    public async unregisterSession(session: IServerUserSession, notify_redirect: boolean = true) {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
+        await this.notifyRedirectHomeAndDisconnect();
+
+        if (this.registeredSockets_by_sessionid[session.id]) {
+            delete this.registeredSockets_by_sessionid[session.id];
+        }
+
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
-        this.notifyRedirectHomeAndDisconnect(session.uid);
 
         // No user or session, don't save this socket
         if ((!session) || (!session.id) || (!session.uid)) {
             return;
         }
 
-        if (!this.registeredSessions[session.uid]) {
-            return;
+        if (this.registeredSessions[session.uid] && this.registeredSessions[session.uid][session.id]) {
+            delete this.registeredSessions[session.uid][session.id];
         }
-        if (!this.registeredSessions[session.uid][session.id]) {
-            return;
-        }
-        delete this.registeredSessions[session.uid][session.id];
     }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param session
+     */
+    public async unregisterUserSession(session: IServerUserSession) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        if (!session.uid) {
+            return;
+        }
+
+        // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
+        await this.notifyRedirectHomeAndDisconnect();
+
+        if (this.registeredSessions[session.uid] && this.registeredSessions[session.uid][session.id]) {
+            delete this.registeredSessions[session.uid][session.id];
+        }
+    }
+
 
     /**
      * WARN : Only on main thread (express).
@@ -290,14 +328,23 @@ export default class PushDataServerController {
     /**
      * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      */
-    public async notifyRedirectHomeAndDisconnect(user_id: number) {
+    public async notifyRedirectHomeAndDisconnect() {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, user_id)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect)) {
             return;
         }
 
-        let notification: NotificationVO = this.getTechNotif(user_id, null, null, NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+        let notification: NotificationVO = null;
+        try {
+            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            notification = this.getTechNotif(
+                null, null,
+                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
         if (!notification) {
             return;
         }
@@ -305,6 +352,63 @@ export default class PushDataServerController {
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
+
+    /**
+     * On notifie une session pour forcer le rechargement de la page d'accueil suite connexion / changement de compte
+     */
+    public async notifyUserLoggedAndRedirectHome() {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome)) {
+            return;
+        }
+
+        let notification: NotificationVO = null;
+        try {
+            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            notification = this.getTechNotif(
+                null, null,
+                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        if (!notification) {
+            return;
+        }
+
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
+
+    // /**
+    //  * On notifie les sockets de la session qu'il faut un reload (exemple lors du login)
+    //  */
+    // public async notifyReload() {
+
+    //     // Permet d'assurer un lancement uniquement sur le main process
+    //     if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyReload)) {
+    //         return;
+    //     }
+
+    //     let notification: NotificationVO = null;
+    //     try {
+    //         let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+    //         notification = this.getTechNotif(
+    //             null, null,
+    //             Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_RELOAD);
+    //     } catch (error) {
+    //         ConsoleHandler.getInstance().error(error);
+    //     }
+
+    //     if (!notification) {
+    //         return;
+    //     }
+
+    //     await this.notify(notification);
+    //     await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    // }
 
     /**
      * On notifie un utilisateur, via son user_id et son client_tab_id pour notifier la fenêtre abonnée uniquement
@@ -432,7 +536,7 @@ export default class PushDataServerController {
             }
 
             promises.push((async () => {
-                await this.notifySimple(userId, null, msg_type, code_text, auto_read_if_connected);
+                await this.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected);
             })());
         }
         await Promise.all(promises);
@@ -450,7 +554,7 @@ export default class PushDataServerController {
             let user = users[i];
 
             promises.push((async () => {
-                await this.notifySimple(user.id, null, msg_type, code_text, auto_read_if_connected);
+                await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected);
             })());
         }
         await Promise.all(promises);
@@ -492,7 +596,7 @@ export default class PushDataServerController {
                 let user = users[i];
 
                 promises.push((async () => {
-                    await this.notifySimple(user.id, null, msg_type, code_text, auto_read_if_connected);
+                    await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected);
                 })());
             }
         } catch (error) {
@@ -501,13 +605,28 @@ export default class PushDataServerController {
         await Promise.all(promises);
     }
 
+    public async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
+            return;
+        }
+
+        try {
+            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
+                null, null, notif_type, code_text, true);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+    }
+
     public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
-        await this.notifySimple(user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected);
     }
 
     public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
@@ -516,7 +635,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await this.notifySimple(user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected);
     }
 
     public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
@@ -525,7 +644,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await this.notifySimple(user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected);
     }
 
     public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
@@ -534,7 +653,7 @@ export default class PushDataServerController {
             return;
         }
 
-        await this.notifySimple(user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected);
     }
 
     public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string): Promise<string> {
@@ -580,9 +699,9 @@ export default class PushDataServerController {
         });
     }
 
-    private async notifySimple(user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
+    private async notifySimple(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
 
-        if ((!user_id) || (msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
+        if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
         }
 
@@ -592,6 +711,7 @@ export default class PushDataServerController {
         notification.simple_notif_type = msg_type;
         notification.notification_type = NotificationVO.TYPE_NOTIF_SIMPLE;
         notification.read = false;
+        notification.socket_ids = socket_ids;
         notification.user_id = user_id;
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = auto_read_if_connected;
@@ -610,19 +730,23 @@ export default class PushDataServerController {
 
         try {
 
-            if ((!notification.user_id) && (!notification.socket_id)) {
-                return;
-            }
-
             // Broadcast to user's sessions or save in DB if no session available
 
             let socketWrappers: SocketWrapper[] = null;
-            if (!notification.socket_id) {
+            if ((!notification.socket_ids) || (!notification.socket_ids.length)) {
+                if (!notification.user_id) {
+                    return;
+                }
                 socketWrappers = this.getUserSockets(notification.user_id, notification.client_tab_id);
             } else {
-                socketWrappers = [this.registeredSockets_by_id[notification.socket_id]];
+                socketWrappers = notification.socket_ids.map((socket_id: string) => this.registeredSockets_by_id[socket_id]);
             }
             notification.read = false;
+
+            if (socketWrappers && socketWrappers.length) {
+
+                socketWrappers = socketWrappers.filter((s) => !!s);
+            }
 
             if (socketWrappers && socketWrappers.length) {
 
@@ -634,7 +758,7 @@ export default class PushDataServerController {
             }
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
-            if (notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE) {
+            if ((notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE) && (notification.user_id)) {
                 let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(notification);
                 if (res && res.id) {
                     notification.id = res.id;
@@ -648,6 +772,10 @@ export default class PushDataServerController {
 
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
+
+                    if (!socketWrapper) {
+                        continue;
+                    }
                     socketWrapper.socket.emit(notification_type, notification);
                 }
             }
@@ -668,7 +796,7 @@ export default class PushDataServerController {
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
         notification.read = false;
-        notification.socket_id = socket_id;
+        notification.socket_ids = socket_id ? [socket_id] : null;
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
@@ -676,18 +804,14 @@ export default class PushDataServerController {
         return notification;
     }
 
-    private getTechNotif(user_id: number, client_tab_id: string, socket_id: string, marker: string): NotificationVO {
-
-        if (!user_id) {
-            return null;
-        }
+    private getTechNotif(user_id: number, client_tab_id: string, socket_ids: string[], marker: string): NotificationVO {
 
         let notification: NotificationVO = new NotificationVO();
 
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_TECH;
         notification.read = false;
-        notification.socket_id = socket_id;
+        notification.socket_ids = socket_ids;
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;

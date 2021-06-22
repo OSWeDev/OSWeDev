@@ -3,6 +3,8 @@ import ModuleNFCConnect from "../../../../../shared/modules/NFCConnect/ModuleNFC
 import NFCTagVO from "../../../../../shared/modules/NFCConnect/vos/NFCTagVO";
 import VueComponentBase from "../../VueComponentBase";
 import './NFCUserTagListComponent.scss';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import NFCHandler from "../NFCHandler";
 
 @Component({
     template: require('./NFCUserTagListComponent.pug')
@@ -10,6 +12,7 @@ import './NFCUserTagListComponent.scss';
 export default class NFCUserTagListComponent extends VueComponentBase {
 
     private user_tags: NFCTagVO[] = [];
+    private has_access_to_nfc: boolean = false;
 
     private async delete_user_tag(tag: NFCTagVO) {
         await ModuleNFCConnect.getInstance().remove_user_tag(tag.name);
@@ -21,6 +24,11 @@ export default class NFCUserTagListComponent extends VueComponentBase {
     }
 
     private async mounted() {
+        this.has_access_to_nfc = NFCHandler.getInstance().has_access_to_nfc;
+
+        if (!this.has_access_to_nfc) {
+            return;
+        }
         this.user_tags = await ModuleNFCConnect.getInstance().get_own_tags();
     }
 }

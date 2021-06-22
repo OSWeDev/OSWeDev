@@ -6,11 +6,13 @@ import VueComponentBase from '../../../ts/components/VueComponentBase';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
+import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
     components: {
-        Nfcconnectlogincomponent: NFCConnectLoginComponent
+        Nfcconnectlogincomponent: NFCConnectLoginComponent,
+        Sessionsharecomponent: SessionShareComponent
     }
 })
 export default class AccessPolicyLoginComponent extends VueComponentBase {
@@ -55,9 +57,10 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             this.snotify.error(this.label('login.failed'));
             this.password = "";
             this.message = this.label('login.failed.message');
-        } else {
-            window.location = this.redirect_to as any;
         }
+        /*else {
+            window.location = this.redirect_to as any;
+        }*/
     }
 
     get nfcconnect_available() {

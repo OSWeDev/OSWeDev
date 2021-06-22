@@ -21,11 +21,58 @@ export default class TemplateHandlerServer {
     public async prepareHTML(template: string, lang_id: number, vars: { [name: string]: string } = null): Promise<string> {
 
         // Les trads peuvent contenir des envs params
+        template = this.resolveEnvConditions(template);
+        template = this.resolveVarConditions(template, vars);
         template = await this.replaceTrads(template, lang_id);
         template = this.replaceEnvParams(template);
 
         if (vars) {
             template = this.replaceVars(template, vars);
+        }
+
+        return template;
+    }
+
+    /**
+     * Format §§IFENV_ENVPARAMNAME§§then§§else§§
+     * Test booleen sur le param, incluant son existence et sa non nullité
+     */
+    public resolveEnvConditions(template: string): string {
+        let regExp = new RegExp('§§IFENV_([^§ ]+)§§([^§]+)§§([^§]+)§§', 'i');
+        let env: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+        while (regExp.test(template)) {
+            let regexpres: string[] = regExp.exec(template);
+            let varname: string = regexpres[1];
+            let then_: string = regexpres[2];
+            let else_: string = regexpres[3];
+
+            if (varname && env[varname] && then_ && else_) {
+                template = template.replace(regExp, (!!env[varname] ? then_ : else_));
+            } else {
+                template = template.replace(regExp, '');
+            }
+        }
+
+        return template;
+    }
+
+    /**
+     * Format §§IFVAR_VARNAME§§then§§else§§
+     * Test booleen sur le param, incluant son existence et sa non nullité
+     */
+    public resolveVarConditions(template: string, vars: { [name: string]: string }): string {
+        let regExp = new RegExp('§§IFVAR_([^§ ]+)§§([^§]*)§§([^§]*)§§', 'i');
+        while (regExp.test(template)) {
+            let regexpres: string[] = regExp.exec(template);
+            let varname: string = regexpres[1];
+            let then_: string = regexpres[2];
+            let else_: string = regexpres[3];
+
+            if (varname) {
+                template = template.replace(regExp, (!!(vars && vars[varname]) ? then_ : else_));
+            } else {
+                template = template.replace(regExp, '');
+            }
         }
 
         return template;

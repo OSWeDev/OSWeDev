@@ -5,6 +5,7 @@ import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIPara
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
@@ -62,11 +63,15 @@ export default class ModuleAPIServer extends ModuleServerBase {
             }
 
             let param: IAPIParamTranslator<T> = null;
+            let has_params = false;
+
             if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
                 ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
                 param = APIControllerWrapper.getInstance().try_translate_vo_from_api(req.body);
+                has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.body);
             } else if (api.param_translator && api.param_translator.fromREQ) {
                 try {
+                    has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.params);
                     param = api.param_translator.fromREQ(req);
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
@@ -78,7 +83,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             let params = (param && api.param_translator) ? api.param_translator.getAPIParams(param) : [param];
             let returnvalue = null;
             try {
-                if (params && params.length && res) {
+                if (has_params && params && params.length) {
                     params.push(res);
                 } else if (res) {
                     params = [res];
