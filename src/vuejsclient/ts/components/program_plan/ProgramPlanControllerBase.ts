@@ -52,6 +52,7 @@ export default abstract class ProgramPlanControllerBase {
         public use_print_component: boolean = true,
         public show_calendar: boolean = true,
         public show_targets_pp: boolean = true,
+        public show_rdv_historic: boolean = true,
     ) {
         ProgramPlanControllerBase.controller_by_name[name] = this;
     }
