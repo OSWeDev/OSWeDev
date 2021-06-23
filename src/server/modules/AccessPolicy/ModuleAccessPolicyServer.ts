@@ -1404,7 +1404,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
         let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [vo.email]);
         if (!!user) {
-            ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+            await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
             return false;
         }
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
@@ -1695,7 +1695,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let uid: number = StackContext.getInstance().get('UID');
         let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
-        PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
+        await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {

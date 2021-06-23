@@ -753,7 +753,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error(error);
             let uid: number = StackContext.getInstance().get('UID');
             let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
-            PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.truncate.error', true);
+            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.truncate.error', true);
         }
     }
 
@@ -3374,12 +3374,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return null;
     }
 
-    private refuse(params: { [uid: number]: { [CLIENT_TAB_ID: string]: boolean } }) {
+    private async refuse(params: { [uid: number]: { [CLIENT_TAB_ID: string]: boolean } }) {
 
         for (let uid_s in params) {
             let uid: number = parseInt(uid_s.toString());
             for (let CLIENT_TAB_ID in params[uid]) {
-                PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.global_update_blocker.actif', true);
+                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.global_update_blocker.actif', true);
             }
         }
         ConsoleHandler.getInstance().warn("global_update_blocker actif");

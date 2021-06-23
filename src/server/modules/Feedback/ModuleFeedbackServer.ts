@@ -299,13 +299,13 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
 
-            response = await trello_api.card.create({
-                name: feedback.title,
-                desc: trello_message,
-                pos: 'top',
-                idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
-                idLabels: [label_id],
-            });
+            // response = await trello_api.card.create({
+            //     name: feedback.title,
+            //     desc: trello_message,
+            //     pos: 'top',
+            //     idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
+            //     idLabels: [label_id],
+            // });
 
             // Faire le lien entre le feedback en base et le Trello
             feedback.trello_ref = response;
@@ -315,12 +315,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
 
-            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success');
+            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success');
 
             return true;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
-            PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error');
+            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error');
             return false;
         }
     }

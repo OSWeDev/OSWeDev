@@ -88,7 +88,7 @@ export default class DataExportBGThread implements IBGThread {
         try {
 
             if (!!exhi.export_to_uid) {
-                PushDataServerController.getInstance().notifySimpleINFO(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.start");
+                await PushDataServerController.getInstance().notifySimpleINFO(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.start");
             }
 
             let datas: IExportableDatas = await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].prepare_datas(exhi);
@@ -112,7 +112,7 @@ export default class DataExportBGThread implements IBGThread {
             await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 
             if (!!exhi.export_to_uid) {
-                PushDataServerController.getInstance().notifySimpleSUCCESS(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.success");
+                await PushDataServerController.getInstance().notifySimpleSUCCESS(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.success");
             }
 
             return true;
@@ -122,7 +122,7 @@ export default class DataExportBGThread implements IBGThread {
             await this.failExport(exhi);
 
             if (!!exhi.export_to_uid) {
-                PushDataServerController.getInstance().notifySimpleERROR(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.failed");
+                await PushDataServerController.getInstance().notifySimpleERROR(exhi.export_to_uid, null, "DataExportBGThread.handleHistoric.failed");
             }
 
             return false;

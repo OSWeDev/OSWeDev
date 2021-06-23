@@ -77,7 +77,7 @@ export default class VarsDatasVoUpdateHandler {
                 let uid: number = StackContext.getInstance().get('UID');
                 let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
                 if (uid) {
-                    PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_vars_datas_vo_update_cache.done', true);
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'force_empty_vars_datas_vo_update_cache.done', true);
                 }
                 ConsoleHandler.getInstance().warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
                 return;

@@ -118,7 +118,7 @@ export default class VarsTabsSubsController {
         for (let socketid in datas_by_socketid_for_notif) {
 
             // datas_by_socketid_for_notif[socketid].forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.2:' + vd.index + ':'));
-            PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
+            await PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
         }
         return true;
     }
