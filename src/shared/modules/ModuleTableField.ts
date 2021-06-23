@@ -348,7 +348,7 @@ export default class ModuleTableField<T> {
     }
 
     public getPGSqlFieldConstraint() {
-        if (!this.has_relation) {
+        if (!this.has_single_relation) {
             return null;
         }
         if (this.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
@@ -377,6 +377,17 @@ export default class ModuleTableField<T> {
         this.index();
 
         return this;
+    }
+
+    get has_single_relation() {
+        if ((this.field_type != ModuleTableField.FIELD_TYPE_file_ref) &&
+            (this.field_type != ModuleTableField.FIELD_TYPE_foreign_key) &&
+            (this.field_type != ModuleTableField.FIELD_TYPE_image_ref) &&
+            (this.field_type != ModuleTableField.FIELD_TYPE_int)) {
+            return false;
+        }
+
+        return true;
     }
 
     public isAcceptableCurrentDBType(db_type: string): boolean {

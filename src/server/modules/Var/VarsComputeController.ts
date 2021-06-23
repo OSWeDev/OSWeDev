@@ -392,7 +392,7 @@ export default class VarsComputeController {
 
                     let actual_time = moment().utc(true).unix();
 
-                    if (actual_time > (start_time + 1000 * 60)) {
+                    if (actual_time > (start_time + 60)) {
                         start_time = actual_time;
                         ConsoleHandler.getInstance().warn('VarsComputeController:create_tree:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                     }
@@ -441,7 +441,7 @@ export default class VarsComputeController {
 
                     let actual_time = moment().utc(true).unix();
 
-                    if (actual_time > (start_time + 1000 * 60)) {
+                    if (actual_time > (start_time + 60)) {
                         start_time = actual_time;
                         ConsoleHandler.getInstance().warn('VarsComputeController:handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                     }

@@ -266,7 +266,7 @@ export default class ModuleTableDBService {
         for (let i in fields_by_field_id) {
             let field = fields_by_field_id[i];
 
-            if (!field.has_relation) {
+            if (!field.has_single_relation) {
                 continue;
             }
 
@@ -498,7 +498,7 @@ export default class ModuleTableDBService {
             if (field.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
                 continue;
             }
-            if (field.has_relation) {
+            if (field.has_single_relation) {
                 pgSQL += ', ' + field.getPGSqlFieldConstraint();
             }
         }

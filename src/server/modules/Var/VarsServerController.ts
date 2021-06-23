@@ -90,6 +90,10 @@ export default class VarsServerController {
      */
     public has_valid_value(param: VarDataBaseVO): boolean {
 
+        if (!param) {
+            return false;
+        }
+
         if (param.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) {
             return true;
         }

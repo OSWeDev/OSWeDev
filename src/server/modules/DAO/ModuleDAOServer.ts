@@ -49,6 +49,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -1058,6 +1059,58 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
+    /**
+     * Fonction qui vérifie chaque champ de foreign ref et qui si la bdd ne gère pas la foreign key le fait (vérifie
+     * que l'id ciblé existe bien, sinon on refuse l'insertion)
+     */
+    private async filterByForeignKeys<T extends IDistantVOBase>(vos: T[]): Promise<T[]> {
+        let res: T[] = [];
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+            if (!moduleTable) {
+                return null;
+            }
+
+            let fields = moduleTable.get_fields();
+            let refuse: boolean = false;
+            for (let j in fields) {
+                let field = fields[j];
+
+                if ((!field.has_relation) || field.has_single_relation) {
+                    // géré par la bdd directement
+                    continue;
+                }
+
+                refuse = true;
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+
+                        let targets: IDistantVOBase[] = await this.getVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
+                        if (targets.length == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                            refuse = false;
+                        }
+                        break;
+                    default:
+                }
+
+                if (refuse) {
+                    break;
+                }
+            }
+
+            if (!refuse) {
+                res.push(vo);
+            }
+        }
+
+        return res;
+    }
+
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
         if (this.global_update_blocker) {
@@ -1091,6 +1144,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
         vos = tmp_vos;
+
+        vos = await this.filterByForeignKeys(vos);
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
 
         let self = this;
 
@@ -1234,6 +1292,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         vo = tmp_vo;
 
+        let vos = await this.filterByForeignKeys([vo]);
+
+        if ((!vos) || (vos.length != 1)) {
+            return null;
+        }
+
         return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
             let isUpdate: boolean = vo.id ? true : false;
@@ -1363,7 +1427,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  ça directement applicativement => attention à l'impact sur les perfs. L'objectif est surtout de s'assurer qu'on
                  *  appelle bien tous les triggers et entre autre les droits de suppression des dépendances
                  */
-                let deps: VocusInfoVO[] = await ModuleVocus.getInstance().getVosRefsById(vo._type, vo.id);
+                let deps: VocusInfoVO[] = await ModuleVocusServer.getInstance().getVosRefsById(vo._type, vo.id, null, null);
 
                 // Si on a une interdiction de supprimer un item à mi-chemin, il faudrait restaurer tout ceux qui ont été supprimés
                 //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
@@ -1778,6 +1842,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+
                 let numrange_ids: NumRange[] = [];
 
                 for (let i in ids) {

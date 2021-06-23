@@ -134,7 +134,7 @@ export default class VarsImportsHandler {
 
             let actual_time = moment().utc(true).unix();
 
-            if (actual_time > (start_time + 1000 * 60)) {
+            if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
                 ConsoleHandler.getInstance().warn('VarsImportsHandler:get_selection_imports:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }

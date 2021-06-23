@@ -247,9 +247,7 @@ export default abstract class ModuleServiceBase {
 
                 await ModuleDBService.getInstance(db).loadParams(registered_module);
 
-                setTimeout(function () {
-                    ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
-                }, ModuleDBService.reloadParamsTimeout);
+                ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
             }
 
             // On appelle le hook de fin d'installation

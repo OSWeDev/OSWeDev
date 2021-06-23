@@ -2,6 +2,7 @@ import { fork } from 'child_process';
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -80,7 +81,7 @@ export default class ForkServerController {
         /**
          * On met en place un thread sur le master qui check le status régulièrement des forked (en tentant d'envoyer un alive)
          */
-        setTimeout(this.checkForksAvailability.bind(this), 10000);
+        this.checkForksAvailability();
     }
 
     public reload_unavailable_threads() {
@@ -199,16 +200,19 @@ export default class ForkServerController {
 
     private async checkForksAvailability() {
 
-        for (let i in this.forks) {
-            let forked: IFork = this.forks[i];
+        while (true) {
 
-            if (!this.forks_availability[i]) {
-                continue;
+            await ThreadHandler.getInstance().sleep(10000);
+
+            for (let i in this.forks) {
+                let forked: IFork = this.forks[i];
+
+                if (!this.forks_availability[i]) {
+                    continue;
+                }
+
+                ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
             }
-
-            ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
         }
-
-        setTimeout(this.checkForksAvailability.bind(this), 10000);
     }
 }

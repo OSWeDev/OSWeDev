@@ -62,6 +62,11 @@ export default class ModulePushDataServer extends ModuleServerBase {
         }, PushDataServerController.NOTIFY_USER_LOGGED));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'La page va être rechargée automatiquement...'
+        }, PushDataServerController.NOTIFY_RELOAD));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Aucune notification en attente'
         }, 'UserNotifsViewerComponent.placeholder.___LABEL___'));
 

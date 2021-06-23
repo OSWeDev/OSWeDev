@@ -370,7 +370,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             await VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
-            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
+            VarsdatasComputerBGThread.getInstance().force_run_asap();
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -386,7 +386,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             await VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
-            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
+            VarsdatasComputerBGThread.getInstance().force_run_asap();
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -782,7 +782,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 await ThreadHandler.getInstance().sleep(10000);
                 let actual_time = moment().utc(true).unix();
 
-                if (actual_time > (start_time + 1000 * 60)) {
+                if (actual_time > (start_time + 60)) {
                     start_time = actual_time;
                     ConsoleHandler.getInstance().warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                 }

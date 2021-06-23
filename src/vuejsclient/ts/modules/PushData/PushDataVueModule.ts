@@ -416,7 +416,13 @@ export default class PushDataVueModule extends VueModuleBase {
                                 break;
 
                             case NotificationVO.TECH_RELOAD:
-                                location.reload();
+                                let content_reload = LocaleManager.getInstance().i18n.t('PushDataServerController.reload.___LABEL___');
+                                VueAppBase.instance_.vueInstance.snotify.warning(content_reload, {
+                                    timeout: 3000
+                                });
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 3000);
                                 break;
 
                             default:

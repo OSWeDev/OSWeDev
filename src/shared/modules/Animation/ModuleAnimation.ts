@@ -270,12 +270,20 @@ export default class ModuleAnimation extends Module {
     }
 
     private initializeThemeModuleDataRangesVO() {
+        let theme_id_ranges = new ModuleTableField('theme_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Themes', true);
+        let module_id_ranges = new ModuleTableField('module_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Modules', true);
+        let user_id_ranges = new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Users', true);
+
         let datatable_fields = [
-            new ModuleTableField('theme_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Themes'),
-            new ModuleTableField('module_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Modules'),
-            new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Users'),
+            theme_id_ranges,
+            module_id_ranges,
+            user_id_ranges
         ];
 
         VarsInitController.getInstance().register_var_data(ThemeModuleDataRangesVO.API_TYPE_ID, () => new ThemeModuleDataRangesVO(), datatable_fields, this);
+
+        theme_id_ranges.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
+        module_id_ranges.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
+        user_id_ranges.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 }

@@ -1,4 +1,6 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsDatasProxy from './VarsDatasProxy';
 
@@ -53,9 +55,17 @@ export default class VarsServerCallBackSubsController {
             }
 
             let waiting_nb = params.length;
+            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                ConsoleHandler.getInstance().log("get_vars_datas:waiting_nb:IN:" + waiting_nb);
+            }
+
             let cb = (data: VarDataBaseVO) => {
                 res[data.index] = data;
                 waiting_nb--;
+
+                if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log("get_vars_datas:waiting_nb:OUT:" + waiting_nb);
+                }
 
                 if (waiting_nb <= 0) {
                     resolve(res);

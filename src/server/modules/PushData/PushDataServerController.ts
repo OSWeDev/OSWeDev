@@ -16,6 +16,7 @@ import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
+import VarsTabsSubsController from '../Var/VarsTabsSubsController';
 import SocketWrapper from './vos/SocketWrapper';
 
 export default class PushDataServerController {
@@ -24,6 +25,7 @@ export default class PushDataServerController {
 
     public static NOTIFY_SESSION_INVALIDATED: string = 'PushDataServerController.session_invalidated' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     public static NOTIFY_USER_LOGGED: string = 'PushDataServerController.user_logged' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public static NOTIFY_RELOAD: string = 'PushDataServerController.reload' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
 
     public static TASK_NAME_notifyRedirectHomeAndDisconnect: string = 'PushDataServerController' + '.notifyRedirectHomeAndDisconnect';
     public static TASK_NAME_notifyUserLoggedAndRedirectHome: string = 'PushDataServerController' + '.notifyUserLoggedAndRedirectHome';
@@ -43,7 +45,8 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyPrompt: string = 'PushDataServerController' + '.notifyPrompt';
     public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
-
+    public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
+    public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
@@ -90,6 +93,9 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
         // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
+
     }
 
     /**
@@ -379,6 +385,58 @@ export default class PushDataServerController {
 
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
+    /**
+     * On notifie une tab pour reload
+     */
+    public async notifyTabReload(UID: number, CLIENT_TAB_ID: string) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyTabReload)) {
+            return;
+        }
+
+        let notification: NotificationVO = null;
+        try {
+            notification = this.getTechNotif(
+                UID, CLIENT_TAB_ID,
+                null, NotificationVO.TECH_RELOAD);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        if (!notification) {
+            return;
+        }
+
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
+    /**
+     * On notifie toutes les tabs subscribed à cet index pour reload
+     */
+    public async notifyVarsTabsReload(var_index: string) {
+
+        // Permet d'assurer un lancement uniquement sur le main process
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+                PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
+                return;
+            }
+
+            let tabs: { [user_id: number]: { [client_tab_id: string]: boolean } } = VarsTabsSubsController.getInstance().get_subscribed_tabs_ids(var_index);
+            for (let uid in tabs) {
+                let tab = tabs[uid];
+
+                for (let tabid in tab) {
+                    await this.notifyTabReload(parseInt(uid.toString()), tabid);
+                }
+            }
+            resolve(true);
+        });
     }
 
 

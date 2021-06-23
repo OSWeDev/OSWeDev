@@ -179,7 +179,7 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if ((var_data.last_reads_ts.length <= 1) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isBefore(moment().utc(true).add(-max_second_earliest_read_days, 'days')))) {
+                        if ((var_data.last_reads_ts.length > 1) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isBefore(moment().utc(true).add(-max_second_earliest_read_days, 'days')))) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
@@ -187,11 +187,11 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isAfter(moment().utc(true).add(-min_second_earliest_read_days, 'days'))) {
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 2] && var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isAfter(moment().utc(true).add(-min_second_earliest_read_days, 'days'))) {
                             continue;
                         }
 
-                        if ((var_data.last_reads_ts.length <= 2) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isBefore(moment().utc(true).add(-max_third_earliest_read_days, 'days')))) {
+                        if ((var_data.last_reads_ts.length > 2) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isBefore(moment().utc(true).add(-max_third_earliest_read_days, 'days')))) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
@@ -199,11 +199,11 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isAfter(moment().utc(true).add(-min_third_earliest_read_days, 'days'))) {
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 3] && var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isAfter(moment().utc(true).add(-min_third_earliest_read_days, 'days'))) {
                             continue;
                         }
 
-                        if ((var_data.last_reads_ts.length <= 3) || (var_data.last_reads_ts[var_data.last_reads_ts.length - 4].isBefore(moment().utc(true).add(-max_thourth_earliest_read_days, 'days')))) {
+                        if ((var_data.last_reads_ts.length > 3) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 4].isBefore(moment().utc(true).add(-max_thourth_earliest_read_days, 'days')))) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }

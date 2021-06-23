@@ -1,5 +1,6 @@
 import Module from '../../shared/modules/Module';
 import ModuleParamChange from '../../shared/modules/ModuleParamChange';
+import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleTableDBService from './ModuleTableDBService';
 
@@ -47,16 +48,16 @@ export default class ModuleDBService {
 
     public async reloadParamsThread(module: Module) {
 
-        let self = this;
-        let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
+        while (true) {
 
-        if (paramsChanged && paramsChanged.length) {
-            await module.hook_module_on_params_changed(paramsChanged);
+            await ThreadHandler.getInstance().sleep(ModuleDBService.reloadParamsTimeout);
+
+            let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
+
+            if (paramsChanged && paramsChanged.length) {
+                await module.hook_module_on_params_changed(paramsChanged);
+            }
         }
-
-        setTimeout(function () {
-            self.reloadParamsThread(module);
-        }, ModuleDBService.reloadParamsTimeout);
     }
 
     // Dernière étape : Configure
@@ -192,13 +193,10 @@ export default class ModuleDBService {
     // ETAPE 5 de l'installation
     private async module_install_end(module: Module) {
         // console.log(module.name + " - install - ETAPE 5");
-        let self = this;
 
         // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
         if (module.fields && (module.fields.length > 0)) {
-            setTimeout(function () {
-                self.reloadParamsThread(module);
-            }, ModuleDBService.reloadParamsTimeout);
+            this.reloadParamsThread(module);
         }
 
         // On appelle le hook de fin d'installation

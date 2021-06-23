@@ -258,7 +258,7 @@ export default class VarsDatasVoUpdateHandler {
 
             let actual_time = moment().utc(true).unix();
 
-            if (actual_time > (start_time + 1000 * 60)) {
+            if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
                 ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:compute_intersectors:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
@@ -442,7 +442,7 @@ export default class VarsDatasVoUpdateHandler {
 
             let actual_time = moment().utc(true).unix();
 
-            if (actual_time > (start_time + 1000 * 60)) {
+            if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
                 ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }

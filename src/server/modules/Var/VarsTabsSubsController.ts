@@ -32,6 +32,10 @@ export default class VarsTabsSubsController {
         ForkedTasksController.getInstance().register_task(VarsTabsSubsController.TASK_NAME_filter_by_subs, this.filter_by_subs.bind(this));
     }
 
+    public get_subscribed_tabs_ids(index: string): { [user_id: number]: { [client_tab_id: string]: boolean } } {
+        return this._tabs_subs[index];
+    }
+
     /**
      * WARN : Only on main thread (express).
      */

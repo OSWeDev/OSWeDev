@@ -92,14 +92,14 @@ export default class ModuleVocusServer extends ModuleServerBase {
      * Objectif: Renvoyer tous les IDistantVoBase qui sont liées à ce vo (par type + id) par une liaison 1/n, n/1 ou n/n
      * TODO : (dans le cas du n/n on pourrait renvoyer directement la cible finale, pas le vo de la table n/n)
      */
-    private async getVosRefsById(
+    public async getVosRefsById(
         API_TYPE_ID: string,
         id: number,
-        segmentation_ranges: Array<IRange<any>> = null
+        segmentation_ranges: Array<IRange<any>> = null,
+        limit: number = 1000
     ): Promise<VocusInfoVO[]> {
 
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
-        let limit = 1000;
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -166,12 +166,14 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
                 res_map[refvo._type][refvo.id] = tmp;
 
-                limit--;
-                if (limit <= 0) {
-                    break;
+                if (!!limit) {
+                    limit--;
+                    if (limit <= 0) {
+                        break;
+                    }
                 }
             }
-            if (limit <= 0) {
+            if ((limit != null) && (limit <= 0)) {
                 break;
             }
         }
