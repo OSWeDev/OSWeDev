@@ -315,12 +315,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
 
-            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success');
+            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
             return true;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
-            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error');
+            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return false;
         }
     }
