@@ -172,20 +172,21 @@ export default class ModuleDBService {
     private async create_datas_tables(module: Module) {
         // console.log(module.name + " - install - ETAPE 4");
 
-        let promises = [];
+        // let promises = [];
         for (let i in module.datatables) {
             let datatable = module.datatables[i];
 
-            if (promises && (promises.length >= 10)) {
-                await Promise.all(promises);
-                promises = [];
-            }
+            // if (promises && (promises.length >= 10)) {
+            //     await Promise.all(promises);
+            //     promises = [];
+            // }
 
-            promises.push(ModuleTableDBService.getInstance(this.db).datatable_install(datatable));
+            await ModuleTableDBService.getInstance(this.db).datatable_install(datatable);
+            // promises.push(ModuleTableDBService.getInstance(this.db).datatable_install(datatable));
         }
-        if (promises && promises.length) {
-            await Promise.all(promises);
-        }
+        // if (promises && promises.length) {
+        //     await Promise.all(promises);
+        // }
 
         await this.module_install_end(module);
     }
