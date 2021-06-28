@@ -324,6 +324,7 @@ export default class VarsDatasVoUpdateHandler {
                         }
                     }
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ---');
+
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ...');
                     for (let vos_update_buffer_i in vos_update_buffer) {
                         let vos = vos_update_buffer[vos_update_buffer_i];
@@ -336,6 +337,25 @@ export default class VarsDatasVoUpdateHandler {
                         }
                     }
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ---');
+
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ...');
+                    for (let var_id in ctrls_to_update_1st_stage) {
+                        let var_: VarServerControllerBase<VarDataBaseVO> = ctrls_to_update_1st_stage[var_id];
+
+                        ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ---');
+
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ...');
+                    for (let var_id in intersectors_by_var_id) {
+                        let vos = intersectors_by_var_id[var_id];
+
+                        for (let index in vos) {
+
+                            ConsoleHandler.getInstance().error(var_id + ':' + index);
+                        }
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ---');
 
                     let tmp_ctrls_to_update_1st_stage_ = Object.assign({}, ctrls_to_update_1st_stage);
                     for (let i in tmp_ctrls_to_update_1st_stage_) {
