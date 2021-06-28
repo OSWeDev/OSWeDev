@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import { Moment } from 'moment';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -139,7 +140,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 await this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
 
-                await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
+                await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage, vos_create_or_delete_buffer, vos_update_buffer);
 
                 // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
                 this.throttled_update_param();
@@ -153,7 +154,9 @@ export default class VarsDatasVoUpdateHandler {
 
     public async invalidate_datas_and_parents(
         intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
-        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = null
+        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = null,
+        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = null,
+        vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = null
     ) {
 
         await PerfMonServerController.getInstance().monitor_async(
@@ -174,7 +177,7 @@ export default class VarsDatasVoUpdateHandler {
                  */
                 let markers: { [var_id: number]: number } = {};
                 await this.init_markers(ctrls_to_update_1st_stage, markers);
-                await this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+                await this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
 
                 /**
                  * Une fois qu'on a tous les intercepteurs à appliquer, on charge tous les var_data correspondant de la base
@@ -249,7 +252,10 @@ export default class VarsDatasVoUpdateHandler {
     private async compute_intersectors(
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> },
         markers: { [var_id: number]: number },
-        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
+        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
+        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
+        vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }
+    ) {
 
         let start_time = moment().utc(true).unix();
         let real_start_time = start_time;
@@ -305,6 +311,31 @@ export default class VarsDatasVoUpdateHandler {
 
                 if (blocked) {
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: Check Vars Deps GRAPH - And build it ...');
+
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ...');
+                    for (let vos_create_or_delete_buffer_i in vos_create_or_delete_buffer) {
+                        let vos = vos_create_or_delete_buffer[vos_create_or_delete_buffer_i];
+
+                        for (let vo_i in vos) {
+                            let vo = vos[vo_i];
+
+                            ConsoleHandler.getInstance().error(
+                                JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].get_bdd_version(vo)));
+                        }
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ---');
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ...');
+                    for (let vos_update_buffer_i in vos_update_buffer) {
+                        let vos = vos_update_buffer[vos_update_buffer_i];
+
+                        for (let vo_i in vos) {
+                            let vo: DAOUpdateVOHolder<IDistantVOBase> = vos[vo_i];
+
+                            ConsoleHandler.getInstance().error(
+                                JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo.post_update_vo._type].get_bdd_version(vo.post_update_vo)));
+                        }
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ---');
 
                     let tmp_ctrls_to_update_1st_stage_ = Object.assign({}, ctrls_to_update_1st_stage);
                     for (let i in tmp_ctrls_to_update_1st_stage_) {

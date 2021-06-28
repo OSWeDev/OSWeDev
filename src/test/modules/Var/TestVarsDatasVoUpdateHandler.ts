@@ -48,7 +48,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({});
 
         vo_types = [];
@@ -62,7 +62,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: {
                 [FakeDataHandler.get_var_data_A().index]: FakeDataHandler.get_var_data_A()
@@ -83,7 +83,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: { [FakeDataHandler.get_var_data_A().index]: FakeDataHandler.get_var_data_A() },
             [FakeVarControllerDeps.getInstance().varConf.id]: {
@@ -102,7 +102,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: {
                 [FakeDataHandler.get_var_data_A2().index]: FakeDataHandler.get_var_data_A2()
@@ -123,7 +123,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: { [FakeDataHandler.get_var_data_A2_Update().index]: FakeDataHandler.get_var_data_A2_Update() },
             [FakeVarControllerDeps.getInstance().varConf.id]: { [FakeDepsDataHandler.get_ds_var_data_A2_Update_month().index]: FakeDepsDataHandler.get_ds_var_data_A2_Update_month() },
@@ -142,7 +142,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: { [FakeDataHandler.get_var_data_A2_Update().index]: FakeDataHandler.get_var_data_A2_Update() },
             [FakeVarControllerDeps.getInstance().varConf.id]: { [FakeDepsDataHandler.get_ds_var_data_A2_Update_month().index]: FakeDepsDataHandler.get_ds_var_data_A2_Update_month() },
@@ -159,7 +159,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({});
 
         vo_types = [];
@@ -173,7 +173,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({});
 
         vo_types = [];
@@ -187,7 +187,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         for (let i in intersectors_by_var_id) {
             let es = intersectors_by_var_id[i];
             for (let j in es) {
@@ -211,7 +211,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
         await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
         await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
-        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: { [FakeDataHandler.get_var_data_A().index]: FakeDataHandler.get_var_data_A() },
             [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: { [FakeEmpDayDataHandler.get_data_A().index]: FakeEmpDayDataHandler.get_data_A() },
