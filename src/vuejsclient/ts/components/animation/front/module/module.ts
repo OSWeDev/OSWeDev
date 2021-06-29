@@ -12,6 +12,7 @@ import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vo
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
@@ -57,6 +58,12 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private inline_input_mode: boolean = false;
     private has_access_inline_input_mode: boolean = false;
 
+    private themes: AnimationThemeVO[] = [];
+    private theme_id_ranges: NumRange[] = [];
+
+    private prct_atteinte_seuil_module_param: ThemeModuleDataRangesVO = null;
+    private prct_reussite_module_param: ThemeModuleDataRangesVO = null;
+
     @Watch('module_id')
     private async reloadAsyncDatas() {
         this.show_recap = false;
@@ -75,10 +82,31 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
+        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
         await Promise.all(promises);
+
+        for (let i in this.themes) {
+            this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
+        }
+
+        this.prct_atteinte_seuil_module_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
+            true,
+            this.theme_id_ranges,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+        );
+
+        this.prct_reussite_module_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
+            true,
+            this.theme_id_ranges,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+        );
 
         promises = [];
 
@@ -255,26 +283,6 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     get module_id(): number {
         return (this.$route.params && this.$route.params.module_id) ? parseInt(this.$route.params.module_id) : null;
-    }
-
-    get prct_atteinte_seuil_module_param(): ThemeModuleDataRangesVO {
-        return ThemeModuleDataRangesVO.createNew(
-            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
-            false,
-            [RangeHandler.getInstance().getMaxNumRange()],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
-        );
-    }
-
-    get prct_reussite_module_param(): ThemeModuleDataRangesVO {
-        return ThemeModuleDataRangesVO.createNew(
-            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
-            false,
-            [RangeHandler.getInstance().getMaxNumRange()],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
-        );
     }
 
     get prct_reussite_class(): string {
