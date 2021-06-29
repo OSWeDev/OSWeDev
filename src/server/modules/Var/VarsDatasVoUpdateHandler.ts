@@ -303,87 +303,108 @@ export default class VarsDatasVoUpdateHandler {
              */
             if (!did_something) {
                 let blocked = true;
+
+
+                // On essaie de libérer un des markers 'minimal' pour continuer de remonter depuis ce noeud
+                let min_value = null;
+                let min_ctrl_id = null;
                 for (let i in ctrls_to_update_1st_stage) {
                     let ctrl = ctrls_to_update_1st_stage[i];
 
-                    if (markers[ctrl.varConf.id] > 1) {
-                        blocked = false;
-                        markers[ctrl.varConf.id]--;
+                    if ((min_value === null) || ((markers[ctrl.varConf.id] > 0) && (min_value > markers[ctrl.varConf.id]))) {
+
+                        min_value = markers[ctrl.varConf.id];
+                        min_ctrl_id = ctrl.varConf.id;
                     }
                 }
 
+                if (min_ctrl_id) {
+
+                    markers[min_ctrl_id] = 1;
+                    blocked = false;
+                }
+
+                // for (let i in ctrls_to_update_1st_stage) {
+                //     let ctrl = ctrls_to_update_1st_stage[i];
+
+                //     if (markers[ctrl.varConf.id] > 1) {
+                //         blocked = false;
+                //         markers[ctrl.varConf.id]--;
+                //     }
+                // }
+
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: Check Vars Deps GRAPH - And build it ...');
+
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ...');
+                for (let vos_create_or_delete_buffer_i in vos_create_or_delete_buffer) {
+                    let vos = vos_create_or_delete_buffer[vos_create_or_delete_buffer_i];
+
+                    for (let vo_i in vos) {
+                        let vo = vos[vo_i];
+
+                        ConsoleHandler.getInstance().error(
+                            JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].get_bdd_version(vo)));
+                    }
+                }
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ---');
+
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ...');
+                for (let vos_update_buffer_i in vos_update_buffer) {
+                    let vos = vos_update_buffer[vos_update_buffer_i];
+
+                    for (let vo_i in vos) {
+                        let vo: DAOUpdateVOHolder<IDistantVOBase> = vos[vo_i];
+
+                        ConsoleHandler.getInstance().error(
+                            JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo.post_update_vo._type].get_bdd_version(vo.post_update_vo)));
+                    }
+                }
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ---');
+
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_ctrls_to_update_1st_stage ...');
+                // for (let var_id in original_ctrls_to_update_1st_stage) {
+                //     let var_: VarServerControllerBase<VarDataBaseVO> = original_ctrls_to_update_1st_stage[var_id];
+
+                //     ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
+                // }
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_ctrls_to_update_1st_stage ---');
+
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ...');
+                // for (let var_id in ctrls_to_update_1st_stage) {
+                //     let var_: VarServerControllerBase<VarDataBaseVO> = ctrls_to_update_1st_stage[var_id];
+
+                //     ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
+                // }
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ---');
+
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_markers ...');
+                // for (let var_id in original_markers) {
+                //     let e: number = original_markers[var_id];
+
+                //     ConsoleHandler.getInstance().error(var_id + ':' + e);
+                // }
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_markers ---');
+
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: markers ...');
+                // for (let var_id in markers) {
+                //     let e: number = markers[var_id];
+
+                //     ConsoleHandler.getInstance().error(var_id + ':' + e);
+                // }
+                // ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: markers ---');
+
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ...');
+                for (let var_id in intersectors_by_var_id) {
+                    let vos = intersectors_by_var_id[var_id];
+
+                    for (let index in vos) {
+
+                        ConsoleHandler.getInstance().error(var_id + ':' + index);
+                    }
+                }
+                ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ---');
+
                 if (blocked) {
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: Check Vars Deps GRAPH - And build it ...');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ...');
-                    for (let vos_create_or_delete_buffer_i in vos_create_or_delete_buffer) {
-                        let vos = vos_create_or_delete_buffer[vos_create_or_delete_buffer_i];
-
-                        for (let vo_i in vos) {
-                            let vo = vos[vo_i];
-
-                            ConsoleHandler.getInstance().error(
-                                JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].get_bdd_version(vo)));
-                        }
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ---');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ...');
-                    for (let vos_update_buffer_i in vos_update_buffer) {
-                        let vos = vos_update_buffer[vos_update_buffer_i];
-
-                        for (let vo_i in vos) {
-                            let vo: DAOUpdateVOHolder<IDistantVOBase> = vos[vo_i];
-
-                            ConsoleHandler.getInstance().error(
-                                JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo.post_update_vo._type].get_bdd_version(vo.post_update_vo)));
-                        }
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ---');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_ctrls_to_update_1st_stage ...');
-                    for (let var_id in original_ctrls_to_update_1st_stage) {
-                        let var_: VarServerControllerBase<VarDataBaseVO> = original_ctrls_to_update_1st_stage[var_id];
-
-                        ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_ctrls_to_update_1st_stage ---');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ...');
-                    for (let var_id in ctrls_to_update_1st_stage) {
-                        let var_: VarServerControllerBase<VarDataBaseVO> = ctrls_to_update_1st_stage[var_id];
-
-                        ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ---');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_markers ...');
-                    for (let var_id in original_markers) {
-                        let e: number = original_markers[var_id];
-
-                        ConsoleHandler.getInstance().error(var_id + ':' + e);
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_markers ---');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: markers ...');
-                    for (let var_id in markers) {
-                        let e: number = markers[var_id];
-
-                        ConsoleHandler.getInstance().error(var_id + ':' + e);
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: markers ---');
-
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ...');
-                    for (let var_id in intersectors_by_var_id) {
-                        let vos = intersectors_by_var_id[var_id];
-
-                        for (let index in vos) {
-
-                            ConsoleHandler.getInstance().error(var_id + ':' + index);
-                        }
-                    }
-                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ---');
-
                     let tmp_ctrls_to_update_1st_stage_ = Object.assign({}, ctrls_to_update_1st_stage);
                     for (let i in tmp_ctrls_to_update_1st_stage_) {
                         delete ctrls_to_update_1st_stage[i];
