@@ -22,6 +22,9 @@ import FakeVarControllerDeps from './fakes/FakeVarControllerDeps';
 import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
 import FakeDataVO from './fakes/vos/FakeDataVO';
+import FakeCyclicalDataHandler from './fakes/cyclical/FakeCyclicalDataHandler';
+import FakeVarControllerCyclA from './fakes/cyclical/FakeVarControllerCyclA';
+import FakeVarControllerCyclB from './fakes/cyclical/FakeVarControllerCyclB';
 
 describe('VarsDatasVoUpdateHandler', () => {
 
@@ -218,6 +221,74 @@ describe('VarsDatasVoUpdateHandler', () => {
             [FakeVarControllerDeps.getInstance().varConf.id]: { [FakeDepsDataHandler.get_ds_var_data_A_month().index]: FakeDepsDataHandler.get_ds_var_data_A_month() },
         });
     });
+
+
+    it('test compute_intersectors cyclical', async () => {
+        FakeCyclicalDataHandler.initializeFakeEmpDayDataVO();
+        await FakeVarControllerCyclA.getInstance().initialize();
+        await FakeVarControllerCyclB.getInstance().initialize();
+        await VarsController.getInstance().initializeasync({
+            [FakeVarControllerCyclA.getInstance().varConf.name]: FakeVarControllerCyclA.getInstance().varConf,
+            [FakeVarControllerCyclB.getInstance().varConf.name]: FakeVarControllerCyclB.getInstance().varConf,
+        });
+        VarsServerController.getInstance().init_varcontrollers_dag();
+
+        let vo_types: string[] = [];
+        let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
+        let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
+        let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+        let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
+        let markers: { [var_id: number]: number } = {};
+
+        VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+        await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+        await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
+        expect(intersectors_by_var_id).to.deep.equal({});
+
+        vo_types = [];
+        vos_update_buffer = {};
+        vos_create_or_delete_buffer = {};
+        intersectors_by_var_id = {};
+        ctrls_to_update_1st_stage = {};
+        markers = {};
+
+        VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud'] = [FakeEmpDistantHandler.get_distant_A()];
+        VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+        await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+        await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
+        expect(intersectors_by_var_id).to.deep.equal({
+            [FakeVarControllerCyclA.getInstance().varConf.id]: {
+                [FakeCyclicalDataHandler.get_data_A().index]: FakeCyclicalDataHandler.get_data_A()
+            },
+            [FakeVarControllerCyclB.getInstance().varConf.id]: {
+                [FakeCyclicalDataHandler.get_data_A_Var3().index]: FakeCyclicalDataHandler.get_data_A_Var3()
+            }
+        });
+
+        vo_types = [];
+        vos_update_buffer = {};
+        vos_create_or_delete_buffer = {};
+        intersectors_by_var_id = {};
+        ctrls_to_update_1st_stage = {};
+        markers = {};
+
+        VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud'] = [FakeEmpDistantHandler.get_distant_A()];
+        VarsDatasVoUpdateHandler.getInstance()['prepare_updates'](500, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+        await VarsDatasVoUpdateHandler.getInstance()['init_leaf_intersectors'](vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+        await VarsDatasVoUpdateHandler.getInstance()['init_markers'](ctrls_to_update_1st_stage, markers);
+        await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
+        expect(intersectors_by_var_id).to.deep.equal({
+            [FakeVarControllerCyclA.getInstance().varConf.id]: {
+                [FakeCyclicalDataHandler.get_data_A().index]: FakeCyclicalDataHandler.get_data_A()
+            },
+            [FakeVarControllerCyclB.getInstance().varConf.id]: {
+                [FakeCyclicalDataHandler.get_data_A_Var3().index]: FakeCyclicalDataHandler.get_data_A_Var3()
+            },
+        });
+    });
+
 
     it('test compute_deps_intersectors_and_union', async () => {
         FakeDataHandler.initializeFakeDataVO();

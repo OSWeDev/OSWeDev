@@ -260,6 +260,9 @@ export default class VarsDatasVoUpdateHandler {
         let start_time = moment().utc(true).unix();
         let real_start_time = start_time;
 
+        let original_markers = Object.assign({}, markers);
+        let original_ctrls_to_update_1st_stage = Object.assign({}, ctrls_to_update_1st_stage);
+
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
 
             let actual_time = moment().utc(true).unix();
@@ -338,6 +341,14 @@ export default class VarsDatasVoUpdateHandler {
                     }
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ---');
 
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_ctrls_to_update_1st_stage ...');
+                    for (let var_id in original_ctrls_to_update_1st_stage) {
+                        let var_: VarServerControllerBase<VarDataBaseVO> = original_ctrls_to_update_1st_stage[var_id];
+
+                        ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_ctrls_to_update_1st_stage ---');
+
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ...');
                     for (let var_id in ctrls_to_update_1st_stage) {
                         let var_: VarServerControllerBase<VarDataBaseVO> = ctrls_to_update_1st_stage[var_id];
@@ -345,6 +356,22 @@ export default class VarsDatasVoUpdateHandler {
                         ConsoleHandler.getInstance().error(var_id + ':' + var_.varConf.name);
                     }
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: ctrls_to_update_1st_stage ---');
+
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_markers ...');
+                    for (let var_id in original_markers) {
+                        let e: number = original_markers[var_id];
+
+                        ConsoleHandler.getInstance().error(var_id + ':' + e);
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: original_markers ---');
+
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: markers ...');
+                    for (let var_id in markers) {
+                        let e: number = markers[var_id];
+
+                        ConsoleHandler.getInstance().error(var_id + ':' + e);
+                    }
+                    ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: markers ---');
 
                     ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: intersectors_by_var_id ...');
                     for (let var_id in intersectors_by_var_id) {
