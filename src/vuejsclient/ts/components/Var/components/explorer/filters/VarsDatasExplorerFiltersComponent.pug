@@ -5,6 +5,7 @@
                 multiselect(
                     :preselect-first="false"
                     :multiple="true"
+                    :close-on-select="false"
                     v-model="fitered_vars_confs"
                     :placeholder="label('vars_datas_explorer_filters.vars_confs')"
                     :options="filterable_vars_confs"
@@ -41,6 +42,7 @@
                                 multiselect(
                                     :preselect-first="false"
                                     :multiple="true"
+                                    :close-on-select="false"
                                     v-model="fields_filters_list[field_id]"
                                     :placeholder="label('fields.labels.ref.'+fields[field_id].module_table.name+'.'+field_id)"
                                     :options="enum_initial_options[field_id]"

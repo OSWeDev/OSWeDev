@@ -15,6 +15,7 @@
     multiselect(
         :preselect-first="false",
         :multiple="true",
+        :close-on-select="false"
         v-model="field_value_refranges_selected_ids",
         :custom-label="field.voIdToHumanReadable",
         :options="select_options",
