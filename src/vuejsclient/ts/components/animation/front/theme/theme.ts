@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { Component, Prop } from "vue-property-decorator";
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
 import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAnimation";
@@ -6,6 +7,7 @@ import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/An
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
+import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
@@ -31,6 +33,9 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     private modules: AnimationModuleVO[];
 
     @Prop()
+    private themes: AnimationThemeVO[];
+
+    @Prop()
     private logged_user_id: number;
 
     private prct_atteinte_seuil_theme: number = 0;
@@ -38,11 +43,23 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     private is_ready: boolean = false;
     private um_by_module_id: { [module_id: number]: AnimationUserModuleVO } = {};
     private document_by_module_id: { [module_id: number]: DocumentVO } = {};
+    private module_id_ranges: NumRange[] = [];
+    private theme_id_ranges: NumRange[] = [];
+    private ordered_modules: AnimationModuleVO[] = [];
+    private prct_atteinte_seuil_theme_param: ThemeModuleDataRangesVO = null;
 
     private async mounted() {
         this.is_ready = false;
 
         let promises = [];
+
+        for (let i in this.modules) {
+            this.module_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.modules[i].id, NumSegment.TYPE_INT));
+        }
+
+        for (let i in this.themes) {
+            this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
+        }
 
         for (let i in this.modules) {
             let anim_module: AnimationModuleVO = this.modules[i];
@@ -63,6 +80,27 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         }
 
         await Promise.all(promises);
+
+
+        if (this.modules) {
+            this.ordered_modules = cloneDeep(this.modules).sort((a, b) => {
+                let res = this.prct_atteinte_seuil_module[a.id] - this.prct_atteinte_seuil_module[b.id];
+
+                if (!res) {
+                    return a.weight - b.weight;
+                }
+
+                return res;
+            });
+        }
+
+        this.prct_atteinte_seuil_theme_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
+            true,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.theme.id, NumSegment.TYPE_INT)],
+            this.module_id_ranges,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+        );
 
         this.is_ready = true;
     }
@@ -98,38 +136,16 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     private get_prct_atteinte_seuil_module_param(module_id: number): ThemeModuleDataRangesVO {
         return ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
-            false,
-            [RangeHandler.getInstance().getMaxNumRange()],
+            true,
+            this.theme_id_ranges,
             [RangeHandler.getInstance().create_single_elt_NumRange(module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
-    }
-
-    get ordered_modules(): AnimationModuleVO[] {
-        return (this.is_ready && this.modules) ? this.modules.sort((a, b) => {
-            let res = this.prct_atteinte_seuil_module[a.id] - this.prct_atteinte_seuil_module[b.id];
-
-            if (!res) {
-                return a.weight - b.weight;
-            }
-
-            return res;
-        }) : null;
     }
 
     get style_barre_avancement(): any {
         return {
             width: (this.prct_atteinte_seuil_theme * 100) + '%',
         };
-    }
-
-    get prct_atteinte_seuil_theme_param(): ThemeModuleDataRangesVO {
-        return ThemeModuleDataRangesVO.createNew(
-            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
-            false,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.theme.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().getMaxNumRange()],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
-        );
     }
 }

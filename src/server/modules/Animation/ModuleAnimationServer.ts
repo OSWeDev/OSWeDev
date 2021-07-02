@@ -312,11 +312,20 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }
 
         if (!res.end_date) {
+
+            let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID);
+
+            let theme_id_ranges: NumRange[] = [];
+
+            for (let i in themes) {
+                theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(themes[i].id, NumSegment.TYPE_INT));
+            }
+
             res.end_date = moment().utc(true);
             let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
                 VarDayPrctReussiteAnimationController.getInstance().varConf.name,
-                false,
-                [RangeHandler.getInstance().getMaxNumRange()],
+                true,
+                theme_id_ranges,
                 [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
                 [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
             ));

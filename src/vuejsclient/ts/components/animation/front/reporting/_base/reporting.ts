@@ -283,8 +283,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     private get_prct_reussite_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
         return ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
-            false,
-            [RangeHandler.getInstance().getMaxNumRange()],
+            true,
+            this.get_anim_theme_id_ranges,
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
@@ -294,7 +294,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         return ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
             true,
-            [RangeHandler.getInstance().getMaxNumRange()],
+            this.get_anim_theme_id_ranges,
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );

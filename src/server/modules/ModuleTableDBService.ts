@@ -499,7 +499,10 @@ export default class ModuleTableDBService {
                 continue;
             }
             if (field.has_single_relation) {
-                pgSQL += ', ' + field.getPGSqlFieldConstraint();
+                let pgSqlFieldConstraint: string = field.getPGSqlFieldConstraint();
+                if (pgSqlFieldConstraint) {
+                    pgSQL += ', ' + pgSqlFieldConstraint;
+                }
             }
         }
         pgSQL += ');';

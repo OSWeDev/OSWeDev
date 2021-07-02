@@ -197,6 +197,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public removeRdv: (id: number) => void;
 
     @ModuleProgramPlanAction
+    public set_refresh: (refresh: boolean) => void;
+
+    @ModuleProgramPlanAction
     public removeCr: (id: number) => void;
 
     @ModuleDAOGetter
@@ -1544,6 +1547,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 return;
             }
             self.removeRdv(self.selected_rdv.id);
+            self.set_refresh(true);
             self.set_selected_rdv(null);
             self.snotify.success(self.label('programplan.delete.ok'));
             self.$router.push(self.route_path);

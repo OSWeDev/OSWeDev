@@ -26,20 +26,22 @@ export default class DefaultTranslationsServerManager {
             return;
         }
 
-        let promises = [];
+        // let promises = [];
         for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
-            // TODO FIXME promises.length
-            if (promises.length >= 50) {
-                await Promise.all(promises);
-                promises = [];
-            }
+            // // TODO FIXME promises.length
+            // if (promises.length >= 50) {
+            //     await Promise.all(promises);
+            //     promises = [];
+            // }
 
-            promises.push(this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]));
+            // promises.push(this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]));
+
+            await this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]);
         }
 
-        if (promises && promises.length) {
-            await Promise.all(promises);
-        }
+        // if (promises && promises.length) {
+        //     await Promise.all(promises);
+        // }
 
         await this.cleanTranslationCodes();
     }

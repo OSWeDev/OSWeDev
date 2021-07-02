@@ -16,11 +16,34 @@ export default class TemplateHandlerClient {
     public prepareHTML(template: string, env: { [name: string]: any } = null, vars: { [name: string]: string } = null, t: (code: string) => string): string {
 
         // Les trads peuvent contenir des envs params
+        template = this.resolveVarConditions(template, vars);
         template = this.replaceTrads(template, t);
         template = this.replaceEnvParams(template, env);
 
         if (vars) {
             template = this.replaceVars(template, vars);
+        }
+
+        return template;
+    }
+
+    /**
+     * Format §§IFVAR_VARNAME§§then§§else§§
+     * Test booleen sur le param, incluant son existence et sa non nullité
+     */
+    public resolveVarConditions(template: string, vars: { [name: string]: string }): string {
+        let regExp = new RegExp('§§IFVAR_([^§ ]+)§§([^§]*)§§([^§]*)§§', 'i');
+        while (regExp.test(template)) {
+            let regexpres: string[] = regExp.exec(template);
+            let varname: string = regexpres[1];
+            let then_: string = regexpres[2];
+            let else_: string = regexpres[3];
+
+            if (varname) {
+                template = template.replace(regExp, (!!(vars && vars[varname]) ? then_ : else_));
+            } else {
+                template = template.replace(regExp, '');
+            }
         }
 
         return template;

@@ -33,7 +33,6 @@ export default class VueAnimationComponent extends VueComponentBase {
 
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
-        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => {
             let animation_modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID);
