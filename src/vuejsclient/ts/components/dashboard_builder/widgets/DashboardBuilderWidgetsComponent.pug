@@ -1,0 +1,15 @@
+.dashboard_builder_widgets
+    .dashboard_builder_widgets_wrapper
+        .header
+            //- .hide_show_switch 
+            .title {{ label('dashboard_builder_widgets.title') }}
+
+        .widgets 
+            template(v-for="(widget_, widget_i) in widgets")
+                .widget(@click="add_widget_to_page(widget_)" :tooltip="widgets_name[widget_i]")
+
+        .widget_options
+            template(v-if="!widget")
+                .first_select_a_widget {{ label('dashboard_builder_widgets.first_select_a_widget') }}
+            template(v-else)
+                .widget_options(:is="widget_.options_component")

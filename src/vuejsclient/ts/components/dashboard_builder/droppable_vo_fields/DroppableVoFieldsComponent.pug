@@ -1,0 +1,32 @@
+.droppable_vo_fields
+    .droppable_vo_fields_wrapper
+        .header
+            //- .hide_show_switch 
+            .title {{ label('droppable_vo_fields.title') }}
+
+        .filters
+            .filter_by_field_id_or_api_type_id
+                input(type='search' :placeholder="label('droppable_vo_fields.filter_by_field_id_or_api_type_id.placeholder')" @input='filter_by_field_id_or_api_type_id(event)' v-model="filter_value")
+
+        .api_type_ids 
+            template(v-for="api_type_id in api_type_ids")
+                template(v-show='((filter_value == null) || (filter_value == "")) || (field_id.indexOf(filter_value) >= 0)')
+                    .api_type_id
+                        .header
+                            .open_close
+                                .open_api_type_id(v-if="!opened_api_type_id[api_type_id]")
+                                .close_api_type_id(v-else)
+                            .icons
+                                .api_type_id_type
+                                    i.fa.fa-table.fa-fw(aria-hidden="true")
+                                .api_type_id_selected
+                                    i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-if="has_selected_field[api_type_id]")
+                            .title {{ api_type_titles[api_type_id] }}
+                        .content
+                            .fields
+                                template(v-for='field_id in fields_ids_by_api_type_ids[api_type_id]')
+                                    template(v-show='((filter_value == null) || (filter_value == "")) || (field_id.indexOf(filter_value) >= 0)')
+                                        .field
+                                            Droppablevofieldcomponent(:api_type_id="api_type_id" :field_id="field_id")
+
+

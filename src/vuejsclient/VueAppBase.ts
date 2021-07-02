@@ -394,7 +394,7 @@ export default abstract class VueAppBase {
     }
 
     protected abstract createVueMain(): VueComponentBase;
-    protected abstract async initializeVueAppModulesDatas();
+    protected abstract initializeVueAppModulesDatas(): Promise<any>;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 }

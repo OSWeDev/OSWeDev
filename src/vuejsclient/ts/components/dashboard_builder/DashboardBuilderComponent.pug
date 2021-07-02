@@ -1,0 +1,85 @@
+.dashboard_builder
+    template(v-if="!dashboard")
+        template(v-if="loading")
+            .is_loading
+                i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+        template(v-else)
+            .loading_failed 
+                i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                | {{ label('dashboard_builder.loading_failed') }}
+    template(v-else)
+        .row 
+            .col-md-12
+                .header 
+                    .title {{ label('dashboard_builder.title') }}
+                    .name
+                        Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
+                    .selector
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="dashboard"
+                            :placeholder="label('dashboard_builder.select_dashboard')"
+                            :options="dashboards_options"
+                            :custom-label="dashboard_label"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            track-by="id"
+
+                            :id="'dashboard_selector'"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            )
+        
+        .row 
+            .col-md-12
+                template(v-if='!pages')
+                    template(v-if="loading")
+                        .is_loading
+                            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    template(v-else)
+                        .loading_failed 
+                            i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            | {{ label('dashboard_builder.loading_failed') }}
+
+                template(v-else)
+                    .pages
+                        template(v-for='(page_, pagei) in pages')
+                            .page
+                                .select(v-if='pagei != page.id')
+                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)")
+                                .selected(v-else)
+                                    i.fa.fa-check-circle.fa-fw.icon_success(aria-hidden="true")
+                                .name
+                                    Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
+                                .delete 
+                                    i.fa.fa-trash.fa-fw.icon_error.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)")
+
+        template(v-if='!page')
+            .row
+                .col-md-12
+                    template(v-if="loading")
+                        .is_loading
+                            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    template(v-else)
+                        .loading_failed 
+                            i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            | {{ label('dashboard_builder.loading_failed') }}
+
+        template(v-else)
+            .row 
+                .col-md-8.builder_wrapper
+                    .builder
+
+
+                .col-md-2.widgets_wrapper
+                    Dashboardbuilderwidgetscomponent(@added_widget_to_page="added_widget_to_page")
+                
+                .col-md-2.fields_wrapper
+                    Droppablevofieldscomponent

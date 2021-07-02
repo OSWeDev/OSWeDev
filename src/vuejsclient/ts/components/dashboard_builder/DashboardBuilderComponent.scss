@@ -1,0 +1,11 @@
+@import '../../../scss/base/skin.scss';
+
+.dashboard_builder {
+    .icon_error {
+        color: $danger_color;
+    }
+
+    .icon_success {
+        color: $success_color;
+    }
+}

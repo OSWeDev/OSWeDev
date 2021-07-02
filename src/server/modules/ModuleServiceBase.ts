@@ -15,6 +15,7 @@ import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiemen
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
+import ModuleDashboardBuilder from '../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
 import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
@@ -64,6 +65,7 @@ import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
+import ModuleDashboardBuilderServer from './DashboardBuilder/ModuleDashboardBuilderServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
@@ -458,7 +460,8 @@ export default abstract class ModuleServiceBase {
             ModuleAnonymization.getInstance(),
             ModuleFacturationProAPI.getInstance(),
             ModulePowershell.getInstance(),
-            ModuleNFCConnect.getInstance()
+            ModuleNFCConnect.getInstance(),
+            ModuleDashboardBuilder.getInstance()
         ];
     }
 
@@ -506,7 +509,8 @@ export default abstract class ModuleServiceBase {
             ModuleAnonymizationServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
             ModulePowershellServer.getInstance(),
-            ModuleNFCConnectServer.getInstance()
+            ModuleNFCConnectServer.getInstance(),
+            ModuleDashboardBuilderServer.getInstance()
         ];
     }
 }
