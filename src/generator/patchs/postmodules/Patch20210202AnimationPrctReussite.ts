@@ -1,13 +1,11 @@
 import { IDatabase } from 'pg-promise';
 import VarDayPrctReussiteAnimationController from '../../../server/modules/Animation/vars/VarDayPrctReussiteAnimationController';
-import VarServerControllerBase from '../../../server/modules/Var/VarServerControllerBase';
 import VarsServerCallBackSubsController from '../../../server/modules/Var/VarsServerCallBackSubsController';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import ThemeModuleDataRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
