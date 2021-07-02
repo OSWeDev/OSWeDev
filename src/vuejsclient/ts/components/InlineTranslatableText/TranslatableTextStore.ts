@@ -1,3 +1,4 @@
+import Vue from "vue";
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
@@ -77,7 +78,26 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
                 if (!state.translations[translation.code_lang]) {
                     return;
                 }
-                state.translations[translation.code_lang][translation.code_text] = translation.value;
+
+                let splits = translation.code_text.split('.');
+                let last = splits ? splits.pop() : null;
+                if ((!splits) || (!last)) {
+                    return;
+                }
+
+                let trads = state.translations[translation.code_lang];
+                let i = 0;
+                while (trads && splits && splits[i]) {
+
+                    if (!trads[splits[i]]) {
+                        trads[splits[i]] = {} as any;
+                    }
+
+                    trads = trads[splits[i]] as any;
+                    i++;
+                }
+
+                Vue.set(trads, last, translation.value);
             },
         };
 

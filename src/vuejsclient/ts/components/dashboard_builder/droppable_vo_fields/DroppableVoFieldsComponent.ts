@@ -4,6 +4,7 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
 import DroppableVoFieldComponent from './DroppableVoFieldComponent';
 import './DroppableVoFieldsComponent.scss';
+import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
 
 @Component({
@@ -39,6 +40,12 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
         let res: string[] = [];
 
         for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
+
+            if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
+                (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {
+                continue;
+            }
+
             res.push(vo_type);
         }
 
@@ -53,10 +60,25 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
         for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
             res[vo_type] = [];
 
+            if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
+                (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {
+                console.log(vo_type + ":" + typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type]);
+                continue;
+            }
+
             let fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_fields();
 
             for (let i in fields) {
                 let field = fields[i];
+
+                if ((DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
+                    (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) ||
+                    (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
+                        DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] &&
+                        (!DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type][field.field_id]))) {
+                    console.log(vo_type + ":" + typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type]);
+                    continue;
+                }
 
                 res[vo_type].push(field.field_id);
             }
@@ -68,8 +90,27 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     get api_type_titles(): { [api_type_id: string]: string } {
         let res: { [api_type_id: string]: string } = {};
 
-        for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
+        for (let i in this.api_type_ids) {
+            let vo_type = this.api_type_ids[i];
             res[vo_type] = this.t(VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label.code_text);
+        }
+
+        return res;
+    }
+
+    get field_titles_by_api_type(): { [api_type_id: string]: { [field_id: string]: string } } {
+        let res: { [api_type_id: string]: { [field_id: string]: string } } = {};
+
+        for (let vo_type in this.fields_ids_by_api_type_ids) {
+            let fields = this.fields_ids_by_api_type_ids[vo_type];
+
+            res[vo_type] = {};
+
+            for (let i in fields) {
+                let field_id = fields[i];
+
+                res[vo_type][field_id] = this.t(VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_field_by_id(field_id).field_label.code_text);
+            }
         }
 
         return res;

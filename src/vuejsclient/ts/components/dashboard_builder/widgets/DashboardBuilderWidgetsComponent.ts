@@ -19,6 +19,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     private widgets: DashboardWidgetVO[] = null;
 
+    private widget: DashboardPageWidgetVO = null;
     private loading: boolean = true;
 
     private async mounted() {

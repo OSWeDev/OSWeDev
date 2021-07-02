@@ -6,11 +6,11 @@
 
         .filters
             .filter_by_field_id_or_api_type_id
-                input(type='search' :placeholder="label('droppable_vo_fields.filter_by_field_id_or_api_type_id.placeholder')" @input='filter_by_field_id_or_api_type_id(event)' v-model="filter_value")
+                input(type='search' :placeholder="label('droppable_vo_fields.filter_by_field_id_or_api_type_id.placeholder')" @input='filter_by_field_id_or_api_type_id' v-model="filter_value")
 
         .api_type_ids 
             template(v-for="api_type_id in api_type_ids")
-                template(v-show='((filter_value == null) || (filter_value == "")) || (field_id.indexOf(filter_value) >= 0)')
+                template(v-if='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) || (!!fields_ids_by_api_type_ids[api_type_id].find((field_id) => field_titles_by_api_type[api_type_id][field_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0))')
                     .api_type_id
                         .header
                             .open_close
@@ -25,7 +25,7 @@
                         .content
                             .fields
                                 template(v-for='field_id in fields_ids_by_api_type_ids[api_type_id]')
-                                    template(v-show='((filter_value == null) || (filter_value == "")) || (field_id.indexOf(filter_value) >= 0)')
+                                    template(v-if='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) || (field_titles_by_api_type[api_type_id][field_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0)')
                                         .field
                                             Droppablevofieldcomponent(:api_type_id="api_type_id" :field_id="field_id")
 

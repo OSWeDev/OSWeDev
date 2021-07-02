@@ -12,4 +12,4 @@
             template(v-if="!widget")
                 .first_select_a_widget {{ label('dashboard_builder_widgets.first_select_a_widget') }}
             template(v-else)
-                .widget_options(:is="widget_.options_component")
+                .widget_options(:is="widget.options_component")

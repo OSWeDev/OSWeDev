@@ -19,7 +19,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     public set_translation: (translation: { code_lang: string, code_text: string, value: string }) => void;
 
     @ModuleTranslatableTextAction
-    public set_translations: (translations: { [code_lang: string]: { [code_text: string]: string } }) => void;
+    public set_translations: (translations: { [code_lang: string]: { [code_text: string]: any } }) => void;
 
     @ModuleTranslatableTextGetter
     public get_initialized: boolean;
@@ -107,11 +107,23 @@ export default class InlineTranslatableText extends VueComponentBase {
     }
 
     get translation(): string {
-        if ((!this.get_translations) || (!this.get_initialized) || (!this.get_translations[this.code_lang]) || (!this.get_translations[this.code_lang][this.code_text])) {
+        if ((!this.get_translations) || (!this.get_initialized) || (!this.get_translations[this.code_lang]) || (!this.code_text)) {
             return null;
         }
 
-        return this.get_translations[this.code_lang][this.code_text];
+        let splits = this.code_text.split('.');
+        let trads = this.get_translations[this.code_lang];
+        let i = 0;
+        while (trads && splits && splits[i]) {
+            trads = trads[splits[i]] as any;
+            i++;
+        }
+
+        if (typeof trads !== "string") {
+            return null;
+        }
+
+        return trads;
     }
 
     private async update_trad() {

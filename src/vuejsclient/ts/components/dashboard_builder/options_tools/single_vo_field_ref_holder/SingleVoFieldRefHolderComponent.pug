@@ -3,5 +3,5 @@
         .vo_ref_field_container
             Vofieldwidgetrefcomponent(:api_type_id="vo_field_ref.api_type_id" :field_id="vo_field_ref.field_id" @remove_field_ref="remove_field_ref")
     template(v-else)
-        .vo_ref_field_receiver(@dragover="allowDrop(event)" @drop="drop(event)")
+        .vo_ref_field_receiver(@dragover="allowDrop" @drop="drop")
             
