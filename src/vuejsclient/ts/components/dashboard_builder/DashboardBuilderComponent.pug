@@ -11,31 +11,42 @@
         .row 
             .col-md-12
                 .header 
-                    .title {{ label('dashboard_builder.title') }}
-                    .name
-                        Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
-                    .selector
-                        multiselect(
-                            :preselect-first="false"
-                            :multiple="false"
-                            v-model="dashboard"
-                            :placeholder="label('dashboard_builder.select_dashboard')"
-                            :options="dashboards_options"
-                            :custom-label="dashboard_label"
+                    .row 
+                        .col-md-2
+                            .title {{ label('dashboard_builder.title') }}
+                    .row 
+                        .col-md-4
+                            .name
+                                Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
+                    .row 
+                        .col-md-4
+                            .selector
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="dashboard"
+                                    :placeholder="label('dashboard_builder.select_dashboard')"
+                                    :options="dashboards_options"
+                                    :custom-label="dashboard_label"
 
-                            :searchable="true"
-                            :internal-search="true"
+                                    :searchable="true"
+                                    :internal-search="true"
 
-                            track-by="id"
+                                    track-by="id"
 
-                            :id="'dashboard_selector'"
+                                    :id="'dashboard_selector'"
 
-                            :select-label='label("multiselect.selectLabel")'
-                            :select-group-label='label("multiselect.selectGroupLabel")'
-                            :selected-label='label("multiselect.selectedLabel")'
-                            :deselect-label='label("multiselect.deselectLabel")'
-                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                            )
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    )
+                    .row 
+                        .col-md-2
+                            .delete_dashboard
+                                i.fa.fa-trash.fa-fw.icon_error.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard")
+
         
         .row 
             .col-md-12

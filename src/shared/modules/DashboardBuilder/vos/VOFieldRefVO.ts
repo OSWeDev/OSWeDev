@@ -9,6 +9,10 @@ export default class VOFieldRefVO implements IDistantVOBase, IWeightedItem {
     public _type: string = VOFieldRefVO.API_TYPE_ID;
 
     get translatable_name_code_text(): string {
+
+        if (!this.id) {
+            return null;
+        }
         return DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + this.id;
     }
 

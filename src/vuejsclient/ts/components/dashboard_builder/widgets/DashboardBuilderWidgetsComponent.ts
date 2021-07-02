@@ -4,9 +4,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../page/DashboardPageStore';
 import './DashboardBuilderWidgetsComponent.scss';
 
 @Component({
@@ -54,7 +52,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         for (let i in this.widgets) {
             let widget = this.widgets[0];
 
-            res.push(this.label(widget.translatable_name_code_text));
+            res.push(this.label(widget.translatable_name_code_text ? widget.translatable_name_code_text : null));
         }
 
         return res;

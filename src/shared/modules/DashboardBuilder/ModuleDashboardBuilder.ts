@@ -2,7 +2,6 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
@@ -35,38 +34,40 @@ export default class ModuleDashboardBuilder extends Module {
         this.fields = [];
         this.datatables = [];
 
-        this.init_DashboardVO();
-        this.init_DashboardPageVO();
-        this.init_DashboardWidgetVO();
+        let db_table = this.init_DashboardVO();
+        let db_page = this.init_DashboardPageVO(db_table);
+        let db_widget = this.init_DashboardWidgetVO();
+        this.init_DashboardPageWidgetVO(db_page, db_widget);
         this.init_VOFieldRefVO();
     }
 
-    private init_DashboardVO() {
+    private init_DashboardVO(): ModuleTable<any> {
 
         let datatable_fields = [
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");
+        let res = new ModuleTable(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");
+        this.datatables.push(res);
+        return res;
     }
 
-    private init_DashboardPageVO() {
-        this.fields = [];
-        this.datatables = [];
+    private init_DashboardPageVO(db_table: ModuleTable<any>): ModuleTable<any> {
 
-        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_string, 'Dashboard', true);
+        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
         let datatable_fields = [
             dashboard_id,
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
-        dashboard_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DashboardVO.API_TYPE_ID]);
+        let res = new ModuleTable(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
+        this.datatables.push(res);
+        dashboard_id.addManyToOneRelation(db_table);
+        return res;
     }
 
-    private init_DashboardWidgetVO() {
-        this.fields = [];
-        this.datatables = [];
+    private init_DashboardWidgetVO(): ModuleTable<any> {
 
         let datatable_fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
@@ -75,15 +76,15 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, null, "Widgets de Dashboard");
+        let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, null, "Widgets de Dashboard");
+        this.datatables.push(res);
+        return res;
     }
 
-    private init_DashboardPageWidgetVO() {
-        this.fields = [];
-        this.datatables = [];
+    private init_DashboardPageWidgetVO(db_page: ModuleTable<any>, db_widget: ModuleTable<any>) {
 
-        let widget_id = new ModuleTableField('widget_id', ModuleTableField.FIELD_TYPE_string, 'Widget', true);
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_string, 'Page Dashboard', true);
+        let widget_id = new ModuleTableField('widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
+        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
         let datatable_fields = [
             widget_id,
@@ -110,14 +111,12 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('json_options', ModuleTableField.FIELD_TYPE_string, 'json_options', false),
         ];
 
-        let datatable = new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard");
-        widget_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DashboardWidgetVO.API_TYPE_ID]);
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageVO.API_TYPE_ID]);
+        this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));
+        widget_id.addManyToOneRelation(db_widget);
+        page_id.addManyToOneRelation(db_page);
     }
 
     private init_VOFieldRefVO() {
-        this.fields = [];
-        this.datatables = [];
 
         let datatable_fields = [
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'VO Type', true),
@@ -125,6 +124,6 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
-        let datatable = new ModuleTable(this, VOFieldRefVO.API_TYPE_ID, () => new VOFieldRefVO(), datatable_fields, null, "Référence de champs");
+        this.datatables.push(new ModuleTable(this, VOFieldRefVO.API_TYPE_ID, () => new VOFieldRefVO(), datatable_fields, null, "Référence de champs"));
     }
 }

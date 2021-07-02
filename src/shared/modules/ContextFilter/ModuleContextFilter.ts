@@ -48,5 +48,6 @@ export default class ModuleContextFilter extends Module {
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
         left_hook_id.addManyToOneRelation(datatable);
         right_hook_id.addManyToOneRelation(datatable);
+        this.datatables.push(datatable);
     }
 }

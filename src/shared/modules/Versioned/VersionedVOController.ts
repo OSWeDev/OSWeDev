@@ -92,12 +92,14 @@ export default class VersionedVOController implements IVOController {
                 fields.push(cloned_field);
             }
 
-            let importTable: ModuleTable<any> = new ModuleTable<any>(moduleTable.module, vo_type, moduleTable.voConstructor, fields, null, vo_type);
-            importTable.set_bdd_ref(database, moduleTable.name);
-            importTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
+            let newTable: ModuleTable<any> = new ModuleTable<any>(moduleTable.module, vo_type, moduleTable.voConstructor, fields, null, vo_type);
+            newTable.set_bdd_ref(database, moduleTable.name);
+            newTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
 
-            for (let i in moduleTable.get_fields()) {
-                let vofield = moduleTable.get_fields()[i];
+            let tableFields = moduleTable.get_fields();
+
+            for (let i in tableFields) {
+                let vofield = tableFields[i];
 
                 if (!vofield.has_relation) {
                     continue;
@@ -108,19 +110,22 @@ export default class VersionedVOController implements IVOController {
                 // on doit garder les versions coute que coute et décider au moment de la restauration si oui ou non on peut restaurer (si j'ai un id qui existe plus, soit il existe en trashed de l'autre
                 //  type et je propose de restaurer soit il existe pas et pas mandatory donc je mets null soit il existe pas et mandatory et je refuse la restauration (ou on propose de remplacer la liaison))
                 if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_TRASHED_DATABASE)) {
-                    importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(TRASHED_DATABASE);
+                    newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(TRASHED_DATABASE);
                 } else if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_DATABASE)) {
-                    importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(moduleTable);
+                    newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(moduleTable);
                 } else if ((database == VersionedVOController.VERSIONED_DATABASE) || (database == VersionedVOController.VERSIONED_TRASHED_DATABASE) || (database == VersionedVOController.TRASHED_DATABASE)) {
+                    let newField = newTable.getFieldFromId(vofield.field_id);
+                    newField.has_relation = false;
+                    newField.field_type = ModuleTableField.FIELD_TYPE_int;
                 } else {
-                    importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
+                    newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
                 }
             }
 
             if (database == VersionedVOController.TRASHED_DATABASE) {
-                TRASHED_DATABASE = importTable;
+                TRASHED_DATABASE = newTable;
             }
-            moduleTable.module.datatables.push(importTable);
+            moduleTable.module.datatables.push(newTable);
         }
     }
 

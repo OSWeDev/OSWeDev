@@ -3,14 +3,14 @@ import ModuleTranslation from "../../../../shared/modules/Translation/ModuleTran
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppController from '../../../VueAppController';
 import VueComponentBase from "../VueComponentBase";
-import './OnPageTranslation.scss';
+import './InlineTranslatableText.scss';
 import TranslatableTextController from "./TranslatableTextController";
 import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from './TranslatableTextStore';
 
 @Component({
-    template: require('./OnPageTranslation.pug')
+    template: require('./InlineTranslatableText.pug')
 })
-export default class OnPageTranslation extends VueComponentBase {
+export default class InlineTranslatableText extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     public get_translations: { [code_lang: string]: { [code_text: string]: string } };
@@ -34,10 +34,10 @@ export default class OnPageTranslation extends VueComponentBase {
     public set_initializing: (initializing: boolean) => void;
 
     @Prop({ default: null })
-    private code_text: string = null;
+    private code_text: string;
 
     @Prop({ default: false })
-    private is_editable: boolean = false;
+    private is_editable: boolean;
 
     private text: string = null;
     private semaphore: boolean = false;

@@ -10,6 +10,10 @@ export default class DashboardPageWidgetVO implements IDistantVOBase, IDashboard
     public _type: string = DashboardPageWidgetVO.API_TYPE_ID;
 
     get translatable_name_code_text(): string {
+
+        if (!this.id) {
+            return null;
+        }
         return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.widget_id;
     }
 

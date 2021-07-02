@@ -43,6 +43,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private async onchange_dashboard_id() {
         this.loading = true;
 
+        this.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
         if (!this.dashboard_id) {
             await this.init_dashboard();
             this.loading = false;
@@ -90,10 +91,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.page = page;
     }
 
-    private async mounted() {
-        this.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
-    }
-
     private async init_dashboard() {
 
         if ((!this.dashboards) || (!this.dashboards.length)) {
@@ -117,7 +114,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return null;
         }
 
-        return this.dashboard.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
     }
 
     private async create_new_dashboard() {
@@ -128,7 +125,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.dashboard = null;
             return;
         }
-        this.dashboard.id = insertOrDeleteQueryResult.id;
+        this.dashboard = await ModuleDAO.getInstance().getVoById<DashboardVO>(DashboardVO.API_TYPE_ID, insertOrDeleteQueryResult.id);
+        if ((!this.dashboard) || (!this.dashboard.id)) {
+            this.snotify.error(this.label('DashboardBuilderComponent.create_new_dashboard.ko'));
+            this.dashboard = null;
+            return;
+        }
 
         // On crée la trad
         let code_lang = LocaleManager.getInstance().getDefaultLocale();
@@ -171,10 +173,53 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (let i in this.pages) {
             let page = this.pages[i];
 
-            res.push(page.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+            res.push(page.translatable_name_code_text ? page.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null);
         }
 
         return res;
+    }
+
+    private async confirm_delete_dashboard() {
+        if (!this.dashboard) {
+            return;
+        }
+
+        let self = this;
+        if (this.dashboards.length <= 1) {
+            self.snotify.error(self.label('DashboardBuilderComponent.delete_dashboard.cannot_delete_master_dashboard'));
+            return;
+        }
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('DashboardBuilderComponent.delete_dashboard.confirmation.body'), self.label('DashboardBuilderComponent.delete_dashboard.confirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('DashboardBuilderComponent.delete_dashboard.start'));
+
+                        await ModuleDAO.getInstance().deleteVOs([self.dashboard]);
+                        self.dashboards = self.dashboards.filter((p) => p.id != self.dashboard.id);
+                        self.dashboard = self.dashboards[0];
+
+                        self.snotify.success(self.label('DashboardBuilderComponent.delete_dashboard.ok'));
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
     }
 
     private async confirm_delete_page(page: DashboardPageVO) {

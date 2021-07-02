@@ -38,11 +38,9 @@ export default class SingleVoFieldRefHolderComponent extends VueComponentBase {
             return;
         }
 
-        let vo_field_ref: VOFieldRefVO = event.dataTransfer.getData("vo_field_ref");
-        if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
-            return;
-        }
+        let api_type_id: string = event.dataTransfer.getData("api_type_id");
+        let field_id: string = event.dataTransfer.getData("field_id");
 
-        this.$emit('add_field_ref', vo_field_ref.api_type_id, vo_field_ref.field_id);
+        this.$emit('add_field_ref', api_type_id, field_id);
     }
 }

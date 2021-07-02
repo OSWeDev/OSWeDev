@@ -12,6 +12,10 @@ export default class DashboardPageVO implements IDistantVOBase, IWeightedItem {
     public weight: number;
 
     get translatable_name_code_text(): string {
+
+        if (!this.id) {
+            return null;
+        }
         return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id;
     }
 }

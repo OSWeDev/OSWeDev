@@ -1,5 +1,5 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
+import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
@@ -28,12 +28,12 @@ export default class DashboardBuilderAdminVueModule extends VueModuleBase {
 
     private constructor() {
 
-        super(ModuleCron.getInstance().name);
+        super(ModuleDashboardBuilder.getInstance().name);
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCron.POLICY_BO_ACCESS)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
             return;
         }
 
