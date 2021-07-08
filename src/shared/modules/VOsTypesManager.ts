@@ -20,10 +20,48 @@ export default class VOsTypesManager {
 
     public moduleTables_by_voType: { [voType: string]: ModuleTable<any> } = {};
 
+    private types_references: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
+    private types_dependencies: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
+
     /**
      * ----- Local thread cache
      */
     private constructor() { }
+
+    /**
+     * Renvoie tous les champs qui font référence à ce type
+     * @param to_api_type_id
+     */
+    public get_type_references(to_api_type_id: string): Array<ModuleTableField<any>> {
+
+        if (!this.types_references[to_api_type_id]) {
+
+            this.types_references[to_api_type_id] = [];
+
+            for (let api_type_id_i in this.moduleTables_by_voType) {
+                let table = this.moduleTables_by_voType[api_type_id_i];
+
+                if (api_type_id_i == to_api_type_id) {
+                    continue;
+                }
+
+                let fields = table.get_fields();
+                for (let j in fields) {
+                    let field = fields[j];
+
+                    if (!field.has_relation) {
+                        continue;
+                    }
+
+                    if (field.manyToOne_target_moduletable.vo_type == to_api_type_id) {
+                        this.types_references[to_api_type_id].push(field);
+                    }
+                }
+            }
+        }
+
+        return this.types_references[to_api_type_id];
+    }
 
     public addAlias(api_type_id_alias: string, vo_type: string) {
         this.moduleTables_by_voType[api_type_id_alias] = this.moduleTables_by_voType[vo_type];
@@ -115,6 +153,36 @@ export default class VOsTypesManager {
             }
         }
 
+        return res;
+    }
+
+    public getManyToOneFields(api_type_id: string, ignore_target_types: string[]): Array<ModuleTableField<any>> {
+
+        let res: Array<ModuleTableField<any>> = [];
+        let table = this.moduleTables_by_voType[api_type_id];
+        let fields = table.get_fields();
+
+        for (let j in fields) {
+            let field: ModuleTableField<any> = fields[j];
+
+            // On ignore les 2 fields de service
+            if (field.field_id == "id") {
+                continue;
+            }
+            if (field.field_id == "_type") {
+                continue;
+            }
+
+            if (!field.manyToOne_target_moduletable) {
+                continue;
+            }
+
+            if (ignore_target_types && (ignore_target_types.indexOf(field.manyToOne_target_moduletable.vo_type) >= 0)) {
+                continue;
+            }
+
+            res.push(field);
+        }
         return res;
     }
 

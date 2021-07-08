@@ -119,6 +119,8 @@ export default abstract class VueAppBase {
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
 
+        await this.appController.initializeFlatLocales();
+
         Vue.use(ClientTable);
         Vue.use(VueI18n);
         LocaleManager.getInstance().i18n = new VueI18n({

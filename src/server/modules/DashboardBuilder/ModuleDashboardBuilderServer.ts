@@ -70,11 +70,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Erreur lors de l\'ajout du composant'
-        }, 'DashboardBuilderWidgetsComponent.add_widget_to_page.ko.___LABEL___'));
+        }, 'DashboardBuilderBoardComponent.add_widget_to_page.ko.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Composant ajouté'
-        }, 'DashboardBuilderWidgetsComponent.add_widget_to_page.ok.___LABEL___'));
+        }, 'DashboardBuilderBoardComponent.add_widget_to_page.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Dashboard Builder'
@@ -109,6 +109,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Supression terminée.'
         }, 'DashboardBuilderComponent.delete_dashboard.ok.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Champs'
+        }, 'field_value_filter_widget_component.vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélection multiple ?'
+        }, 'field_value_filter_widget_component.can_select_multiple.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Texte champs de sélection'
+        }, 'field_value_filter_widget_component.placeholder_name_code_text.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Nombre max. valeurs visibles'
+        }, 'field_value_filter_widget_component.max_visible_options.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Filtrer'
@@ -117,6 +129,30 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Champs'
         }, 'droppable_vo_fields.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Glisser/déposer un champs'
+        }, 'single_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filter'
+        }, 'FieldValueFilterWidget.filter_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer le composant ?'
+        }, 'DashboardBuilderBoardComponent.delete_widget.body.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression'
+        }, 'DashboardBuilderBoardComponent.delete_widget.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression en cours...'
+        }, 'DashboardBuilderBoardComponent.delete_widget.start.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression terminée'
+        }, 'DashboardBuilderBoardComponent.delete_widget.ok.___LABEL___'));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

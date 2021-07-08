@@ -1,4 +1,29 @@
 .field_value_filter_widget_component
     .field_ref 
-        Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
-    
+        .input_label {{ label('field_value_filter_widget_component.vo_field_ref') }}
+        .input_wrapper
+            Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
+    .can_select_multiple 
+        .input_label {{ label('field_value_filter_widget_component.can_select_multiple') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_can_select_multiple" 
+                :value="can_select_multiple" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .field_placeholder
+        .input_label {{ label('field_value_filter_widget_component.placeholder_name_code_text') }}
+        .input_wrapper
+            Inlinetranslatabletext(
+                v-if='widget_options && widget_options.placeholder_name_code_text'
+                :code_text="widget_options.placeholder_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_placeholder_translation")
+    .max_visible_options
+        .input_label {{ label('field_value_filter_widget_component.max_visible_options') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="max_visible_options"
+            )

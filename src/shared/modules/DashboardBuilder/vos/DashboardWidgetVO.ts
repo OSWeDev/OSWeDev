@@ -18,10 +18,16 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem 
 
     public weight: number;
 
+    public widget_component: string;
     public options_component: string;
 
     public default_width: number;
     public default_height: number;
 
+    /**
+     * Needs to be unique for ergonomy and widget retrieval
+     */
+    public icone_class: string;
 
+    public default_background: string;
 }

@@ -31,6 +31,7 @@ export default class ModuleTranslation extends Module {
     public static APINAME_GET_TRANSLATIONS: string = "getTranslations";
     public static APINAME_GET_TRANSLATION: string = "getTranslation";
     public static APINAME_getALL_LOCALES: string = "getALL_LOCALES";
+    public static APINAME_getALL_FLAT_LOCALE_TRANSLATIONS: string = "getALL_FLAT_LOCALE_TRANSLATIONS";
     public static APINAME_T: string = "t";
     public static APINAME_LABEL: string = "label";
 
@@ -43,7 +44,8 @@ export default class ModuleTranslation extends Module {
 
     private static instance: ModuleTranslation = null;
 
-    public getALL_LOCALES: () => Promise<{ [code_lang: string]: { [code_text: string]: string } }> = APIControllerWrapper.sah(ModuleTranslation.APINAME_getALL_LOCALES);
+    public getALL_LOCALES: () => Promise<{ [code_lang: string]: { [code_text: string]: any } }> = APIControllerWrapper.sah(ModuleTranslation.APINAME_getALL_LOCALES);
+    public getALL_FLAT_LOCALE_TRANSLATIONS: (code_lang: string) => Promise<{ [code_text: string]: string }> = APIControllerWrapper.sah(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS);
     public getTranslatableTexts: () => Promise<TranslatableTextVO[]> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS);
     public getTranslatableText: (code_text: string) => Promise<TranslatableTextVO> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT);
     public getLangs: () => Promise<LangVO[]> = APIControllerWrapper.sah(ModuleTranslation.APINAME_GET_LANGS);
@@ -69,6 +71,12 @@ export default class ModuleTranslation extends Module {
             null,
             ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID]
+        ));
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, { [code_text: string]: string }>(
+            null,
+            ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS,
+            [TranslationVO.API_TYPE_ID],
+            StringParamVOStatic
         ));
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, LangVO[]>(
             null,

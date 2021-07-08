@@ -87,11 +87,10 @@
         template(v-else)
             .row 
                 .col-md-8.builder_wrapper
-                    .builder
-
+                    Dashboardbuilderboardcomponent(:dashboard_page='page' :dashboard='dashboard' :selected_widget='selected_widget' @select_widget='select_widget')
 
                 .col-md-2.widgets_wrapper
-                    Dashboardbuilderwidgetscomponent(@added_widget_to_page="added_widget_to_page")
+                    Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget')
                 
                 .col-md-2.fields_wrapper
                     Droppablevofieldscomponent

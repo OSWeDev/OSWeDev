@@ -62,7 +62,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
 
             if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                 (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {
-                console.log(vo_type + ":" + typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type]);
+                // console.log(vo_type + ":" + typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type]);
                 continue;
             }
 
@@ -76,7 +76,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
                     (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                         DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] &&
                         (!DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type][field.field_id]))) {
-                    console.log(vo_type + ":" + typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type]);
+                    // console.log(vo_type + ":" + typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type]);
                     continue;
                 }
 

@@ -56,4 +56,26 @@ export default class TranslationsServerController {
 
         return ALL_LOCALES;
     }
+
+    public addCodeToFlatLocales(ALL_FLAT_LOCALES: { [code_lang: string]: { [code_text: string]: string } }, code_lang: string, code_text: string, translated: string): { [code_lang: string]: { [code_text: string]: string } } {
+
+        if (!ALL_FLAT_LOCALES) {
+            ALL_FLAT_LOCALES = {};
+        }
+
+        if ((!code_lang) || (!code_text)) {
+            return ALL_FLAT_LOCALES;
+        }
+
+        if (!translated) {
+            translated = "";
+        }
+
+        if (!ALL_FLAT_LOCALES[code_lang]) {
+            ALL_FLAT_LOCALES[code_lang] = {};
+        }
+
+        ALL_FLAT_LOCALES[code_lang][code_text] = translated;
+        return ALL_FLAT_LOCALES;
+    }
 }

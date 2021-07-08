@@ -1,3 +1,6 @@
 .dashboard_builder_board {
 
+    .grid_item_wrapper.selected .vue-grid-item {
+        box-shadow: 1px 1px 2px #888;
+    }
 }

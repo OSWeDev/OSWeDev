@@ -71,9 +71,12 @@ export default class ModuleDashboardBuilder extends Module {
 
         let datatable_fields = [
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('widget_component', ModuleTableField.FIELD_TYPE_string, 'Composant - Widget', true),
             new ModuleTableField('options_component', ModuleTableField.FIELD_TYPE_string, 'Composant - Options', true),
-            new ModuleTableField('default_width', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 100),
-            new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField('default_width', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 106),
+            new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 30),
+            new ModuleTableField('icone_class', ModuleTableField.FIELD_TYPE_string, 'Classe - icône', true).unique(),
+            new ModuleTableField('default_background', ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, null, "Widgets de Dashboard");
@@ -95,7 +98,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('minH', ModuleTableField.FIELD_TYPE_int, 'minH', true, true, 1),
             new ModuleTableField('minW', ModuleTableField.FIELD_TYPE_int, 'minW', true, true, 1),
             new ModuleTableField('maxH', ModuleTableField.FIELD_TYPE_int, 'maxH', true, true, 720),
-            new ModuleTableField('maxW', ModuleTableField.FIELD_TYPE_int, 'maxW', true, true, 1280),
+            new ModuleTableField('maxW', ModuleTableField.FIELD_TYPE_int, 'maxW', true, true, 1272),
             new ModuleTableField('x', ModuleTableField.FIELD_TYPE_int, 'x', true, true, 0),
             new ModuleTableField('y', ModuleTableField.FIELD_TYPE_int, 'y', true, true, 0),
             new ModuleTableField('w', ModuleTableField.FIELD_TYPE_int, 'w', true, true, 0),
@@ -109,6 +112,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true),
 
             new ModuleTableField('json_options', ModuleTableField.FIELD_TYPE_string, 'json_options', false),
+
+            new ModuleTableField('background', ModuleTableField.FIELD_TYPE_string, 'background', true),
         ];
 
         this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));

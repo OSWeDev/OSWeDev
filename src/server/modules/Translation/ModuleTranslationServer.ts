@@ -11,6 +11,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -599,6 +600,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS, this.getALL_FLAT_LOCALE_TRANSLATIONS.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
     }
@@ -648,6 +650,40 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }
         await ModuleDAO.getInstance().deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
         return true;
+    }
+
+    private async getALL_FLAT_LOCALE_TRANSLATIONS(code_lang: string): Promise<{ [code_text: string]: string }> {
+
+        let res: { [code_text: string]: string } = {};
+
+        /**
+         * On intègre en premier lieu la langue demandée, puis on intègre la langue par défaut pour combler les trous
+         */
+        await this.add_locale_flat_translations(code_lang, res);
+        await this.add_locale_flat_translations(ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE, res);
+
+        return res;
+    }
+
+    private async add_locale_flat_translations(code_lang: string, res: { [code_text: string]: string }): Promise<{ [code_text: string]: string }> {
+
+        let lang = await this.getLang(code_lang);
+        if (!lang) {
+            return res;
+        }
+        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
+        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [lang.id]);
+
+        for (let i in translations) {
+            let translation = translations[i];
+
+            if (!res[translatableTexts_by_id[translation.text_id].code_text]) {
+                res[translatableTexts_by_id[translation.text_id].code_text] = translation.translated;
+            }
+        }
+
+        return res;
     }
 
     private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {

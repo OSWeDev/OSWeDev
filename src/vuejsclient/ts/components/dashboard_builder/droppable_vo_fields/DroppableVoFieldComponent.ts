@@ -51,5 +51,6 @@ export default class DroppableVoFieldComponent extends VueComponentBase {
     private async drag(event) {
         event.dataTransfer.setData("api_type_id", this.api_type_id);
         event.dataTransfer.setData("field_id", this.field_id);
+        event.dataTransfer.dropEffect = "copy";
     }
 }

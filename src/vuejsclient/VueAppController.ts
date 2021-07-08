@@ -7,6 +7,7 @@ import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
+import LocaleManager from '../shared/tools/LocaleManager';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 
 export default abstract class VueAppController {
@@ -27,6 +28,7 @@ export default abstract class VueAppController {
     // public data_base_api_url;
     public data_default_locale;
     public ALL_LOCALES: any;
+    public ALL_FLAT_LOCALE_TRANSLATIONS: { [code_text: string]: string };
     public SERVER_HEADERS;
     public base_url: string;
 
@@ -44,6 +46,10 @@ export default abstract class VueAppController {
 
     protected constructor() {
         VueAppController.instance_ = this;
+    }
+
+    public async initializeFlatLocales() {
+        this.ALL_FLAT_LOCALE_TRANSLATIONS = await ModuleTranslation.getInstance().getALL_FLAT_LOCALE_TRANSLATIONS(LocaleManager.getInstance().getDefaultLocale());
     }
 
     public async initialize() {

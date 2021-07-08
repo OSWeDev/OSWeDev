@@ -1,0 +1,7 @@
+.dashboard_builder_board_item(@click='select_widget' :class="{'selected':is_selected}")
+    template(v-if='widget && page_widget')
+        template(v-if='is_edit_mode')
+            .delete_button
+                i.fa.fa-trash.fa-fw.icon_error.btn_icon(aria-hidden="true" @click="delete_widget")       
+        .widget_component_wrapper
+            .widget_component(:is='widget.widget_component' :page_widget='page_widget')

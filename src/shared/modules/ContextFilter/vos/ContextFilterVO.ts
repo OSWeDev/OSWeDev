@@ -119,6 +119,7 @@ export default class ContextFilterVO implements IDistantVOBase {
 
     /**
      * On stocke la valeur dans param_numranges
+     * TODO : FIXME : Est-ce vraiment utile de différencier numérique et ID ? pas convaincu
      */
     public static TYPE_ID_INTERSECTS: number = 15;
     public static TYPE_ID_EQUALS: number = 16;
@@ -160,10 +161,12 @@ export default class ContextFilterVO implements IDistantVOBase {
     public vo_type: string;
     public field_id: string;
 
-    public filer_type: number;
+    public filter_type: number;
 
     public param_text: string;
-    public param_dateranges: TSRange[];
+    public param_numeric: number;
+    public param_textarray: string[];
+    public param_tsranges: TSRange[];
     public param_numranges: NumRange[];
     public param_hourranges: HourRange[];
 

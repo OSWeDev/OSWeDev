@@ -1,13 +1,212 @@
 import Component from 'vue-class-component';
+import { GridItem, GridLayout } from "vue-grid-layout";
+import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import IEditableDashboardPage from '../../../../../shared/modules/DashboardBuilder/interfaces/IEditableDashboardPage';
+import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
+import { ModuleDashboardPageAction } from '../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import './DashboardBuilderBoardComponent.scss';
+import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
     components: {
+        Gridlayout: GridLayout,
+        Griditem: GridItem,
+        Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
+    public static GridLayout_TOTAL_HEIGHT: number = 720;
+    public static GridLayout_TOTAL_ROWS: number = 24;
+    public static GridLayout_ELT_HEIGHT: number = 30;
 
+    public static GridLayout_TOTAL_WIDTH: number = 1272;
+    public static GridLayout_TOTAL_COLUMNS: number = 12;
+    public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
+
+    @ModuleDashboardPageAction
+    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    @ModuleDashboardPageAction
+    private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
+    @Prop()
+    private dashboard_page: DashboardPageVO;
+
+    @Prop()
+    private dashboard: DashboardVO;
+
+    @Prop({ default: null })
+    private selected_widget: DashboardPageWidgetVO;
+
+    private elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
+    private col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
+    private max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
+
+    private draggable: boolean = true;
+    private resizable: boolean = true;
+
+    private editable_dashboard_page: IEditableDashboardPage = null;
+
+    private widgets: DashboardPageWidgetVO[] = [];
+
+    @Watch("dashboard_page", { immediate: true })
+    private async onchange_dbdashboard() {
+        if (!this.dashboard_page) {
+            this.editable_dashboard_page = null;
+            return;
+        }
+
+        if ((!this.editable_dashboard_page) || (this.editable_dashboard_page.id != this.dashboard_page.id)) {
+
+            this.widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
+                DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
+
+            this.editable_dashboard_page = Object.assign({
+                layout: this.widgets
+            }, this.dashboard_page);
+        }
+    }
+
+    private mounted() {
+        DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
+    }
+
+    private async add_widget_to_page(widget: DashboardWidgetVO) {
+
+        if (!this.dashboard_page) {
+            return;
+        }
+
+        let page_widget = new DashboardPageWidgetVO();
+
+        page_widget.page_id = this.dashboard_page.id;
+        page_widget.widget_id = widget.id;
+
+        let max_weight: number = 0;
+        this.widgets.forEach((w) => {
+            if (w.weight >= max_weight) {
+                max_weight = w.weight + 1;
+            }
+        });
+        page_widget.weight = max_weight;
+
+        page_widget.w = widget.default_width;
+        page_widget.h = widget.default_height;
+
+        page_widget.background = widget.default_background;
+
+        try {
+            if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.icone_class]) {
+                let options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.icone_class]();
+                page_widget.json_options = JSON.stringify(options);
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            this.snotify.error(this.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'));
+            return;
+        }
+        page_widget = await ModuleDAO.getInstance().getVoById<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, insertOrDeleteQueryResult.id);
+
+        /**
+         * On ajoute le widget dans les items du layout
+         */
+        this.editable_dashboard_page.layout.push(page_widget);
+        this.set_page_widget(page_widget);
+
+        this.snotify.success(this.label('DashboardBuilderBoardComponent.add_widget_to_page.ok'));
+    }
+
+    private async resizedEvent(i, newH, newW, newHPx, newWPx) {
+        if (!this.widgets) {
+            return;
+        }
+        let widget = this.widgets.find((w) => w.i == i);
+
+        if (!widget) {
+            ConsoleHandler.getInstance().error("resizedEvent:on ne retrouve pas le widget");
+            return;
+        }
+
+        widget.h = newH;
+        widget.w = newW;
+        await ModuleDAO.getInstance().insertOrUpdateVO(widget);
+        this.set_page_widget(widget);
+    }
+
+    private async movedEvent(i, newX, newY) {
+        if (!this.widgets) {
+            return;
+        }
+        let widget = this.widgets.find((w) => w.i == i);
+
+        if (!widget) {
+            ConsoleHandler.getInstance().error("movedEvent:on ne retrouve pas le widget");
+            return;
+        }
+
+        widget.x = newX;
+        widget.y = newY;
+        await ModuleDAO.getInstance().insertOrUpdateVO(widget);
+        this.set_page_widget(widget);
+    }
+
+    private async delete_widget(page_widget: DashboardPageWidgetVO) {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('DashboardBuilderBoardComponent.delete_widget.body'), self.label('DashboardBuilderBoardComponent.delete_widget.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('DashboardBuilderBoardComponent.delete_widget.start'));
+
+                        await ModuleDAO.getInstance().deleteVOs([page_widget]);
+                        let i = 0;
+                        for (; i < self.widgets.length; i++) {
+                            let w = self.widgets[i];
+
+                            if (w.i == page_widget.i) {
+                                break;
+                            }
+                        }
+                        self.widgets.splice(i, 1);
+                        this.delete_page_widget(page_widget);
+
+                        self.snotify.success(self.label('DashboardBuilderBoardComponent.delete_widget.ok'));
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private select_widget(page_widget) {
+        this.$emit('select_widget', page_widget);
+    }
 }

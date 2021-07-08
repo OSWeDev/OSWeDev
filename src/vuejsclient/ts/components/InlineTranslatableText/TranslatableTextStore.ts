@@ -2,12 +2,14 @@ import Vue from "vue";
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
+import LocaleManager from "../../../../shared/tools/LocaleManager";
 import IStoreModule from '../../store/IStoreModule';
 
 export type TranslatableTextContext = ActionContext<ITranslatableTextState, any>;
 
 export interface ITranslatableTextState {
-    translations: { [code_lang: string]: { [code_text: string]: string } };
+    // translations: { [code_lang: string]: { [code_text: string]: any } };
+    flat_locale_translations: { [code_text: string]: any };
 
     initialized: boolean;
     initializing: boolean;
@@ -38,7 +40,8 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
 
 
         this.state = {
-            translations: {},
+            // translations: {},
+            flat_locale_translations: {},
 
             initialized: false,
             initializing: false
@@ -46,8 +49,11 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
 
 
         this.getters = {
-            get_translations(state: ITranslatableTextState): { [code_lang: string]: { [code_text: string]: string } } {
-                return state.translations;
+            // get_translations(state: ITranslatableTextState): { [code_lang: string]: { [code_text: string]: any } } {
+            //     return state.translations;
+            // },
+            get_flat_locale_translations(state: ITranslatableTextState): { [code_text: string]: string } {
+                return state.flat_locale_translations;
             },
 
             get_initialized(state: ITranslatableTextState): boolean {
@@ -62,9 +68,12 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
 
         this.mutations = {
 
-            set_translations(state: ITranslatableTextState, translations: { [code_lang: string]: { [code_text: string]: string } }) {
-                state.translations = translations;
+            set_flat_locale_translations(state: ITranslatableTextState, flat_locale_translations: { [code_text: string]: string }) {
+                state.flat_locale_translations = flat_locale_translations;
             },
+            // set_translations(state: ITranslatableTextState, translations: { [code_lang: string]: { [code_text: string]: string } }) {
+            //     state.translations = translations;
+            // },
 
             set_initialized(state: ITranslatableTextState, initialized: boolean) {
                 state.initialized = initialized;
@@ -74,40 +83,47 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
                 state.initializing = initializing;
             },
 
-            set_translation(state: ITranslatableTextState, translation: { code_lang: string, code_text: string, value: string }) {
-                if (!state.translations[translation.code_lang]) {
-                    return;
-                }
-
-                let splits = translation.code_text.split('.');
-                let last = splits ? splits.pop() : null;
-                if ((!splits) || (!last)) {
-                    return;
-                }
-
-                let trads = state.translations[translation.code_lang];
-                let i = 0;
-                while (trads && splits && splits[i]) {
-
-                    if (!trads[splits[i]]) {
-                        trads[splits[i]] = {} as any;
-                    }
-
-                    trads = trads[splits[i]] as any;
-                    i++;
-                }
-
-                Vue.set(trads, last, translation.value);
+            set_flat_locale_translation(state: ITranslatableTextState, flat_locale_translation: { code_text: string, value: string }) {
+                Vue.set(state.flat_locale_translations, flat_locale_translation.code_text, flat_locale_translation.value);
             },
+
+            // set_translation(state: ITranslatableTextState, translation: { code_lang: string, code_text: string, value: string }) {
+            //     if (!state.translations[translation.code_lang]) {
+            //         return;
+            //     }
+
+            //     let splits = translation.code_text.split('.');
+            //     let last = splits ? splits.pop() : null;
+            //     if ((!splits) || (!last)) {
+            //         return;
+            //     }
+
+            //     let trads = state.translations[translation.code_lang];
+            //     let i = 0;
+            //     while (trads && splits && splits[i]) {
+
+            //         if (!trads[splits[i]]) {
+            //             trads[splits[i]] = {} as any;
+            //         }
+
+            //         trads = trads[splits[i]] as any;
+            //         i++;
+            //     }
+
+            //     Vue.set(trads, last, translation.value);
+            // },
         };
 
 
 
         this.actions = {
 
-            set_translations(context: TranslatableTextContext, translations: { [code_lang: string]: { [code_text: string]: string } }) {
-                commit_set_translations(context, translations);
+            set_flat_locale_translations(context: TranslatableTextContext, flat_locale_translations: { [code_text: string]: string }) {
+                commit_set_flat_locale_translations(context, flat_locale_translations);
             },
+            // set_translations(context: TranslatableTextContext, translations: { [code_lang: string]: { [code_text: string]: string } }) {
+            //     commit_set_translations(context, translations);
+            // },
 
             set_initialized(context: TranslatableTextContext, initialized: boolean) {
                 commit_set_initialized(context, initialized);
@@ -117,9 +133,12 @@ export default class TranslatableTextStore implements IStoreModule<ITranslatable
                 commit_set_initializing(context, initializing);
             },
 
-            set_translation(context: TranslatableTextContext, translation: { code_lang: string, code_text: string, value: string }) {
-                commit_set_translation(context, translation);
+            set_flat_locale_translation(context: TranslatableTextContext, flat_locale_translation: { code_text: string, value: string }) {
+                commit_set_flat_locale_translation(context, flat_locale_translation);
             },
+            // set_translation(context: TranslatableTextContext, translation: { code_lang: string, code_text: string, value: string }) {
+            //     commit_set_translation(context, translation);
+            // },
         };
     }
 }
@@ -132,7 +151,11 @@ const { commit, read, dispatch } =
 export const ModuleTranslatableTextGetter = namespace('TranslatableTextStore', Getter);
 export const ModuleTranslatableTextAction = namespace('TranslatableTextStore', Action);
 
-export const commit_set_translations = commit(TranslatableTextStore_.mutations.set_translations);
-export const commit_set_translation = commit(TranslatableTextStore_.mutations.set_translation);
+
+
+export const commit_set_flat_locale_translations = commit(TranslatableTextStore_.mutations.set_flat_locale_translations);
+export const commit_set_flat_locale_translation = commit(TranslatableTextStore_.mutations.set_flat_locale_translation);
+// export const commit_set_translations = commit(TranslatableTextStore_.mutations.set_translations);
+// export const commit_set_translation = commit(TranslatableTextStore_.mutations.set_translation);
 export const commit_set_initialized = commit(TranslatableTextStore_.mutations.set_initialized);
 export const commit_set_initializing = commit(TranslatableTextStore_.mutations.set_initializing);

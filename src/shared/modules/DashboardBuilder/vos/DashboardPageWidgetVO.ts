@@ -40,4 +40,6 @@ export default class DashboardPageWidgetVO implements IDistantVOBase, IDashboard
     public weight: number;
 
     public json_options: string;
+
+    public background: string;
 }

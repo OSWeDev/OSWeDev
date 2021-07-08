@@ -21,12 +21,15 @@ export default class SingleVoFieldRefHolderComponent extends VueComponentBase {
     }
 
     private allowDrop(event) {
+        event.preventDefault();
+
         if ((!event) || (!event.dataTransfer)) {
             return false;
         }
 
-        let vo_field_ref: VOFieldRefVO = event.dataTransfer.getData("vo_field_ref");
-        if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
+        let api_type_id: string = event.dataTransfer.getData("api_type_id");
+        let field_id: string = event.dataTransfer.getData("field_id");
+        if ((!api_type_id) || (!field_id)) {
             return false;
         }
 
@@ -34,9 +37,7 @@ export default class SingleVoFieldRefHolderComponent extends VueComponentBase {
     }
 
     private drop(event) {
-        if ((!event) || (!event.dataTransfer)) {
-            return;
-        }
+        event.preventDefault();
 
         let api_type_id: string = event.dataTransfer.getData("api_type_id");
         let field_id: string = event.dataTransfer.getData("field_id");

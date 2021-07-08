@@ -13,6 +13,7 @@ import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommand
 import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleContextFilter from '../../shared/modules/ContextFilter/ModuleContextFilter';
 import ModuleCron from '../../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 import ModuleDashboardBuilder from '../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
@@ -63,6 +64,7 @@ import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
+import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleDashboardBuilderServer from './DashboardBuilder/ModuleDashboardBuilderServer';
@@ -461,7 +463,8 @@ export default abstract class ModuleServiceBase {
             ModuleFacturationProAPI.getInstance(),
             ModulePowershell.getInstance(),
             ModuleNFCConnect.getInstance(),
-            ModuleDashboardBuilder.getInstance()
+            ModuleDashboardBuilder.getInstance(),
+            ModuleContextFilter.getInstance(),
         ];
     }
 
@@ -510,7 +513,8 @@ export default abstract class ModuleServiceBase {
             ModuleFacturationProAPIServer.getInstance(),
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
-            ModuleDashboardBuilderServer.getInstance()
+            ModuleDashboardBuilderServer.getInstance(),
+            ModuleContextFilterServer.getInstance(),
         ];
     }
 }

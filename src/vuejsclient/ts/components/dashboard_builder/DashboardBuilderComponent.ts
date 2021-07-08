@@ -11,6 +11,7 @@ import WeightHandler from '../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
 import VueComponentBase from '../VueComponentBase';
+import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import './DashboardBuilderComponent.scss';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDashboardPageAction } from './page/DashboardPageStore';
@@ -21,7 +22,8 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
-        Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent
+        Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
+        Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent
     }
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
@@ -38,6 +40,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null;
+
+    private selected_widget: DashboardPageWidgetVO = null;
+
+    private select_widget(page_widget) {
+        this.selected_widget = page_widget;
+    }
 
     @Watch("dashboard_id", { immediate: true })
     private async onchange_dashboard_id() {
