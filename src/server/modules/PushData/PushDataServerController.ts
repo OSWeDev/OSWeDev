@@ -38,6 +38,7 @@ export default class PushDataServerController {
     public static TASK_NAME_broadcastLoggedSimple: string = 'PushDataServerController' + '.broadcastLoggedSimple';
     public static TASK_NAME_broadcastAllSimple: string = 'PushDataServerController' + '.broadcastAllSimple';
     public static TASK_NAME_broadcastRoleSimple: string = 'PushDataServerController' + '.broadcastRoleSimple';
+    public static TASK_NAME_broadcastRoleRedirect: string = 'PushDataServerController' + '.broadcastRoleRedirect';
     public static TASK_NAME_notifySimpleSUCCESS: string = 'PushDataServerController' + '.notifySimpleSUCCESS';
     public static TASK_NAME_notifySimpleINFO: string = 'PushDataServerController' + '.notifySimpleINFO';
     public static TASK_NAME_notifySimpleWARN: string = 'PushDataServerController' + '.notifySimpleWARN';
@@ -85,6 +86,7 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastLoggedSimple, this.broadcastLoggedSimple.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastAllSimple, this.broadcastAllSimple.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastRoleSimple, this.broadcastRoleSimple.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastRoleRedirect, this.broadcastRoleRedirect.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, this.notifySimpleSUCCESS.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleINFO, this.notifySimpleINFO.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleWARN, this.notifySimpleWARN.bind(this));
@@ -663,6 +665,52 @@ export default class PushDataServerController {
         await Promise.all(promises);
     }
 
+    public async broadcastRoleRedirect(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, redirect_route: string = "") {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleRedirect, role_name, msg_type, code_text, auto_read_if_connected)) {
+            return;
+        }
+
+        let promises = [];
+
+        try {
+            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            if (!role) {
+                ConsoleHandler.getInstance().error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
+                return;
+            }
+
+            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            if (!usersRoles) {
+                ConsoleHandler.getInstance().error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
+                return;
+            }
+
+            let user_ids: number[] = [];
+            for (let i in usersRoles) {
+                user_ids.push(usersRoles[i].user_id);
+            }
+
+            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            if (!users) {
+                ConsoleHandler.getInstance().error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
+                return;
+            }
+
+            for (let i in users) {
+                let user = users[i];
+
+                promises.push((async () => {
+                    await this.notifyRedirect(null, user.id, null, msg_type, code_text, auto_read_if_connected, redirect_route);
+                })());
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        await Promise.all(promises);
+    }
+
+
     public async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
@@ -755,6 +803,27 @@ export default class PushDataServerController {
                 reject('No Prompt received');
             }
         });
+    }
+
+    private async notifyRedirect(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean, redirect_route: string, notif_route_params_name: string, notif_route_params_values: string) {
+
+        if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.simple_notif_label = code_text;
+        notification.notif_route = redirect_route;
+        notification.simple_notif_type = msg_type;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_REDIRECT;
+        notification.read = false;
+        notification.socket_ids = socket_ids;
+        notification.user_id = user_id;
+        notification.client_tab_id = client_tab_id;
+        notification.auto_read_if_connected = auto_read_if_connected;
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     private async notifySimple(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
