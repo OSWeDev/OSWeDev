@@ -77,6 +77,11 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
     }
 
     private async update_visible_options() {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            this.filter_visible_options = [];
+            return;
+        }
+
         let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
             this.vo_field_ref.api_type_id,
             this.vo_field_ref.field_id,
@@ -95,23 +100,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
 
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            this.filter_visible_options = [];
-            return;
-        }
-
-        let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
-            this.vo_field_ref.api_type_id,
-            this.vo_field_ref.field_id,
-            this.get_active_field_filters,
-            null,
-            this.widget_options.max_visible_options,
-            0);
-        if (!tmp) {
-            this.filter_visible_options = [];
-        } else {
-            this.filter_visible_options = tmp;
-        }
+        await this.throttled_update_visible_options();
     }
 
     @Watch('tmp_filter_active_options')

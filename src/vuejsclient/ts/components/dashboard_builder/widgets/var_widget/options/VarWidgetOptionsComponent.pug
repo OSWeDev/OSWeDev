@@ -1,0 +1,33 @@
+.var_widget_options_component
+    .var_name 
+        .input_label {{ label('var_widget_options_component.var_name') }}
+        .input_wrapper
+            multiselect.var_name_selector(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="tmp_selected_var_name"
+                :options="var_names"
+                :allow-empty="false",
+
+                :searchable="true"
+                :internal-search="true"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="var_name_selector"
+            )
+                .lang_selector_option(slot="noOptions") -
+    .widget_title
+        .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                v-if='widget_options && widget_options.title_name_code_text'
+                :code_text="widget_options.title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")

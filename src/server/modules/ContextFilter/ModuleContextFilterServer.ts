@@ -34,6 +34,159 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_get_filter_visible_options, this.get_filter_visible_options.bind(this));
     }
 
+    public build_request_from_active_field_filters(
+        api_type_id: string,
+        field_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        limit: number,
+        offset: number,
+        res_field_alias: string
+    ): string {
+
+        /**
+         * Par mesure de sécu on check que les éléments proposés existent en base
+         */
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        if ((!moduletable) || ((field_id != 'id') && (!moduletable.get_field_by_id(field_id)))) {
+            return null;
+        }
+
+        let aliases_n: number = 0;
+        let tables_aliases_by_type: { [vo_type: string]: string } = {
+            [api_type_id]: 't' + (aliases_n++)
+        };
+        let res: string = "SELECT DISTINCT " + tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_alias +
+            " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+
+        /**
+         * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
+         */
+        let jointures: string[] = [];
+        let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+
+        let where_conditions: string[] = [];
+
+        for (let api_type_id_i in get_active_field_filters) {
+            let active_field_filters_by_fields = get_active_field_filters[api_type_id_i];
+
+            for (let field_id_i in active_field_filters_by_fields) {
+                let active_field_filter: ContextFilterVO = active_field_filters_by_fields[field_id_i];
+
+                if (!active_field_filter) {
+                    continue;
+                }
+
+                if (active_field_filter.vo_type == api_type_id) {
+                    /**
+                     * On a pas besoin de jointure mais par contre on a besoin du filtre
+                     */
+                    this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                    continue;
+                }
+
+                if (!joined_tables_by_vo_type[api_type_id_i]) {
+
+                    /**
+                     * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                     */
+                    let path: Array<ModuleTableField<any>> = this.get_path_between_types(Object.keys(tables_aliases_by_type), api_type_id_i);
+                    if (!path) {
+                        // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                        continue;
+                    }
+                    aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                    // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+                }
+
+                this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+            }
+        }
+
+        if (jointures && jointures.length) {
+            /**
+             * Il faut ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
+             */
+            jointures.sort((jointurea: string, jointureb: string) => {
+                // Si on cite un alias dans a qui est déclaré dans b, on doit être après b, sinon
+                //  soit l'inverse soit osef
+                let alias_a = jointurea.split(' ')[1];
+                let alias_b = jointureb.split(' ')[1];
+
+                let citation_1_a = jointurea.split(' ')[3].split('.')[0];
+                let citation_2_a = jointurea.split(' ')[5].split('.')[0];
+
+                let citation_1_b = jointureb.split(' ')[3].split('.')[0];
+                let citation_2_b = jointureb.split(' ')[5].split('.')[0];
+
+                if ((citation_1_a == alias_b) || (citation_2_a == alias_b)) {
+                    return 1;
+                }
+
+                if ((citation_1_b == alias_a) || (citation_2_b == alias_a)) {
+                    return -1;
+                }
+
+                return 0;
+            });
+            res += ' JOIN ' + jointures.join(' JOIN ');
+        }
+
+        if (where_conditions && where_conditions.length) {
+            res += ' WHERE (' + where_conditions.join(') AND (') + ')';
+        }
+
+        if (limit) {
+            res += ' LIMIT ' + limit;
+
+            if (offset) {
+                res += ' OFFSET ' + offset;
+            }
+        }
+
+        return res;
+    }
+
+    public async query_from_active_filters(
+        api_type_id: string,
+        field_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        limit: number,
+        offset: number
+    ): Promise<any[]> {
+        let res_field_alias: string = 'query_res';
+        let request: string = this.build_request_from_active_field_filters(
+            api_type_id,
+            field_id,
+            get_active_field_filters,
+            limit,
+            offset,
+            res_field_alias
+        );
+
+        if (!request) {
+            return null;
+        }
+
+        let query_res: any[] = await ModuleDAOServer.getInstance().query(request);
+        if ((!query_res) || (!query_res.length)) {
+            return null;
+        }
+
+        let res: any[] = [];
+        for (let i in query_res) {
+            let line_res = query_res[i];
+
+            if (line_res == null) {
+                continue;
+            }
+
+            let res_field = line_res[res_field_alias];
+            res.push(res_field);
+        }
+
+        return res;
+    }
+
     private async get_filter_visible_options(
         api_type_id: string,
         field_id: string,
@@ -64,33 +217,20 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             get_active_field_filters[api_type_id][field_id] = actual_filter;
         }
 
-        let res_field_alias: string = 'query_res';
-        let request: string = this.build_request_from_active_field_filters(
+
+        let query_res: any[] = await this.query_from_active_filters(
             api_type_id,
             field_id,
             get_active_field_filters,
             limit,
-            offset,
-            res_field_alias
+            offset
         );
-
-        if (!request) {
-            return res;
-        }
-
-        let query_res: any[] = await ModuleDAOServer.getInstance().query(request);
         if ((!query_res) || (!query_res.length)) {
             return res;
         }
 
         for (let i in query_res) {
-            let line_res = query_res[i];
-
-            if (line_res == null) {
-                continue;
-            }
-
-            let res_field = line_res[res_field_alias];
+            let res_field = query_res[i];
             let line_option = this.translate_db_res_to_dataoption(api_type_id, field_id, res_field);
 
             if (line_option) {
@@ -186,110 +326,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         }
 
         res.init_text_uid();
-        return res;
-    }
-
-    private build_request_from_active_field_filters(
-        api_type_id: string,
-        field_id: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        limit: number,
-        offset: number,
-        res_field_alias: string
-    ): string {
-
-        /**
-         * Par mesure de sécu on check que les éléments proposés existent en base
-         */
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-        if ((!moduletable) || (!moduletable.get_field_by_id(field_id))) {
-            return null;
-        }
-
-        let aliases_n: number = 0;
-        let tables_aliases_by_type: { [vo_type: string]: string } = {
-            [api_type_id]: 't' + (aliases_n++)
-        };
-        let res: string = "SELECT DISTINCT " + tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_alias +
-            " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
-
-        /**
-         * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
-         */
-        let jointures: string[] = [];
-        let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
-
-        let where_conditions: string[] = [];
-
-        for (let api_type_id_i in get_active_field_filters) {
-            let active_field_filters_by_fields = get_active_field_filters[api_type_id_i];
-
-            for (let field_id_i in active_field_filters_by_fields) {
-                let active_field_filter: ContextFilterVO = active_field_filters_by_fields[field_id_i];
-
-                if (!active_field_filter) {
-                    continue;
-                }
-
-                if (!joined_tables_by_vo_type[api_type_id_i]) {
-
-                    /**
-                     * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-                     */
-                    let path: Array<ModuleTableField<any>> = this.get_path_between_types(Object.keys(tables_aliases_by_type), api_type_id_i);
-                    if (!path) {
-                        // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                        continue;
-                    }
-                    aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-                    // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
-                }
-
-                this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
-            }
-        }
-
-        if (jointures && jointures.length) {
-            /**
-             * Il faut ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
-             */
-            jointures.sort((jointurea: string, jointureb: string) => {
-                // Si on cite un alias dans a qui est déclaré dans b, on doit être après b, sinon
-                //  soit l'inverse soit osef
-                let alias_a = jointurea.split(' ')[1];
-                let alias_b = jointureb.split(' ')[1];
-
-                let citation_1_a = jointurea.split(' ')[3].split('.')[0];
-                let citation_2_a = jointurea.split(' ')[5].split('.')[0];
-
-                let citation_1_b = jointureb.split(' ')[3].split('.')[0];
-                let citation_2_b = jointureb.split(' ')[5].split('.')[0];
-
-                if ((citation_1_a == alias_b) || (citation_2_a == alias_b)) {
-                    return 1;
-                }
-
-                if ((citation_1_b == alias_a) || (citation_2_b == alias_a)) {
-                    return -1;
-                }
-
-                return 0;
-            });
-            res += ' JOIN ' + jointures.join(' JOIN ');
-        }
-
-        if (where_conditions && where_conditions.length) {
-            res += ' WHERE (' + where_conditions.join(') AND (') + ')';
-        }
-
-        if (limit) {
-            res += ' LIMIT ' + limit;
-
-            if (offset) {
-                res += ' OFFSET ' + offset;
-            }
-        }
-
         return res;
     }
 
@@ -735,6 +771,28 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         for (let i in references) {
             let reference = references[i];
+
+            // // INFO : Si on passe par une table segmentée sans que celle-ci soit la cible ou la source, on ignore cette référence
+            // // Obj par l'exemple : lignes de factures, très nombreuses, et plusieurs catégories / PDVs, on veut pas filtrer les
+            // //  PDV en fonction de la catégorie choisie dans les factures liées. Sinon c'est délirant en terme de requetes / temps de
+            // //  réponse. On pourrait ajouter un switch sur une requete très insistante mais par défaut ça semble pas une bonne idée
+            // //  ça sous-entend surtout peutêtre qu'il y a un poids sur les tables pour le chemin à utiliser et qu'on est en train
+            // //  de dire que dans ce cas précis on a juste un poids très élevé.
+            // if (reference.module_table.is_segmented) {
+            //     if ((!reverse_paths[reference.module_table.vo_type]) && (targeted_types.indexOf(reference.module_table.vo_type) < 0)) {
+            //         continue;
+            //     }
+            // }
+
+            /**
+             * Les tables de matroides (params de vars) sont ignorées pour la définition des paths
+             *  on veut que des tables de datas
+             */
+            if (reference.module_table.isMatroidTable) {
+                if ((!reverse_paths[reference.module_table.vo_type]) && (targeted_types.indexOf(reference.module_table.vo_type) < 0)) {
+                    continue;
+                }
+            }
 
             // Si c'est une ref via many to many on ajoute pas de poids sur cette ref
             let reference_weight: number = VOsTypesManager.getInstance().isManyToManyModuleTable(

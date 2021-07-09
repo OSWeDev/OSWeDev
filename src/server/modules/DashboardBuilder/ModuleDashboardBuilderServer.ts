@@ -154,6 +154,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Suppression terminée'
         }, 'DashboardBuilderBoardComponent.delete_widget.ok.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Variable'
+        }, 'var_widget_component.var_name.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Titre'
+        }, 'var_widget_component.widget_title.title_name_code_text.___LABEL___'));
+
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);

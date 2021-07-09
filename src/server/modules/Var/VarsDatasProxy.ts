@@ -317,7 +317,8 @@ export default class VarsDatasProxy {
                                          * => risque de recharger en boucle le front si on a une génération de var foireuse sur le front...
                                          */
 
-                                        await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
+                                        // Retrait du rechargement pour le moment car le dashboard peut générer facilement des index trop grands pour être indéxées
+                                        // await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
 
                                         self.vars_datas_buffer.splice(self.vars_datas_buffer.findIndex((e) => e.index == index), 1);
                                         delete self.vars_datas_buffer_wrapped_indexes[index];

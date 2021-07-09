@@ -4,10 +4,16 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import MatroidBaseController from '../../../shared/modules/Matroid/MatroidBaseController';
+import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -29,6 +35,7 @@ import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -686,6 +693,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamFromContextFilters, this.getVarParamFromContextFilters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
@@ -1067,5 +1075,69 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
         }
         return datasources_values;
+    }
+
+    private async getVarParamFromContextFilters(
+        var_name: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): Promise<VarDataBaseVO> {
+
+        if (!var_name) {
+            return null;
+        }
+
+        let var_conf = VarsController.getInstance().var_conf_by_name[var_name];
+        if (!var_conf) {
+            return null;
+        }
+
+        let var_param: VarDataBaseVO = VarDataBaseVO.createNew(
+            var_name);
+
+        let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+        let field_promises: Array<Promise<any>> = [];
+
+        for (let i in matroid_fields) {
+            let matroid_field_ = matroid_fields[i];
+
+            field_promises.push((async (matroid_field) => {
+                // TODO FIXME les tsranges pour le moment on max_range il faut réfléchir à la meilleure solution pour gérer ces filtrages de dates
+                switch (matroid_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                        if (matroid_field.has_relation) {
+                            let ids_db: any[] = await ModuleContextFilterServer.getInstance().query_from_active_filters(
+                                matroid_field.manyToOne_target_moduletable.vo_type,
+                                matroid_field.target_field,
+                                get_active_field_filters,
+                                0,
+                                0
+                            );
+
+                            if (!ids_db) {
+                                var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                                break;
+                            }
+
+                            let ids: number[] = [];
+                            ids_db.forEach((id) => ids.push(parseInt(id.toString())));
+
+                            var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
+                        } else {
+                            var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                        }
+                        break;
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                        break;
+                }
+            })(matroid_field_));
+        }
+
+        await Promise.all(field_promises);
+
+        return var_param;
     }
 }

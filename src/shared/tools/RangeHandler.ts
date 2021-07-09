@@ -55,6 +55,46 @@ export default class RangeHandler {
 
     private constructor() { }
 
+    public get_ids_ranges_from_list(ids: number[]): NumRange[] {
+
+        if ((!ids) || (!ids.length)) {
+            return null;
+        }
+
+        let res: NumRange[] = [];
+
+        let copy: number[] = Array.from(ids);
+        copy.sort();
+
+        let current_range_min: number = null;
+        let current_range_max: number = null;
+        for (let i in copy) {
+            let e = copy[i];
+
+            if (current_range_max == null) {
+                current_range_min = e;
+                current_range_max = e + 1;
+                continue;
+            }
+
+            if (current_range_max != e) {
+                res.push(this.createNew(NumRange.RANGE_TYPE, current_range_min, current_range_max, true, false, NumSegment.TYPE_INT));
+
+                current_range_min = e;
+                current_range_max = e + 1;
+                continue;
+            }
+
+            current_range_max++;
+        }
+
+        if (current_range_min != null) {
+            res.push(this.createNew(NumRange.RANGE_TYPE, current_range_min, current_range_max, true, false, NumSegment.TYPE_INT));
+        }
+
+        return res;
+    }
+
     public is_max_range<T>(range: IRange<T>): boolean {
 
         if (!range) {

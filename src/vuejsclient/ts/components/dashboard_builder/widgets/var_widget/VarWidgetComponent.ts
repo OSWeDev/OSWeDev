@@ -1,0 +1,112 @@
+import Component from 'vue-class-component';
+import { Prop, Watch } from 'vue-property-decorator';
+import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
+import VueComponentBase from '../../../VueComponentBase';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import VarWidgetOptions from './options/VarWidgetOptions';
+import './VarWidgetComponent.scss';
+
+@Component({
+    template: require('./VarWidgetComponent.pug'),
+    components: {
+    }
+})
+export default class VarWidgetComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
+    @ModuleTranslatableTextGetter
+    private get_flat_locale_translations: { [code_text: string]: string };
+
+    @Prop({ default: null })
+    private page_widget: DashboardPageWidgetVO;
+
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+
+    private var_param: VarDataBaseVO = null;
+
+    get var_name(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.var_name;
+    }
+
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        await this.throttled_update_visible_options();
+    }
+
+    private async update_visible_options() {
+
+        if (!this.var_name) {
+            return this.var_param = null;
+        }
+
+        /**
+         * Reconstruire le param depuis les filtrages actuels.
+         *  TODO FIXME : Comment on peut passer cette phase côté serveur pour pas avoir besoin de requêter la base ?
+         *  et peut-être comment on peut ne pas avoir besoin de requêter du tout et faire marcher les vars directement avec le
+         *  context de filtrage et le moins d'impacts possible ? Au final c'est les datasources et la transformation des params quand on change
+         *  de dep qui utilisent, ou modifient, le contexte de filtrage. A creuser.
+         */
+        /**
+         * Pour les dates il faut réfléchir....
+         */
+        this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(this.var_name, this.get_active_field_filters);
+
+        // let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
+        //     this.vo_field_ref.api_type_id,
+        //     this.vo_field_ref.field_id,
+        //     this.get_active_field_filters,
+        //     this.actual_query,
+        //     this.widget_options.max_visible_options,
+        //     0);
+
+        // if (!tmp) {
+        //     this.filter_visible_options = [];
+        // } else {
+        //     this.filter_visible_options = tmp;
+        // }
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+
+        await this.throttled_update_visible_options();
+    }
+
+    get var_label(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.title_name_code_text])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.title_name_code_text];
+    }
+
+    get widget_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: VarWidgetOptions = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        return options;
+    }
+}

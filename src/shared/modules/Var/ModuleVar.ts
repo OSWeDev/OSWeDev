@@ -5,6 +5,7 @@ import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamV
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ManualTasksController from '../Cron/ManualTasksController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
@@ -16,6 +17,7 @@ import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';
+import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
@@ -48,6 +50,8 @@ export default class ModuleVar extends Module {
     public static APINAME_getVarControllerDSDeps: string = 'getVarControllerDSDeps';
     public static APINAME_getVarParamDatas: string = 'getVarParamDatas';
     public static APINAME_getAggregatedVarDatas: string = 'getAggregatedVarDatas';
+
+    public static APINAME_getVarParamFromContextFilters: string = 'getVarParamFromContextFilters';
 
     // public static APINAME_invalidate_cache_intersection: string = 'invalidate_cache_intersection';
     public static APINAME_delete_cache_intersection: string = 'delete_cache_intersection';
@@ -82,6 +86,12 @@ export default class ModuleVar extends Module {
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
+
+    public getVarParamFromContextFilters: (
+        var_name: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters);
+
 
     private constructor() {
 
@@ -147,6 +157,13 @@ export default class ModuleVar extends Module {
             ModuleVar.APINAME_getVarParamDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetVarParamFromContextFiltersParamVO, VarDataBaseVO>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_getVarParamFromContextFilters,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            GetVarParamFromContextFiltersParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [var_data_index: string]: VarDataBaseVO }>(
