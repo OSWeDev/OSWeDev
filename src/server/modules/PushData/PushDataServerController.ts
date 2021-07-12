@@ -822,6 +822,8 @@ export default class PushDataServerController {
         notification.user_id = user_id;
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = auto_read_if_connected;
+        notification.notif_route_params_name = notif_route_params_name;
+        notification.notif_route_params_values = notif_route_params_values;
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
