@@ -666,7 +666,15 @@ export default class PushDataServerController {
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
-    public async broadcastRoleRedirect(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, redirect_route: string = "", notif_route_params_name: string[], notif_route_params_values: string[]) {
+    public async broadcastRoleRedirect(
+        role_name: string,
+        msg_type: number,
+        code_text: string,
+        auto_read_if_connected: boolean = false,
+        redirect_route: string = "",
+        notif_route_params_name: string[] = null,
+        notif_route_params_values: string[] = null
+    ) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleRedirect, role_name, msg_type, code_text, auto_read_if_connected)) {
             return;
@@ -806,7 +814,17 @@ export default class PushDataServerController {
         });
     }
     // Notifications qui redirigent sur une route avec ou sans paramètres
-    private async notifyRedirect(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean, redirect_route: string, notif_route_params_name: string[], notif_route_params_values: string[]) {
+    private async notifyRedirect(
+        socket_ids: string[],
+        user_id: number,
+        client_tab_id: string,
+        msg_type: number,
+        code_text: string,
+        auto_read_if_connected: boolean,
+        redirect_route: string,
+        notif_route_params_name: string[],
+        notif_route_params_values: string[]
+    ) {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
