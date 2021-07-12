@@ -85,12 +85,23 @@
                             | {{ label('dashboard_builder.loading_failed') }}
 
         template(v-else)
-            .row 
-                .col-md-8.builder_wrapper
-                    Dashboardbuilderboardcomponent(:dashboard_page='page' :dashboard='dashboard' :selected_widget='selected_widget' @select_widget='select_widget')
+            .row.steps
+                .col-md-3.select_vos {{ label('dashboard_builder.select_vos') }}
+                .col-md-3.build_page {{ label('dashboard_builder.build_page') }}
 
-                .col-md-2.widgets_wrapper
-                    Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget')
+            //- .row 
+            //-     .col-md-8.builder_wrapper
+            //-         Dashboardbuilderboardcomponent(:dashboard_page='page' :dashboard='dashboard' :selected_widget='selected_widget' @select_widget='select_widget')
+
+            //-     .col-md-2.widgets_wrapper
+            //-         Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget')
                 
+            //-     .col-md-2.fields_wrapper
+            //-         Droppablevofieldscomponent
+            
+            .row 
+                .col-md-10.tables_graph_wrapper 
+                    Tablesgraphcomponent()
+
                 .col-md-2.fields_wrapper
-                    Droppablevofieldscomponent
+                    Droppablevoscomponent

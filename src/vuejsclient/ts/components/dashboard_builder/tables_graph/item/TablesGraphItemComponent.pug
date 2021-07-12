@@ -1,0 +1,5 @@
+.tables_graph_item
+    .table_name {{ table_name }}
+    hr
+    template(v-for='field in fields')
+        Tablesgraphitemfieldcomponent(:field='field')

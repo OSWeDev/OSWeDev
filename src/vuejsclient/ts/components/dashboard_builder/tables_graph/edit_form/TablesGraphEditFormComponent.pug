@@ -1,0 +1,15 @@
+.tables_graph_edit_form(style="padding: 0 15px 0 10px; font-size: 14px; width: 200px; margin-top: 2em")
+    .tables_graph_edit_form_title
+        strong(style="color: white") {{ 'Edit Form:' }}
+    hr
+    .tables_graph_edit_form_title_cell(v-if="cellData && cellData.value")
+        .name(style="display: block;padding-top: 5px; align-items: baseline")
+            .title(style="width: 150px; color: white") {{ 'Name:' }}
+            .input(style="flex: auto")
+                input(@focus="$event.target.select()" type="text" @input="debounce_change" v-model="cellData.value.name")
+        .type(style="display: block;padding-top: 5px; align-items: baseline")
+            .title(style="width: 150px; color: white") {{ 'Type:' }}
+            .input(style="flex: auto")
+                input(@focus="$event.target.select()" type="text" @input="debounce_change" v-model="cellData.value.type")
+    .tables_graph_edit_form_title_cell(style="text-align: center; color: white; padding-top: 5px" v-else) {{ 'No object selected' }}
+    hr

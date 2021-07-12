@@ -161,6 +161,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Titre'
         }, 'var_widget_component.widget_title.title_name_code_text.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filter'
+        }, 'droppable_vos.filter_by_field_id_or_api_type_id.placeholder.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tables'
+        }, 'droppable_vos.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '1 - Tables'
+        }, 'dashboard_builder.select_vos.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '2 - Widgets'
+        }, 'dashboard_builder.build_page.___LABEL___'));
+
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);

@@ -1,0 +1,21 @@
+.droppable_vos
+    .droppable_vos_wrapper
+        .header
+            //- .hide_show_switch 
+            .title {{ label('droppable_vos.title') }}
+
+        .filters
+            .set_filter_by_api_type_id
+                input(type='search' :placeholder="label('droppable_vos.set_filter_by_api_type_id.placeholder')" @input='set_filter_by_api_type_id' v-model="filter_value")
+
+        .api_type_ids 
+            template(v-for="api_type_id in api_type_ids")
+                template(v-if='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0)')
+                    .api_type_id(draggable="true" @dragstart="drag(event, api_type_id)")
+                        .header
+                            .icons
+                                .api_type_id_type
+                                    i.fa.fa-table.fa-fw(aria-hidden="true")
+                                .api_type_id_selected
+                                    i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-if="get_selected_vos && get_selected_vos[api_type_id]")
+                            .title {{ api_type_titles[api_type_id] }}

@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
-import DroppableVoFieldComponent from './DroppableVoFieldComponent';
+import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
 import './DroppableVoFieldsComponent.scss';
 import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';

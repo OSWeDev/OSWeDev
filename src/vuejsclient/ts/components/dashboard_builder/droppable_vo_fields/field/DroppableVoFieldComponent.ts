@@ -1,10 +1,9 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import VOFieldRefVO from '../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import VueComponentBase from '../../VueComponentBase';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VueComponentBase from '../../../VueComponentBase';
 import './DroppableVoFieldComponent.scss';
-import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
+import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from '../DroppableVoFieldsStore';
 
 @Component({
     template: require('./DroppableVoFieldComponent.pug'),

@@ -13,8 +13,10 @@ import TranslatableTextController from '../InlineTranslatableText/TranslatableTe
 import VueComponentBase from '../VueComponentBase';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import './DashboardBuilderComponent.scss';
+import DroppableVosComponent from './droppable_vos/DroppableVosComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDashboardPageAction } from './page/DashboardPageStore';
+import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 
 @Component({
@@ -23,7 +25,9 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
         Inlinetranslatabletext: InlineTranslatableText,
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
-        Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent
+        Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
+        Tablesgraphcomponent: TablesGraphComponent,
+        Droppablevoscomponent: DroppableVosComponent
     }
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
