@@ -14,11 +14,11 @@
                     .row 
                         .col-md-2
                             .title {{ label('dashboard_builder.title') }}
-                    .row 
+
                         .col-md-4
                             .name
                                 Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
-                    .row 
+
                         .col-md-4
                             .selector
                                 multiselect(
@@ -43,10 +43,12 @@
                                     :deselect-label='label("multiselect.deselectLabel")'
                                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                     )
-                    .row 
+
                         .col-md-2
                             .delete_dashboard
-                                i.fa.fa-trash.fa-fw.icon_error.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard")
+                                i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard")
+                            .create_dashboard
+                                i.fa.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_new_dashboard")
 
         
         .row 
@@ -61,17 +63,24 @@
                             | {{ label('dashboard_builder.loading_failed') }}
 
                 template(v-else)
+                    .row.steps
+                        .col-md-3.step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
+                        .col-md-3.step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
+
                     .pages
                         template(v-for='(page_, pagei) in pages')
                             .page
-                                .select(v-if='pagei != page.id')
-                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)")
+                                .select(v-if='page_.id != page.id')
+                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page(page_)")
                                 .selected(v-else)
-                                    i.fa.fa-check-circle.fa-fw.icon_success(aria-hidden="true")
+                                    i.fa.fa-check-circle.fa-fw(aria-hidden="true")
                                 .name
                                     Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
                                 .delete 
-                                    i.fa.fa-trash.fa-fw.icon_error.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)")
+                                    i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)")
+
+                        .create_dashboard_page
+                            i.fa.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page")
 
         template(v-if='!page')
             .row
@@ -85,23 +94,18 @@
                             | {{ label('dashboard_builder.loading_failed') }}
 
         template(v-else)
-            .row.steps
-                .col-md-3.select_vos {{ label('dashboard_builder.select_vos') }}
-                .col-md-3.build_page {{ label('dashboard_builder.build_page') }}
+            .row(v-if='show_select_vos')
+                .col-md-12.tables_graph_wrapper 
+                    Tablesgraphcomponent(:dashboard='dashboard' @add_api_type_id='add_api_type_id' @del_api_type_id='del_api_type_id')
 
-            //- .row 
-            //-     .col-md-8.builder_wrapper
-            //-         Dashboardbuilderboardcomponent(:dashboard_page='page' :dashboard='dashboard' :selected_widget='selected_widget' @select_widget='select_widget')
+            .row(v-if='show_build_page')
+                .col-md-9.builder_wrapper
+                    Dashboardbuilderboardcomponent(:dashboard_page='page' :dashboard='dashboard' :selected_widget='selected_widget' @select_widget='select_widget')
 
-            //-     .col-md-2.widgets_wrapper
-            //-         Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget')
-                
-            //-     .col-md-2.fields_wrapper
-            //-         Droppablevofieldscomponent
+                .col-md-3.fields_wrapper
+                    .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
+                        i.fa.fa-caret-square-o-up.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
+                        i.fa.fa-caret-square-o-down.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+                    Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget' v-show='!collapsed_fields_wrapper')
+                    Droppablevofieldscomponent(:dashboard='dashboard' v-show='!collapsed_fields_wrapper')
             
-            .row 
-                .col-md-10.tables_graph_wrapper 
-                    Tablesgraphcomponent()
-
-                .col-md-2.fields_wrapper
-                    Droppablevoscomponent

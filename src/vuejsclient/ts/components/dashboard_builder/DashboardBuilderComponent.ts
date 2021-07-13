@@ -26,8 +26,7 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
-        Tablesgraphcomponent: TablesGraphComponent,
-        Droppablevoscomponent: DroppableVosComponent
+        Tablesgraphcomponent: TablesGraphComponent
     }
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
@@ -45,7 +44,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null;
 
+    private show_build_page: boolean = false;
+    private show_select_vos: boolean = true;
+
+    private can_build_page: boolean = false;
+
     private selected_widget: DashboardPageWidgetVO = null;
+
+    private collapsed_fields_wrapper: boolean = false;
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
@@ -58,6 +64,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
         if (!this.dashboard_id) {
             await this.init_dashboard();
+            this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+            this.show_build_page = this.can_build_page;
+            this.show_select_vos = !this.show_build_page;
             this.loading = false;
             return;
         }
@@ -65,9 +74,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboard = await ModuleDAO.getInstance().getVoById<DashboardVO>(DashboardVO.API_TYPE_ID, this.dashboard_id);
         if (!this.dashboard) {
             await this.init_dashboard();
+            this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+            this.show_build_page = this.can_build_page;
+            this.show_select_vos = !this.show_build_page;
             this.loading = false;
             return;
         }
+
+        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+        this.show_build_page = this.can_build_page;
+        this.show_select_vos = !this.show_build_page;
 
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {
@@ -81,6 +97,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private added_widget_to_page(page_widget: DashboardPageWidgetVO) {
         this.set_page_widget(page_widget);
+    }
+
+    private select_page(page: DashboardPageVO) {
+        this.page = page;
     }
 
     private async create_dashboard_page() {
@@ -278,5 +298,47 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 }
             ]
         });
+    }
+
+    private select_vos() {
+        this.show_build_page = false;
+        this.show_select_vos = true;
+    }
+
+    private build_page() {
+        this.show_build_page = true;
+        this.show_select_vos = false;
+    }
+
+    private async add_api_type_id(api_type_id: string) {
+        if (!this.dashboard.api_type_ids) {
+            this.dashboard.api_type_ids = [];
+        }
+        this.dashboard.api_type_ids.push(api_type_id);
+        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
+    }
+
+    private async del_api_type_id(api_type_id: string) {
+        if (!this.dashboard.api_type_ids) {
+            return;
+        }
+        this.dashboard.api_type_ids = this.dashboard.api_type_ids.filter((ati) => ati != api_type_id);
+        this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
+    }
+
+    private mounted() {
+        let body = document.getElementById('page-top');
+        body.classList.add("sidenav-toggled");
+    }
+
+    private beforeDestroy() {
+        let body = document.getElementById('page-top');
+        body.classList.remove("sidenav-toggled");
+    }
+
+    private reverse_collapse_fields_wrapper() {
+        this.collapsed_fields_wrapper = !this.collapsed_fields_wrapper;
     }
 }

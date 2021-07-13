@@ -9,7 +9,7 @@
                 .widget(@click="add_widget_to_page(widget_)" :tooltip="widgets_name[widget_i]")
                     i(aria-hidden="true" :class="widget_.icone_class + ' fa fa-fw'")
 
-        .widget_options
+        .widget_options_wrapper
             template(v-if="!selected_widget")
                 .first_select_a_widget {{ label('dashboard_builder_widgets.first_select_a_widget') }}
             template(v-else)

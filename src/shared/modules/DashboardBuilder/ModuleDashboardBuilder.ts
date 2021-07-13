@@ -2,6 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardVO from './vos/DashboardVO';
@@ -36,6 +37,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         let db_table = this.init_DashboardVO();
         let db_page = this.init_DashboardPageVO(db_table);
+        this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
         this.init_DashboardPageWidgetVO(db_page, db_widget);
         this.init_VOFieldRefVO();
@@ -44,11 +46,32 @@ export default class ModuleDashboardBuilder extends Module {
     private init_DashboardVO(): ModuleTable<any> {
 
         let datatable_fields = [
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'Types', false)
         ];
 
         let res = new ModuleTable(this, DashboardVO.API_TYPE_ID, () => new DashboardVO(), datatable_fields, null, "Dashboards");
         this.datatables.push(res);
+        return res;
+    }
+
+
+    private init_DashboardGraphVORefVO(db_table: ModuleTable<any>): ModuleTable<any> {
+
+        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
+
+        let datatable_fields = [
+            dashboard_id,
+            new ModuleTableField('x', ModuleTableField.FIELD_TYPE_int, 'x', true),
+            new ModuleTableField('y', ModuleTableField.FIELD_TYPE_int, 'y', true),
+            new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'largeur', true),
+            new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'hauteur', true),
+            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'VOType', true)
+        ];
+
+        let res = new ModuleTable(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");
+        this.datatables.push(res);
+        dashboard_id.addManyToOneRelation(db_table);
         return res;
     }
 

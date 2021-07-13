@@ -38,6 +38,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         api_type_id: string,
         field_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
         limit: number,
         offset: number,
         res_field_alias: string
@@ -89,7 +90,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     /**
                      * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
                      */
-                    let path: Array<ModuleTableField<any>> = this.get_path_between_types(Object.keys(tables_aliases_by_type), api_type_id_i);
+                    let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
                     if (!path) {
                         // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                         continue;
@@ -150,6 +151,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         api_type_id: string,
         field_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
         limit: number,
         offset: number
     ): Promise<any[]> {
@@ -158,6 +160,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             api_type_id,
             field_id,
             get_active_field_filters,
+            active_api_type_ids,
             limit,
             offset,
             res_field_alias
@@ -191,6 +194,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         api_type_id: string,
         field_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
         actual_query: string,
         limit: number,
         offset: number): Promise<DataFilterOption[]> {
@@ -198,6 +202,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         let res: DataFilterOption[] = [];
 
         if ((!api_type_id) || (!field_id)) {
+            return res;
+        }
+
+        if ((!active_api_type_ids) || (active_api_type_ids.indexOf(api_type_id) < 0)) {
             return res;
         }
 
@@ -222,6 +230,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             api_type_id,
             field_id,
             get_active_field_filters,
+            active_api_type_ids,
             limit,
             offset
         );
@@ -288,17 +297,20 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 if (db_res && db_res.trim) {
                     res.string_value = db_res.trim();
                 }
+                break;
 
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+                res.string_value = db_res;
+                break;
 
             case ModuleTableField.FIELD_TYPE_html_array:
 
             case ModuleTableField.FIELD_TYPE_boolean:
-                res.string_value = db_res;
+                res.boolean_value = db_res;
                 break;
 
             case ModuleTableField.FIELD_TYPE_numrange:
@@ -571,7 +583,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         return aliases_n;
     }
 
-    private get_path_between_types(from_types: string[], to_type: string): Array<ModuleTableField<any>> {
+    private get_path_between_types(active_api_type_ids: string[], from_types: string[], to_type: string): Array<ModuleTableField<any>> {
         /**
          * On avance sur tous les fronts en même temps et on veut associer à chaque chemin un poids qui correspond à la distance
          *  Une relation N/N compte pour 1 en poids et non 2 même si on a 2 vo_type_id à passer, on ignore directement la table intermédiaire
@@ -599,6 +611,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 reverse_paths = {};
 
                 let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(to_type);
+                references = references.filter((ref) => active_api_type_ids.indexOf(ref.module_table.vo_type) >= 0);
 
                 if (!deployed_deps_from[to_type]) {
                     deployed_deps_from[to_type] = true;
@@ -606,6 +619,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     let fields = VOsTypesManager.getInstance().getManyToOneFields(to_type, Object.keys(deployed_deps_from));
                     for (let i in fields) {
                         let field = fields[i];
+
+                        if (active_api_type_ids.indexOf(field.module_table.vo_type) < 0) {
+                            continue;
+                        }
 
                         if (!references) {
                             references = [];
@@ -634,6 +651,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     let new_path = this_turn_new_paths_fields[field_i];
 
                     let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(new_path.from_api_type_id);
+                    references = references.filter((ref) => active_api_type_ids.indexOf(ref.module_table.vo_type) >= 0);
 
                     if (!deployed_deps_from[new_path.from_api_type_id]) {
                         deployed_deps_from[new_path.from_api_type_id] = true;
@@ -641,6 +659,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                         let fields = VOsTypesManager.getInstance().getManyToOneFields(new_path.from_api_type_id, Object.keys(deployed_deps_from));
                         for (let i in fields) {
                             let field = fields[i];
+
+                            if (active_api_type_ids.indexOf(field.module_table.vo_type) < 0) {
+                                continue;
+                            }
 
                             if (!references) {
                                 references = [];

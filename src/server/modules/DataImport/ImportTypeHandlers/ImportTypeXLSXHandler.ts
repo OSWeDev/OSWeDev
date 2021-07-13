@@ -349,7 +349,7 @@ export default class ImportTypeXLSXHandler {
             }
             // else assume a string representing a date
             // we use few allowed formats, but explicitly parse not strictly
-            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM/DD/YYYY'];
+            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
             return moment(dateValue, formats, false).utc(true);
         }
         return null;

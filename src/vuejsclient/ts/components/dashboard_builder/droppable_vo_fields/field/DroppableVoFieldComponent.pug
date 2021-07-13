@@ -1,4 +1,8 @@
 .droppable_vo_field
     .check_box(@click="inverse_selection" :class='{"is_selected": is_selected}')
+        .icon
+            i.fa.fa-bars.fa-fw(aria-hidden="true")
+        .icon_selected
+            i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-if="is_selected")
     .field_label(draggable="true" @dragstart="drag") {{ field_label }}
     

@@ -1,6 +1,18 @@
 .dashboard_builder_board {
 
-    .grid_item_wrapper.selected .vue-grid-item {
-        box-shadow: 1px 1px 2px #888;
+    width: 1280px;
+    height: 720px;
+    border: dashed 1px #AAA;
+    border-radius: 2px;
+
+    .grid_item_wrapper {
+
+        .vue-grid-item {
+            padding: 1em;
+        }
+
+        &.selected .vue-grid-item {
+            box-shadow: 1px 1px 1px #888;
+        }
     }
 }

@@ -20,6 +20,8 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import TypesHandler from '../../../../../../shared/tools/TypesHandler';
+import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 
 @Component({
     template: require('./FieldValueFilterWidgetComponent.pug'),
@@ -40,6 +42,12 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private dashboard: DashboardVO;
+
+    @Prop({ default: null })
+    private dashboard_page: DashboardPageVO;
 
     private tmp_filter_active_options: DataFilterOption[] = [];
 
@@ -86,6 +94,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             this.vo_field_ref.api_type_id,
             this.vo_field_ref.field_id,
             this.get_active_field_filters,
+            this.dashboard.api_type_ids,
             this.actual_query,
             this.widget_options.max_visible_options,
             0);
@@ -261,6 +270,16 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                 return a;
             }
 
+            if (a.param_textarray && b.param_textarray) {
+                if (!a.param_textarray.length) {
+                    a.param_textarray = b.param_textarray;
+                } else if (!b.param_textarray.length) {
+                } else {
+                    a.param_textarray = a.param_textarray.concat(b.param_textarray);
+                }
+                return a;
+            }
+
             /**
              * On doit gérer les merges booleans, en supprimant potentiellement la condition
              *  (par exemple si on merge un true any avec un false any par définition c'est juste plus un filtre)
@@ -274,6 +293,9 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     throw new Error('Not Implemented');
                 case ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL:
                     throw new Error('Not Implemented');
+
+                case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
+
                 default:
                     break;
             }

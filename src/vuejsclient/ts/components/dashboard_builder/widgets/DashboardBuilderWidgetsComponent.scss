@@ -1,3 +1,41 @@
 .dashboard_builder_widgets {
 
+    padding: 1em;
+    box-shadow: 1px 1px 1px grey;
+    background: #F5F5F5;
+    max-height: 720px;
+    margin-bottom: 1em;
+
+    .dashboard_builder_widgets_wrapper {
+
+        >.header {
+            >.title {
+
+                font-size: 1.3em;
+                margin-bottom: 0.5em;
+            }
+        }
+
+        .widget {
+            width: 2em;
+            height: 2em;
+            vertical-align: middle;
+            text-align: center;
+            padding: 0.3em;
+            margin: 0.1em;
+            background: #666;
+            font-size: 1.2em;
+            display: inline-block;
+            cursor: pointer;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            box-shadow: 1px 1px 1px black;
+        }
+
+        .widget_options_wrapper {
+            margin-top: 1em;
+            border-top: solid 1px lightgrey;
+            padding-top: 0.6em;
+        }
+    }
 }

@@ -1079,7 +1079,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async getVarParamFromContextFilters(
         var_name: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[]
     ): Promise<VarDataBaseVO> {
 
         if (!var_name) {
@@ -1109,6 +1110,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 matroid_field.manyToOne_target_moduletable.vo_type,
                                 matroid_field.target_field,
                                 get_active_field_filters,
+                                active_api_type_ids,
                                 0,
                                 0
                             );

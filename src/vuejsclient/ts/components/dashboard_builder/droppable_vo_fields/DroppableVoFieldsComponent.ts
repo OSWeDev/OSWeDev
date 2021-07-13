@@ -1,11 +1,12 @@
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
 import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
 import './DroppableVoFieldsComponent.scss';
 import DroppableVoFieldsController from './DroppableVoFieldsController';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from './DroppableVoFieldsStore';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 
 @Component({
     template: require('./DroppableVoFieldsComponent.pug'),
@@ -22,10 +23,17 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     private set_filter_by_field_id_or_api_type_id: (filter_by_field_id_or_api_type_id: string) => void;
 
     private filter_value: string = null;
-    private opened_api_type_id: { [api_type_id: string]: boolean } = {};
+    private closed_api_type_id: { [api_type_id: string]: boolean } = {};
+
+    @Prop()
+    private dashboard: DashboardVO;
 
     @ModuleDroppableVoFieldsGetter
     private get_selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } };
+
+    private switch_open_closed(api_type_id: string) {
+        this.closed_api_type_id[api_type_id] = !this.closed_api_type_id[api_type_id];
+    }
 
     @Watch("get_filter_by_field_id_or_api_type_id", { immediate: true })
     private onchange_store_filter() {
@@ -39,7 +47,8 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     get api_type_ids(): string[] {
         let res: string[] = [];
 
-        for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
+        for (let i in this.dashboard.api_type_ids) {
+            let vo_type = this.dashboard.api_type_ids[i];
 
             if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                 (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {
@@ -57,7 +66,8 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     get fields_ids_by_api_type_ids(): { [api_type_id: string]: string[] } {
         let res: { [api_type_id: string]: string[] } = {};
 
-        for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
+        for (let i in this.api_type_ids) {
+            let vo_type = this.api_type_ids[i];
             res[vo_type] = [];
 
             if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
@@ -68,8 +78,8 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
 
             let fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_fields();
 
-            for (let i in fields) {
-                let field = fields[i];
+            for (let j in fields) {
+                let field = fields[j];
 
                 if ((DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                     (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) ||
@@ -119,12 +129,13 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     get has_selected_field(): { [api_type_id: string]: boolean } {
         let res: { [api_type_id: string]: boolean } = {};
 
-        for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
+        for (let i in this.api_type_ids) {
+            let vo_type = this.api_type_ids[i];
             let fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_fields();
 
             res[vo_type] = false;
-            for (let i in fields) {
-                let field = fields[i];
+            for (let j in fields) {
+                let field = fields[j];
 
                 res[vo_type] = res[vo_type] || (this.get_selected_fields && this.get_selected_fields[vo_type] && this.get_selected_fields[vo_type][field.field_id]);
                 if (res[vo_type]) {

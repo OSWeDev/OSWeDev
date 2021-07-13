@@ -30,6 +30,7 @@ export default class ModuleContextFilter extends Module {
         api_type_id: string,
         field_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
         actual_query: string,
         limit: number,
         offset: number) => Promise<DataFilterOption[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_get_filter_visible_options);

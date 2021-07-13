@@ -61,8 +61,8 @@ export default class DroppableVosComponent extends VueComponentBase {
         return res;
     }
 
-    private async drag(event, api_type_id) {
-        event.dataTransfer.setData("api_type_id", api_type_id);
-        event.dataTransfer.dropEffect = "copy";
-    }
+    // private async drag(event, api_type_id) {
+    //     event.dataTransfer.setData("api_type_id", api_type_id);
+    //     event.dataTransfer.dropEffect = "copy";
+    // }
 }

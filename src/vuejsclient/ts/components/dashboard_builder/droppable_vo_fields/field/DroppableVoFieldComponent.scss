@@ -1,2 +1,15 @@
 .droppable_vo_field {
+    font-size: small;
+    padding-left: 1.6em;
+    border-left: solid lightgrey;
+    margin: 4px 0px;
+    padding: 4px 0em 2px 1.6em;
+    background: #EEE;
+    cursor: grab;
+    color: #333;
+ 
+    .icon {
+        float: left;
+        margin-right: 0.4em;
+    }
 }

@@ -64,7 +64,9 @@ export default class RangeHandler {
         let res: NumRange[] = [];
 
         let copy: number[] = Array.from(ids);
-        copy.sort();
+        copy.sort((a, b) => {
+            return a - b;
+        });
 
         let current_range_min: number = null;
         let current_range_max: number = null;

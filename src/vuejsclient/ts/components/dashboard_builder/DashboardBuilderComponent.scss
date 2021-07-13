@@ -1,6 +1,139 @@
 @import '../../../scss/base/skin.scss';
 
 .dashboard_builder {
+    
+    margin-bottom: 5em;
+
+    >.row>.col-md-12>.header {
+
+        margin-bottom: 1em;
+
+        .title {
+            font-size: 2em;
+        }
+
+        .name {
+            input {
+                border: none;
+                padding: 0.5em;
+                width: 100%;
+                background: #F5F5F5;
+                font-size: 1.5em;
+            }
+        }
+        .delete_dashboard {
+
+            text-align: center;
+            vertical-align: middle;
+            height: 2em;
+            width: 2em;
+            background: indianred;
+            padding: 0.3em;
+            margin-left: 0.5em;
+            color: white;
+            cursor: pointer;
+            border-radius: 2px;
+            display: inline-block;
+            font-size: 1.4em;
+        }
+
+        .create_dashboard {
+
+            text-align: center;
+            vertical-align: middle;
+            height: 2em;
+            width: 2em;
+            background: #0d6efd;
+            padding: 0.3em;
+            margin-left: 0.5em;
+            color: white;
+            cursor: pointer;
+            border-radius: 2px;
+            display: inline-block;
+            font-size: 1.4em;
+        }
+    }
+
+    .pages {
+        border: dashed 1px #AAA;
+        border-radius: 2px;
+        margin-bottom: 1em;
+
+        .create_dashboard_page {
+            text-align: center;
+            vertical-align: middle;
+            height: 2em;
+            width: 2em;
+            background: #0d6efd;
+            padding: 0.3em;
+            margin-right: 0.5em;
+            color: white;
+            cursor: pointer;
+            border-radius: 2px;
+            display: inline-block;
+            font-size: 1.2em;
+        }
+
+        .page {
+
+            display: inline-block;
+            background: #F5F5F5;
+            padding: 1em;
+            margin: 0.5em;
+
+            .select,
+            .selected {
+
+                text-align: center;
+                vertical-align: middle;
+                height: 2em;
+                width: 2em;
+                background: #0d6efd;
+                padding: 0.3em;
+                margin-right: 0.5em;
+                color: white;
+                cursor: pointer;
+                border-radius: 2px;
+                display: inline-block;
+                font-size: 1.2em;
+            }
+            
+            .select {
+                background: #0d6efd;
+            }
+
+            .selected {
+                background: green;
+            }
+
+            .name {
+                display: inline-block;
+
+                input {
+                    border: none;
+                    padding: 0.5em;
+                    width: 100%;
+                }
+            }
+
+            .delete {
+
+                text-align: center;
+                vertical-align: middle;
+                height: 2em;
+                width: 2em;
+                background: indianred;
+                padding: 0.3em;
+                margin-left: 0.5em;
+                color: white;
+                cursor: pointer;
+                border-radius: 2px;
+                display: inline-block;
+                font-size: 1.2em;
+            }
+        }
+    }
+
     .icon_error {
         color: $danger_color;
     }
@@ -8,4 +141,52 @@
     .icon_success {
         color: $success_color;
     }
+
+    .collapse_fields_wrapper {
+        padding: 0.2em;
+        margin: 0em;
+        float: left;
+        position: absolute;
+        left: -40px;
+        background: #F5F5F5;
+        font-size: 2em;
+        cursor: pointer;
+        color: #555;
+        box-shadow: 1px 1px 1px grey;
+
+        &.collapsed {
+            right: 10px;
+            left: auto;
+        }
+    }
+
+    .steps {
+        
+        margin: 1em 0em;
+        
+        .step {
+            background: #F5F5F5;
+            border-radius: 2px;
+            padding: 0.5em;
+            text-align: center;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-right: 0.5em;
+
+            &.selected {
+                background: dodgerblue;
+                color: white;
+            }
+        }
+    }
 }
+
+body.sidenav-toggled .navbar-sidenav {
+    overflow: hidden !important;
+
+    .sidenav-second-level a {
+        padding-left: 1.6em !important;
+    }
+}
+

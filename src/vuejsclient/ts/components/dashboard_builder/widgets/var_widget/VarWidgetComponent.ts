@@ -1,7 +1,9 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -28,6 +30,12 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private dashboard: DashboardVO;
+
+    @Prop({ default: null })
+    private dashboard_page: DashboardPageVO;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
 
@@ -62,7 +70,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         /**
          * Pour les dates il faut réfléchir....
          */
-        this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(this.var_name, this.get_active_field_filters);
+        this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(this.var_name, this.get_active_field_filters, this.dashboard.api_type_ids);
 
         // let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
         //     this.vo_field_ref.api_type_id,

@@ -1,7 +1,15 @@
 import mxgraph from 'mxgraph';
 import Component from 'vue-class-component';
+import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import VueAppBase from '../../../../VueAppBase';
 import VueComponentBase from '../../VueComponentBase';
+import DroppableVosComponent from '../droppable_vos/DroppableVosComponent';
 import TablesGraphEditFormComponent from './edit_form/TablesGraphEditFormComponent';
 import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
@@ -49,12 +57,17 @@ window['CustomUserObject'] = function (name, type) {
     template: require('./TablesGraphComponent.pug'),
     components: {
         Tablesgrapheditformcomponent: TablesGraphEditFormComponent,
-        Tablesgraphitemcomponent: TablesGraphItemComponent
+        Tablesgraphitemcomponent: TablesGraphItemComponent,
+        Droppablevoscomponent: DroppableVosComponent
     }
 })
 export default class TablesGraphComponent extends VueComponentBase {
 
+    @Prop()
+    private dashboard: DashboardVO;
+
     private current_cell = null;
+    private cells: { [api_type_id: string]: any } = {};
 
     private selectionChanged() {
         let cell = editor.graph.getSelectionCell();
@@ -66,50 +79,59 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private addSidebarIcon(graph_, sidebar, prototype) {
-        let funct = function (graph, evt) {
+        let funct = (api_type_id: string) => async (graph, evt) => {
+
+            if (this.cells[api_type_id]) {
+                return;
+            }
+
             graph.stopEditing(false);
 
             let pt = graph.getPointForEvent(evt);
 
-            let parent = graph.getDefaultParent();
-            let model = graph.getModel();
+            let cell = new DashboardGraphVORefVO();
+            cell.x = pt.x;
+            cell.y = pt.y;
+            cell.width = this.cell_prototype.geometry.width;
+            cell.height = this.cell_prototype.geometry.height;
+            cell.vo_type = api_type_id;
+            cell.dashboard_id = this.dashboard.id;
+            await ModuleDAO.getInstance().insertOrUpdateVO(cell);
 
-            let v1 = model.cloneCell(prototype);
-
-            model.beginUpdate();
-            try {
-                v1.geometry.x = pt.x;
-                v1.geometry.y = pt.y;
-                v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
-                v1.geometry.alternateBounds = new mxRectangle(0, 0, v1.geometry.width, v1.geometry.height, '');
-
-                graph.addCell(v1, parent);
-            } finally {
-                model.endUpdate();
-            }
+            let v1 = this.initcell(cell);
 
             graph.setSelectionCell(v1);
+            this.$emit("add_api_type_id", api_type_id);
+            // del_api_type_id
         };
 
-        // Creates the image which is used as the sidebar icon (drag source)
-        let wrapper = document.createElement('div');
-        wrapper.style.cursor = 'pointer';
-        wrapper.style.backgroundColor = '#c3d9ff';
-        wrapper.style.margin = '10px';
-        wrapper.style.width = '200px';
-        wrapper.style.height = '50px';
-        wrapper.style.textAlign = 'center';
-        wrapper.style.display = 'flex';
-        wrapper.style.flexWrap = 'wrap';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.justifyContent = 'center';
-        wrapper.style.border = '2px dashed crimson';
-        wrapper.innerHTML = '<div>Custom User Object</div><div style="color: #8C8C8C">Drag me to scheme!</div>';
-        sidebar.appendChild(wrapper);
+        let droppables = document.querySelectorAll('.droppable_vos .droppable_vos_wrapper .api_type_ids .api_type_id');
+        droppables.forEach((droppable) => {
+            // Creates the image which is used as the drag icon (preview)
+            let api_type_id = droppable.getAttribute('api_type_id');
+            let dragImage = droppable.cloneNode(true);
+            mxUtils.makeDraggable(droppable, graph_, funct(api_type_id), dragImage);
+        });
 
-        // Creates the image which is used as the drag icon (preview)
-        let dragImage = wrapper.cloneNode(true);
-        mxUtils.makeDraggable(wrapper, graph_, funct, dragImage);
+        // // Creates the image which is used as the sidebar icon (drag source)
+        // let wrapper = document.createElement('div');
+        // wrapper.style.cursor = 'pointer';
+        // wrapper.style.backgroundColor = '#c3d9ff';
+        // wrapper.style.margin = '10px';
+        // wrapper.style.width = '200px';
+        // wrapper.style.height = '50px';
+        // wrapper.style.textAlign = 'center';
+        // wrapper.style.display = 'flex';
+        // wrapper.style.flexWrap = 'wrap';
+        // wrapper.style.alignItems = 'center';
+        // wrapper.style.justifyContent = 'center';
+        // wrapper.style.border = '2px dashed crimson';
+        // wrapper.innerHTML = '<div>Custom User Object</div><div style="color: #8C8C8C">Drag me to scheme!</div>';
+        // sidebar.appendChild(wrapper);
+
+        // // Creates the image which is used as the drag icon (preview)
+        // let dragImage = wrapper.cloneNode(true);
+        // mxUtils.makeDraggable(wrapper, graph_, funct, dragImage);
     }
 
     private createGraph() {
@@ -118,7 +140,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             // Displays an error message if the browser is not supported.
             mxUtils.error('Browser is not supported!', 200, false);
         } else {
-            mxConnectionHandler.prototype.connectImage = new mxImage(require('./handle-connect.png'), 16, 16);
+            // mxConnectionHandler.prototype.connectImage = new mxImage(require('./handle-connect.png'), 16, 16);
 
             let container = (this.$refs['container'] as any);
             // container.style.position = 'absolute';
@@ -153,8 +175,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             editor = new mxEditor();
             editor.setGraphContainer(container);
 
-            editor.graph.setConnectable(true);
-            editor.graph.setCellsDisconnectable(true);
+            // editor.graph.setConnectable(true);
+            // editor.graph.setCellsDisconnectable(true);
+            // editor.graph.setPanning(true);
+            editor.graph.setConnectable(false);
+            editor.graph.setCellsDisconnectable(false);
             editor.graph.setPanning(true);
             editor.graph.setAllowDanglingEdges(false);
 
@@ -162,6 +187,26 @@ export default class TablesGraphComponent extends VueComponentBase {
                 this.selectionChanged();
             });
             this.selectionChanged();
+            editor.graph.addListener('moveCells', async () => {
+                let cell = editor.graph.getSelectionCell();
+                let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
+                    DashboardGraphVORefVO.API_TYPE_ID,
+                    'dashboard_id',
+                    [this.dashboard.id],
+                    'vo_type',
+                    [cell.value.tables_graph_vo_type]
+                );
+                if ((!db_cells) || (!db_cells.length)) {
+                    ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                    return;
+                }
+                let db_cell = db_cells[0];
+                db_cell.x = cell.geometry.x;
+                db_cell.y = cell.geometry.y;
+                db_cell.width = cell.geometry.width;
+                db_cell.height = cell.geometry.height;
+                await ModuleDAO.getInstance().insertOrUpdateVO(db_cell);
+            });
 
             editor.graph.centerZoom = false;
             editor.graph.swimlaneNesting = false;
@@ -192,18 +237,21 @@ export default class TablesGraphComponent extends VueComponentBase {
                 // console.log('getLabel ', cell);
                 if (cell && this.isHtmlLabel(cell) && cell.value) {
 
-                    let infoWindow = new TablesGraphItemComponent({
-                        propsData: {
-                            vo_type: cell.value.tables_graph_vo_type
-                        },
-                        store: this.$store
-                    });
-                    setTimeout(() => {
-                        infoWindow.$mount("#tables_graph_vo_type__" + cell.value.tables_graph_vo_type);
-                    }, 1000);
+                    // let infoWindow = new TablesGraphItemComponent({
+                    //     propsData: {
+                    //         vo_type: cell.value.tables_graph_vo_type
+                    //     },
+                    //     store: this.$store
+                    // });
+                    // setTimeout(() => {
+                    //     infoWindow.$mount("#tables_graph_vo_type__" + cell.value.tables_graph_vo_type);
+                    // }, 1000);
 
                     let label = '';
-                    label += '<div id="tables_graph_vo_type__' + cell.value.tables_graph_vo_type + '">' +
+                    // label += '<div id="tables_graph_vo_type__' + cell.value.tables_graph_vo_type + '">' +
+                    //     '</div>';
+                    label += '<div class="tables_graph_item table_name">' +
+                        VueAppBase.getInstance().vueInstance.t(VOsTypesManager.getInstance().moduleTables_by_voType[cell.value.tables_graph_vo_type].label.code_text) +
                         '</div>';
 
                     return label;
@@ -212,15 +260,16 @@ export default class TablesGraphComponent extends VueComponentBase {
                 return mxGraph.prototype.getLabel.apply(this, arguments); // "supercall"
             };
 
-            // Adds sidebar icon for the propertie object
-            let customObject = new window['CustomUserObject']();
-
-            let object = new mxCell(customObject, new mxGeometry(0, 0, 200, 50), '');
-            object.setVertex(true);
-            object.setConnectable(true);
-
-            this.addSidebarIcon(editor.graph, sidebar, object);
+            this.addSidebarIcon(editor.graph, sidebar, this.cell_prototype);
         }
+    }
+
+    get cell_prototype() {
+        let customObject = new window['CustomUserObject']();
+        let object = new mxCell(customObject, new mxGeometry(0, 0, 200, 50), '');
+        object.setVertex(true);
+        object.setConnectable(false);
+        return object;
     }
 
     private init() {
@@ -247,40 +296,86 @@ export default class TablesGraphComponent extends VueComponentBase {
         // this.initgraph();
     }
 
-    private initgraph() {
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            this.initcell(i);
+    @Watch('dashboard', { immediate: true })
+    private async onchange_dashboard() {
+        if (!this.dashboard) {
+            return;
+        }
+
+        await this.initgraph();
+    }
+
+    private async initgraph() {
+
+        let cells = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        for (let i in cells) {
+            this.initcell(cells[i]);
         }
     }
 
-    private initcell(vo_type: string) {
+    private initcell(cell: DashboardGraphVORefVO) {
         let graph = editor.graph;
-        let customObject = new window['CustomUserObject']();
-
-        let prototype = new mxCell(customObject, new mxGeometry(0, 0, 200, 50), '');
-        prototype.setVertex(true);
-        prototype.setConnectable(true);
-
         graph.stopEditing(false);
 
         let parent = graph.getDefaultParent();
         let model = graph.getModel();
 
-        let v1 = model.cloneCell(prototype);
+        let v1 = model.cloneCell(this.cell_prototype);
 
         model.beginUpdate();
         try {
-            v1.geometry.x = 100;
-            v1.geometry.y = 50;
+
+            v1.geometry.x = cell.x;
+            v1.geometry.y = cell.y;
             v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
-            v1.geometry.alternateBounds = new mxRectangle(0, 0, v1.geometry.width, v1.geometry.height, '');
-            v1.value.tables_graph_vo_type = vo_type;
+            v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
+            v1.value.tables_graph_vo_type = cell.vo_type;
+
+            // On rajoute les liaisons depuis les autres vos
+            let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
+            for (let i in references) {
+                let reference = references[i];
+                let reference_cell = this.cells[reference.module_table.vo_type];
+                if (reference_cell) {
+                    graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
+                } else {
+
+                    if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
+                        let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
+                        for (let j in nn_fields) {
+                            let nn_field = nn_fields[j];
+
+                            if (nn_field.field_id == reference.field_id) {
+                                continue;
+                            }
+
+                            let nn_reference_cell = this.cells[nn_field.manyToOne_target_moduletable.vo_type];
+                            if (nn_reference_cell) {
+                                // TODO FIXME pour le moment le N/N est fait avec 2 flèches dont une a un label pour les 2
+                                graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
+                                graph.insertEdge(parent, null, '', nn_reference_cell, v1);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // On rajoute les liaisons vers les autres vos
+            let fields = VOsTypesManager.getInstance().getManyToOneFields(cell.vo_type, []);
+            for (let i in fields) {
+                let field = fields[i];
+                let reference_cell = this.cells[field.manyToOne_target_moduletable.vo_type];
+                if (reference_cell) {
+                    graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
+                }
+            }
 
             graph.addCell(v1, parent);
         } finally {
             model.endUpdate();
         }
 
-        graph.setSelectionCell(v1);
+        this.cells[cell.vo_type] = v1;
+        return v1;
     }
 }
