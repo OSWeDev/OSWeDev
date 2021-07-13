@@ -60,6 +60,29 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
 
         /**
+         * On agrémente la liste des active_api_type_ids par les relations N/N dont les types liés sont actifs
+         */
+        let nn_tables = VOsTypesManager.getInstance().get_manyToManyModuleTables();
+        for (let i in nn_tables) {
+            let nn_table = nn_tables[i];
+
+            let nnfields = nn_table.get_fields();
+            let has_inactive_relation = false;
+            for (let j in nnfields) {
+                let nnfield = nnfields[j];
+
+                if (active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
+                    has_inactive_relation = true;
+                    break;
+                }
+            }
+
+            if (!has_inactive_relation) {
+                active_api_type_ids.push(nn_table.vo_type);
+            }
+        }
+
+        /**
          * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
          */
         let jointures: string[] = [];
@@ -222,6 +245,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             actual_filter.vo_type = api_type_id;
             actual_filter.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
             actual_filter.param_text = actual_query;
+
+            if (!get_active_field_filters[api_type_id]) {
+                get_active_field_filters[api_type_id] = {};
+            }
             get_active_field_filters[api_type_id][field_id] = actual_filter;
         }
 
@@ -370,7 +397,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text) {
-                            where_conditions.push(field_id + " LIKE '%" + active_field_filter.param_text + "%'");
+                            where_conditions.push(field_id + " ILIKE '%" + active_field_filter.param_text + "%'");
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -383,7 +410,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                             if ((!like_array) || (!like_array.length)) {
                                 return;
                             }
-                            where_conditions.push(field_id + " LIKE ANY(ARRAY[" + like_array.join(',') + "])");
+                            where_conditions.push(field_id + " ILIKE ANY(ARRAY[" + like_array.join(',') + "])");
                         } else {
                             throw new Error('Not Implemented');
                         }
@@ -392,7 +419,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text) {
-                            where_conditions.push("'%" + active_field_filter.param_text + "%' LIKE ANY " + field_id);
+                            where_conditions.push("'%" + active_field_filter.param_text + "%' ILIKE ANY " + field_id);
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -400,7 +427,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 if (!text) {
                                     continue;
                                 }
-                                like_array.push("'%" + text + "%' LIKE ANY " + field_id);
+                                like_array.push("'%" + text + "%' ILIKE ANY " + field_id);
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
