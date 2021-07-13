@@ -163,7 +163,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Filter'
-        }, 'droppable_vos.filter_by_field_id_or_api_type_id.placeholder.___LABEL___'));
+        }, 'droppable_vos.set_filter_by_api_type_id.placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Tables'
         }, 'droppable_vos.title.___LABEL___'));
@@ -174,6 +174,29 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: '2 - Widgets'
         }, 'dashboard_builder.build_page.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Editer'
+        }, 'tables_graph_edit_form.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'tables_graph_edit_form.delete.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélectionner un élément'
+        }, 'tables_graph_edit_form.no_object_selected.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Confirmer la suppression ?'
+        }, 'TablesGraphEditFormComponent.confirm_delete_cell.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'TablesGraphEditFormComponent.confirm_delete_cell.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression en cours...'
+        }, 'TablesGraphEditFormComponent.confirm_delete_cell.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression terminée'
+        }, 'TablesGraphEditFormComponent.confirm_delete_cell.ok.___LABEL___'));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

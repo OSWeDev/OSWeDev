@@ -74,8 +74,27 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.$set(this, 'current_cell', cell);
     }
 
-    private changeObjectValues(newCellValue) {
-        editor.graph.model.setValue(this.current_cell, newCellValue);
+    private async delete_cell(cellValue) {
+
+        let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
+            DashboardGraphVORefVO.API_TYPE_ID,
+            'dashboard_id',
+            [this.dashboard.id],
+            'vo_type',
+            [cellValue.value.tables_graph_vo_type]
+        );
+        if ((!db_cells) || (!db_cells.length)) {
+            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+            return;
+        }
+        let db_cell = db_cells[0];
+        await ModuleDAO.getInstance().deleteVOs([db_cell]);
+        // editor.graph.removeSelectionCell
+
+        delete this.cells[cellValue.value.tables_graph_vo_type];
+
+        editor.graph.removeCells([cellValue]);
+        this.$emit("del_api_type_id", cellValue.value.tables_graph_vo_type);
     }
 
     private addSidebarIcon(graph_, sidebar, prototype) {
@@ -145,26 +164,12 @@ export default class TablesGraphComponent extends VueComponentBase {
             let container = (this.$refs['container'] as any);
             // container.style.position = 'absolute';
             container.style.overflow = 'hidden';
-            container.style.minHeight = '720px';
-            container.style.left = '50px';
-            container.style.top = '0px';
-            container.style.right = '0px';
-            container.style.bottom = '0px';
+            // container.style.minHeight = '720px';
+            container.style.background = 'white';
+            container.style.padding = '1em';
             // container.style.background = `url("${require('./grid.gif')}")`;
 
             let sidebar = (this.$refs['sidebar'] as any);
-            sidebar.style.position = 'absolute';
-            sidebar.style.overflow = 'hidden';
-            sidebar.style.padding = '0px';
-            sidebar.style.left = '0px';
-            sidebar.style.top = '0px';
-            sidebar.style.width = '250px';
-            sidebar.style.bottom = '0px';
-            sidebar.style.display = 'flex';
-            sidebar.style.flexDirection = 'column-reverse';
-            sidebar.style.alignItems = 'center';
-            sidebar.style.justifyContent = 'flex-end';
-            sidebar.style.backgroundColor = '#292961';
 
             if (mxClient.IS_QUIRKS) {
                 document.body.style.overflow = 'hidden';
@@ -307,6 +312,10 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private async initgraph() {
 
+        if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
+            editor.graph.removeCells(Object.values(this.cells));
+        }
+
         let cells = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         for (let i in cells) {
             this.initcell(cells[i]);
@@ -325,9 +334,16 @@ export default class TablesGraphComponent extends VueComponentBase {
         model.beginUpdate();
         try {
 
+            // v1.style.strokeColor = '#F5F5F5';
+            // v1.style.fillColor = '#FFF';
+
+            graph.setCellStyles('strokeColor', '#555', [v1]);
+            graph.setCellStyles('fillColor', '#444', [v1]);
+
+
             v1.geometry.x = cell.x;
             v1.geometry.y = cell.y;
-            v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
+            // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
             v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
             v1.value.tables_graph_vo_type = cell.vo_type;
 
@@ -371,6 +387,15 @@ export default class TablesGraphComponent extends VueComponentBase {
             }
 
             graph.addCell(v1, parent);
+            // graph.setCellStyles('strokeColor', '#F5F5F5', [parent]);
+            // graph.setCellStyles('fillColor', '#FFF', [parent]);
+            // var style = graph.getModel().getStyle(v1);
+            // var newStyle = mxUtils.setStyle(style, 'strokeColor', 'red');
+            // newStyle = mxUtils.setStyle(newStyle, 'fillColor', 'white');
+            // var cs = new Array();
+            // cs[0] = cell;
+            // graph.setCellStyle(newStyle, cs);
+
         } finally {
             model.endUpdate();
         }

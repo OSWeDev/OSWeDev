@@ -314,6 +314,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (!this.dashboard.api_type_ids) {
             this.dashboard.api_type_ids = [];
         }
+        if (this.dashboard.api_type_ids.indexOf(api_type_id) >= 0) {
+            return;
+        }
         this.dashboard.api_type_ids.push(api_type_id);
         this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
         await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);

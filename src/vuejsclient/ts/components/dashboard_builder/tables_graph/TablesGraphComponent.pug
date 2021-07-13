@@ -1,11 +1,9 @@
 .tables_graph
     .row 
-        .col-md-8.container_wrapper
+        .col-md-9.container_wrapper
             .container(ref="container")
     
-        .col-md-2.sidebar_wrapper
+        .col-md-3.fields_wrapper
             .sidebar(ref="sidebar")
-                Tablesgrapheditformcomponent(ref="form" @change="changeObjectValues" :cell-data="current_cell")
-
-        .col-md-2.fields_wrapper
+                Tablesgrapheditformcomponent(ref="form" @delete_cell="delete_cell" :cell-data="current_cell")
             Droppablevoscomponent(ref="droppables")

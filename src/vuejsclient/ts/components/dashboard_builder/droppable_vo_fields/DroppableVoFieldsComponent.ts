@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
 import DroppableVoFieldComponent from './field/DroppableVoFieldComponent';
@@ -32,7 +32,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
     private get_selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } };
 
     private switch_open_closed(api_type_id: string) {
-        this.closed_api_type_id[api_type_id] = !this.closed_api_type_id[api_type_id];
+        Vue.set(this.closed_api_type_id, api_type_id, !this.closed_api_type_id[api_type_id]);
     }
 
     @Watch("get_filter_by_field_id_or_api_type_id", { immediate: true })
