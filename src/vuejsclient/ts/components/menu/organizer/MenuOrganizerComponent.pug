@@ -1,0 +1,4 @@
+.menu_organizer
+    Vuenestable(v-model="nestable_items" @change="update_db_menu")
+        Vuenestablehandle(slot-scope="{ item }" :item="item") {{ item.text }}
+    

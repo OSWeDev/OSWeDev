@@ -1,3 +1,4 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
@@ -12,6 +13,9 @@ import MenuElementVO from './vos/MenuElementVO';
 export default class ModuleMenu extends Module {
 
     public static MODULE_NAME: string = 'Menu';
+
+    public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleMenu.MODULE_NAME;
+    public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleMenu.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_get_menu = "get_menu";
 
