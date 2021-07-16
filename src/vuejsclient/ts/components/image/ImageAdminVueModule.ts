@@ -1,22 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import ModuleImage from '../../../../shared/modules/Image/ModuleImage';
+import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class ImageAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "ImageAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-folder-open",
-        []
-    );
 
     public static getInstance(): ImageAdminVueModule {
         if (!ImageAdminVueModule.instance) {
@@ -39,14 +30,31 @@ export default class ImageAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let importsMenuBranch: MenuBranch = ImageAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
+        let importsMenuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleImage.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "ImageAdminVueModule",
+                    "fa-folder-open",
+                    20,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             ImageVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("ImageVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-folder-open"),
-                importsMenuBranch),
+            MenuElementVO.create_new(
+                ModuleImage.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                ImageVO.API_TYPE_ID,
+                "fa-folder-open",
+                10,
+                null,
+                null,
+                importsMenuBranch.id
+            ),
             this.routes);
     }
 }

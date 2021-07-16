@@ -36,10 +36,10 @@ export default class ModuleVocusServer extends ModuleServerBase {
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vocus'
-        }, 'menu.menuelements.Vocus.___LABEL___'));
+        }, 'menu.menuelements.admin.Vocus.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vocus'
-        }, 'menu.menuelements.VocusAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.VocusAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'CRUD'
         }, 'vocus.crud.___LABEL___'));

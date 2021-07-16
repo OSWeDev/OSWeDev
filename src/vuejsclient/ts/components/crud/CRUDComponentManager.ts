@@ -1,21 +1,12 @@
 import { RouteConfig } from 'vue-router';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
-import MenuBranch from '../../components/menu/vos/MenuBranch';
-import MenuElementBase from '../../components/menu/vos/MenuElementBase';
-import MenuPointer from '../../components/menu/vos/MenuPointer';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import MenuController from '../menu/MenuController';
 
 export default class CRUDComponentManager {
-
-    public static DEFAULT_CRUD_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "__crud_datatables__",
-        MenuElementBase.PRIORITY_LOW,
-        "fa-table",
-        []
-    );
 
     public static getInstance() {
 
@@ -36,7 +27,7 @@ export default class CRUDComponentManager {
 
     public registerCRUDs<T extends IDistantVOBase>(
         API_TYPE_IDs: string[],
-        menuPointers: MenuPointer[],
+        menuElts: MenuElementVO[],
         routes: RouteConfig[],
         read_query: any[] = null,
         routes_meta: any[] = null) {
@@ -45,16 +36,16 @@ export default class CRUDComponentManager {
             return;
         }
 
-        if ((!menuPointers) || (!menuPointers.length)) {
+        if ((!menuElts) || (!menuElts.length)) {
             return;
         }
 
-        if (API_TYPE_IDs.length != menuPointers.length) {
+        if (API_TYPE_IDs.length != menuElts.length) {
             return;
         }
 
         for (let i in API_TYPE_IDs) {
-            this.registerCRUD(API_TYPE_IDs[i], null, menuPointers[i], routes, read_query ? read_query[i] : null, routes_meta ? routes_meta[i] : null);
+            this.registerCRUD(API_TYPE_IDs[i], null, menuElts[i], routes, read_query ? read_query[i] : null, routes_meta ? routes_meta[i] : null);
         }
     }
 
@@ -62,13 +53,13 @@ export default class CRUDComponentManager {
      *
      * @param API_TYPE_ID
      * @param crud Pas obligatoire, le crud sera alors créé avec les infos par défaut du moduletable que l'on retrouve avec le API_TYPE_ID
-     * @param menuPointer
+     * @param menuElement
      * @param routes
      */
-    public registerCRUD<T extends IDistantVOBase>(
+    public async registerCRUD<T extends IDistantVOBase>(
         API_TYPE_ID: string,                //id du VO
         crud: CRUD<T>,                      //le crud
-        menuPointer: MenuPointer,           //menu
+        menuElement: MenuElementVO,           //menu
         routes: RouteConfig[],              //routes (urls)
         read_query: any = null,
         routes_meta: any = null,
@@ -140,21 +131,22 @@ export default class CRUDComponentManager {
             });
         }
 
-        if (!!menuPointer) {
-            menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
-            menuPointer.addToMenu();
+        if (!!menuElement) {
+            menuElement.target = route_name;
+            menuElement.target_is_routename = true;
+            await MenuController.getInstance().declare_menu_element(menuElement);
         }
     }
 
-    public defineMenuRouteToCRUD(
+    public async defineMenuRouteToCRUD(
         API_TYPE_ID: string,
-        menuPointer: MenuPointer,
+        menuelt: MenuElementVO,
         routes: RouteConfig[],
         read_query: any = null,
         sort_id_descending: boolean = true,
     ) {
         let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
-        let route_name: string = menuPointer.leaf.UID;
+        let route_name: string = menuelt.name;
 
         routes.push({
             path: url,
@@ -168,8 +160,9 @@ export default class CRUDComponentManager {
             })
         });
 
-        menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
-        menuPointer.addToMenu();
+        menuelt.target = route_name;
+        menuelt.target_is_routename = true;
+        await MenuController.getInstance().declare_menu_element(menuelt);
     }
 
     public getCallbackRoute(shift: boolean = true): string {

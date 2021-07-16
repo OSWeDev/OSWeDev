@@ -150,13 +150,13 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'NFC'
-        }, 'menu.menuelements.NFCConnectAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.NFCConnectAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'NFC Tags'
-        }, 'menu.menuelements.nfc_tag.___LABEL___'));
+        }, 'menu.menuelements.admin.nfc_tag.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'NFC Tags User'
-        }, 'menu.menuelements.nfc_tag_user.___LABEL___'));
+        }, 'menu.menuelements.admin.nfc_tag_user.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

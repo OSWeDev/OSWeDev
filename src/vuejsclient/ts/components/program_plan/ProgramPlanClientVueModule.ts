@@ -1,10 +1,11 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 
@@ -14,16 +15,10 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         program_plan_shared_module: ModuleProgramPlanBase,
         program_plan_controller: ProgramPlanControllerBase,
         route_base_programs: string = "/plan/programs",
-        route_base_program: string = "/plan/program/",
-        menuBranch: MenuBranch = new MenuBranch(
-            "ProgramPlanClientVueModule",
-            MenuElementBase.PRIORITY_HIGH,
-            "fa-calendar",
-            []
-        )): ProgramPlanClientVueModule {
+        route_base_program: string = "/plan/program/"): ProgramPlanClientVueModule {
         if (!ProgramPlanClientVueModule.instances[program_plan_shared_module.name]) {
             ProgramPlanClientVueModule.instances[program_plan_shared_module.name] = new ProgramPlanClientVueModule(
-                program_plan_shared_module, program_plan_controller, route_base_programs, route_base_program, menuBranch);
+                program_plan_shared_module, program_plan_controller, route_base_programs, route_base_program);
         }
 
         return ProgramPlanClientVueModule.instances[program_plan_shared_module.name];
@@ -35,8 +30,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         public program_plan_shared_module: ModuleProgramPlanBase,
         public program_plan_controller: ProgramPlanControllerBase,
         public route_base_programs: string,
-        public route_base_program: string,
-        public menuBranch: MenuBranch) {
+        public route_base_program: string) {
 
         super(program_plan_shared_module.name);
     }
@@ -46,6 +40,18 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         if (!await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_ACCESS)) {
             return;
         }
+
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    this.program_plan_shared_module.POLICY_FO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "ProgramPlanClientVueModule",
+                    "fa-calendar",
+                    20,
+                    null
+                )
+            );
 
         let url: string = this.route_base_programs;
         let main_route_name: string = this.program_plan_shared_module.name + '-component';
@@ -60,12 +66,17 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
                 program_plan_client_module: this
             })
         });
-        let menuPointer = new MenuPointer(
-            new MenuLeaf(main_route_name, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calendar"),
-            this.menuBranch
+        let menuPointer = MenuElementVO.create_new(
+            this.program_plan_shared_module.POLICY_FO_ACCESS,
+            VueAppController.getInstance().app_name,
+            main_route_name,
+            "fa-calendar",
+            10,
+            main_route_name,
+            true,
+            menuBranch.id
         );
-        menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
-        menuPointer.addToMenu();
+        await MenuController.getInstance().declare_menu_element(menuPointer);
 
         url = this.route_base_program + ":program_id";
         main_route_name = this.program_plan_shared_module.name;

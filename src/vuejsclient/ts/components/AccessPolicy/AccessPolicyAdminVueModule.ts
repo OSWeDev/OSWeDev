@@ -12,27 +12,18 @@ import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import TextHandler from '../../../../shared/tools/TextHandler';
+import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
-import MenuBranch from '../menu/vos/MenuBranch';
-import MenuElementBase from '../menu/vos/MenuElementBase';
-import MenuLeaf from '../menu/vos/MenuLeaf';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
-import MenuPointer from '../menu/vos/MenuPointer';
+import MenuController from '../menu/MenuController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "AccessPolicyAdminVueModule",
-        0,
-        "fa-shield",
-        []
-    );
 
     public static getInstance(): AccessPolicyAdminVueModule {
         if (!AccessPolicyAdminVueModule.instance) {
@@ -51,31 +42,41 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let accessPolicyMenuBranch: MenuBranch = AccessPolicyAdminVueModule.DEFAULT_MENU_BRANCH;
+        let accessPolicyMenuBranch: MenuElementVO = null;
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS)) {
-            CRUDComponentManager.getInstance().registerCRUD(
+
+            accessPolicyMenuBranch =
+                await MenuController.getInstance().declare_menu_element(
+                    MenuElementVO.create_new(
+                        ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        "AccessPolicyAdminVueModule",
+                        "fa-shield",
+                        0,
+                        null
+                    )
+                );
+
+            await CRUDComponentManager.getInstance().registerCRUD(
                 UserVO.API_TYPE_ID,
                 await this.getUserCRUD(),
-                new MenuPointer(
-                    new MenuLeaf("UserVO", 0, "fa-lock"),
-                    accessPolicyMenuBranch),
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "UserVO",
+                    "fa-lock",
+                    0,
+                    null,
+                    null,
+                    accessPolicyMenuBranch.id
+                ),
                 this.routes,
                 null,
                 null,
                 false
             );
         }
-
-        // if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
-        //     CRUDComponentManager.getInstance().registerCRUD(
-        //         UserRoleVO.API_TYPE_ID,
-        //         null,
-        //         new MenuPointer(
-        //             new MenuLeaf("UserRoleVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
-        //             accessPolicyMenuBranch),
-        //         this.routes);
-        // }
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             let url: string = "/access_managment";
@@ -86,43 +87,77 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 name: main_route_name,
                 component: () => import(/* webpackChunkName: "AccessPolicyComponent" */ './AccessPolicyComponent')
             });
-            let menuPointer = new MenuPointer(
-                new MenuLeaf('AccessPolicyComponent', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-cogs"),
-                accessPolicyMenuBranch
-            );
-            menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
-            menuPointer.addToMenu();
+            let menuelt =
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "AccessPolicyComponent",
+                    "fa-cogs",
+                    10,
+                    main_route_name,
+                    true,
+                    accessPolicyMenuBranch.id
+                );
+            await MenuController.getInstance().declare_menu_element(menuelt);
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 RolePolicyVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("RolePolicyVO", MenuElementBase.PRIORITY_HIGH, "fa-shield"),
-                    accessPolicyMenuBranch),
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "RolePolicyVO",
+                    "fa-shield",
+                    20,
+                    null,
+                    null,
+                    accessPolicyMenuBranch.id
+                ),
                 this.routes);
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 AccessPolicyVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("AccessPolicyVO", MenuElementBase.PRIORITY_MEDIUM, "fa-shield"),
-                    accessPolicyMenuBranch),
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "AccessPolicyVO",
+                    "fa-shield",
+                    30,
+                    null,
+                    null,
+                    accessPolicyMenuBranch.id
+                ),
                 this.routes);
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 AccessPolicyGroupVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("AccessPolicyGroupVO", MenuElementBase.PRIORITY_LOW, "fa-shield"),
-                    accessPolicyMenuBranch),
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "AccessPolicyGroupVO",
+                    "fa-shield",
+                    40,
+                    null,
+                    null,
+                    accessPolicyMenuBranch.id
+                ),
                 this.routes);
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 RoleVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("RoleVO", MenuElementBase.PRIORITY_ULTRALOW, "fa-shield"),
-                    accessPolicyMenuBranch),
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "RoleVO",
+                    "fa-shield",
+                    50,
+                    null,
+                    null,
+                    accessPolicyMenuBranch.id
+                ),
                 this.routes);
         }
     }

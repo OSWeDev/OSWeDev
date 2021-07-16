@@ -1,0 +1,81 @@
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import Module from '../Module';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
+import VersionedVOController from '../Versioned/VersionedVOController';
+import MenuElementVO from './vos/MenuElementVO';
+
+
+export default class ModuleMenu extends Module {
+
+    public static MODULE_NAME: string = 'Menu';
+
+    public static APINAME_get_menu = "get_menu";
+
+    public static getInstance(): ModuleMenu {
+        if (!ModuleMenu.instance) {
+            ModuleMenu.instance = new ModuleMenu();
+        }
+        return ModuleMenu.instance;
+    }
+
+    private static instance: ModuleMenu = null;
+
+    public get_menu: (app_name: string) => Promise<MenuElementVO[]> = APIControllerWrapper.sah(ModuleMenu.APINAME_get_menu);
+
+    private constructor() {
+
+        super("menu", ModuleMenu.MODULE_NAME);
+        this.forceActivationOnInstallation();
+    }
+
+    public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, MenuElementVO[]>(
+            null,
+            ModuleMenu.APINAME_get_menu,
+            [MenuElementVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+    }
+
+    public initialize() {
+        this.fields = [];
+        this.datatables = [];
+
+        this.initializeMenuElementVO();
+    }
+
+    private initializeMenuElementVO() {
+
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        let menu_parent_id = new ModuleTableField('menu_parent_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Lien parent', false);
+
+        let fields = [
+            name,
+            menu_parent_id,
+
+            new ModuleTableField('app_name', ModuleTableField.FIELD_TYPE_string, 'Application', true),
+
+            new ModuleTableField('target', ModuleTableField.FIELD_TYPE_string, 'Cible', false),
+            new ModuleTableField('target_is_routename', ModuleTableField.FIELD_TYPE_boolean, 'La cible est une route ?', true, true, true),
+
+            new ModuleTableField('hidden', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false),
+
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+
+            new ModuleTableField('fa_class', ModuleTableField.FIELD_TYPE_string, 'Classe font-awesome', false),
+            new ModuleTableField('access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Clé du droit d\'accès', true, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
+        ];
+
+        let table = new ModuleTable(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');
+        this.datatables.push(table);
+
+        menu_parent_id.addManyToOneRelation(table);
+
+        VersionedVOController.getInstance().registerModuleTable(table);
+    }
+}

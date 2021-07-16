@@ -5,13 +5,12 @@ import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataIm
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 import ReimportComponent from './reimport_component/reimport_component';
 import './scss/data_import.scss';
 
@@ -19,12 +18,6 @@ export default class DataImportAdminVueModule extends VueModuleBase {
 
     public static IMPORT_MODAL: string = 'modal';
     public static IMPORT_PARAMS: string = 'params';
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "DataImportAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-upload",
-        []
-    );
 
     public static getInstance(): DataImportAdminVueModule {
         if (!DataImportAdminVueModule.instance) {
@@ -36,6 +29,8 @@ export default class DataImportAdminVueModule extends VueModuleBase {
 
     private static instance: DataImportAdminVueModule = null;
 
+    public menuBranch: MenuElementVO = null;
+
     private constructor() {
 
         super(ModuleDataImport.getInstance().name);
@@ -43,32 +38,56 @@ export default class DataImportAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let importsMenuBranch: MenuBranch = DataImportAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
-
         let has_full_menu_access: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS);
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_LOGS_ACCESS)) {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        this.menuBranch =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleDataImport.POLICY_LOGS_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "DataImportAdminVueModule",
+                    "fa-upload",
+                    20,
+                    null
+                )
+            );
+
+        await CRUDComponentManager.getInstance().registerCRUD(
             DataImportLogVO.API_TYPE_ID,
             null,
-            has_full_menu_access ? new MenuPointer(
-                new MenuLeaf("DataImportLogVO", MenuElementBase.PRIORITY_HIGH, "fa-info-circle"),
-                importsMenuBranch) : null,
+            MenuElementVO.create_new(
+                ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+                VueAppController.getInstance().app_name,
+                "DataImportLogVO",
+                "fa-info-circle",
+                20,
+                null,
+                null,
+                this.menuBranch.id
+            ),
             this.routes);
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_ACCESS)) {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             DataImportHistoricVO.API_TYPE_ID,
             null,
-            has_full_menu_access ? new MenuPointer(
-                new MenuLeaf("DataImportHistoricVO", MenuElementBase.PRIORITY_HIGH, "fa-history"),
-                importsMenuBranch) : null,
+            MenuElementVO.create_new(
+                ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+                VueAppController.getInstance().app_name,
+                "DataImportHistoricVO",
+                "fa-history",
+                20,
+                null,
+                null,
+                this.menuBranch.id
+            ),
             this.routes);
 
         // On adapte le CRUD des imports pour avoir un bouton de réimport et une colonne de visualisation graphique de l'état
@@ -77,19 +96,33 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         historic_crud.readDatatable.unshiftField(new ComponentDatatableField('reimporter', ReimportComponent, 'file_id'));
 
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             DataImportFormatVO.API_TYPE_ID,
             null,
-            has_full_menu_access ? new MenuPointer(
-                new MenuLeaf("DataImportFormatVO", MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                importsMenuBranch) : null,
+            MenuElementVO.create_new(
+                ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+                VueAppController.getInstance().app_name,
+                "DataImportFormatVO",
+                "fa-cogs",
+                40,
+                null,
+                null,
+                this.menuBranch.id
+            ),
             this.routes);
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             DataImportColumnVO.API_TYPE_ID,
             null,
-            has_full_menu_access ? new MenuPointer(
-                new MenuLeaf("DataImportColumnVO", MenuElementBase.PRIORITY_ULTRALOW, "fa-cogs"),
-                importsMenuBranch) : null,
+            MenuElementVO.create_new(
+                ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+                VueAppController.getInstance().app_name,
+                "DataImportColumnVO",
+                "fa-cogs",
+                50,
+                null,
+                null,
+                this.menuBranch.id
+            ),
             this.routes);
 
         // Sur le menu global des imports on propose :
@@ -113,50 +146,36 @@ export default class DataImportAdminVueModule extends VueModuleBase {
                 continue;
             }
 
-            let importMenuBranch: MenuBranch = has_full_menu_access ? new MenuBranch("__i__" + moduleTable.vo_type, MenuElementBase.PRIORITY_MEDIUM, "fa-upload", []) : null;
+            let importmenuBranch: MenuElementVO =
+                await MenuController.getInstance().declare_menu_element(
+                    MenuElementVO.create_new(
+                        ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        "__i__" + moduleTable.vo_type,
+                        "fa-upload",
+                        30,
+                        null,
+                        null,
+                        this.menuBranch.id
+                    )
+                );
 
             let raw_api_type_id: string = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(moduleTable.vo_type);
-            // CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
-            //     DataImportHistoricVO.API_TYPE_ID,
-            //     new MenuPointer(
-            //         new MenuLeaf("DataImportHistoricVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-history"),
-            //         importsMenuBranch,
-            //         importMenuBranch),
-            //     this.routes,
-            //     {
-            //         FILTER__api_type_id: moduleTable.vo_type,
-            //     });
 
-            // CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
-            //     DataImportLogVO.API_TYPE_ID,
-            //     new MenuPointer(
-            //         new MenuLeaf("DataImportLogVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_HIGH, "fa-info-circle"),
-            //         importsMenuBranch,
-            //         importMenuBranch),
-            //     this.routes,
-            //     {
-            //         FILTER__api_type_id: moduleTable.vo_type,
-            //     });
-
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 raw_api_type_id,
                 null,
-                has_full_menu_access ? new MenuPointer(
-                    new MenuLeaf(raw_api_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-table"),
-                    importsMenuBranch,
-                    importMenuBranch) : null,
+                MenuElementVO.create_new(
+                    ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    raw_api_type_id,
+                    "fa-table",
+                    30,
+                    null,
+                    null,
+                    importmenuBranch.id
+                ),
                 this.routes);
-
-            // CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
-            //     DataImportFormatVO.API_TYPE_ID,
-            //     new MenuPointer(
-            //         new MenuLeaf("DataImportFormatVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-            //         importsMenuBranch,
-            //         importMenuBranch),
-            //     this.routes,
-            //     {
-            //         FILTER__api_type_id: moduleTable.vo_type,
-            //     });
         }
     }
 

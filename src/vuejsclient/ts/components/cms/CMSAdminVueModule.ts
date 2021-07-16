@@ -1,28 +1,16 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
-import HtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlComponentVO';
-import HtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlComponentVO';
-import HtmlHtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlHtmlComponentVO';
-import ImgHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/ImgHtmlComponentVO';
 import ContentTypeVO from '../../../../shared/modules/CMS/vos/ContentTypeVO';
 import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
 import TemplateComponentVO from '../../../../shared/modules/CMS/vos/TemplateComponentVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class CMSAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_CMS_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "CMSAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-newspaper-o",
-        []
-    );
 
     public static getInstance(): CMSAdminVueModule {
         if (!CMSAdminVueModule.instance) {
@@ -45,59 +33,131 @@ export default class CMSAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let cmsMenuBranch: MenuBranch = CMSAdminVueModule.DEFAULT_CMS_MENU_BRANCH;
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleCMS.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "CMSAdminVueModule",
+                    "fa-newspaper-o",
+                    20,
+                    null
+                )
+            );
 
-        let contentsComponentsBranch: MenuBranch = new MenuBranch("CMSAdminVueModule_ContentsComponents", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-newspaper-o", []);
+        let contentsComponentsBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleCMS.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "CMSAdminVueModule_ContentsComponents",
+                    "fa-newspaper-o",
+                    10,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             PageVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("PageVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-newspaper-o"),
-                cmsMenuBranch,
-                contentsComponentsBranch),
+            MenuElementVO.create_new(
+                ModuleCMS.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "PageVO",
+                "fa-newspaper-o",
+                10,
+                null,
+                null,
+                contentsComponentsBranch.id
+            ),
             this.routes);
 
-        let pageComponentsBranch: MenuBranch = new MenuBranch("CMSAdminVueModule_PageComponents", MenuElementBase.PRIORITY_ULTRALOW, "fa-cogs", []);
+        let pageComponentsBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleCMS.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "CMSAdminVueModule_PageComponents",
+                    "fa-cogs",
+                    50,
+                    null
+                )
+            );
 
         for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
             let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 registered_template_component.type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(registered_template_component.type_id, registered_template_component.weight, "fa-cogs"),
-                    cmsMenuBranch,
-                    pageComponentsBranch),
+                MenuElementVO.create_new(
+                    ModuleCMS.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    registered_template_component.type_id,
+                    "fa-cogs",
+                    registered_template_component.weight,
+                    null,
+                    null,
+                    pageComponentsBranch.id
+                ),
                 this.routes);
         }
 
-        let structureComponentsBranch: MenuBranch = new MenuBranch("CMSAdminVueModule_Structure", MenuElementBase.PRIORITY_LOW, "fa-cogs", []);
+        let structureComponentsBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleCMS.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "CMSAdminVueModule_Structure",
+                    "fa-cogs",
+                    40,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             ContentTypeVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("ContentTypeVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-cogs"),
-                cmsMenuBranch),
+            MenuElementVO.create_new(
+                ModuleCMS.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "ContentTypeVO",
+                "fa-cogs",
+                10,
+                null,
+                null,
+                menuBranch.id
+            ),
             this.routes);
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             PageAliasVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("PageAliasVO", MenuElementBase.PRIORITY_HIGH, "fa-globe"),
-                cmsMenuBranch),
+            MenuElementVO.create_new(
+                ModuleCMS.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "PageAliasVO",
+                "fa-globe",
+                20,
+                null,
+                null,
+                menuBranch.id
+            ),
             this.routes);
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             TemplateComponentVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("TemplateComponentVO", MenuElementBase.PRIORITY_MEDIUM, "fa-cogs"),
-                cmsMenuBranch,
-                structureComponentsBranch),
+            MenuElementVO.create_new(
+                ModuleCMS.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "TemplateComponentVO",
+                "fa-cogs",
+                30,
+                null,
+                null,
+                structureComponentsBranch.id
+            ),
             this.routes);
     }
 }

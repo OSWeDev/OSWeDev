@@ -1,21 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAnonymization from '../../../../shared/modules/Anonymization/ModuleAnonymization';
 import AnonymizationFieldConfVO from '../../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class AnonymizationAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "AnonymizationAdminVueModule",
-        MenuElementBase.PRIORITY_ULTRALOW,
-        "fa-user-secret",
-        []
-    );
 
     public static getInstance(): AnonymizationAdminVueModule {
         if (!AnonymizationAdminVueModule.instance) {
@@ -34,18 +26,34 @@ export default class AnonymizationAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = AnonymizationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
-
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnonymization.POLICY_BO_ACCESS)) {
             return;
         }
 
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleAnonymization.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "AnonymizationAdminVueModule",
+                    "fa-user-secret",
+                    50,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnonymizationFieldConfVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf(AnonymizationFieldConfVO.API_TYPE_ID, MenuElementBase.PRIORITY_MEDIUM, "fa-user-secret")
+            MenuElementVO.create_new(
+                ModuleAnonymization.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                AnonymizationFieldConfVO.API_TYPE_ID,
+                "fa-user-secret",
+                30,
+                null,
+                null,
+                menuBranch.id
             ),
             this.routes);
     }

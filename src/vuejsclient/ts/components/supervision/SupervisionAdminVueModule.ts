@@ -1,26 +1,17 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 import './supervision_crud.scss';
 
 export default class SupervisionAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "SupervisionAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-tachometer",
-        []
-    );
 
     public static getInstance(): SupervisionAdminVueModule {
         if (!SupervisionAdminVueModule.instance) {
@@ -47,6 +38,18 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             return;
         }
 
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleSupervision.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "SupervisionAdminVueModule",
+                    "fa-tachometer",
+                    20,
+                    null
+                )
+            );
+
         let registered_api_types = SupervisionController.getInstance().registered_controllers;
         for (let api_type in registered_api_types) {
             let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type];
@@ -55,12 +58,18 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
                 continue;
             }
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 api_type,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(api_type, MenuElementBase.PRIORITY_HIGH, "fa-table"),
-                    SupervisionAdminVueModule.DEFAULT_MENU_BRANCH
+                MenuElementVO.create_new(
+                    ModuleSupervision.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    api_type,
+                    "fa-table",
+                    20,
+                    null,
+                    null,
+                    menuBranch.id
                 ),
                 this.routes
             );
@@ -75,12 +84,17 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
         });
 
-        let menuPointer = new MenuPointer(
-            new MenuLeaf('SupervisionDashboard', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-tachometer"),
-            SupervisionAdminVueModule.DEFAULT_MENU_BRANCH
+        let menuPointer = MenuElementVO.create_new(
+            ModuleSupervision.POLICY_BO_ACCESS,
+            VueAppController.getInstance().app_name,
+            'SupervisionDashboard',
+            "fa-tachometer",
+            10,
+            main_route_name,
+            true,
+            menuBranch.id
         );
-        menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
-        menuPointer.addToMenu();
+        await MenuController.getInstance().declare_menu_element(menuPointer);
 
         this.routes.push({
             path: "/supervision/item/:vo_type/:id",
@@ -93,12 +107,18 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         });
 
         //initializing categoryCRUD
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             SupervisedCategoryVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("SupervisedCategoryVO", MenuElementBase.PRIORITY_HIGH, "fa-table"),
-                SupervisionAdminVueModule.DEFAULT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleSupervision.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "SupervisedCategoryVO",
+                "fa-table",
+                20,
+                null,
+                null,
+                menuBranch.id
             ),
             this.routes
         );

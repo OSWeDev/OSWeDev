@@ -1,15 +1,14 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
+import MenuController from '../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
 import TerminateMaintenanceComponent from './component/TerminateMaintenanceComponent';
-import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class MaintenanceAdminVueModule extends VueModuleBase {
 
@@ -37,17 +36,33 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuBranch = new MenuBranch("MaintenanceAdminVueModule", MenuElementBase.PRIORITY_MEDIUM - 1, "fa-podcast", []);
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "MaintenanceAdminVueModule",
+                    "fa-podcast",
+                    29,
+                    null
+                )
+            );
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
-            CRUDComponentManager.getInstance().registerCRUD(
-                MaintenanceVO.API_TYPE_ID,
-                this.get_maintenance_crud(),
-                new MenuPointer(
-                    new MenuLeaf("MaintenanceVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-podcast"),
-                    menuBranch),
-                this.routes);
-        }
+        await CRUDComponentManager.getInstance().registerCRUD(
+            MaintenanceVO.API_TYPE_ID,
+            this.get_maintenance_crud(),
+            MenuElementVO.create_new(
+                ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                VueAppController.getInstance().app_name,
+                "MaintenanceVO",
+                "fa-podcast",
+                10,
+                null,
+                null,
+                menuBranch.id,
+                false
+            ),
+            this.routes);
 
         if (!!this.post_initialization_hook) {
             await this.post_initialization_hook();

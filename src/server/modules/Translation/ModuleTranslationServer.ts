@@ -70,10 +70,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
-        }, 'menu.menuelements.__i__import_translation.___LABEL___'));
+        }, 'menu.menuelements.admin.__i__import_translation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
-        }, 'menu.menuelements._i_import_translation.___LABEL___'));
+        }, 'menu.menuelements.admin._i_import_translation.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traduction'
@@ -124,16 +124,16 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'import.translations.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Codes textes'
-        }, 'menu.menuelements.TranslatableTextVOTranslationAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.TranslatableTextVOTranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Internationalisation'
-        }, 'menu.menuelements.TranslationAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.TranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
-        }, 'menu.menuelements.TranslationVOTranslationAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.TranslationVOTranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Import des traductions'
-        }, 'menu.menuelements.TranslationsImport.___LABEL___'));
+        }, 'menu.menuelements.admin.TranslationsImport.___LABEL___'));
 
 
 
@@ -332,55 +332,55 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'CRON'
-        }, 'menu.menuelements.CronAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.CronAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Exécution'
-        }, 'menu.menuelements.CronRun.___LABEL___'));
+        }, 'menu.menuelements.admin.CronRun.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Planification'
-        }, 'menu.menuelements.CronWorkerPlanification.___LABEL___'));
+        }, 'menu.menuelements.admin.CronWorkerPlanification.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Administration des fichiers'
-        }, 'menu.menuelements.FileAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.FileAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Fichier'
-        }, 'menu.menuelements.FileVO.___LABEL___'));
+        }, 'menu.menuelements.admin.FileVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Langues'
-        }, 'menu.menuelements.LangVOTranslationAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.LangVOTranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Modules'
-        }, 'menu.menuelements.ModuleVO.___LABEL___'));
+        }, 'menu.menuelements.admin.ModuleVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Modules'
-        }, 'menu.menuelements.ModulesAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.ModulesAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Role policy'
-        }, 'menu.menuelements.RolePolicyVO.___LABEL___'));
+        }, 'menu.menuelements.admin.RolePolicyVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Rôle'
-        }, 'menu.menuelements.RoleVO.___LABEL___'));
+        }, 'menu.menuelements.admin.RoleVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Configuration des Vars'
-        }, 'menu.menuelements.SimpleVarConfVO.___LABEL___'));
+        }, 'menu.menuelements.admin.SimpleVarConfVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Utilisateurs'
-        }, 'menu.menuelements.UserVO.___LABEL___'));
+        }, 'menu.menuelements.admin.UserVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Variables'
-        }, 'menu.menuelements.VarAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.VarAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Access policy'
-        }, 'menu.menuelements.module_access_policy.___LABEL___'));
+        }, 'menu.menuelements.admin.module_access_policy.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Module Format dates/nombres'
-        }, 'menu.menuelements.module_format_dates_nombres.___LABEL___'));
+        }, 'menu.menuelements.admin.module_format_dates_nombres.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Module Mailer'
-        }, 'menu.menuelements.module_mailer.___LABEL___'));
+        }, 'menu.menuelements.admin.module_mailer.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Module SASS'
-        }, 'menu.menuelements.module_sass_resource_planning_skin_configurator.___LABEL___'));
+        }, 'menu.menuelements.admin.module_sass_resource_planning_skin_configurator.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Fermer'
         }, 'on_page_translation.close_button_title.___LABEL___'));

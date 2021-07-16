@@ -1,7 +1,5 @@
 import { Component } from 'vue-property-decorator';
 import VueComponentBase from '../../VueComponentBase';
-import { ModuleMenuGetter } from '../store/MenuStore';
-import MenuElementBase from '../vos/MenuElementBase';
 import './MenuComponent.scss';
 
 @Component({
@@ -16,12 +14,6 @@ export default class MenuComponent extends VueComponentBase {
     }
 
     private static instance: MenuComponent;
-
-    @ModuleMenuGetter
-    public getMenuElements: MenuElementBase[];
-
-    // TODO : Toggle menu size
-    //private toggleMenu:boolean = true;
 
     public constructor() {
         super();

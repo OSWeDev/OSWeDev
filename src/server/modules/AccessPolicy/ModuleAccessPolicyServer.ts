@@ -351,16 +351,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Utilisateurs'
-        }, 'menu.menuelements.AccessPolicyAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.AccessPolicyAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Gestion des droits'
-        }, 'menu.menuelements.AccessPolicyComponent.___LABEL___'));
+        }, 'menu.menuelements.admin.AccessPolicyComponent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Gourpe d\'accès'
-        }, 'menu.menuelements.AccessPolicyGroupVO.___LABEL___'));
+        }, 'menu.menuelements.admin.AccessPolicyGroupVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Accès'
-        }, 'menu.menuelements.AccessPolicyVO.___LABEL___'));
+        }, 'menu.menuelements.admin.AccessPolicyVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Droit'

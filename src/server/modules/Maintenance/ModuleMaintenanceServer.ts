@@ -103,7 +103,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             fr: 'Maintenance',
             de: 'Wartung',
             es: 'Mantenimiento'
-        }, 'menu.menuelements.module_maintenance.___LABEL___'));
+        }, 'menu.menuelements.admin.module_maintenance.___LABEL___'));
 
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

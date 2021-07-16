@@ -52,6 +52,7 @@ import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305af
 import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO';
 import Patch20210615ChangeLoginTrads from './patchs/postmodules/Patch20210615ChangeLoginTrads';
 import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615ChangeRecoverySMS';
+import Patch20210715ChangeMenuTranslations from './patchs/postmodules/Patch20210715ChangeMenuTranslations';
 
 export default abstract class GeneratorBase {
 
@@ -116,7 +117,8 @@ export default abstract class GeneratorBase {
             Patch20210225AjoutDateCreationCompteUtilisateur.getInstance(),
             Patch20210305affichageIconePDF.getInstance(),
             Patch20210615ChangeLoginTrads.getInstance(),
-            Patch20210615ChangeRecoverySMS.getInstance()
+            Patch20210615ChangeRecoverySMS.getInstance(),
+            Patch20210715ChangeMenuTranslations.getInstance()
         ];
     }
 

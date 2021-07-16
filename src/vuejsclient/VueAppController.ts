@@ -1,5 +1,6 @@
 import { Route } from 'vue-router/types/router';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleMenu from '../shared/modules/Menu/ModuleMenu';
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
@@ -8,6 +9,7 @@ import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../shared/tools/LocaleManager';
+import MenuController from './ts/components/menu/MenuController';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 
 export default abstract class VueAppController {
@@ -44,7 +46,7 @@ export default abstract class VueAppController {
     public has_access_to_onpage_translation: boolean = false;
     public has_access_to_feedback: boolean = false;
 
-    protected constructor() {
+    protected constructor(public app_name: string) {
         VueAppController.instance_ = this;
     }
 
@@ -61,6 +63,10 @@ export default abstract class VueAppController {
 
         promises.push((async () => {
             self.base_url = await ModuleDAO.getInstance().getBaseUrl();
+        })());
+
+        promises.push((async () => {
+            MenuController.getInstance().init(await ModuleMenu.getInstance().get_menu(this.app_name));
         })());
 
         promises.push((async () => {

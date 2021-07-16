@@ -2,12 +2,11 @@ import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/Modul
 import ComponentDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import ModuleMaintenance from '../../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../../shared/modules/Maintenance/vos/MaintenanceVO';
+import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
+import MenuController from '../../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../../VueAppController';
 import EndMaintenaceComponent from './endmaintenance_component/endmaintenance_component';
 
 export default class MaintenanceAdminVueModule extends VueModuleBase {
@@ -34,14 +33,31 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let maintenanceMenuBranch: MenuBranch = new MenuBranch("MaintenanceAdminVueModule", MenuElementBase.PRIORITY_LOW, "fa-cogs", []);
+        let maintenanceMenuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "MaintenanceAdminVueModule",
+                    "fa-seacogsrch",
+                    40,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             MaintenanceVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("MaintenanceVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-cogs"),
-                maintenanceMenuBranch),
+            MenuElementVO.create_new(
+                ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                VueAppController.getInstance().app_name,
+                "MaintenanceVO",
+                "fa-cogs",
+                10,
+                null,
+                null,
+                maintenanceMenuBranch.id
+            ),
             this.routes);
 
         let maintenance_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[MaintenanceVO.API_TYPE_ID];

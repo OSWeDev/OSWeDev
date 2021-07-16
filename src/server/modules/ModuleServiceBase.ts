@@ -32,6 +32,7 @@ import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
+import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
@@ -81,6 +82,7 @@ import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
 import ModuleMailerServer from './Mailer/ModuleMailerServer';
 import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
+import ModuleMenuServer from './Menu/ModuleMenuServer';
 import ModuleDBService from './ModuleDBService';
 import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
@@ -465,6 +467,7 @@ export default abstract class ModuleServiceBase {
             ModuleNFCConnect.getInstance(),
             ModuleDashboardBuilder.getInstance(),
             ModuleContextFilter.getInstance(),
+            ModuleMenu.getInstance()
         ];
     }
 
@@ -515,6 +518,7 @@ export default abstract class ModuleServiceBase {
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),
             ModuleContextFilterServer.getInstance(),
+            ModuleMenuServer.getInstance()
         ];
     }
 }

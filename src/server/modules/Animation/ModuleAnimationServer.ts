@@ -557,12 +557,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Animation' }, 'client.menu-gauche.anim.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Mes formations' }, 'client.menu-gauche.anim.formation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Reporting Formations' }, 'client.menu-gauche.anim.reporting.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Animation' }, 'menu.menuelements.AnimationAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Modules' }, 'menu.menuelements.AnimationModuleVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Questions/Réponses' }, 'menu.menuelements.AnimationQRVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Thèmes' }, 'menu.menuelements.AnimationThemeVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'User Modules' }, 'menu.menuelements.AnimationUserModuleVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'User Questions/Réponses' }, 'menu.menuelements.AnimationUserQRVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Animation' }, 'menu.menuelements.admin.AnimationAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Modules' }, 'menu.menuelements.admin.AnimationModuleVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Questions/Réponses' }, 'menu.menuelements.admin.AnimationQRVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Thèmes' }, 'menu.menuelements.admin.AnimationThemeVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'User Modules' }, 'menu.menuelements.admin.AnimationUserModuleVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'User Questions/Réponses' }, 'menu.menuelements.admin.AnimationUserQRVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Question ' }, 'animation.question.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'VALIDER' }, 'animation.validation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Retour' }, 'animation.back.___LABEL___'));
@@ -592,7 +592,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Message' }, 'fields.labels.ref.module_animation_anim_message_module.message.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Min' }, 'fields.labels.ref.module_animation_anim_message_module.min.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____module_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Parametres' }, 'menu.menuelements.AnimationParametersVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Parametres' }, 'menu.menuelements.admin.AnimationParametersVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Télécharger le document' }, 'animation.documents.download.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Documentations' }, 'animation.documents.titre.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Consultez la documentation' }, 'animation.module.document.___LABEL___'));

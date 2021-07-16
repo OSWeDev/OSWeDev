@@ -1,15 +1,13 @@
-import ModuleVO from '../../../shared/modules/ModuleVO';
-import VueModuleBase from '../../ts/modules/VueModuleBase';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import MenuBranch from '../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../ts/components/menu/vos/MenuElementBase';
-import CRUDComponentManager from '../../ts/components/crud/CRUDComponentManager';
-import MenuPointer from '../../ts/components/menu/vos/MenuPointer';
-import MenuLeaf from '../../ts/components/menu/vos/MenuLeaf';
-import ModulesManager from '../../../shared/modules/ModulesManager';
-import Module from '../../../shared/modules/Module';
-import VueAppController from '../../VueAppController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import MenuElementVO from '../../../shared/modules/Menu/vos/MenuElementVO';
+import Module from '../../../shared/modules/Module';
+import ModulesManager from '../../../shared/modules/ModulesManager';
+import ModuleVO from '../../../shared/modules/ModuleVO';
+import CRUDComponentManager from '../../ts/components/crud/CRUDComponentManager';
+import MenuController from '../../ts/components/menu/MenuController';
+import VueModuleBase from '../../ts/modules/VueModuleBase';
+import VueAppController from '../../VueAppController';
 
 export default class ModulesAdminVueModule extends VueModuleBase {
 
@@ -36,11 +34,29 @@ export default class ModulesAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let modulesMenuBranch: MenuBranch = new MenuBranch("ModulesAdminVueModule", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-puzzle-piece", []);
+        let modulesMenuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "ModulesAdminVueModule",
+                    "fa-puzzle-piece",
+                    10,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(ModuleVO.API_TYPE_ID, null, new MenuPointer(
-            new MenuLeaf("ModuleVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-puzzle-piece"),
-            modulesMenuBranch),
+        await CRUDComponentManager.getInstance().registerCRUD(ModuleVO.API_TYPE_ID, null,
+            MenuElementVO.create_new(
+                ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                VueAppController.getInstance().app_name,
+                "ModuleVO",
+                "fa-puzzle-piece",
+                10,
+                null,
+                null,
+                modulesMenuBranch.id
+            ),
             this.routes);
 
         for (let i in ModulesManager.getInstance().modules_by_name) {
@@ -62,9 +78,17 @@ export default class ModulesAdminVueModule extends VueModuleBase {
                 continue;
             }
 
-            CRUDComponentManager.getInstance().registerCRUD(ModulesManager.MODULE_PARAM_TABLE_PREFIX + sharedModule.name, null, new MenuPointer(
-                new MenuLeaf(ModulesManager.MODULE_PARAM_TABLE_PREFIX + sharedModule.name, MenuElementBase.PRIORITY_MEDIUM, "fa-sliders"),
-                modulesMenuBranch),
+            await CRUDComponentManager.getInstance().registerCRUD(ModulesManager.MODULE_PARAM_TABLE_PREFIX + sharedModule.name, null,
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    ModulesManager.MODULE_PARAM_TABLE_PREFIX + sharedModule.name,
+                    "fa-sliders",
+                    30,
+                    null,
+                    null,
+                    modulesMenuBranch.id
+                ),
                 this.routes);
         }
     }

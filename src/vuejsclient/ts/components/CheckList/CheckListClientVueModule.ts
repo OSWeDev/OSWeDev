@@ -1,27 +1,19 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 import CheckListControllerBase from './CheckListControllerBase';
 
 export default class CheckListClientVueModule extends VueModuleBase {
 
     public static getInstance(
         checklist_shared_module: ModuleCheckListBase,
-        route_base_checklist: string = "/checklist",
-        menuBranch: MenuBranch = new MenuBranch(
-            "CheckListClientVueModule",
-            MenuElementBase.PRIORITY_HIGH,
-            "fa-list",
-            []
-        )): CheckListClientVueModule {
+        route_base_checklist: string = "/checklist"): CheckListClientVueModule {
         if (!CheckListClientVueModule.instances[checklist_shared_module.name]) {
             CheckListClientVueModule.instances[checklist_shared_module.name] = new CheckListClientVueModule(
-                checklist_shared_module, route_base_checklist, menuBranch);
+                checklist_shared_module, route_base_checklist);
         }
 
         return CheckListClientVueModule.instances[checklist_shared_module.name];
@@ -31,8 +23,7 @@ export default class CheckListClientVueModule extends VueModuleBase {
 
     private constructor(
         public checklist_shared_module: ModuleCheckListBase,
-        public route_base_checklist: string,
-        public menuBranch: MenuBranch) {
+        public route_base_checklist: string) {
 
         super(checklist_shared_module.name);
     }
@@ -42,6 +33,18 @@ export default class CheckListClientVueModule extends VueModuleBase {
         if (!await ModuleAccessPolicy.getInstance().checkAccess(this.checklist_shared_module.POLICY_FO_ACCESS)) {
             return;
         }
+
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    this.checklist_shared_module.POLICY_FO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "CheckListClientVueModule",
+                    "fa-list",
+                    20,
+                    null
+                )
+            );
 
         let url: string = this.route_base_checklist + "/:list_id";
         let main_route_name: string = this.checklist_shared_module.name + '-component';
@@ -59,14 +62,19 @@ export default class CheckListClientVueModule extends VueModuleBase {
                 checklist_controller: CheckListControllerBase.controller_by_name[this.checklist_shared_module.name]
             })
         });
-        let menuPointer = new MenuPointer(
-            new MenuLeaf(main_route_name, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
-            this.menuBranch
+        let menuelt = MenuElementVO.create_new(
+            this.checklist_shared_module.POLICY_FO_ACCESS,
+            VueAppController.getInstance().app_name,
+            main_route_name,
+            "fa-list",
+            10,
+            main_route_name,
+            true,
+            menuBranch.id
         );
 
         //TODO FIXME ajouter les liens pour chaque checklist
-        menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
-        menuPointer.addToMenu();
+        await MenuController.getInstance().declare_menu_element(menuelt);
 
         url = this.route_base_checklist + "/:list_id/:item_id";
         main_route_name = this.checklist_shared_module.name + '_Item';

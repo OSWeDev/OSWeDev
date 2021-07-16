@@ -82,11 +82,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Dashboard Builder'
-        }, 'menu.menuelements.DashboardBuilder.___LABEL___'));
+        }, 'menu.menuelements.admin.DashboardBuilder.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Dashboard Builder'
-        }, 'menu.menuelements.DashboardBuilderAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.DashboardBuilderAdminVueModule.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

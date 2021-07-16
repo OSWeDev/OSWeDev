@@ -1,21 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModulePerfMon from '../../../../shared/modules/PerfMon/ModulePerfMon';
 import PerfMonLineTypeVO from '../../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class PerfMonAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "PerfMonAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-bar-chart",
-        []
-    );
 
     public static getInstance(): PerfMonAdminVueModule {
         if (!PerfMonAdminVueModule.instance) {
@@ -34,17 +26,34 @@ export default class PerfMonAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = PerfMonAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
-
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModulePerfMon.POLICY_BO_ACCESS)) {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModulePerfMon.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "PerfMonAdminVueModule",
+                    "fa-bar-chart",
+                    20,
+                    null
+                )
+            );
+
+        await CRUDComponentManager.getInstance().registerCRUD(
             PerfMonLineTypeVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf(PerfMonLineTypeVO.API_TYPE_ID, MenuElementBase.PRIORITY_MEDIUM, "fa-bar-chart")
+            MenuElementVO.create_new(
+                ModulePerfMon.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                PerfMonLineTypeVO.API_TYPE_ID,
+                "fa-bar-chart",
+                30,
+                null,
+                null,
+                menuBranch.id
             ),
             this.routes);
     }

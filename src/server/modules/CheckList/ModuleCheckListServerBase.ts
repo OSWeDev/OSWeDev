@@ -40,7 +40,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'CheckList'
-        }, 'menu.menuelements.checklist.___LABEL___'));
+        }, 'menu.menuelements.admin.checklist.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Erreur lors de la suppression'
@@ -52,7 +52,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'CheckPoint'
-        }, 'menu.menuelements.checkpoint.___LABEL___'));
+        }, 'menu.menuelements.admin.checkpoint.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Nouveau'

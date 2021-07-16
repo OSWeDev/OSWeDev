@@ -1,22 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class FileAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "FileAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-folder-open",
-        []
-    );
 
     public static getInstance(): FileAdminVueModule {
         if (!FileAdminVueModule.instance) {
@@ -39,14 +30,31 @@ export default class FileAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let importsMenuBranch: MenuBranch = FileAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
-
-        CRUDComponentManager.getInstance().registerCRUD(
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleFile.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "FileAdminVueModule",
+                    "fa-folder-open",
+                    20,
+                    null
+                )
+            );
+        await CRUDComponentManager.getInstance().registerCRUD(
             FileVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("FileVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-folder-open"),
-                importsMenuBranch),
+            MenuElementVO.create_new(
+                ModuleFile.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                FileVO.API_TYPE_ID,
+                "fa-folder-open",
+                10,
+                null,
+                null,
+                menuBranch.id
+            ),
+
             this.routes);
     }
 }

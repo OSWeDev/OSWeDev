@@ -1,22 +1,14 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleNFCConnect from '../../../../shared/modules/NFCConnect/ModuleNFCConnect';
 import NFCTagUserVO from '../../../../shared/modules/NFCConnect/vos/NFCTagUserVO';
 import NFCTagVO from '../../../../shared/modules/NFCConnect/vos/NFCTagVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class NFCConnectAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "NFCConnectAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-wifi",
-        []
-    );
 
     public static getInstance(): NFCConnectAdminVueModule {
         if (!NFCConnectAdminVueModule.instance) {
@@ -35,27 +27,50 @@ export default class NFCConnectAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = NFCConnectAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
-
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleNFCConnect.POLICY_BO_ACCESS)) {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleNFCConnect.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "NFCConnectAdminVueModule",
+                    "fa-wifi",
+                    20,
+                    null
+                )
+            );
+
+        await CRUDComponentManager.getInstance().registerCRUD(
             NFCTagVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf(NFCTagVO.API_TYPE_ID, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-wifi"),
-                menuBranch
+            MenuElementVO.create_new(
+                ModuleNFCConnect.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                NFCTagVO.API_TYPE_ID,
+                "fa-wifi",
+                10,
+                null,
+                null,
+                menuBranch.id
             ),
             this.routes);
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             NFCTagUserVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf(NFCTagUserVO.API_TYPE_ID, MenuElementBase.PRIORITY_HIGH, "fa-wifi"),
-                menuBranch
+            MenuElementVO.create_new(
+                ModuleNFCConnect.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                NFCTagUserVO.API_TYPE_ID,
+                "fa-wifi",
+                20,
+                null,
+                null,
+                menuBranch.id
             ),
+
             this.routes);
     }
 }

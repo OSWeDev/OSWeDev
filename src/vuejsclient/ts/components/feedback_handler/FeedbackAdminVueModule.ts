@@ -1,20 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
+import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
-import MenuBranch from '../menu/vos/MenuBranch';
-import MenuLeaf from '../menu/vos/MenuLeaf';
-import MenuPointer from '../menu/vos/MenuPointer';
+import MenuController from '../menu/MenuController';
 
 export default class FeedbackAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "FeedbackAdminVueModule",
-        MenuBranch.PRIORITY_ULTRAHIGH,
-        "fa-comment",
-        []
-    );
 
     public static getInstance(): FeedbackAdminVueModule {
         if (!FeedbackAdminVueModule.instance) {
@@ -33,15 +26,32 @@ export default class FeedbackAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = FeedbackAdminVueModule.DEFAULT_MENU_BRANCH;
-
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleFeedback.POLICY_BO_ACCESS)) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            let menuBranch: MenuElementVO =
+                await MenuController.getInstance().declare_menu_element(
+                    MenuElementVO.create_new(
+                        ModuleFeedback.POLICY_BO_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        "FeedbackAdminVueModule",
+                        "fa-comment",
+                        10,
+                        null
+                    )
+                );
+
+            await CRUDComponentManager.getInstance().registerCRUD(
                 FeedbackVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(FeedbackVO.API_TYPE_ID, MenuBranch.PRIORITY_ULTRAHIGH, "fa-comment"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleFeedback.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    FeedbackVO.API_TYPE_ID,
+                    "fa-comment",
+                    10,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
         }
     }

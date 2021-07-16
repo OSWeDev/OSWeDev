@@ -1,26 +1,12 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class CheckListAdminVueModuleBase extends VueModuleBase {
-
-    private _DEFAULT_MENU_BRANCH: MenuBranch = null;
-    get DEFAULT_MENU_BRANCH(): MenuBranch {
-        if (!this._DEFAULT_MENU_BRANCH) {
-            this._DEFAULT_MENU_BRANCH = new MenuBranch(
-                this.name + "_ChckLstAdminVueModule",
-                MenuElementBase.PRIORITY_HIGH,
-                "fa-list",
-                []
-            );
-        }
-        return this._DEFAULT_MENU_BRANCH;
-    }
 
     private post_initialization_hook: () => Promise<void> = null;
 
@@ -40,35 +26,66 @@ export default class CheckListAdminVueModuleBase extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuBranch = this.DEFAULT_MENU_BRANCH;
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    this.checklist_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.name + "_ChckLstAdminVueModule",
+                    "fa-list",
+                    20,
+                    null
+                )
+            );
 
         if (!!this.checklist_shared_module.checklist_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.checklist_shared_module.checklist_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.checklist_shared_module.checklist_type_id, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.checklist_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.checklist_shared_module.checklist_type_id,
+                    "fa-list",
+                    10,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.checklist_shared_module.checkpoint_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.checklist_shared_module.checkpoint_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.checklist_shared_module.checkpoint_type_id, MenuElementBase.PRIORITY_HIGH, "fa-check-circle"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.checklist_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.checklist_shared_module.checkpoint_type_id,
+                    "fa-check-circle",
+                    20,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.checklist_shared_module.checklistitem_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.checklist_shared_module.checklistitem_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.checklist_shared_module.checklistitem_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-file"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.checklist_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.checklist_shared_module.checklistitem_type_id,
+                    "fa-file",
+                    30,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
         }
 

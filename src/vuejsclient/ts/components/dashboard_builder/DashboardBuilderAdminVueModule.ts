@@ -2,24 +2,15 @@ import Vue from 'vue';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
 export default class DashboardBuilderAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "DashboardBuilderAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-area-chart",
-        []
-    );
 
     public static getInstance(): DashboardBuilderAdminVueModule {
         if (!DashboardBuilderAdminVueModule.instance) {
@@ -42,6 +33,18 @@ export default class DashboardBuilderAdminVueModule extends VueModuleBase {
             return;
         }
 
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "DashboardBuilderAdminVueModule",
+                    "fa-area-chart",
+                    20,
+                    null
+                )
+            );
+
         let url: string = "/dashboard_builder";
         let main_route_name: string = 'DashboardBuilder';
 
@@ -53,14 +56,19 @@ export default class DashboardBuilderAdminVueModule extends VueModuleBase {
                 dashboard_id: null
             })
         });
-        let menuPointer = new MenuPointer(
-            new MenuLeaf(main_route_name, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-area-chart"),
-            DashboardBuilderAdminVueModule.DEFAULT_MENU_BRANCH
+        let menuPointer = MenuElementVO.create_new(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            VueAppController.getInstance().app_name,
+            main_route_name,
+            "fa-area-chart",
+            10,
+            main_route_name,
+            true,
+            menuBranch.id
         );
 
         //TODO FIXME ajouter les liens pour chaque checklist
-        menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
-        menuPointer.addToMenu();
+        await MenuController.getInstance().declare_menu_element(menuPointer);
 
 
         url = "/dashboard_builder" + "/:dashboard_id";

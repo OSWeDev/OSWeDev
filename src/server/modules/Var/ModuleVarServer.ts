@@ -237,7 +237,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Var conf cache'
-        }, 'menu.menuelements.VarCacheConfVO.___LABEL___'));
+        }, 'menu.menuelements.admin.VarCacheConfVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Nombre de deps'
@@ -324,7 +324,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Performances'
-        }, 'menu.menuelements.VarPerfVO.___LABEL___'));
+        }, 'menu.menuelements.admin.VarPerfVO.___LABEL___'));
 
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));

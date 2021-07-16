@@ -4,34 +4,21 @@ import ComputedDatatableField from '../../../../shared/modules/DAO/vos/datatable
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import TimeHandler from '../../../../shared/tools/TimeHandler';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
 
     public showProgramAdministration: boolean = true;
-
-    private _DEFAULT_MENU_BRANCH: MenuBranch = null;
-    get DEFAULT_MENU_BRANCH(): MenuBranch {
-        if (!this._DEFAULT_MENU_BRANCH) {
-            this._DEFAULT_MENU_BRANCH = new MenuBranch(
-                this.name + "_PPAdminVueModule",
-                MenuElementBase.PRIORITY_HIGH,
-                "fa-calendar",
-                []
-            );
-        }
-        return this._DEFAULT_MENU_BRANCH;
-    }
+    public menuBranch: MenuElementVO = null;
 
     private post_initialization_hook: () => Promise<void> = null;
 
@@ -51,159 +38,274 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuBranch = this.DEFAULT_MENU_BRANCH;
+        this.menuBranch =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.name + "_PPAdminVueModule",
+                    "fa-calendar",
+                    20,
+                    null
+                )
+            );
 
         if (this.showProgramAdministration) {
 
             if (!!this.programplan_shared_module.program_category_type_id) {
-                CRUDComponentManager.getInstance().registerCRUD(
+                await CRUDComponentManager.getInstance().registerCRUD(
                     this.programplan_shared_module.program_category_type_id,
                     null,
-                    new MenuPointer(
-                        new MenuLeaf(this.programplan_shared_module.program_category_type_id, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
-                        menuBranch),
+                    MenuElementVO.create_new(
+                        this.programplan_shared_module.POLICY_BO_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        this.programplan_shared_module.program_category_type_id,
+                        "fa-list",
+                        10,
+                        null,
+                        null,
+                        this.menuBranch.id
+                    ),
                     this.routes);
             }
 
             if (!!this.programplan_shared_module.program_type_id) {
-                CRUDComponentManager.getInstance().registerCRUD(
+                await CRUDComponentManager.getInstance().registerCRUD(
                     this.programplan_shared_module.program_type_id,
                     null,
-                    new MenuPointer(
-                        new MenuLeaf(this.programplan_shared_module.program_type_id, MenuElementBase.PRIORITY_ULTRAHIGH + 1, "fa-list"),
-                        menuBranch),
+                    MenuElementVO.create_new(
+                        this.programplan_shared_module.POLICY_BO_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        this.programplan_shared_module.program_type_id,
+                        "fa-list",
+                        10 + 1,
+                        null,
+                        null,
+                        this.menuBranch.id
+                    ),
                     this.routes);
             }
         }
 
         if (!!this.programplan_shared_module.enseigne_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.enseigne_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.enseigne_type_id, MenuElementBase.PRIORITY_HIGH - 4, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.enseigne_type_id,
+                    "fa-bullseye",
+                    10 - 4,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.target_group_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_group_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.target_group_type_id, MenuElementBase.PRIORITY_HIGH - 3, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.target_group_type_id,
+                    "fa-bullseye",
+                    10 - 3,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.target_zone_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_zone_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.target_zone_type_id, MenuElementBase.PRIORITY_HIGH - 2, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.target_zone_type_id,
+                    "fa-bullseye",
+                    10 - 2,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
 
         if (!!this.programplan_shared_module.target_region_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_region_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.target_region_type_id, MenuElementBase.PRIORITY_HIGH - 1, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.target_region_type_id,
+                    "fa-bullseye",
+                    20 - 1,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.target_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.target_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.target_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.target_type_id,
+                    "fa-bullseye",
+                    20,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.contact_type_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.contact_type_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.contact_type_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.contact_type_type_id,
+                    "fa-bullseye",
+                    20 + 1,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.contact_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.contact_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.contact_type_id, MenuElementBase.PRIORITY_HIGH + 2, "fa-bullseye"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.contact_type_id,
+                    "fa-bullseye",
+                    20 + 2,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.partner_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.partner_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.partner_type_id, MenuElementBase.PRIORITY_MEDIUM - 1, "fa-sitemap"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.partner_type_id,
+                    "fa-sitemap",
+                    30 - 1,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.manager_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.manager_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.manager_type_id,
+                    "fa-sitemap",
+                    30,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.facilitator_region_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.facilitator_region_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.facilitator_region_type_id, MenuElementBase.PRIORITY_LOW - 1, "fa-user-circle"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.facilitator_region_type_id,
+                    "fa-user-circle",
+                    40 - 1,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.facilitator_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.facilitator_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.facilitator_type_id,
+                    "fa-user-circle",
+                    40,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.task_type_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.task_type_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.task_type_type_id, MenuElementBase.PRIORITY_LOW + 2, "fa-tasks"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.task_type_type_id,
+                    "fa-tasks",
+                    40 + 2,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
         if (!!this.programplan_shared_module.task_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.task_type_id,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.task_type_id, MenuElementBase.PRIORITY_LOW + 3, "fa-tasks"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.task_type_id,
+                    "fa-tasks",
+                    40 + 3,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
@@ -227,12 +329,19 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     ).setUID_for_readDuplicateOnly('rdv_enseigne_id'));
             }
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.rdv_type_id,
                 rdv_crud,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.rdv_type_id, MenuElementBase.PRIORITY_ULTRALOW, "fa-calendar-o"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.rdv_type_id,
+                    "fa-calendar-o",
+                    50,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
             //     ,
             // {
@@ -288,12 +397,19 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_prep_facilitator'));
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.rdv_prep_type_id,
                 prep_crud,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.rdv_prep_type_id, MenuElementBase.PRIORITY_ULTRALOW + 1, "fa-calendar-check-o"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.rdv_prep_type_id,
+                    "fa-calendar-check-o",
+                    50 + 1,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 
@@ -345,12 +461,19 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_cr_facilitator'));
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.programplan_shared_module.rdv_cr_type_id,
                 cr_crud,
-                new MenuPointer(
-                    new MenuLeaf(this.programplan_shared_module.rdv_cr_type_id, MenuElementBase.PRIORITY_ULTRALOW + 1, "fa-calendar-check-o"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    this.programplan_shared_module.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    this.programplan_shared_module.rdv_cr_type_id,
+                    "fa-calendar-check-o",
+                    50 + 1,
+                    null,
+                    null,
+                    this.menuBranch.id
+                ),
                 this.routes);
         }
 

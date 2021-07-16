@@ -1,22 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class CronAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "CronAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-cogs",
-        []
-    );
 
     public static getInstance(): CronAdminVueModule {
         if (!CronAdminVueModule.instance) {
@@ -39,14 +30,31 @@ export default class CronAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let importsMenuBranch: MenuBranch = CronAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
+        let importsMenuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleCron.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "CronAdminVueModule",
+                    "fa-cogs",
+                    20,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             CronWorkerPlanification.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("CronWorkerPlanification", MenuElementBase.PRIORITY_HIGH, "fa-calendar"),
-                importsMenuBranch),
+            MenuElementVO.create_new(
+                ModuleCron.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "CronWorkerPlanification",
+                "fa-calendar",
+                20,
+                null,
+                null,
+                importsMenuBranch.id
+            ),
             this.routes);
 
         let url: string = "/cron/run";
@@ -57,11 +65,16 @@ export default class CronAdminVueModule extends VueModuleBase {
             name: main_route_name,
             component: () => import(/* webpackChunkName: "CronComponent" */ './CronComponent')
         });
-        let menuPointer = new MenuPointer(
-            new MenuLeaf('CronRun', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-play"),
-            CronAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+        let menuelt = MenuElementVO.create_new(
+            ModuleCron.POLICY_BO_ACCESS,
+            VueAppController.getInstance().app_name,
+            'CronRun',
+            "fa-play",
+            10,
+            main_route_name,
+            true,
+            importsMenuBranch.id
         );
-        menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
-        menuPointer.addToMenu();
+        await MenuController.getInstance().declare_menu_element(menuelt);
     }
 }

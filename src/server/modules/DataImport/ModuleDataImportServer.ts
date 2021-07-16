@@ -282,19 +282,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }, 'import.state.uploaded'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Imports'
-        }, 'menu.menuelements.DataImportAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.DataImportAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Colonnes'
-        }, 'menu.menuelements.DataImportColumnVO.___LABEL___'));
+        }, 'menu.menuelements.admin.DataImportColumnVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Formats'
-        }, 'menu.menuelements.DataImportFormatVO.___LABEL___'));
+        }, 'menu.menuelements.admin.DataImportFormatVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Historiques'
-        }, 'menu.menuelements.DataImportHistoricVO.___LABEL___'));
+        }, 'menu.menuelements.admin.DataImportHistoricVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Logs'
-        }, 'menu.menuelements.DataImportLogVO.___LABEL___'));
+        }, 'menu.menuelements.admin.DataImportLogVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Import échoué. Voir les logs.'

@@ -10,26 +10,18 @@ import AnimationUserModuleVO from '../../../../../shared/modules/Animation/vos/A
 import AnimationUserQRVO from '../../../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
+import VueAppController from '../../../../VueAppController';
 import VueModuleBase from '../../../modules/VueModuleBase';
 import CRUDComponentManager from '../../crud/CRUDComponentManager';
-import MenuBranch from '../../menu/vos/MenuBranch';
-import MenuElementBase from '../../menu/vos/MenuElementBase';
-import MenuLeaf from '../../menu/vos/MenuLeaf';
-import MenuPointer from '../../menu/vos/MenuPointer';
+import MenuController from '../../menu/MenuController';
 import MessageModuleCreateUpdateComponent from './create_update_component/message_module/MessageModuleCreateUpdateComponent';
 import ReponseCreateUpdateComponent from './create_update_component/reponse/ReponseCreateUpdateComponent';
 import MessageModuleReadComponent from './read_component/message_module/MessageModuleReadComponent';
 import ReponseReadComponent from './read_component/reponse/ReponseReadComponent';
 
 export default class AnimationAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "AnimationAdminVueModule",
-        MenuElementBase.PRIORITY_MEDIUM,
-        "fa-graduation-cap",
-        []
-    );
 
     public static getInstance(): AnimationAdminVueModule {
         if (!AnimationAdminVueModule.instance) {
@@ -50,62 +42,110 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        let menubranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleAnimation.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "AnimationAdminVueModule",
+                    "fa-graduation-cap",
+                    30,
+                    null
+                )
+            );
+
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnimationThemeVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("AnimationThemeVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-graduation-cap"),
-                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationThemeVO",
+                "fa-graduation-cap",
+                10,
+                null,
+                null,
+                menubranch.id
             ),
             this.routes
         );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnimationModuleVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("AnimationModuleVO", MenuElementBase.PRIORITY_HIGH, "fa-graduation-cap"),
-                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationModuleVO",
+                "fa-graduation-cap",
+                20,
+                null,
+                null,
+                menubranch.id
             ),
             this.routes
         );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnimationQRVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("AnimationQRVO", MenuElementBase.PRIORITY_MEDIUM, "fa-graduation-cap"),
-                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationQRVO",
+                "fa-graduation-cap",
+                30,
+                null,
+                null,
+                menubranch.id
             ),
             this.routes
         );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnimationParametersVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("AnimationParametersVO", MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationParametersVO",
+                "fa-cogs",
+                40,
+                null,
+                null,
+                menubranch.id
             ),
             this.routes
         );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnimationUserModuleVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("AnimationUserModuleVO", MenuElementBase.PRIORITY_ULTRALOW, "fa-graduation-cap"),
-                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationUserModuleVO",
+                "fa-graduation-cap",
+                50,
+                null,
+                null,
+                menubranch.id
             ),
             this.routes
         );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             AnimationUserQRVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("AnimationUserQRVO", MenuElementBase.PRIORITY_ULTRALOW, "fa-graduation-cap"),
-                AnimationAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationUserQRVO",
+                "fa-graduation-cap",
+                50,
+                null,
+                null,
+                menubranch.id
             ),
             this.routes
         );

@@ -1,12 +1,11 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
+import MenuController from '../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
 
 export default class SendInBlueAdminVueModule extends VueModuleBase {
 
@@ -30,12 +29,31 @@ export default class SendInBlueAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuBranch = new MenuBranch("SendInBlueAdminVueModule", MenuElementBase.PRIORITY_MEDIUM - 1, "fa-calculator", []);
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleSendInBlue.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "SendInBlueAdminVueModule",
+                    "fa-calculator",
+                    30 - 1,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             SendInBlueVO.API_TYPE_ID,
             null,
-            new MenuPointer(new MenuLeaf("SendInBlueVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-envelope"), menuBranch),
+            MenuElementVO.create_new(
+                ModuleSendInBlue.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "SendInBlueVO",
+                "fa-envelope",
+                10,
+                null,
+                null,
+                menuBranch.id
+            ),
             this.routes
         );
     }

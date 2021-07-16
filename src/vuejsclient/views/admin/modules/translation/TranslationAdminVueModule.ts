@@ -3,17 +3,16 @@ import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
+import MenuController from '../../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../../VueAppController';
 
 export default class TranslationAdminVueModule extends VueModuleBase {
 
@@ -39,34 +38,65 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let translationMenuBranch: MenuBranch = new MenuBranch("TranslationAdminVueModule", MenuElementBase.PRIORITY_MEDIUM - 1, "fa-language", []);
+        let translationMenuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "TranslationAdminVueModule",
+                    "fa-language",
+                    30 - 1,
+                    null
+                )
+            );
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             TranslationVO.API_TYPE_ID,
             this.getTranslationCRUD(),
-            new MenuPointer(
-                new MenuLeaf("TranslationVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-language"),
-                translationMenuBranch),
+            MenuElementVO.create_new(
+                ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+                VueAppController.getInstance().app_name,
+                "TranslationVOTranslationAdminVueModule",
+                "fa-a",
+                10,
+                null,
+                null,
+                translationMenuBranch.id
+            ),
             this.routes);
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_OTHERS_ACCESS)) {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             LangVO.API_TYPE_ID,
             this.getLangCRUD(),
-            new MenuPointer(
-                new MenuLeaf("LangVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRALOW, "fa-language"),
-                translationMenuBranch),
+            MenuElementVO.create_new(
+                ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+                VueAppController.getInstance().app_name,
+                "LangVOTranslationAdminVueModule",
+                "fa-language",
+                50,
+                null,
+                null,
+                translationMenuBranch.id
+            ),
             this.routes);
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        await CRUDComponentManager.getInstance().registerCRUD(
             TranslatableTextVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf("TranslatableTextVOTranslationAdminVueModule", MenuElementBase.PRIORITY_MEDIUM, "fa-language"),
-                translationMenuBranch),
+            MenuElementVO.create_new(
+                ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+                VueAppController.getInstance().app_name,
+                "TranslatableTextVOTranslationAdminVueModule",
+                "fa-language",
+                30,
+                null,
+                null,
+                translationMenuBranch.id
+            ),
             this.routes);
     }
 

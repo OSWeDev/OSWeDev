@@ -1,14 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
+import MenuController from '../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
 
 export default class VarAdminVueModule extends VueModuleBase {
 
@@ -34,31 +33,62 @@ export default class VarAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuBranch = new MenuBranch("VarAdminVueModule", MenuElementBase.PRIORITY_MEDIUM - 1, "fa-calculator", []);
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleVar.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "VarAdminVueModule",
+                    "fa-calculator",
+                    30 - 1,
+                    null
+                )
+            );
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_BO_VARCONF_ACCESS)) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 VarConfVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("SimpleVarConfVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calculator"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "SimpleVarConfVO",
+                    "fa-calculator",
+                    10,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 VarCacheConfVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("VarCacheConfVO", MenuElementBase.PRIORITY_ULTRAHIGH + 1, "fa-calculator"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "VarCacheConfVO",
+                    "fa-calculator",
+                    10 + 1,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
 
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 VarPerfVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf("VarPerfVO", MenuElementBase.PRIORITY_ULTRAHIGH + 2, "fa-pie-chart"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleVar.POLICY_BO_VARCONF_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "VarPerfVO",
+                    "fa-pie-chart",
+                    10 + 2,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
         }
     }

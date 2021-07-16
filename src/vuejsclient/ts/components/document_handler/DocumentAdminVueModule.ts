@@ -3,20 +3,13 @@ import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
 import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';
 import DocumentVO from '../../../../shared/modules/Document/vos/DocumentVO';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
+import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
-import MenuBranch from '../menu/vos/MenuBranch';
-import MenuLeaf from '../menu/vos/MenuLeaf';
-import MenuPointer from '../menu/vos/MenuPointer';
+import MenuController from '../menu/MenuController';
 
 export default class DocumentAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "DocumentAdminVueModule",
-        MenuBranch.PRIORITY_ULTRAHIGH,
-        "fa-book",
-        []
-    );
 
     public static getInstance(): DocumentAdminVueModule {
         if (!DocumentAdminVueModule.instance) {
@@ -35,29 +28,61 @@ export default class DocumentAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = DocumentAdminVueModule.DEFAULT_MENU_BRANCH;
-
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleDocument.POLICY_BO_ACCESS)) {
-            CRUDComponentManager.getInstance().registerCRUD(
+
+            let menuBranch: MenuElementVO =
+                await MenuController.getInstance().declare_menu_element(
+                    MenuElementVO.create_new(
+                        ModuleDocument.POLICY_BO_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        "DocumentAdminVueModule",
+                        "fa-book",
+                        10,
+                        null
+                    )
+                );
+
+            await CRUDComponentManager.getInstance().registerCRUD(
                 DocumentVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(DocumentVO.API_TYPE_ID, MenuBranch.PRIORITY_ULTRAHIGH, "fa-book"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleDocument.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    DocumentVO.API_TYPE_ID,
+                    "fa-book",
+                    10,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 DocumentTagVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(DocumentTagVO.API_TYPE_ID, MenuBranch.PRIORITY_HIGH, "fa-tag"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleDocument.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    DocumentTagVO.API_TYPE_ID,
+                    "fa-tag",
+                    20,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 DocumentTagGroupVO.API_TYPE_ID,
                 null,
-                new MenuPointer(
-                    new MenuLeaf(DocumentTagGroupVO.API_TYPE_ID, MenuBranch.PRIORITY_MEDIUM, "fa-tags"),
-                    menuBranch),
+                MenuElementVO.create_new(
+                    ModuleDocument.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    DocumentTagGroupVO.API_TYPE_ID,
+                    "fa-tags",
+                    30,
+                    null,
+                    null,
+                    menuBranch.id
+                ),
                 this.routes);
         }
     }

@@ -64,10 +64,10 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Supervision'
-        }, 'menu.menuelements.SupervisionAdminVueModule.___LABEL___'));
+        }, 'menu.menuelements.admin.SupervisionAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Supervision'
-        }, 'menu.menuelements.SupervisionDashboard.___LABEL___'));
+        }, 'menu.menuelements.admin.SupervisionDashboard.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'ERROR'
         }, 'supervision.STATE_ERROR'));
@@ -97,7 +97,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }, 'supervision.dashboard.category.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Catégories'
-        }, 'menu.menuelements.SupervisedCategoryVO.___LABEL___'));
+        }, 'menu.menuelements.admin.SupervisedCategoryVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Types de sonde'
         }, 'supervision.dashboard.types_de_sonde.___LABEL___'));

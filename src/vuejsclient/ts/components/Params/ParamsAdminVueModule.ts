@@ -1,21 +1,13 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../../shared/modules/Params/vos/ParamVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VueAppController from '../../../VueAppController';
+import MenuController from '../menu/MenuController';
 
 export default class ParamsAdminVueModule extends VueModuleBase {
-
-    public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
-        "ParamsAdminVueModule",
-        MenuElementBase.PRIORITY_HIGH,
-        "fa-upload",
-        []
-    );
 
     public static getInstance(): ParamsAdminVueModule {
         if (!ParamsAdminVueModule.instance) {
@@ -34,17 +26,34 @@ export default class ParamsAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        let menuBranch: MenuBranch = ParamsAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
-
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleParams.POLICY_BO_ACCESS)) {
             return;
         }
 
-        CRUDComponentManager.getInstance().registerCRUD(
+        let menuBranch: MenuElementVO =
+            await MenuController.getInstance().declare_menu_element(
+                MenuElementVO.create_new(
+                    ModuleParams.POLICY_BO_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "ParamsAdminVueModule",
+                    "fa-upload",
+                    20,
+                    null
+                )
+            );
+
+        await CRUDComponentManager.getInstance().registerCRUD(
             ParamVO.API_TYPE_ID,
             null,
-            new MenuPointer(
-                new MenuLeaf(ParamVO.API_TYPE_ID, MenuElementBase.PRIORITY_MEDIUM, "fa-cogs")
+            MenuElementVO.create_new(
+                ModuleParams.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                ParamVO.API_TYPE_ID,
+                "fa-cogs",
+                30,
+                null,
+                null,
+                menuBranch.id
             ),
             this.routes);
     }
