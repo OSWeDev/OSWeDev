@@ -241,7 +241,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
             new ModuleTableField('mandatory', ModuleTableField.FIELD_TYPE_boolean, 'Obligatoire', true, true, false),
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
-            new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', true, true, "{}")
+            new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', false)
         ];
         let dt2 = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
         field_data_import_format_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
