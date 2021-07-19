@@ -51,7 +51,7 @@ export default class UserNotifsViewerComponent extends VueComponentBase {
         for (let i in this.get_notifications_by_ids) {
             let notif = this.get_notifications_by_ids[i];
 
-            if (notif.notification_type != NotificationVO.TYPE_NOTIF_SIMPLE) {
+            if (notif.notification_type != NotificationVO.TYPE_NOTIF_SIMPLE && notif.notification_type != NotificationVO.TYPE_NOTIF_REDIRECT) {
                 continue;
             }
 
