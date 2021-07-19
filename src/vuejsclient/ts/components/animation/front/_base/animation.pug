@@ -1,14 +1,18 @@
 
 .rootElt.animation
+    //- home page
     template(v-if="!skip_home")
         .home_responsive(@click="skipFormations")
             .image_home.mb-3(v-if="image_home")
                 img(:src="image_home")
 
             h1 {{ label('animation.titre') }}
+
+    //- main page with modules ordered by themes
     template(v-else)
         h1 {{ label('animation.titre') }}
 
+        //- display every theme
         template(v-if="themes && themes.length > 0")
             .row.themes
                 template(v-for="(theme, index) in ordered_themes")
@@ -21,7 +25,8 @@
                             :logged_user_id="logged_user_id"
                             :themes="themes"
                         )
-
+        
+        //- display every document
         template(v-if="documents && documents.length ")
             .row.documents
                 .col-md-12

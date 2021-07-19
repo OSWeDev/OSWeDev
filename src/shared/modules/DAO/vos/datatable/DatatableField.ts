@@ -318,7 +318,7 @@ export default abstract class DatatableField<T, U> {
     /**
      * n'affiche que les vos dont les ids sont renseignés
      * @param options les id des vos à afficher
-     * @returns le datatableField mofié
+     * @returns le datatableField modifié
      */
     public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
         this.select_options_enabled = options;
