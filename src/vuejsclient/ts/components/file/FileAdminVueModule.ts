@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -22,11 +21,14 @@ export default class FileAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleFile.getInstance().name);
+        this.policies_needed = [
+            ModuleFile.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleFile.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleFile.POLICY_BO_ACCESS]) {
             return;
         }
 

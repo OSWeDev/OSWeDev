@@ -22,10 +22,13 @@ export default class SendInBlueAdminVueModule extends VueModuleBase {
 
     private constructor() {
         super(ModuleSendInBlue.getInstance().name);
+        this.policies_needed = [
+            ModuleSendInBlue.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleSendInBlue.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleSendInBlue.POLICY_BO_ACCESS]) {
             return;
         }
 

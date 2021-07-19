@@ -119,22 +119,22 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Documents' },
-            'menu.menuelements.DocumentAdminVueModule.___LABEL___'));
+            'menu.menuelements.admin.DocumentAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Feedbacks' },
-            'menu.menuelements.FeedbackAdminVueModule.___LABEL___'));
+            'menu.menuelements.admin.FeedbackAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Documents' },
-            'menu.menuelements.document.___LABEL___'));
+            'menu.menuelements.admin.document.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Tags' },
-            'menu.menuelements.dt.___LABEL___'));
+            'menu.menuelements.admin.dt.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Groupes de tags' },
-            'menu.menuelements.dtg.___LABEL___'));
+            'menu.menuelements.admin.dtg.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Feedbacks' },
-            'menu.menuelements.feedback.___LABEL___'));
+            'menu.menuelements.admin.feedback.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: ' ' },
             'tstz_input.placeholder.date_debut.___LABEL___'));

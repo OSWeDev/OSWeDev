@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
 import HtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlComponentVO';
 import HtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlComponentVO';
@@ -32,11 +31,14 @@ export default class CMSFrontVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleCMS.getInstance().name);
+        this.policies_needed = [
+            ModuleCMS.POLICY_FO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCMS.POLICY_FO_ACCESS)) {
+        if (!this.policies_loaded[ModuleCMS.POLICY_FO_ACCESS]) {
             return;
         }
 

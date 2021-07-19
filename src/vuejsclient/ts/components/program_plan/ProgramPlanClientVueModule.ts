@@ -1,12 +1,8 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
 import MenuController from '../menu/MenuController';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 
 export default class ProgramPlanClientVueModule extends VueModuleBase {
@@ -33,11 +29,14 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         public route_base_program: string) {
 
         super(program_plan_shared_module.name);
+        this.policies_needed = [
+            this.program_plan_shared_module.POLICY_FO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_ACCESS)) {
+        if (!this.policies_loaded[this.program_plan_shared_module.POLICY_FO_ACCESS]) {
             return;
         }
 

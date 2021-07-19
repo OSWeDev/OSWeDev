@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
 import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';
@@ -24,11 +23,14 @@ export default class DocumentAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleDocument.getInstance().name);
+        this.policies_needed = [
+            ModuleDocument.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleDocument.POLICY_BO_ACCESS)) {
+        if (this.policies_loaded[ModuleDocument.POLICY_BO_ACCESS]) {
 
             let menuBranch: MenuElementVO =
                 await MenuController.getInstance().declare_menu_element(

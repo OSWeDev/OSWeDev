@@ -57,10 +57,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Maintenances' },
-            'menu.menuelements.MaintenanceAdminVueModule.___LABEL___'));
+            'menu.menuelements.admin.MaintenanceAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Maintenances' },
-            'menu.menuelements.MaintenanceVO.___LABEL___'));
+            'menu.menuelements.admin.MaintenanceVO.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(

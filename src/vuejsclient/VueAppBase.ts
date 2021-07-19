@@ -20,6 +20,7 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
+import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
@@ -41,6 +42,7 @@ import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 require('moment-json-parser').overrideDefault();
+
 
 export default abstract class VueAppBase {
 
@@ -88,18 +90,36 @@ export default abstract class VueAppBase {
 
         await this.initializeVueAppModulesDatas();
 
-        // On lance les initializeAsync des modules Vue
+        // On commence par demander tous les droits d'accès des modules
         promises = [];
         for (let i in ModulesManager.getInstance().modules_by_name) {
             let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
 
-            if (module_) {
+            if (module_ && module_.policies_needed && module_.policies_needed.length) {
                 promises.push((async () => {
-                    await module_.initializeAsync();
+
+                    let local_promises = [];
+
+                    for (let j in module_.policies_needed) {
+                        let policy_name = module_.policies_needed[j];
+                        local_promises.push((async () => {
+                            module_.policies_loaded[policy_name] = await ModuleAccessPolicy.getInstance().checkAccess(policy_name);
+                        })());
+                    }
+                    await Promise.all(local_promises);
                 })());
             }
         }
         await Promise.all(promises);
+
+        // On lance les initializeAsync des modules Vue
+        for (let i in ModulesManager.getInstance().modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+
+            if (module_) {
+                await module_.initializeAsync();
+            }
+        }
 
         await this.postInitializationHook();
 

@@ -38,14 +38,20 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleAccessPolicy.getInstance().name);
+        this.policies_needed = [
+            ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS,
+            ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
+            ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS,
+            ModuleAccessPolicy.POLICY_SENDINITPWD,
+            ModuleAccessPolicy.POLICY_IMPERSONATE
+        ];
     }
 
     public async initializeAsync() {
 
         let accessPolicyMenuBranch: MenuElementVO = null;
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS)) {
-
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS]) {
             accessPolicyMenuBranch =
                 await MenuController.getInstance().declare_menu_element(
                     MenuElementVO.create_new(
@@ -78,7 +84,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             );
         }
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS]) {
             let url: string = "/access_managment";
             let main_route_name: string = 'AccessPolicyComponent';
 
@@ -170,7 +176,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_IMPERSONATE]) {
             crud.readDatatable.pushField(new ComponentDatatableField(
                 'impersonate',
                 ImpersonateComponent,
@@ -179,7 +185,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         }
 
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDINITPWD]) {
             crud.readDatatable.pushField(new ComponentDatatableField(
                 'sendinitpwd',
                 SendInitPwdComponent,
@@ -193,7 +199,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             new SimpleDatatableField("code_lang")
         ]));
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS]) {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("blocked"));
 
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password_change_date"));

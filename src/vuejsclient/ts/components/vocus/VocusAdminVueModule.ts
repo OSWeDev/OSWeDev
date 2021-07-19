@@ -1,13 +1,9 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleVocus from '../../../../shared/modules/Vocus/ModuleVocus';
 import VocusHandler from '../../../../shared/tools/VocusHandler';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import MenuController from '../menu/MenuController';
-import MenuBranch from '../menu/vos/MenuBranch';
-import MenuLeaf from '../menu/vos/MenuLeaf';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 
 
 export default class VocusAdminVueModule extends VueModuleBase {
@@ -27,11 +23,14 @@ export default class VocusAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleVocus.getInstance().name);
+        this.policies_needed = [
+            ModuleVocus.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleVocus.POLICY_BO_ACCESS]) {
             return;
         }
 

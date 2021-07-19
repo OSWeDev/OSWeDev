@@ -1,12 +1,9 @@
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleTranslationsImport from '../../../../../../shared/modules/Translation/import/ModuleTranslationsImport';
 import VueAppController from '../../../../../VueAppController';
 import VueModuleBase from '../../../../modules/VueModuleBase';
 import DataImportAdminVueModule from '../../../data_import/DataImportAdminVueModule';
 import MenuController from '../../../menu/MenuController';
-import MenuLeaf from '../../../menu/vos/MenuLeaf';
-import MenuLeafRouteTarget from '../../../menu/vos/MenuLeafRouteTarget';
 
 
 
@@ -27,11 +24,14 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleTranslationsImport.getInstance().name);
+        this.policies_needed = [
+            ModuleTranslationsImport.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslationsImport.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleTranslationsImport.POLICY_BO_ACCESS]) {
             return;
         }
 

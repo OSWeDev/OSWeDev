@@ -57,6 +57,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     }
 
     public async configure() {
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Fichiers' },
+            'menu.menuelements.admin.file.___LABEL___'
+        ));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Impossible de déclarer un fichier sécurisé sans associer un droit d\'accès' },
             'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing'

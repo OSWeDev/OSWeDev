@@ -6,6 +6,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleMenu from '../../../shared/modules/Menu/ModuleMenu';
 import MenuElementVO from '../../../shared/modules/Menu/vos/MenuElementVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -25,6 +26,26 @@ export default class ModuleMenuServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleMenu.getInstance().name);
+    }
+
+    public async configure() {
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Menus' },
+            'menu.menuelements.admin.MenuAdminVueModule.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Organiser' },
+            'menu.menuelements.admin.menu_organizer.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Enregistrer' },
+            'menu_organizer.save.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Annuler' },
+            'menu_organizer.cancel.___LABEL___'));
+
     }
 
     /**

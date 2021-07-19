@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
@@ -34,13 +33,19 @@ export default class DataImportAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleDataImport.getInstance().name);
+        this.policies_needed = [
+            ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS,
+            ModuleDataImport.POLICY_LOGS_ACCESS,
+            ModuleDataImport.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        let has_full_menu_access: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS);
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_LOGS_ACCESS)) {
+        let has_full_menu_access: boolean = this.policies_loaded[ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS];
+
+        if (!this.policies_loaded[ModuleDataImport.POLICY_LOGS_ACCESS]) {
             return;
         }
 
@@ -71,7 +76,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
             ),
             this.routes);
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleDataImport.POLICY_BO_ACCESS]) {
             return;
         }
 

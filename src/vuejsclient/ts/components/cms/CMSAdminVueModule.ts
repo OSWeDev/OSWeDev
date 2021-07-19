@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
 import ContentTypeVO from '../../../../shared/modules/CMS/vos/ContentTypeVO';
 import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
@@ -25,11 +24,14 @@ export default class CMSAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleCMS.getInstance().name);
+        this.policies_needed = [
+            ModuleCMS.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCMS.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleCMS.POLICY_BO_ACCESS]) {
             return;
         }
 

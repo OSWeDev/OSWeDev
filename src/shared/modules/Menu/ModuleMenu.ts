@@ -65,14 +65,14 @@ export default class ModuleMenu extends Module {
             new ModuleTableField('app_name', ModuleTableField.FIELD_TYPE_string, 'Application', true),
 
             new ModuleTableField('target', ModuleTableField.FIELD_TYPE_string, 'Cible', false),
-            new ModuleTableField('target_is_routename', ModuleTableField.FIELD_TYPE_boolean, 'La cible est une route ?', true, true, true),
+            new ModuleTableField('target_is_routename', ModuleTableField.FIELD_TYPE_boolean, 'La cible est une route ?', false, true, true),
 
-            new ModuleTableField('hidden', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false),
+            new ModuleTableField('hidden', ModuleTableField.FIELD_TYPE_boolean, 'Caché', false, true, false),
 
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', false, true, 0),
 
             new ModuleTableField('fa_class', ModuleTableField.FIELD_TYPE_string, 'Classe font-awesome', false),
-            new ModuleTableField('access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Clé du droit d\'accès', true, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
+            new ModuleTableField('access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Clé du droit d\'accès', false, true, ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS),
         ];
 
         let table = new ModuleTable(this, MenuElementVO.API_TYPE_ID, () => new MenuElementVO(), fields, name, 'Menus');

@@ -35,10 +35,14 @@ export default class AnimationAdminVueModule extends VueModuleBase {
 
     private constructor() {
         super(ModuleAnimation.getInstance().name);
+        this.policies_needed = [
+            ModuleAnimation.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnimation.POLICY_BO_ACCESS)) {
+
+        if (!this.policies_loaded[ModuleAnimation.POLICY_BO_ACCESS]) {
             return;
         }
 

@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleNFCConnect from '../../../../shared/modules/NFCConnect/ModuleNFCConnect';
 import NFCTagUserVO from '../../../../shared/modules/NFCConnect/vos/NFCTagUserVO';
@@ -23,11 +22,14 @@ export default class NFCConnectAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleNFCConnect.getInstance().name);
+        this.policies_needed = [
+            ModuleNFCConnect.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleNFCConnect.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleNFCConnect.POLICY_BO_ACCESS]) {
             return;
         }
 

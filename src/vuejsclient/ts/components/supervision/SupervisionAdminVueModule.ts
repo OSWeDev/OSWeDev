@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
@@ -30,11 +29,14 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleSupervision.getInstance().name);
+        this.policies_needed = [
+            ModuleSupervision.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleSupervision.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleSupervision.POLICY_BO_ACCESS]) {
             return;
         }
 

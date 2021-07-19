@@ -1,4 +1,49 @@
 .menu_organizer
-    Vuenestable(v-model="nestable_items" @change="update_db_menu")
-        Vuenestablehandle(slot-scope="{ item }" :item="item") {{ item.text }}
-    
+
+    //- VueNestable(
+    //-     v-model="nestableItems"
+    //-     :max-depth="2"
+    //-     :hooks="{'beforeMove': beforeMove}"
+    //-     key-prop="key"
+    //-     children-prop="nested"
+    //-     class-prop="class"
+    //- )
+    //-     template(slot-scope="{ item }")
+        
+    //-         //- Handler
+    //-         VueNestableHandle(:item="item")
+    //-             i.fa.fa-bars
+
+    //-         //- Content
+    //-         span Item :: {{ item.text }}
+
+    .row 
+        .col-md-10
+            Vuenestable(
+                v-model="nestable_items" 
+                @change="changed_menu"
+                key-prop="id"
+                :max-depth="3"
+                children-prop="children"
+            )
+                template(slot-scope="{ item }")
+
+                    Vuenestablehandle(:item="item")
+                        i.fa.fa-bars.fa-fw(aria-hidden="true")
+                    
+                    .item_content
+                        .menu_name {{ item.text }}
+                        .menu_target(v-if="item.target") {{ item.target }}
+
+        .col-md-2
+            template(v-if='has_modif')
+                .row 
+                    .col-md-12
+                        .save(@click="update_db_menu")
+                            i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
+                            | {{ label('menu_organizer.save') }}
+                .row 
+                    .col-md-12
+                        .cancel(@click="reload_from_db")
+                            i.fa.fa-refresh.fa-fw(aria-hidden="true")
+                            | {{ label('menu_organizer.cancel') }}

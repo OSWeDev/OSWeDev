@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../../shared/modules/Params/vos/ParamVO';
@@ -22,11 +21,14 @@ export default class ParamsAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleParams.getInstance().name);
+        this.policies_needed = [
+            ModuleParams.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleParams.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleParams.POLICY_BO_ACCESS]) {
             return;
         }
 

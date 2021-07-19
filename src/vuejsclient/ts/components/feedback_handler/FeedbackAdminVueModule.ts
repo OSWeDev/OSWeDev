@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -22,11 +21,14 @@ export default class FeedbackAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleFeedback.getInstance().name);
+        this.policies_needed = [
+            ModuleFeedback.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleFeedback.POLICY_BO_ACCESS)) {
+        if (this.policies_loaded[ModuleFeedback.POLICY_BO_ACCESS]) {
             let menuBranch: MenuElementVO =
                 await MenuController.getInstance().declare_menu_element(
                     MenuElementVO.create_new(

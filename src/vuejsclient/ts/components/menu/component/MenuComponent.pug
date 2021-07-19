@@ -1,51 +1,51 @@
 .menucomponent
     ul#mainmenu.navbar-nav.navbar-sidenav
-        template(v-for="menuElement in getMenuElements")
+        template(v-for="menuElement in menuElements")
             li.nav-item(data-placement='right', :title='t(menuElement.translatable_title)')
                 //Composants récursif ???? : menu_element(:menu-element="menuElement", :lvl="1")
-                template(v-if='menuElement.type == "LEAF"')
-                    template(v-if='menuElement.target.type == "href"')
-                        a.nav-link(:href='menuElement.target.href')
+                template(v-if='(!childrenElementsById[menuElement.id]) || (childrenElementsById[menuElement.id].length <= 0)')
+                    template(v-if='menuElement.target && menuElement.target_is_routename')
+                        router-link.nav-link(:to="{ name: menuElement.target }")
                             i.fa.fa-fw(:class="menuElement.fa_class")
                             span.nav-link-text {{t(menuElement.translatable_title)}}
-                    template(v-else-if='menuElement.target.type == "route"')
-                        router-link.nav-link(:to="{ name: menuElement.target.route_name }")
+                    template(v-else-if='menuElement.target && !menuElement.target_is_routename')
+                        a.nav-link(:href='menuElement.target')
                             i.fa.fa-fw(:class="menuElement.fa_class")
                             span.nav-link-text {{t(menuElement.translatable_title)}}
                 template(v-else)
-                    a.nav-link.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+menuElement.UID", data-parent='#mainmenu', :id="'mainmenu_'+menuElement.UID")
+                    a.nav-link.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+menuElement.name", data-parent='#mainmenu', :id="'mainmenu_'+menuElement.name")
                         i.fa.fa-fw(:class="menuElement.fa_class")
                         span.nav-link-text
                             | {{t(menuElement.translatable_title)}}
-                    ul.sidenav-second-level.collapse(v-if='menuElement.menuElements && menuElement.menuElements.length', :id="menuElement.UID")
-                        li(v-for='child in menuElement.menuElements')
-                            template(v-if='child.type == "LEAF"')
-                                template(v-if='child.target.type == "href"')
-                                    a(:href='child.target.href')
+                    ul.sidenav-second-level.collapse(v-if='childrenElementsById[menuElement.id] && (childrenElementsById[menuElement.id].length > 0)', :id="menuElement.name")
+                        li(v-for='child in childrenElementsById[menuElement.id]')
+                            template(v-if='(!childrenElementsById[child.id]) || (childrenElementsById[child.id].length <= 0)')
+                                template(v-if='child.target && child.target_is_routename')
+                                    router-link(:to="{ name: child.target }")
                                         i.fa.fa-fw(:class="child.fa_class")
                                         span.nav-link-text {{t(child.translatable_title)}}
-                                template(v-else-if='child.target.type == "route"')
-                                    router-link(:to="{ name: child.target.route_name }")
+                                template(v-else-if="child.target && !child.target_is_routename")
+                                    a(:href='child.target')
                                         i.fa.fa-fw(:class="child.fa_class")
                                         span.nav-link-text {{t(child.translatable_title)}}
                             template(v-else)
-                                a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child.UID", :data-parent="'#mainmenu_'+menuElement.UID", :id="'mainmenu_2_'+child.UID")
+                                a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child.name", :data-parent="'#mainmenu_'+menuElement.name", :id="'mainmenu_2_'+child.name")
                                     i.fa.fa-fw(:class="child.fa_class")
                                     span.nav-link-text
                                         | {{t(child.translatable_title)}}
-                                ul.sidenav-third-level.collapse(v-if='child.menuElements && child.menuElements.length', :id="child.UID")
-                                    li(v-for='child2 in child.menuElements')
-                                        template(v-if='child2.type == "LEAF"')
-                                            template(v-if='child2.target.type == "href"')
-                                                a(:href='child2.target.href')
+                                ul.sidenav-third-level.collapse(v-if='childrenElementsById[child.id] && (childrenElementsById[child.id].length > 0)', :id="child.name")
+                                    li(v-for='child2 in childrenElementsById[child.id]')
+                                        template(v-if='(!childrenElementsById[child2.id]) || (childrenElementsById[child2.id].length <= 0)')
+                                            template(v-if="child2.target && child2.target_is_routename")
+                                                router-link(:to="{ name: child2.target }")
                                                     i.fa.fa-fw(:class="child2.fa_class")
                                                     span.nav-link-text {{t(child2.translatable_title)}}
-                                            template(v-else-if='child2.target.type == "route"')
-                                                router-link(:to="{ name: child2.target.route_name }")
+                                            template(v-else-if="child2.target && !child2.target_is_routename")
+                                                a(:href='child2.target')
                                                     i.fa.fa-fw(:class="child2.fa_class")
                                                     span.nav-link-text {{t(child2.translatable_title)}}
                                         template(v-else)
-                                            a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child2.UID")
+                                            a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child2.name")
                                                 i.fa.fa-fw(:class="child2.fa_class")
                                                 span.nav-link-text
                                                     | {{t(child2.translatable_title)}}

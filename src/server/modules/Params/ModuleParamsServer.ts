@@ -33,7 +33,12 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Paramètres' },
-            'menu.menuelements.param.___LABEL___'));
+            'menu.menuelements.admin.param.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Paramètres' },
+            'menu.menuelements.admin.ParamsAdminVueModule.___LABEL___'));
+
     }
 
     public registerServerApiHandlers() {

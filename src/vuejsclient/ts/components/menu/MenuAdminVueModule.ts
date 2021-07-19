@@ -1,15 +1,8 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleMenu from '../../../../shared/modules/Menu/ModuleMenu';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import ModuleMenu from '../../../../shared/modules/Vocus/ModuleMenu';
-import VocusHandler from '../../../../shared/tools/VocusHandler';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import MenuController from '../menu/MenuController';
-import MenuBranch from '../menu/vos/MenuBranch';
-import MenuLeaf from '../menu/vos/MenuLeaf';
-import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
-
 
 export default class MenuAdminVueModule extends VueModuleBase {
 
@@ -26,11 +19,14 @@ export default class MenuAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleMenu.getInstance().name);
+        this.policies_needed = [
+            ModuleMenu.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleMenu.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleMenu.POLICY_BO_ACCESS]) {
             return;
         }
 
@@ -40,34 +36,21 @@ export default class MenuAdminVueModule extends VueModuleBase {
                     ModuleMenu.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     "MenuAdminVueModule",
-                    "fa-search",
+                    "fa-list",
                     50,
                     null
                 )
             );
 
-        let url: string = MenuAdminVueModule.ROUTE_PATH;
-        let main_route_name: string = 'Vocus';
+        let url: string = '/menu/organizer';
+        let main_route_name: string = 'menu_organizer';
 
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "VocusComponent" */ './VocusComponent'),
+            component: () => import(/* webpackChunkName: "MenuOrganizerComponent" */ './organizer/MenuOrganizerComponent'),
             props: (route) => ({
                 key: main_route_name
-            })
-        });
-
-        url = MenuAdminVueModule.ROUTE_PATH + '/:type/:id';
-
-        this.routes.push({
-            path: url,
-            name: main_route_name + '__vo',
-            component: () => import(/* webpackChunkName: "VocusComponent" */ './VocusComponent'),
-            props: (route) => ({
-                key: main_route_name,
-                vo_id: parseInt(route.params.id),
-                vo_type: route.params.type
             })
         });
 
@@ -75,7 +58,7 @@ export default class MenuAdminVueModule extends VueModuleBase {
             ModuleMenu.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,
-            "fa-search",
+            "fa-list",
             10,
             main_route_name,
             true,

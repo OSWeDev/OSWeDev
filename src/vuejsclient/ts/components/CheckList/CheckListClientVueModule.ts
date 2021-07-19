@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -26,11 +25,14 @@ export default class CheckListClientVueModule extends VueModuleBase {
         public route_base_checklist: string) {
 
         super(checklist_shared_module.name);
+        this.policies_needed = [
+            this.checklist_shared_module.POLICY_FO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(this.checklist_shared_module.POLICY_FO_ACCESS)) {
+        if (!this.policies_loaded[this.checklist_shared_module.POLICY_FO_ACCESS]) {
             return;
         }
 

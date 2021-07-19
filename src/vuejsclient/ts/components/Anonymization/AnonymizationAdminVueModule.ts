@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAnonymization from '../../../../shared/modules/Anonymization/ModuleAnonymization';
 import AnonymizationFieldConfVO from '../../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -22,11 +21,14 @@ export default class AnonymizationAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleAnonymization.getInstance().name);
+        this.policies_needed = [
+            ModuleAnonymization.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnonymization.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleAnonymization.POLICY_BO_ACCESS]) {
             return;
         }
 

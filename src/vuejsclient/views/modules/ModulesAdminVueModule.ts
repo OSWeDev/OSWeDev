@@ -26,11 +26,14 @@ export default class ModulesAdminVueModule extends VueModuleBase {
 
         // On triche on utilise le Module DAO qui a la fois peut pas être inactif et en même temps ne peut pas (a priori) servir dans un module admin
         super(ModuleDAO.getInstance().name);
+        this.policies_needed = [
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
+        if (!this.policies_loaded[ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS]) {
             return;
         }
 

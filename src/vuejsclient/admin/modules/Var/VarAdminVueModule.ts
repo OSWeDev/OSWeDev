@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
@@ -25,11 +24,15 @@ export default class VarAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleVar.getInstance().name);
+        this.policies_needed = [
+            ModuleVar.POLICY_BO_ACCESS,
+            ModuleVar.POLICY_BO_VARCONF_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleVar.POLICY_BO_ACCESS]) {
             return;
         }
 
@@ -45,7 +48,7 @@ export default class VarAdminVueModule extends VueModuleBase {
                 )
             );
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_BO_VARCONF_ACCESS)) {
+        if (this.policies_loaded[ModuleVar.POLICY_BO_VARCONF_ACCESS]) {
             await CRUDComponentManager.getInstance().registerCRUD(
                 VarConfVO.API_TYPE_ID,
                 null,

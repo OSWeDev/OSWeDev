@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -22,11 +21,14 @@ export default class CronAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleCron.getInstance().name);
+        this.policies_needed = [
+            ModuleCron.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCron.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleCron.POLICY_BO_ACCESS]) {
             return;
         }
 

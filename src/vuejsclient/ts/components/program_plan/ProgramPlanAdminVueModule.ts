@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComputedDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
@@ -26,6 +25,9 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
 
         super(name);
         this.post_initialization_hook = post_initialization_hook;
+        this.policies_needed = [
+            this.programplan_shared_module.POLICY_BO_ACCESS
+        ];
     }
 
     get programplan_shared_module(): ModuleProgramPlanBase {
@@ -34,7 +36,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[this.programplan_shared_module.POLICY_BO_ACCESS]) {
             return;
         }
 

@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleImage from '../../../../shared/modules/Image/ModuleImage';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -22,11 +21,14 @@ export default class ImageAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleImage.getInstance().name);
+        this.policies_needed = [
+            ModuleImage.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleImage.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModuleImage.POLICY_BO_ACCESS]) {
             return;
         }
 

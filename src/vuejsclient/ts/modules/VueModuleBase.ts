@@ -7,6 +7,9 @@ export default abstract class VueModuleBase implements IVueModule {
 
     public static IVueModuleRoleName: string = "IVueModule";
 
+    public policies_needed: string[] = [];
+    public policies_loaded: { [policy_name: string]: boolean } = {};
+
     public routes: RouteConfig[];
 
     protected constructor(public name: string) {

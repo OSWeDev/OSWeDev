@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
@@ -30,11 +29,15 @@ export default class TranslationAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModuleTranslation.getInstance().name);
+        this.policies_needed = [
+            ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+            ModuleTranslation.POLICY_BO_OTHERS_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS)) {
+        if (!this.policies_loaded[ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS]) {
             return;
         }
 
@@ -65,7 +68,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             ),
             this.routes);
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_OTHERS_ACCESS)) {
+        if (!this.policies_loaded[ModuleTranslation.POLICY_BO_OTHERS_ACCESS]) {
             return;
         }
 

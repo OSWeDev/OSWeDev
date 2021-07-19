@@ -18,14 +18,28 @@ export default class MenuController {
     public menus_by_parent_id: { [parent_id: number]: MenuElementVO[] } = {};
     public menus_by_name: { [name: string]: MenuElementVO } = {};
     public menus_by_ids: { [id: number]: MenuElementVO } = {};
-    public known_server_menus_names: string[] = [];
+
+    public callback_reload_menus = null;
+
+    public reload(menus: MenuElementVO[]) {
+
+        this.menus_by_name = {};
+        this.menus_by_parent_id = {};
+        this.menus_by_ids = {};
+
+        this.init(menus);
+
+        if (this.callback_reload_menus) {
+            this.callback_reload_menus();
+        }
+    }
 
     public init(menus: MenuElementVO[]) {
 
         for (let i in menus) {
             let menu = menus[i];
 
-            let parent_id = menu.parent_id ? menu.parent_id : 0;
+            let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
             if (!this.menus_by_parent_id[parent_id]) {
                 this.menus_by_parent_id[parent_id] = [];
             }
@@ -33,6 +47,10 @@ export default class MenuController {
 
             this.menus_by_name[menu.name] = menu;
             this.menus_by_ids[menu.id] = menu;
+        }
+
+        for (let i in this.menus_by_parent_id) {
+            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[i]);
         }
     }
 
@@ -46,7 +64,7 @@ export default class MenuController {
             return;
         }
 
-        if ((!this.menus_by_name[elt.name]) && (!this.known_server_menus_names[elt.access_policy_name])) {
+        if (!this.menus_by_name[elt.name]) {
 
             // Si c'est pas défini dans le menu, on check qu'on a le droit de l'ajouter
             if (elt.access_policy_name && !await ModuleAccessPolicy.getInstance().checkAccess(elt.access_policy_name)) {
@@ -76,11 +94,11 @@ export default class MenuController {
             this.menus_by_name[elt.name] = elt;
             this.menus_by_ids[elt.id] = elt;
 
-            if (!this.menus_by_parent_id[elt.parent_id]) {
-                this.menus_by_parent_id[elt.parent_id] = [];
+            if (!this.menus_by_parent_id[elt.menu_parent_id]) {
+                this.menus_by_parent_id[elt.menu_parent_id] = [];
             }
-            this.menus_by_parent_id[elt.parent_id].push(elt);
-            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[elt.parent_id]);
+            this.menus_by_parent_id[elt.menu_parent_id].push(elt);
+            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[elt.menu_parent_id]);
         }
 
         return this.menus_by_name[elt.name] ? this.menus_by_name[elt.name] : elt;

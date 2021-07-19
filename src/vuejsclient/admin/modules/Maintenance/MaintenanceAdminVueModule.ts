@@ -28,11 +28,14 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
 
         super(ModuleMaintenance.getInstance().name);
         this.post_initialization_hook = post_initialization_hook;
+        this.policies_needed = [
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
+        if (!this.policies_loaded[ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS]) {
             return;
         }
 

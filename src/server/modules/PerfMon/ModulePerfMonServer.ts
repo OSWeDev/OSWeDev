@@ -35,7 +35,12 @@ export default class ModulePerfMonServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Types de performance' },
-            'menu.menuelements.perfmon_line_type.___LABEL___'));
+            'menu.menuelements.admin.perfmon_line_type.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Performances' },
+            'menu.menuelements.admin.PerfMonAdminVueModule.___LABEL___'));
+
 
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpdateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);

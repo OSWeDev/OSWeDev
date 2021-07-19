@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModulePerfMon from '../../../../shared/modules/PerfMon/ModulePerfMon';
 import PerfMonLineTypeVO from '../../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
@@ -22,11 +21,14 @@ export default class PerfMonAdminVueModule extends VueModuleBase {
     private constructor() {
 
         super(ModulePerfMon.getInstance().name);
+        this.policies_needed = [
+            ModulePerfMon.POLICY_BO_ACCESS
+        ];
     }
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModulePerfMon.POLICY_BO_ACCESS)) {
+        if (!this.policies_loaded[ModulePerfMon.POLICY_BO_ACCESS]) {
             return;
         }
 

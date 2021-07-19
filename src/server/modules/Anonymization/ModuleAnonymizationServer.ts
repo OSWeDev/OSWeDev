@@ -100,6 +100,11 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Anonymisation' },
+            'menu.menuelements.admin.AnonymizationAdminVueModule.___LABEL___'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Modification impossible sur data anonymisée.' },
             "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION
         ));
