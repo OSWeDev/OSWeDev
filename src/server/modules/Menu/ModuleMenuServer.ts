@@ -31,6 +31,51 @@ export default class ModuleMenuServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Titre' },
+            'menu_organizer.selected_item.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Caché' },
+            'menu_organizer.hidden.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Mode avancé' },
+            'menu_organizer.advanced_selected_item_mode.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Classe FontAwesome' },
+            'menu_organizer.fa_class.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Cible' },
+            'menu_organizer.target.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'La cible est une route' },
+            'menu_organizer.target_is_routename.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Paramètres de la route' },
+            'menu_organizer.target_route_params.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Droit d\'accès' },
+            'menu_organizer.access_policy_name.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Les modifications seront visibles en rechargeant la page' },
+            'menu_organizer.selected_item.explaination.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Enregistrer' },
+            'menu_organizer.save_selected.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Annuler' },
+            'menu_organizer.cancel_selected.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Menus' },
+            'menu.menuelements.admin.menu_elt.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Menu de l\'application : {app_name}' },
+            'menu_organizer.app_name_title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Application :' },
+            'menu_organizer.select_app_name.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Menus' },
             'menu.menuelements.admin.MenuAdminVueModule.___LABEL___'));
 

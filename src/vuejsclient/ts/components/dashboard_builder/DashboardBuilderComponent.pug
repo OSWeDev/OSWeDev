@@ -66,6 +66,7 @@
                     .row.steps
                         .col-md-3.step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
                         .col-md-3.step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
+                        .col-md-3.step.build_page(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
 
                     .pages
                         template(v-for='(page_, pagei) in pages')
@@ -109,3 +110,6 @@
                     Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget' v-show='!collapsed_fields_wrapper')
                     Droppablevofieldscomponent(:dashboard='dashboard' v-show='!collapsed_fields_wrapper')
             
+            .row(v-if='show_menu_conf')
+                .col-md-12.menu_conf_wrapper 
+                    Dashboardmenuconfcomponent(:dashboard='dashboard')

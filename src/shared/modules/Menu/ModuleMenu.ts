@@ -65,6 +65,7 @@ export default class ModuleMenu extends Module {
             new ModuleTableField('app_name', ModuleTableField.FIELD_TYPE_string, 'Application', true),
 
             new ModuleTableField('target', ModuleTableField.FIELD_TYPE_string, 'Cible', false),
+            new ModuleTableField('target_route_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres de la route', false),
             new ModuleTableField('target_is_routename', ModuleTableField.FIELD_TYPE_boolean, 'La cible est une route ?', false, true, true),
 
             new ModuleTableField('hidden', ModuleTableField.FIELD_TYPE_boolean, 'Caché', false, true, false),

@@ -15,43 +15,16 @@ export default class MenuController {
 
     private static instance: MenuController;
 
+    public menus_by_app_names: { [app_name: string]: MenuElementVO[] } = {};
+
     public menus_by_parent_id: { [parent_id: number]: MenuElementVO[] } = {};
     public menus_by_name: { [name: string]: MenuElementVO } = {};
     public menus_by_ids: { [id: number]: MenuElementVO } = {};
 
     public callback_reload_menus = null;
 
-    public reload(menus: MenuElementVO[]) {
-
-        this.menus_by_name = {};
-        this.menus_by_parent_id = {};
-        this.menus_by_ids = {};
-
-        this.init(menus);
-
-        if (this.callback_reload_menus) {
-            this.callback_reload_menus();
-        }
-    }
-
-    public init(menus: MenuElementVO[]) {
-
-        for (let i in menus) {
-            let menu = menus[i];
-
-            let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
-            if (!this.menus_by_parent_id[parent_id]) {
-                this.menus_by_parent_id[parent_id] = [];
-            }
-            this.menus_by_parent_id[parent_id].push(menu);
-
-            this.menus_by_name[menu.name] = menu;
-            this.menus_by_ids[menu.id] = menu;
-        }
-
-        for (let i in this.menus_by_parent_id) {
-            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[i]);
-        }
+    public async reload_from_db() {
+        this.reload(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
     }
 
     /**
@@ -98,9 +71,54 @@ export default class MenuController {
                 this.menus_by_parent_id[elt.menu_parent_id] = [];
             }
             this.menus_by_parent_id[elt.menu_parent_id].push(elt);
+
+            if (!this.menus_by_app_names[elt.app_name]) {
+                this.menus_by_app_names[elt.app_name] = [];
+            }
+            this.menus_by_app_names[elt.app_name].push(elt);
+
             WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[elt.menu_parent_id]);
         }
 
         return this.menus_by_name[elt.name] ? this.menus_by_name[elt.name] : elt;
+    }
+
+    private reload(menus: MenuElementVO[]) {
+
+        this.menus_by_name = {};
+        this.menus_by_parent_id = {};
+        this.menus_by_ids = {};
+        this.menus_by_app_names = {};
+
+        this.init(menus);
+
+        if (this.callback_reload_menus) {
+            this.callback_reload_menus();
+        }
+    }
+
+    private init(menus: MenuElementVO[]) {
+
+        for (let i in menus) {
+            let menu = menus[i];
+
+            let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
+            if (!this.menus_by_parent_id[parent_id]) {
+                this.menus_by_parent_id[parent_id] = [];
+            }
+            this.menus_by_parent_id[parent_id].push(menu);
+
+            this.menus_by_name[menu.name] = menu;
+            this.menus_by_ids[menu.id] = menu;
+
+            if (!this.menus_by_app_names[menu.app_name]) {
+                this.menus_by_app_names[menu.app_name] = [];
+            }
+            this.menus_by_app_names[menu.app_name].push(menu);
+        }
+
+        for (let i in this.menus_by_parent_id) {
+            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[i]);
+        }
     }
 }

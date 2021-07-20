@@ -1,3 +1,7 @@
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -5,9 +9,12 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -25,6 +32,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Activer le menu sur : {app_name}'
+        }, 'dashboard_menu_conf.menu_switch.label.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '3 - Menus'
+        }, 'dashboard_builder.menu_conf.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Impossible de créer un nouveau Dashboard...'
@@ -201,6 +216,40 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);
+    }
+
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleDashboardBuilder.POLICY_GROUP;
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+            fr: 'Dashboards'
+        }));
+
+        let bo_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_access.group_id = group.id;
+        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_access.translatable_name = ModuleDashboardBuilder.POLICY_BO_ACCESS;
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+            fr: 'Administration des Dashboards'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_access_dependency.src_pol_id = bo_access.id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let fo_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_access.group_id = group.id;
+        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_access.translatable_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+            fr: 'Consultation des Dashboards'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_access_dependency.src_pol_id = fo_access.id;
+        front_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+        front_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
     }
 
     private async onCDashboardVO(e: DashboardVO): Promise<boolean> {

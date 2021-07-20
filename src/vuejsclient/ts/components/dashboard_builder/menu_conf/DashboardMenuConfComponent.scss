@@ -1,18 +1,22 @@
-.dashboard_builder_board {
+.dashboard_menu_conf {
 
-    width: 1280px;
-    height: 720px;
-    border: dashed 1px #AAA;
-    border-radius: 2px;
+    .menu_switch {
+        padding: 1em;
 
-    .grid_item_wrapper {
-
-        .vue-grid-item {
-            padding: 1em;
+        >.label {
+            display: inline-block;
+            font-weight: bold;
+            margin-left: 0.5em;
+            vertical-align: top;
         }
 
-        &.selected .vue-grid-item {
-            box-shadow: 1px 1px 1px #888;
+        .toggle_wrapper {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .menus_organizer_wrapper {
+            padding: 1em;
         }
     }
 }

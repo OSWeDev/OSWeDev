@@ -3,6 +3,7 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -67,63 +68,63 @@ export default class ModuleTranslation extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, TranslationVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<void, TranslationVO[]>(
             null,
             ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, { [code_text: string]: string }>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, { [code_text: string]: string }>(
             null,
             ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, LangVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<void, LangVO[]>(
             null,
             ModuleTranslation.APINAME_GET_LANGS,
             [LangVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, LangVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, LangVO>(
             null,
             ModuleTranslation.APINAME_GET_LANG,
             [LangVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TranslatableTextVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, TranslatableTextVO>(
             null,
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
             [TranslatableTextVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, TranslatableTextVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<void, TranslatableTextVO[]>(
             null,
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS,
             [TranslatableTextVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<GetTranslationParamVO, TranslationVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetTranslationParamVO, TranslationVO>(
             null,
             ModuleTranslation.APINAME_GET_TRANSLATION,
             [TranslationVO.API_TYPE_ID],
             GetTranslationParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, TranslationVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<NumberParamVO, TranslationVO[]>(
             null,
             ModuleTranslation.APINAME_GET_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, { [code_lang: string]: { [code_text: string]: string } }>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<void, { [code_lang: string]: { [code_text: string]: string } }>(
             null,
             ModuleTranslation.APINAME_getALL_LOCALES,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<TParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<TParamVO, string>(
             null,
             ModuleTranslation.APINAME_T,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID],
             TParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<TParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<TParamVO, string>(
             null,
             ModuleTranslation.APINAME_LABEL,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID],

@@ -2,6 +2,7 @@ import ModuleMenu from '../../../../shared/modules/Menu/ModuleMenu';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
+import CRUDComponentManager from '../crud/CRUDComponentManager';
 import MenuController from '../menu/MenuController';
 
 export default class MenuAdminVueModule extends VueModuleBase {
@@ -65,5 +66,21 @@ export default class MenuAdminVueModule extends VueModuleBase {
             menuBranch.id
         );
         await MenuController.getInstance().declare_menu_element(menuPointer);
+
+
+        await CRUDComponentManager.getInstance().registerCRUD(
+            MenuElementVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleMenu.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                MenuElementVO.API_TYPE_ID,
+                "fa-list",
+                30,
+                null,
+                null,
+                menuBranch.id
+            ),
+            this.routes);
     }
 }

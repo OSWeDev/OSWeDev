@@ -43,6 +43,7 @@ export default class MenuElementVO implements IDistantVOBase {
     public fa_class: string;
 
     public target: string;
+    public target_route_params: string;
     public target_is_routename: boolean;
 
     public menu_parent_id: number;

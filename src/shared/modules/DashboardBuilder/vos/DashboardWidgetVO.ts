@@ -1,5 +1,6 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem {
@@ -13,7 +14,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem 
         if (!this.id) {
             return null;
         }
-        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id;
+        return DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + this.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public weight: number;

@@ -52,6 +52,8 @@ export default class InlineTranslatableText extends VueComponentBase {
             return;
         }
 
+        this.text = this.translation;
+
         if (!this.code_text) {
             return;
         }

@@ -15,6 +15,7 @@ import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardCompone
 import './DashboardBuilderComponent.scss';
 import DroppableVosComponent from './droppable_vos/DroppableVosComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
+import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import { ModuleDashboardPageAction } from './page/DashboardPageStore';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
@@ -26,7 +27,8 @@ import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsC
         Droppablevofieldscomponent: DroppableVoFieldsComponent,
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
-        Tablesgraphcomponent: TablesGraphComponent
+        Tablesgraphcomponent: TablesGraphComponent,
+        Dashboardmenuconfcomponent: DashboardMenuConfComponent
     }
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
@@ -46,6 +48,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private show_build_page: boolean = false;
     private show_select_vos: boolean = true;
+    private show_menu_conf: boolean = false;
 
     private can_build_page: boolean = false;
 
@@ -146,7 +149,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return null;
         }
 
-        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
+        return this.dashboard.translatable_name_code_text ? this.dashboard.translatable_name_code_text : null;
     }
 
     private async create_new_dashboard() {
@@ -166,7 +169,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         // On crée la trad
         let code_lang = LocaleManager.getInstance().getDefaultLocale();
-        let code_text = this.dashboard.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        let code_text = this.dashboard.translatable_name_code_text;
         let translation = "Dashboard [" + this.dashboard.id + "]";
         await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation);
 
@@ -192,7 +195,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return '';
         }
 
-        return dashboard.id + ' | ' + this.label(dashboard.translatable_name_code_text);
+        return dashboard.id + ' | ' + this.t(dashboard.translatable_name_code_text);
     }
 
     get pages_name_code_text(): string[] {
@@ -205,7 +208,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (let i in this.pages) {
             let page = this.pages[i];
 
-            res.push(page.translatable_name_code_text ? page.translatable_name_code_text + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null);
+            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
         }
 
         return res;
@@ -303,11 +306,19 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private select_vos() {
         this.show_build_page = false;
         this.show_select_vos = true;
+        this.show_menu_conf = false;
     }
 
     private build_page() {
         this.show_build_page = true;
         this.show_select_vos = false;
+        this.show_menu_conf = false;
+    }
+
+    private menu_conf() {
+        this.show_build_page = false;
+        this.show_select_vos = false;
+        this.show_menu_conf = true;
     }
 
     private async add_api_type_id(api_type_id: string) {

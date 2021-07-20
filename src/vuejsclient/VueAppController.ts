@@ -1,6 +1,5 @@
 import { Route } from 'vue-router/types/router';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleMenu from '../shared/modules/Menu/ModuleMenu';
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
@@ -66,7 +65,7 @@ export default abstract class VueAppController {
         })());
 
         promises.push((async () => {
-            MenuController.getInstance().init(await ModuleMenu.getInstance().get_menu(this.app_name));
+            await MenuController.getInstance().reload_from_db();
         })());
 
         promises.push((async () => {

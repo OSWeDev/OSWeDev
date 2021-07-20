@@ -1,10 +1,12 @@
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
-import { Component } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import IWeightedItem from '../../../../../shared/tools/interfaces/IWeightedItem';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
+import VueAppController from '../../../../VueAppController';
+import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
+import { ModuleTranslatableTextAction, ModuleTranslatableTextGetter } from '../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../VueComponentBase';
 import MenuController from '../MenuController';
 import INestedItem from './INestedItem';
@@ -16,16 +18,157 @@ import './MenuOrganizerComponent.scss';
         // VueNestable,
         // VueNestableHandle
         Vuenestable: VueNestable,
-        Vuenestablehandle: VueNestableHandle
+        Vuenestablehandle: VueNestableHandle,
+        Inlinetranslatabletext: InlineTranslatableText
     }
 })
 export default class MenuOrganizerComponent extends VueComponentBase {
+
+    @Prop({ default: null })
+    private focus_on_menu_id: number;
+
+    @ModuleTranslatableTextGetter
+    private get_flat_locale_translations: { [code_text: string]: string };
+
+    @ModuleTranslatableTextGetter
+    private get_initialized: boolean;
+
+    @ModuleTranslatableTextAction
+    private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
+    @ModuleTranslatableTextAction
+    private set_initialized: (initialized: boolean) => void;
+
+    @ModuleTranslatableTextGetter
+    private get_initializing: boolean;
+
+    @ModuleTranslatableTextAction
+    private set_initializing: (initializing: boolean) => void;
 
     private nestable_items: INestedItem[] = [];
 
     private db_menus_by_ids: { [id: number]: MenuElementVO } = {};
 
     private has_modif: boolean = false;
+
+    private app_name: string = null;
+    private app_names: string[] = null;
+
+    private selected_item: MenuElementVO = null;
+
+    private advanced_selected_item_mode: boolean = false;
+
+    private has_modif_selected: boolean = false;
+
+    private switch_selected_hidden() {
+        if (!this.selected_item) {
+            return;
+        }
+        this.selected_item.hidden = !this.selected_item.hidden;
+        this.changed_selected();
+    }
+
+    private switch_advanced_selected_item_mode() {
+        this.advanced_selected_item_mode = !this.advanced_selected_item_mode;
+    }
+
+    get selected_item_translatable_title() {
+        return this.selected_item ? this.selected_item.translatable_title : null;
+    }
+
+    private changed_selected() {
+        this.has_modif_selected = true;
+    }
+
+    private async unselect() {
+        await this.reload_selected();
+        this.selected_item = null;
+        this.has_modif_selected = false;
+    }
+
+    private async update_selected() {
+        if (!this.selected_item) {
+            return;
+        }
+        await ModuleDAO.getInstance().insertOrUpdateVOs([this.selected_item]);
+        let item = await ModuleDAO.getInstance().getVoById<MenuElementVO>(MenuElementVO.API_TYPE_ID, this.selected_item.id);
+        this.db_menus_by_ids[item.id] = item;
+        this.selected_item = item;
+        this.has_modif_selected = false;
+
+        this.update_nested_item(item);
+    }
+
+    private async reload_selected() {
+        if (!this.selected_item) {
+            return;
+        }
+
+        let item = await ModuleDAO.getInstance().getVoById<MenuElementVO>(MenuElementVO.API_TYPE_ID, this.selected_item.id);
+        this.db_menus_by_ids[item.id] = item;
+        this.selected_item = item;
+        this.has_modif_selected = false;
+
+        this.update_nested_item(item);
+    }
+
+    private update_nested_item(item: MenuElementVO) {
+        for (let i in this.nestable_items) {
+            let nestable_item = this.nestable_items[i];
+
+            if (nestable_item.id == item.id) {
+                nestable_item.text = this.get_flat_locale_translations[item.translatable_title];
+                nestable_item.target = item.target;
+                nestable_item.hidden = item.hidden;
+                return;
+            }
+
+            if (nestable_item.children && nestable_item.children.length) {
+
+                for (let j in nestable_item.children) {
+                    let nestable_item2 = nestable_item.children[j];
+
+                    if (nestable_item2.id == item.id) {
+                        nestable_item2.text = this.get_flat_locale_translations[item.translatable_title];
+                        nestable_item2.target = item.target;
+                        nestable_item2.hidden = item.hidden;
+                        return;
+                    }
+
+                    if (nestable_item2.children && nestable_item2.children.length) {
+
+                        for (let k in nestable_item2.children) {
+                            let nestable_item3 = nestable_item2.children[k];
+
+                            if (nestable_item3.id == item.id) {
+                                nestable_item3.text = this.get_flat_locale_translations[item.translatable_title];
+                                nestable_item3.target = item.target;
+                                nestable_item3.hidden = item.hidden;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private async select_menu(item: INestedItem) {
+        if (!!this.selected_item) {
+            await this.reload_selected();
+        }
+        this.selected_item = this.db_menus_by_ids[item.id];
+        this.has_modif_selected = false;
+    }
+
+    @Watch('focus_on_menu_id')
+    private async onchange_focus_on_menu_id() {
+        await this.reload_from_db();
+    }
+
+    @Watch('app_name')
+    private async onchange_app_name() {
+        await this.reload_from_db();
+    }
 
     // private nestableItems = [
     //     {
@@ -64,6 +207,16 @@ export default class MenuOrganizerComponent extends VueComponentBase {
     }
 
     private async reload_from_db() {
+
+        if ((!this.get_initialized) && (!this.get_initializing)) {
+            this.set_initializing(true);
+
+            this.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
+
+            this.set_initializing(false);
+            this.set_initialized(true);
+        }
+
         this.db_menus_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
 
         /**
@@ -71,21 +224,42 @@ export default class MenuOrganizerComponent extends VueComponentBase {
          */
         let updated_nested_items_by_ids: { [id: number]: INestedItem } = {};
         let dones_ids: { [id: number]: boolean } = {};
+        this.app_names = [];
+        this.selected_item = null;
         for (let i in this.db_menus_by_ids) {
             let db_menu = this.db_menus_by_ids[i];
+
+            if (this.focus_on_menu_id && (this.focus_on_menu_id == db_menu.id)) {
+                this.selected_item = db_menu;
+                this.has_modif_selected = false;
+                this.app_name = db_menu.app_name;
+            }
+
+            if (this.app_names.indexOf(db_menu.app_name) < 0) {
+                this.app_names.push(db_menu.app_name);
+            }
+            if (!this.app_name) {
+                this.app_name = db_menu.app_name;
+            }
 
             if (db_menu.menu_parent_id) {
                 continue;
             }
 
             dones_ids[db_menu.id] = true;
+
+            if (this.app_name && (this.app_name != db_menu.app_name)) {
+                continue;
+            }
+
             updated_nested_items_by_ids[db_menu.id] = {
                 id: db_menu.id,
-                text: this.t(db_menu.translatable_title),
+                text: this.get_flat_locale_translations[db_menu.translatable_title],
                 weight: db_menu.weight,
                 parent_id: db_menu.menu_parent_id,
                 target: db_menu.target,
-                children: []
+                children: [],
+                hidden: db_menu.hidden
             };
         }
 
@@ -110,11 +284,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             }
             updated_nested_items_by_ids[db_menu.menu_parent_id].children.push({
                 id: db_menu.id,
-                text: this.t(db_menu.translatable_title),
+                text: this.get_flat_locale_translations[db_menu.translatable_title],
                 weight: db_menu.weight,
                 parent_id: db_menu.menu_parent_id,
                 target: db_menu.target,
-                children: []
+                children: [],
+                hidden: db_menu.hidden
             });
         }
 
@@ -131,6 +306,10 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             dones_ids[db_menu.id] = true;
 
             let lvl1_db_menu = this.db_menus_by_ids[db_menu.menu_parent_id];
+            if (!updated_nested_items_by_ids[lvl1_db_menu.menu_parent_id]) {
+                continue;
+            }
+
             let lvl1_nested_menu = updated_nested_items_by_ids[lvl1_db_menu.menu_parent_id].children.find((m) => m.id == lvl1_db_menu.id);
 
             if (!lvl1_nested_menu.children) {
@@ -138,11 +317,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             }
             lvl1_nested_menu.children.push({
                 id: db_menu.id,
-                text: this.t(db_menu.translatable_title),
+                text: this.get_flat_locale_translations[db_menu.translatable_title],
                 weight: db_menu.weight,
                 parent_id: db_menu.menu_parent_id,
                 target: db_menu.target,
-                children: []
+                children: [],
+                hidden: db_menu.hidden
             });
         }
 
@@ -185,6 +365,16 @@ export default class MenuOrganizerComponent extends VueComponentBase {
                     let child = item.children[j];
                     child.new_weight = weight++;
                     child.new_parent_id = item.id;
+
+                    if (item.children && item.children.length) {
+
+                        let weight_lvl2 = 0;
+                        for (let k in child.children) {
+                            let child2 = child.children[k];
+                            child2.new_weight = weight_lvl2++;
+                            child2.new_parent_id = child.id;
+                        }
+                    }
                 }
             }
         }
@@ -226,6 +416,21 @@ export default class MenuOrganizerComponent extends VueComponentBase {
                         db_menu.menu_parent_id = child.new_parent_id;
                         diffs.push(db_menu);
                     }
+
+                    if (child.children && child.children.length) {
+
+                        for (let k in child.children) {
+                            let child2 = child.children[k];
+
+                            if ((child2.new_weight != child2.weight) ||
+                                (child2.new_parent_id != child2.parent_id)) {
+                                let db_menu = this.db_menus_by_ids[child2.id];
+                                db_menu.weight = child2.new_weight;
+                                db_menu.menu_parent_id = child2.new_parent_id;
+                                diffs.push(db_menu);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -234,6 +439,6 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             await ModuleDAO.getInstance().insertOrUpdateVOs(diffs);
         }
         await this.reload_from_db();
-        MenuController.getInstance().reload(Object.values(this.db_menus_by_ids));
+        await MenuController.getInstance().reload_from_db();
     }
 }

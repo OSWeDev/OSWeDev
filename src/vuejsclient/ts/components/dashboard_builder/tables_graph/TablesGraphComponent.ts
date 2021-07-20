@@ -165,9 +165,10 @@ export default class TablesGraphComponent extends VueComponentBase {
             // container.style.position = 'absolute';
             container.style.overflow = 'hidden';
             // container.style.minHeight = '720px';
-            container.style.background = 'white';
+            container.style.background = '#F5F5F5';
             container.style.padding = '1em';
             // container.style.background = `url("${require('./grid.gif')}")`;
+            container.style.boxShadow = '1px 1px 1px #888';
 
             let sidebar = (this.$refs['sidebar'] as any);
 
