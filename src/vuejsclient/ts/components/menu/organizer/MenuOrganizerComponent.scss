@@ -35,6 +35,17 @@
             cursor: pointer;
         }
 
+        input[type="text"] {
+            width: 100%;
+            padding: 0.3em;
+            border: solid 1px #BBB;
+            border-radius: 2px;
+
+            &.multiselect__input {
+                border:none;
+            }
+        }
+
         .row {
             margin-bottom: 0.6em;
             clear: both;
@@ -114,6 +125,10 @@
             margin-left: 0.5em;
             cursor: pointer;
             
+            &.hidden {
+                opacity: 0.5;
+            }
+
             &.has_focus {
                 font-weight: bold;
                 color: white;

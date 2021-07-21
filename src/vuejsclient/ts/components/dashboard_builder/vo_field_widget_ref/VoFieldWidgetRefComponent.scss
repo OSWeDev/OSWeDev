@@ -1,2 +1,12 @@
 .vo_field_widget_ref {
+
+    .remove_field_ref {
+        display: inline-block;
+        padding: 0.2em;
+        background: indianred;
+        color: #EEE;
+        border-radius: 2px;
+        cursor: pointer;
+        margin-top: 1px;
+    }
 }

@@ -2,8 +2,51 @@ import * as moment from 'moment';
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import TypesHandler from './TypesHandler';
 import { stringify } from 'querystring';
+import Humanizer from './Humanizer';
 
 export default class FilterObj<T, U> {
+
+    // readToHourFilter = (
+    //     value: number | string,
+    //     arrondi: boolean = false,
+    //     negativeValue: boolean = false,
+    //     positiveSign: boolean = false,
+    //     formatted: boolean = false,
+    //     arrondiMinutes: boolean | number = null)
+    public static FILTER_TYPE_hour = 'hour';
+
+    // readToAmountFilter = (value: number | string, fractionalDigits: number = 0, k: boolean = false, onlyPositive: boolean = false)
+    public static FILTER_TYPE_amount = 'amount';
+
+    // readToPercentFilter = (
+    //     value: number | string,
+    //     fractionalDigits: number = 0,
+    //     pts: boolean = false,
+    //     explicit_sign: boolean = false,
+    //     evol_from_prct: boolean = false,
+    //     treat_999_as_infinite: boolean = true)
+    public static FILTER_TYPE_percent = 'percent';
+
+    // readToFixed = (
+    //     value: number | string,
+    //     fractionalDigits: number = 0,
+    //     arrondi: boolean | number = false,
+    //     arrondi_type: number = ARRONDI_TYPE_ROUND,
+    //     onlyPositive: boolean = false,
+    //     dot_decimal_marker: boolean = false
+    // )
+    // readToFixedCeilFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false)
+    // readToFixedFloorFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false)
+    public static FILTER_TYPE_fixed = 'fixed';
+
+
+    // readToBooleanFilter = (value: boolean)
+    public static FILTER_TYPE_boolean = 'boolean';
+
+    // readToPadHour = (value: number)
+    // readToHideZeroFilter = (value: number)
+    // readToTruncateFilter = (value: string, nbChars: number)
+
     public static createNew<T, U>(
         read: T,
         write: U
@@ -159,10 +202,22 @@ export let alerteCheckFilter = FilterObj.createNew(
     writeToAlerteCheckFilter
 );
 
-let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, k: boolean = false, onlyPositive: boolean = false): string => {
+let readToAmountFilter = (
+    value: number | string,
+    fractionalDigits: number = 0,
+    k: boolean = false,
+    onlyPositive: boolean = false,
+    humanize: boolean = false,
+    currency = "€"
+): string => {
 
     if ((value === null) || (typeof value === "undefined")) {
         return null;
+    }
+
+    // FIXME k devient probablement inutile avec humanize (même si le rendu est fondamentalement différent)
+    if (humanize) {
+        k = false;
     }
 
     value = parseFloat(value.toString());
@@ -179,11 +234,14 @@ let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, 
     let _int;
 
     // On récupère le séparateur en fonction de la langue
-    let currency = "€";
 
     if (k) {
         currency = "k€";
         value = value / 1000;
+    }
+
+    if (humanize) {
+        return Humanizer.humanize_number(value, fractionalDigits, currency);
     }
 
     if (fractionalDigits !== null) {

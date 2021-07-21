@@ -29,7 +29,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private max_visible_options: number = null;
 
     private next_update_options: FieldValueFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 300, { leading: false });
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false });
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {

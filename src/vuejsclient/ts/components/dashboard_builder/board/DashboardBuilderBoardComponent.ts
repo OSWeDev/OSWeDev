@@ -26,11 +26,11 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     public static GridLayout_TOTAL_HEIGHT: number = 720;
-    public static GridLayout_TOTAL_ROWS: number = 24;
-    public static GridLayout_ELT_HEIGHT: number = 30;
+    public static GridLayout_TOTAL_ROWS: number = 72;
+    public static GridLayout_ELT_HEIGHT: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_HEIGHT / DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
 
-    public static GridLayout_TOTAL_WIDTH: number = 1272;
-    public static GridLayout_TOTAL_COLUMNS: number = 12;
+    public static GridLayout_TOTAL_WIDTH: number = 1280;
+    public static GridLayout_TOTAL_COLUMNS: number = 128;
     public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
 
     @ModuleDashboardPageAction
@@ -47,16 +47,24 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @Prop({ default: null })
     private selected_widget: DashboardPageWidgetVO;
 
+    @Prop({ default: true })
+    private editable: boolean;
+
     private elt_height: number = DashboardBuilderBoardComponent.GridLayout_ELT_HEIGHT;
     private col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
     private max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
 
-    private draggable: boolean = true;
-    private resizable: boolean = true;
-
     private editable_dashboard_page: IEditableDashboardPage = null;
 
     private widgets: DashboardPageWidgetVO[] = [];
+
+    get draggable(): boolean {
+        return this.editable;
+    }
+
+    get resizable(): boolean {
+        return this.editable;
+    }
 
     @Watch("dashboard_page", { immediate: true })
     private async onchange_dbdashboard() {
@@ -125,6 +133,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
          */
         this.editable_dashboard_page.layout.push(page_widget);
         this.set_page_widget(page_widget);
+        this.select_widget(page_widget);
 
         this.snotify.success(this.label('DashboardBuilderBoardComponent.add_widget_to_page.ok'));
     }
@@ -191,6 +200,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                         }
                         self.widgets.splice(i, 1);
                         this.delete_page_widget(page_widget);
+                        this.select_widget(null);
 
                         self.snotify.success(self.label('DashboardBuilderBoardComponent.delete_widget.ok'));
                     },

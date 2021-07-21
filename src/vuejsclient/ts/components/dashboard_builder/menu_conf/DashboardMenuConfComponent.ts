@@ -74,7 +74,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
         res.name = 'dashboard__menu__' + app_name + '__' + this.dashboard.id;
         res.target = 'Dashboard View';
         res.target_is_routename = true;
-        res.target_route_params = '{ dashboard_id: ' + this.dashboard.id + ' }';
+        res.target_route_params = '{ "dashboard_id": ' + this.dashboard.id + ' }';
         res.weight = -1;
 
         return res;

@@ -1,0 +1,13 @@
+.widget_filter_options
+    .filter_type
+        .label {{ label('widget_filter_options.filter_type') }}
+        .input
+            select(v-model='filter_type')
+                option(v-for='filter_uid in filter_uids') {{ filter_names[filter_uid] }}
+
+    .filter_options_wrapper
+        template(v-if='filter_by_names[filter_type] == "amount"')
+            Amountfilteroptionscomponent(
+                :actual_additional_options="actual_additional_options"
+                @update_additional_options="update_additional_options"
+            )

@@ -1,7 +1,10 @@
 .var_widget_component
     template(v-if='var_param')
-        .var_label {{ var_label }}
         .var_data
             var-data(
                 :var_param="var_param"
+                :filter='var_filter'
+                :filter_additional_params='var_filter_additional_params'
             )
+        .var_label 
+            Inlinetranslatabletext(:code_text="title_name_code_text")

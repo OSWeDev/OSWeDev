@@ -213,6 +213,50 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Suppression terminée'
         }, 'TablesGraphEditFormComponent.confirm_delete_cell.ok.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Variable'
+        }, 'var_widget_options_component.var_name.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Titre'
+        }, 'var_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Monnaie'
+        }, 'amount_filter_options.currency.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Décimales'
+        }, 'amount_filter_options.fractionalDigits.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Humaniser'
+        }, 'amount_filter_options.humanize.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Pas de valeur négative'
+        }, 'amount_filter_options.onlyPositive.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Montant'
+        }, 'filters.names.__amount__.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtre'
+        }, 'var_widget_options_component.widget_filter_options.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Dashboards'
+        }, 'menu.menuelements.admin.dashboard.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'GraphVORefs'
+        }, 'menu.menuelements.admin.dashboard_graphvoref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Pages'
+        }, 'menu.menuelements.admin.dashboard_page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Widgets / pages'
+        }, 'menu.menuelements.admin.dashboard_pwidget.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Widgets'
+        }, 'menu.menuelements.admin.dashboard_widget.___LABEL___'));
+
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);
@@ -300,7 +344,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         if (!max_weight) {
             max_weight = 1;
         }
-        e.weight = max_weight;
+        e.weight = max_weight + 1;
 
         return;
     }
@@ -316,7 +360,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         if (!max_i) {
             max_i = 1;
         }
-        e.i = max_i;
+        e.i = max_i + 1;
 
         return;
     }

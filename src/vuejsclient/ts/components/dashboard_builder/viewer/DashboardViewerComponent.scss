@@ -1,0 +1,81 @@
+@import '../../../../scss/base/skin.scss';
+
+.dashboard_viewer {
+    
+    margin-bottom: 5em;
+
+    >.row>.col-md-12>.header {
+
+        margin-bottom: 1em;
+
+        .name {
+            font-size: 2em;
+            
+            input {
+                border: none;
+                padding: 0.5em;
+                width: 100%;
+                background: #F5F5F5;
+                font-size: 1.5em;
+            }
+        }
+    }
+
+    .pages {
+        border: dashed 1px #AAA;
+        border-radius: 2px;
+        margin-bottom: 1em;
+
+        .page {
+
+            display: inline-block;
+            background: #F5F5F5;
+            padding: 1em;
+            cursor: pointer;
+            margin: 0.5em;
+
+            .select,
+            .selected {
+
+                text-align: center;
+                vertical-align: middle;
+                height: 2em;
+                width: 2em;
+                background: #0d6efd;
+                padding: 0.3em;
+                margin-right: 0.5em;
+                color: white;
+                border-radius: 2px;
+                display: inline-block;
+                font-size: 1.2em;
+            }
+            
+            .select {
+                background: #0d6efd;
+            }
+
+            .selected {
+                background: green;
+            }
+
+            .name {
+                display: inline-block;
+
+                input {
+                    border: none;
+                    padding: 0.5em;
+                    width: 100%;
+                }
+            }
+        }
+    }
+
+    .icon_error {
+        color: $danger_color;
+    }
+
+    .icon_success {
+        color: $success_color;
+    }
+}
+

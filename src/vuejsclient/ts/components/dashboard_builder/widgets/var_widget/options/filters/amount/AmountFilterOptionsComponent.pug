@@ -1,0 +1,28 @@
+.amount_filter_options
+    .currency
+        .label {{ label('amount_filter_options.currency') }}
+        .input
+            input(type='text' v-model='currency' @change='onchange_inputs')
+    .fractionalDigits
+        .label {{ label('amount_filter_options.fractionalDigits') }}
+        .input
+            input(type='number' v-model='fractionalDigits' min="0" max="3" @change='onchange_inputs')
+    .humanize
+        .label {{ label('amount_filter_options.humanize') }}
+        .input
+            toggle-button(
+                @change="switch_humanize" 
+                :value="humanize" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .onlyPositive
+        .label {{ label('amount_filter_options.onlyPositive') }}
+        .input
+            toggle-button(
+                @change="switch_onlyPositive" 
+                :value="onlyPositive" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+

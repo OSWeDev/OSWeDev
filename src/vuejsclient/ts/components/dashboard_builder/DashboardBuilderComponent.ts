@@ -70,6 +70,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
             this.show_build_page = this.can_build_page;
             this.show_select_vos = !this.show_build_page;
+            this.show_menu_conf = false;
             this.loading = false;
             return;
         }
@@ -80,6 +81,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
             this.show_build_page = this.can_build_page;
             this.show_select_vos = !this.show_build_page;
+            this.show_menu_conf = false;
             this.loading = false;
             return;
         }
@@ -87,6 +89,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
         this.show_build_page = this.can_build_page;
         this.show_select_vos = !this.show_build_page;
+        this.show_menu_conf = false;
 
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {

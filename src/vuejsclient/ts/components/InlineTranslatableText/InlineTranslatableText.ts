@@ -66,12 +66,12 @@ export default class InlineTranslatableText extends VueComponentBase {
 
             // On a pas la trad pour le moment, mais elle existe peut-etre quand même côté serveur et on a juste pas l'info dans le store
             let lang = await ModuleTranslation.getInstance().getLang(this.code_lang);
-            if ((!this.get_flat_locale_translations[this.code_lang]) || (!lang)) {
+            if (!lang) {
                 // Bon faut pas abuser non plus
                 return;
             }
 
-            if (!this.get_flat_locale_translations[this.code_lang][this.code_text]) {
+            if (!this.get_flat_locale_translations[this.code_text]) {
                 let text = await ModuleTranslation.getInstance().getTranslatableText(this.code_text);
                 if (!text) {
                     // le translatable existe pas on le crée si on a une trad par défaut

@@ -1,0 +1,58 @@
+.dashboard_viewer
+    template(v-if="!dashboard")
+        template(v-if="loading")
+            .is_loading
+                i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+        template(v-else)
+            .loading_failed 
+                i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                | {{ label('dashboard_viewer.loading_failed') }}
+    template(v-else)
+        .row 
+            .col-md-12
+                .header 
+                    .name
+                        Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="false")
+        
+        .row 
+            .col-md-12
+                template(v-if='!pages')
+                    template(v-if="loading")
+                        .is_loading
+                            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    template(v-else)
+                        .loading_failed 
+                            i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            | {{ label('dashboard_viewer.loading_failed') }}
+
+                template(v-else)
+                    .pages
+                        template(v-for='(page_, pagei) in pages')
+                            .page(@click="select_page(page_)")
+                                .select(v-if='page_.id != page.id')
+                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true")
+                                .selected(v-else)
+                                    i.fa.fa-check-circle.fa-fw(aria-hidden="true")
+                                .name
+                                    Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")
+
+        template(v-if='!page')
+            .row
+                .col-md-12
+                    template(v-if="loading")
+                        .is_loading
+                            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                    template(v-else)
+                        .loading_failed 
+                            i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            | {{ label('dashboard_viewer.loading_failed') }}
+
+        template(v-else)
+            .row
+                .col-md-12.viewer_wrapper
+                    Dashboardbuilderboardcomponent(
+                        :dashboard_page='page' 
+                        :dashboard='dashboard' 
+                        :selected_widget='selected_widget' 
+                        @select_widget='select_widget'
+                        :editable='false')

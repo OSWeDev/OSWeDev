@@ -23,11 +23,21 @@
                 name="var_name_selector"
             )
                 .lang_selector_option(slot="noOptions") -
-    .widget_title
+
+    .widget_title(v-if='title_name_code_text')
         .widget_title_label {{ label('var_widget_options_component.widget_title.title_name_code_text') }}
         .widget_title_wrapper
             Inlinetranslatabletext(
-                v-if='widget_options && widget_options.title_name_code_text'
-                :code_text="widget_options.title_name_code_text" 
+                :code_text="title_name_code_text" 
                 :is_editable="true"
                 :default_translation="default_title_translation")
+
+    .widget_filter_options(v-if='title_name_code_text && widget_options')
+        .widget_filter_options_label {{ label('var_widget_options_component.widget_filter_options') }}
+        .widget_filter_options_wrapper
+            Widgetfilteroptionscomponent(
+                :actual_additional_options="widget_options.filter_additional_params"
+                :actual_filter_type="widget_options.filter_type"
+                @update_additional_options="update_additional_options"
+                @update_filter_type="update_filter_type"
+            )

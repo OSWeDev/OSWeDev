@@ -1,16 +1,16 @@
-import Vue from 'vue';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardGraphVORefVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
+import CRUDComponentManager from '../crud/CRUDComponentManager';
 import MenuController from '../menu/MenuController';
-import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
-import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
-import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import DashboardBuilderVueModuleBase from './DashboardBuilderVueModuleBase';
 
-export default class DashboardBuilderAdminVueModule extends VueModuleBase {
+export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueModuleBase {
 
     public static getInstance(): DashboardBuilderAdminVueModule {
         if (!DashboardBuilderAdminVueModule.instance) {
@@ -20,26 +20,33 @@ export default class DashboardBuilderAdminVueModule extends VueModuleBase {
         return DashboardBuilderAdminVueModule.instance;
     }
 
-    private static instance: DashboardBuilderAdminVueModule = null;
+    protected static instance: DashboardBuilderAdminVueModule = null;
 
-    private constructor() {
+    protected constructor() {
 
-        super(ModuleDashboardBuilder.getInstance().name);
-        this.policies_needed = [
-            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS
-        ];
+        super();
+
+        if (!this.policies_needed) {
+            this.policies_needed = [
+                ModuleDashboardBuilder.POLICY_BO_ACCESS
+            ];
+        } else if (this.policies_needed.indexOf(ModuleDashboardBuilder.POLICY_BO_ACCESS) < 0) {
+            this.policies_needed.push(ModuleDashboardBuilder.POLICY_BO_ACCESS);
+        }
     }
 
     public async initializeAsync() {
 
-        if (!this.policies_loaded[ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS]) {
+        await super.initializeAsync();
+
+        if (!this.policies_loaded[ModuleDashboardBuilder.POLICY_BO_ACCESS]) {
             return;
         }
 
         let menuBranch: MenuElementVO =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
-                    ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+                    ModuleDashboardBuilder.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     "DashboardBuilderAdminVueModule",
                     "fa-area-chart",
@@ -60,7 +67,7 @@ export default class DashboardBuilderAdminVueModule extends VueModuleBase {
             })
         });
         let menuPointer = MenuElementVO.create_new(
-            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            ModuleDashboardBuilder.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
             main_route_name,
             "fa-area-chart",
@@ -86,45 +93,79 @@ export default class DashboardBuilderAdminVueModule extends VueModuleBase {
             })
         });
 
-        await this.initializeDefaultWidgets();
-    }
+        await CRUDComponentManager.getInstance().registerCRUD(
+            DashboardVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                DashboardVO.API_TYPE_ID,
+                "fa-list",
+                0,
+                null,
+                null,
+                menuBranch.id
+            ),
+            this.routes);
 
-    private async initializeDefaultWidgets() {
-        await this.initializeWidget_FieldValueFilter();
-        await this.initializeWidget_Var();
-    }
+        await CRUDComponentManager.getInstance().registerCRUD(
+            DashboardPageVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                DashboardPageVO.API_TYPE_ID,
+                "fa-list",
+                1,
+                null,
+                null,
+                menuBranch.id
+            ),
+            this.routes);
 
-    private async initializeWidget_FieldValueFilter() {
-        let fieldValueFilter = new DashboardWidgetVO();
+        await CRUDComponentManager.getInstance().registerCRUD(
+            DashboardWidgetVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                DashboardWidgetVO.API_TYPE_ID,
+                "fa-list",
+                2,
+                null,
+                null,
+                menuBranch.id
+            ),
+            this.routes);
 
-        fieldValueFilter.default_height = 2;
-        fieldValueFilter.default_width = 4;
-        fieldValueFilter.icone_class = 'fa-filter';
-        fieldValueFilter.widget_component = 'Fieldvaluefilterwidgetcomponent';
-        fieldValueFilter.options_component = 'Fieldvaluefilterwidgetoptionscomponent';
-        fieldValueFilter.weight = 0;
-        fieldValueFilter.default_background = '#f5f5f5';
+        await CRUDComponentManager.getInstance().registerCRUD(
+            DashboardPageWidgetVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                DashboardPageWidgetVO.API_TYPE_ID,
+                "fa-list",
+                3,
+                null,
+                null,
+                menuBranch.id
+            ),
+            this.routes);
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, true, 50));
-
-        Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
-        Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
-    }
-
-    private async initializeWidget_Var() {
-        let var_widget = new DashboardWidgetVO();
-
-        var_widget.default_height = 4;
-        var_widget.default_width = 3;
-        var_widget.icone_class = 'fa-bullseye';
-        var_widget.widget_component = 'Varwidgetcomponent';
-        var_widget.options_component = 'Varwidgetoptionscomponent';
-        var_widget.weight = 0;
-        var_widget.default_background = '#f5f5f5';
-
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null));
-
-        Vue.component('Varwidgetcomponent', () => import(/* webpackChunkName: "VarWidgetComponent" */ './widgets/var_widget/VarWidgetComponent'));
-        Vue.component('Varwidgetoptionscomponent', () => import(/* webpackChunkName: "VarWidgetOptionsComponent" */ './widgets/var_widget/options/VarWidgetOptionsComponent'));
+        await CRUDComponentManager.getInstance().registerCRUD(
+            DashboardGraphVORefVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleDashboardBuilder.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                DashboardGraphVORefVO.API_TYPE_ID,
+                "fa-list",
+                4,
+                null,
+                null,
+                menuBranch.id
+            ),
+            this.routes);
     }
 }
