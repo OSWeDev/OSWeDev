@@ -24,8 +24,6 @@ import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPerfVO from './vos/VarPerfVO';
-//utilisé dans du commentaire pour @link
-import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
 
 export default class ModuleVar extends Module {
 

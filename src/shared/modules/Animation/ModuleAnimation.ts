@@ -1,4 +1,3 @@
-import ModuleAnimationServer from '../../../server/modules/Animation/ModuleAnimationServer';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';

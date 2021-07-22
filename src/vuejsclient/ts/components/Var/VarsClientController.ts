@@ -1,4 +1,3 @@
-import ModuleVarServer from '../../../../server/modules/Var/ModuleVarServer';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
