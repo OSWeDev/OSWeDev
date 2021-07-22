@@ -146,7 +146,7 @@
         "winston": "2.4.1",
         "winston-daily-rotate-file": "1.7.2",
         "wkhtmltopdf": "0.3.4",
-        "xlsx": "0.14.3"
+        "xlsx": "0.17.0"
     },
     "devDependencies": {
         "@types/chai": "4.2.10",
@@ -222,7 +222,7 @@
         "wkhtmltopdf": "0.3.4",
         "vuedraggable": "2.16.0",
         "vue-slider-component": "3.2.2",
-        "xlsx": "0.14.3"
+        "xlsx": "0.17.0"
     },
     "_dependencies": {
         "pg-promise": "10.3.2"
