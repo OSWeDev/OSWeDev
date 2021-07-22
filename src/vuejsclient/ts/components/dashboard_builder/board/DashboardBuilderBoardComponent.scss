@@ -11,8 +11,12 @@
             padding: 1em;
         }
 
-        &.selected .vue-grid-item {
-            box-shadow: 1px 1px 1px #888;
-        }
+        &.selected {
+         
+            .vue-grid-item {
+                z-index: 10000;
+                box-shadow: 1px 1px 1px #888;
+            }
+        } 
     }
 }

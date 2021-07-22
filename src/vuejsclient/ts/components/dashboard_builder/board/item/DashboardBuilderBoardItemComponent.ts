@@ -45,6 +45,8 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     }
 
     private select_widget() {
+        // event.stopPropagation();
+
         this.$emit('select_widget', this.page_widget);
     }
 }
