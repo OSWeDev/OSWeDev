@@ -24,6 +24,7 @@ export default class VueAnimationComponent extends VueComponentBase {
     private modules_by_themes: { [theme_id: number]: AnimationModuleVO[] } = {};
     private logged_user_id: number = null;
     private image_home: string = null;
+    /** used in pug to show home page or not */
     private skip_home: boolean = false;
     private animation_params: AnimationParametersVO = null;
     private documents: DocumentVO[] = null;
@@ -67,6 +68,9 @@ export default class VueAnimationComponent extends VueComponentBase {
         this.skip_home = AnimationController.getInstance().skip_home;
     }
 
+    /**
+     * skips home page and shows main page
+     */
     private skipFormations() {
         AnimationController.getInstance().skip_home = true;
 

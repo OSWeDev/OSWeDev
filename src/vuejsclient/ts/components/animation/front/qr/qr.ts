@@ -36,6 +36,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
 
     private saving: boolean = false;
     private editable_uqr: AnimationUserQRVO = null;
+    /** pour savoir si une question  a déjà été faite */
     private is_validated: boolean = false;
     private is_reponse_valid: boolean = false;
     private selected_reponse: { [reponse_id: number]: boolean } = {};

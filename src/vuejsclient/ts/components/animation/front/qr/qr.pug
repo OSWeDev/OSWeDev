@@ -1,7 +1,9 @@
+//- Crudcomponentfield utilisé pour l'édition de la qr
 
 .rootElt.qr.text-center
     template(v-if="qr")
         template(v-if="inline_input_mode")
+            //- type de question
             Crudcomponentfield(
                 :field="name_editable_field",
                 :vo="qr",
@@ -12,6 +14,7 @@
                 :show_title="false"
             )
 
+            //- la question
             Crudcomponentfield(
                 :field="description_editable_field",
                 :vo="qr",
@@ -21,11 +24,13 @@
                 :inline_input_show_clear="false"
                 :show_title="false"
             )
+        //- type (quizz, vrai/faux..) et la question
         template(v-else)
             h2 {{ qr.name }}
 
             .description_qr(v-if="qr.description", v-html="qr.description")
 
+        //- image ou video
         .qr_file(v-if="!is_validated")
             template(v-if="question_file")
                 template(v-if="get_is_image(question_file)")
@@ -37,9 +42,11 @@
             template(v-if="qr.external_video")
                 iframe(:style="style_iframe" :src="qr.external_video + '?rel=0'" allow="autoplay; encrypted-media" allowfullscreen="false")
 
+        //- smiley + réponses 
         template(v-if="ordered_reponses && ordered_reponses.length > 0")
             .reponses
                 template(v-if="is_validated")
+                    //- smiley
                     .is_validated
                         template(v-if="is_reponse_valid")
                             .ok
@@ -51,19 +58,26 @@
                                 span {{ label('animation.qr.is_validated.nok') }}
 
                 table
+
+                    //- différentiation des réponses attendues de celles de l'utilisateur si question déjà répondue
                     thead
                         tr
                             th(v-show="is_validated") {{ label('animation.reponse.valid') }}
                             th(v-show="is_validated") {{ label('animation.reponse.votre_reponse') }}
                             th(v-show="is_validated")
 
+                    //- réponses 
                     tbody
                         template(v-for="(reponse, index) in ordered_reponses")
                             tr.reponse(v-if="reponse.name")
+                                //- checkbox des réponses attendues si question déjà faite
                                 td.valid(v-show="is_validated")
                                     input(:disabled="true", type="checkbox", :checked="reponse.valid", :class="classe_reponses[reponse.id]")
+                                //- checkbox des réponses de l'utilisateur
                                 td
                                     input(:disabled="is_validated", v-model="selected_reponse[reponse.id]", type="checkbox", :id="'reponse_' + index", :class="classe_reponses[reponse.id]")
+                                
+                                //- le texte de la réponse
                                 td.text-left
                                     template(v-if="inline_input_mode")
                                         Crudcomponentfield(
@@ -80,6 +94,7 @@
                                         label.text-left(:for="'reponse_' + index") {{ reponse.name }}
 
             .validation
+                //- bouton sauvegarde ou spinner si en cours de validation
                 template(v-if="!is_validated")
                     template(v-if="!saving")
                         .btn-container
@@ -87,7 +102,10 @@
                     template(v-else)
                         i.loadingspinner.fa.fa-spinner.fa-spin(aria-hidden="true")
 
+                //- sinon explication de la question et bouton pour question suivante
                 template(v-else)
+
+                    //- image ou video
                     .qr_file
                         template(v-if="reponse_file")
                             template(v-if="get_is_image(reponse_file)")
@@ -96,6 +114,7 @@
                                 video(controls)
                                     source(:src="reponse_file.path" type="video/mp4")
 
+                    //- explication texte
                     template(v-if="inline_input_mode")
                         Crudcomponentfield(
                             :field="explicatif_editable_field",
@@ -108,6 +127,8 @@
                         )
                     template(v-else)
                         .explication(v-if="qr.explicatif", v-html="qr.explicatif")
+                    
+                    //- bouton next
                     .next
                         i.fa.fa-long-arrow-right(@click="next")
 

@@ -46,6 +46,8 @@ import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteint
 import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
 import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
 import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
+// Utilisé dans les commentaires @link
+import UQRsRangesDatasourceController from './datasources/UQRsRangesDatasourceController';
 
 export default class ModuleAnimationServer extends ModuleServerBase {
 
@@ -218,8 +220,16 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return res;
     }
 
-    private async getUQRsByThemesAndModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } }> {
-        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = {};
+    /**
+     * Permet de charger les UQRs (réponses des utilisateurs).
+     * Utilisé dans {@link UQRsRangesDatasourceController} pour le calcul de variables.
+     * @param user_ids pour filtrer sur ces utilisateurs
+     * @param theme_ids les thèmes à prendre en compte
+     * @param module_ids les modules à prendre en compte
+     * @returns AnimationUserQRVO[] by qr_id by module_id by theme_id
+     */
+    private async getUQRsByThemesAndModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> {
+        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
 
         let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
         let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
@@ -264,20 +274,28 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             if (!res[module.theme_id][module.id]) {
                 res[module.theme_id][module.id] = {};
             }
-            res[module.theme_id][module.id][qr.id] = uqr;
+
+            if (!res[module.theme_id][module.id][qr.id]) {
+                res[module.theme_id][module.id][qr.id] = [];
+            }
+
+            res[module.theme_id][module.id][qr.id].push(uqr);
         }
 
         return res;
     }
 
+    /**
+     * @param theme_ids les thèmes à passer en revue si module_ids est vide ou null
+     * @param module_ids
+     * @returns module_ids s'il est pas vide sinon les module_ids des thèmes
+     */
     private async getAllModuleIds(theme_ids: number[], module_ids: number[]): Promise<number[]> {
         let res: number[] = [];
 
-        if (module_ids) {
+        if (module_ids && module_ids.length > 0) {
             res = module_ids;
-        }
-
-        if (theme_ids) {
+        } else if (theme_ids && theme_ids.length > 0) {
             let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', theme_ids);
 
             if (modules && modules.length > 0) {
@@ -305,6 +323,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
+    /**
+     * Créé un {@link AnimationUserModuleVO} pour l'utilisateur et le module spécifié.
+     * Calcule le pourcentage de réusite sur le module réalisé ({@link VarDayPrctReussiteAnimationController})
+     * @param user_id
+     * @param module_id
+     * @returns Le {@link AnimationUserModuleVO} créé
+     */
     private async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
         let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 

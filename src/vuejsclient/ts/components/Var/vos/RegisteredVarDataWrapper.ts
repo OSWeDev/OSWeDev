@@ -2,11 +2,19 @@ import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarUpdateCallback from '../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import VarsClientController from '../VarsClientController';
 
+/**
+ * Stock les callbacks à appeler pour le var param en question
+ */
 export default class RegisteredVarDataWrapper {
 
     public nb_registrations: number = 1;
     public callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
 
+    /**
+     * Créé une instance de {@link RegisteredVarDataWrapper}.
+     * @remark un {@link RegisteredVarDataWrapper} sert à stocker les callbacks à appeler pour le var param en question
+     * @param var_param
+     */
     public constructor(
         public var_param: VarDataBaseVO
     ) { }
