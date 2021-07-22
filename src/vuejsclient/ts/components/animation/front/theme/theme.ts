@@ -38,9 +38,12 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
     @Prop()
     private logged_user_id: number;
 
+    /** Pourcentage de modules réussis, utilisé pour la barre de progression */
     private prct_atteinte_seuil_theme: number = 0;
+    /** module réussi par module */
     private prct_atteinte_seuil_module: { [module_id: number]: number } = {};
     private is_ready: boolean = false;
+    /** session module de l'utilisateur */
     private um_by_module_id: { [module_id: number]: AnimationUserModuleVO } = {};
     private document_by_module_id: { [module_id: number]: DocumentVO } = {};
     private module_id_ranges: NumRange[] = [];
@@ -64,14 +67,14 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         for (let i in this.modules) {
             let anim_module: AnimationModuleVO = this.modules[i];
 
-            promises.push((async () =>
-                this.prct_atteinte_seuil_module[anim_module.id] = VarsController.getInstance().getValueOrDefault(
-                    await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(
-                        this.get_prct_atteinte_seuil_module_param(anim_module.id)
-                    ) as ThemeModuleDataRangesVO,
-                    0
-                )
-            )());
+            /** récupération de prct_atteinte_seuil_module_param */
+            promises.push((async () => {
+                let prct_atteinte_seuil_module_param = this.get_prct_atteinte_seuil_module_param(anim_module.id);
+                let theme_module_dataRange: ThemeModuleDataRangesVO = await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(prct_atteinte_seuil_module_param);
+
+                this.prct_atteinte_seuil_module[anim_module.id] = VarsController.getInstance().getValueOrDefault(theme_module_dataRange, 0);
+            })());
+            // récupération des sessions module de l'utilisateur
             promises.push((async () => this.um_by_module_id[anim_module.id] = await ModuleAnimation.getInstance().getUserModule(this.logged_user_id, anim_module.id))());
 
             if (anim_module.document_id) {
@@ -81,7 +84,7 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
-
+        // trie les mosule en fonction de l'tat d'avancement (ceux réussis en dernier)
         if (this.modules) {
             this.ordered_modules = cloneDeep(this.modules).sort((a, b) => {
                 let res = this.prct_atteinte_seuil_module[a.id] - this.prct_atteinte_seuil_module[b.id];
@@ -133,6 +136,10 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         return this.prct_atteinte_seuil_theme;
     }
 
+    /**
+     * @param module_id les ids des modules concernés
+     * @returns Un ThemeModuleDataRangesVO, le paramètre pour le calcul du pourcentage de modules réussis.
+     */
     private get_prct_atteinte_seuil_module_param(module_id: number): ThemeModuleDataRangesVO {
         return ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,

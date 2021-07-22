@@ -12,7 +12,7 @@
     template(v-else)
         h1 {{ label('animation.titre') }}
 
-        //- display every theme
+        //- display themes
         template(v-if="themes && themes.length > 0")
             .row.themes
                 template(v-for="(theme, index) in ordered_themes")
@@ -26,7 +26,7 @@
                             :themes="themes"
                         )
         
-        //- display every document
+        //- display documents
         template(v-if="documents && documents.length ")
             .row.documents
                 .col-md-12

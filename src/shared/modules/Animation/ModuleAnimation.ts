@@ -1,3 +1,4 @@
+import ModuleAnimationServer from '../../../server/modules/Animation/ModuleAnimationServer';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
@@ -57,9 +58,11 @@ export default class ModuleAnimation extends Module {
     private static instance: ModuleAnimation = null;
 
     public startModule: (user_id: number, module_id: number, support: number) => Promise<AnimationUserModuleVO> = APIControllerWrapper.sah(ModuleAnimation.APINAME_startModule);
+    /** @see {@link ModuleAnimationServer.endModule} */
     public endModule: (user_id: number, module_id: number) => Promise<AnimationUserModuleVO> = APIControllerWrapper.sah(ModuleAnimation.APINAME_endModule);
     public getQRsByThemesAndModules: (theme_ids: number[], module_ids: number[]) => Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getQRsByThemesAndModules);
-    public getUQRsByThemesAndModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<{ [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getUQRsByThemesAndModules);
+    /** @see {@link ModuleAnimationServer.getUQRsByThemesAndModules} */
+    public getUQRsByThemesAndModules: (user_ids: number[], theme_ids: number[], module_ids: number[]) => Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> = APIControllerWrapper.sah(ModuleAnimation.APINAME_getUQRsByThemesAndModules);
     public getAumsFiltered: (
         filter_anim_theme_active_options: DataFilterOption[],
         filter_anim_module_active_options: DataFilterOption[],
@@ -136,6 +139,7 @@ export default class ModuleAnimation extends Module {
         return res ? res[0] : null;
     }
 
+    //- ModuleTables
     private initializeAnimationParametersVO() {
         let image_home_id = new ModuleTableField('image_home_id', ModuleTableField.FIELD_TYPE_foreign_key, "Image page d'accueil");
         let document_id_ranges = new ModuleTableField('document_id_ranges', ModuleTableField.FIELD_TYPE_refrange_array, 'Documents');

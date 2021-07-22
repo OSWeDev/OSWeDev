@@ -258,6 +258,9 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Passe a l'affichage de la page du score.
+     */
     private async show_recap_toggle() {
         if (this.recap_is_actif) {
             await ModuleAnimation.getInstance().endModule(this.logged_user_id, this.anim_module.id);
