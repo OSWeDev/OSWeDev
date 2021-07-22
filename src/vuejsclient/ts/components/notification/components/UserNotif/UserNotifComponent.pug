@@ -1,6 +1,6 @@
 .UserNotifComponent
 
-    .type_icon_wrapper
+    .type_icon_wrapper(@click='redirect_notification()') 
         template(v-if='is_error')
             i.fa.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
         template(v-if='is_warn')
@@ -10,7 +10,7 @@
         template(v-if='is_success')
             i.fa.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
 
-    .notif_date {{ date_notification }}
-    .notif_content {{ t(notification.simple_notif_label) }}
+    .notif_date(@click='redirect_notification()')  {{ date_notification }}
+    .notif_content(@click='redirect_notification()')  {{ t(notification.simple_notif_label) }}
 
     .notif_mark_as_read(@click='read_notification(notification)') {{ label('UserNotifComponent.mark_as_read') }}

@@ -1085,10 +1085,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
+                if (!vo[field.field_id]) {
+                    // champs vide, inutile de checker
+                    continue;
+                }
+
                 refuse = true;
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
+
+                        if (!(vo[field.field_id] as any[]).length) {
+                            // champs vide, inutile de checker
+                            break;
+                        }
 
                         let targets: IDistantVOBase[] = await this.getVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
                         if (targets.length == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {

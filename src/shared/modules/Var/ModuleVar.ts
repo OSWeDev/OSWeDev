@@ -24,6 +24,8 @@ import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPerfVO from './vos/VarPerfVO';
+//utilisé dans du commentaire pour @link
+import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
 
 export default class ModuleVar extends Module {
 
@@ -83,6 +85,10 @@ export default class ModuleVar extends Module {
     public getParamDependencies: (param: VarDataBaseVO) => Promise<{ [dep_id: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getParamDependencies);
     public getVarParamDatas: (param: VarDataBaseVO) => Promise<{ [ds_name: string]: string }> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamDatas);
     public getAggregatedVarDatas: (param: VarDataBaseVO) => Promise<{ [var_data_index: string]: VarDataBaseVO }> = APIControllerWrapper.sah(ModuleVar.APINAME_getAggregatedVarDatas);
+    /**
+     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server
+     * @see {@link ModuleVarServer.register_params}
+     */
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);

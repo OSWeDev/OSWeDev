@@ -38,10 +38,12 @@ export default class PushDataServerController {
     public static TASK_NAME_broadcastLoggedSimple: string = 'PushDataServerController' + '.broadcastLoggedSimple';
     public static TASK_NAME_broadcastAllSimple: string = 'PushDataServerController' + '.broadcastAllSimple';
     public static TASK_NAME_broadcastRoleSimple: string = 'PushDataServerController' + '.broadcastRoleSimple';
+    public static TASK_NAME_broadcastRoleRedirect: string = 'PushDataServerController' + '.broadcastRoleRedirect';
     public static TASK_NAME_notifySimpleSUCCESS: string = 'PushDataServerController' + '.notifySimpleSUCCESS';
     public static TASK_NAME_notifySimpleINFO: string = 'PushDataServerController' + '.notifySimpleINFO';
     public static TASK_NAME_notifySimpleWARN: string = 'PushDataServerController' + '.notifySimpleWARN';
     public static TASK_NAME_notifySimpleERROR: string = 'PushDataServerController' + '.notifySimpleERROR';
+    public static TASK_NAME_notifyRedirectINFO: string = 'PushDataServerController' + '.notifyRedirectINFO';
     public static TASK_NAME_notifyPrompt: string = 'PushDataServerController' + '.notifyPrompt';
     public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
@@ -85,10 +87,12 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastLoggedSimple, this.broadcastLoggedSimple.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastAllSimple, this.broadcastAllSimple.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastRoleSimple, this.broadcastRoleSimple.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastRoleRedirect, this.broadcastRoleRedirect.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, this.notifySimpleSUCCESS.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleINFO, this.notifySimpleINFO.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleWARN, this.notifySimpleWARN.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyRedirectINFO, this.notifyRedirectINFO.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyPrompt, this.notifyPrompt.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
         // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
@@ -666,6 +670,61 @@ export default class PushDataServerController {
         await Promise.all(promises);
     }
 
+    // Notifications qui redirigent sur une route avec ou sans paramètres
+    public async broadcastRoleRedirect(
+        role_name: string,
+        msg_type: number,
+        code_text: string,
+        redirect_route: string = "",
+        notif_route_params_name: string[] = null,
+        notif_route_params_values: string[] = null,
+        auto_read_if_connected: boolean = false
+    ) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleRedirect, role_name, msg_type, code_text, auto_read_if_connected)) {
+            return;
+        }
+
+        let promises = [];
+
+        try {
+            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            if (!role) {
+                ConsoleHandler.getInstance().error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
+                return;
+            }
+
+            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            if (!usersRoles) {
+                ConsoleHandler.getInstance().error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
+                return;
+            }
+
+            let user_ids: number[] = [];
+            for (let i in usersRoles) {
+                user_ids.push(usersRoles[i].user_id);
+            }
+
+            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            if (!users) {
+                ConsoleHandler.getInstance().error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
+                return;
+            }
+
+            for (let i in users) {
+                let user = users[i];
+
+                promises.push((async () => {
+                    await this.notifyRedirect(null, user.id, null, msg_type, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
+                })());
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        await Promise.all(promises);
+    }
+
+
     public async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
@@ -760,6 +819,49 @@ export default class PushDataServerController {
         });
     }
 
+    public async notifyRedirectINFO(user_id: number, client_tab_id: string, code_text: string, redirect_route: string = "", notif_route_params_name: string[] = null, notif_route_params_values: string[] = null, auto_read_if_connected: boolean = false) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectINFO, user_id, client_tab_id, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected)) {
+            return;
+        }
+
+        await this.notifyRedirect(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
+    }
+
+    // Notifications qui redirigent sur une route avec ou sans paramètres
+    private async notifyRedirect(
+        socket_ids: string[],
+        user_id: number,
+        client_tab_id: string,
+        msg_type: number,
+        code_text: string,
+        redirect_route: string,
+        notif_route_params_name: string[],
+        notif_route_params_values: string[],
+        auto_read_if_connected: boolean
+    ) {
+
+        if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.simple_notif_label = code_text;
+        notification.notif_route = redirect_route;
+        notification.simple_notif_type = msg_type;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_REDIRECT;
+        notification.read = false;
+        notification.socket_ids = socket_ids;
+        notification.user_id = user_id;
+        notification.client_tab_id = client_tab_id;
+        notification.auto_read_if_connected = auto_read_if_connected;
+        notification.notif_route_params_name = notif_route_params_name;
+        notification.notif_route_params_values = notif_route_params_values;
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
     private async notifySimple(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
@@ -819,7 +921,7 @@ export default class PushDataServerController {
             }
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
-            if ((notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE) && (notification.user_id)) {
+            if ((notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE || notification.notification_type == NotificationVO.TYPE_NOTIF_REDIRECT) && (notification.user_id)) {
                 let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(notification);
                 if (res && res.id) {
                     notification.id = res.id;
