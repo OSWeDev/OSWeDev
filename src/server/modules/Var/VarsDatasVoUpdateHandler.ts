@@ -486,6 +486,8 @@ export default class VarsDatasVoUpdateHandler {
         vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }) {
 
+        let promises = [];
+
         for (let i in vo_types) {
             let vo_type = vo_types[i];
 
@@ -497,21 +499,34 @@ export default class VarsDatasVoUpdateHandler {
                 for (let k in vos_create_or_delete_buffer[vo_type]) {
                     let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
-                    if ((!tmp) || (!tmp.length)) {
-                        continue;
+                    if (promises && (promises.length >= 10)) {
+                        await Promise.all(promises);
+                        promises = [];
                     }
-                    tmp.forEach((e) => intersectors[e.index] = e);
+                    promises.push((async () => {
+                        let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+                        if ((!tmp) || (!tmp.length)) {
+                            return;
+                        }
+                        tmp.forEach((e) => intersectors[e.index] = e);
+                    })());
                 }
 
                 for (let k in vos_update_buffer[vo_type]) {
                     let vo_update_buffer = vos_update_buffer[vo_type][k];
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
-                    if ((!tmp) || (!tmp.length)) {
-                        continue;
+                    if (promises && (promises.length >= 10)) {
+                        await Promise.all(promises);
+                        promises = [];
                     }
-                    tmp.forEach((e) => intersectors[e.index] = e);
+
+                    promises.push((async () => {
+                        let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
+                        if ((!tmp) || (!tmp.length)) {
+                            return;
+                        }
+                        tmp.forEach((e) => intersectors[e.index] = e);
+                    })());
                 }
 
                 if (intersectors && ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors)) {
@@ -520,6 +535,9 @@ export default class VarsDatasVoUpdateHandler {
                     ctrls_to_update_1st_stage[var_controller.varConf.id] = var_controller;
                 }
             }
+        }
+        if (promises && promises.length) {
+            await Promise.all(promises);
         }
     }
 

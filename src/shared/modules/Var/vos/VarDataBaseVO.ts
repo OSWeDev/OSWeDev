@@ -225,7 +225,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     get index(): string {
 
-        if (!this._index) {
+        if ((!this._index) || (this._index == 'X')) {
             let fields = MatroidController.getInstance().getMatroidFields(this._type);
 
             this._index = this.var_id ? this.var_id.toString() : 'X';
