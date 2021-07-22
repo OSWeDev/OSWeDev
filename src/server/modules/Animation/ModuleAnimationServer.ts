@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -452,16 +453,17 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             let has_role: boolean = false;
 
-            // Test Roles IDS
+            // Test Roles IDS sur les USERS
             if (role_ids.length > 0) {
-                if (module.role_id_ranges && module.role_id_ranges.length > 0) {
-                    RangeHandler.getInstance().foreach_ranges_sync(module.role_id_ranges, (role_id: number) => {
-                        if (role_ids.indexOf(role_id) == -1) {
-                            return;
-                        }
+                let roles: RoleVO[] = AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(aum.user_id);
 
-                        has_role = true;
-                    });
+                if (roles && roles.length > 0) {
+                    for (let j in roles) {
+                        if (role_ids.includes(roles[j].id)) {
+                            has_role = true;
+                            break;
+                        }
+                    }
                 }
             } else {
                 has_role = true;
