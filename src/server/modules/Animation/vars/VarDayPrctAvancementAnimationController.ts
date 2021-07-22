@@ -13,6 +13,10 @@ import DataSourceControllerBase from '../../Var/datasource/DataSourceControllerB
 import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
 
+/**
+ * Réalise le calcul de l'avancement sur les modules:
+ * nombre de réponses répondues / totalites réponses parmis les modules (potentiellement pour plusieurs utiliseurs).
+ */
 export default class VarDayPrctAvancementAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
     public static getInstance(): VarDayPrctAvancementAnimationController {
@@ -87,28 +91,32 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
     }
 
     /**
-     * Fonction qui prépare la mise à jour d'une data
+     * Réalise le calcul de l'avancement sur les modules:
+     * nombre de réponses répondues / totalites réponses parmis les modules (potentiellement pour plusieurs utiliseurs).
      */
     protected getValue(varDAGNode: VarDAGNode): number {
 
         let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let uqrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        let uqrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
         let cpt_uqrs: number = 0;
 
+        // le nombre de questions
         for (let theme_id in qrs_by_theme_module) {
             for (let module_id in qrs_by_theme_module[theme_id]) {
                 cpt_qrs += (qrs_by_theme_module[theme_id][module_id] ? Object.values(qrs_by_theme_module[theme_id][module_id]).length : 0);
             }
         }
 
+        // le nombre de réponses
         for (let theme_id in uqrs_by_theme_module) {
             for (let module_id in uqrs_by_theme_module[theme_id]) {
                 cpt_uqrs += (uqrs_by_theme_module[theme_id][module_id] ? Object.values(uqrs_by_theme_module[theme_id][module_id]).length : 0);
             }
         }
 
+        // !division par zero
         if (!cpt_qrs) {
             return null;
         }
