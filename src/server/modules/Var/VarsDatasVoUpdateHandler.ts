@@ -2,13 +2,13 @@ import * as moment from 'moment';
 import { Moment } from 'moment';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
@@ -523,6 +523,7 @@ export default class VarsDatasVoUpdateHandler {
                     // promises.push((async () => {
                     let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
                     if ((!tmp) || (!tmp.length)) {
+                        // return;
                         continue;
                     }
                     tmp.forEach((e) => intersectors[e.index] = e);

@@ -63,6 +63,7 @@ import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
+import DAOQueryCacheController from './DAO/DAOQueryCacheController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
@@ -106,7 +107,7 @@ export default abstract class ModuleServiceBase {
     /**
      * Local thread cache -----
      */
-    public db: IDatabase<any>;
+    public db;
 
     public post_modules_installation_hooks: Array<() => void> = [];
 
@@ -122,6 +123,7 @@ export default abstract class ModuleServiceBase {
     private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
 
+    private db_: IDatabase<any>;
     /**
      * ----- Local thread cache
      */
@@ -129,6 +131,13 @@ export default abstract class ModuleServiceBase {
     protected constructor() {
         ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
+
+        this.db = {
+            none: this.db_none.bind(this),
+            oneOrNone: this.db_oneOrNone.bind(this),
+            query: this.db_query.bind(this),
+            tx: (options, cb) => this.db_.tx(options, cb)
+        };
     }
 
     get bdd_owner(): string {
@@ -183,7 +192,7 @@ export default abstract class ModuleServiceBase {
     }
 
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
-        this.db = db;
+        this.db_ = db;
 
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
@@ -508,5 +517,52 @@ export default abstract class ModuleServiceBase {
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance()
         ];
+    }
+
+    private async db_none(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+
+        DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+
+        return await this.db_.none(query, values);
+    }
+
+    private async db_query(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+
+        if (typeof res !== 'undefined') {
+            return res;
+        }
+
+        res = await this.db_.query(query, values);
+
+        DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+
+        return res;
+    }
+
+    private async db_oneOrNone(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+
+        if (typeof res !== 'undefined') {
+            return res;
+        }
+
+        res = await this.db_.oneOrNone(query, values);
+
+        DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+
+        return res;
     }
 }
