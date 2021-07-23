@@ -22,6 +22,7 @@ import AccessPolicyVO from './vos/AccessPolicyVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
 import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
 import ResetPwdUIDParamVO, { ResetPwdUIDParamVOStatic } from './vos/apis/ResetPwdUIDParamVO';
+import SigninParamVO, { SigninParamVOStatic } from './vos/apis/SigninParamVO';
 import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
@@ -117,7 +118,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
-    public signinAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
+    public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
     /**
@@ -323,11 +324,11 @@ export default class ModuleAccessPolicy extends Module {
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SigninParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
-            LoginParamVOStatic
+            SigninParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(

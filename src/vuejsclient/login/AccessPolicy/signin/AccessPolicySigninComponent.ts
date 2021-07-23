@@ -15,8 +15,10 @@ import SessionShareComponent from "../../../ts/components/session_share/SessionS
 })
 export default class AccessPolicySigninComponent extends VueComponentBase {
 
+    private nom: string = "";
     private email: string = "";
     private password: string = "";
+    private confirm_password: string = "";
 
     private redirect_to: string = "/";
     private message: string = null;
@@ -49,8 +51,10 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
     private async signin() {
         this.snotify.info(this.label('signin.start'));
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().signinAndRedirect(this.email, this.password, this.redirect_to);
-
+        let logged_id: number = null;
+        if (this.password == this.confirm_password && this.nom && this.email) {
+            logged_id = await ModuleAccessPolicy.getInstance().signinAndRedirect(this.nom, this.email, this.password, this.redirect_to);
+        }
         if (!logged_id) {
             this.snotify.error(this.label('signin.failed'));
             this.password = "";

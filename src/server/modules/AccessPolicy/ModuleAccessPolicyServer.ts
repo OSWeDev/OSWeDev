@@ -1,3 +1,4 @@
+import { exception } from 'console';
 import { Response } from 'express';
 import * as moment from 'moment';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
@@ -1528,7 +1529,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async signinAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
+    private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
             let session = StackContext.getInstance().get('SESSION');
@@ -1549,52 +1550,74 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.uid = null;
 
-            if ((!email) || (!password)) {
+            if ((!email) || (!password) || (!nom)) {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
-            if (!user) {
-                return null;
-            }
+                if (!!user) {
 
-            if (user.blocked) {
-                return null;
-            }
+                    if (user.invalidated) {
 
-            if (user.invalidated) {
+                        await PasswordRecovery.getInstance().beginRecovery(user.email);
 
-                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
-                // if ((!user.recovery_expiration) || user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
-                await PasswordRecovery.getInstance().beginRecovery(user.email);
-                // }
-                return null;
-            }
+                    }
+                    return null;
+                } else {
+                    user = new UserVO();
+                }
 
-            if (!user.logged_once) {
+
                 user.logged_once = true;
-                await ModuleDAO.getInstance().insertOrUpdateVO(user);
-            }
+                user.name = nom;
+                user.password = password;
+                user.email = email;
+                user.blocked = false;
+                user.reminded_pwd_1 = false;
+                user.reminded_pwd_2 = false;
+                user.invalidated = false;
+                user.recovery_challenge = "";
+                user.phone = "";
+                user.recovery_expiration = moment(0).utc(true);
+                user.password_change_date = moment().utc(true).format("YYYY-MM-DD");
+                user.creation_date = moment().utc(true);
 
-            session.uid = user.id;
 
-            PushDataServerController.getInstance().registerSession(session);
+                // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
+                let langs: LangVO[] = await ModuleDAO.getInstance().getVos(LangVO.API_TYPE_ID);
+                user.lang_id = langs[0].id;
+                // let res: InsertOrDeleteQueryResult = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () =>
+                //     await ModuleDAO.getInstance().insertOrUpdateVO(user)) as InsertOrDeleteQueryResult;
 
-            // On stocke le log de connexion en base
-            let user_log = new UserLogVO();
-            user_log.user_id = user.id;
-            user_log.log_time = moment().utc(true);
-            user_log.impersonated = false;
-            user_log.referer = StackContext.getInstance().get('REFERER');
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            // On await pas ici on se fiche du résultat
-            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                let insertOrDeleteQueryResult = null;
 
-            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
 
-            return user.id;
+                if (!res || !res.id) {
+                    throw new Error();
+                }
+                session.uid = res.id;
+                PushDataServerController.getInstance().registerSession(session);
+
+                // On stocke le log de connexion en base
+                let user_log = new UserLogVO();
+                user_log.user_id = res.id;
+                user_log.log_time = moment().utc(true);
+                user_log.impersonated = false;
+                user_log.referer = StackContext.getInstance().get('REFERER');
+                user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+                // On await pas ici on se fiche du résultat
+                await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+
+                return res.id;
+
+            });
         } catch (error) {
             ConsoleHandler.getInstance().error("login:" + email + ":" + error);
         }
