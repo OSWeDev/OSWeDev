@@ -68,6 +68,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
+    public static APINAME_SIGNIN_AND_REDIRECT = "SIGNIN_AND_REDIRECT";
     public static APINAME_GET_LOGGED_USER_ID = "GET_LOGGED_USER_ID";
     public static APINAME_GET_LOGGED_USER_NAME = "GET_LOGGED_USER_NAME";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
@@ -116,6 +117,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public signinAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
     /**
@@ -318,6 +320,12 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
+            [UserVO.API_TYPE_ID],
+            LoginParamVOStatic
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+            null,
+            ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
         ));

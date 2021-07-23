@@ -660,6 +660,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT, this.signinAndRedirect.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, this.getLoggedUserId.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, this.getLoggedUserName.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
@@ -1525,6 +1526,80 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, vo);
         return true;
+    }
+
+    private async signinAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
+
+        try {
+            let session = StackContext.getInstance().get('SESSION');
+
+            if (ModuleDAOServer.getInstance().global_update_blocker) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.getInstance().notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return null;
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                return session.uid;
+            }
+
+            session.uid = null;
+
+            if ((!email) || (!password)) {
+                return null;
+            }
+
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+
+            if (!user) {
+                return null;
+            }
+
+            if (user.blocked) {
+                return null;
+            }
+
+            if (user.invalidated) {
+
+                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
+                // if ((!user.recovery_expiration) || user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
+                await PasswordRecovery.getInstance().beginRecovery(user.email);
+                // }
+                return null;
+            }
+
+            if (!user.logged_once) {
+                user.logged_once = true;
+                await ModuleDAO.getInstance().insertOrUpdateVO(user);
+            }
+
+            session.uid = user.id;
+
+            PushDataServerController.getInstance().registerSession(session);
+
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = moment().utc(true);
+            user_log.impersonated = false;
+            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            // On await pas ici on se fiche du résultat
+            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+
+            return user.id;
+        } catch (error) {
+            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
+        }
+
+        return null;
     }
 
     private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {

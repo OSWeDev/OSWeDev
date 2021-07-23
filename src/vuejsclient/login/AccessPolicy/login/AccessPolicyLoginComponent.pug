@@ -16,6 +16,7 @@
                     i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
                 .center
                     button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.signIn') }}
+            router-link(:to="{ name: 'signin' }") {{ label('signin.title') }}
             router-link(:to="{ name: 'recover' }") {{ label('login.recoverlink') }}
 
     Nfcconnectlogincomponent()
