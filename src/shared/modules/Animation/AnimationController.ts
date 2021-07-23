@@ -33,7 +33,11 @@ export default class AnimationController {
     public skip_home: boolean = false;
 
     private constructor() { }
-
+    /**
+     * Parse les réponses du AnimationQRVO.
+     * @param vo AnimationQRVO
+     * @returns Liste des réponses AnimationReponseVO[].
+     */
     public getReponses(vo: AnimationQRVO): AnimationReponseVO[] {
         if ((vo) && (vo.reponses) && (vo.reponses != '') && (vo.reponses != '[]')) {
             try {
@@ -68,6 +72,12 @@ export default class AnimationController {
         return mms.find((m) => (m.min <= prct) && (m.max >= prct));
     }
 
+    /**
+     * Checks si la réponse de l'utilisateur est correcte ou non.
+     * @param qr AnimationQRVO
+     * @param uqr AnimationUserQRVO
+     * @returns true si la réponse de l'utilisateur est bonne sinon false
+     */
     public isUserQROk(qr: AnimationQRVO, uqr: AnimationUserQRVO): boolean {
         if (!qr || !uqr || !uqr.reponses) {
             return false;

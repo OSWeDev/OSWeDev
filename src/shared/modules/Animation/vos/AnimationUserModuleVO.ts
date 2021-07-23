@@ -1,6 +1,13 @@
 import { Moment } from 'moment';
 import IDistantVOBase from '../../IDistantVOBase';
 
+/**
+ * Représente la session d’un user sur un module.
+ * @property {string} commentaire: enregistre le retour du user sur le module
+ * @property {Moment} end_date, {Moment} start_date
+ * @property {number} module_id
+ */
+
 export default class AnimationUserModuleVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "anim_user_module";

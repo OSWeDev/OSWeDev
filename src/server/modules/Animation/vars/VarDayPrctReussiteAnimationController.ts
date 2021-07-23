@@ -15,6 +15,9 @@ import QRsRangesDatasourceController from '../datasources/QRsRangesDatasourceCon
 import UMsRangesDatasourceController from '../datasources/UMsRangesDatasourceController';
 import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceController';
 
+/**
+ * Réalise le calcul de score sur les modules: nombre de bonnes réponses / totalites réponses parmis les modules (potentiellement pour plusieurs utiliseurs).
+ */
 export default class VarDayPrctReussiteAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 
     public static getInstance(): VarDayPrctReussiteAnimationController {
@@ -91,43 +94,46 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
     }
 
     /**
-     * Fonction qui prépare la mise à jour d'une data
+     * Réalise le calcul de score sur les modules: nombre de bonnes réponses / totalites réponses parmis les modules (potentiellement pour plusieurs utiliseurs).
+     * @remark Ne prend en compte que les réponses des modules terminés.
      */
     protected getValue(varDAGNode: VarDAGNode): number {
 
         let qrs_by_theme_module: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = varDAGNode.datasources[QRsRangesDatasourceController.getInstance().name];
-        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
+        let uqrs_by_theme_module_qr: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = varDAGNode.datasources[UQRsRangesDatasourceController.getInstance().name];
         let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = varDAGNode.datasources[UMsRangesDatasourceController.getInstance().name];
 
         let cpt_qrs: number = 0;
         let cpt_ok: number = 0;
 
+        // ballaie les themes
         for (let theme_id in qrs_by_theme_module) {
+            // ballaie les modules du thème
             for (let module_id in qrs_by_theme_module[theme_id]) {
                 let nb_user_has_finished: number = 0;
                 let user_id_check: { [user_id: number]: boolean } = {};
 
-                for (let i in qrs_by_theme_module[theme_id][module_id]) {
-                    let qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][i];
+                // ballaie les qrs du module
+                for (let qr_i in qrs_by_theme_module[theme_id][module_id]) {
+                    let qr: AnimationQRVO = qrs_by_theme_module[theme_id][module_id][qr_i];
 
+                    // si on a des réponses
                     if (uqrs_by_theme_module_qr && uqrs_by_theme_module_qr[theme_id] && uqrs_by_theme_module_qr[theme_id][module_id]) {
-                        let uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id];
+                        // ballaie les uqrs pour la qr
+                        for (let uqr_i in uqrs_by_theme_module_qr[theme_id][module_id][qr.id]) {
+                            let uqr: AnimationUserQRVO = uqrs_by_theme_module_qr[theme_id][module_id][qr.id][uqr_i];
 
-                        if (!uqr) {
-                            continue;
-                        }
+                            // si l'utilisateur a bien finit le module on comptabilise
+                            if (uqr && ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date) {
+                                if (!user_id_check[uqr.user_id]) {
+                                    nb_user_has_finished++;
+                                    user_id_check[uqr.user_id] = true;
+                                }
 
-                        if (ums_by_module_user && ums_by_module_user[module_id] && ums_by_module_user[module_id][uqr.user_id] && ums_by_module_user[module_id][uqr.user_id].end_date) {
-                            if (!user_id_check[uqr.user_id]) {
-                                nb_user_has_finished++;
-                                user_id_check[uqr.user_id] = true;
+                                if (AnimationController.getInstance().isUserQROk(qr, uqr)) {
+                                    cpt_ok++;
+                                }
                             }
-                        } else {
-                            continue;
-                        }
-
-                        if (AnimationController.getInstance().isUserQROk(qr, uqr)) {
-                            cpt_ok++;
                         }
                     }
                 }

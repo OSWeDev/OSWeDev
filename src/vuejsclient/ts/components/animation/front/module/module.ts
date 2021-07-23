@@ -45,6 +45,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     private show_recap: boolean = false;
     private recap_is_actif: boolean = false;
+    /** score sur le module pour l'utilisateur */
     private prct_reussite_value: number = null;
 
     private animation_params: AnimationParametersVO = null;
@@ -62,6 +63,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private theme_id_ranges: NumRange[] = [];
 
     private prct_atteinte_seuil_module_param: ThemeModuleDataRangesVO = null;
+    /** paramètre pour le score (VarDayPrctReussiteAnimationController) */
     private prct_reussite_module_param: ThemeModuleDataRangesVO = null;
 
     @Watch('module_id')
@@ -256,6 +258,9 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Passe a l'affichage de la page du score.
+     */
     private async show_recap_toggle() {
         if (this.recap_is_actif) {
             await ModuleAnimation.getInstance().endModule(this.logged_user_id, this.anim_module.id);

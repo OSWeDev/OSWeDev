@@ -43,6 +43,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySimpleINFO: string = 'PushDataServerController' + '.notifySimpleINFO';
     public static TASK_NAME_notifySimpleWARN: string = 'PushDataServerController' + '.notifySimpleWARN';
     public static TASK_NAME_notifySimpleERROR: string = 'PushDataServerController' + '.notifySimpleERROR';
+    public static TASK_NAME_notifyRedirectINFO: string = 'PushDataServerController' + '.notifyRedirectINFO';
     public static TASK_NAME_notifyPrompt: string = 'PushDataServerController' + '.notifyPrompt';
     public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
@@ -91,6 +92,7 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleINFO, this.notifySimpleINFO.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleWARN, this.notifySimpleWARN.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyRedirectINFO, this.notifyRedirectINFO.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyPrompt, this.notifyPrompt.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySession, this.notifySession.bind(this));
         // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
@@ -665,7 +667,16 @@ export default class PushDataServerController {
         await Promise.all(promises);
     }
 
-    public async broadcastRoleRedirect(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, redirect_route: string = "", notif_route_params_name: string[], notif_route_params_values: string[]) {
+    // Notifications qui redirigent sur une route avec ou sans paramètres
+    public async broadcastRoleRedirect(
+        role_name: string,
+        msg_type: number,
+        code_text: string,
+        redirect_route: string = "",
+        notif_route_params_name: string[] = null,
+        notif_route_params_values: string[] = null,
+        auto_read_if_connected: boolean = false
+    ) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleRedirect, role_name, msg_type, code_text, auto_read_if_connected)) {
             return;
@@ -701,7 +712,7 @@ export default class PushDataServerController {
                 let user = users[i];
 
                 promises.push((async () => {
-                    await this.notifyRedirect(null, user.id, null, msg_type, code_text, auto_read_if_connected, redirect_route, notif_route_params_name, notif_route_params_values);
+                    await this.notifyRedirect(null, user.id, null, msg_type, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
                 })());
             }
         } catch (error) {
@@ -805,7 +816,27 @@ export default class PushDataServerController {
         });
     }
 
-    private async notifyRedirect(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean, redirect_route: string, notif_route_params_name: string[], notif_route_params_values: string[]) {
+    public async notifyRedirectINFO(user_id: number, client_tab_id: string, code_text: string, redirect_route: string = "", notif_route_params_name: string[] = null, notif_route_params_values: string[] = null, auto_read_if_connected: boolean = false) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectINFO, user_id, client_tab_id, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected)) {
+            return;
+        }
+
+        await this.notifyRedirect(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected);
+    }
+
+    // Notifications qui redirigent sur une route avec ou sans paramètres
+    private async notifyRedirect(
+        socket_ids: string[],
+        user_id: number,
+        client_tab_id: string,
+        msg_type: number,
+        code_text: string,
+        redirect_route: string,
+        notif_route_params_name: string[],
+        notif_route_params_values: string[],
+        auto_read_if_connected: boolean
+    ) {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;

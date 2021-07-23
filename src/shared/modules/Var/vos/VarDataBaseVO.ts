@@ -10,6 +10,9 @@ import VOsTypesManager from '../../VOsTypesManager';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 
+/**
+ * Paramètre le calcul de variables
+ */
 export default class VarDataBaseVO implements IMatroid {
 
     public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
@@ -225,7 +228,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     get index(): string {
 
-        if (!this._index) {
+        if ((!this._index) || (this._index == 'X')) {
             let fields = MatroidController.getInstance().getMatroidFields(this._type);
 
             this._index = this.var_id ? this.var_id.toString() : 'X';

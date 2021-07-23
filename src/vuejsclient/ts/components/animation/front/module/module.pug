@@ -1,6 +1,8 @@
 
 .rootElt.module_container
     template(v-if="theme && anim_module")
+
+        //- bouton pour l'edition des champs textes
         template(v-if="has_access_inline_input_mode")
             .text-right
                 toggle-button(
@@ -10,7 +12,8 @@
                     :width="200"
                     :labels="{checked: label('animation.inline_input_mode.on'), unchecked: label('animation.inline_input_mode.off')}"
                 )
-
+                
+        //- header title
         h1
             template(v-if="inline_input_mode")
                 span
@@ -37,19 +40,25 @@
             template(v-else)
                 span {{ theme.name }} : {{ anim_module.name }}
 
+
         template(v-if="ordered_qrs && ordered_qrs.length > 0")
             .questions.text-center
+
+                //- question i/n
                 template(v-if="current_qr")
                     .current_qr.d-ib {{ label('animation.question') }}
                     b.d-ib.ml-1
                         template(v-if="!show_recap")
                             span {{ current_qr.weight }} / {{ ordered_qrs.length }}
+
+                //- question navigation bar
                 .switch_questions
                     template(v-for="qr in ordered_qrs")
                         .question(@click="switchQR(qr)", :class="{active: (!show_recap && current_qr && current_qr.id == qr.id), 'fa fa-check': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id && is_reponse_valid[qr.id]), 'fa fa-times': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id && !is_reponse_valid[qr.id])}")
 
                     i.fa.fa-trophy.question(@click="show_recap_toggle", :class="{active: show_recap, actif: recap_is_actif}")
 
+            //- question page
             template(v-if="current_qr && !show_recap")
                 Animationqr(
                     :qr="current_qr",
@@ -62,10 +71,14 @@
                     @next="nextQr"
                 )
 
+            //- score page
             template(v-else-if="show_recap")
                 .prct_reussite.text-center
+
+                    //- phrase avant l'affichage du score 'vous avez totalisé un score de:'
                     h2 {{ label('animation.prct_reussite') }}
 
+                    //- graph pourcentage
                     .c100(:class="prct_reussite_class")
                         span
                             var-data(
@@ -78,6 +91,7 @@
                             .bar
                             .fill
 
+                    //- smiley face + oups/bravo
                     template(v-if="prct_reussite_value != null")
                         .is_validated
                             template(v-if="is_module_valide")
@@ -89,13 +103,18 @@
                                     i.far.fa-surprise.mr-2
                                     span {{ label('animation.qr.is_validated.nok') }}
 
+                    //- message under smiley
                     .prct_reussite_message.text-center(v-if="prct_reussite_message", v-html="prct_reussite_message")
 
+                    //- boutons
                     template(v-if="prct_reussite_value != null")
                         .retour_formations.next
+
+                            //- succeeded => feedback
                             template(v-if="is_module_valide")
                                 i.fa.fa-long-arrow-right(@click="goToFeedback")
 
+                            //- failed => documentation + return to theme menu
                             template(v-else)
                                 template(v-if="document")
                                     a.document_module(:href="document.document_url", target="_blank")

@@ -39,6 +39,11 @@ export default class VarsClientController {
      */
     public registered_var_params_to_check_next_time: { [index: string]: boolean } = {};
 
+    /**
+     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server (ModuleVarServer)
+     * @see {@link ModuleVarServer.register_params}
+     */
+
     public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 250, { leading: false });
     public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 2000, { leading: false });
 
@@ -61,6 +66,7 @@ export default class VarsClientController {
      *  - soit par ce qu'on nous demande explicitement de forcer une nouvelle demande au serveur (ce qui ne devrait pas être utile donc pour le moment on gère pas ce cas)
      * @param var_params les params sur lesquels on veut s'abonner
      * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
+     * @remark rajoute les callbacks dans registered_var_params pour les var_params spécifiés
      */
     public async registerParams(
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
@@ -132,12 +138,19 @@ export default class VarsClientController {
         });
     }
 
+    /**
+     * créé un calback et l'enregistre dans registered_var_params pour le var_param de la variable à calculer
+     * @param var_param
+     * @param value_type
+     * @returns
+     */
     public async registerParamAndWait<T extends VarDataBaseVO>(var_param: T, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<T> {
 
         return new Promise((resolve, reject) => {
-            let callback = VarUpdateCallback.newCallbackOnce(async (varData: T) => {
-                resolve(varData);
-            }, value_type);
+            let callback = VarUpdateCallback.newCallbackOnce(
+                async (varData: T) => { resolve(varData); },
+                value_type
+            );
 
             this.registerParams([var_param], { [callback.UID]: callback });
         });
@@ -275,6 +288,11 @@ export default class VarsClientController {
         }, self.timeout_check_registrations);
     }
 
+    /**
+     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server (ModuleVarServer)
+     * @see {@link ModuleVarServer.register_params }
+     * @param params
+     */
     private async do_server_registration(params: { [index: string]: VarDataBaseVO }) {
         await ModuleVar.getInstance().register_params(Object.values(params));
     }
