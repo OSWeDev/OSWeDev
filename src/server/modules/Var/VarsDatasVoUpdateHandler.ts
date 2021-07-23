@@ -57,7 +57,7 @@ export default class VarsDatasVoUpdateHandler {
     public last_call_handled_something: boolean = false;
     private last_registration: Moment = null;
 
-    private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 100, { leading: false });
+    private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false });
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));

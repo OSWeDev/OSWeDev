@@ -3,6 +3,7 @@ import MatroidController from '../../../../shared/modules/Matroid/MatroidControl
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import VarsPerfMonServerController from '../VarsPerfMonServerController';
@@ -70,6 +71,13 @@ export default class VarsPerfsController {
 
     public static async update_perfs_in_bdd() {
 
+        await VarsPerfsController.throttled_update_param();
+    }
+
+    private static throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(VarsPerfsController.do_update_perfs_in_bdd, 30000, { leading: false });
+
+    private static async do_update_perfs_in_bdd() {
+
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsPerfsController__update_perfs_in_bdd],
             async () => {
@@ -98,11 +106,11 @@ export default class VarsPerfsController {
                         current_batch_perf.sum_ms = 0;
                     }
 
-                    if ((current_batch_perf.nb_calls > this.max_nb_calls) || (current_batch_perf.nb_card > this.max_nb_card) || (current_batch_perf.sum_ms > this.max_sum_ms)) {
+                    if ((current_batch_perf.nb_calls > VarsPerfsController.max_nb_calls) || (current_batch_perf.nb_card > VarsPerfsController.max_nb_card) || (current_batch_perf.sum_ms > VarsPerfsController.max_sum_ms)) {
                         // on fixe des limites arbitraires
-                        let coef_nb_calls = (current_batch_perf.nb_calls / this.max_nb_calls) * 3;
-                        let coef_nb_card = (current_batch_perf.nb_card / this.max_nb_card) * 3;
-                        let coef_sum_ms = (current_batch_perf.sum_ms / this.max_sum_ms) * 3;
+                        let coef_nb_calls = (current_batch_perf.nb_calls / VarsPerfsController.max_nb_calls) * 3;
+                        let coef_nb_card = (current_batch_perf.nb_card / VarsPerfsController.max_nb_card) * 3;
+                        let coef_sum_ms = (current_batch_perf.sum_ms / VarsPerfsController.max_sum_ms) * 3;
                         let coef = Math.max(coef_nb_calls, coef_nb_card, coef_sum_ms);
                         current_batch_perf.nb_calls = current_batch_perf.nb_calls / coef;
                         current_batch_perf.nb_card = current_batch_perf.nb_card / coef;
