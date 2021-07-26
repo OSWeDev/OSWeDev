@@ -41,9 +41,9 @@ export default class ModuleSendInBlue extends Module {
             new ModuleTableField('api_key', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'apiKey' }), true),
             new ModuleTableField('host', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'host' }), true),
             new ModuleTableField('sender_name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Sender name' }), true),
-            new ModuleTableField('sender_email', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Sender Email' }), true),
+            new ModuleTableField('sender_email', ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ fr: 'Sender Email' }), true),
             new ModuleTableField('replyto_name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'ReplyTo name' }), true),
-            new ModuleTableField('replyto_email', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'ReplyTo Email' }), true),
+            new ModuleTableField('replyto_email', ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ fr: 'ReplyTo Email' }), true),
             new ModuleTableField('sender_sms_name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Sender SMS name (only alphanumeric characters)' }), true),
             new ModuleTableField('default_folder_list', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Default Folder List' }), true),
         ];

@@ -11,6 +11,7 @@ import RunCronForkMessage from './messages/RunCronForkMessage';
 import RunCronsForkMessage from './messages/RunCronsForkMessage';
 import DateHandler from '../../../shared/tools/DateHandler';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 export default class CronServerController {
 
@@ -30,6 +31,7 @@ export default class CronServerController {
      */
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
     public cronWorkers_semaphores: { [worker_uid: string]: boolean } = {};
+    public cronWorkers_semaphores_reload: { [worker_uid: string]: boolean } = {};
 
     public register_crons: boolean = false;
     public run_crons: boolean = false;
@@ -67,7 +69,7 @@ export default class CronServerController {
                 return false;
             }
             let forked = ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
-            ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process);
+            ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
         }
     }
 
@@ -136,10 +138,19 @@ export default class CronServerController {
             return;
         }
 
+        // Si un cron est demandé mais déjà en cours, on attend qu'il soit dispo pour le relancer
         if (!CronServerController.getInstance().cronWorkers_semaphores[worker_uid]) {
-            return;
+            if (!CronServerController.getInstance().cronWorkers_semaphores_reload[worker_uid]) {
+                CronServerController.getInstance().cronWorkers_semaphores_reload[worker_uid] = true;
+                while (!CronServerController.getInstance().cronWorkers_semaphores[worker_uid]) {
+                    await ThreadHandler.getInstance().sleep(1000);
+                }
+            } else {
+                return;
+            }
         }
 
+        CronServerController.getInstance().cronWorkers_semaphores_reload[worker_uid] = false;
         CronServerController.getInstance().cronWorkers_semaphores[worker_uid] = false;
 
         ConsoleHandler.getInstance().log('CRON:LANCEMENT:' + worker_uid);

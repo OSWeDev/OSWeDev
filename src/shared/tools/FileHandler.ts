@@ -4,6 +4,7 @@ import { Stats, statSync } from 'fs';
 import EnvParam from '../../server/env/EnvParam';
 import ThreadHandler from './ThreadHandler';
 import ConsoleHandler from './ConsoleHandler';
+import FileVO from '../modules/File/vos/FileVO';
 
 export default class FileHandler {
 
@@ -71,5 +72,26 @@ export default class FileHandler {
         }
 
         return url;
+    }
+
+    public get_file_name(vo: FileVO): string {
+
+        if ((!vo) || (!vo.path)) {
+            return null;
+        }
+
+        let path_parts = vo.path.split('/');
+        return path_parts[path_parts.length - 1];
+    }
+
+    public get_folder(vo: FileVO): string {
+
+        if ((!vo) || (!vo.path)) {
+            return null;
+        }
+
+        let path_parts = vo.path.split('/');
+        path_parts.pop();
+        return path_parts.join('/');
     }
 }

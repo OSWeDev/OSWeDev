@@ -40,7 +40,6 @@ export default class ParamsAdminVueModule extends VueModuleBase {
             return;
         }
 
-
         CRUDComponentManager.getInstance().registerCRUD(
             ParamVO.API_TYPE_ID,
             null,

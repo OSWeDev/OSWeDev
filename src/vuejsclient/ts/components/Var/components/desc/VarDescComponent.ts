@@ -1,164 +1,85 @@
-import * as d3 from 'd3';
-import * as dagreD3 from 'dagre-d3';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
-import IDataSourceController from '../../../../../../shared/modules/DataSource/interfaces/IDataSourceController';
-import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import MatroidController from '../../../../../../shared/modules/Matroid/MatroidController';
+import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
+import VarsDatasExplorerFiltersComponent from '../explorer/filters/VarsDatasExplorerFiltersComponent';
 import './VarDescComponent.scss';
 
 @Component({
-    template: require('./VarDescComponent.pug')
+    template: require('./VarDescComponent.pug'),
+    components: {
+        Vardesccontrollercomponent: () => import(/* webpackChunkName: "VarDescControllerComponent" */ './controller/VarDescControllerComponent'),
+        Vardescparamfieldscomponent: () => import(/* webpackChunkName: "VarDescParamFieldsComponent" */ './param_fields/VarDescParamFieldsComponent'),
+        Vardescexplaincomponent: () => import(/* webpackChunkName: "VarDescExplainComponent" */ './explain/VarDescExplainComponent')
+    }
 })
 export default class VarDescComponent extends VueComponentBase {
 
-    @ModuleVarGetter
-    public getStepNumber: number;
-    @ModuleVarGetter
-    public isStepping: number;
-
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
-    @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
-    @ModuleVarGetter
-    public isDescDepsOpened: boolean;
-    @ModuleVarAction
-    public setDescDepsOpened: (desc_deps_opened: boolean) => void;
-
     @Prop()
-    public var_param: IVarDataParamVOBase;
-    @Prop({ default: 0 })
-    public depth: number;
-    @Prop({ default: 2 })
-    public max_depth: number;
+    private var_param: VarDataBaseVO;
 
-    private step_number: number = 0;
-    private var_datasources: { [datasource_name: string]: string } = {};
+    @Prop({ default: true })
+    private show_deps: boolean;
 
-    private var_missing_datas: string[] = [];
+    @Prop({ default: true })
+    private show_imports: boolean;
 
-    private loaded_datas_matroids_desc: string = null;
-    private computed_datas_matroids_desc: string = null;
-    private var_params_desc: string = null;
+    @Prop({ default: true })
+    private show_last_update: boolean;
 
-    // get var_param_desc_component():any{
-    //     if (!this.var_param){
-    //         return null;
-    //     }
+    private var_data: VarDataValueResVO = null;
+    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false });
 
-    //     let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
+    };
 
-    //     if (!controller) {
-    //         return null;
-    //     }
-
-    //     controller.varDataParamController.
-    // }
-
-    public update_var_missing_datas() {
-
-        this.var_missing_datas = [];
+    private var_data_updater() {
         if (!this.var_param) {
+            this.var_data = null;
             return;
         }
-
-        let data = VarsController.getInstance().getVarData(this.var_param);
-
-        if ((!data) || (!data.missing_datas_infos)) {
-            return;
-        }
-
-        this.var_missing_datas = data.missing_datas_infos;
+        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
     }
 
-    public async update_var_datasources() {
-
-        this.var_datasources = {};
+    get var_data_has_valid_value(): boolean {
         if (!this.var_param) {
-            return;
+            return false;
         }
 
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+        let var_data = this.var_data;
 
-        if (!controller) {
-            return;
+        if ((!var_data) || (typeof var_data.value === 'undefined')) {
+            return false;
         }
 
-        let datasources: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
-
-        for (let i in datasources) {
-            let datasource = datasources[i];
-
-            let tmp_datasource_data = null;
-            tmp_datasource_data = datasource.get_data(this.var_param);
-
-            if (!tmp_datasource_data) {
-                await datasource.load_for_batch({
-                    [this.var_index]: this.var_param
-                });
-                tmp_datasource_data = datasource.get_data(this.var_param);
-            }
-
-            if (!tmp_datasource_data) {
-                this.var_datasources[datasource.name] = '-';
-            } else {
-                this.var_datasources[datasource.name] = JSON.stringify(tmp_datasource_data);
-            }
-        }
+        return true;
     }
 
-    get var_dependencies_tree_prct(): string {
+    get var_data_is_import(): boolean {
+        if (!this.var_data_has_valid_value) {
+            return false;
+        }
+        let var_data = this.var_data;
+
+        return var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
+    }
+
+    get var_id(): number {
         if (!this.var_param) {
             return null;
         }
 
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if (!selectedNode) {
-            return null;
-        }
-
-        return this.formatNumber_2decimal(selectedNode.dependencies_tree_prct * 100);
-    }
-
-    get var_dependencies_count(): number {
-        if (!this.var_param) {
-            return null;
-        }
-
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if (!selectedNode) {
-            return null;
-        }
-
-        return selectedNode.dependencies_count;
-    }
-
-    get is_selected_var(): boolean {
-        return this.getDescSelectedIndex == this.var_index;
-    }
-
-    get var_index(): string {
-        if (!this.var_param) {
-            return null;
-        }
-
-        return VarsController.getInstance().getIndex(this.var_param);
-    }
-
-    get var_name(): string {
-        if (!this.var_param) {
-            return null;
-        }
-
-        return this.t(VarsController.getInstance().get_translatable_name_code(this.var_param.var_id));
+        return this.var_param.var_id;
     }
 
     get var_description(): string {
@@ -166,288 +87,73 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_description_code(this.var_param.var_id));
-    }
-
-    get ismatroid(): boolean {
-        if (!this.var_param) {
-            return null;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
-
-        if (!controller) {
-            return null;
-        }
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-
-        return moduletable && moduletable.isMatroidTable;
-    }
-
-
-    public async get_copy_with_explaining_fields(matroid): Promise<IVarDataParamVOBase> {
-        if ((!this.var_param) || (!matroid)) {
-            return null;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
-
-        if (!controller) {
-            return null;
-        }
-
-        // On essaie de proposer des params pré-travaillés
-        let param: any = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-
-        for (let i in moduletable.get_fields()) {
-            let field = moduletable.get_fields()[i];
-
-            if ([
-                //IVarDataParamVOBase
-                "var_id",
-
-                //IDistantVOBase
-                "id",
-                "_type",
-
-                //IVarDataVOBase
-                "value_type",
-                "value_ts",
-                "missing_datas_infos",
-            ].indexOf(field.field_id) >= 0) {
-                continue;
-            }
-
-            param[field.field_id] = await SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid, field.field_id);
-        }
-
-        return param;
-    }
-
-    get var_markers(): any {
-        if (!this.var_param) {
-            return null;
-        }
-
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if (!selectedNode) {
-            return null;
-        }
-
-        return selectedNode.markers;
-    }
-
-    get var_markers_json(): string {
-        if (!this.var_markers) {
-            return null;
-        }
-
-        return JSON.stringify(this.var_markers);
-    }
-
-    get var_deps(): { [name: string]: VarDAGNode } {
-        if (!this.var_param) {
-            return null;
-        }
-
-        return VarsController.getInstance().varDAG.nodes[
-            VarsController.getInstance().getIndex(this.var_param)].outgoing as { [name: string]: VarDAGNode };
-    }
-
-
-    public cleanUpGraph() {
-        // Cleanup old graph
-        let oldsvg = d3.select(this.$el).select("svg > g");
-        if ((!!oldsvg) && (!!d3.select(this.$el).select("svg").nodes()[0])) {
-            d3.select(this.$el).select("svg").nodes()[0].innerHTML = "";
-        }
-    }
-
-    /**
-     * On fait un graph de 1 niveau de dep (autour du noeud sélectionné)
-     */
-    public async createGraph() {
-
-        this.cleanUpGraph();
-
-        // Create the input graph
-        let g = new dagreD3.graphlib.Graph()
-            .setGraph({})
-            .setDefaultEdgeLabel(function () { return {}; });
-
-        // On s'intéresse au noeud sélectionné et aux incommings et outgoings de ce noeud et c'est tout
-        let node_name: string = this.getDescSelectedIndex;
-        let node: VarDAGNode = VarsController.getInstance().varDAG.nodes[node_name];
-
-        if (!node) {
-            return;
-        }
-
-        g.setNode(node_name, node.getD3NodeDefinition(true));
-
-        for (let i in node.outgoing) {
-            let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
-            g.setNode(outgoing.name, outgoing.getD3NodeDefinition(true));
-            g.setEdge(node_name, outgoing.name);
-        }
-
-        for (let i in node.incoming) {
-            let incoming: VarDAGNode = node.incoming[i] as VarDAGNode;
-            g.setNode(incoming.name, incoming.getD3NodeDefinition(true));
-            g.setEdge(incoming.name, node_name);
-        }
-
-        g.nodes().forEach(function (v) {
-            let n = g.node(v);
-            // Round the corners of the nodes
-            n.rx = n.ry = 5;
-        });
-
-        // Set up an SVG group so that we can translate the final graph.
-        let svg = d3.select(this.$el).select("svg");
-        let svgGroup = svg.append("g");
-
-        // Set up zoom support
-        var zoom = d3.zoom().on("zoom", function () {
-            svgGroup.attr("transform", d3.event.transform);
-        });
-        svg.call(zoom);
-
-        // Create the renderer
-        let render = new dagreD3.render();
-
-        // Run the renderer. This is what draws the final graph.
-        render(svgGroup, g);
-
-        let self = this;
-        svgGroup.selectAll("g.node")
-            .each(function (v) {
-                $(this).mousedown(() => {
-                    self.setDescSelectedIndex(v);
-                });
-            });
-
-        // // Center the graph
-        // let initialScale = 0.5;
-        // svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
-
-        // let xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
-        // svgGroup.attr("transform", "translate(" + xCenterOffset + ", 20)");
-        // svg.attr("height", g.graph().height + 40);
-    }
-
-    @Watch('var_param', { immediate: true })
-    private async onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
-
-        // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
-            return;
-        }
-
-        if (old_var_param) {
-        }
-
-        if (new_var_param) {
-            await this.createGraph();
-        }
-    }
-
-    @Watch('getStepNumber')
-    private async onStepNumber(new_var_param: number, old_var_param: number) {
-
-        // On refresh le graph automatiquement si le step_number change et que l'on est en train de step
-        if (new_var_param == old_var_param) {
-            return;
-        }
-
-        if (new_var_param == this.step_number) {
-            return;
-        }
-
-        if (!this.isStepping) {
-            return;
-        }
-
-        this.step_number = new_var_param;
-        await this.createGraph();
-    }
-
-    private select_var() {
-        this.setDescSelectedIndex(this.var_index);
-    }
-
-    private un_select_var() {
-        this.setDescSelectedIndex(null);
-    }
-
-    private async update_var_infos() {
-        await this.set_loaded_datas_matroids_desc();
-        await this.set_computed_datas_matroids_desc();
-        await this.set_var_params_desc();
+        return this.t(VarsController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id));
     }
 
     private async update_var_data() {
-        await VarsController.getInstance().registerDataParamAndReturnVarData(this.var_param, true, true);
-        await this.update_var_infos();
+        if (this.var_param.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+            this.snotify.error(this.label('var.desc_mode.update_var_data.not_allowed_on_imports'));
+            return;
+        }
+        await ModuleVar.getInstance().invalidate_cache_exact([this.var_param]);
+        this.snotify.info(this.label('var.desc_mode.update_var_data'));
     }
 
-    private async set_loaded_datas_matroids_desc(): Promise<void> {
-        if (!this.var_index) {
-            this.loaded_datas_matroids_desc = null;
+    private async update_var_data_and_parents() {
+        if (this.var_param.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+            this.snotify.error(this.label('var.desc_mode.update_var_data.not_allowed_on_imports'));
+            return;
         }
-
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
-            this.loaded_datas_matroids_desc = null;
-        }
-
-        let res: string = "";
-        for (let i in node.loaded_datas_matroids) {
-            let matroid = node.loaded_datas_matroids[i];
-
-            res += ((res == "") ? "" : ";") + JSON.stringify(await this.get_copy_with_explaining_fields(matroid));
-        }
-
-        this.loaded_datas_matroids_desc = res;
+        await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([this.var_param]);
+        this.snotify.info(this.label('var.desc_mode.update_var_data'));
     }
 
-    get loaded_datas_matroids_sum_value_desc(): string {
-        if (!this.var_index) {
+    private async filter_on_this_param() {
+
+        if (!this.var_param) {
+            return;
+        }
+
+        VarsDatasExplorerFiltersComponent.instance.fitered_vars_confs = [VarsController.getInstance().var_conf_by_id[this.var_param.var_id]];
+
+        let matroid_fields = MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+
+            let field_value = this.var_param[matroid_field.field_id];
+            if (VarsDatasExplorerFiltersComponent.instance.fields_filters_is_enum[matroid_field.field_id]) {
+
+                let field_options = [];
+                for (let j in VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id]) {
+                    let initial_option = VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id][j];
+
+                    if (RangeHandler.getInstance().elt_intersects_any_range(initial_option.id, field_value)) {
+                        field_options.push(initial_option);
+                    }
+                }
+                VarsDatasExplorerFiltersComponent.instance.fields_filters_list[matroid_field.field_id] = field_options;
+            } else {
+                VarsDatasExplorerFiltersComponent.instance.fields_filters_range[matroid_field.field_id] =
+                    RangeHandler.getInstance().getMinSurroundingRange(field_value);
+            }
+        }
+    }
+
+    get var_data_last_update(): string {
+        if (!this.var_data_has_valid_value) {
             return null;
         }
 
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+        let var_data = this.var_data;
 
-        return ((typeof node.loaded_datas_matroids_sum_value !== 'undefined') && (node.loaded_datas_matroids_sum_value != null)) ? node.loaded_datas_matroids_sum_value.toString() : null;
+        return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(var_data.value_ts);
     }
 
-    private async set_computed_datas_matroids_desc(): Promise<void> {
-        if (!this.var_index) {
-            this.computed_datas_matroids_desc = null;
-        }
-
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        let res: string = "";
-        for (let i in node.computed_datas_matroids) {
-            let matroid = node.computed_datas_matroids[i];
-
-            res += ((res == "") ? "" : ";") + JSON.stringify(await this.get_copy_with_explaining_fields(matroid));
-        }
-
-        this.computed_datas_matroids_desc = res;
-    }
-
-    private async set_var_params_desc(): Promise<void> {
+    @Watch('var_param', { immediate: true })
+    private log_index() {
         if (!this.var_param) {
-            this.var_params_desc = null;
+            return;
         }
-
-        // return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.get_copy_with_explaining_fields(this.var_param));
-        this.var_params_desc = JSON.stringify(await this.get_copy_with_explaining_fields(this.var_param));
+        ConsoleHandler.getInstance().log('Index du paramètre de var sélectionné : ' + this.var_param.index);
     }
 }

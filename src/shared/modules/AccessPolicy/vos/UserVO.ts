@@ -51,6 +51,11 @@ export default class UserVO implements IDistantVOBase {
      */
     public invalidated: boolean;
 
+    /**
+     * Marqueur indiquant que l'utilisateur s'est connecté au moins une fois normalement
+     */
+    public logged_once: boolean;
+
     public recovery_challenge: string;
     public recovery_expiration: Moment;
 

@@ -26,7 +26,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
     public voIdToHumanReadable: (id: number) => string = (id: number) => {
         let res: string = "";
 
-        if ((id == null) || (typeof id == 'undefined')) {
+        if ((id === null) || (typeof id == 'undefined')) {
             return '';
         }
 

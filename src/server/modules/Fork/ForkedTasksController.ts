@@ -2,6 +2,8 @@ import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 
 export default class ForkedTasksController {
 
@@ -17,7 +19,11 @@ export default class ForkedTasksController {
     /**
      * Local thread cache -----
      */
+    public registered_task_result_resolvers: { [result_task_uid: number]: (result: any) => any } = {};
     private registered_tasks: { [task_uid: string]: (...task_params) => Promise<boolean> } = {};
+
+    private result_task_prefix_thread_uid: number = process.pid;
+    private result_task_uid: number = 1;
     /**
      * ----- Local thread cache
      */
@@ -26,6 +32,10 @@ export default class ForkedTasksController {
 
     get process_registered_tasks(): { [task_uid: string]: (...task_params) => Promise<boolean> } {
         return this.registered_tasks;
+    }
+
+    public get_result_task_uid(): string {
+        return this.result_task_prefix_thread_uid + '_' + (this.result_task_uid++);
     }
 
     public register_task(task_uid: string, handler: (...task_params) => Promise<boolean>) {
@@ -48,6 +58,26 @@ export default class ForkedTasksController {
     }
 
     /**
+     * Objectif : Exécuter la fonction sur le thread principal et récupérer la valeur de retour. 
+     *  On envoie la demande au thread maitre si besoin, sinon on exécute directement
+     * @param task_uid
+     * @param task_params
+     * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
+     */
+    public exec_self_on_main_process_and_return_value(task_uid: string, resolver, ...task_params): boolean {
+        if (!ForkServerController.getInstance().is_main_process) {
+
+            let result_task_uid = this.get_result_task_uid();
+            this.registered_task_result_resolvers[result_task_uid] = resolver;
+
+            // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
+            ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Objectif : Exécuter la fonction sur le thread principal. On envoie la demande au thread maitre si besoin, sinon on exécute directement
      * @param task_uid
      * @param task_params
@@ -55,6 +85,40 @@ export default class ForkedTasksController {
     public exec_self_on_main_process(task_uid: string, ...task_params): boolean {
         if (!ForkServerController.getInstance().is_main_process) {
             ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Objectif : Exécuter la fonction sur un thread particulier. On envoie la demande à tous au besoin, sinon on exécute directement
+     * @param bgthread le nom de la tache de type bgthread, dont on va chercher le thread actuel
+     * @param task_uid
+     * @param task_params
+     */
+    public exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): boolean {
+        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
+            ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Objectif : Exécuter la fonction sur le bgthread et récupérer la valeur de retour.
+     *  On envoie la demande au thread maitre si besoin, sinon on exécute directement
+     * @param task_uid
+     * @param task_params
+     * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
+     */
+    public exec_self_on_bgthread_and_return_value(bgthread: string, task_uid: string, resolver, ...task_params): boolean {
+        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
+
+            let result_task_uid = this.get_result_task_uid();
+            this.registered_task_result_resolvers[result_task_uid] = resolver;
+
+            // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
+            ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid));
             return false;
         }
         return true;

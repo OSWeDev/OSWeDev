@@ -1,14 +1,14 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
-import SimpleVarConfVO from '../../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
-import VarsController from '../../../../shared/modules/Var/VarsController';
+import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
+import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 
 export default class VarAdminVueModule extends VueModuleBase {
 
@@ -38,7 +38,7 @@ export default class VarAdminVueModule extends VueModuleBase {
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_BO_VARCONF_ACCESS)) {
             CRUDComponentManager.getInstance().registerCRUD(
-                SimpleVarConfVO.API_TYPE_ID,
+                VarConfVO.API_TYPE_ID,
                 null,
                 new MenuPointer(
                     new MenuLeaf("SimpleVarConfVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calculator"),
@@ -52,20 +52,14 @@ export default class VarAdminVueModule extends VueModuleBase {
                     new MenuLeaf("VarCacheConfVO", MenuElementBase.PRIORITY_ULTRAHIGH + 1, "fa-calculator"),
                     menuBranch),
                 this.routes);
-        }
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_BO_IMPORTED_ACCESS)) {
-
-            for (let api_type in VarsController.getInstance().registered_var_data_api_types) {
-
-                CRUDComponentManager.getInstance().registerCRUD(
-                    api_type,
-                    null,
-                    new MenuPointer(
-                        new MenuLeaf(api_type, MenuElementBase.PRIORITY_HIGH, "fa-database"),
-                        menuBranch),
-                    this.routes);
-            }
+            CRUDComponentManager.getInstance().registerCRUD(
+                VarPerfVO.API_TYPE_ID,
+                null,
+                new MenuPointer(
+                    new MenuLeaf("VarPerfVO", MenuElementBase.PRIORITY_ULTRAHIGH + 2, "fa-pie-chart"),
+                    menuBranch),
+                this.routes);
         }
     }
 }

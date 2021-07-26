@@ -36,11 +36,13 @@ import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputCompo
 import ImageComponent from '../../../image/ImageComponent';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
-import NumRangeInputComponent from '../../../numrange/NumRangeInputComponent';
+import NumRangeInputComponent from '../../../numrangeinput/NumRangeInputComponent';
+import TimestampInputComponent from '../../../timestampinput/TimestampInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import CRUDComponentManager from '../../CRUDComponentManager';
 import './CRUDComponentField.scss';
 let debounce = require('lodash/debounce');
 
@@ -54,12 +56,15 @@ let debounce = require('lodash/debounce');
         Tsrangesinputcomponent: TSRangesInputComponent,
         Isoweekdaysinputcomponent: IsoWeekDaysInputComponent,
         Tsrangeinputcomponent: TSRangeInputComponent,
+        Timestampinputcomponent: TimestampInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
         Numrangeinputcomponent: NumRangeInputComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase
     implements ICRUDComponentField {
+
+    public static CRUDComp_UID: number = 1;
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -107,6 +112,8 @@ export default class CRUDComponentField extends VueComponentBase
     private inline_input_hide_label: boolean;
     @Prop()
     private inline_input_read_value: any;
+    @Prop({ default: false })
+    private inline_input_mode_semaphore: boolean;
 
     @Prop({ default: false })
     private is_disabled: boolean;
@@ -117,6 +124,22 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: null })
     private maxlength: number;
 
+    @Prop({ default: false })
+    private force_input_is_editing: boolean;
+
+    @Prop({ default: false })
+    private inline_input_mode_input_only: boolean;
+
+    @Prop({ default: false })
+    private force_toggle_button: boolean;
+
+    @Prop({ default: false })
+    private inverse_label: boolean;
+
+    @Prop({ default: false })
+    private for_export: boolean;
+
+    private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
@@ -124,10 +147,10 @@ export default class CRUDComponentField extends VueComponentBase
     private field_value_range: { [type_date: string]: string } = {};
     private field_value_refranges_selected_ids: number[] = [];
 
-    private inline_input_is_editing: boolean = false;
     private inline_input_is_busy: boolean = false;
 
     private can_insert_or_update_target: boolean = false;
+    private inline_input_is_editing: boolean = false;
 
     private select_options_enabled: number[] = [];
 
@@ -136,6 +159,13 @@ export default class CRUDComponentField extends VueComponentBase
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
 
     public async mounted() {
+
+        this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
+        this.inline_input_is_editing = this.force_input_is_editing;
+        if (this.inline_input_mode && this.force_input_is_editing) {
+            let self = this;
+            this.$nextTick(() => self.$refs.input_elt['focus']());
+        }
 
         this.select_options_enabled = this.field.select_options_enabled; // (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
 
@@ -146,7 +176,16 @@ export default class CRUDComponentField extends VueComponentBase
          *  a voir à l'usage ce qu'on en fait
          */
         this.field.vue_component = this;
+
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID] = this.cancel_input;
+        }
+
+        if (this.inline_input_mode_semaphore && this.inline_input_is_editing) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+        }
     }
+
 
     /**
      * TODO FIXME : gérer tous les cas pas juste les simple datatable field
@@ -226,12 +265,14 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        this.field_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
+        let field_value: any = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
-            this.field_value = this.field.dataToUpdateIHM(this.field_value, this.vo);
+            field_value = this.field.dataToUpdateIHM(field_value, this.vo);
         }
+
+        this.field_value = field_value;
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
         if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
@@ -296,10 +337,6 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private getInputValue(input: any): any {
-
-        if (this.inline_input_mode) {
-            return;
-        }
 
         let input_value: any = null;
 
@@ -369,6 +406,10 @@ export default class CRUDComponentField extends VueComponentBase
 
     private validateInput(input: any) {
 
+        if (this.inline_input_mode) {
+            return;
+        }
+
         this.field_value = this.getInputValue(input);
 
         if (this.auto_update_field_value) {
@@ -384,6 +425,11 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private validateEndOfInput(input: any) {
+
+        //TODO checker impact sur le crud employee GR notement avec la mise en majuscule nom/prenom et le numéro employée
+        // if (!this.inline_input_mode) {
+        //     return;
+        // }
 
         this.field_value = this.getInputValue(input);
 
@@ -557,7 +603,6 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
-            let newOptions: number[] = [];
 
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
@@ -573,12 +618,6 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-
-            //filtre et tri
-            options = this.field.triFiltrage(options);
-
-
-
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
@@ -593,10 +632,12 @@ export default class CRUDComponentField extends VueComponentBase
                 }
             }
 
+            //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
-
-            for (let j in options) {
-                let option: IDistantVOBase = options[j];
+            let newOptions: number[] = [];
+            for (let index in ordered_option_array) {
+                let option: IDistantVOBase = ordered_option_array[index];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
@@ -650,12 +691,13 @@ export default class CRUDComponentField extends VueComponentBase
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
 
-        options = this.field.triFiltrage(options);
+        //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
+        let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
 
         let newOptions: number[] = [];
 
-        for (let i in options) {
-            let option = options[i];
+        for (let index in ordered_option_array) {
+            let option: IDistantVOBase = ordered_option_array[index];
 
             if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
@@ -722,15 +764,16 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
-            options = this.field.triFiltrage(options);
-
             if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
                 options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
             }
 
+            //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
             let newOptions: number[] = [];
-            for (let j in options) {
-                let option = options[j];
+            for (let index in ordered_option_array) {
+                let option: IDistantVOBase = ordered_option_array[index];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
@@ -754,9 +797,11 @@ export default class CRUDComponentField extends VueComponentBase
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
             }
 
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
             let newOptions: number[] = [];
-            for (let j in options) {
-                let option = options[j];
+            for (let j in ordered_option_array) {
+                let option = ordered_option_array[j];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
@@ -898,22 +943,90 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
 
-        this.inline_input_is_editing = false;
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
+        }
+
+        if (!this.force_input_is_editing) {
+            this.inline_input_is_editing = false;
+        }
 
         this.inline_input_is_busy = false;
     }
 
     private prepare_inline_input() {
+
+        // Mise en place d'un sémaphore sur l'édition inline : si on est en train d'éditer un champ, on ne peut pas en éditer un second,
+        //  sauf à valider un snotify
+        if (this.inline_input_mode_semaphore && CRUDComponentManager.getInstance().inline_input_mode_semaphore) {
+
+            let self = this;
+            this.$snotify.confirm(this.label('crud.inline_input_mode_semaphore.confirm.body'), self.label('crud.inline_input_mode_semaphore.confirm.title'), {
+                timeout: 10000,
+                showProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                buttons: [
+                    {
+                        text: self.t('YES'),
+                        action: async (toast) => {
+                            self.$snotify.remove(toast.id);
+                            for (let idstr in CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb) {
+                                let id = parseInt(idstr.toString());
+                                let cb = CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[idstr];
+
+                                if (id == self.this_CRUDComp_UID) {
+                                    continue;
+                                }
+                                cb();
+                            }
+
+                            if (!self.field_value) {
+
+                                // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
+                                self.field_value = self.field.dataToUpdateIHM(self.inline_input_read_value, self.vo);
+                            }
+
+                            if (this.inline_input_mode_semaphore) {
+                                CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+                            }
+                            self.inline_input_is_editing = true;
+                        },
+                        bold: false
+                    },
+                    {
+                        text: self.t('NO'),
+                        action: (toast) => {
+                            self.$snotify.remove(toast.id);
+                        }
+                    }
+                ]
+            });
+            return;
+        }
+
         if (!this.field_value) {
 
             // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
             this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
         }
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+        }
         this.inline_input_is_editing = true;
     }
 
     private cancel_input() {
-        this.inline_input_is_editing = false;
+
+        this.$emit('on_cancel_input', this.vo, this.field, this);
+
+        if (this.inline_input_mode_semaphore) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
+        }
+
+        if (!this.force_input_is_editing) {
+            this.inline_input_is_editing = false;
+        }
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
 
@@ -923,6 +1036,48 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         this.validate_inline_input();
+    }
+
+    private async beforeDestroy() {
+        delete CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID];
+        if (this.inline_input_mode_semaphore && this.inline_input_is_editing) {
+            CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
+        }
+    }
+
+    private async onkeypress(e) {
+        if (!this.inline_input_mode) {
+            return;
+        }
+
+        let keynum;
+
+        keynum = e.key;
+
+        if (keynum == 'Enter') {
+
+            await this.validate_inline_input();
+            return;
+        }
+
+        if (keynum == 'Escape') {
+
+            return;
+        }
+    }
+
+    private async onkeypress_escape() {
+        if (!this.inline_input_mode) {
+            return;
+        }
+
+        await this.cancel_input();
+    }
+
+    private on_focus($event) {
+        if (this.inline_input_mode && this.force_input_is_editing) {
+            $event.target.select();
+        }
     }
 
     get targetModuleTable_count(): number {
@@ -994,4 +1149,18 @@ export default class CRUDComponentField extends VueComponentBase
         }
     }
 
+    get input_elt_id() {
+
+        if (this.vo && this.vo.id) {
+            return this.vo._type + '.' + this.vo.id + '.' + this.field.datatable_field_uid;
+        }
+        if (this.vo) {
+            return this.vo._type + '.' + this.field.datatable_field_uid;
+        }
+        if (this.field && this.field.moduleTable && this.field.moduleTable.name) {
+            return this.field.moduleTable.name + '.' + this.field.datatable_field_uid;
+        }
+
+        return this.field.datatable_field_uid;
+    }
 }

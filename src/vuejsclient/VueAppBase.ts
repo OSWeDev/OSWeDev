@@ -8,6 +8,7 @@ import Vue from 'vue';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import VueI18n from 'vue-i18n';
 import Intersect from 'vue-intersect';
+import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
@@ -20,7 +21,6 @@ import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
@@ -35,7 +35,6 @@ import UserNotifsMarkerComponent from './ts/components/notification/components/U
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
-import ClientAPIController from './ts/modules/API/ClientAPIController';
 import IVueModule from './ts/modules/IVueModule';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
@@ -63,8 +62,6 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
-        // On initialise les controllers pour les APIs
-        ModuleAPI.getInstance().setAPIController(ClientAPIController.getInstance());
         ModuleAjaxCache.getInstance().setClientController(AjaxCacheClientController.getInstance());
 
         // Chargement des données des modules.
@@ -225,6 +222,12 @@ export default abstract class VueAppBase {
         }
 
         routerOptions.routes.push({
+            path: '/me',
+            name: 'MyAccount',
+            component: () => import(/* webpackChunkName: "AccessPolicyMyAccountComponent" */ './login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+        });
+
+        routerOptions.routes.push({
             path: '*',
             name: '404',
             component: () => import(/* webpackChunkName: "Error404Component" */ './ts/components/Error404/component/Error404Component')
@@ -325,6 +328,7 @@ export default abstract class VueAppBase {
 
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
+        Vue.use(VModal);
         Vue.component('Vuequilleditor', async () => (await import(/* webpackChunkName: "quillEditor" */  'vue-quill-editor')).quillEditor);
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
@@ -336,7 +340,8 @@ export default abstract class VueAppBase {
         Vue.component('vars-data', () => import(/* webpackChunkName: "VarDatasRefsComponent" */ './ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
         Vue.component('var-desc', () => import(/* webpackChunkName: "VarDescComponent" */ './ts/components/Var/components/desc/VarDescComponent'));
         Vue.component('var-if', () => import(/* webpackChunkName: "VarDataIfComponent" */ './ts/components/Var/components/varif/VarDataIfComponent'));
-        Vue.component('var-bar-chart', () => import(/* webpackChunkName: "VarDataBarChartComponent" */ './ts/components/Var/components/databarchart/VarDataBarChartComponent'));
+        // Vue.component('var-bar-chart', () => import(/* webpackChunkName: "VarDataBarChartComponent" */ './ts/components/Var/components/databarchart/VarDataBarChartComponent'));
+        Vue.component('vars-bar-chart', () => import(/* webpackChunkName: "VarDatasBarChartComponent" */ './ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
         Vue.component('var-pie-chart', () => import(/* webpackChunkName: "VarPieChartComponent" */ './ts/components/Var/components/piechart/VarPieChartComponent'));
         Vue.component('Resizableimg', () => import(/* webpackChunkName: "ResizableImageComponent" */ './ts/components/resizable_img/ResizableImageComponent'));
         Vue.component('Intersect', Intersect);
@@ -344,6 +349,12 @@ export default abstract class VueAppBase {
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('Alertcomponent', AlertComponent);
+        Vue.component('Numrangecomponent', () => import(/* webpackChunkName: "NumRangeComponent" */ './ts/components/ranges/numrange/NumRangeComponent'));
+        Vue.component('Numrangescomponent', () => import(/* webpackChunkName: "NumRangesComponent" */ './ts/components/ranges/numranges/NumRangesComponent'));
+        Vue.component('Tsrangecomponent', () => import(/* webpackChunkName: "TSRangeComponent" */ './ts/components/ranges/tsrange/TSRangeComponent'));
+        Vue.component('Tsrangescomponent', () => import(/* webpackChunkName: "TSRangesComponent" */ './ts/components/ranges/tsranges/TSRangesComponent'));
+        Vue.component('Hourrangecomponent', () => import(/* webpackChunkName: "HourRangeComponent" */ './ts/components/ranges/hourrange/HourRangeComponent'));
+        Vue.component('Hourrangescomponent', () => import(/* webpackChunkName: "HourRangesComponent" */ './ts/components/ranges/hourranges/HourRangesComponent'));
 
         Vue.directive('var-directive', VarDirective.getInstance());
 
@@ -351,6 +362,8 @@ export default abstract class VueAppBase {
 
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
+
+        await this.postMountHook();
 
         // this.registerPushWorker();
 
@@ -383,4 +396,5 @@ export default abstract class VueAppBase {
     protected abstract createVueMain(): VueComponentBase;
     protected abstract async initializeVueAppModulesDatas();
     protected async postInitializationHook() { }
+    protected async postMountHook() { }
 }

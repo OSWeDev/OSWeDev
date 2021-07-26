@@ -56,11 +56,11 @@ export default class TSRange implements IRange<Moment> {
     public static getSegmentedMin(min: Moment, min_inclusiv: boolean, max: Moment, max_inclusiv: boolean, segment_type: number): Moment {
 
 
-        if ((min == null) || (typeof min == 'undefined')) {
+        if ((min === null) || (typeof min == 'undefined')) {
             return null;
         }
 
-        if ((max == null) || (typeof max == 'undefined')) {
+        if ((max === null) || (typeof max == 'undefined')) {
             return null;
         }
 
@@ -88,11 +88,11 @@ export default class TSRange implements IRange<Moment> {
      */
     public static getSegmentedMax(min: Moment, min_inclusiv: boolean, max: Moment, max_inclusiv: boolean, segment_type: number): Moment {
 
-        if ((min == null) || (typeof min == 'undefined')) {
+        if ((min === null) || (typeof min == 'undefined')) {
             return null;
         }
 
-        if ((max == null) || (typeof max == 'undefined')) {
+        if ((max === null) || (typeof max == 'undefined')) {
             return null;
         }
 

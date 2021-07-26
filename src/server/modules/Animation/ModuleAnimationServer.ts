@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -9,16 +10,16 @@ import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import AnimationModuleParamVO from '../../../shared/modules/Animation/params/AnimationModuleParamVO';
 import AnimationParamVO from '../../../shared/modules/Animation/params/AnimationParamVO';
 import AnimationReportingParamVO from '../../../shared/modules/Animation/params/AnimationReportingParamVO';
-import ThemeModuleDataParamRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
-import VarDayPrctReussiteAnimationController from '../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
+import ThemeModuleDataRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationModuleVO from '../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationParametersVO from '../../../shared/modules/Animation/vos/AnimationParametersVO';
 import AnimationQRVO from '../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationThemeVO from '../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import ModuleTable from '../../../shared/modules/ModuleTable';
@@ -27,9 +28,6 @@ import ModuleTranslation from '../../../shared/modules/Translation/ModuleTransla
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import SimpleNumberVarDataController from '../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -37,11 +35,19 @@ import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
 import AnimationReportingExportHandler from './exports/AnimationReportingExportHandler';
+import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
+import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
+import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
+import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
+// Utilisé dans les commentaires @link
+import UQRsRangesDatasourceController from './datasources/UQRsRangesDatasourceController';
 
 export default class ModuleAnimationServer extends ModuleServerBase {
 
@@ -59,11 +65,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
     }
 
     /**
@@ -134,12 +140,13 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     public async configure() {
+        await this.configure_vars();
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
 
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
         await this.initializeTranslations();
     }
@@ -182,14 +189,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return true;
     }
 
-    private async getQRsByThemesAndModules(param: AnimationParamVO): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
+    private async getQRsByThemesAndModules(theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
         let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = {};
 
-        let module_ids: number[] = await this.getAllModuleIds(param);
-        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', module_ids);
+        let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
+        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, module_ids)
+            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
         );
 
         for (let i in qrs) {
@@ -213,11 +220,19 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return res;
     }
 
-    private async getUQRsByThemesAndModules(param: AnimationParamVO): Promise<{ [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } }> {
-        let res: { [theme_id: number]: { [module_id: number]: { [uqr_id: number]: AnimationUserQRVO } } } = {};
+    /**
+     * Permet de charger les UQRs (réponses des utilisateurs).
+     * Utilisé dans {@link UQRsRangesDatasourceController} pour le calcul de variables.
+     * @param user_ids pour filtrer sur ces utilisateurs
+     * @param theme_ids les thèmes à prendre en compte
+     * @param module_ids les modules à prendre en compte
+     * @returns AnimationUserQRVO[] by qr_id by module_id by theme_id
+     */
+    private async getUQRsByThemesAndModules(user_ids: number[], theme_ids: number[], module_ids: number[]): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> {
+        let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
 
-        let module_ids: number[] = await this.getAllModuleIds(param);
-        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', module_ids);
+        let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
+        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
         let qr_by_ids: { [id: number]: AnimationQRVO } = {};
         let qr_ids: number[] = [];
 
@@ -231,11 +246,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             'qr_id',
             qr_ids,
             'user_id',
-            param.user_ids
+            user_ids
         );
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, module_ids)
+            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
         );
 
         for (let i in uqrs) {
@@ -259,32 +274,40 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             if (!res[module.theme_id][module.id]) {
                 res[module.theme_id][module.id] = {};
             }
-            res[module.theme_id][module.id][uqr.id] = uqr;
+
+            if (!res[module.theme_id][module.id][qr.id]) {
+                res[module.theme_id][module.id][qr.id] = [];
+            }
+
+            res[module.theme_id][module.id][qr.id].push(uqr);
         }
 
         return res;
     }
 
-    private async getAllModuleIds(param: AnimationParamVO): Promise<number[]> {
-        let module_ids: number[] = [];
+    /**
+     * @param theme_ids les thèmes à passer en revue si module_ids est vide ou null
+     * @param module_ids
+     * @returns module_ids s'il est pas vide sinon les module_ids des thèmes
+     */
+    private async getAllModuleIds(theme_ids: number[], module_ids: number[]): Promise<number[]> {
+        let res: number[] = [];
 
-        if (param.module_ids) {
-            module_ids = param.module_ids;
-        }
-
-        if (param.theme_ids) {
-            let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', param.theme_ids);
+        if (module_ids && module_ids.length > 0) {
+            res = module_ids;
+        } else if (theme_ids && theme_ids.length > 0) {
+            let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', theme_ids);
 
             if (modules && modules.length > 0) {
-                module_ids = module_ids.concat(modules.map((m) => m.id));
+                res = res.concat(modules.map((m) => m.id));
             }
         }
 
-        return module_ids;
+        return res;
     }
 
-    private async startModule(param: AnimationModuleParamVO): Promise<AnimationUserModuleVO> {
-        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    private async startModule(user_id: number, module_id: number, support: number): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 
         if (res) {
             return res;
@@ -292,46 +315,68 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         let aum: AnimationUserModuleVO = new AnimationUserModuleVO();
         aum.start_date = moment().utc(true);
-        aum.user_id = param.user_id;
-        aum.module_id = param.module_id;
-        aum.support = param.support;
+        aum.user_id = user_id;
+        aum.module_id = module_id;
+        aum.support = support;
         await ModuleDAO.getInstance().insertOrUpdateVO(aum);
 
-        return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+        return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
-    private async endModule(param: AnimationModuleParamVO): Promise<AnimationUserModuleVO> {
-        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+    /**
+     * Créé un {@link AnimationUserModuleVO} pour l'utilisateur et le module spécifié.
+     * Calcule le pourcentage de réusite sur le module réalisé ({@link VarDayPrctReussiteAnimationController})
+     * @param user_id
+     * @param module_id
+     * @returns Le {@link AnimationUserModuleVO} créé
+     */
+    private async endModule(user_id: number, module_id: number): Promise<AnimationUserModuleVO> {
+        let res: AnimationUserModuleVO = await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
 
         if (!res) {
             return null;
         }
 
         if (!res.end_date) {
+
+            let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID);
+
+            let theme_id_ranges: NumRange[] = [];
+
+            for (let i in themes) {
+                theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(themes[i].id, NumSegment.TYPE_INT));
+            }
+
             res.end_date = moment().utc(true);
-            res.prct_reussite = SimpleNumberVarDataController.getInstance().getValueOrDefault(
-                await VarsController.getInstance().registerDataParamAndReturnVarData(ThemeModuleDataParamRangesVO.createNew(
-                    VarDayPrctReussiteAnimationController.getInstance().varConf.id,
-                    null,
-                    [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
-                    [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)],
-                ), true, true) as ISimpleNumberVarData,
-                0
-            );
+            let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
+                VarDayPrctReussiteAnimationController.getInstance().varConf.name,
+                true,
+                theme_id_ranges,
+                [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
+                [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
+            ));
+            res.prct_reussite = (data && data.value) ? data.value : 0;
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
-        return ModuleAnimation.getInstance().getUserModule(param.user_id, param.module_id);
+        return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
-    private async getAumsFiltered(param: AnimationReportingParamVO): Promise<AnimationUserModuleVO[]> {
+    private async getAumsFiltered(
+        filter_anim_theme_active_options: DataFilterOption[],
+        filter_anim_module_active_options: DataFilterOption[],
+        filter_role_active_options: DataFilterOption[],
+        filter_user_active_options: DataFilterOption[],
+        filter_module_termine_active_option: DataFilterOption,
+        filter_module_valide_active_option: DataFilterOption,
+    ): Promise<AnimationUserModuleVO[]> {
         let res: AnimationUserModuleVO[] = [];
 
-        let theme_ids: number[] = param.filter_anim_theme_active_options ? param.filter_anim_theme_active_options.map((s) => s.id) : [];
-        let module_ids: number[] = param.filter_anim_module_active_options ? param.filter_anim_module_active_options.map((s) => s.id) : [];
-        let user_ids: number[] = param.filter_user_active_options ? param.filter_user_active_options.map((s) => s.id) : [];
-        let role_ids: number[] = param.filter_role_active_options ? param.filter_role_active_options.map((s) => s.id) : [];
+        let theme_ids: number[] = filter_anim_theme_active_options ? filter_anim_theme_active_options.map((s) => s.id) : [];
+        let module_ids: number[] = filter_anim_module_active_options ? filter_anim_module_active_options.map((s) => s.id) : [];
+        let user_ids: number[] = filter_user_active_options ? filter_user_active_options.map((s) => s.id) : [];
+        let role_ids: number[] = filter_role_active_options ? filter_role_active_options.map((s) => s.id) : [];
         let only_module_valide: boolean = null;
         let only_module_termine: boolean = null;
 
@@ -377,12 +422,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return res;
         }
 
-        if (param.filter_module_valide_active_option) {
-            only_module_valide = param.filter_module_valide_active_option.id == AnimationController.OPTION_YES;
+        if (filter_module_valide_active_option) {
+            only_module_valide = filter_module_valide_active_option.id == AnimationController.OPTION_YES;
         }
 
-        if (param.filter_module_termine_active_option) {
-            only_module_termine = param.filter_module_termine_active_option.id == AnimationController.OPTION_YES;
+        if (filter_module_termine_active_option) {
+            only_module_termine = filter_module_termine_active_option.id == AnimationController.OPTION_YES;
         }
 
         for (let i in aums) {
@@ -433,16 +478,17 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             let has_role: boolean = false;
 
-            // Test Roles IDS
+            // Test Roles IDS sur les USERS
             if (role_ids.length > 0) {
-                if (module.role_id_ranges && module.role_id_ranges.length > 0) {
-                    RangeHandler.getInstance().foreach_ranges_sync(module.role_id_ranges, (role_id: number) => {
-                        if (role_ids.indexOf(role_id) == -1) {
-                            return;
-                        }
+                let roles: RoleVO[] = AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(aum.user_id);
 
-                        has_role = true;
-                    });
+                if (roles && roles.length > 0) {
+                    for (let j in roles) {
+                        if (role_ids.includes(roles[j].id)) {
+                            has_role = true;
+                            break;
+                        }
+                    }
                 }
             } else {
                 has_role = true;
@@ -609,5 +655,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
 
+    }
+
+    private async configure_vars() {
+        await VarDayPrctAvancementAnimationController.getInstance().initialize();
+        await VarDayPrctReussiteAnimationController.getInstance().initialize();
+        await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
+        await VarDayTempsPasseAnimationController.getInstance().initialize();
     }
 }

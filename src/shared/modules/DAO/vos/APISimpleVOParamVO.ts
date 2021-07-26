@@ -1,15 +1,21 @@
-import ModuleAPI from '../../API/ModuleAPI';
+import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 import IDistantVOBase from '../../IDistantVOBase';
 
-export default class APISimpleVOParamVO {
+export default class APISimpleVOParamVO implements IAPIParamTranslator<APISimpleVOParamVO> {
 
-    public static async translateCheckAccessParams(vo: IDistantVOBase): Promise<APISimpleVOParamVO> {
+    public static fromParams(
+        vo: IDistantVOBase): APISimpleVOParamVO {
 
         return new APISimpleVOParamVO(vo);
     }
 
-    public constructor(
-        public vo: IDistantVOBase) {
-        // this.vo = APIController.getInstance().try_translate_vo_to_api(vo);
+    public static getAPIParams(param: APISimpleVOParamVO): any[] {
+        return [param.vo];
     }
+
+    public constructor(
+        public vo: IDistantVOBase) { }
 }
+
+export const APISimpleVOParamVOStatic: IAPIParamTranslatorStatic<APISimpleVOParamVO> = APISimpleVOParamVO;

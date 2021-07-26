@@ -1,3 +1,4 @@
 export default class InsertOrDeleteQueryResult {
-    public id: string;
+
+    public constructor(public id: number) { }
 }

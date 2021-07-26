@@ -3,7 +3,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTable from '../../../shared/modules/ModuleTable';
@@ -13,7 +13,6 @@ import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import ProgramSegmentParamVO from '../../../shared/modules/ProgramPlan/vos/ProgramSegmentParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -23,7 +22,10 @@ import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
@@ -45,14 +47,14 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         //  Création de RDV on a un statut created ou confirmed si il est créé confirmed
         //  Mise à jour du RDV : On demande à recalculer le statut du RDV
         //  Ajout / Suppression de CR ou Prep : On demande à recalculer le statut du RDV
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDVUpdate.bind(this));
 
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreCreateCr.bind(this));
-        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
@@ -108,12 +110,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
 
-            ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
+            APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
         }
     }
 
@@ -221,8 +223,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         await this.registerFrontEditionAccessPolicies(group, fo_edit);
     }
 
-    public async getPrepsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVPrep[]> {
-        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(params);
+    public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {
+        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(program_id, timeSegment);
         if (!rdvs) {
             return null;
         }
@@ -234,8 +236,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', ids);
     }
 
-    public async getCRsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVCR[]> {
-        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(params);
+    public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
+        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(program_id, timeSegment);
         if (!rdvs) {
             return null;
         }
@@ -247,9 +249,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', ids);
     }
 
-    public async getRDVsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDV[]> {
-        let program_id: number = params.program_id;
-        let timeSegment: TimeSegment = params.timeSegment;
+    public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
 
         if (!timeSegment) {
             return null;
@@ -358,20 +358,20 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
     }
 
     private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterManagerByIdByAccess_own_team(datatable, vos, uid);
         }
         return null;
@@ -544,10 +544,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
 
     private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -569,10 +569,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -591,6 +591,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             }
         }
         return res;
+    }
+
+    private async handleTriggerSetStateRDVUpdate(vo_update_handler: DAOUpdateVOHolder<IPlanRDV>): Promise<boolean> {
+        return this.handleTriggerSetStateRDV(vo_update_handler.post_update_vo);
     }
 
     private async handleTriggerSetStateRDV(rdv: IPlanRDV): Promise<boolean> {

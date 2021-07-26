@@ -1,31 +1,43 @@
 
 .rootElt.theme
-    .theme_name {{ theme.name }}
-    .description(v-if="theme.description", v-html="theme.description")
-    .prct_avancement
-        .barre-total
-        .barre(:style="style_barre_avancement")
-        .indicateur.text-center
-            var-data(
-                :var_param="prct_atteinte_seuil_theme_param",
-                :filter='const_filters.percent.read',
-                :filter_additional_params='[]',
-                :var_value_callback="prct_atteinte_seuil_theme_value_callback",
-            )
-    template(v-if="ordered_modules && ordered_modules.length > 0 && is_ready")
-        .modules
-            template(v-for="anim_module in ordered_modules")
-                .row.module
-                    .col-md-12
-                        .text-left.module_infos
-                            .documentation.main(:class="{no_doc: !document_by_module_id[anim_module.id]}")
-                                template(v-if="document_by_module_id[anim_module.id]")
-                                    a(:href="document_by_module_id[anim_module.id].document_url", target="_blank")
-                                        i.fa.fa-book
+    template(v-if="is_ready")
 
-                            .theme_container(@click="go_to_route_module(anim_module)")
-                                .prct_avancement_module(:class="get_class_prct_avancement_module(anim_module)")
-                                .module_name
-                                    span {{ anim_module.name }}
-                                    template(v-if="um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date")
-                                        span.en_cours_message {{ label('animation.module.en_cours') }}
+        //- display header of theme (title, progress bar with %)
+        .theme_name {{ theme.name }}
+        .description(v-if="theme.description", v-html="theme.description")
+        .prct_avancement
+            .barre-total
+            .barre(:style="style_barre_avancement")
+            .indicateur.text-center
+                var-data(
+                    :var_param="prct_atteinte_seuil_theme_param",
+                    :filter='const_filters.percent.read',
+                    :filter_additional_params='[]',
+                    :var_value_callback="prct_atteinte_seuil_theme_value_callback",
+                )
+
+        //- display every module of theme
+        template(v-if="ordered_modules && ordered_modules.length > 0")
+            .modules
+                template(v-for="anim_module in ordered_modules")
+                    .row.module
+                        .col-md-12
+                            .text-left.module_infos
+
+                                //- button for documentation
+                                .documentation.main(:class="{no_doc: !document_by_module_id[anim_module.id]}")
+                                    template(v-if="document_by_module_id[anim_module.id]")
+                                        a(:href="document_by_module_id[anim_module.id].document_url", target="_blank")
+                                            i.fa.fa-book
+
+                                //- display module line
+                                .theme_container(@click="go_to_route_module(anim_module)")
+                                
+                                    //- square for progress status
+                                    .prct_avancement_module(:class="get_class_prct_avancement_module(anim_module)")
+
+                                    //- title and status (en cours)
+                                    .module_name
+                                        span {{ anim_module.name }}
+                                        template(v-if="um_by_module_id[anim_module.id] && !um_by_module_id[anim_module.id].end_date")
+                                            span.en_cours_message {{ label('animation.module.en_cours') }}

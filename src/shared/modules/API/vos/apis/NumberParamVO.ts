@@ -1,18 +1,11 @@
-export default class NumberParamVO {
+import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
+
+export default class NumberParamVO implements IAPIParamTranslator<NumberParamVO>{
 
     public static URL: string = ':num';
 
-    public static async translateCheckAccessParams(
-        num: number): Promise<NumberParamVO> {
-
-        return new NumberParamVO(num);
-    }
-
-    public static async translateToURL(param: NumberParamVO): Promise<string> {
-
-        return param ? (((param.num % 1) === 0) ? param.num.toString() : param.num.toPrecision(10)) : '';
-    }
-    public static async translateFromREQ(req): Promise<NumberParamVO> {
+    public static fromREQ(req): NumberParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -20,7 +13,23 @@ export default class NumberParamVO {
         return new NumberParamVO(parseFloat(req.params.num));
     }
 
+    public static fromParams(num: number): NumberParamVO {
+
+        return new NumberParamVO(num);
+    }
+
+    public static getAPIParams(param: NumberParamVO): any[] {
+        return [param.num];
+    }
+
     public constructor(
         public num: number) {
     }
+
+    public translateToURL(): string {
+
+        return ((this.num % 1) === 0) ? this.num.toString() : this.num.toPrecision(10);
+    }
 }
+
+export const NumberParamVOStatic: IAPIParamTranslatorStatic<NumberParamVO> = NumberParamVO;

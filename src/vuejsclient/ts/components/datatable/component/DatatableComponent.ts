@@ -215,6 +215,9 @@ export default class DatatableComponent extends VueComponentBase {
                                 this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true));
                             }
                             continue;
+
+                        case ModuleTableField.FIELD_TYPE_tstz_array:
+                        // TODO ?
                     }
                 }
 
@@ -442,6 +445,43 @@ export default class DatatableComponent extends VueComponentBase {
                         res.push(field);
                         break;
 
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    //TODO ?
+                    default:
+                }
+
+            }
+        }
+
+        return res;
+    }
+
+    get number_filtered_fields(): Array<DatatableField<any, any>> {
+        let res: Array<DatatableField<any, any>> = [];
+
+        for (let i in this.datatable.fields) {
+            let field = this.datatable.fields[i];
+
+            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+                let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+
+                switch (simpleField.moduleTableField.field_type) {
+
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
+                            res.push(field);
+                            break;
+                        }
+
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                        res.push(field);
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    //TODO ?
                     default:
                 }
 
@@ -476,6 +516,9 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_html_array:
+
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                        //TODO ?
                         continue;
                 }
             }
@@ -690,6 +733,9 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
+
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    //TODO ?
                     default:
                         this.changeTextFilterValue(field.datatable_field_uid);
                 }
@@ -844,7 +890,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         // On commence par charger la liste des données concernées
         // Un getter du store qui renvoie les datas de base, version distant vo et on va chercher ensuite tous les fields utiles, et les refs
-        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID]; //TODO chargement depuis le store
+        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID];
         let baseDatas: IDistantVOBase[] = [];
 
         if (!!this.datatable.data_set_hook) {
@@ -1297,6 +1343,8 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
                                     return false;
 
+                                case ModuleTableField.FIELD_TYPE_tstz_array:
+                                //TODO ?
                                 default:
                                     if (!query) {
                                         return true;
@@ -1372,9 +1420,13 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.datatable.fields) {
             let field: DatatableField<any, any> = this.datatable.fields[i];
 
+            let class_name: string[] = ['field_' + field.datatable_field_uid];
+
             if (field.hidden_print) {
-                res[field.datatable_field_uid] = 'hidden-print';
+                class_name.push('hidden-print');
             }
+
+            res[field.datatable_field_uid] = class_name.join(' ');
         }
 
         return res;
@@ -1420,7 +1472,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     /**
-     * CustomSorting pour les champs de type date ...
+     * CustomSorting pour les champs de type date et number ...
      */
     get customSorting(): {} {
         let res = {};
@@ -1431,7 +1483,39 @@ export default class DatatableComponent extends VueComponentBase {
             res[date_field.datatable_field_uid] = this.getCustomSortingDateColumn(date_field);
         }
 
+        for (let i in this.number_filtered_fields) {
+            let number_filtered_field = this.number_filtered_fields[i];
+
+            res[number_filtered_field.datatable_field_uid] = this.getCustomSortingNumberColumn(number_filtered_field);
+        }
+
         return res;
+    }
+
+    private getCustomSortingNumberColumn(number_field: DatatableField<any, any>) {
+        return function (ascending) {
+            return function (a, b) {
+                let dataA: number = (a[number_field.datatable_field_uid] != null) ? parseFloat(a[number_field.datatable_field_uid]) : null;
+                let dataB: number = (b[number_field.datatable_field_uid] != null) ? parseFloat(b[number_field.datatable_field_uid]) : null;
+
+                if ((dataA == null) && (dataB != null)) {
+                    return 1;
+                }
+
+                if ((dataB == null) && (dataA != null)) {
+                    return -1;
+                }
+
+                if (dataA == dataB) {
+                    return 0;
+                }
+
+                if (dataA > dataB) {
+                    return ascending ? 1 : -1;
+                }
+                return ascending ? -1 : 1;
+            };
+        };
     }
 
     private getCustomSortingDateColumn(date_field: DatatableField<any, any>) {

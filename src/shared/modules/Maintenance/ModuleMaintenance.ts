@@ -1,15 +1,17 @@
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../API/ModuleAPI';
-import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import ModuleDAO from '../DAO/ModuleDAO';
 
 export default class ModuleMaintenance extends Module {
 
@@ -20,10 +22,11 @@ export default class ModuleMaintenance extends Module {
     public static MSG3_code_text = 'maintenance.msg3' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     public static MSG4_code_text = 'maintenance.msg4' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
 
-    public static PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES = 'msg1_minutes';
-    public static PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES = 'msg2_minutes';
-    public static PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES = 'msg3_minutes';
-    public static PARAM_NAME_INFORM_EVERY_MINUTES = 'inform_minutes';
+    public static PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg1_minutes';
+    public static PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg2_minutes';
+    public static PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg3_minutes';
+    public static PARAM_NAME_INFORM_EVERY_MINUTES = 'ModuleMaintenance.inform_minutes';
+    public static PARAM_NAME_start_maintenance_force_readonly_after_x_ms = 'ModuleMaintenance.start_maintenance_force_readonly_after_x_ms';
 
     public static APINAME_END_MAINTENANCE: string = "end_maintenance";
     public static APINAME_START_MAINTENANCE: string = "start_maintenance";
@@ -38,6 +41,10 @@ export default class ModuleMaintenance extends Module {
 
     private static instance: ModuleMaintenance = null;
 
+    public start_maintenance: (validation_code: string) => Promise<void> = APIControllerWrapper.sah(ModuleMaintenance.APINAME_START_MAINTENANCE);
+    public end_maintenance: (maintenance_vo_id: number) => Promise<void> = APIControllerWrapper.sah(ModuleMaintenance.APINAME_END_MAINTENANCE);
+    public end_planned_maintenance: () => Promise<void> = APIControllerWrapper.sah(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
+
     private constructor() {
 
         super("maintenance", ModuleMaintenance.MODULE_NAME);
@@ -46,43 +53,27 @@ export default class ModuleMaintenance extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, void>(
+            null,
             ModuleMaintenance.APINAME_START_MAINTENANCE,
-            [MaintenanceVO.API_TYPE_ID]
+            [MaintenanceVO.API_TYPE_ID],
+            StringParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams
+            NumberParamVOStatic
         ));
     }
 
-    public async start_maintenance(): Promise<void> {
-        return ModuleAPI.getInstance().handleAPI<void, void>(ModuleMaintenance.APINAME_START_MAINTENANCE);
-    }
-
-    public async end_maintenance(maintenance_vo_id: number): Promise<void> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleMaintenance.APINAME_END_MAINTENANCE, maintenance_vo_id);
-    }
-
-    public async end_planned_maintenance(): Promise<void> {
-        return ModuleAPI.getInstance().handleAPI<void, void>(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
-    }
-
     public initialize() {
-        this.fields = [
-            new ModuleTableField(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, ModuleTableField.FIELD_TYPE_float, 'Envoie du MSG1 quand la maintenance est dans moins de x minutes', true, true, 120),
-            new ModuleTableField(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, ModuleTableField.FIELD_TYPE_float, 'Envoie du MSG2 ...', true, true, 15),
-            new ModuleTableField(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, ModuleTableField.FIELD_TYPE_float, 'Envoie du MSG3 ...', true, true, 5),
-            new ModuleTableField(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES, ModuleTableField.FIELD_TYPE_float, 'Informer les utilisateurs chaque x minutes (valable pour MSG2 et MSG3)', true, true, 1),
-        ];
+        this.fields = [];
         this.datatables = [];
 
         this.initializeMaintenanceVO();

@@ -1,0 +1,23 @@
+.var_desc_explain_ds {
+    border: solid 1px #DDD;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 2px;
+
+    .var_ds_label_wrapper {
+        text-align: right;
+    }
+    .var_ds_label {
+        color: #999;
+        margin: 2px;
+        font-size: smaller;
+        margin-top: .3em;
+        margin-right: 5px;
+        display: inline-block;
+        margin: 0;
+    }
+
+    .vjs-tree {
+        background: rgba(0,0,0,.5);
+    }
+}

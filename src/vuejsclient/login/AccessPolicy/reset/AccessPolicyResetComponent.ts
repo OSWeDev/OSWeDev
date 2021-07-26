@@ -3,6 +3,7 @@ import { Component, Prop, Watch } from "vue-property-decorator";
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './AccessPolicyResetComponent.scss';
 
@@ -27,8 +28,12 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     private status: boolean = false;
     private show_init_link: boolean = false;
 
+    private redirect_to: string = "/";
+
     private debounced_load_props = debounce(this.load_props, 100);
     private logo_url: string = null;
+
+    private has_sms_activation: boolean = false;
 
     @Watch('prop_user_id', { immediate: true })
     private onchange_prop_user_id() {
@@ -59,8 +64,17 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
         this.is_simplified = true;
     }
 
-    private mounted() {
+    private async mounted() {
         this.load_logo_url();
+
+        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (!!logged_id) {
+            window.location = this.redirect_to as any;
+        }
+
+        this.has_sms_activation =
+            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION) &&
+            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_CAN_RECOVER_PWD_BY_SMS);
     }
     //     for (let j in this.$route.query) {
     //         switch (j) {
@@ -115,14 +129,56 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
         }
     }
 
-    private async send_init_pwd() {
+    private async recover() {
+        this.snotify.info(this.label('recover.start'));
+
+        let recovered = false;
         if (this.is_simplified) {
-            await ModuleAccessPolicy.getInstance().begininitpwd_uid(this.prop_user_id);
+            recovered = await ModuleAccessPolicy.getInstance().beginRecoverUID(this.prop_user_id);
         } else {
-            await ModuleAccessPolicy.getInstance().begininitpwd(this.email);
+            recovered = await ModuleAccessPolicy.getInstance().beginRecover(this.email);
         }
-        this.snotify.success(this.label('reset.sent_init_pwd'));
+
+        if (recovered) {
+            this.snotify.success(this.label('recover.ok'));
+
+            if (this.has_sms_activation) {
+                this.message = this.label('login.recover.answercansms');
+            } else {
+                this.message = this.label('login.recover.answer');
+            }
+
+        } else {
+            this.snotify.error(this.label('recover.failed'));
+        }
     }
+
+    private async recoversms() {
+        this.snotify.info(this.label('recover.start'));
+
+        let recovered = false;
+        if (this.is_simplified) {
+            recovered = await ModuleAccessPolicy.getInstance().beginRecoverSMSUID(this.prop_user_id);
+        } else {
+            recovered = await ModuleAccessPolicy.getInstance().beginRecoverSMS(this.email);
+        }
+
+        if (recovered) {
+            this.snotify.success(this.label('recover.oksms'));
+            this.message = this.label('login.recover.answersms');
+        } else {
+            this.snotify.error(this.label('recover.failed'));
+        }
+    }
+
+    // private async send_init_pwd() {
+    //     if (this.is_simplified) {
+    //         await ModuleAccessPolicy.getInstance().begininitpwd_uid(this.prop_user_id);
+    //     } else {
+    //         await ModuleAccessPolicy.getInstance().begininitpwd(this.email);
+    //     }
+    //     this.snotify.success(this.label('reset.sent_init_pwd'));
+    // }
 
     @Watch('email')
     private onchange_email() {

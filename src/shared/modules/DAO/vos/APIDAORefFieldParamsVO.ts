@@ -1,35 +1,16 @@
-export default class APIDAORefFieldParamsVO {
+import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
+
+export default class APIDAORefFieldParamsVO implements IAPIParamTranslator<APIDAORefFieldParamsVO> {
 
     public static URL: string = ':api_type_id/:field_name/:has_null/:ids';
 
-    public static async translateCheckAccessParams(
-        API_TYPE_ID: string,
-        field_name: string,
-        ids: number[]): Promise<APIDAORefFieldParamsVO> {
+    public static fromParams(API_TYPE_ID: string, field_name: string, ids: number[]): APIDAORefFieldParamsVO {
 
         return new APIDAORefFieldParamsVO(API_TYPE_ID, field_name, ids);
     }
 
-    public static async translateToURL(param: APIDAORefFieldParamsVO): Promise<string> {
-
-        if (!param) {
-            return '';
-        }
-
-        let has_null: boolean = false;
-        for (let i in param.ids) {
-            if (param.ids[i] == null) {
-                has_null = true;
-                break;
-            }
-        }
-
-        let temp = param.ids.filter((v) => v != null);
-        let request = param.API_TYPE_ID + '/' + param.field_name + '/' + (has_null ? "true" : "false") + '/' + temp.join('_');
-
-        return request;
-    }
-    public static async translateFromREQ(req): Promise<APIDAORefFieldParamsVO> {
+    public static fromREQ(req): APIDAORefFieldParamsVO {
 
         if (!(req && req.params)) {
             return null;
@@ -49,9 +30,31 @@ export default class APIDAORefFieldParamsVO {
         return new APIDAORefFieldParamsVO(req.params.api_type_id, req.params.field_name, ids);
     }
 
+    public static getAPIParams(param: APIDAORefFieldParamsVO): any[] {
+        return [param.API_TYPE_ID, param.field_name, param.ids];
+    }
+
     public constructor(
         public API_TYPE_ID: string,
         public field_name: string,
         public ids: number[]) {
     }
+
+    public translateToURL(): string {
+
+        let has_null: boolean = false;
+        for (let i in this.ids) {
+            if (this.ids[i] == null) {
+                has_null = true;
+                break;
+            }
+        }
+
+        let temp = this.ids.filter((v) => v != null);
+        let request = this.API_TYPE_ID + '/' + this.field_name + '/' + (has_null ? "true" : "false") + '/' + temp.join('_');
+
+        return request;
+    }
 }
+
+export const APIDAORefFieldParamsVOStatic: IAPIParamTranslatorStatic<APIDAORefFieldParamsVO> = APIDAORefFieldParamsVO;

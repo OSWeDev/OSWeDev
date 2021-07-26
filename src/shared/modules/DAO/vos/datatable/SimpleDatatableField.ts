@@ -23,7 +23,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         if (this.computed_value && this.computed_value[datatable_field_uid]) {
             return this.computed_value[datatable_field_uid](field_value, moduleTableField, vo, datatable_field_uid);
         }
-        if ((field_value == null) || (typeof field_value == "undefined")) {
+        if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
@@ -54,7 +54,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return moment(field_value).utc(true).format('MMM YYYY');
 
                 case ModuleTableField.FIELD_TYPE_timestamp:
-                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true)) + ' ' + moment(field_value).utc(true).format('HH:mm:ss');
+                    switch (moduleTableField.segmentation_type) {
+                        case TimeSegment.TYPE_YEAR:
+                        case TimeSegment.TYPE_MONTH:
+                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                        case TimeSegment.TYPE_WEEK:
+                        case TimeSegment.TYPE_DAY:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true));
+                        default:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true)) + ' ' + moment(field_value).utc(true).format('HH:mm:ss');
+                    }
 
                 case ModuleTableField.FIELD_TYPE_daterange:
 
@@ -201,6 +210,32 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).utc(true).format('Y-MM-DD');
                     }
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    let res_tstz_array = '';
+
+                    for (let i in field_value) {
+                        let fv = field_value[i];
+
+                        if (res_tstz_array != '') {
+                            res_tstz_array += ', ';
+                        }
+
+                        switch (moduleTableField.segmentation_type) {
+                            case TimeSegment.TYPE_MONTH:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).startOf('month').utc(true).format('Y-MM-DD');
+                            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).startOf('day').utc(true).format('Y-MM-DD');
+                            case TimeSegment.TYPE_WEEK:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).startOf('isoWeek').utc(true).format('Y-MM-DD');
+                            case TimeSegment.TYPE_YEAR:
+                                res_tstz_array += fv.year();
+                            case TimeSegment.TYPE_DAY:
+                            default:
+                                res_tstz_array += this.getMomentDateFieldInclusif(fv, moduleTableField, true).utc(true).format('Y-MM-DD');
+                        }
+                    }
+                    return res_tstz_array;
+
                 case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
@@ -221,7 +256,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string): any {
-        if ((field_value == null) || (typeof field_value == "undefined")) {
+        if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
@@ -252,6 +287,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_tstz_array:
                 case ModuleTableField.FIELD_TYPE_tstz:
                     return field_value;
 
@@ -265,7 +301,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if ((value == null) || (typeof value == "undefined")) {
+        if ((value === null) || (typeof value == "undefined")) {
             return value;
         }
 
@@ -355,6 +391,30 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             return value ? this.getMomentDateFieldInclusif(moment(value).utc(true), moduleTableField, false) : null;
                     }
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    let res_tstz_array = [];
+
+                    for (let i in value) {
+                        let v = value[i];
+
+                        switch (moduleTableField.segmentation_type) {
+                            case TimeSegment.TYPE_MONTH:
+                                res_tstz_array.push(v ? moment(v).startOf('month').utc(true) : null);
+                            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('day').utc(true), moduleTableField, false) : null);
+                            case TimeSegment.TYPE_WEEK:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('isoWeek').utc(true), moduleTableField, false) : null);
+                            case TimeSegment.TYPE_YEAR:
+                                res_tstz_array.push(moment().year(parseInt(v)).startOf('year').utc(true));
+                            case TimeSegment.TYPE_DAY:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('day').utc(true), moduleTableField, false) : null);
+                            default:
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).utc(true), moduleTableField, false) : null);
+                        }
+                    }
+
+                    return res_tstz_array;
+
                 case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
@@ -375,7 +435,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultUpdateIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if ((value == null) || (typeof value == "undefined")) {
+        if ((value === null) || (typeof value == "undefined")) {
             return value;
         }
 
@@ -508,7 +568,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     public enumIdToHumanReadable: (id: number) => string = (id: number) => {
         let res: string = "";
 
-        if ((typeof id === 'undefined') || (id == null)) {
+        if ((typeof id === 'undefined') || (id === null)) {
             return null;
         }
 
@@ -536,6 +596,18 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): U {
-        return this.dataToReadIHM(e[this.datatable_field_uid], e);
+        let res = this.dataToReadIHM(e[this.datatable_field_uid], e);
+
+        if ((this.type == SimpleDatatableField.SIMPLE_FIELD_TYPE) && (this.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+
+            // FIXME TODO si on est sur un boolean on voudrait voir idéalement OUI/NON et pas true /false mais ça dépend de la langue donc c'est pas si simple...
+            return res;
+        }
+
+        if (res == null) {
+            return '' as any as U;
+        }
+
+        return res;
     }
 }

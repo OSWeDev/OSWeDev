@@ -1,13 +1,11 @@
 import { IDatabase } from 'pg-promise';
+import VarDayPrctReussiteAnimationController from '../../../server/modules/Animation/vars/VarDayPrctReussiteAnimationController';
+import VarsServerCallBackSubsController from '../../../server/modules/Var/VarsServerCallBackSubsController';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
-import ThemeModuleDataParamRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
-import VarDayPrctReussiteAnimationController from '../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
+import ThemeModuleDataRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import SimpleNumberVarDataController from '../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
@@ -42,15 +40,23 @@ export default class Patch20210202AnimationPrctReussite implements IGeneratorWor
                 continue;
             }
 
-            aums[i].prct_reussite = SimpleNumberVarDataController.getInstance().getValueOrDefault(
-                await VarsController.getInstance().registerDataParamAndReturnVarData(ThemeModuleDataParamRangesVO.createNew(
-                    VarDayPrctReussiteAnimationController.getInstance().varConf.id,
-                    null,
-                    [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].module_id, NumSegment.TYPE_INT)],
-                    [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].user_id, NumSegment.TYPE_INT)],
-                ), true, true) as ISimpleNumberVarData,
-                0
-            );
+            let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
+                VarDayPrctReussiteAnimationController.getInstance().varConf.name,
+                false,
+                [RangeHandler.getInstance().getMaxNumRange()],
+                [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].module_id, NumSegment.TYPE_INT)],
+                [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].user_id, NumSegment.TYPE_INT)],
+            ));
+
+            let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
+                VarDayPrctReussiteAnimationController.getInstance().varConf.name,
+                false,
+                [RangeHandler.getInstance().getMaxNumRange()],
+                [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].module_id, NumSegment.TYPE_INT)],
+                [RangeHandler.getInstance().create_single_elt_NumRange(aums[i].user_id, NumSegment.TYPE_INT)],
+            ));
+
+            aums[i].prct_reussite = (data && data.value) ? data.value : 0;
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVOs(aums);

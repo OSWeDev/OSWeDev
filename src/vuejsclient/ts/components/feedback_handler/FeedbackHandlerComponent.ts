@@ -179,4 +179,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
         return res;
     }
+
+    get isActive(): boolean {
+        return ModuleFeedback.getInstance().actif && VueAppController.getInstance().has_access_to_feedback;
+    }
 }

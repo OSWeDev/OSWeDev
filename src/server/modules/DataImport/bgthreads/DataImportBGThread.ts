@@ -85,7 +85,7 @@ export default class DataImportBGThread implements IBGThread {
             if (!await this.handleImportHistoricProgression(dih)) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
-            console.debug('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
+            ConsoleHandler.getInstance().log('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
 
             dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
                 DataImportBGThread.request, [
@@ -167,7 +167,7 @@ export default class DataImportBGThread implements IBGThread {
                     ConsoleHandler.getInstance().error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
                     return false;
                 }
-                let id = parseInt(insertOrDeleteQueryResult.id);
+                let id = insertOrDeleteQueryResult.id;
                 if ((!id) || (!TypesHandler.getInstance().isNumber(id))) {
                     ConsoleHandler.getInstance().error('!id dans handleImportHistoricProgression');
                     return false;

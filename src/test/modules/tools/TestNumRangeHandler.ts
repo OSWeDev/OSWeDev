@@ -1,3 +1,7 @@
+import ServerAPIController from '../../../server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
 import { expect } from 'chai';
 import 'mocha';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
@@ -1458,21 +1462,22 @@ describe('NumRangeHandler', () => {
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
-        expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
-            range_type: NumRange.RANGE_TYPE,
-            min: 1,
-            min_inclusiv: true,
-            max: 2,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange, {
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: true,
-            max: 0,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange]);
+        expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([
+            {
+                range_type: NumRange.RANGE_TYPE,
+                min: -1,
+                min_inclusiv: true,
+                max: 0,
+                max_inclusiv: false,
+                segment_type: NumSegment.TYPE_INT
+            } as NumRange, {
+                range_type: NumRange.RANGE_TYPE,
+                min: 1,
+                min_inclusiv: true,
+                max: 2,
+                max_inclusiv: false,
+                segment_type: NumSegment.TYPE_INT
+            } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
@@ -1526,7 +1531,7 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(-1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
             [NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)]
@@ -2169,6 +2174,188 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
     });
 
+
+    it('test isStartABeforeOrSameStartB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameStartB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+    });
+
+
+    it('test isStartABeforeOrSameEndB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-2, -1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeOrSameEndB_optimized_normalized(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+    });
+
     it('test isStartABeforeStartB', () => {
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
@@ -2548,6 +2735,73 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+    });
+
+    it('test range_intersects_range_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
     });
 
     it('test range_intersects_any_range', () => {

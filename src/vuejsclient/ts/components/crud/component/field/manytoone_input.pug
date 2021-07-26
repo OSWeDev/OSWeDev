@@ -1,10 +1,20 @@
 .form-group
 
+    template(v-if='inline_input_mode && (!is_disabled)')
+        template(v-if='!inline_input_is_editing')
+            template(v-if='inline_input_show_clear && !field.is_required')
+                i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
+            template(v-else)
+                i.inline_input_hide_clear.fa.fa-arrow-circle-o-right.btn-info(:class="{busy: inline_input_is_busy}")
+        template(v-else)
+            i.inline_input_cancel_input.fa.fa-undo.btn-warning(@click='cancel_input' :class="{busy: inline_input_is_busy}")
+
     Alertcomponent.datatable_field_alert.manytoone_datatable_field_alert(:path='alert_path')
 
-    label(v-if="show_title") {{ t(field.translatable_title) }}
-        template(v-if="field.is_required")
-            i.fa.fa-asterisk.mandatory
+    template(v-if='(!inline_input_mode) || (!inline_input_hide_label)')
+        label(v-if="show_title") {{ t(field.translatable_title) }}
+            template(v-if="field.is_required")
+                i.fa.fa-asterisk.mandatory
 
     //- template(v-if='is_readonly')
     //- template(v-else)
@@ -27,7 +37,7 @@
         :internal-search="false",
         :allow-empty="!field.is_required",
         :preselect-first="field.is_required",
-        :disabled="is_readonly",
+        :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
         @search-change="asyncLoadOptions",
         @input="onChangeField"
 
@@ -37,3 +47,10 @@
         :deselect-label='label("multiselect.deselectLabel")'
         :deselect-group-label='label("multiselect.deselectGroupLabel")'
     )
+
+    template(v-if='inline_input_mode && (!is_disabled)')
+        template(v-if='inline_input_is_editing')
+            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy}")
+        template(v-else)
+            i.inline_input_is_not_editing.fa.fa-pencil.btn-primary(@click='prepare_inline_input' :class="{busy: inline_input_is_busy}")
+

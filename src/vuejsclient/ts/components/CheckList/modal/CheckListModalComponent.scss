@@ -1,0 +1,48 @@
+@import 'skin-variables.scss';
+
+#checklist_item_modal {
+
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_is_editing, .field .inline_input_cancel_input, .field .inline_input_is_not_editing,
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_is_editing, .field .inline_input_cancel_input, .field .inline_input_is_not_editing {
+        padding: 0.35em 0 0 0.5em;
+        vertical-align: middle;
+        border-radius: 20px;
+    }
+
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_cancel_input,
+    .field .inline_input_show_clear, .field .inline_input_hide_clear, .field .inline_input_cancel_input {
+        margin-right: .5em;
+    }
+    .field .inline_input_is_editing, .field .inline_input_is_not_editing,
+    .field .inline_input_is_editing, .field .inline_input_is_not_editing {
+        margin-left: .5em;
+    }
+
+    .inline_input_mode {
+        text-align: left;
+    }
+
+    .multiselect {
+        display: inline-block;
+        width: 26em;
+        margin-left: 1em;
+    }
+
+    label[role~=checkbox] {
+        margin-left: 1em;
+    }
+
+    .form-group>label:not([role=checkbox]) {
+        width: 20em;
+    }
+
+    input[type~=text] {
+        width: 30em;
+        margin-left: 1em;
+        background: white;
+        border: solid 1px #EEE;
+        padding: 0.3em;
+        text-align: left;
+        vertical-align: middle;
+    }
+}

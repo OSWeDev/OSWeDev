@@ -1,0 +1,51 @@
+.vars_datas_explorer_actions
+    .row(v-if='can_show_exact')
+        .col-md-12
+            button.btn.btn-default.btn-block.btn-flat(@click="show_exact")
+                i.fa.fa-cogs.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.show_exact') }}
+    .row(v-if='can_show_exact')
+        .col-md-12
+    .row
+        .col-md-12
+            button.btn.btn-default.btn-block.btn-flat(@click="get_exact")
+                i.fa.fa-search.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.get_exact') }}
+    .row
+        .col-md-12
+            button.btn.btn-default.btn-block.btn-flat(@click="get_intersection")
+                i.fa.fa-search.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.get_intersection') }}
+    .row
+        .col-md-12
+            button.btn.btn-default.btn-block.btn-flat(@click="get_included")
+                i.fa.fa-search.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.get_included') }}
+    .row
+        .col-md-12
+    //- .row
+    //-     .col-md-12
+    //-         button.btn.btn-default.btn-block.btn-flat(@click="invalidate_cache_intersection")
+    //-             i.fa.fa-refresh.fa-fw.btn_icon
+    //-             | {{ label('vars_datas_explorer_actions.invalidate_cache_intersection') }}
+    .row
+        .col-md-12
+            button.btn.btn-success.btn-block.btn-flat(@click="invalidate_cache_intersection_and_depstree")
+                i.fa.fa-sitemap.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.invalidate_cache_intersection_and_depstree') }}
+    .row
+        .col-md-12
+            button.btn.btn-warning.btn-block.btn-flat(@click="delete_cache_intersection")
+                i.fa.fa-trash.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.delete_cache_intersection') }}
+    .row
+        .col-md-12
+            button.btn.btn-danger.btn-block.btn-flat(@click="delete_cache_and_import_intersection")
+                i.fa.fa-trash.fa-fw.btn_icon
+                | {{ label('vars_datas_explorer_actions.delete_cache_and_import_intersection') }}
+
+
+
+
+
+

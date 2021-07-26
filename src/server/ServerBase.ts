@@ -22,12 +22,12 @@ import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
+import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
+import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
@@ -39,7 +39,6 @@ import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
-import ServerAPIController from './modules/API/ServerAPIController';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
@@ -50,6 +49,9 @@ import MaintenanceServerController from './modules/Maintenance/MaintenanceServer
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
+// import { createTerminus } from '@godaddy/terminus';
+import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
+import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
 
@@ -98,9 +100,6 @@ export default abstract class ServerBase {
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
         BGThreadServerController.getInstance().register_bgthreads = true;
         CronServerController.getInstance().register_crons = true;
-
-        // On initialise le Controller pour les APIs
-        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
 
         ModulesManager.getInstance().isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
@@ -200,6 +199,23 @@ export default abstract class ServerBase {
 
         this.app = express();
 
+        // createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
+
+        process.stdin.resume(); //so the program will not close instantly
+
+        //do something when app is closing
+        process.on('exit', this.exitHandler.bind(null, { cleanup: true }));
+
+        //catches ctrl+c event
+        process.on('SIGINT', this.exitHandler.bind(null, { exit: true }));
+
+        // catches "kill pid" (for example: nodemon restart)
+        process.on('SIGUSR1', this.exitHandler.bind(null, { exit: true }));
+        process.on('SIGUSR2', this.exitHandler.bind(null, { exit: true }));
+
+        //catches uncaught exceptions
+        process.on('uncaughtException', this.exitHandler.bind(null, { exit: true }));
+
         this.app.use(cookieParser());
 
         // this.app.use(helmet({
@@ -239,7 +255,7 @@ export default abstract class ServerBase {
                 }
 
                 // On check le cas du MSGPack qui est pas géré pour le moment pour indiquer compressible
-                if (req.headers['content-type'] == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                if (req.headers['content-type'] == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
                     return true;
                 }
 
@@ -387,6 +403,50 @@ export default abstract class ServerBase {
             return next();
         });
 
+        /**
+         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
+         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+         */
+        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
+            var sessionid = req.query.sessionid;
+            if (!sessionid) {
+                next();
+                return;
+            }
+
+            // Trick the session middleware that you have the cookie;
+            // Make sure you configure the cookie name, and set 'secure' to false
+            // in https://github.com/expressjs/session#cookie-options
+            if (req.cookies) {
+                req.cookies['sid'] = req.query.sessionid;
+            }
+
+            if (req.rawHeaders) {
+                for (let i in req.rawHeaders) {
+                    let rawHeader = req.rawHeaders[i];
+                    if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
+
+                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
+                        req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+                    }
+                }
+            }
+
+            if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
+
+                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+            } else {
+                if (!req.headers) {
+                    req.headers = {};
+                }
+                req.headers['cookie'] = 'sid=' + req.query.sessionid;
+            }
+            // res.setHeader('cookie', req.headers['cookie']);
+            res.cookie('sid', req.query.sessionid);
+
+            next();
+        });
 
         this.session = expressSession({
             secret: 'vk4s8dq2j4',
@@ -398,10 +458,71 @@ export default abstract class ServerBase {
             cookie: {
                 // httpOnly: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
                 // secure: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
-                maxAge: Date.now() + (30 * 86400 * 1000)
+                maxAge: Date.now() + (30 * 86400 * 1000),
+                secure: false
             }
         });
         this.app.use(this.session);
+
+        this.app.use(function (req, res, next) {
+            try {
+                let sid = res.req.cookies['sid'];
+
+                if (!!sid) {
+                    req.session.sid = sid;
+                }
+            } catch (error) {
+            }
+            next();
+        });
+        // /**
+        //  * Seconde option pour tenter de récupérer le session share
+        //  *  cf: https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+        //  */
+        // this.app.use(function (req, res, next) {
+        //     var sessionId = req.query.sessionid;
+        //     if (!sessionId) {
+        //         next();
+        //         return;
+        //     }
+
+        //     if (req.session.id == sessionId) {
+        //         next();
+        //         return;
+        //     }
+
+        //     function makeNew(next) {
+        //         if (req.sessionStore) {
+        //             req.sessionStore.get(sessionId, function (err, session) {
+        //                 if (err) {
+        //                     console.error("error while restoring a session by id", err);
+        //                 }
+        //                 if (session) {
+        //                     req.sessionStore.createSession(req, session);
+        //                 }
+        //                 next();
+        //             });
+        //         } else {
+        //             console.error("req.sessionStore isn't available");
+        //             next();
+        //         }
+        //     }
+
+        //     if (sessionId) {
+        //         if (req.session) {
+        //             req.session.destroy(function (err) {
+        //                 if (err) {
+        //                     console.error('error while destroying initial session', err);
+        //                 }
+        //                 makeNew(next);
+        //             });
+        //         } else {
+        //             makeNew(next);
+        //         }
+        //     } else {
+        //         next();
+        //     }
+        // });
 
         this.app.use('/admin/js', express.static('dist/admin/public/js'));
 
@@ -423,9 +544,9 @@ export default abstract class ServerBase {
                 } else {
                     // old session - on check qu'on doit pas invalider
                     if (!this.check_session_validity(session)) {
+                        await PushDataServerController.getInstance().unregisterSession(session);
                         session.destroy(() => {
-                            PushDataServerController.getInstance().unregisterSession(session);
-                            this.redirect_login_or_home(req, res);
+                            ServerBase.getInstance().redirect_login_or_home(req, res);
                         });
                         return;
                     }
@@ -434,12 +555,27 @@ export default abstract class ServerBase {
 
             if (session && session.uid) {
 
+                if ((!session.last_check_blocked_or_expired) ||
+                    (moment().utc(true).add(-1, 'minute').unix() >= session.last_check_blocked_or_expired)) {
+
+                    // On doit vérifier que le compte est ni bloqué ni expiré
+                    let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                    if ((!user) || user.blocked || user.invalidated) {
+                        await PushDataServerController.getInstance().unregisterSession(session);
+                        session.destroy(() => {
+                            ServerBase.getInstance().redirect_login_or_home(req, res);
+                        });
+                        return;
+                    }
+                    session.last_check_blocked_or_expired = moment().utc(true).unix();
+                }
+
                 PushDataServerController.getInstance().registerSession(session);
 
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
 
                     await StackContext.getInstance().runPromise(
-                        { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                        ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
@@ -487,10 +623,10 @@ export default abstract class ServerBase {
             let has_access: boolean = false;
 
             await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     file = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
-                    has_access = (file && file.file_access_policy_name) ? await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name) : false;
+                    has_access = (file && file.file_access_policy_name) ? ModuleAccessPolicyServer.getInstance().checkAccessSync(file.file_access_policy_name) : false;
                 });
 
             if (!has_access) {
@@ -508,6 +644,9 @@ export default abstract class ServerBase {
         // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
+        // Derniers chargements
+        await this.modulesService.late_server_modules_configurations();
+
         let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
@@ -518,8 +657,8 @@ export default abstract class ServerBase {
             let session: IServerUserSession = req.session as IServerUserSession;
 
             let has_access: boolean = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
-                async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS));
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS));
 
             if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -534,8 +673,8 @@ export default abstract class ServerBase {
             let session: IServerUserSession = req.session as IServerUserSession;
 
             let has_access: boolean = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
-                async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS));
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS));
 
             if (!has_access) {
 
@@ -555,9 +694,9 @@ export default abstract class ServerBase {
 
             if (file_name) {
                 await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                    ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => {
-                        has_access = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
+                        has_access = ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
                     });
             }
 
@@ -587,6 +726,17 @@ export default abstract class ServerBase {
             if (session && session.uid) {
                 let uid: number = session.uid;
 
+                // On doit vérifier que le compte est ni bloqué ni expiré
+                let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                if (user && (user.blocked || user.invalidated)) {
+                    await PushDataServerController.getInstance().unregisterSession(session);
+                    session.destroy(() => {
+                        ServerBase.getInstance().redirect_login_or_home(req, res);
+                    });
+                    return;
+                }
+                session.last_check_blocked_or_expired = moment().utc(true).unix();
+
                 PushDataServerController.getInstance().registerSession(session);
 
                 // On stocke le log de connexion en base
@@ -608,7 +758,7 @@ export default abstract class ServerBase {
                 }
 
                 await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                    ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
             }
 
@@ -621,56 +771,10 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            let user_log = null;
-
-            if (req && req.session && req.session.uid) {
-                let uid: number = req.session.uid;
-
-                // On stocke le log de connexion en base
-                user_log = new UserLogVO();
-                user_log.user_id = uid;
-                user_log.impersonated = false;
-                user_log.log_time = moment().utc(true);
-                user_log.referer = req.headers.referer;
-                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-
-                await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
-                    async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
-            }
-
-            /**
-             * Gestion du impersonate => on restaure la session précédente
-             */
-            if (req.session && !!req.session.impersonated_from) {
-                PushDataServerController.getInstance().unregisterSession(req.session);
-
-                req.session = Object.assign(req.session, req.session.impersonated_from);
-                delete req.session.impersonated_from;
-
-                let uid: number = req.session.uid;
-                user_log.impersonated = true;
-                user_log.comment = 'Impersonated from user_id [' + uid + ']';
-
-                req.session.save((err) => {
-                    if (err) {
-                        ConsoleHandler.getInstance().log(err);
-                    } else {
-                        res.redirect('/');
-                    }
-                });
-            } else {
-
-                req.session.destroy((err) => {
-                    PushDataServerController.getInstance().unregisterSession(req.session);
-
-                    if (err) {
-                        ConsoleHandler.getInstance().log(err);
-                    } else {
-                        res.redirect('/');
-                    }
-                });
-            }
+            await StackContext.getInstance().runPromise(
+                ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
+                async () => await ModuleAccessPolicyServer.getInstance().logout()
+            );
         });
 
         this.app.use('/js', express.static('client/js'));
@@ -689,7 +793,7 @@ export default abstract class ServerBase {
             const session = req.session;
 
             let user: UserVO = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
 
             res.json(JSON.stringify(
@@ -707,7 +811,7 @@ export default abstract class ServerBase {
             const session = req.session;
 
             let user: UserVO = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
 
             res.json(JSON.stringify(
@@ -817,6 +921,12 @@ export default abstract class ServerBase {
                     PushDataServerController.getInstance().registerSocket(session, socket);
                 }.bind(ServerBase.getInstance()));
 
+                io.on('disconnect', function (socket: socketIO.Socket) {
+                    let session: IServerUserSession = socket.handshake['session'];
+
+                    PushDataServerController.getInstance().unregisterSocket(session, socket);
+                });
+
                 io.on('error', function (err) {
                     ConsoleHandler.getInstance().error("IO nearly failed: " + err.stack);
                 });
@@ -827,6 +937,10 @@ export default abstract class ServerBase {
 
                 ForkServerController.getInstance().fork_threads();
                 BGThreadServerController.getInstance().server_ready = true;
+
+                if (ConfigurationService.getInstance().getNodeConfiguration().AUTO_END_MAINTENANCE_ON_START) {
+                    await ModuleMaintenance.getInstance().end_planned_maintenance();
+                }
 
                 ConsoleHandler.getInstance().log('Server ready to go !');
             })
@@ -859,9 +973,8 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected abstract hook_configure_express();
     /* istanbul ignore next: nothing to test here */
-    protected getVersion() {
-        return require('../../package.json').version;
-    }
+
+    protected abstract getVersion();
 
     /* istanbul ignore next: nothing to test here */
     protected registerApis(app) {
@@ -891,5 +1004,28 @@ export default abstract class ServerBase {
 
     protected check_session_validity(session: IServerUserSession): boolean {
         return true;
+    }
+
+    // protected terminus() {
+    //     ConsoleHandler.getInstance().log('Server is starting cleanup');
+    //     return Promise.all([
+    //         VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
+    //     ]);
+    // }
+
+    protected exitHandler(options, exitCode) {
+        ConsoleHandler.getInstance().log('Server is starting cleanup');
+
+        ConsoleHandler.getInstance().log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
+        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        if (options.cleanup) {
+            console.log('clean');
+        }
+        if (exitCode || exitCode === 0) {
+            console.log(exitCode);
+        }
+        if (options.exit) {
+            process.exit();
+        }
     }
 }

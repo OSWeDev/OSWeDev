@@ -142,7 +142,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
         }
 
         await this.debounced_load_supervised_item();
-        setTimeout(this.load_supervised_item_and_continue.bind(this), 10000);
+        // setTimeout(this.load_supervised_item_and_continue.bind(this), 10000);
     }
 
     private async load_supervised_item() {

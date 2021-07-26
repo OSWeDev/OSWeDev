@@ -1,18 +1,11 @@
-export default class BooleanParamVO {
+import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
+
+export default class BooleanParamVO implements IAPIParamTranslator<BooleanParamVO> {
 
     public static URL: string = ':value';
 
-    public static async translateCheckAccessParams(
-        value: boolean): Promise<BooleanParamVO> {
-
-        return new BooleanParamVO(value);
-    }
-
-    public static async translateToURL(param: BooleanParamVO): Promise<string> {
-
-        return param ? (param.value ? 'true' : 'false') : '';
-    }
-    public static async translateFromREQ(req): Promise<BooleanParamVO> {
+    public static fromREQ(req): BooleanParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -20,7 +13,23 @@ export default class BooleanParamVO {
         return new BooleanParamVO(req.params.value == 'true');
     }
 
+    public static fromParams(value: boolean): BooleanParamVO {
+
+        return new BooleanParamVO(value);
+    }
+
+    public static getAPIParams(param: BooleanParamVO): any[] {
+        return [param.value];
+    }
+
     public constructor(
         public value: boolean) {
     }
+
+    public translateToURL(): string {
+
+        return this.value ? 'true' : 'false';
+    }
 }
+
+export const BooleanParamVOStatic: IAPIParamTranslatorStatic<BooleanParamVO> = BooleanParamVO;

@@ -1,33 +1,30 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
-import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import { ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
+import VarDatasRefsParamSelectComponent from './paramselect/VarDatasRefsParamSelectComponent';
 import './VarDatasRefsComponent.scss';
 
 @Component({
     template: require('./VarDatasRefsComponent.pug')
 })
 export default class VarDatasRefsComponent extends VueComponentBase {
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
-    @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+
+    private static UID: number = 0;
+
     @ModuleVarGetter
     public isDescMode: boolean;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @Prop()
-    public var_params: IVarDataParamVOBase[];
+    public var_params: VarDataBaseVO[];
 
     @Prop({ default: null })
-    public var_value_callback: (var_values: IVarDataVOBase[], component: VarDatasRefsComponent) => any;
+    public var_value_callback: (var_values: VarDataValueResVO[], component: VarDatasRefsComponent) => any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -55,6 +52,24 @@ export default class VarDatasRefsComponent extends VueComponentBase {
 
     private entered_once: boolean = false;
 
+    private this_uid: number = VarDatasRefsComponent.UID++;
+
+    private var_datas: VarDataValueResVO[] = [];
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
+    };
+
+    private var_datas_updater() {
+        let var_datas: VarDataValueResVO[] = [];
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            var_datas.push(VarsClientController.getInstance().cached_var_datas[var_param.index]);
+        }
+        this.var_datas = var_datas;
+    }
+
     get is_being_updated(): boolean {
 
         // Si la var data est null on considère qu'elle est en cours de chargement. C'est certainement faux, souvent, mais ça peut aider beaucoup pour afficher au plus tôt le fait que la var est en attente de calcul
@@ -62,11 +77,10 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return true;
         }
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+        for (let i in this.var_datas) {
+            let var_data = this.var_datas[i];
 
-            if ((!!this.getUpdatingParamsByVarsIds) && (!!var_param) &&
-                (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(var_param)])) {
+            if ((!var_data) || (typeof var_data.value === 'undefined') || var_data.is_computing) {
                 return true;
             }
         }
@@ -111,194 +125,99 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         return false;
     }
 
-    get is_selected_var_dependency(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-
-            if (this.getDescSelectedIndex == VarsController.getInstance().getIndex(var_param)) {
-                return true;
-            }
-        }
-
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if (!selectedNode) {
-            return false;
-        }
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-
-            if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], false)) {
-                return true;
-            }
-        }
-        return false;
+    private destroyed() {
+        this.unregister(this.var_params);
     }
 
-    public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
-        // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
-        //  dep de type cumul au complet et pas juste le jour de demande du cumul
-        if ((!test_node) || (!selectedNode)) {
-            return false;
-        }
-        if (!!test_incoming) {
-
-            if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
-
-            for (let i in test_node.incoming) {
-                let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
-
-
-                if (incoming.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-
-            if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
-
-            for (let i in test_node.outgoing) {
-                let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
-
-
-                if (outgoing.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    get is_selected_var_dependent(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if ((!selectedNode) || (!selectedNode.outgoingNames)) {
-            return false;
-        }
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-
-            if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], true)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    get var_datas(): IVarDataVOBase[] {
-
-        if (!this.entered_once) {
-            return null;
-        }
-
-        if ((!this.getVarDatas) || (!this.var_params) || (!this.var_params.length)) {
-            return null;
-        }
-
-        let res: IVarDataVOBase[] = [];
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            let var_data = this.getVarDatas[VarsController.getInstance().getIndex(var_param)];
-
-            if (!!var_data) {
-
-                res.push(var_data);
-            }
-        }
-
-        return (res.length == this.var_params.length) ? res : null;
-    }
-
-    public destroyed() {
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            this.unregister(var_param);
-        }
+    private mounted() {
+        this.intersect_in();
     }
 
     private intersect_in() {
         this.entered_once = true;
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            this.register(var_param);
-        }
+        this.register(this.var_params);
     }
 
     private intersect_out() {
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            this.unregister(var_param);
-        }
+        this.unregister(this.var_params);
     }
 
-    private register(var_param: IVarDataParamVOBase) {
+    private register(var_params: VarDataBaseVO[]) {
         if (!this.entered_once) {
             return;
         }
 
-        VarsController.getInstance().registerDataParam(var_param, this.reload_on_mount);
+        if (var_params && var_params.length) {
+            VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
+        }
     }
 
-    private unregister(var_param: IVarDataParamVOBase) {
+    private unregister(var_params: VarDataBaseVO[]) {
         if (!this.entered_once) {
             return;
         }
 
-        VarsController.getInstance().unregisterDataParam(var_param);
+        this.var_datas = null;
+
+        if (var_params && var_params.length) {
+            VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
+        }
     }
 
     @Watch('var_params')
-    private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
+    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
         }
 
         // On doit vérifier qu'ils sont bien différents
-        if ((!!new_var_params) && (!!old_var_params)) {
-
-            if (new_var_params.length == old_var_params.length) {
-
-                for (let i in new_var_params) {
-                    if (!VarsController.getInstance().isSameParam(new_var_params[i], old_var_params[i])) {
-                        break;
-                    }
-                }
-                return;
-            }
+        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+            return;
         }
 
         if (old_var_params && old_var_params.length) {
-            for (let i in old_var_params) {
-                this.unregister(old_var_params[i]);
-            }
+            this.unregister(old_var_params);
         }
 
         if (new_var_params) {
-            for (let i in new_var_params) {
-                this.register(new_var_params[i]);
+            this.register(new_var_params);
+        }
+    }
+
+    private selectVar() {
+        if (!this.isDescMode) {
+            return;
+        }
+
+        /**
+         * On ouvre la modal qui propose de choisir la var à sélectionner
+         */
+        this.$modal.show(
+            VarDatasRefsParamSelectComponent,
+            { var_params: this.var_params },
+            {
+                width: 465,
+                height: 'auto',
+                scrollable: true
+            }
+        );
+    }
+
+    get is_computing() {
+        if (!this.var_datas) {
+            return false;
+        }
+
+        for (let i in this.var_datas) {
+            let var_data = this.var_datas[i];
+
+            if (var_data && var_data.is_computing) {
+                return true;
             }
         }
+
+        return false;
     }
 }

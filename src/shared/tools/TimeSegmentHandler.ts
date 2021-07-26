@@ -16,6 +16,74 @@ export default class TimeSegmentHandler {
 
     private constructor() { }
 
+    /**
+     * Renvoi 1 si le semgent_type a est plus grand que b, -1 si plus petit, 0 si égaux
+     *  Cas particulier on renvoie toujours -1 si b est YEAR ou rolling_year pour indiquer qu'il faut toujours
+     *  utiliser le segment b si cest la question initiale
+     * @param segment_type_a
+     * @param segment_type_b
+     */
+    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+        if (segment_type_a == segment_type_b) {
+            return 0;
+        }
+
+        if ((segment_type_b == TimeSegment.TYPE_YEAR) || (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)) {
+            return -1;
+        }
+
+        switch (segment_type_a) {
+            case TimeSegment.TYPE_YEAR:
+                return 1;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return 1;
+            case TimeSegment.TYPE_MONTH:
+                return 1;
+
+            case TimeSegment.TYPE_WEEK:
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return -1;
+                }
+                return 1;
+
+            case TimeSegment.TYPE_DAY:
+                if ((segment_type_b == TimeSegment.TYPE_MONTH) ||
+                    (segment_type_b == TimeSegment.TYPE_WEEK)) {
+                    return -1;
+                }
+                return 1;
+
+            case TimeSegment.TYPE_HOUR:
+                if ((segment_type_b == TimeSegment.TYPE_MONTH) ||
+                    (segment_type_b == TimeSegment.TYPE_WEEK) ||
+                    (segment_type_b == TimeSegment.TYPE_DAY)) {
+                    return -1;
+                }
+                return 1;
+            case TimeSegment.TYPE_MINUTE:
+                if ((segment_type_b == TimeSegment.TYPE_MONTH) ||
+                    (segment_type_b == TimeSegment.TYPE_WEEK) ||
+                    (segment_type_b == TimeSegment.TYPE_DAY) ||
+                    (segment_type_b == TimeSegment.TYPE_HOUR)) {
+                    return -1;
+                }
+                return 1;
+            case TimeSegment.TYPE_SECOND:
+                if ((segment_type_b == TimeSegment.TYPE_MONTH) ||
+                    (segment_type_b == TimeSegment.TYPE_WEEK) ||
+                    (segment_type_b == TimeSegment.TYPE_DAY) ||
+                    (segment_type_b == TimeSegment.TYPE_MINUTE) ||
+                    (segment_type_b == TimeSegment.TYPE_HOUR)) {
+                    return -1;
+                }
+                return 1;
+            case TimeSegment.TYPE_MS:
+                return -1;
+        }
+
+        return null;
+    }
+
     public getBiggestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
         switch (segment_type_a) {
             case TimeSegment.TYPE_YEAR:
@@ -128,7 +196,7 @@ export default class TimeSegmentHandler {
                 if (segment_type_b == TimeSegment.TYPE_MS) {
                     return TimeSegment.TYPE_MS;
                 }
-                return TimeSegment.TYPE_MS;
+                return TimeSegment.TYPE_SECOND;
             case TimeSegment.TYPE_MINUTE:
                 if (segment_type_b == TimeSegment.TYPE_MS) {
                     return TimeSegment.TYPE_MS;
@@ -136,7 +204,7 @@ export default class TimeSegmentHandler {
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
-                return TimeSegment.TYPE_MS;
+                return TimeSegment.TYPE_MINUTE;
             case TimeSegment.TYPE_HOUR:
                 if (segment_type_b == TimeSegment.TYPE_MS) {
                     return TimeSegment.TYPE_MS;
@@ -147,7 +215,7 @@ export default class TimeSegmentHandler {
                 if (segment_type_b == TimeSegment.TYPE_MINUTE) {
                     return TimeSegment.TYPE_MINUTE;
                 }
-                return TimeSegment.TYPE_MS;
+                return TimeSegment.TYPE_HOUR;
 
             case TimeSegment.TYPE_DAY:
                 if (segment_type_b == TimeSegment.TYPE_MS) {
@@ -412,7 +480,7 @@ export default class TimeSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public incMoment(date: Moment, segment_type: number, offset: number): void {
+    public incMoment(date: Moment, segment_type: number, offset: number = 1): void {
 
         switch (segment_type) {
             case TimeSegment.TYPE_HOUR:
@@ -482,7 +550,7 @@ export default class TimeSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public decMoment(date: Moment, segment_type: number, offset: number): void {
+    public decMoment(date: Moment, segment_type: number, offset: number = 1): void {
         this.incMoment(date, segment_type, -offset);
     }
 

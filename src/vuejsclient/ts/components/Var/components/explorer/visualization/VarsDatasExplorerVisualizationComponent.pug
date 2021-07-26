@@ -1,0 +1,5 @@
+.vars_datas_explorer_visualization
+    .row
+        .col-md-12
+            template(v-for='filtered_data in get_filtered_datas')
+                var-data(:var_param='filtered_data')

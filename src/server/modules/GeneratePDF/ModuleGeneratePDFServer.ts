@@ -1,9 +1,9 @@
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import ModuleServerBase from '../ModuleServerBase';
-import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
-import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
 import * as fs from 'fs';
 import * as wkhtmltopdf from 'wkhtmltopdf';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleGeneratePDF from '../../../shared/modules/GeneratePDF/ModuleGeneratePDF';
+import GeneratePdfParamVO from '../../../shared/modules/GeneratePDF/params/GeneratePdfParamVO';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleGeneratePDFServer extends ModuleServerBase {
 
@@ -23,14 +23,14 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
     public async configure() { }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
     }
 
-    private async generatePDF(param: GeneratePdfParamVO): Promise<string> {
+    public async generatePDF(sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options: {} = { encoding: 'utf-8' }): Promise<string> {
         const filepathconstruct: string = GeneratePdfParamVO.reppath + GeneratePdfParamVO.filepath;
-        const filepathconstructRep: string = filepathconstruct + param.sous_rep + '/';
-        const filepathconstructFile: string = filepathconstructRep + param.file_name;
-        const filepath_return: string = filepathconstructFile; //GeneratePdfParamVO.filepath + param.sous_rep + '/' + param.file_name;
+        const filepathconstructRep: string = filepathconstruct + sous_rep + '/';
+        const filepathconstructFile: string = filepathconstructRep + file_name;
+        const filepath_return: string = filepathconstructFile; //GeneratePdfParamVO.filepath + sous_rep + '/' + file_name;
 
         // Création du répertoire
         if (!fs.existsSync(filepathconstruct)) {
@@ -45,8 +45,9 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
             let write: NodeJS.WritableStream = fs.createWriteStream(filepathconstructFile);
 
             // Copie du fichier
-            wkhtmltopdf(param.text, param.options).pipe(write);
+            wkhtmltopdf(html, options).pipe(write);
             write.on('finish', async () => {
+
                 resolve(filepath_return);
             });
         }) as string;

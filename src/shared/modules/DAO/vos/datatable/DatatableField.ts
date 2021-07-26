@@ -153,7 +153,11 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-    //permet de definir une fonction de tri
+    /**
+     * permet de definir une fonction de tri
+     * @param fonctionComparaison
+     * @returns datatable avec la fonction de tri
+     */
     public setSort<P extends IDistantVOBase>(fonctionComparaison: (vo1: P, vo2: P) => number): DatatableField<T, U> {
         this.sort = (vos: P[]): P[] => vos.sort(fonctionComparaison);
 
@@ -188,7 +192,7 @@ export default abstract class DatatableField<T, U> {
     public triFiltrage(options: { [id: number]: IDistantVOBase; }) {
 
         //transforme les options en arrays pour le tri
-        let optionsArray: IDistantVOBase[] = ObjectHandler.getInstance().arrayFromMap(options);
+        let optionsArray: IDistantVOBase[] = Object.values(options);
 
         //tri
         if (this.sort && optionsArray) {
@@ -199,13 +203,7 @@ export default abstract class DatatableField<T, U> {
         if (this.sieve) {
             optionsArray = this.sieve(optionsArray);
         }
-
-        options = {};
-
-        optionsArray.forEach((vo) => {
-            options[vo.id] = vo;
-        });
-        return options;
+        return optionsArray;
     }
 
     public setValidator(validator: (data: any) => string): DatatableField<T, U> {
@@ -323,9 +321,9 @@ export default abstract class DatatableField<T, U> {
     }
 
     /**
-     * VO to show in options
-     * @param options VO ids
-     * @returns
+     * n'affiche que les vos dont les ids sont renseignés
+     * @param options les id des vos à afficher
+     * @returns le datatableField modifié
      */
     public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
         this.select_options_enabled = Array.from(options);

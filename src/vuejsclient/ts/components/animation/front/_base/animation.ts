@@ -24,6 +24,7 @@ export default class VueAnimationComponent extends VueComponentBase {
     private modules_by_themes: { [theme_id: number]: AnimationModuleVO[] } = {};
     private logged_user_id: number = null;
     private image_home: string = null;
+    /** used in pug to show home page or not */
     private skip_home: boolean = false;
     private animation_params: AnimationParametersVO = null;
     private documents: DocumentVO[] = null;
@@ -32,7 +33,6 @@ export default class VueAnimationComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
-        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
         promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => {
@@ -68,6 +68,9 @@ export default class VueAnimationComponent extends VueComponentBase {
         this.skip_home = AnimationController.getInstance().skip_home;
     }
 
+    /**
+     * skips home page and shows main page
+     */
     private skipFormations() {
         AnimationController.getInstance().skip_home = true;
 

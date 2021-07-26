@@ -1,4 +1,5 @@
 import { EventObjectInput, View } from 'fullcalendar';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
 import ModulesManager from '../../../../shared/modules/ModulesManager';
@@ -6,7 +7,10 @@ import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
+import IPlanTaskType from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../VueAppBase';
 
 export default abstract class ProgramPlanControllerBase {
@@ -45,10 +49,15 @@ export default abstract class ProgramPlanControllerBase {
         public customFilterComponent,
         public slot_interval: number = 12,
         public month_view: boolean = true,
-        public use_print_component: boolean = true
+        public use_print_component: boolean = true,
+        public show_calendar: boolean = true,
+        public show_targets_pp: boolean = true,
+        public show_rdv_historic: boolean = true,
     ) {
         ProgramPlanControllerBase.controller_by_name[name] = this;
     }
+
+    public abstract event_overlap_hook(stillEvent, movingEvent): boolean;
 
     get shared_module(): Module {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
@@ -128,6 +137,104 @@ export default abstract class ProgramPlanControllerBase {
 
         let i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
         element.find('div.fc-content').prepend(i);
+    }
+
+    public async refuse_rdv_on_edit_add(
+        rdv: IPlanRDV,
+        get_tasks_by_ids: { [id: number]: IPlanTask },
+        get_task_types_by_ids: { [id: number]: IPlanTaskType }
+    ): Promise<boolean> {
+
+        try {
+            let task: IPlanTask = get_tasks_by_ids[rdv.task_id];
+            let task_type: IPlanTaskType = get_task_types_by_ids[task.task_type_id];
+
+            // Si on est sur un task_type qui ordonne les rdvs, on check qu'on les pose dans le bon ordre
+            if (task_type.order_tasks_on_same_target) {
+                // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
+                // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
+                let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
+                    this.programplan_shared_module.rdv_type_id,
+                    'target_id', [rdv.target_id]);
+
+                let max_weight: number = -1;
+                let max_weight_task: IPlanTask = null;
+                let nb_maxed_weight: number = 0;
+
+                for (let i in all_rdvs) {
+                    let all_rdv = all_rdvs[i];
+
+                    if (all_rdv.id == rdv.id) {
+                        continue;
+                    }
+
+                    let all_rdv_task = get_tasks_by_ids[all_rdv.task_id];
+
+                    if (!all_rdv_task) {
+                        continue;
+                    }
+
+                    if (all_rdv_task.task_type_id != task_type.id) {
+                        continue;
+                    }
+
+                    if (all_rdv.start_time.isAfter(rdv.start_time)) {
+                        VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.has_more_recent_task__denied'));
+                        return true;
+                    }
+
+                    if (all_rdv_task.weight > max_weight) {
+                        max_weight = all_rdv_task.weight;
+                        max_weight_task = all_rdv_task;
+                        nb_maxed_weight = 0;
+                    }
+                    nb_maxed_weight++;
+                }
+
+                // Il nous faut toutes les tâches possible dans ce type par poids
+                let task_type_tasks: IPlanTask[] = [];
+                for (let j in get_tasks_by_ids) {
+                    let task_ = get_tasks_by_ids[j];
+
+                    if (task_.task_type_id == task_type.id) {
+                        task_type_tasks.push(task_);
+                    }
+                }
+                WeightHandler.getInstance().sortByWeight(task_type_tasks);
+
+                if ((!task_type_tasks) || (!task_type_tasks.length)) {
+                    VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.error'));
+                    ConsoleHandler.getInstance().error("!task_type_tasks.length");
+                    return true;
+                }
+
+                let new_task: IPlanTask = null;
+                if (max_weight < 0) {
+                    new_task = task_type_tasks[0];
+                } else {
+
+                    if (max_weight_task.limit_on_same_target <= nb_maxed_weight) {
+                        new_task = WeightHandler.getInstance().findNextHeavierItemByWeight(task_type_tasks, max_weight);
+                    }
+                }
+
+                if (!new_task) {
+                    VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.no_task_left'));
+                    ConsoleHandler.getInstance().error("!task");
+                    return true;
+                }
+
+                if (new_task.id != rdv.task_id) {
+                    VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.error'));
+                    ConsoleHandler.getInstance().error("task.id != rdv.task_id");
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return true;
     }
 
     /**

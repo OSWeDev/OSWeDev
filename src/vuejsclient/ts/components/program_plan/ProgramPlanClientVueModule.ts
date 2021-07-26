@@ -1,5 +1,4 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleImage from '../../../../shared/modules/Image/ModuleImage';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';

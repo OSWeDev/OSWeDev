@@ -1,5 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
@@ -8,7 +8,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
-import GetFormattedImageParamVO from './apis/GetFormattedImageParamVO';
+import GetFormattedImageParamVO, { GetFormattedImageParamVOStatic } from './apis/GetFormattedImageParamVO';
 import FormattedImageVO from './vos/FormattedImageVO';
 import ImageFormatVO from './vos/ImageFormatVO';
 
@@ -37,6 +37,8 @@ export default class ModuleImageFormat extends Module {
 
     private static instance: ModuleImageFormat = null;
 
+    public get_formatted_image: (src: string, format_name: string, width: number, height: number) => Promise<FormattedImageVO> = APIControllerWrapper.sah(ModuleImageFormat.APINAME_get_formatted_image);
+
     private constructor() {
 
         super("imageformat", ModuleImageFormat.MODULE_NAME);
@@ -45,16 +47,12 @@ export default class ModuleImageFormat extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ImageFormatVO.API_TYPE_ID),
             ModuleImageFormat.APINAME_get_formatted_image,
             [ImageFormatVO.API_TYPE_ID],
-            GetFormattedImageParamVO.translateCheckAccessParams
+            GetFormattedImageParamVOStatic
         ));
-    }
-
-    public async get_formatted_image(src: string, format_name: string, width: number, height: number): Promise<FormattedImageVO> {
-        return ModuleAPI.getInstance().handleAPI<GetFormattedImageParamVO, FormattedImageVO>(ModuleImageFormat.APINAME_get_formatted_image, src, format_name, width, height);
     }
 
     public initialize() {

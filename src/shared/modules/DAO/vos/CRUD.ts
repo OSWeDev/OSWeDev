@@ -1,3 +1,4 @@
+import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
@@ -281,6 +282,8 @@ export default class CRUD<T extends IDistantVOBase> {
     public reset_newvo_after_each_creation: boolean = false;
     public api_type_id: string;
 
+    public delete_all_access_right: string = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
+
     /**
      * La fonction doit retourner le code_text du label d'erreur ou null. Si erreur, l'update n'aura pas lieu
      */
@@ -312,6 +315,12 @@ export default class CRUD<T extends IDistantVOBase> {
         this.preUpdate = null;
         this.preCreate = null;
         this.api_type_id = this.readDatatable.API_TYPE_ID;
+    }
+
+    public set_delete_all_access_right(delete_all_access_right: string): CRUD<T> {
+        this.delete_all_access_right = delete_all_access_right;
+
+        return this;
     }
 
     public force_readonly(): CRUD<T> {

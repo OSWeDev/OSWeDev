@@ -1,9 +1,18 @@
-export default class ResetPwdUIDParamVO {
+import IAPIParamTranslator from "../../../API/interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../../API/interfaces/IAPIParamTranslatorStatic";
 
-    public static async translateCheckAccessParams(
-        uid: number, challenge: string, new_pwd1: string): Promise<ResetPwdUIDParamVO> {
+export default class ResetPwdUIDParamVO implements IAPIParamTranslator<ResetPwdUIDParamVO>{
+
+    public static fromParams(
+        uid: number,
+        challenge: string,
+        new_pwd1: string): ResetPwdUIDParamVO {
 
         return new ResetPwdUIDParamVO(uid, challenge, new_pwd1);
+    }
+
+    public static getAPIParams(param: ResetPwdUIDParamVO): any[] {
+        return [param.uid, param.challenge, param.new_pwd1];
     }
 
     public constructor(
@@ -12,3 +21,5 @@ export default class ResetPwdUIDParamVO {
         public new_pwd1: string) {
     }
 }
+
+export const ResetPwdUIDParamVOStatic: IAPIParamTranslatorStatic<ResetPwdUIDParamVO> = ResetPwdUIDParamVO;

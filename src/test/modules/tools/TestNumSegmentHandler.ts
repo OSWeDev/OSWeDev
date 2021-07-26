@@ -1,3 +1,7 @@
+import ServerAPIController from '../../../server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
 import { expect } from 'chai';
 import 'mocha';
 import * as moment from 'moment';
@@ -348,11 +352,12 @@ describe('NumSegmentHandler', () => {
             }]
         )).to.deep.equal(
             [{
+                max: 1, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
+            },
+            {
                 max: 3, max_inclusiv: false, min: 2, min_inclusiv: true, range_type: 1, segment_type: 0
             }, {
                 max: 5, max_inclusiv: false, min: 4, min_inclusiv: true, range_type: 1, segment_type: 0
-            }, {
-                max: 1, max_inclusiv: false, min: 0, min_inclusiv: true, range_type: 1, segment_type: 0
             }]);
 
         expect(NumSegmentHandler.getInstance().get_num_ranges(null)).to.deep.equal(null);

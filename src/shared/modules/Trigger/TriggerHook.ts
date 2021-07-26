@@ -13,6 +13,12 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
     constructor(public trigger_type_UID: string) {
     }
 
+    public has_trigger(conditions: Conditions): boolean {
+        let conditionUID: string = this.getConditionUID_from_Conditions(conditions);
+
+        return !!(conditionUID ? this.registered_handlers[conditionUID] : null);
+    }
+
     public abstract getConditionUID_from_Conditions(conditions: Conditions): string;
 
     public registerHandler(conditions: Conditions, handler: (params: Params) => Promise<Out>) {

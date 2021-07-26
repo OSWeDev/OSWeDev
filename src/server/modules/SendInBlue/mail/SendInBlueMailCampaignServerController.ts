@@ -9,6 +9,7 @@ import SendInBlueListServerController from '../list/SendInBlueListServerControll
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import ConfigurationService from '../../../env/ConfigurationService';
+import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueRequestResultVO';
 
 export default class SendInBlueMailCampaignServerController {
 
@@ -62,7 +63,7 @@ export default class SendInBlueMailCampaignServerController {
             listIds: [list.id]
         };
 
-        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueMailCampaignServerController.PATH_CAMPAIGN,
             {
@@ -130,7 +131,7 @@ export default class SendInBlueMailCampaignServerController {
             postParams.params = params;
         }
 
-        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
             ModuleRequest.METHOD_POST,
             SendInBlueMailCampaignServerController.PATH_CAMPAIGN,
             postParams

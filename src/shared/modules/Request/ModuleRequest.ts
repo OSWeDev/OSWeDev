@@ -1,7 +1,8 @@
-import ModuleAPI from '../API/ModuleAPI';
+import ObjectHandler from '../../tools/ObjectHandler';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
-import SendRequestParamVO from './vos/SendRequestParamVO';
+import SendRequestParamVO, { SendRequestParamVOStatic } from './vos/SendRequestParamVO';
 
 export default class ModuleRequest extends Module {
 
@@ -22,6 +23,16 @@ export default class ModuleRequest extends Module {
 
     private static instance: ModuleRequest = null;
 
+    public sendRequestFromApp: (
+        method: string,
+        host: string,
+        path: string,
+        posts: {},
+        headers: {},
+        sendHttps: boolean,
+        result_headers?: {}
+    ) => Promise<any> = APIControllerWrapper.sah(ModuleRequest.APINAME_sendRequestFromApp);
+
     private constructor() {
 
         super("request", ModuleRequest.MODULE_NAME);
@@ -35,29 +46,27 @@ export default class ModuleRequest extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
             null,
             ModuleRequest.APINAME_sendRequestFromApp,
             [],
-            SendRequestParamVO.translateCheckAccessParams
+            SendRequestParamVOStatic
         ));
     }
 
-    public async sendRequestFromApp(
-        method: string,
-        host: string,
-        path: string,
-        posts: {} = null,
-        headers: {} = null,
-        sendHttps: boolean = false): Promise<any> {
+    public get_params_url(params: { [i: string]: string }) {
+        let res: string = null;
 
-        return await ModuleAPI.getInstance().handleAPI<SendRequestParamVO, any>(
-            ModuleRequest.APINAME_sendRequestFromApp,
-            method,
-            host,
-            path,
-            posts,
-            headers,
-            sendHttps);
+        if ((!params) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(params))) {
+            return "";
+        }
+
+        for (let i in params) {
+            let param = params[i];
+
+            res = (res ? res + "&" : "?") + i + "=" + param;
+        }
+
+        return res;
     }
 }

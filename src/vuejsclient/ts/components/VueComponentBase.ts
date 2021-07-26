@@ -3,15 +3,13 @@ import { unitOfTime } from "moment";
 import * as screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
+import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
 import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
 import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import VarsController from '../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
@@ -558,11 +556,11 @@ export default class VueComponentBase extends Vue
         return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
     }
 
-    protected varif_simplenumber_boolean_condition(value: ISimpleNumberVarData) {
+    protected varif_simplenumber_boolean_condition(value: VarDataBaseVO) {
         return (!!value) && (!!value.value);
     }
 
-    protected simple_var_div(values: ISimpleNumberVarData[]): number {
+    protected simple_var_div(values: VarDataBaseVO[]): number {
         if ((!values) || (!values[0]) || (!values[1])) {
             return null;
         }
@@ -574,7 +572,7 @@ export default class VueComponentBase extends Vue
         return values[0].value / values[1].value;
     }
 
-    protected simple_var_add(values: ISimpleNumberVarData[]): number {
+    protected simple_var_add(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -597,7 +595,36 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
-    protected simple_var_supp_zero(var_data: ISimpleNumberVarData): boolean {
+    protected simple_var_mean(values: VarDataBaseVO[]): number {
+        if ((!values) || (!values.length)) {
+            return null;
+        }
+
+        let res: number = null;
+        let length: number = 0;
+        for (let i in values) {
+            let value = values[i];
+
+            if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
+                continue;
+            }
+
+            if (res == null) {
+                res = value.value;
+            } else {
+                res += value.value;
+            }
+            length++;
+        }
+
+        if (!length) {
+            return null;
+        }
+
+        return res / length;
+    }
+
+    protected simple_var_supp_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
         }
@@ -605,7 +632,7 @@ export default class VueComponentBase extends Vue
         return var_data.value > 0;
     }
 
-    protected simple_var_supp_egal_zero(var_data: ISimpleNumberVarData): boolean {
+    protected simple_var_supp_egal_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
         }
@@ -613,7 +640,7 @@ export default class VueComponentBase extends Vue
         return var_data.value >= 0;
     }
 
-    protected simple_var_sub(values: ISimpleNumberVarData[]): number {
+    protected simple_var_sub(values: VarDataBaseVO[]): number {
         if ((!values) || (!values[0]) || (!values[1])) {
             return null;
         }
@@ -621,7 +648,7 @@ export default class VueComponentBase extends Vue
         return values[0].value - values[1].value;
     }
 
-    protected simple_var_times(values: ISimpleNumberVarData[]): number {
+    protected simple_var_times(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -644,7 +671,7 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
-    protected simple_var_evolution(datas: ISimpleNumberVarData[]) {
+    protected simple_var_evolution(datas: VarDataBaseVO[]) {
 
         try {
 
@@ -751,8 +778,8 @@ export default class VueComponentBase extends Vue
         el.className = (res ? res : '');
     }
 
-    protected on_every_update_simple_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
@@ -764,8 +791,8 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_revert_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_revert_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
@@ -784,8 +811,8 @@ export default class VueComponentBase extends Vue
      * @param binding
      * @param vnode
      */
-    protected on_every_update_simple_number_1_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_number_1_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
         simple_value--;
 
         this.removeClassName('text-danger', el);
@@ -798,18 +825,14 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
 
         if ((!!simple_value) && (simple_value > 1)) {
             this.addClassName('text-success', el);
         }
-    }
-
-    protected varparam_index(varparam: IVarDataParamVOBase) {
-        return VarsController.getInstance().getIndex(varparam);
     }
 
     protected activateEdition() {
@@ -835,11 +858,19 @@ export default class VueComponentBase extends Vue
     protected async export_to_xlsx() {
         if (this.isExportableToXLSX) {
             // this.startLoading();
-            let param = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
+            let param: ExportDataToXLSXParamVO = await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX();
 
             if (!!param) {
 
-                await ModuleDataExport.getInstance().exportDataToXLSX(param);
+                await ModuleDataExport.getInstance().exportDataToXLSX(
+                    param.filename,
+                    param.datas,
+                    param.ordered_column_list,
+                    param.column_labels,
+                    param.api_type_id,
+                    param.is_secured,
+                    param.file_access_policy_name
+                );
             }
             // this.stopLoading();
         }
@@ -851,7 +882,7 @@ export default class VueComponentBase extends Vue
 
     protected routeExists(url: string): boolean {
 
-        let resolved = this.$router.resolve(url);
+        let resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {
             return true;
         }

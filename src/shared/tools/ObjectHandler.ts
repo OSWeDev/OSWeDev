@@ -53,6 +53,26 @@ export default class ObjectHandler {
         return res;
     }
 
+    public mapByNumberFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: number]: T } {
+        let res: { [i: number]: T } = {};
+
+        for (let i in a) {
+            let e = a[i];
+            res[e[map_index_field_id]] = e;
+        }
+        return res;
+    }
+
+    public mapByStringFieldFromArray<T>(a: T[], map_index_field_id: string): { [i: string]: T } {
+        let res: { [i: string]: T } = {};
+
+        for (let i in a) {
+            let e = a[i];
+            res[e[map_index_field_id]] = e;
+        }
+        return res;
+    }
+
     public mapFromIdsArray(a: number[]): { [i: number]: boolean } {
         let res: { [i: number]: boolean } = {};
 

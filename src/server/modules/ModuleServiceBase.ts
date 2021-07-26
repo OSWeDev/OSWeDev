@@ -6,6 +6,7 @@ import ModuleAnimationImportModule from '../../shared/modules/Animation/import/M
 import ModuleAnimationImportQR from '../../shared/modules/Animation/import/QR/ModuleAnimationImportQR';
 import ModuleAnimationImportTheme from '../../shared/modules/Animation/import/Theme/ModuleAnimationImportTheme';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
+import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
 import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
@@ -22,6 +23,7 @@ import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
+import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
 import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleFork from '../../shared/modules/Fork/ModuleFork';
@@ -32,7 +34,10 @@ import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageForma
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
 import Module from '../../shared/modules/Module';
+import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
+import ModulePerfMon from '../../shared/modules/PerfMon/ModulePerfMon';
+import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
@@ -53,6 +58,7 @@ import ModuleAnimationImportModuleServer from './Animation/import/module/ModuleA
 import ModuleAnimationImportQRServer from './Animation/import/QR/ModuleAnimationImportQRServer';
 import ModuleAnimationImportThemeServer from './Animation/import/theme/ModuleAnimationImportThemeServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
+import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
 import ModuleAPIServer from './API/ModuleAPIServer';
 import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
@@ -63,11 +69,13 @@ import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
+import DAOQueryCacheController from './DAO/DAOQueryCacheController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
+import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
@@ -79,7 +87,10 @@ import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleDBService from './ModuleDBService';
 import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
+import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
+import ModulePerfMonServer from './PerfMon/ModulePerfMonServer';
+import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
@@ -102,7 +113,9 @@ export default abstract class ModuleServiceBase {
     /**
      * Local thread cache -----
      */
-    public db: IDatabase<any>;
+    public db;
+
+    public post_modules_installation_hooks: Array<() => void> = [];
 
     protected registered_child_modules: Module[] = [];
     protected login_child_modules: Module[] = [];
@@ -115,6 +128,8 @@ export default abstract class ModuleServiceBase {
     private registered_base_modules: Module[] = [];
     private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
+
+    private db_: IDatabase<any>;
     /**
      * ----- Local thread cache
      */
@@ -122,6 +137,13 @@ export default abstract class ModuleServiceBase {
     protected constructor() {
         ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
+
+        this.db = {
+            none: this.db_none.bind(this),
+            oneOrNone: this.db_oneOrNone.bind(this),
+            query: this.db_query.bind(this),
+            tx: (options, cb) => this.db_.tx(options, cb)
+        };
     }
 
     get bdd_owner(): string {
@@ -176,7 +198,7 @@ export default abstract class ModuleServiceBase {
     }
 
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
-        this.db = db;
+        this.db_ = db;
 
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
@@ -215,38 +237,44 @@ export default abstract class ModuleServiceBase {
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
         await this.preload_segmented_known_databases();
 
-        if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
+        // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
+        // if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
 
-            // On appelle le hook de configuration
-            await this.configure_modules();
+        //     // On appelle le hook de configuration
+        //     await this.configure_modules();
 
-        } else {
+        // } else {
 
-            for (let i in this.registered_modules) {
-                let registered_module = this.registered_modules[i];
+        for (let i in this.registered_modules) {
+            let registered_module = this.registered_modules[i];
 
-                if (!registered_module.actif) {
-                    continue;
-                }
-
-                // Sinon on doit juste appeler les hooks qui vont bien et le chargement des params + rechargement automatique
-                if (!await registered_module.hook_module_configure()) {
-                    return false;
-                }
-
-                // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
-                if (registered_module.fields && (registered_module.fields.length > 0)) {
-
-                    await ModuleDBService.getInstance(db).loadParams(registered_module);
-
-                    setTimeout(function () {
-                        ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
-                    }, ModuleDBService.reloadParamsTimeout);
-                }
-
-                // On appelle le hook de fin d'installation
-                await registered_module.hook_module_install();
+            if (!registered_module.actif) {
+                continue;
             }
+
+            // Sinon on doit juste appeler les hooks qui vont bien et le chargement des params + rechargement automatique
+            if (!await registered_module.hook_module_configure()) {
+                return false;
+            }
+
+            // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
+            if (registered_module.fields && (registered_module.fields.length > 0)) {
+
+                await ModuleDBService.getInstance(db).loadParams(registered_module);
+
+                ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
+            }
+
+            // On appelle le hook de fin d'installation
+            await registered_module.hook_module_install();
+        }
+        // }
+
+        for (let i in this.post_modules_installation_hooks) {
+            let post_modules_installation_hook = this.post_modules_installation_hooks[i];
+
+            // Appel async
+            post_modules_installation_hook();
         }
     }
 
@@ -296,6 +324,16 @@ export default abstract class ModuleServiceBase {
                 if (app) {
                     server_module.registerExpressApis(app);
                 }
+            }
+        }
+    }
+
+    public async late_server_modules_configurations() {
+        for (let i in this.server_modules) {
+            let server_module: ModuleServerBase = this.server_modules[i];
+
+            if (server_module.actif) {
+                await server_module.late_configuration();
             }
         }
     }
@@ -382,7 +420,8 @@ export default abstract class ModuleServiceBase {
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
-            ModuleBGThread.getInstance()
+            ModuleBGThread.getInstance(),
+            ModuleAnonymization.getInstance()
         ];
     }
 
@@ -391,6 +430,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModulePerfMon.getInstance(),
             ModuleAPI.getInstance(),
             ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
@@ -430,9 +470,10 @@ export default abstract class ModuleServiceBase {
             ModuleSupervision.getInstance(),
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
-            ModuleAnimationImportModule.getInstance(),
-            ModuleAnimationImportTheme.getInstance(),
-            ModuleAnimationImportQR.getInstance(),
+            ModuleAnonymization.getInstance(),
+            ModuleFacturationProAPI.getInstance(),
+            ModulePowershell.getInstance(),
+            ModuleNFCConnect.getInstance()
         ];
     }
 
@@ -441,6 +482,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModulePerfMonServer.getInstance(),
             ModuleAPIServer.getInstance(),
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
@@ -476,9 +518,57 @@ export default abstract class ModuleServiceBase {
             ModuleSupervisionServer.getInstance(),
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
-            ModuleAnimationImportModuleServer.getInstance(),
-            ModuleAnimationImportThemeServer.getInstance(),
-            ModuleAnimationImportQRServer.getInstance(),
+            ModuleAnonymizationServer.getInstance(),
+            ModuleFacturationProAPIServer.getInstance(),
+            ModulePowershellServer.getInstance(),
+            ModuleNFCConnectServer.getInstance()
         ];
+    }
+
+    private async db_none(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+
+        DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+
+        return await this.db_.none(query, values);
+    }
+
+    private async db_query(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+
+        if (typeof res !== 'undefined') {
+            return res;
+        }
+
+        res = await this.db_.query(query, values);
+
+        DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+
+        return res;
+    }
+
+    private async db_oneOrNone(query: string, values?: []) {
+
+        /**
+         * Handle query cache update
+         */
+        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+
+        if (typeof res !== 'undefined') {
+            return res;
+        }
+
+        res = await this.db_.oneOrNone(query, values);
+
+        DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+
+        return res;
     }
 }

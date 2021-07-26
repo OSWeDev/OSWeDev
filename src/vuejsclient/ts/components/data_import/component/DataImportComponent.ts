@@ -1300,7 +1300,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             this.storeData(importHistoric);
             importHistorics.push(importHistoric);
             let res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
-            importHistoric.id = parseInt(res.id);
+            importHistoric.id = res.id;
         }
 
         this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);

@@ -40,3 +40,6 @@
                                     i.fa.fa-search
                                 router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(refvo.linked_type, refvo.linked_id)")
                                     i.fa.fa-trash
+    .row(v-if='limit1000')
+        .col-md-12
+            .limit1000 {{ label('vocus.limit1000') }}

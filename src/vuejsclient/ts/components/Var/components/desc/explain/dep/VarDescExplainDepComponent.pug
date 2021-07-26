@@ -1,0 +1,15 @@
+.var_desc_explain_dep
+    .row
+        .col-md-12
+            .dep_name(@click='opened=!opened') {{ dep_name }}
+    .row
+        .col-md-12.var_controller_label_wrapper
+            .var_controller_label {{ label('var_desc.var_controller_label') }}
+                Vardesccontrollercomponent(:var_id='var_id')
+            
+    .row(v-show='opened')
+        .col-md-12
+            template(v-for='(param, i) in params')
+                Vardescexplaindepparamcomponent(:param='param')
+
+                

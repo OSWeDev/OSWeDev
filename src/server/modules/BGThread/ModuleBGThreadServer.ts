@@ -11,12 +11,15 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import IBGThread from './interfaces/IBGThread';
 import BGThreadServerController from './BGThreadServerController';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
     public static TIMEOUT_COEF_LITTLE_BIT_SLOWER: number = 1.25;
     public static TIMEOUT_COEF_SLOWER: number = 2;
     public static TIMEOUT_COEF_SLEEP: number = 10;
+
+    public static TIMEOUT_COEF_NEUTRAL: number = 1;
 
     public static TIMEOUT_COEF_LITTLE_BIT_FASTER: number = 0.8;
     public static TIMEOUT_COEF_FASTER: number = 0.5;
@@ -83,51 +86,44 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        let self = this;
-        setTimeout(function () {
-            self.execute_bgthread(bgthread);
-        }, bgthread.current_timeout);
+        this.execute_bgthread(bgthread);
     }
 
     private async execute_bgthread(bgthread: IBGThread) {
 
-        let self = this;
-
-        try {
-
-            if (!bgthread) {
-                return;
-            }
-
-            if (!BGThreadServerController.getInstance().server_ready) {
-                setTimeout(function () {
-                    self.execute_bgthread(bgthread);
-                }, bgthread.current_timeout);
-                return;
-            }
-
-            let timeout_coef: number = 1;
-
-            timeout_coef = await bgthread.work();
-
-            if (!timeout_coef) {
-                timeout_coef = 1;
-            }
-
-            bgthread.current_timeout = bgthread.current_timeout * timeout_coef;
-            if (bgthread.current_timeout > bgthread.MAX_timeout) {
-                bgthread.current_timeout = bgthread.MAX_timeout;
-            }
-
-            if (bgthread.current_timeout < bgthread.MIN_timeout) {
-                bgthread.current_timeout = bgthread.MIN_timeout;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+        if (!bgthread) {
+            return;
         }
 
-        setTimeout(function () {
-            self.execute_bgthread(bgthread);
-        }, bgthread.current_timeout);
+        while (true) {
+
+            await ThreadHandler.getInstance().sleep(bgthread.current_timeout);
+
+            try {
+
+                if (!BGThreadServerController.getInstance().server_ready) {
+                    continue;
+                }
+
+                let timeout_coef: number = 1;
+
+                timeout_coef = await bgthread.work();
+
+                if (!timeout_coef) {
+                    timeout_coef = 1;
+                }
+
+                bgthread.current_timeout = bgthread.current_timeout * timeout_coef;
+                if (bgthread.current_timeout > bgthread.MAX_timeout) {
+                    bgthread.current_timeout = bgthread.MAX_timeout;
+                }
+
+                if (bgthread.current_timeout < bgthread.MIN_timeout) {
+                    bgthread.current_timeout = bgthread.MIN_timeout;
+                }
+            } catch (error) {
+                ConsoleHandler.getInstance().error(error);
+            }
+        }
     }
 }

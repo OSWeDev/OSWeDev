@@ -1,24 +1,50 @@
 .vars_manager.hidden-print(:class="{'desc_mode': isDescMode}")
 
     .icons
-        template(v-if='isDescMode')
-            i.fa.fa-2x.fa-search-plus.fa-fw(aria-hidden="true" v-if='!isDescOpened' @click='setDescOpened(!isDescOpened)')
-            i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='isDescOpened' @click='setDescOpened(!isDescOpened)')
-            
-            i.fa.fa-2x.fa-list-alt.fa-fw(aria-hidden="true" @click='setDescRegistrationsOpened(!isDescRegistrationsOpened)')
+        i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'fa-2x': isDescMode}" @click='switchDescMode')
 
-            i.fa.fa-2x.fa-clock-o.fa-fw(aria-hidden="true" @click='setDescFuncStatsOpened(!isDescFuncStatsOpened)')
-            
-                    
-        i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true" v-if='isUpdating' :class="{'fa-2x': isDescMode}")
-        i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-else :class="{'fa-2x': isDescMode}" @click='switchDescMode')
 
-    .desc_window(v-show='isDescMode && isDescOpened')
-        template(v-show='!!getDescSelectedIndex')
-            var-desc(:var_param='selected_param')
+    template(v-if='isDescMode')
+        Draggablewindowcomponent(
+            :initial_width="448" 
+            :initial_height="840" 
+            :minh="115" 
+            :minw="448" 
+            :initial_x="70" 
+            :initial_y="56" 
+            :initial_opened="true"
+            :opened_width="448"
+            :opened_height="840"
+            :closed_width="448"
+            :closed_height="37"
+            :unusable_height="37"
+            :opened_minh="115"
+            :opened_minw="448"
+            :closed_minh="37"
+            :closed_minw="448"
+        )
+            .slot_header(slot='icons')
+                i.fa.fa-repeat.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_redo}" @click='redo')
+                i.fa.fa-undo.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_undo}" @click='undo')
 
-    .desc_window(v-show='isDescMode && isDescRegistrationsOpened')
-        var-desc-registrations
+            var-desc(:var_param='getDescSelectedVarParam')
 
-    //- .desc_window(v-if='isDescMode && isDescFuncStatsOpened')
-    //-     perfmon-funcstats
+        Draggablewindowcomponent(
+            :initial_width="448" 
+            :initial_height="840" 
+            :minh="115" 
+            :minw="448" 
+            :initial_x="70 + 448 + 50" 
+            :initial_y="56" 
+            :initial_opened="true"
+            :opened_width="448"
+            :opened_height="840"
+            :closed_width="448"
+            :closed_height="37"
+            :unusable_height="37"
+            :opened_minh="115"
+            :opened_minw="448"
+            :closed_minh="37"
+            :closed_minw="448"
+        )
+            Varsdatasexplorercomponent

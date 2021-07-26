@@ -24,5 +24,9 @@ export default class EnvParam implements IEnvParam {
     public SERVER_ENCODING: string;
     public CONSOLE_LOG_TO_FILE: boolean = true;
     public DEBUG_FORKS: boolean = false;
+    public VARS_PERF_MONITORING?: boolean = true;
+    public START_MAINTENANCE_ACCEPTATION_CODE: string;
+    public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
+    public DEBUG_VARS: boolean = false;
 }

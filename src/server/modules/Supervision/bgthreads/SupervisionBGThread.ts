@@ -6,7 +6,8 @@ import SupervisionController from '../../../../shared/modules/Supervision/Superv
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-const moment = require('moment');
+import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
+import SupervisionServerController from '../SupervisionServerController';
 
 export default class SupervisionBGThread implements IBGThread {
 
@@ -37,10 +38,11 @@ export default class SupervisionBGThread implements IBGThread {
             let registered_api_types = SupervisionController.getInstance().registered_controllers;
 
             for (let api_type_id in registered_api_types) {
-                let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
+                let shared_controller: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
+                let server_controller: ISupervisedItemServerController<any> = SupervisionServerController.getInstance().registered_controllers[api_type_id];
 
                 // Si pas actif ou pas de time ms saisie, on passe au suivant
-                if (!registered_api_type.is_actif() || !registered_api_type.get_execute_time_ms()) {
+                if (!shared_controller.is_actif() || !server_controller.get_execute_time_ms()) {
                     continue;
                 }
 
@@ -52,14 +54,17 @@ export default class SupervisionBGThread implements IBGThread {
                     ['true']
                 );
 
-                if (registered_api_type.already_work) {
+                if (server_controller.already_work) {
                     continue;
                 }
 
                 // Si j'ai des items invalid, je vais throttle le controller
                 if (items && items.length) {
                     if (!this.throttle_by_api_type_id[api_type_id]) {
-                        this.throttle_by_api_type_id[api_type_id] = throttle(registered_api_type.work_invalid.bind(registered_api_type), registered_api_type.get_execute_time_ms(), { leading: false });
+                        this.throttle_by_api_type_id[api_type_id] = throttle(
+                            server_controller.work_invalid.bind(server_controller),
+                            server_controller.get_execute_time_ms(),
+                            { leading: false });
                     }
 
                     this.throttle_by_api_type_id[api_type_id]();

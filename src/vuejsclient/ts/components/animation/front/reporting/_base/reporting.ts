@@ -7,13 +7,11 @@ import UserVO from '../../../../../../../shared/modules/AccessPolicy/vos/UserVO'
 import AnimationController from '../../../../../../../shared/modules/Animation/AnimationController';
 import ModuleAnimation from '../../../../../../../shared/modules/Animation/ModuleAnimation';
 import AnimationReportingParamVO from '../../../../../../../shared/modules/Animation/params/AnimationReportingParamVO';
-import ThemeModuleDataParamRangesVO from '../../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO';
-import VarDayPrctReussiteAnimationController from '../../../../../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController';
-import VarDayTempsPasseAnimationController from '../../../../../../../shared/modules/Animation/vars/VarDayTempsPasseAnimationController';
+import ThemeModuleDataRangesVO from '../../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
-import APIController from '../../../../../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -89,6 +87,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     private get_filter_module_valide_active_option: DataFilterOption;
 
     private is_init: boolean = false;
+    private temps_passe_total_param: ThemeModuleDataRangesVO = null;
+    private prct_reussite_total_param: ThemeModuleDataRangesVO = null;
 
     private debounced_reloadAums = debounce(this.reloadAums, 300);
 
@@ -125,7 +125,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             this.get_filter_module_termine_active_option,
             this.get_filter_module_valide_active_option,
         );
-        exhi.export_params_stringified = JSON.stringify(APIController.getInstance().try_translate_vo_to_api(export_params));
+        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.getInstance().try_translate_vo_to_api(export_params));
         exhi.export_to_uid = VueAppController.getInstance().data_user.id;
         exhi.export_type_id = ModuleAnimation.EXPORT_API_TYPE_ID;
 
@@ -211,6 +211,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         });
 
         this.is_init = true;
+
+        this.reload_params();
     }
 
     private async reloadAums() {
@@ -252,25 +254,47 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         }
 
         this.set_all_aum_by_theme_module_user(all_aum_by_theme_module_user);
+
+        this.reload_params();
+    }
+
+    private reload_params() {
+        this.temps_passe_total_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
+            true,
+            this.get_anim_theme_id_ranges,
+            this.get_anim_module_id_ranges,
+            this.get_user_id_ranges,
+        );
+
+        this.prct_reussite_total_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
+            true,
+            this.get_anim_theme_id_ranges,
+            this.get_anim_module_id_ranges,
+            this.get_user_id_ranges,
+        );
     }
 
     private get_formatted_date(date: Moment): string {
         return date ? date.format('DD/MM/YYYY HH:mm') : null;
     }
 
-    private get_prct_reussite_total_param(aum: AnimationUserModuleVO): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctReussiteAnimationController.getInstance().varConf.id,
-            null,
+    private get_prct_reussite_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
+        return ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
+            true,
+            this.get_anim_theme_id_ranges,
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
     }
 
-    private get_temps_passe_total_param(aum: AnimationUserModuleVO): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayTempsPasseAnimationController.getInstance().varConf.id,
-            null,
+    private get_temps_passe_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
+        return ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
+            true,
+            this.get_anim_theme_id_ranges,
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
             [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
@@ -300,24 +324,6 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
 
     get support_labels(): { [support_id: number]: string } {
         return AnimationUserModuleVO.SUPPORT_LABELS;
-    }
-
-    get temps_passe_total_param(): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayTempsPasseAnimationController.getInstance().varConf.id,
-            this.get_anim_theme_id_ranges,
-            this.get_anim_module_id_ranges,
-            this.get_user_id_ranges,
-        );
-    }
-
-    get prct_reussite_total_param(): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctReussiteAnimationController.getInstance().varConf.id,
-            this.get_anim_theme_id_ranges,
-            this.get_anim_module_id_ranges,
-            this.get_user_id_ranges,
-        );
     }
 
     get is_filter_module_termine_active_no(): boolean {

@@ -3,9 +3,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
@@ -26,7 +24,10 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -119,14 +120,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataImportBGThread.getInstance());
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateUpdate.bind(this));
-        preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateCreation.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateUpdate);
+        preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateCreation);
 
         // Triggers pour faire avancer l'import
-        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID);
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -346,31 +347,31 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
     }
 
-    public async getDataImportHistorics(param: NumberParamVO): Promise<DataImportHistoricVO[]> {
+    public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
 
         return await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [num]);
     }
 
-    public async getDataImportHistoric(param: NumberParamVO): Promise<DataImportHistoricVO> {
+    public async getDataImportHistoric(num: number): Promise<DataImportHistoricVO> {
 
         return await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [param.num]);
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [num]);
     }
 
-    public async getDataImportLogs(param: NumberParamVO): Promise<DataImportLogVO[]> {
+    public async getDataImportLogs(num: number): Promise<DataImportLogVO[]> {
 
         return await ModuleDAOServer.getInstance().selectAll<DataImportLogVO>(
-            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
+            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [num]);
     }
 
     public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
@@ -378,10 +379,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID);
     }
 
-    public async getDataImportFile(param: StringParamVO): Promise<DataImportFormatVO> {
+    public async getDataImportFile(text: string): Promise<DataImportFormatVO> {
 
         return await ModuleDAOServer.getInstance().selectOne<DataImportFormatVO>(
-            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [param.text]);
+            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [text]);
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
@@ -390,10 +391,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             DataImportFormatVO.API_TYPE_ID, 'WHERE t.api_type_id = $1', [API_TYPE_ID]);
     }
 
-    public async getDataImportColumnsFromFormatId(param: NumberParamVO): Promise<DataImportColumnVO[]> {
+    public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {
 
         return await ModuleDAOServer.getInstance().selectAll<DataImportColumnVO>(
-            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [param.num]);
+            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [num]);
     }
 
     /**
@@ -670,7 +671,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
-        await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
     public async logAndUpdateHistoric(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, import_state: number, logmsg: string, notif_code: string, log_lvl: number) {
@@ -681,16 +682,16 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         switch (log_lvl) {
             case DataImportLogVO.LOG_LEVEL_FATAL:
             case DataImportLogVO.LOG_LEVEL_ERROR:
-                await PushDataServerController.getInstance().notifySimpleERROR(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleERROR(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_WARN:
-                await PushDataServerController.getInstance().notifySimpleWARN(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleWARN(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_SUCCESS:
-                await PushDataServerController.getInstance().notifySimpleSUCCESS(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleSUCCESS(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_INFO:
-                await PushDataServerController.getInstance().notifySimpleINFO(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleINFO(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_DEBUG:
             default:
@@ -732,33 +733,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
     }
 
-    private async handleImportHistoricDateUpdate(importHistoric: DataImportHistoricVO): Promise<boolean> {
+    private async handleImportHistoricDateUpdate(vo_update_handler: DAOUpdateVOHolder<DataImportHistoricVO>): Promise<boolean> {
 
-        // Pour éviter tout risque de désordre dans la gestion des imports, on ignore le cas du réimport.
-        // Donc si on est en train de modifier pour faire un réimport, on modifie pas la date.
-        // // En fait ça casse les cou..les : On devrait aussi refuser toute modification de statut manuelle, et pas réalisée directement par le serveur.
-
-        // let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        // let session = httpContext ? httpContext.get('SESSION') : null;
-        // let bdd_import: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
-
-        // if (session && !!session.uid) {
-        //     // Cas d'une modif par un utilisateur, on doit refuser le changement de statuts si c'est pas pour un réimport.
-
-        //     if ((importHistoric.state != bdd_import.state) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) {
-
-        //         // Cas particulier du changement de statuts sur un import en validation manuelle qui doit continuer de fonctionner....
-        //         if (!((bdd_import.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) && (!importHistoric.autovalidate))) {
-
-        //             let uid: number = httpContext ? httpContext.get('UID') : null;
-        //             if (!!uid) {
-        //                 ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'handleImportHistoricDateUpdate.change_state.error');
-        //             }
-
-        //             return false;
-        //         }
-        //     }
-        // }
+        let importHistoric: DataImportHistoricVO = vo_update_handler.post_update_vo;
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT) {
             importHistoric.last_up_date = moment().utc(true);

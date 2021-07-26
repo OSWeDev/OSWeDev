@@ -16,13 +16,22 @@ export default class NumSegmentHandler {
 
     private constructor() { }
 
-    // public getBiggestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
-    //     return NumSegment.TYPE_INT;
-    // }
+    public getBiggestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        return NumSegment.TYPE_INT;
+    }
 
-    // public getSmallestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
-    //     return NumSegment.TYPE_INT;
-    // }
+    public getSmallestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        return NumSegment.TYPE_INT;
+    }
+
+    /**
+     * Renvoi 1 si le semgent_type a est plus grand que b, -1 si plus petit, 0 si égaux
+     * @param segment_type_a
+     * @param segment_type_b
+     */
+    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+        return 0;
+    }
 
     /**
      * ATTENTION : modifie le TS sans copie
@@ -73,7 +82,7 @@ export default class NumSegmentHandler {
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé
      */
-    public incNum(num: number, segment_type: number, offset: number): number {
+    public incNum(num: number, segment_type: number, offset: number = 1): number {
 
         switch (segment_type) {
             case NumSegment.TYPE_INT:
@@ -85,7 +94,7 @@ export default class NumSegmentHandler {
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé
      */
-    public decNum(num: number, segment_type: number, offset: number): number {
+    public decNum(num: number, segment_type: number, offset: number = 1): number {
         return this.incNum(num, segment_type, -offset);
     }
 

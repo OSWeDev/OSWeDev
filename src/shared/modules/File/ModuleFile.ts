@@ -1,12 +1,12 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import FileVO from './vos/FileVO';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import ModuleAPI from '../API/ModuleAPI';
-import NumberParamVO from '../API/vos/apis/NumberParamVO';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleFile extends Module {
 
@@ -29,6 +29,8 @@ export default class ModuleFile extends Module {
     }
 
     private static instance: ModuleFile = null;
+
+    public testFileExistenz: (filevo_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleFile.APINAME_TEST_FILE_EXISTENZ);
 
     private constructor() {
 
@@ -53,18 +55,11 @@ export default class ModuleFile extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleFile.APINAME_TEST_FILE_EXISTENZ,
             [FileVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
-    }
-
-    public async testFileExistenz(filevo_id: number): Promise<boolean> {
-        return await ModuleAPI.getInstance().handleAPI<void, boolean>(ModuleFile.APINAME_TEST_FILE_EXISTENZ, filevo_id);
     }
 }

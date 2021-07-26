@@ -1,0 +1,6 @@
+.ts_ranges.ranges
+    template(v-if='ranges && ((ranges.length <= limit) || force_override_limit)')
+        template(v-for='range in ranges')
+            Tsrangecomponent.var_data_ts_range(:range='range')
+    template(v-if='ranges && (ranges.length > limit)')
+        .ranges_limited(@click='force_override_limit=!force_override_limit') {{ label('ranges.limited', { ranges_length: ranges.length, limit }) }}

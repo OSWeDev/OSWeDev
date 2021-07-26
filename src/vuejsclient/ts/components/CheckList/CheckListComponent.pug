@@ -1,0 +1,55 @@
+include ../../../views/mixins/loading.pug
+
+.rootElt.checklist
+    +loading()
+        .row 
+            .col-md-2
+                button.btn.btn-primary(type='button', @click="createNew") {{ label('checklist.createNew') }}
+        
+        .row 
+            .col-md-12 
+
+        .row 
+            .col-md-4
+                input(type='text' :placeholder='label("checklist.filter_text")' v-model="filter_text")
+
+        .row(v-if='has_checklistitems && ordered_checklistitems && ordered_checklistitems.length')
+            .col-md-12
+                table.table-striped.table-hover
+                    thead
+                        tr
+                            th
+                            th(v-for='label in infos_cols_labels') {{ t(label) }}
+                            th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
+                            th  {{ label('checklist.archive') }}
+                    tbody
+                        tr(v-for='checklist_item in ordered_checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
+                            :checklist_item='checklist_item' 
+                            :checklist_controller='checklist_controller'
+                            :ordered_checkpoints='ordered_checkpoints' 
+                            :global_route_path='global_route_path'
+                            @onchangevo='onchangevo')
+
+        .row(v-else)
+            .col-md-12
+                .no_elts {{ label('checklist.no_elts') }}
+
+    #checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content(v-if="selected_checklist_item")
+                .modal-header
+                    h4.modal-title {{ selected_checklist_item.name }}
+                    router-link.btn.close(:to="global_route_path + '/' + list_id") &times;
+                
+                .modal-body
+                    Checklistmodalcomponent(
+                        @onchangevo='onchangevo'
+                        :checklist_item='selected_checklist_item'
+                        :checkpoint='selected_checkpoint'
+                        :checklist_controller='checklist_controller'
+                        :ordered_checkpoints='ordered_checkpoints' 
+                        :key='selected_checklist_item.id')
+
+                .modal-footer
+                    button.btn.btn-danger(type='button', @click="deleteSelectedItem(selected_checklist_item)") {{ label('checklist.checklist_item_modal.delete') }}
+                    router-link.btn.btn-default(:to="global_route_path + '/' + list_id") {{ label('checklist.checklist_item_modal.close') }}

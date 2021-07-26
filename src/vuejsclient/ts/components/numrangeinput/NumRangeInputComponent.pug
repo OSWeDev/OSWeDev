@@ -1,0 +1,15 @@
+.num_range_input
+    .row
+        .col-md-6
+            input.numstart(:class="{'form-control': !inline_input_mode}" type='number' v-model="numrange_start" :placeholder="label('num_range_input.debut')" :required="required", :disabled="disabled", @input="emitInput")
+        .col-md-6
+            input.numend(:class="{'form-control': !inline_input_mode}" type='number' v-model="numrange_end" :placeholder="label('num_range_input.fin')" :required="required", :disabled="disabled || is_single", @input="emitInput")
+    .row
+        .col-md-12
+            toggle-button(
+                @change="toggle_is_single()" 
+                :value="is_single" 
+                :sync="true"
+                :width='200'
+                :labels="{checked: label('num_range_input.is_single.on'), unchecked: label('num_range_input.is_single.off')}"
+                :id="custom_id")

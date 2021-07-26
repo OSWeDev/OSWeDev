@@ -1,10 +1,11 @@
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
-import APIController from '../../../shared/modules/API/APIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -30,7 +31,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
     }
 
     /**
@@ -66,9 +67,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
-                for (let j in ModuleAPI.getInstance().registered_apis) {
-                    let registered_api = ModuleAPI.getInstance().registered_apis[j];
-                    if (APIController.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, APIController.getInstance().getAPI_URL(registered_api))) {
+                for (let j in APIControllerWrapper.getInstance().registered_apis) {
+                    let registered_api = APIControllerWrapper.getInstance().registered_apis[j];
+                    if (APIControllerWrapper.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getInstance().getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;
                     }
@@ -76,33 +77,43 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 if (!apiDefinition) {
                     ConsoleHandler.getInstance().error('API introuvable:' + wrapped_request.url + ':');
-                    return;
+                    return null;
+                }
+
+                if (!!apiDefinition.access_policy_name) {
+                    if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(apiDefinition.access_policy_name)) {
+                        ConsoleHandler.getInstance().error('Access denied to API:' + apiDefinition.api_name + ':');
+                        return null;
+                    }
                 }
 
                 let param = null;
 
                 switch (wrapped_request.type) {
                     case RequestResponseCacheVO.API_TYPE_GET:
-                        if (!!apiDefinition.PARAM_TRANSLATE_FROM_REQ) {
+                        if (apiDefinition.param_translator && apiDefinition.param_translator.fromREQ) {
                             // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
                             //
-                            param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(APIController.getInstance().getFakeRequestParamsFromUrl(
-                                wrapped_request.url,
-                                APIController.getInstance().getAPI_URL(apiDefinition)));
+                            param = apiDefinition.param_translator.fromREQ(
+                                APIControllerWrapper.getInstance().getFakeRequestParamsFromUrl(
+                                    wrapped_request.url,
+                                    APIControllerWrapper.getInstance().getAPI_URL(apiDefinition)));
                         }
                         break;
 
                     case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                         try {
-                            param = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
+                            param = ((!EnvHandler.getInstance().MSGPCK) && wrapped_request.postdatas) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
                             // On doit traduire ici si (!EnvHandler.getInstance().MSGPCK) ce qui ne l'a pas été puisque encodé en JSON
-                            param = (!EnvHandler.getInstance().MSGPCK) ? APIController.getInstance().try_translate_vo_from_api(param) : param;
+                            param = (!EnvHandler.getInstance().MSGPCK) ? APIControllerWrapper.getInstance().try_translate_vo_from_api(param) : param;
                         } catch (error) {
-                            ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
+                            ConsoleHandler.getInstance().error('Erreur récupération params post_for_get wrapped:' + error + ':');
                         }
                 }
 
-                res.requests_results[wrapped_request.index] = await apiDefinition.SERVER_HANDLER(param);
+                let params = (param && apiDefinition.param_translator) ? apiDefinition.param_translator.getAPIParams(param) : [param];
+                let api_res = await apiDefinition.SERVER_HANDLER(...params);
+                res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
 
                 // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
                 //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {

@@ -105,7 +105,7 @@ export default class DataRenderController {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] == null)) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] === null)) {
                 continue;
             }
 
@@ -129,7 +129,7 @@ export default class DataRenderController {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] == null)) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] === null)) {
                 continue;
             }
 
@@ -155,7 +155,7 @@ export default class DataRenderController {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name]) || (row[field_name] == null))) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name]) || (row[field_name] === null))) {
                 continue;
             }
 
@@ -318,7 +318,7 @@ export default class DataRenderController {
         if ((!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex]) ||
             (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id]) ||
             (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id]) ||
-            (renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id][field_name] == null) ||
+            (renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id][field_name] === null) ||
             (typeof renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name] == 'undefined')) {
             return null;
         }

@@ -1,3 +1,7 @@
+import ServerAPIController from '../../../server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
 import { expect } from 'chai';
 import 'mocha';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
@@ -20,7 +24,34 @@ describe('TSRangeHandler', () => {
     let moins_un = moment(zero).add(-1, 'day').utc(true);
     let moins_deux = moment(zero).add(-2, 'day').utc(true);
 
+    let zero_startofmonth = moment('2020-02-01').startOf('day').utc(true);
+    let zero_startofnextmonth = moment('2020-03-01').startOf('day').utc(true);
+
     let bidon = moment(zero).add(10, 'day').utc(true);
+
+    it('test get_ranges_according_to_segment_type', () => {
+        expect(RangeHandler.getInstance().get_ranges_according_to_segment_type(null, null)).to.equal(null);
+        expect(RangeHandler.getInstance().get_ranges_according_to_segment_type([
+            TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)
+        ], TimeSegment.TYPE_DAY)).to.deep.equal([
+            TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY)
+        ]);
+
+        // Le assign est juste à cause d'un pb de momentjs....
+        let month_ranges = RangeHandler.getInstance().get_ranges_according_to_segment_type([
+            TSRange.createNew(moment(zero), moment(zero), true, true, TimeSegment.TYPE_DAY)
+        ], TimeSegment.TYPE_MONTH);
+        month_ranges[0].max['_i'] = "2020-03-01";
+        month_ranges[0].max['_pf'].parsedDateParts = [2020, 2, 1];
+        month_ranges[0].min['_i'] = "2020-02-01";
+        // comprends pas le lien entre month_ranges[0].min['_pf'] et month_ranges[0].max['_pf']... mais sans ça c'est le même obj...
+        month_ranges[0].min['_pf'] = Object.create(month_ranges[0].min['_pf']);
+        month_ranges[0].min['_pf'].parsedDateParts = [2020, 1, 1];
+
+        expect(month_ranges).to.deep.equal([
+            TSRange.createNew(moment(zero_startofmonth), moment(zero_startofnextmonth), true, false, TimeSegment.TYPE_MONTH)
+        ]);
+    });
 
     it('test get_all_segmented_elements_from_range', () => {
 
@@ -107,6 +138,8 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(4);
         expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(4);
         expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(3);
+
+        expect(RangeHandler.getInstance().getCardinal(TSRange.createNew(moment(zero).startOf('month'), moment(zero).endOf('month'), true, true, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH)).to.equal(1);
     });
 
     it('test elt_intersects_any_range', () => {
@@ -1072,23 +1105,24 @@ describe('TSRangeHandler', () => {
             segment_type: TimeSegment.TYPE_DAY
 
         } as TSRange]);
-        expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: un,
-            min_inclusiv: true,
-            max: deux,
-            max_inclusiv: false,
-            range_type: 2,
-            segment_type: TimeSegment.TYPE_DAY
+        expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([
+            {
+                min: moins_un,
+                min_inclusiv: true,
+                max: zero,
+                max_inclusiv: false,
+                range_type: 2,
+                segment_type: TimeSegment.TYPE_DAY
 
-        } as TSRange, {
-            min: moins_un,
-            min_inclusiv: true,
-            max: zero,
-            max_inclusiv: false,
-            range_type: 2,
-            segment_type: TimeSegment.TYPE_DAY
+            } as TSRange, {
+                min: un,
+                min_inclusiv: true,
+                max: deux,
+                max_inclusiv: false,
+                range_type: 2,
+                segment_type: TimeSegment.TYPE_DAY
 
-        } as TSRange]);
+            } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
@@ -1147,7 +1181,7 @@ describe('TSRangeHandler', () => {
             [TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
             [TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
@@ -1531,6 +1565,399 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI<Moment>(TSRange.RANGE_TYPE, DateHandler.getInstance().formatDateTimeForAPI(un)).format('DD/MM/YYYY')).to.equal(un.format('DD/MM/YYYY'));
         expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI<Moment>(TSRange.RANGE_TYPE, DateHandler.getInstance().formatDateTimeForAPI(zero_cinq)).format('DD/MM/YYYY')).to.equal(zero_cinq.format('DD/MM/YYYY'));
     });
+
+    it('test isEndABeforeEndB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
+    it('test isEndABeforeStartB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
+    it('test isEndASameEndB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
+    it('test isStartABeforeStartB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
+    it('test isStartASameStartB_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+
+
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB_optimized_normalized(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
 
     it('test isEndABeforeEndB', () => {
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -2150,7 +2577,7 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().cloneArrayFrom(null)).to.equal(null);
         expect(RangeHandler.getInstance().cloneArrayFrom([numRange1])).to.deep.equal([numRange1]);
         expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2])).to.deep.equal([numRange1Bis, numRange2Bis]);
-        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2, numRange3])).to.deep.equal([numRange1Bis, numRange2Bis, numRange3Bis]);
+        expect(RangeHandler.getInstance().cloneArrayFrom([numRange1, numRange2, numRange3])).to.deep.equal([numRange1Bis, numRange3Bis, numRange2Bis]);
     });
 
     it('test getIndex', () => {
@@ -2184,9 +2611,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().getIndexRanges(null)).to.equal(null);
-        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)]");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[0,3),[3,4)]");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[2,4),[3,4)]");
     });
 
     it('test humanizeRanges', () => {
@@ -2196,9 +2623,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().humanizeRanges(null)).to.equal(null);
-        expect(RangeHandler.getInstance().humanizeRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)");
-        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)");
-        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)]");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange1])).to.equal("[[3,4),[0,3)]");
+        expect(RangeHandler.getInstance().humanizeRanges([numRange2, numRange3])).to.equal("[[3,4),[2,4)]");
     });
 
     it('test ranges_intersect_themselves', () => {
@@ -2207,7 +2634,7 @@ describe('TSRangeHandler', () => {
         let numRange2 = NumRange.createNew(2, 4, false, false, NumSegment.TYPE_INT);
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
-        expect(RangeHandler.getInstance().ranges_intersect_themselves(null, null)).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_intersect_themselves(null)).to.equal(false);
         expect(RangeHandler.getInstance().ranges_intersect_themselves([numRange1, numRange3])).to.equal(true);
         expect(RangeHandler.getInstance().ranges_intersect_themselves([numRange2, numRange1])).to.equal(false);
         expect(RangeHandler.getInstance().ranges_intersect_themselves([numRange2, numRange3])).to.equal(true);
@@ -2304,6 +2731,74 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+    });
+
+
+    it('test range_intersects_range_optimized_normalized', () => {
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range_optimized_normalized(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
     });
 
     it('test range_intersects_any_range', () => {

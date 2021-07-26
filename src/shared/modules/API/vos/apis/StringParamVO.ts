@@ -1,18 +1,11 @@
-export default class StringParamVO {
+import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
+
+export default class StringParamVO implements IAPIParamTranslator<StringParamVO> {
 
     public static URL: string = ':text';
 
-    public static async translateCheckAccessParams(
-        text: string): Promise<StringParamVO> {
-
-        return new StringParamVO(text);
-    }
-
-    public static async translateToURL(param: StringParamVO): Promise<string> {
-
-        return param ? param.text : '';
-    }
-    public static async translateFromREQ(req): Promise<StringParamVO> {
+    public static fromREQ(req): StringParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -20,7 +13,22 @@ export default class StringParamVO {
         return new StringParamVO(req.params.text);
     }
 
+    public static fromParams(text: string): StringParamVO {
+        return new StringParamVO(text);
+    }
+
+    public static getAPIParams(param: StringParamVO): any[] {
+        return [param.text];
+    }
+
     public constructor(
         public text: string) {
     }
+
+    public translateToURL(): string {
+
+        return this.text;
+    }
 }
+
+export const StringParamVOStatic: IAPIParamTranslatorStatic<StringParamVO> = StringParamVO;

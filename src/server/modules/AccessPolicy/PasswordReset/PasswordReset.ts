@@ -2,10 +2,12 @@ import * as moment from 'moment';
 import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import PushDataServerController from '../../PushData/PushDataServerController';
 
 export default class PasswordReset {
 
@@ -130,6 +132,15 @@ export default class PasswordReset {
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
+            return false;
+        }
+
+        if (ModuleDAOServer.getInstance().global_update_blocker) {
+            // On est en readonly partout, donc on informe sur impossibilité de se connecter
+            await PushDataServerController.getInstance().notifySession(
+                'error.global_update_blocker.activated.___LABEL___',
+                NotificationVO.SIMPLE_ERROR
+            );
             return false;
         }
 

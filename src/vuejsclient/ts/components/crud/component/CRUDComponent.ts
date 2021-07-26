@@ -108,6 +108,7 @@ export default class CRUDComponent extends VueComponentBase {
     private api_types_involved: string[] = [];
 
     private can_access_vocus: boolean = false;
+    private can_delete_all: boolean = false;
 
     private creating_vo: boolean = false;
     private updating_vo: boolean = false;
@@ -256,6 +257,7 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.can_access_vocus = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS);
+        this.can_delete_all = await ModuleAccessPolicy.getInstance().checkAccess(this.crud.delete_all_access_right);
 
         await Promise.all(this.loadDatasFromDatatable(this.crud.readDatatable));
         this.nextLoadingStep();
@@ -511,7 +513,8 @@ export default class CRUDComponent extends VueComponentBase {
                     // TODO FIXME ASAP VARS
                 }
 
-                if ((simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) ||
+                if ((simpleFieldType == ModuleTableField.FIELD_TYPE_tstz_array) ||
+                    (simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) ||
                     (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) ||
                     (simpleFieldType == ModuleTableField.FIELD_TYPE_html_array)) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
@@ -639,7 +642,7 @@ export default class CRUDComponent extends VueComponentBase {
                 return;
             }
 
-            let id = res.id ? parseInt(res.id.toString()) : null;
+            let id = res.id ? res.id : null;
             this.newVO.id = id;
 
             createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
@@ -803,7 +806,7 @@ export default class CRUDComponent extends VueComponentBase {
                             this.snotify.error(this.label('crud.create.errors.many_to_many_failure'));
                             continue;
                         }
-                        need_add_links[linki].id = parseInt(insertOrDeleteQueryResult.id.toString());
+                        need_add_links[linki].id = insertOrDeleteQueryResult.id;
                         this.storeData(need_add_links[linki]);
                     }
                 }
@@ -1058,5 +1061,37 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         return false;
+    }
+
+    private async delete_all() {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('crud.actions.delete_all.confirmation.body'), self.label('crud.actions.delete_all.confirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('crud.actions.delete_all.start'));
+
+                        await ModuleDAO.getInstance().truncate(self.api_type_id);
+                        await self.reload_datas();
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
     }
 }

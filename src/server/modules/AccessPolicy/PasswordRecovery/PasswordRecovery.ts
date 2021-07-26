@@ -1,3 +1,5 @@
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserLogVO from '../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
@@ -38,6 +40,18 @@ export default class PasswordRecovery {
     public async beginRecovery(email: string): Promise<boolean> {
 
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+
+        return await this.beginRecovery_user(user);
+    }
+
+    public async beginRecovery_uid(uid: number): Promise<boolean> {
+
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+
+        return await this.beginRecovery_user(user);
+    }
+
+    public async beginRecovery_user(user: UserVO): Promise<boolean> {
 
         if (!user) {
             return false;
@@ -93,6 +107,22 @@ export default class PasswordRecovery {
 
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
+        return await this.beginRecoverySMS_user(user);
+    }
+
+    public async beginRecoverySMS_uid(uid: number): Promise<boolean> {
+
+        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+            return;
+        }
+
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+
+        return await this.beginRecoverySMS_user(user);
+    }
+
+    public async beginRecoverySMS_user(user: UserVO): Promise<boolean> {
+
         if (!user) {
             return false;
         }
@@ -113,6 +143,9 @@ export default class PasswordRecovery {
         let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(PasswordRecovery.CODE_TEXT_SMS_RECOVERY);
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
+        let session = StackContext.getInstance().get('SESSION');
+        let sid = session.sid;
+
         // On doit se comporter comme un server à ce stade
         await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
 
@@ -124,7 +157,8 @@ export default class PasswordRecovery {
                 await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
                     EMAIL: user.email,
                     UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
+                    CODE_CHALLENGE: user.recovery_challenge,
+                    SESSION_SHARE_SID: sid ? encodeURIComponent(sid) : null
                 }),
                 'PasswordRecovery');
         });

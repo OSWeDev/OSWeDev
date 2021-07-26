@@ -1,29 +1,27 @@
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
+import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
 import MaintenanceCronWorkersHandler from './MaintenanceCronWorkersHandler';
+import MaintenanceServerController from './MaintenanceServerController';
 const moment = require('moment');
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
-
-    public static TASK_NAME_set_planned_maintenance_vo = 'ModuleMaintenanceServer.set_planned_maintenance_vo';
-    public static TASK_NAME_handleTriggerPreC_MaintenanceVO = 'ModuleMaintenanceServer.handleTriggerPreC_MaintenanceVO';
-    public static TASK_NAME_end_maintenance = 'ModuleMaintenanceServer.end_maintenance';
-    public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
-    public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
 
     public static getInstance() {
         if (!ModuleMaintenanceServer.instance) {
@@ -43,6 +41,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        MaintenanceServerController.getInstance();
 
         // On enregistre le BGThread d'avancement/information sur les maintenances
         ModuleBGThreadServer.getInstance().registerBGThread(MaintenanceBGThread.getInstance());
@@ -106,28 +106,28 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }, 'menu.menuelements.module_maintenance.___LABEL___'));
 
 
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO);
 
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE, this.end_planned_maintenance.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE, this.end_planned_maintenance.bind(this));
     }
 
-    public async end_maintenance(param: NumberParamVO): Promise<void> {
+    public async end_maintenance(num: number): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_maintenance, param)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_maintenance, num)) {
             return;
         }
 
-        if ((!param) || (!param.num)) {
+        if (!num) {
             return;
         }
 
@@ -137,19 +137,19 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, param.num);
+        let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, num);
 
         maintenance.maintenance_over = true;
         maintenance.end_ts = moment().utc(true);
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
-        await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, maintenance.id);
+        await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
     }
 
     public async end_planned_maintenance(): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_planned_maintenance)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_planned_maintenance)) {
             return;
         }
 
@@ -167,13 +167,21 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(planned_maintenance);
         if (session && !!session.uid) {
-            await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
+            await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
         }
     }
 
-    public async start_maintenance(): Promise<void> {
+    public async start_maintenance(validation_code: string): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_start_maintenance)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance)) {
+            return;
+        }
+
+        ConsoleHandler.getInstance().log('Maintenance demandée:' + validation_code);
+
+        if (ConfigurationService.getInstance().getNodeConfiguration().START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
+            ConsoleHandler.getInstance().error('Maintenance refusée');
+
             return;
         }
 
@@ -191,6 +199,14 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.end_ts = moment().utc(true).add(1, 'hour');
         maintenance.maintenance_over = false;
 
+        /**
+         * On en profite pour bloquer les updates en bases
+         *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
+         */
+        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
+        setTimeout(VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache, readonly_maintenance_deadline);
+
+        ConsoleHandler.getInstance().error('Maintenance lancée');
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
     }
 
@@ -210,20 +226,16 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
             return false;
         }
 
         // Si une maintenance est déjà en cours, on doit pas pouvoir en rajouter
-        if (!!(await this.get_planned_maintenance())) {
+        if (!!(await ModuleMaintenanceServer.getInstance().get_planned_maintenance())) {
             return false;
         }
 
         let session = StackContext.getInstance().get('SESSION');
-
-        if (session && session.uid) {
-            return false;
-        }
 
         maintenance.creation_date = moment().utc(true);
         maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);

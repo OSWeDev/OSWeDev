@@ -3,10 +3,7 @@ import ModuleAccessPolicy from "../../../../../../shared/modules/AccessPolicy/Mo
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
 import AnimationMessageModuleVO from "../../../../../../shared/modules/Animation/fields/message_module/vos/AnimationMessageModuleVO";
 import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAnimation";
-import ThemeModuleDataParamRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataParamRangesVO";
 import ThemeModuleDataRangesVO from "../../../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
-import VarDayPrctAtteinteSeuilAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctAtteinteSeuilAnimationController";
-import VarDayPrctReussiteAnimationController from "../../../../../../shared/modules/Animation/vars/VarDayPrctReussiteAnimationController";
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationParametersVO from "../../../../../../shared/modules/Animation/vos/AnimationParametersVO";
 import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/AnimationQRVO";
@@ -15,18 +12,18 @@ import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vo
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
 import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
-import ISimpleNumberVarData from "../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData";
-import IVarDataVOBase from "../../../../../../shared/modules/Var/interfaces/IVarDataVOBase";
-import SimpleNumberVarDataController from "../../../../../../shared/modules/Var/simple_vars/SimpleNumberVarDataController";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
+import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import AjaxCacheClientController from "../../../../modules/AjaxCache/AjaxCacheClientController";
 import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
+import VarsClientController from "../../../Var/VarsClientController";
 import VueComponentBase from '../../../VueComponentBase';
 import VueAnimationQrComponent from "../qr/qr";
 import '../_base/animation.scss';
@@ -48,6 +45,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     private show_recap: boolean = false;
     private recap_is_actif: boolean = false;
+    /** score sur le module pour l'utilisateur */
     private prct_reussite_value: number = null;
 
     private animation_params: AnimationParametersVO = null;
@@ -60,6 +58,13 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private document: DocumentVO = null;
     private inline_input_mode: boolean = false;
     private has_access_inline_input_mode: boolean = false;
+
+    private themes: AnimationThemeVO[] = [];
+    private theme_id_ranges: NumRange[] = [];
+
+    private prct_atteinte_seuil_module_param: ThemeModuleDataRangesVO = null;
+    /** paramètre pour le score (VarDayPrctReussiteAnimationController) */
+    private prct_reussite_module_param: ThemeModuleDataRangesVO = null;
 
     @Watch('module_id')
     private async reloadAsyncDatas() {
@@ -79,23 +84,44 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
+        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
         await Promise.all(promises);
 
+        for (let i in this.themes) {
+            this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
+        }
+
+        this.prct_atteinte_seuil_module_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
+            true,
+            this.theme_id_ranges,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+        );
+
+        this.prct_reussite_module_param = ThemeModuleDataRangesVO.createNew(
+            AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
+            true,
+            this.theme_id_ranges,
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+        );
+
         promises = [];
 
         promises.push((async () => {
-            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id);
+            this.um = await ModuleAnimation.getInstance().startModule(this.logged_user_id, this.module_id, AnimationController.getInstance().getSupport());
             // On force le vidage de cache
             AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([AnimationUserModuleVO.API_TYPE_ID]);
         })());
 
         promises.push((async () =>
-            this.prct_atteinte_seuil_module = SimpleNumberVarDataController.getInstance().getValueOrDefault(
-                await VarsController.getInstance().registerDataParamAndReturnVarData<ThemeModuleDataParamRangesVO>(
-                    this.prct_atteinte_seuil_module_param, true
+            this.prct_atteinte_seuil_module = VarsController.getInstance().getValueOrDefault(
+                await VarsClientController.getInstance().registerParamAndWait<ThemeModuleDataRangesVO>(
+                    this.prct_atteinte_seuil_module_param
                 ) as ThemeModuleDataRangesVO,
                 0
             )
@@ -232,6 +258,9 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Passe a l'affichage de la page du score.
+     */
     private async show_recap_toggle() {
         if (this.recap_is_actif) {
             await ModuleAnimation.getInstance().endModule(this.logged_user_id, this.anim_module.id);
@@ -261,24 +290,6 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         return (this.$route.params && this.$route.params.module_id) ? parseInt(this.$route.params.module_id) : null;
     }
 
-    get prct_atteinte_seuil_module_param(): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctAtteinteSeuilAnimationController.getInstance().varConf.id,
-            null,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
-        );
-    }
-
-    get prct_reussite_module_param(): ThemeModuleDataParamRangesVO {
-        return ThemeModuleDataParamRangesVO.createNew(
-            VarDayPrctReussiteAnimationController.getInstance().varConf.id,
-            null,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
-        );
-    }
-
     get prct_reussite_class(): string {
         if (this.prct_reussite_value == null) {
             return null;
@@ -298,8 +309,8 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     get prct_reussite_module_directive(): IVarDirectiveParams {
         return {
             var_param: this.prct_reussite_module_param,
-            on_every_update: (varData: IVarDataVOBase, el, binding, vnode) => {
-                this.prct_reussite_value = (!!varData) ? (varData as ISimpleNumberVarData).value : 0;
+            on_every_update: (varData: VarDataBaseVO, el, binding, vnode) => {
+                this.prct_reussite_value = (!!varData) ? varData.value : 0;
             },
             already_register: true,
         };

@@ -1,7 +1,6 @@
 import { Express } from 'express';
 import * as moment from 'moment';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
 import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';
@@ -55,16 +54,16 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public registerExpressApis(app: Express): void { }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
     }
 
-    public async getLatestAvailableSegment(renderer_name: StringParamVO): Promise<TimeSegment> {
+    public async getLatestAvailableSegment(text: string): Promise<TimeSegment> {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
-        let dataRenderer: DataRendererVO = await this.getDataRenderer(renderer_name);
+        let dataRenderer: DataRendererVO = await this.getDataRenderer(text);
         if (!dataRenderer) {
             return null;
         }
@@ -89,8 +88,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<DataRendererVO>(DataRendererVO.API_TYPE_ID);
     }
 
-    public async getDataRenderer(param: StringParamVO): Promise<DataRendererVO> {
-        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [param.text]);
+    public async getDataRenderer(text: string): Promise<DataRendererVO> {
+        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [text]);
     }
 
     /**

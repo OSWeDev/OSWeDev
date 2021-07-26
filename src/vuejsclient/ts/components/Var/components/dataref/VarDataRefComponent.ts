@@ -1,41 +1,39 @@
+import * as moment from 'moment';
+import debounce from 'lodash/debounce';
+import cloneDeep from 'lodash/cloneDeep';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
 })
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
-    @ModuleVarGetter
-    public get_dependencies_heatmap_version: number;
+    public getDescSelectedVarParam: VarDataBaseVO;
     @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @Prop()
-    public var_param: IVarDataParamVOBase;
+    public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: IVarDataVOBase, component: VarDataRefComponent) => any;
+    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -51,6 +49,9 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public suffix: string;
+
+    @Prop({ default: false })
+    public can_inline_edit: boolean;
 
     @Prop({ default: null })
     public null_value_replacement: string;
@@ -70,17 +71,135 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public add_infos_additional_params: any[];  // tableau des params pour chacun des champs présents dans add_infos
 
+    @Prop({ default: false })
+    public show_import_aggregated: boolean;
+
     private entered_once: boolean = false;
+
+    private var_data: VarDataValueResVO = null;
+    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 200, { leading: false });
+
+    // Pour éviter de rentrer en conflit avec le clic
+    private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
+
+    private is_inline_editing: boolean = false;
+
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
+    };
+
+    private aggregated_var_param: VarDataBaseVO = null;
+
+    private async onchangevo(data: VarDataBaseVO, field, value) {
+
+        if (!data) {
+            return;
+        }
+
+        if (data.index != this.var_param.index) {
+            return;
+        }
+
+        let clone = VarDataBaseVO.cloneFromVarId(this.var_param);
+
+        if ((value == null) || isNaN(value) || (value === '')) {
+
+            // Si on envoie une value null || '', on veut en fait supprimer l'import de la base et refresh l'arbre depuis cette var
+            clone.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+            clone.value_ts = null;
+            clone.value = null;
+            clone.id = data.id;
+
+            this.var_data.value = null;
+            this.var_data.value_ts = null;
+            this.var_data.is_computing = true;
+            this.var_data.id = data.id;
+            this.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+        } else {
+
+            // Sinon on set le type import, et on met à jour la var puis on invalide l'arbre
+            clone.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
+            clone.value = value;
+            clone.value_ts = moment().utc(true);
+            clone.id = data.id;
+
+            this.var_data.value = value;
+            this.var_data.value_ts = clone.value_ts;
+            this.var_data.id = data.id;
+            this.var_data.is_computing = false;
+            this.var_data.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
+        }
+
+        // On va enregistrer un cb qui attend le retour de validation de prise en compte de la nouvelle valeur importée
+        let cb = () => {
+            // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
+            if (VarsClientController.getInstance().inline_editing_cb) {
+                VarsClientController.getInstance().inline_editing_cb();
+            }
+        };
+
+        VarsClientController.getInstance().registerParams([clone], {
+            [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
+        });
+
+        let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.getInstance().warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
+            let bdddatas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(clone._type, [clone]);
+            if (bdddatas && bdddatas.length) {
+                ConsoleHandler.getInstance().log('...trouvé on met à jour');
+                let bdddata: VarDataBaseVO = bdddatas[0];
+
+                if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts.unix() > clone.value_ts.unix()))) {
+                    ConsoleHandler.getInstance().error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
+                    return;
+                }
+                bdddata.value_type = clone.value_type;
+                bdddata.value = clone.value;
+                bdddata.value_ts = clone.value_ts;
+                res = await ModuleDAO.getInstance().insertOrUpdateVO(bdddata);
+                if ((!res) || (!res.id)) {
+                    ConsoleHandler.getInstance().error('...la mise à jour a échouée');
+                    return;
+                }
+            } else {
+                ConsoleHandler.getInstance().error('...pas trouvé, il y a eu une erreur et la valeur est perdue');
+                return;
+            }
+        }
+    }
+
+    private on_cancel_input() {
+        // ça devrait fermer l'inline edit de cette var et retirer le cb du sémaphore
+        if (VarsClientController.getInstance().inline_editing_cb) {
+            VarsClientController.getInstance().inline_editing_cb();
+        }
+    }
+
+    get editable_field() {
+        if (!this.var_param) {
+            return null;
+        }
+        return new SimpleDatatableField("value").setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.var_param._type]);
+    }
+
+    private var_data_updater() {
+        if (!this.var_param) {
+            this.var_data = null;
+            return;
+        }
+
+
+        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
+    }
 
     get is_being_updated(): boolean {
 
-        // Si la var data est null on considère qu'elle est en cours de chargement. C'est certainement faux, souvent, mais ça peut aider beaucoup pour afficher au plus tôt le fait que la var est en attente de calcul
         if (!this.var_data) {
             return true;
         }
 
-        return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) &&
-            (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(this.var_param)]);
+        return (typeof this.var_data.value === 'undefined') || (this.var_data.is_computing);
     }
 
     get filtered_value() {
@@ -108,317 +227,24 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (!this.var_value_callback) {
-            return (this.var_data as ISimpleNumberVarData).value;
+            return this.var_data.value;
         }
 
         return this.var_value_callback(this.var_data, this);
     }
 
     get is_selected_var(): boolean {
-        if (!this.isDescMode) {
+        if ((!this.isDescMode) || (!this.getDescSelectedVarParam)) {
             return false;
         }
-        return this.getDescSelectedIndex == VarsController.getInstance().getIndex(this.var_param);
+        return this.getDescSelectedVarParam.index == this.var_param.index;
     }
 
-    get is_selected_var_dependency(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if (!selectedNode) {
-            return false;
-        }
-
-        return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], false);
+    private mounted() {
+        this.intersect_in();
     }
 
-    public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
-        // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
-        //  dep de type cumul au complet et pas juste le jour de demande du cumul
-        if ((!test_node) || (!selectedNode)) {
-            return false;
-        }
-        if (!!test_incoming) {
-
-            if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
-
-            for (let i in test_node.incoming) {
-                let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
-
-
-                if (incoming.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-
-            if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
-
-            for (let i in test_node.outgoing) {
-                let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
-
-
-                if (outgoing.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public get_values_of_selected_fields(matroid, add_infos: string[]): string {
-        if ((!this.var_param) || (!matroid)) {
-            return null;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
-
-        if (!controller) {
-            return null;
-        }
-
-        let res: string = "";
-        let nb_fields: number = 0;
-        // let param: any = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-
-        for (let i in moduletable.get_fields()) {
-            let field = moduletable.get_fields()[i];
-
-            // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
-            if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
-                continue;
-            }
-            let pos: number = add_infos.indexOf(field.field_id);
-            res += (nb_fields > 0) ? ' : ' : '';
-
-            // est-ce qu'on doit afficher le nom du champ
-            res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
-
-            // comment affiche t'on le tsrange (min, max, ou complet)
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (controller.segment_type == TimeSegment.TYPE_DAY)) {
-                let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
-                switch (this.add_infos_additional_params[pos][1]) {
-                    case 'min':
-                        res += (tstzrange.min_inclusiv) ? tstzrange.min.format('DD/MM/Y') : tstzrange.min.clone().add(1, 'day').format('DD/MM/Y');
-                        break;
-                    case 'max':
-                        res += (tstzrange.max_inclusiv) ? tstzrange.max.format('DD/MM/Y') : tstzrange.max.clone().add(-1, 'day').format('DD/MM/Y');
-                        break;
-                    default:
-                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid, field.field_id);
-                }
-            } else {
-                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid, field.field_id);
-            }
-            nb_fields++;
-        }
-
-        return res;
-    }
-
-    get is_dependencies_heatmap_lvl_0(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return true;
-        }
-
-        if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) {
-            return true;
-        }
-
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        if (!vardagnode) {
-            return false;
-        }
-
-        return vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1;
-    }
-
-    get is_dependencies_heatmap_lvl_1(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
-
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2)) {
-            return false;
-        }
-
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        if (!vardagnode) {
-            return false;
-        }
-
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2);
-    }
-
-    get is_dependencies_heatmap_lvl_2(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
-
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3)) {
-            return false;
-        }
-
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        if (!vardagnode) {
-            return false;
-        }
-
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3);
-    }
-
-    get is_dependencies_heatmap_lvl_3(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
-
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4)) {
-            return false;
-        }
-
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        if (!vardagnode) {
-            return false;
-        }
-
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4);
-    }
-
-    get is_dependencies_heatmap_lvl_4(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
-
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5)) {
-            return false;
-        }
-
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        if (!vardagnode) {
-            return false;
-        }
-
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5);
-    }
-
-    get is_dependencies_heatmap_lvl_5(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
-
-        if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5) {
-            return false;
-        }
-
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        if (!vardagnode) {
-            return false;
-        }
-
-        return vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5;
-    }
-
-    get is_selected_var_dependent(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
-
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-        if ((!selectedNode) || (!selectedNode.outgoingNames)) {
-            return false;
-        }
-
-        return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], true);
-    }
-
-    get var_index(): string {
-        if (!this.var_param) {
-            return null;
-        }
-
-        return VarsController.getInstance().getIndex(this.var_param);
-    }
-
-    get has_loaded_data(): boolean {
-        if (!this.add_infos || this.add_infos.length == 0) {
-            return false;
-        }
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        if ((!node) || (!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    get var_data(): IVarDataVOBase {
-
-        if (!this.entered_once) {
-            return null;
-        }
-
-        if ((!this.getVarDatas) || (!this.var_param)) {
-            return null;
-        }
-
-        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
-    }
-
-    public mounted() {
-        if (!this.use_intersector) {
-            this.intersect_in();
-        }
-    }
-
-    public destroyed() {
+    private destroyed() {
         this.unregister();
     }
 
@@ -431,27 +257,44 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.unregister();
     }
 
-    private register(var_param: IVarDataParamVOBase = null) {
+    private register(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
         }
 
-        VarsController.getInstance().registerDataParam(var_param ? var_param : this.var_param, this.reload_on_mount);
+        if (var_param || this.var_param) {
+            VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+
+            if (this.show_import_aggregated) {
+                ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                    for (let var_data_index in datas) {
+                        if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+                            this.aggregated_var_param = cloneDeep(datas[var_data_index]);
+                            break;
+                        }
+                    }
+                });
+            }
+        }
     }
 
-    private unregister(var_param: IVarDataParamVOBase = null) {
+    private unregister(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
         }
 
-        VarsController.getInstance().unregisterDataParam(var_param ? var_param : this.var_param);
+        this.var_data = null;
+
+        if (var_param || this.var_param) {
+            VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+        }
     }
 
     @Watch('var_param')
-    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+        if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
             return;
         }
 
@@ -464,27 +307,83 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    get loadedData() {
-        if (!this.has_loaded_data || !this.add_infos) {
-            return;
-        }
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        let res: string = "";
-        for (let i in vardagnode.loaded_datas_matroids) {
-            let matroid = vardagnode.loaded_datas_matroids[i];
-
-            res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
-        }
-        return (res);
+    private close_inline_editing() {
+        this.is_inline_editing = false;
+        VarsClientController.getInstance().inline_editing_cb = null;
     }
 
+    @Watch('can_inline_edit')
+    private onchange_can_inline_edit() {
+        if (!this.can_inline_edit) {
+            this.is_inline_editing = false;
+        }
+    }
 
     private selectVar() {
+
+        if (this.can_inline_edit && !this.is_inline_editing) {
+            if (VarsClientController.getInstance().inline_editing_cb) {
+                VarsClientController.getInstance().inline_editing_cb();
+            }
+            VarsClientController.getInstance().inline_editing_cb = this.close_inline_editing.bind(this);
+
+            this.is_inline_editing = true;
+        }
+
         if (!this.isDescMode) {
             return;
         }
 
-        this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
+        this.setDescSelectedVarParam(this.var_param);
+    }
+
+    get is_show_import_aggregated(): boolean {
+        return (this.show_import_aggregated && this.aggregated_var_param) ? true : false;
+    }
+
+    get var_data_value_import_tooltip() {
+
+        if (!this.var_data_value_is_imported && !this.is_show_import_aggregated) {
+            return null;
+        }
+
+        let formatted_date: string = null;
+
+        if (this.is_show_import_aggregated) {
+            if ((this.aggregated_var_param as any).ts_ranges) {
+                formatted_date = RangeHandler.getInstance().getSegmentedMax_from_ranges<moment.Moment>((this.aggregated_var_param as any).ts_ranges).format(
+                    ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)
+                );
+            } else {
+                formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.aggregated_var_param.value_ts);
+            }
+        } else {
+            formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.var_data.value_ts);
+        }
+
+        let value: any = (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value;
+
+        if (this.filter) {
+            let params = [value];
+
+            if (!!this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params);
+            }
+
+            value = this.filter.apply(null, params);
+        }
+
+        return this.label('VarDataRefComponent.var_data_value_import_tooltip', {
+            value: value,
+            formatted_date: formatted_date,
+        });
+    }
+
+    get var_data_value_is_imported() {
+        if (!this.var_data) {
+            return false;
+        }
+
+        return this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
     }
 }

@@ -1,6 +1,6 @@
 import UserVO from '../../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../../API/ModuleAPI';
-import NumberParamVO from '../../API/vos/apis/NumberParamVO';
+import APIControllerWrapper from '../../API/APIControllerWrapper';
+import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
@@ -23,28 +23,25 @@ export default class ModuleClient extends Module {
 
     private static instance: ModuleClient = null;
 
+    public getInformationsClientUser: (userId: number) => Promise<InformationsVO> = APIControllerWrapper.sah(ModuleClient.APINAME_getInformationsClientUser);
+    public getClientsByUserId: (userId: number) => Promise<ClientVO[]> = APIControllerWrapper.sah(ModuleClient.APINAME_getClientsByUserId);
+
     private constructor() {
         super(ClientVO.API_TYPE_ID, 'Client', 'Commerce/Client');
     }
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
             null,
             ModuleClient.APINAME_getInformationsClientUser,
             [InformationsVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
             null,
             ModuleClient.APINAME_getClientsByUserId,
             [ClientVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
     }
 
@@ -58,7 +55,7 @@ export default class ModuleClient extends Module {
 
     public initializeInformations(): void {
         // Création de la table Informations
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email');
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, 'Email');
         let datatable_fields = [
             new ModuleTableField('nom', ModuleTableField.FIELD_TYPE_string, 'Nom'),
             new ModuleTableField('prenom', ModuleTableField.FIELD_TYPE_string, 'Prenom'),
@@ -88,16 +85,8 @@ export default class ModuleClient extends Module {
         this.datatables.push(dt);
     }
 
-    public async getInformationsClientUser(userId: number): Promise<InformationsVO> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, InformationsVO>(ModuleClient.APINAME_getInformationsClientUser, userId);
-    }
-
     public async getClientById(clientId: number): Promise<ClientVO> {
         return ModuleDAO.getInstance().getVoById<ClientVO>(ClientVO.API_TYPE_ID, clientId);
-    }
-
-    public async getClientsByUserId(userId: number): Promise<ClientVO[]> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, ClientVO[]>(ModuleClient.APINAME_getClientsByUserId, userId);
     }
 
     public async getInformationsById(infoId: number): Promise<InformationsVO> {

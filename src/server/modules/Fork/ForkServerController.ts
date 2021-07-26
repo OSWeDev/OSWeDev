@@ -1,6 +1,10 @@
 import { fork } from 'child_process';
-import { Server, Socket } from 'net';
-import APIController from '../../../shared/modules/API/APIController';
+import * as moment from 'moment';
+import { Moment } from 'moment';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import IBGThread from '../BGThread/interfaces/IBGThread';
 import CronServerController from '../Cron/CronServerController';
@@ -10,7 +14,7 @@ import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
-import ConfigurationService from '../../env/ConfigurationService';
+import PingForkMessage from './messages/PingForkMessage';
 
 export default class ForkServerController {
 
@@ -26,11 +30,13 @@ export default class ForkServerController {
     /**
      * Local thread cache -----
      */
+    public forks_are_initialized: boolean = false;
+    public forks_waiting_to_be_alive: number = 0;
+    public forks_availability: { [uid: number]: Moment } = {};
+    public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false });
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private UID: number = 0;
-    public forks_are_initialized: boolean = false;
-    public forks_waiting_to_be_alive: number = 0;
     /**
      * ----- Local thread cache
      */
@@ -70,22 +76,51 @@ export default class ForkServerController {
 
         this.forks_waiting_to_be_alive = Object.keys(this.forks).length;
 
+        this.reload_unavailable_threads();
+
+        /**
+         * On met en place un thread sur le master qui check le status régulièrement des forked (en tentant d'envoyer un alive)
+         */
+        this.checkForksAvailability();
+    }
+
+    public reload_unavailable_threads() {
+
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
-        for (let i in this.forks) {
-            let forked: IFork = this.forks[i];
+        for (let i in ForkServerController.getInstance().forks) {
+            let forked: IFork = ForkServerController.getInstance().forks[i];
+
+            if (ForkServerController.getInstance().forks_availability[i]) {
+                continue;
+            }
+
+            ForkServerController.getInstance().forks_availability[i] = moment().utc(true);
 
             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
-                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096']
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
+                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
+                    serialization: "advanced"
                 });
             } else {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
-                    execArgv: ['--max-old-space-size=4096']
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
+                    execArgv: ['--max-old-space-size=4096'],
+                    serialization: "advanced"
                 });
             }
-            forked.child_process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
-                msg = APIController.getInstance().try_translate_vo_from_api(msg);
-                ForkMessageController.getInstance().message_handler(msg, sendHandle);
+
+            if (ForkMessageController.getInstance().stacked_msg_waiting && ForkMessageController.getInstance().stacked_msg_waiting.length) {
+                for (let j in ForkMessageController.getInstance().stacked_msg_waiting) {
+                    let stacked_msg_waiting = ForkMessageController.getInstance().stacked_msg_waiting[j];
+
+                    if (stacked_msg_waiting.forked_target && (stacked_msg_waiting.forked_target.uid == forked.uid)) {
+                        stacked_msg_waiting.sendHandle = forked.child_process;
+                    }
+                }
+            }
+
+            forked.child_process.on('message', async (msg: IForkMessage) => {
+                msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
+                ForkMessageController.getInstance().message_handler(msg, forked.child_process);
             });
         }
     }
@@ -159,6 +194,24 @@ export default class ForkServerController {
             } else {
                 default_fork.processes[cron.worker_uid] = forked_cron;
                 this.fork_by_type_and_name[CronServerController.ForkedProcessType][cron.worker_uid] = default_fork;
+            }
+        }
+    }
+
+    private async checkForksAvailability() {
+
+        while (true) {
+
+            await ThreadHandler.getInstance().sleep(10000);
+
+            for (let i in this.forks) {
+                let forked: IFork = this.forks[i];
+
+                if (!this.forks_availability[i]) {
+                    continue;
+                }
+
+                ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
             }
         }
     }

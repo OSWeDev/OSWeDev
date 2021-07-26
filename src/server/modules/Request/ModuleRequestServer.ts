@@ -1,8 +1,7 @@
 import * as http from 'http';
 import * as https from 'https';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
-import SendRequestParamVO from '../../../shared/modules/Request/vos/SendRequestParamVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleServerBase from '../ModuleServerBase';
 
@@ -25,21 +24,18 @@ export default class ModuleRequestServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
     }
 
-    public async sendRequestFromApp(param: SendRequestParamVO): Promise<any> {
-
-        if (!param) {
-            return null;
-        }
-
-        let method: string = param.method;
-        let host: string = param.host;
-        let path: string = param.path;
-        let posts: {} = param.posts;
-        let headers: {} = param.headers;
-        let sendHttps: boolean = param.sendHttps;
+    public async sendRequestFromApp(
+        method: string,
+        host: string,
+        path: string,
+        posts: {} = null,
+        headers: {} = null,
+        sendHttps: boolean = false,
+        result_headers: {} = null
+    ): Promise<any> {
 
         return new Promise((resolve, reject) => {
             const options = {
@@ -54,7 +50,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
             //     headers['Content-Length'] = JSON.stringify(posts).length;
             // }
 
-            function callback(res) {
+            function callback(res: http.IncomingMessage) {
                 let result: Buffer[] = [];
 
                 res.on('data', (chunk: Buffer[]) => {
@@ -74,6 +70,14 @@ export default class ModuleRequestServer extends ModuleServerBase {
 
                     resolve(buffer);
                 });
+
+                if ((!!result_headers) && (!!res.headers)) {
+                    for (let i in res.headers) {
+                        let header = res.headers[i];
+
+                        result_headers[i] = header;
+                    }
+                }
             }
 
             let request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);

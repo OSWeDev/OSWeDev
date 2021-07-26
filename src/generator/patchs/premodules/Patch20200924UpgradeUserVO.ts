@@ -1,6 +1,7 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20200924UpgradeUserVO implements IGeneratorWorker {
@@ -21,11 +22,13 @@ export default class Patch20200924UpgradeUserVO implements IGeneratorWorker {
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        /**
-         * Passage de number à tstz sur la date d'expiration
-         */
-        await db.none("update ref.user set recovery_expiration = recovery_expiration / 1000;");
-
-
+        try {
+            /**
+             * Passage de number à tstz sur la date d'expiration
+             */
+            await db.none("update ref.user set recovery_expiration = recovery_expiration / 1000;");
+        } catch (error) {
+            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
+        }
     }
 }

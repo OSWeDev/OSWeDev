@@ -7,7 +7,6 @@ import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/An
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 
@@ -37,6 +36,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
 
     private saving: boolean = false;
     private editable_uqr: AnimationUserQRVO = null;
+    /** pour savoir si une question  a déjà été faite */
     private is_validated: boolean = false;
     private is_reponse_valid: boolean = false;
     private selected_reponse: { [reponse_id: number]: boolean } = {};
@@ -98,8 +98,6 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVO(this.editable_uqr);
-
-        VarsController.getInstance().stageUpdateVoUpdate(this.editable_uqr, this.editable_uqr);
 
         this.$emit('reload');
 

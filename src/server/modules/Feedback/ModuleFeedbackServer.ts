@@ -5,9 +5,8 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
@@ -18,9 +17,11 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
+import FileHandler from '../../../shared/tools/FileHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import IServerUserSession from '../../IServerUserSession';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleFileServer from '../File/ModuleFileServer';
@@ -29,7 +30,6 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
-import FileHandler from '../../../shared/tools/FileHandler';
 const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
@@ -197,18 +197,21 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
     }
 
     /**
      * Ce module nécessite le param FEEDBACK_TRELLO_LIST_ID
      *  Pour trouver le idList => https://customer.io/actions/trello/
      */
-    private async feedback(param: APISimpleVOParamVO): Promise<boolean> {
+    private async feedback(feedback: FeedbackVO): Promise<boolean> {
 
-        if ((!param) || (!param.vo)) {
+        if (!feedback) {
             return false;
         }
+
+        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
         try {
 
@@ -230,8 +233,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
             }
 
-            let feedback: FeedbackVO = param ? param.vo as FeedbackVO : null;
-
             // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
             feedback.user_connection_date = moment(user_session.last_load_date_unix).utc(true);
             feedback.user_id = user_session.uid;
@@ -252,7 +253,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             if ((!res) || (!res.id)) {
                 throw new Error('Failed feedback creation');
             }
-            feedback.id = parseInt(res.id.toString());
+            feedback.id = res.id;
 
             // Créer le Trello associé
             let response;
@@ -309,17 +310,17 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Faire le lien entre le feedback en base et le Trello
             feedback.trello_ref = response;
             let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
-            feedback.id = parseInt(ires.id.toString());
+            feedback.id = ires.id;
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
 
-            PushDataServerController.getInstance().notifySimpleSUCCESS(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.success');
+            await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
             return true;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
-            PushDataServerController.getInstance().notifySimpleERROR(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.error');
+            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return false;
         }
     }

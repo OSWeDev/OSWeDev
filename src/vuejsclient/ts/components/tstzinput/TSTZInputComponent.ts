@@ -30,6 +30,9 @@ export default class TSTZInputComponent extends VueComponentBase {
     @Prop({ default: null })
     private vo: IDistantVOBase;
 
+    @Prop({ default: false })
+    private inline_input_mode: boolean;
+
     private date_value: Date = null;
     private time_value: string = null;
 

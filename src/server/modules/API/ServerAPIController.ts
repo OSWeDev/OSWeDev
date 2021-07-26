@@ -1,6 +1,4 @@
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import IAPIController from '../../../shared/modules/API/interfaces/IAPIController';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 
 export default class ServerAPIController implements IAPIController {
@@ -14,20 +12,44 @@ export default class ServerAPIController implements IAPIController {
 
     private static instance: ServerAPIController = null;
 
-    public async handleAPI<T, U>(api_name: string, ...api_params): Promise<U> {
-        let translated_param: T = await ModuleAPI.getInstance().translate_param(api_name, ...api_params);
-        let apiDefinition: APIDefinition<T, U> = ModuleAPI.getInstance().registered_apis[api_name];
 
-        if (apiDefinition.SERVER_HANDLER) {
+    public get_shared_api_handler<T, U>(
+        api_name: string,
+        sanitize_params: (...params) => any[] = null,
+        precondition: (...params) => boolean = null,
+        precondition_default_value: any = null,
+        registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
+        sanitize_result: (res: any, ...params) => any = null,
+    ): (...params) => Promise<U> {
 
-            if (!!apiDefinition.access_policy_name) {
-                if (!ModuleAccessPolicy.getInstance().checkAccess(apiDefinition.access_policy_name)) {
-                    return null;
-                }
+        return async (...params) => {
+            let apiDefinition: APIDefinition<T, U> = registered_apis[api_name];
+
+            if ((!apiDefinition) || !apiDefinition.SERVER_HANDLER) {
+
+                throw new Error('API server handler undefined:' + api_name + ':');
             }
 
-            return await apiDefinition.SERVER_HANDLER(translated_param);
-        }
-        return null;
+            if (sanitize_params) {
+                params = sanitize_params(...params);
+            }
+
+            if (precondition && !precondition(...params)) {
+
+                if (sanitize_result) {
+                    return sanitize_result(precondition_default_value, ...params);
+                }
+
+                return precondition_default_value;
+            }
+
+            let res = await apiDefinition.SERVER_HANDLER(...params);
+
+            if (sanitize_result) {
+                res = sanitize_result(res, ...params);
+            }
+
+            return res;
+        };
     }
 }

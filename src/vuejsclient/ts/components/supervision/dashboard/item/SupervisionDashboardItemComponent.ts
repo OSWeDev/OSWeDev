@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import './SupervisionDashboardItemComponent.scss';
@@ -14,6 +15,9 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
 
     @Prop()
     private item: ISupervisedItem;
+
+    @Prop({ default: false })
+    private noclick: boolean;
 
     private state_classname: string = 'STATE_UNKNOWN';
     private fa_class_name: string = null;
@@ -119,11 +123,15 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.formatted_last_value = this.item.last_value == null ? "-" : this.item.last_value.toLocaleString();
     }
 
+    get supervised_item_controller(): ISupervisedItemController<any> {
+        return SupervisionController.getInstance().registered_controllers[this.item._type];
+    }
+
     private open_item() {
         if (!this.item) {
             return;
         }
 
-        this.$router.push("/supervision/item/" + this.item._type + "/" + this.item.id);
+        window.open('/admin#/supervision/item/' + this.item._type + '/' + this.item.id, "_blank");
     }
 }

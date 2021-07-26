@@ -1,14 +1,10 @@
 // import { expect } from 'chai';
 // import 'mocha';
 // import * as moment from 'moment';
-// import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
-// import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
-// import MatroidBaseController from '../../../src/shared/modules/Matroid/MatroidBaseController';
-// import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
-// import MatroidBaseCutResult from '../../../src/shared/modules/Matroid/vos/MatroidBaseCutResult';
-// import ModuleTable from '../../../src/shared/modules/ModuleTable';
-// import ModuleTableField from '../../../src/shared/modules/ModuleTableField';
-// import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
+// import MatroidBase from '../../../shared/modules/Matroid/vos/MatroidBase';
+// import ModuleTable from '../../../shared/modules/ModuleTable';
+// import ModuleTableField from '../../../shared/modules/ModuleTableField';
+// import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 
 // describe('MatroidBaseController', () => {
 

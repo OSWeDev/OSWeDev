@@ -34,6 +34,41 @@ export default class HourSegmentHandler {
     }
 
     /**
+     * Renvoi 1 si le semgent_type a est plus grand que b, -1 si plus petit, 0 si égaux
+     * @param segment_type_a
+     * @param segment_type_b
+     */
+    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+        if (segment_type_a == segment_type_b) {
+            return 0;
+        }
+
+        if (segment_type_b == HourSegment.TYPE_HOUR) {
+            return -1;
+        }
+
+        switch (segment_type_a) {
+            case HourSegment.TYPE_HOUR:
+                return 1;
+            case HourSegment.TYPE_MINUTE:
+                if (segment_type_b == HourSegment.TYPE_HOUR) {
+                    return -1;
+                }
+                return 1;
+            case HourSegment.TYPE_SECOND:
+                if ((segment_type_b == HourSegment.TYPE_MINUTE) ||
+                    (segment_type_b == HourSegment.TYPE_HOUR)) {
+                    return -1;
+                }
+                return 1;
+            case HourSegment.TYPE_MS:
+                return -1;
+        }
+
+        return null;
+    }
+
+    /**
      *
      * @param start
      * @param end
@@ -41,7 +76,7 @@ export default class HourSegmentHandler {
      */
     public getAllSegments(start: moment.Duration, end: moment.Duration, time_segment_type: number, exclude_end: boolean = false): HourSegment[] {
 
-        if ((!start) || (!end) || (time_segment_type == null) || (typeof time_segment_type === 'undefined')) {
+        if ((!start) || (!end) || (time_segment_type === null) || (typeof time_segment_type === 'undefined')) {
             return null;
         }
 
@@ -133,7 +168,7 @@ export default class HourSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public incElt(time: moment.Duration, segment_type: number, offset: number): void {
+    public incElt(time: moment.Duration, segment_type: number, offset: number = 1): void {
         if (time == null || segment_type == null) {
             return null;
         }
@@ -147,7 +182,7 @@ export default class HourSegmentHandler {
      * @param segment_type
      * @param offset
      */
-    public decMoment(date: moment.Duration, segment_type: number, offset: number): void {
+    public decMoment(date: moment.Duration, segment_type: number, offset: number = 1): void {
         this.incElt(date, segment_type, -offset);
     }
 
@@ -294,7 +329,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        type = ((type == null) || (typeof type === "undefined")) ? hourSegment.type : type;
+        type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
         this.decMoment(hourSegment.index, type, offset);
     }
 
@@ -309,7 +344,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        type = ((type == null) || (typeof type === "undefined")) ? hourSegment.type : type;
+        type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
         this.incElt(hourSegment.index, type, offset);
     }
 
@@ -327,7 +362,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        if ((type == null) || (typeof type === 'undefined')) {
+        if ((type === null) || (typeof type === 'undefined')) {
             type = HourSegment.TYPE_MS;
         }
 
@@ -362,7 +397,7 @@ export default class HourSegmentHandler {
             return false;
         }
 
-        if ((type == null) || (typeof type === "undefined")) {
+        if ((type === null) || (typeof type === "undefined")) {
             type = Math.min(ts1.type, ts2.type);
         }
 

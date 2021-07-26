@@ -1,12 +1,11 @@
-import { Server, Socket } from 'net';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
-import APIController from '../../../shared/modules/API/APIController';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
+import FileLoggerHandler from '../../FileLoggerHandler';
 import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
@@ -14,7 +13,6 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import FileLoggerHandler from '../../FileLoggerHandler';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -36,6 +34,9 @@ export default abstract class ForkedProcessWrapperBase {
      */
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+
+        // On initialise le Controller pour les APIs
+        APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
         ForkedProcessWrapperBase.instance = this;
         this.modulesService = modulesService;
@@ -78,8 +79,6 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.getInstance().error("Failed loading argv on forked process+" + error);
             process.exit(1);
         }
-
-        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
     }
 
     get process_UID(): number {
@@ -100,9 +99,10 @@ export default abstract class ForkedProcessWrapperBase {
 
         BGThreadServerController.getInstance().server_ready = true;
         CronServerController.getInstance().server_ready = true;
-        process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
-            msg = APIController.getInstance().try_translate_vo_from_api(msg);
-            ForkMessageController.getInstance().message_handler(msg, sendHandle);
+
+        process.on('message', async (msg: IForkMessage) => {
+            msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
+            ForkMessageController.getInstance().message_handler(msg, process);
         });
 
         // On prévient le process parent qu'on est ready

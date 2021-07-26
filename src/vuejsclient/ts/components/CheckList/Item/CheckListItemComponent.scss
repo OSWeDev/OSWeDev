@@ -1,0 +1,31 @@
+.checklistitem {
+
+    .step_wrapper {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 2em;
+
+        .fa-cog.fa-spin{
+            font-size: .5em;
+        }
+
+        &.clickable{
+            cursor: pointer;
+        }
+
+        .fa-magic{
+            font-size: .7em;
+        }
+    }
+
+    .archive_item {
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        font-size: 2em;
+    }
+
+    .item_info_col_content {
+        text-align: center;
+    }
+}

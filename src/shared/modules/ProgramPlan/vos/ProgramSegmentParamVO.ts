@@ -1,22 +1,13 @@
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../tools/TimeSegmentHandler';
+import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
+import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 
-export default class ProgramSegmentParamVO {
+export default class ProgramSegmentParamVO implements IAPIParamTranslator<ProgramSegmentParamVO> {
 
     public static URL: string = ':program_id/:date_index/:segment_type';
 
-    public static async translateCheckAccessParams(
-        program_id: number,
-        timeSegment: TimeSegment): Promise<ProgramSegmentParamVO> {
-
-        return new ProgramSegmentParamVO(program_id, timeSegment);
-    }
-
-    public static async translateToURL(param: ProgramSegmentParamVO): Promise<string> {
-
-        return param ? param.program_id + '/' + param.timeSegment.dateIndex + '/' + param.timeSegment.type : '';
-    }
-    public static async translateFromREQ(req): Promise<ProgramSegmentParamVO> {
+    public static fromREQ(req): ProgramSegmentParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -24,8 +15,24 @@ export default class ProgramSegmentParamVO {
         return new ProgramSegmentParamVO(req.params.program_id, TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(req.params.date_index, parseInt(req.params.segment_type)));
     }
 
+    public static fromParams(program_id: number, timeSegment: TimeSegment): ProgramSegmentParamVO {
+
+        return new ProgramSegmentParamVO(program_id, timeSegment);
+    }
+
+    public static getAPIParams(param: ProgramSegmentParamVO): any[] {
+        return [param.program_id, param.timeSegment];
+    }
+
     public constructor(
         public program_id: number,
         public timeSegment: TimeSegment) {
     }
+
+    public translateToURL(): string {
+
+        return this.program_id + '/' + this.timeSegment.dateIndex + '/' + this.timeSegment.type;
+    }
 }
+
+export const ProgramSegmentParamVOStatic: IAPIParamTranslatorStatic<ProgramSegmentParamVO> = ProgramSegmentParamVO;

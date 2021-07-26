@@ -1,8 +1,7 @@
 import { Express, Request, Response } from 'express';
 import * as fileUpload from 'express-fileupload';
 import * as fs from 'fs';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
@@ -26,7 +25,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
     }
 
     /**
@@ -102,6 +101,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         let import_file: fileUpload.UploadedFile = null;
         let uid: number = StackContext.getInstance().get('UID');
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
         try {
             import_file = req.files[Object.keys(req.files)[0]] as fileUpload.UploadedFile;
@@ -110,12 +110,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             }
         } catch (error) {
             console.error(error);
-            PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+            await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
             res.json(JSON.stringify(null));
             return;
         }
 
-        PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'file.upload.success');
+        await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'file.upload.success');
 
         let name: string = import_file.name;
         let filepath: string = ModuleFile.FILES_ROOT + 'upload/' + name;
@@ -123,7 +123,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return import_file.mv(filepath, async (err) => {
             if (err) {
                 console.error(err);
-                PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
                 res.json(JSON.stringify(null));
                 return;
             }
@@ -133,20 +133,20 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
             let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
             if ((!insertres) || (!insertres.id)) {
-                PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'file.upload.error');
                 res.json(JSON.stringify(null));
                 return;
             }
 
-            filevo.id = parseInt(insertres.id.toString());
+            filevo.id = insertres.id;
             res.json(JSON.stringify(filevo));
         });
     }
 
-    private async testFileExistenz(param: NumberParamVO): Promise<boolean> {
+    private async testFileExistenz(num: number): Promise<boolean> {
 
         try {
-            let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, param.num);
+            let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, num);
             return fs.existsSync(fileVo.path);
         } catch (error) {
             console.error(error);

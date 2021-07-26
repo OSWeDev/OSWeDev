@@ -95,9 +95,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public database: string;
     public vo_type: string;
     public label: DefaultTranslation = null;
-    public forceNumeric: (e: T) => void = null;
-    public get_bdd_version: (e: T) => T = null;
+
+    /**
+     * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
+     */
+    public forceNumeric: (e: T) => T = null;
+    /**
+     * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
+     */
     public forceNumerics: (es: T[]) => T[] = null;
+
+    public get_bdd_version: (e: T) => T = null;
+
+    public get_xlsx_version: (e: T) => any = null;
 
     public get_api_version: (e: T) => any = null;
     public from_api_version: (e: any) => T = null;
@@ -116,7 +126,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public voConstructor: () => T = null;
 
-    public matroid_cloner: (src: T) => T = ((src: T) => { }) as any;
+    /**
+     * Mappings de traduction d'un Vo de ce type vers un Vo du type b
+     *  Par défaut il faut lever une erreur si on cherche un mapping undefined
+     *  et si on veut rien mapper de particulier mais permettre le mapping, mettre {}
+     *  le mapping sera fait à l'identique
+     */
+    public mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } } = {};
 
     private vo_interfaces: { [interface_name: string]: boolean } = {};
 
@@ -143,6 +159,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
 
+        this.get_xlsx_version = this.default_get_xlsx_version;
         this.get_api_version = this.default_get_api_version;
         this.from_api_version = this.default_from_api_version;
 
@@ -196,6 +213,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_html_array:
             case ModuleTableField.FIELD_TYPE_boolean:
             case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_geopoint:
@@ -204,6 +222,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_hour:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_day:
@@ -319,15 +338,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public get_segmented_field_value_from_vo(vo: IDistantVOBase): any {
 
-        if (!this.is_segmented) {
-            return null;
-        }
-
-        if (!vo) {
-            return null;
-        }
-
-        let field_value = vo[this.table_segmented_field.field_id];
+        let field_value = this.get_segmented_field_raw_value_from_vo(vo);
 
         if (!field_value) {
             return null;
@@ -380,8 +391,25 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return null;
     }
 
+    public get_segmented_field_raw_value_from_vo(vo: IDistantVOBase): any {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        if (!vo) {
+            return null;
+        }
+
+        return vo[this.table_segmented_field.field_id];
+    }
+
     public get_fields(): Array<ModuleTableField<any>> {
         return this.fields_;
+    }
+
+    public get_field_by_id(field_id: string): ModuleTableField<any> {
+        return this.fields_by_ids[field_id];
     }
 
     public push_field(field: ModuleTableField<any>) {
@@ -409,8 +437,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return this;
     }
 
-    public set_matroid_cloner(matroid_cloner: (src: T) => T): ModuleTable<any> {
-        this.matroid_cloner = matroid_cloner;
+    /**
+     * A utiliser sur tous les params pour indiquer vers quels autres params on peut mapper des champs (pour des intersections principalement)
+     *  et sur tous les vos pour indiquer vers quels params on peut mapper des champs (pour des intersections également en base)
+     * @param mapping_by_api_type_ids
+     */
+    public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } }): ModuleTable<any> {
+        this.mapping_by_api_type_ids = mapping_by_api_type_ids;
         return this;
     }
 
@@ -592,6 +625,91 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
      * @param e Le VO dont on veut une version api
      */
+    private default_get_xlsx_version(e: T): any {
+        if (!e) {
+            return null;
+        }
+
+        let res = {};
+
+        if (!this.fields_) {
+            return cloneDeep(e);
+        }
+
+        res['_type'] = e._type;
+        res['id'] = e.id;
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
+
+            /**
+             * Si le champ possible un custom_to_api
+             */
+            if (!!field.custom_translate_to_xlsx) {
+                res[field.field_id] = field.custom_translate_to_xlsx(e[field.field_id]);
+                /**
+                 * Compatibilité MSGPACK : il traduit les undefind en null
+                 */
+                if (typeof res[field.field_id] === 'undefined') {
+                    delete res[field.field_id];
+                }
+                continue;
+            }
+
+            switch (field.field_type) {
+
+                // TODO FIXME  export des ranges dans xlsx à réfléchir...
+
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    res[field.field_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_numrange:
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    res[field.field_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz:
+
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[field.field_id] = e[field.field_id];
+                    } else {
+                        let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
+                        res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.toISOString() : null;
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[field.field_id] = e[field.field_id];
+                    } else {
+                        res[field.field_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.toISOString() : ts);
+                    }
+                    break;
+
+
+                default:
+                    res[field.field_id] = e[field.field_id];
+            }
+
+            if (typeof res[field.field_id] === 'undefined') {
+                delete res[field.field_id];
+            }
+        }
+
+        return res;
+    }
+
+
+    /**
+     * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
+     * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
+     * @param e Le VO dont on veut une version api
+     */
     private default_get_api_version(e: T): any {
         if (!e) {
             return null;
@@ -654,6 +772,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     }
                     break;
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[new_id] = e[field.field_id];
+                    } else {
+                        res[new_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.unix() : ts);
+                    }
+                    break;
+
 
                 default:
                     res[new_id] = e[field.field_id];
@@ -742,6 +869,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : e[old_id];
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((e[old_id] === null) || (typeof e[old_id] === 'undefined')) {
+                        res[field.field_id] = e[old_id];
+                    } else {
+                        let field_as_moment: Moment[] = (e[old_id] as string[]).map((ts: string) => moment(parseInt(ts) * 1000).utc(true));
+                        res[field.field_id] = field_as_moment;
+                    }
+                    break;
+
                 default:
                     res[field.field_id] = e[old_id];
             }
@@ -778,6 +914,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((res[field.field_id] === null) || (typeof res[field.field_id] === 'undefined')) {
+                        res[field.field_id] = res[field.field_id];
+                    } else {
+                        res[field.field_id] = (res[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.unix() : ts);
+                    }
+                    break;
+
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -805,6 +949,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     }
                     break;
 
+                case ModuleTableField.FIELD_TYPE_email:
+                    if (res[field.field_id] && res[field.field_id].trim) {
+                        res[field.field_id] = res[field.field_id].trim();
+                    }
+                    break;
+
                 default:
             }
         }
@@ -817,18 +967,23 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return null;
         }
 
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-        e._type = this.vo_type;
+        // Si le type diffère, on veut créer une nouvelle instance et réinitialiser tous les champs ensuite
+        let res: T = e;
+        if (e._type != this.vo_type) {
+            res = Object.assign(this.voConstructor(), e);
+            res._type = this.vo_type;
+        }
+        res.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         if (!this.fields_) {
-            return e;
+            return res;
         }
         for (let i in this.fields_) {
             let field = this.fields_[i];
 
             let field_value = e[field.field_id];
 
-            if ((typeof field_value == 'undefined') || (field_value == null)) {
+            if ((typeof field_value == 'undefined') || (field_value === null)) {
                 continue;
             }
 
@@ -837,7 +992,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_timestamp:
                     // A priori c'est without time zone du coup....
                     // e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
-                    e[field.field_id] = moment(field_value).utc(true).format('Y-MM-DDTHH:mm:SS.sss');
+                    let value: string = null;
+                    let date: Moment = moment(field_value).utc(true);
+
+                    switch (field.segmentation_type) {
+                        case TimeSegment.TYPE_YEAR:
+                        case TimeSegment.TYPE_MONTH:
+                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                        case TimeSegment.TYPE_WEEK:
+                        case TimeSegment.TYPE_DAY:
+                            value = DateHandler.getInstance().formatDayForIndex(date);
+                            break;
+                        default:
+                            value = DateHandler.getInstance().formatDayForIndex(date) + ' ' + date.format('HH:mm:ss');
+                    }
+
+                    res[field.field_id] = value;
                     break;
 
                 case ModuleTableField.FIELD_TYPE_float:
@@ -850,66 +1020,84 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_int:
                 case ModuleTableField.FIELD_TYPE_enum:
                 case ModuleTableField.FIELD_TYPE_prct:
-                    e[field.field_id] = ConversionHandler.getInstance().forceNumber(field_value);
+                    res[field.field_id] = ConversionHandler.getInstance().forceNumber(field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_int_array:
-                    e[field.field_id] = field_value.map(Number);
+                    res[field.field_id] = field_value.map(Number);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
-                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                     break;
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
                     //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
-                    e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value);
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value);
                     break;
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_month:
-                    e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true));
+                    res[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true));
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc();
+                    res[field.field_id] = moment(parseInt(field_value) * 1000).utc();
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    if ((field_value === null) || (typeof field_value === 'undefined')) {
+                        res[field.field_id] = field_value;
+                    } else {
+                        res[field.field_id] = field_value.map((ts: string) => moment(parseInt(ts) * 1000).utc(true));
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hourrange:
-                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_MS);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    e[field.field_id] = moment.duration(parseInt(field_value));
+                    res[field.field_id] = moment.duration(parseInt(field_value));
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
                     if (e[field.field_id]) {
-                        e[field.field_id] = GeoPointVO.clone(field_value);
+                        res[field.field_id] = GeoPointVO.clone(field_value);
                     }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_email:
+                    if (e[field.field_id] && e[field.field_id].trim) {
+                        res[field.field_id] = e[field.field_id].trim();
+                    }
+                    break;
+
+                default:
+                    res[field.field_id] = e[field.field_id];
                     break;
             }
         }
 
-        return e;
+        return res;
     }
 
     private defaultforceNumerics(es: T[]): T[] {
         for (let i in es) {
-            this.defaultforceNumeric(es[i]);
+            es[i] = this.defaultforceNumeric(es[i]);
         }
         return es;
     }

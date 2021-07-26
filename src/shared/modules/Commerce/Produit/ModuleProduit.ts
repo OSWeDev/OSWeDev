@@ -1,25 +1,25 @@
+import APIControllerWrapper from '../../API/APIControllerWrapper';
+import ModuleAPI from '../../API/ModuleAPI';
+import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
+import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
+import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
-import ProduitVO from './vos/ProduitVO';
-import CategorieProduitVO from './vos/CategorieProduitVO';
 import ModuleTableField from '../../ModuleTableField';
-import ModuleDAO from '../../DAO/ModuleDAO';
-import TypeProduitVO from './vos/TypeProduitVO';
-import FacturationVO from './vos/FacturationVO';
-import FacturationProduitVO from './vos/FacturationProduitVO';
-import ModuleAPI from '../../API/ModuleAPI';
-import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
-import StringParamVO from '../../API/vos/apis/StringParamVO';
-import NumberParamVO from '../../API/vos/apis/NumberParamVO';
-import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
-import ProduitVOBase from './vos/ProduitVOBase';
-import ProduitAndServiceParamVO from './vos/apis/ProduitParamLigneParamVO';
-import ParamLigneCommandeVO from '../Commande/vos/ParamLigneCommandeVO';
 import VOsTypesManager from '../../VOsTypesManager';
+import ParamLigneCommandeVO from '../Commande/vos/ParamLigneCommandeVO';
+import ProduitParamLigneParamVO, { ProduitParamLigneParamVOStatic } from './vos/apis/ProduitParamLigneParamVO';
+import CategorieProduitVO from './vos/CategorieProduitVO';
+import FacturationProduitVO from './vos/FacturationProduitVO';
+import FacturationVO from './vos/FacturationVO';
+import ProduitVO from './vos/ProduitVO';
+import ProduitVOBase from './vos/ProduitVOBase';
+import TypeProduitVO from './vos/TypeProduitVO';
 
 export default class ModuleProduit extends Module {
 
-    public static APINAME_getProduitAjoutPanier: string = 'getProduitAjoutPanier';
+    // public static APINAME_getProduitAjoutPanier: string = 'getProduitAjoutPanier';
     public static APINAME_getFacturationProduitByIdProduit: string = 'getFacturationProduitByIdProduit';
     public static APINAME_getPrixProduit: string = 'getPrixProduit';
 
@@ -32,31 +32,31 @@ export default class ModuleProduit extends Module {
 
     private static instance: ModuleProduit = null;
 
+    public getPrixProduit: (produit: ProduitVO, produit_base: ProduitVOBase, ligneParam: ParamLigneCommandeVO) => Promise<number> = APIControllerWrapper.sah(ModuleProduit.APINAME_getPrixProduit);
+    public getFacturationProduitByIdProduit: (produitId: number) => Promise<FacturationProduitVO[]> = APIControllerWrapper.sah(ModuleProduit.APINAME_getFacturationProduitByIdProduit);
+
     private constructor() {
         super(ProduitVO.API_TYPE_ID, 'Produit', 'Commerce/Produit');
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, ProduitVO>(
-            null,
-            ModuleProduit.APINAME_getProduitAjoutPanier,
-            [ProduitVO.API_TYPE_ID],
-            StringParamVO.translateCheckAccessParams,
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, FacturationProduitVO[]>(
+        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, ProduitVO>(
+        //     null,
+        //     ModuleProduit.APINAME_getProduitAjoutPanier,
+        //     [ProduitVO.API_TYPE_ID],
+        //     StringParamVO.translateCheckAccessParams,
+        // ));
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, FacturationProduitVO[]>(
             null,
             ModuleProduit.APINAME_getFacturationProduitByIdProduit,
             [FacturationProduitVO.API_TYPE_ID],
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ProduitAndServiceParamVO, number>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ProduitParamLigneParamVO, number>(
             null,
             ModuleProduit.APINAME_getPrixProduit,
             [],
-            ProduitAndServiceParamVO.translateCheckAccessParams,
+            ProduitParamLigneParamVOStatic
         ));
     }
 
@@ -64,26 +64,19 @@ export default class ModuleProduit extends Module {
         return ModuleDAO.getInstance().getVoById<ProduitVO>(ProduitVO.API_TYPE_ID, produitId);
     }
 
-    public async getPrixProduit(produit: ProduitVO, produit_base: ProduitVOBase, ligneParam: ParamLigneCommandeVO): Promise<number> {
-        return ModuleAPI.getInstance().handleAPI<ProduitAndServiceParamVO, number>(ModuleProduit.APINAME_getPrixProduit, produit, produit_base, ligneParam);
-    }
-
-    public async getProduitAjoutPanier(api_type_id: string, ligneParam: ParamLigneCommandeVO, produit_base: ProduitVOBase): Promise<ProduitVO> {
-        let produit: ProduitVO = await ModuleAPI.getInstance().handleAPI<StringParamVO, ProduitVO>(ModuleProduit.APINAME_getProduitAjoutPanier, api_type_id);
+    // REFONTE API needs rebuild with dedicated paramvo
+    // public async getProduitAjoutPanier(api_type_id: string, ligneParam: ParamLigneCommandeVO, produit_base: ProduitVOBase): Promise<ProduitVO> {
+    //     let produit: ProduitVO = await APIControllerWrapper.sah(ModuleProduit.APINAME_getProduitAjoutPanier, api_type_id);
 
 
-        if (!produit) {
-            return null;
-        }
+    //     if (!produit) {
+    //         return null;
+    //     }
 
-        produit.prix = await this.getPrixProduit(produit, produit_base, ligneParam);
+    //     produit.prix = await this.getPrixProduit(produit, produit_base, ligneParam);
 
-        return produit;
-    }
-
-    public async getFacturationProduitByIdProduit(produitId: number): Promise<FacturationProduitVO[]> {
-        return ModuleAPI.getInstance().handleAPI<NumberParamVO, FacturationProduitVO[]>(ModuleProduit.APINAME_getFacturationProduitByIdProduit, produitId);
-    }
+    //     return produit;
+    // }
 
     public initialize() {
         this.fields = [];

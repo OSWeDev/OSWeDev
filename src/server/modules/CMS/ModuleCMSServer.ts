@@ -1,20 +1,18 @@
-import ModuleCMS from '../../../shared/modules/CMS/ModuleCMS';
-import ModuleServerBase from '../ModuleServerBase';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import TemplateComponentVO from '../../../shared/modules/CMS/vos/TemplateComponentVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import ModuleCMS from '../../../shared/modules/CMS/ModuleCMS';
+import TemplateComponentVO from '../../../shared/modules/CMS/vos/TemplateComponentVO';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import WeightHandler from '../../../shared/tools/WeightHandler';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleCMSServer extends ModuleServerBase {
@@ -33,8 +31,8 @@ export default class ModuleCMSServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
     }
 
     /**
@@ -74,38 +72,14 @@ export default class ModuleCMSServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    private async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
-        if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
-
-            if (!templateComponent.id) {
-                let bdd_components: TemplateComponentVO[] = await ModuleDAOServer.getInstance().selectAll<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID, "where type_id = $1", [templateComponent.type_id]);
-                if ((bdd_components) && (bdd_components.length >= 1)) {
-                    templateComponent = bdd_components[0];
-                }
-            }
-
-            if (!templateComponent.id) {
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(templateComponent);
-                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                    return null;
-                }
-                templateComponent.id = parseInt(insertOrDeleteQueryResult.id);
-            }
-
-            ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;
-        }
-
-        return ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id];
-    }
-
-    private async getPageComponents(param: NumberParamVO): Promise<IInstantiatedPageComponent[]> {
+    private async getPageComponents(num: number): Promise<IInstantiatedPageComponent[]> {
         let res: IInstantiatedPageComponent[] = [];
 
         for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
 
             let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
-            let type_page_components: IInstantiatedPageComponent[] = await ModuleDAOServer.getInstance().selectAll<IInstantiatedPageComponent>(registered_template_component.type_id, 'where page_id = $1', [param.num]);
+            let type_page_components: IInstantiatedPageComponent[] = await ModuleDAOServer.getInstance().selectAll<IInstantiatedPageComponent>(registered_template_component.type_id, 'where page_id = $1', [num]);
 
             res = res.concat(type_page_components);
         }

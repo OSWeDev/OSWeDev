@@ -1,12 +1,8 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetTranslationParamVO';
-import TParamVO from '../../../shared/modules/Translation/apis/TParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -18,10 +14,15 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
+import TranslationsServerController from './TranslationsServerController';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -51,16 +52,16 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async configure() {
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO);
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO.bind(this));
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO);
 
-        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang.bind(this));
-        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang.bind(this));
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang);
+        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
@@ -155,6 +156,20 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Actualiser'
         }, 'crud.actions.refresh.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tout supprimer'
+        }, 'crud.actions.delete_all.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer TOUTES les données ? Les filtrages sont ignorés'
+        }, 'crud.actions.delete_all.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'ATTENTION'
+        }, 'crud.actions.delete_all.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression en cours...'
+        }, 'crud.actions.delete_all.start.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Ajouter'
         }, 'crud.create.modal.add.___LABEL___'));
@@ -576,28 +591,28 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
         return await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
     }
 
-    public async getTranslatableText(param: StringParamVO): Promise<TranslatableTextVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.text]);
+    public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
+        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [text]);
     }
 
-    public async getLang(param: StringParamVO): Promise<LangVO> {
-        return await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, 'where code_lang = $1', [param.text]);
+    public async getLang(text: string): Promise<LangVO> {
+        return await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, 'where code_lang = $1', [text]);
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -608,69 +623,22 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
     }
 
-    public async getTranslations(param: NumberParamVO): Promise<TranslationVO[]> {
-        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [param.num]);
+    public async getTranslations(num: number): Promise<TranslationVO[]> {
+        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [num]);
     }
 
-    public async getTranslation(params: GetTranslationParamVO): Promise<TranslationVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [params.lang_id, params.text_id]);
-    }
-
-    public addCodeToLocales(ALL_LOCALES: { [code_lang: string]: any }, code_lang: string, code_text: string, translated: string): { [code_lang: string]: any } {
-
-        if (!ALL_LOCALES) {
-            ALL_LOCALES = {};
-        }
-
-        if ((!code_lang) || (!code_text)) {
-            return ALL_LOCALES;
-        }
-
-        if (!translated) {
-            translated = "";
-        }
-
-        let tmp_code_text_segs: string[] = code_text.split('.');
-        let code_text_segs: string[] = [];
-
-        for (let i in tmp_code_text_segs) {
-            if (tmp_code_text_segs[i] && (tmp_code_text_segs[i] != "")) {
-                code_text_segs.push(tmp_code_text_segs[i]);
-            }
-        }
-
-        if (!ALL_LOCALES[code_lang]) {
-            ALL_LOCALES[code_lang] = {};
-        }
-
-        let locale_pointer = ALL_LOCALES[code_lang];
-        for (let i in code_text_segs) {
-            let code_text_seg = code_text_segs[i];
-
-            if (parseInt(i.toString()) == (code_text_segs.length - 1)) {
-
-                locale_pointer[code_text_seg] = translated;
-                break;
-            }
-
-            if (!locale_pointer[code_text_seg]) {
-                locale_pointer[code_text_seg] = {};
-            }
-
-            locale_pointer = locale_pointer[code_text_seg];
-        }
-
-        return ALL_LOCALES;
+    public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {
+        return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, text_id]);
     }
 
     private async trigger_oncreate_lang(lang: LangVO) {
         let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = new AccessPolicyVO();
-        LANG_SELECTOR_PER_LANG_ACCESS.group_id = this.policy_group.id;
+        LANG_SELECTOR_PER_LANG_ACCESS.group_id = ModuleTranslationServer.getInstance().policy_group.id;
         LANG_SELECTOR_PER_LANG_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         LANG_SELECTOR_PER_LANG_ACCESS.translatable_name = ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id);
         LANG_SELECTOR_PER_LANG_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_PER_LANG_ACCESS, new DefaultTranslation({
             fr: 'Outil - Peut choisir la langue : ' + lang.code_lang
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(ModuleTranslationServer.getInstance().name));
     }
 
     private async trigger_ondelete_lang(lang: LangVO): Promise<boolean> {
@@ -699,42 +667,42 @@ export default class ModuleTranslationServer extends ModuleServerBase {
                     continue;
                 }
 
-                res = this.addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+                res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
             }
         }
         return res;
     }
 
-    private async t(param: TParamVO): Promise<string> {
-        let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.code_text]);
+    private async t(code_text: string, lang_id: number): Promise<string> {
+        let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [code_text]);
 
         if (!translatable) {
             return null;
         }
 
-        let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [param.lang_id, translatable.id]);
+        let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, translatable.id]);
 
         return translation.translated;
     }
 
-    private async label(param: TParamVO): Promise<string> {
-        param.code_text += DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-        return await this.t(param);
+    private async label(code_text: string, lang_id: number): Promise<string> {
+        code_text += DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return await this.t(code_text, lang_id);
     }
 
     private async onPreCreateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {
         if ((!vo) || (!vo.code_text)) {
             return false;
         }
-        return await this.isCodeOk(vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo.code_text);
     }
 
-    private async onPreUpdateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {
+    private async onPreUpdateTranslatableTextVO(vo_update_handler: DAOUpdateVOHolder<TranslatableTextVO>): Promise<boolean> {
 
-        if ((!vo) || (!vo.code_text)) {
+        if ((!vo_update_handler.post_update_vo) || (!vo_update_handler.post_update_vo.code_text)) {
             return false;
         }
-        return await this.isCodeOk(vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text);
     }
 
     private async isCodeOk(code_text: string): Promise<boolean> {

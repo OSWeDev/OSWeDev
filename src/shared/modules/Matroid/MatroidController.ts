@@ -86,6 +86,7 @@ export default class MatroidController {
             return null;
         }
 
+        let ranges_need_union: { [res_i: number]: { [field_id: string]: boolean } } = {};
         for (let i in matroids) {
 
             let tested_matroid = matroids[i];
@@ -107,7 +108,13 @@ export default class MatroidController {
 
                 if (different_field_ids.length == 1) {
 
-                    matroid[different_field_ids[0]] = RangeHandler.getInstance().getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+                    // matroid[different_field_ids[0]] = RangeHandler.getInstance().getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+                    // Au lieu de faire l'union à chaque rapprochement on tag ce champ comme nécessitant une union en fin de calcul avant de tout renvoyer
+                    matroid[different_field_ids[0]] = tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]);
+                    if (!ranges_need_union[j]) {
+                        ranges_need_union[j] = {};
+                    }
+                    ranges_need_union[j][different_field_ids[0]] = true;
 
                     ignore_matroid = true;
                     break;
@@ -118,7 +125,19 @@ export default class MatroidController {
                 continue;
             }
 
-            res.push(tested_matroid);
+            res.push(this.cloneFrom(tested_matroid));
+        }
+
+        for (let i in ranges_need_union) {
+            let matroid: T = res[i];
+
+            for (let field_id in ranges_need_union[i]) {
+                matroid[field_id] = RangeHandler.getInstance().getRangesUnion(matroid[field_id]);
+            }
+
+            if (matroid['_index']) {
+                matroid['_index'] = null;
+            }
         }
 
         return res;
@@ -135,9 +154,9 @@ export default class MatroidController {
         }
 
         let matroid_fields: Array<ModuleTableField<any>> = [];
-        for (let i in moduleTable.get_fields()) {
-
-            let field = moduleTable.get_fields()[i];
+        let mt_fields = moduleTable.get_fields();
+        for (let i in mt_fields) {
+            let field = mt_fields[i];
 
             switch (field.field_type) {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
@@ -236,7 +255,7 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroid_intersects_matroid(a: IMatroid, b: IMatroid): boolean {
+    public matroid_intersects_matroid(a: IMatroid, b: IMatroid, fields_mapping: { [matroid_a_field_id: string]: string } = null): boolean {
         // On part du principe que l'on peut affirmer qu'un matroid intersecte un autre matroid
         //  dès que toutes les bases intersectent. Il faut pour cela avoir les mêmes formats de matroid, le même _type sur le matroid
         //  On utilise les fields du matroid pour identifier également des champs qui seraient non définis mais
@@ -255,7 +274,13 @@ export default class MatroidController {
         let moduletableb = VOsTypesManager.getInstance().moduleTables_by_voType[b._type];
 
         if (moduletablea != moduletableb) {
-            return false;
+
+            // Les matroids sont différents à la base, on veut traduire l'un des deux pour permettre l'intersection
+            // si le mapping est undefined, on va prendre les champs avec le nom identique et si on échoue on renvoit false
+            //  et si le mapping est null, alors on peut pas comparer et on considère que ça intersecte jamais.
+            if (fields_mapping === null) {
+                return false;
+            }
         }
 
         let matroid_fields = this.getMatroidFields(a._type);
@@ -264,7 +289,13 @@ export default class MatroidController {
             let matroid_field = matroid_fields[i];
 
             let a_ranges = a[matroid_field.field_id];
-            let b_ranges = b[matroid_field.field_id];
+
+            // Si ce champ est mappé à null, on ignore
+            if (fields_mapping && (fields_mapping[matroid_field.field_id] === null)) {
+                continue;
+            }
+
+            let b_ranges = (fields_mapping && fields_mapping[matroid_field.field_id]) ? b[fields_mapping[matroid_field.field_id]] : b[matroid_field.field_id];
 
             if ((!a_ranges) || (!a_ranges.length) || (!b_ranges) || (!b_ranges.length)) {
                 continue;
@@ -333,9 +364,6 @@ export default class MatroidController {
         return false;
     }
 
-    /**
-     * FIXME TODO ASAP WITH TU
-     */
     public cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
         let res: Array<MatroidCutResult<T>> = [];
@@ -354,13 +382,10 @@ export default class MatroidController {
         return res;
     }
 
-    /**
-     * FIXME TODO ASAP WITH TU
-     */
     public matroids_cut_matroids_get_remainings<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): T[] {
 
         let remaining_matroids: T[] = [];
-        remaining_matroids = this.cloneFromRanges(matroids_to_cut);
+        remaining_matroids = matroids_to_cut;
         for (let j in matroid_cutters) {
 
             let matroid_cutter = matroid_cutters[j];
@@ -369,11 +394,13 @@ export default class MatroidController {
 
             remaining_matroids = [];
             for (let k in cut_results) {
-                remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
+                if (cut_results[k].remaining_items && cut_results[k].remaining_items.length) {
+                    remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
+                }
             }
         }
 
-        return remaining_matroids;
+        return this.union(remaining_matroids);
     }
 
     /**
@@ -402,9 +429,6 @@ export default class MatroidController {
         return res;
     }
 
-    /**
-     * FIXME TODO ASAP WITH TU
-     */
     public cut_matroid<T extends IMatroid>(matroid_cutter: T, matroid_to_cut: T): MatroidCutResult<T> {
 
         if (!matroid_to_cut) {
@@ -424,7 +448,7 @@ export default class MatroidController {
         let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut);
 
         // Le matroid chopped est unique par définition et reprend simplement les bases chopped
-        let chopped_matroid = this.cloneFrom(matroid_to_cut);
+        let chopped_matroid = this.cloneFrom<T, T>(matroid_to_cut);
 
         // On coupe sur chaque base, si elle a une intersection
         for (let i in matroid_to_cut_bases) {
@@ -454,7 +478,7 @@ export default class MatroidController {
             if (!!cut_result.remaining_items) {
 
                 // Le but est de créer le matroid lié à la coupe sur cette dimension
-                let this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
+                let this_base_remaining_matroid = this.cloneFrom<T, T>(chopped_matroid);
 
                 this_base_remaining_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.remaining_items.ranges);
 
@@ -500,32 +524,92 @@ export default class MatroidController {
     }
 
     /**
-     * Clones all but id
+     * Clones all but id and value, value_type, value_ts for vars
      * @param from
      */
-    public cloneFrom<T extends IMatroid>(from: T): T {
+    public cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
 
         if (!from) {
             return null;
         }
 
-        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
+        let _type: string = to_type ? to_type : from._type;
+        let moduletable_from = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
+        let moduletable_to = VOsTypesManager.getInstance().moduleTables_by_voType[_type];
 
-        // On copie uniquement le matroid et le var_id si présent pour compatibilité avec les vars
-        let res: T = Object.assign({
-            _type: from._type,
-            id: undefined,
-            var_id: from['var_id']
-        } as any, moduleTable.matroid_cloner(from));
+        let res: U = moduletable_to.voConstructor();
+        res._type = _type;
 
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(from._type);
+        // Compatibilité avec les vars
+        if (typeof from['var_id'] !== 'undefined') {
+            res['var_id'] = from['var_id'];
+        }
+        // if (typeof from['value'] !== 'undefined') {
+        //     res['value'] = from['value'];
+        // }
+        // if (typeof from['value_type'] !== 'undefined') {
+        //     res['value_type'] = from['value_type'];
+        // }
+        // if (typeof from['value_ts'] !== 'undefined') {
+        //     res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
+        // }
 
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        let needs_mapping: boolean = moduletable_from != moduletable_to;
+        let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
 
-            res[matroid_field.field_id] = cloneDeep(from[matroid_field.field_id]);
+        // if (needs_mapping && (typeof mappings === 'undefined')) {
+        //     throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");
+        // }
+
+        let to_fields = MatroidController.getInstance().getMatroidFields(_type);
+        for (let to_fieldi in to_fields) {
+            let to_field = to_fields[to_fieldi];
+
+            let from_field_id = to_field.field_id;
+            if (needs_mapping) {
+                /**
+                 * Si on a un mapping predef on l'utilise
+                 */
+                if (typeof mappings !== 'undefined') {
+                    for (let mappingi in mappings) {
+
+                        if (mappings[mappingi] == to_field.field_id) {
+                            from_field_id = mappingi;
+                        }
+                    }
+                } else {
+                    /**
+                     * Sinon on check que le champ existait dans le type from
+                     */
+                    let from_field = moduletable_from.get_field_by_id(to_field.field_id);
+                    from_field_id = from_field ? to_field.field_id : null;
+                }
+            }
+
+            if (!!from_field_id) {
+                res[to_field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(from[from_field_id]) : from[from_field_id];
+            } else {
+                switch (to_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxRange(to_field)];
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_hourrange:
+                    case ModuleTableField.FIELD_TYPE_daterange:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxRange(to_field)];
+                        break;
+                    default:
+                }
+            }
         }
 
+        if (res['_index']) {
+            res['_index'] = null;
+        }
         return res;
     }
 

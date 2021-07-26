@@ -9,6 +9,16 @@ export default class VarCacheConfVO implements IDistantVOBase {
 
     public var_id: number;
 
-    public consider_null_as_0_and_auto_clean_0_in_cache: boolean;
+    /**
+     * 0 => infini
+     *  FIXME TODO REFONTE dans quel cas on utiliserait ce truc ? Une var utilise des datasources, et donc si on configure
+     *      correctement, on devrait pouvoir invalider par les datasources, et pas par un délai
+     */
     public cache_timeout_ms: number;
+
+    public cache_seuil_a: number;
+    public cache_seuil_b: number;
+    public cache_seuil_c: number;
+    public cache_seuil_c_element: number;
+    public calculation_cost_for_1000_card: number;
 }

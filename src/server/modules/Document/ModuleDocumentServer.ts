@@ -1,34 +1,34 @@
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
 import DocumentLangVO from '../../../shared/modules/Document/vos/DocumentLangVO';
+import DocumentRoleVO from '../../../shared/modules/Document/vos/DocumentRoleVO';
 import DocumentTagGroupLangVO from '../../../shared/modules/Document/vos/DocumentTagGroupLangVO';
 import DocumentTagGroupVO from '../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentTagLangVO from '../../../shared/modules/Document/vos/DocumentTagLangVO';
 import DocumentTagVO from '../../../shared/modules/Document/vos/DocumentTagVO';
 import DocumentVO from '../../../shared/modules/Document/vos/DocumentVO';
-import ModuleTable from '../../../shared/modules/ModuleTable';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleServerBase from '../ModuleServerBase';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModulesManagerServer from '../ModulesManagerServer';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import EnvParam from '../../env/EnvParam';
-import ConfigurationService from '../../env/ConfigurationService';
-import DocumentRoleVO from '../../../shared/modules/Document/vos/DocumentRoleVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import FileHandler from '../../../shared/tools/FileHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleDocumentServer extends ModuleServerBase {
 
@@ -147,14 +147,14 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             { fr: 'Tous' },
             'document_handler.tags.tous.___LABEL___'));
 
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let postUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file.bind(this));
-        preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file);
+        preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file_update);
 
         // Quand on change un fichier on check si on doit changer l'url d'un doc au passage.
-        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_document_path_from_file_changed.bind(this));
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_document_path_from_file_changed);
     }
 
     public registerServerApiHandlers() {
@@ -162,9 +162,14 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     public registerAccessHooks(): void {
 
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_ds_by_user_lang, this.get_ds_by_user_lang.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dts_by_user_lang, this.get_dts_by_user_lang.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dtgs_by_user_lang, this.get_dtgs_by_user_lang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_ds_by_user_lang, this.get_ds_by_user_lang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dts_by_user_lang, this.get_dts_by_user_lang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDocument.APINAME_get_dtgs_by_user_lang, this.get_dtgs_by_user_lang.bind(this));
+    }
+
+    private async force_document_path_from_file_update(vo_update_handler: DAOUpdateVOHolder<DocumentVO>): Promise<boolean> {
+
+        return ModuleDocumentServer.getInstance().force_document_path_from_file(vo_update_handler.post_update_vo);
     }
 
     private async force_document_path_from_file(d: DocumentVO): Promise<boolean> {
@@ -177,7 +182,6 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return true;
         }
 
-        let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
         let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, d.file_id);
 
         if (!file) {
@@ -191,7 +195,9 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         return true;
     }
 
-    private async force_document_path_from_file_changed(f: FileVO): Promise<void> {
+    private async force_document_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>): Promise<void> {
+
+        let f: FileVO = vo_update_handler.post_update_vo;
 
         if (!f) {
             return;
@@ -201,8 +207,6 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         if ((!docs) || (!docs.length)) {
             return;
         }
-
-        let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
         let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
         let url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);

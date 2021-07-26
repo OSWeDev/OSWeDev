@@ -176,7 +176,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                     continue;
                 }
 
-                translatable = await ModuleDAO.getInstance().getVoById<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, parseInt(insertRes.id.toString()));
+                translatable = await ModuleDAO.getInstance().getVoById<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, insertRes.id);
             }
 
 

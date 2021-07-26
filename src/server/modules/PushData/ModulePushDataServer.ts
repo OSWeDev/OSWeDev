@@ -1,14 +1,17 @@
 import * as moment from 'moment';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
-import SocketWrapper from './vos/SocketWrapper';
+import PushDataServerController from './PushDataServerController';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -31,14 +34,36 @@ export default class ModulePushDataServer extends ModuleServerBase {
         PushDataCronWorkersHandler.getInstance();
     }
 
+    public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
+    }
+
     public async configure() {
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationCreation.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationCreation);
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate.bind(this));
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate);
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valider'
+        }, 'snotify.prompt.submit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'snotify.prompt.cancel.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre session a été invalidée, la page va être rechargée automatiquement...'
+        }, PushDataServerController.NOTIFY_SESSION_INVALIDATED));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Connexion en cours. La page va être rechargée automatiquement...'
+        }, PushDataServerController.NOTIFY_USER_LOGGED));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'La page va être rechargée automatiquement...'
+        }, PushDataServerController.NOTIFY_RELOAD));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -63,13 +88,25 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return true;
     }
 
-    private async handleNotificationUpdate(notif: NotificationVO): Promise<boolean> {
+    private async handleNotificationUpdate(vo_update_handler: DAOUpdateVOHolder<NotificationVO>): Promise<boolean> {
 
-        let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
-
-        if ((!enbase.read) && notif.read) {
-            notif.read_date = moment().utc(true);
+        if ((!vo_update_handler.pre_update_vo.read) && vo_update_handler.post_update_vo.read) {
+            vo_update_handler.post_update_vo.read_date = moment().utc(true);
         }
         return true;
+    }
+
+    private async set_prompt_result(notification: NotificationVO) {
+        if (!PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid]) {
+            ConsoleHandler.getInstance().error('set_prompt_result:prompt unknown:' + notification.prompt_uid + ':' + notification.prompt_result + ':');
+            return;
+        }
+
+        let callback = PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid];
+        try {
+            await callback(notification.prompt_result);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
     }
 }

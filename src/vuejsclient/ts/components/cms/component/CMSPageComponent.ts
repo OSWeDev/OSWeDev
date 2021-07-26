@@ -210,7 +210,7 @@ export default class CMSPageComponent extends VueComponentBase {
             this.snotify.error(this.label('cms.insert_new_composant.failure'));
             return;
         }
-        new_composant_constructor.id = parseInt(insertOrDeleteQueryResult.id);
+        new_composant_constructor.id = insertOrDeleteQueryResult.id;
 
         await this.update_list();
     }

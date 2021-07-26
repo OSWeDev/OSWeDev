@@ -1,9 +1,9 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import URLHandler from '../../tools/URLHandler';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import ModuleAPI from '../API/ModuleAPI';
-import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ImageVO from '../Image/vos/ImageVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -29,7 +29,7 @@ export default class ModuleCMS extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".FO_ACCESS";
 
-    public static APINAME_registerTemplateComponent: string = "registerTemplateComponent";
+    // public static APINAME_registerTemplateComponent: string = "registerTemplateComponent";
     public static APINAME_getPageComponents: string = "getPageComponents";
 
     public static getInstance(): ModuleCMS {
@@ -49,6 +49,7 @@ export default class ModuleCMS extends Module {
      * ----- Local thread cache
      */
 
+    public getPageComponents: (page_id: number) => Promise<IInstantiatedPageComponent[]> = APIControllerWrapper.sah(ModuleCMS.APINAME_getPageComponents);
 
     private constructor() {
 
@@ -56,7 +57,7 @@ export default class ModuleCMS extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleCMS.APINAME_getPageComponents,
             (param: NumberParamVO) => {
@@ -69,37 +70,31 @@ export default class ModuleCMS extends Module {
 
                 return res;
             },
-            NumberParamVO.translateCheckAccessParams,
-            NumberParamVO.URL,
-            NumberParamVO.translateToURL,
-            NumberParamVO.translateFromREQ
+            NumberParamVOStatic
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
-            null,
-            ModuleCMS.APINAME_registerTemplateComponent,
-            [TemplateComponentVO.API_TYPE_ID]
-        ));
+        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
+        //     null,
+        //     ModuleCMS.APINAME_registerTemplateComponent,
+        //     [TemplateComponentVO.API_TYPE_ID]
+        // ));
     }
 
-    public async getPageComponents(page_id: number): Promise<IInstantiatedPageComponent[]> {
-        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, IInstantiatedPageComponent[]>(ModuleCMS.APINAME_getPageComponents, page_id);
-    }
+    // TODO FIXME REBUILD API
+    // /**
+    //  * This function has to be called both in the server and client contexts, to register the component types
+    //  *  so one call in the shared section while initializing modules should be ok
+    //  * @param templateComponent description of the templateComponent to recover/register
+    //  */
+    // public async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
+    //     let res: TemplateComponentVO = await APIControllerWrapper.sah(ModuleCMS.APINAME_registerTemplateComponent, templateComponent);
 
-    /**
-     * This function has to be called both in the server and client contexts, to register the component types
-     *  so one call in the shared section while initializing modules should be ok
-     * @param templateComponent description of the templateComponent to recover/register
-     */
-    public async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
-        let res: TemplateComponentVO = await ModuleAPI.getInstance().handleAPI<TemplateComponentVO, TemplateComponentVO>(ModuleCMS.APINAME_registerTemplateComponent, templateComponent);
+    //     if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
+    //         ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;
+    //     }
 
-        if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
-            ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;
-        }
-
-        return res;
-    }
+    //     return res;
+    // }
 
     /**
      * Checks the format of the route and makes sure it's ok to work with
@@ -138,45 +133,45 @@ export default class ModuleCMS extends Module {
         this.initializeHTML_Img_ComponentVO();
     }
 
-    public async hook_module_async_client_admin_initialization(): Promise<any> {
-        await this.configure_templates();
-        return true;
-    }
+    // public async hook_module_async_client_admin_initialization(): Promise<any> {
+    //     await this.configure_templates();
+    //     return true;
+    // }
 
-    public async hook_module_configure(): Promise<boolean> {
-        await this.configure_templates();
-        return true;
-    }
+    // public async hook_module_configure(): Promise<boolean> {
+    //     await this.configure_templates();
+    //     return true;
+    // }
 
-    private async configure_templates(): Promise<boolean> {
+    // private async configure_templates(): Promise<boolean> {
 
-        let templateComponent: TemplateComponentVO = new TemplateComponentVO();
-        templateComponent.type_id = HtmlComponentVO.API_TYPE_ID;
-        templateComponent.weight = 0;
-        await this.registerTemplateComponent(templateComponent);
+    //     let templateComponent: TemplateComponentVO = new TemplateComponentVO();
+    //     templateComponent.type_id = HtmlComponentVO.API_TYPE_ID;
+    //     templateComponent.weight = 0;
+    //     await this.registerTemplateComponent(templateComponent);
 
-        templateComponent = new TemplateComponentVO();
-        templateComponent.type_id = HtmlHtmlComponentVO.API_TYPE_ID;
-        templateComponent.weight = 1;
-        await this.registerTemplateComponent(templateComponent);
+    //     templateComponent = new TemplateComponentVO();
+    //     templateComponent.type_id = HtmlHtmlComponentVO.API_TYPE_ID;
+    //     templateComponent.weight = 1;
+    //     await this.registerTemplateComponent(templateComponent);
 
-        templateComponent = new TemplateComponentVO();
-        templateComponent.type_id = HtmlHtmlHtmlComponentVO.API_TYPE_ID;
-        templateComponent.weight = 2;
-        await this.registerTemplateComponent(templateComponent);
+    //     templateComponent = new TemplateComponentVO();
+    //     templateComponent.type_id = HtmlHtmlHtmlComponentVO.API_TYPE_ID;
+    //     templateComponent.weight = 2;
+    //     await this.registerTemplateComponent(templateComponent);
 
-        templateComponent = new TemplateComponentVO();
-        templateComponent.type_id = ImgHtmlComponentVO.API_TYPE_ID;
-        templateComponent.weight = 3;
-        await this.registerTemplateComponent(templateComponent);
+    //     templateComponent = new TemplateComponentVO();
+    //     templateComponent.type_id = ImgHtmlComponentVO.API_TYPE_ID;
+    //     templateComponent.weight = 3;
+    //     await this.registerTemplateComponent(templateComponent);
 
-        templateComponent = new TemplateComponentVO();
-        templateComponent.type_id = HtmlImgComponentVO.API_TYPE_ID;
-        templateComponent.weight = 4;
-        await this.registerTemplateComponent(templateComponent);
+    //     templateComponent = new TemplateComponentVO();
+    //     templateComponent.type_id = HtmlImgComponentVO.API_TYPE_ID;
+    //     templateComponent.weight = 4;
+    //     await this.registerTemplateComponent(templateComponent);
 
-        return true;
-    }
+    //     return true;
+    // }
 
     private initializePageVO() {
         let content_type_id = new ModuleTableField('content_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contenu', true);

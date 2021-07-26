@@ -1,89 +1,78 @@
 import { Component } from 'vue-property-decorator';
-import 'vue-tables-2';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
-import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
 import './VarsManagerComponent.scss';
 
 @Component({
     template: require('./VarsManagerComponent.pug'),
     components: {
-        "var-desc-registrations": VarDescRegistrationsComponent,
+        //"var-desc-registrations": VarDescRegistrationsComponent,
+        Varsdatasexplorercomponent: () => import(/* webpackChunkName: "VarsDatasExplorerComponent" */ '../explorer/VarsDatasExplorerComponent'),
+        Draggablewindowcomponent: () => import(/* webpackChunkName: "DraggableWindowComponent" */ '../../../draggable_window/DraggableWindowComponent'),
+
         // "perfmon-funcstats": () => import(/* webpackChunkName: "FuncStatsComponent" */ '../../../PerfMon/components/funcStats/FuncStatsComponent')
     }
 })
 export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
+    private get_desc_selected_var_param_historic: VarDataBaseVO[];
+    @ModuleVarAction
+    private set_desc_selected_var_param_historic_i: (desc_selected_var_param_historic_i: number) => void;
     @ModuleVarGetter
-    public isUpdating: boolean;
+    private get_desc_selected_var_param_historic_i: number;
     @ModuleVarGetter
-    public isWaiting: boolean;
+    private isDescMode: boolean;
     @ModuleVarGetter
-    public isStepping: boolean;
+    private isDescRegistrationsOpened: boolean;
     @ModuleVarGetter
-    public isDescMode: boolean;
-    @ModuleVarGetter
-    public isDescOpened: boolean;
-    @ModuleVarGetter
-    public isDescRegistrationsOpened: boolean;
-    @ModuleVarGetter
-    public isDescFuncStatsOpened: boolean;
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
+    private isDescFuncStatsOpened: boolean;
 
     @ModuleVarAction
-    public setVarData: (varData: IVarDataVOBase) => void;
+    private setVarData: (varData: VarDataBaseVO) => void;
     @ModuleVarAction
-    public setVarsData: (varsData: IVarDataVOBase[]) => void;
+    private setVarsData: (varsData: VarDataBaseVO[]) => void;
     @ModuleVarAction
-    public removeVarData: (varDataParam: IVarDataParamVOBase) => void;
-    @ModuleVarAction
-    public setIsStepping: (is_stepping: boolean) => void;
-    @ModuleVarAction
-    public setIsUpdating: (is_updating: boolean) => void;
-    @ModuleVarAction
-    public setIsWaiting: (is_waiting: boolean) => void;
-    @ModuleVarAction
-    public setDescMode: (desc_mode: boolean) => void;
-    @ModuleVarAction
-    public setDescOpened: (desc_opened: boolean) => void;
-    @ModuleVarAction
-    public setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
-    @ModuleVarAction
-    public setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
-    @ModuleVarAction
-    public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void;
-    @ModuleVarAction
-    public setStepNumber: (step_number: number) => void;
+    private removeVarData: (varDataParam: VarDataBaseVO) => void;
 
     @ModuleVarAction
-    public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;
+    private set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;
 
 
-    public mounted() {
-        VarsController.getInstance().registerStoreHandlers(
-            this.getVarDatas, this.setVarsData, this.setIsUpdating,
-            this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds, this.setIsStepping,
-            this.setIsWaiting, this.setStepNumber, this.set_dependencies_heatmap_version);
-    }
 
-    /**
-     * ATTENTION FIXME DIRTY ne marche que si on a soit une var registered sélectionnée, soit une var qui a une data (et qui est donc registered a priori)
-     */
-    get selected_param(): IVarDataParamVOBase {
-        return (!!this.getDescSelectedIndex) ?
-            ((!!VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex]) ?
-                VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex].param :
-                VarsController.getInstance().getVarData[this.getDescSelectedIndex]) : null;
-    }
+    @ModuleVarGetter
+    private getDescSelectedVarParam: VarDataBaseVO;
+    @ModuleVarAction
+    private setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
+    @ModuleVarAction
+    private setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
+    @ModuleVarAction
+    private setDescMode: (desc_mode: boolean) => void;
+    @ModuleVarAction
+    private setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
+
+    private width_var_desc: number = 448;
+    private height_var_desc: number = 840;
+    private opened_width_var_desc: number = 448;
+    private opened_height_var_desc: number = 840;
+    private closed_width_var_desc: number = 448;
+    private closed_height_var_desc: number = 37;
+    private unusable_height_var_desc: number = this.closed_height_var_desc;
+
+    private opened_minh_var_desc: number = 115;
+    private opened_minw_var_desc: number = 448;
+    private minh_var_desc: number = this.opened_minh_var_desc;
+    private minw_var_desc: number = this.opened_minw_var_desc;
+    private closed_minh_var_desc: number = this.closed_height_var_desc;
+    private closed_minw_var_desc: number = this.closed_width_var_desc;
+
+    private initialx_var_desc: number = 70;
+    private initialy_var_desc: number = 56;
+    private opened_var_desc: boolean = true;
+
+    public mounted() { }
 
     private async switchDescMode() {
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_DESC_MODE_ACCESS)) {
@@ -91,5 +80,36 @@ export default class VarsManagerComponent extends VueComponentBase {
         }
 
         this.setDescMode(!this.isDescMode);
+    }
+
+    get can_undo(): boolean {
+        if (this.get_desc_selected_var_param_historic && this.get_desc_selected_var_param_historic.length && this.get_desc_selected_var_param_historic_i) {
+            return true;
+        }
+        return false;
+    }
+
+    private undo() {
+        if (!this.can_undo) {
+            return;
+        }
+        let i = this.get_desc_selected_var_param_historic_i - 1;
+        this.set_desc_selected_var_param_historic_i(this.get_desc_selected_var_param_historic_i - 2);
+        this.setDescSelectedVarParam(this.get_desc_selected_var_param_historic[i]);
+    }
+
+    get can_redo(): boolean {
+        if (this.get_desc_selected_var_param_historic && this.get_desc_selected_var_param_historic.length &&
+            (this.get_desc_selected_var_param_historic_i < (this.get_desc_selected_var_param_historic.length - 1))) {
+            return true;
+        }
+        return false;
+    }
+
+    private redo() {
+        if (!this.can_redo) {
+            return;
+        }
+        this.setDescSelectedVarParam(this.get_desc_selected_var_param_historic[this.get_desc_selected_var_param_historic_i + 1]);
     }
 }

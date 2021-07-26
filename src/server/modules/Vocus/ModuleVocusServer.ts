@@ -2,9 +2,9 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -53,6 +53,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
             fr: 'Type'
         }, 'vocus.vo_type.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Limité à 1000 lignes...'
+        }, 'vocus.limit1000.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vocus'
         }, 'vocus.vocus.___LABEL___'));
     }
@@ -82,19 +85,24 @@ export default class ModuleVocusServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVocus.APINAME_getVosRefsById, this.getVosRefsById.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVocus.APINAME_getVosRefsById, this.getVosRefsById.bind(this));
     }
 
     /**
      * Objectif: Renvoyer tous les IDistantVoBase qui sont liées à ce vo (par type + id) par une liaison 1/n, n/1 ou n/n
      * TODO : (dans le cas du n/n on pourrait renvoyer directement la cible finale, pas le vo de la table n/n)
      */
-    private async getVosRefsById(apiDAOParamVO: APIDAOParamVO): Promise<VocusInfoVO[]> {
+    public async getVosRefsById(
+        API_TYPE_ID: string,
+        id: number,
+        segmentation_ranges: Array<IRange<any>> = null,
+        limit: number = 1000
+    ): Promise<VocusInfoVO[]> {
 
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
@@ -135,7 +143,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         for (let i in refFields) {
             let refField = refFields[i];
 
-            let refvos: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(refField.module_table.vo_type, refField.field_id, [apiDAOParamVO.id]);
+            let refvos: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(refField.module_table.vo_type, refField.field_id, [id]);
 
             for (let j in refvos) {
                 let refvo: IDistantVOBase = refvos[j];
@@ -157,6 +165,16 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 }
 
                 res_map[refvo._type][refvo.id] = tmp;
+
+                if (!!limit) {
+                    limit--;
+                    if (limit <= 0) {
+                        break;
+                    }
+                }
+            }
+            if ((limit != null) && (limit <= 0)) {
+                break;
             }
         }
 

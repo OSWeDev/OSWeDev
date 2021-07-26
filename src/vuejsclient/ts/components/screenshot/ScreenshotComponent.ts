@@ -70,6 +70,7 @@ export default class ScreenshotComponent extends VueComponentBase {
                                 formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + moment().utc(true).unix() + '.png');
 
                                 let res = await AjaxCacheClientController.getInstance().post(
+                                    null,
                                     '/ModuleFileServer/upload',
                                     [FileVO.API_TYPE_ID],
                                     formData,

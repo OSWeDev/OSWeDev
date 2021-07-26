@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { Moment } from 'moment';
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
@@ -41,6 +42,7 @@ export interface IProgramPlanState {
     can_edit_own_team: boolean;
     can_edit_self: boolean;
     can_see_fc: boolean;
+    refresh: boolean;
     selected_rdv: IPlanRDV;
     filter_date_debut: Moment;
     filter_date_fin: Moment;
@@ -89,6 +91,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_own_team: false,
             can_edit_self: false,
             can_see_fc: false,
+            refresh: false,
             selected_rdv: null,
             targets_facilitators_by_ids: {},
             filter_date_debut: null,
@@ -114,6 +117,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_own_team: (state: IProgramPlanState): boolean => state.can_edit_own_team,
             can_edit_self: (state: IProgramPlanState): boolean => state.can_edit_self,
             can_see_fc: (state: IProgramPlanState): boolean => state.can_see_fc,
+            get_refresh: (state: IProgramPlanState): boolean => state.refresh,
 
             get_targets_facilitators_by_ids: (state: IProgramPlanState): { [id: number]: IPlanTargetFacilitator } => state.targets_facilitators_by_ids,
             get_facilitators_by_target_ids: (state: IProgramPlanState): { [target_id: number]: IPlanFacilitator[] } => {
@@ -210,6 +214,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             set_can_edit_own_team: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_own_team = can_edit,
             set_can_edit_self: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_self = can_edit,
             set_can_see_fc: (state: IProgramPlanState, can_edit: boolean) => state.can_see_fc = can_edit,
+            set_refresh: (state: IProgramPlanState, refresh: boolean) => state.refresh = refresh,
 
             set_selected_rdv: (state: IProgramPlanState, selected_rdv: IPlanRDV) => state.selected_rdv = selected_rdv,
 
@@ -265,6 +270,19 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                     return;
                 }
                 state.rdvs_by_ids[vo.id] = vo;
+            },
+
+            setTargetById(state: IProgramPlanState, vo: IPlanTarget) {
+
+                if (!vo) {
+                    return;
+                }
+
+                if (!state.targets_by_ids[vo.id]) {
+                    Vue.set(state.targets_by_ids as any, vo.id, cloneDeep(vo));
+                    return;
+                }
+                state.targets_by_ids[vo.id] = cloneDeep(vo);
             },
 
             setCrById(state: IProgramPlanState, vo: IPlanRDVCR) {
@@ -389,6 +407,10 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             setRdvById(context: ProgramPlanContext, vo: IPlanRDV) {
                 commitSetRdvById(context, vo);
             },
+
+            setTargetById(context: ProgramPlanContext, vo: IPlanTarget) {
+                commitSetTargetById(context, vo);
+            },
             setCrById(context: ProgramPlanContext, vo: IPlanRDVCR) {
                 commitSetCrById(context, vo);
             },
@@ -448,6 +470,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             set_can_edit_own_team: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_own_team(context, can_edit),
             set_can_edit_self: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_self(context, can_edit),
             set_can_see_fc: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_see_fc(context, can_edit),
+            set_refresh: (context: ProgramPlanContext, refresh: boolean) => comit_set_refresh(context, refresh),
 
         };
     }
@@ -474,6 +497,7 @@ export const commit_set_filter_date_debut = commit(ProgramPlanStore.getInstance(
 export const commit_set_filter_date_fin = commit(ProgramPlanStore.getInstance().mutations.set_filter_date_fin);
 
 export const commitSetRdvById = commit(ProgramPlanStore.getInstance().mutations.setRdvById);
+export const commitSetTargetById = commit(ProgramPlanStore.getInstance().mutations.setTargetById);
 export const commitSetCrById = commit(ProgramPlanStore.getInstance().mutations.setCrById);
 export const commitRemoveRdv = commit(ProgramPlanStore.getInstance().mutations.removeRdv);
 export const commitRemoveCr = commit(ProgramPlanStore.getInstance().mutations.removeCr);
@@ -499,3 +523,4 @@ export const comit_set_can_edit_all = commit(ProgramPlanStore.getInstance().muta
 export const comit_set_can_edit_own_team = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_own_team);
 export const comit_set_can_edit_self = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_self);
 export const comit_set_can_see_fc = commit(ProgramPlanStore.getInstance().mutations.set_can_see_fc);
+export const comit_set_refresh = commit(ProgramPlanStore.getInstance().mutations.set_refresh);

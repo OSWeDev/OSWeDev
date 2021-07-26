@@ -2,14 +2,15 @@ import debounce from 'lodash/debounce';
 import { decode, encode } from 'messagepack';
 import * as moment from 'moment';
 import { Duration } from 'moment';
+import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';
 import CacheInvalidationRulesVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import LightWeightSendableRequestVO from '../../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestsCacheVO';
 import RequestsWrapperResult from '../../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
+import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 
@@ -23,6 +24,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     }
 
     private static instance: AjaxCacheClientController = null;
+
+    /**
+     * This is used to identify the tab the app is running in to send appropriate notifications to the corresponding tab
+     */
+    public client_tab_id: string = moment().valueOf() + '_' + Math.floor(Math.random() * 100000);
 
     public ajaxcache_debouncer: number = 200;
     public api_logs: LightWeightSendableRequestVO[] = [];
@@ -48,7 +54,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private debounced_requests_wrapper = debounce(this.processRequestsWrapper, this.ajaxcache_debouncer);
 
     public async getCSRFToken() {
-        let res = await this.get('/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
+        let res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
         if (!res) {
             return;
         }
@@ -67,6 +73,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      * @param post_for_get USE ONLY : si post for get
      */
     public async get(
+        apiDefinition: APIDefinition<any, any>,
         url: string,
         api_types_involved: string[],
         postdatas = null,
@@ -81,7 +88,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         return new Promise((resolve, reject) => {
 
             // If in cache
-            let UIDindex = ModuleAjaxCache.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
+            let UIDindex = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
             if (self.cache.requestResponseCaches[UIDindex]) {
 
                 let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[UIDindex];
@@ -111,6 +118,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 }
             } else {
                 let cache = self.addCache(
+                    apiDefinition,
                     url,
                     postdatas,
                     dataType,
@@ -138,6 +146,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      * @param post_for_get True indique qu'on invalide rien et qu'on fait juste la requête
      */
     public post(
+        apiDefinition: APIDefinition<any, any>,
         url: string, api_types_involved: string[], postdatas = null, dataType: string = 'json',
         contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false,
         is_wrapper: boolean = false): Promise<any> {
@@ -162,6 +171,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
             // On ajoute le système de catch code retour pour les POST aussi
             let cache = self.addCache(
+                apiDefinition,
                 url,
                 postdatas,
                 dataType,
@@ -180,7 +190,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.invalidateCachesFromApiTypesInvolved(api_types_involved);
             }
 
-            if (contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+            if (contentType == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
 
                 let prepared_postdatas = this.prepare_for_encoding(postdatas);
                 var buffer = encode(prepared_postdatas);
@@ -188,7 +198,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
                 let axios_headers: any = {
                     'Content-Type': contentType,
-                    'Accept': 'application/x-msgpack'
+                    'Accept': 'application/x-msgpack',
+                    'client_tab_id': AjaxCacheClientController.getInstance().client_tab_id
                 };
                 if (!!self.csrf_token) {
                     axios_headers['X-CSRF-Token'] = self.csrf_token;
@@ -238,6 +249,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         options.headers = {};
                     }
                     options.headers['X-CSRF-Token'] = self.csrf_token;
+                    options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
                 }
                 self.addCallback(cache, resolve, reject);
 
@@ -312,6 +324,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     //  - requete : string
 
     private addCache(
+        apiDefinition: APIDefinition<any, any>,
         url: string,
         postdatas: any,
         dataType: string,
@@ -320,9 +333,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         timeout: number,
         api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void, type: number = RequestResponseCacheVO.API_TYPE_GET) {
 
-        let index = ModuleAjaxCache.getInstance().getUIDIndex(url, postdatas, type);
+        let index = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, type);
         if (!this.cache.requestResponseCaches[index]) {
-            this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(url, api_types_involved, type);
+            this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(apiDefinition, url, api_types_involved, type);
             this.cache.requestResponseCaches[index].postdatas = postdatas;
             this.cache.requestResponseCaches[index].dataType = dataType;
             this.cache.requestResponseCaches[index].contentType = contentType;
@@ -513,14 +526,12 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
             if (requests && (requests.length > 1)) {
 
-
-                // On map les index de retour
                 let correspondance: { [id_local: string]: string } = {};
                 for (let i in requests) {
                     let request = requests[i];
 
                     request.index = i.toString();
-                    correspondance[i.toString()] = ModuleAjaxCache.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+                    correspondance[i.toString()] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
 
                     let light_weight = new LightWeightSendableRequestVO(request);
                     sendable_objects.push(light_weight);
@@ -536,10 +547,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 // On encapsule les gets dans une requête de type post
                 try {
                     let results: RequestsWrapperResult = await this.post(
+                        null,
                         "/api_handler/requests_wrapper", [],
                         (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
                         null, null, false, true) as RequestsWrapperResult;
 
                     if ((!results) || (!results.requests_results)) {
@@ -581,7 +593,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             switch (request.type) {
                 case RequestResponseCacheVO.API_TYPE_GET:
 
-                    if (request.contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                    if (request.contentType == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
 
                         const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
                         axios.get(
@@ -590,7 +602,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                                 responseType: 'blob',
                                 headers: {
                                     'Content-Type': request.contentType,
-                                    'Accept': 'application/x-msgpack'
+                                    'Accept': 'application/x-msgpack',
+                                    'client_tab_id': AjaxCacheClientController.getInstance().client_tab_id
                                 }
                             }
                         ).then(function (response) {
@@ -637,6 +650,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                     let res = await this.post(
+                        request.apiDefinition,
                         request.url, request.api_types_involved, request.postdatas,
                         request.dataType, request.contentType, request.processData, request.timeout,
                         true);

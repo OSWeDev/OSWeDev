@@ -67,28 +67,28 @@ export default class HourHandler {
     }
 
     public formatHourForAPI(hour: moment.Duration): number {
-        if ((hour == null) || (typeof hour == 'undefined')) {
+        if ((hour === null) || (typeof hour == 'undefined')) {
             return null;
         }
         return hour.asMilliseconds();
     }
 
     public formatHourForBDD(hour: moment.Duration): number {
-        if ((hour == null) || (typeof hour == 'undefined')) {
+        if ((hour === null) || (typeof hour == 'undefined')) {
             return null;
         }
         return hour.asMilliseconds();
     }
 
     public getDateFromApi(hour: number): moment.Duration {
-        if ((hour == null) || (typeof hour == 'undefined')) {
+        if ((hour === null) || (typeof hour == 'undefined')) {
             return null;
         }
         return moment.duration(hour);
     }
 
     public getDateFromSQLDay(hour: number): moment.Duration {
-        if ((hour == null) || (typeof hour == 'undefined')) {
+        if ((hour === null) || (typeof hour == 'undefined')) {
             return null;
         }
         return moment.duration(hour);
@@ -132,7 +132,7 @@ export default class HourHandler {
 
     private force3Digit(e: number): string {
 
-        if ((e == null) || (typeof e === 'undefined')) {
+        if ((e === null) || (typeof e === 'undefined')) {
             return '000';
         }
 

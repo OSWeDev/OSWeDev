@@ -161,7 +161,7 @@ export let alerteCheckFilter = FilterObj.createNew(
 
 let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, k: boolean = false, onlyPositive: boolean = false): string => {
 
-    if ((value == null) || (typeof value === "undefined")) {
+    if ((value === null) || (typeof value === "undefined")) {
         return null;
     }
 
@@ -205,7 +205,7 @@ let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, 
 
 let writeToAmountFilter = (value: string | number): number => {
 
-    if ((value == null) || (typeof value === "undefined")) {
+    if ((value === null) || (typeof value === "undefined")) {
         return null;
     }
 
@@ -267,7 +267,7 @@ let readToPercentFilter = (
     let res: string = returns_infinity ? ((value < 0) ? '-&infin;' : '&infin;') : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(number_value, fractionalDigits) + " " + pourcentage;
 
     if (explicit_sign) {
-        if (value > 0) {
+        if (number_value > 0) {
             res = '+' + res;
         }
     }
@@ -313,7 +313,9 @@ let readToFixed = (
     fractionalDigits: number = 0,
     arrondi: boolean | number = false,
     arrondi_type: number = ARRONDI_TYPE_ROUND,
-    onlyPositive: boolean = false): string => {
+    onlyPositive: boolean = false,
+    dot_decimal_marker: boolean = false
+): string => {
 
     let result: string = null;
 
@@ -345,7 +347,7 @@ let readToFixed = (
         result = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(parseFloat(result), fractionalDigits);
     }
 
-    return result.replace(".", ",");
+    return dot_decimal_marker ? result.replace(",", ".") : result.replace(".", ",");
 };
 
 export let toFixedFilter = FilterObj.createNew(

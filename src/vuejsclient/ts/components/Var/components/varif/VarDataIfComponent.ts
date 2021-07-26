@@ -1,29 +1,27 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
+import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 
 @Component({
     template: require('./VarDataIfComponent.pug')
 })
 export default class VarDataIfComponent extends VueComponentBase {
-    @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
     @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
+
     @ModuleVarGetter
     public isDescMode: boolean;
 
     @Prop()
-    public var_param: IVarDataParamVOBase;
+    public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public condition: (value: IVarDataVOBase) => boolean;
+    public condition: (value: VarDataValueResVO) => boolean;
 
     @Prop({ default: false })
     public reload_on_mount: boolean;
@@ -31,34 +29,40 @@ export default class VarDataIfComponent extends VueComponentBase {
     @Prop({ default: false })
     public preload_content: boolean;
 
-    get var_data(): IVarDataVOBase {
+    private var_data: VarDataValueResVO = null;
+    private throttled_var_data_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_data_updater.bind(this), 500, { leading: false });
 
-        if ((!this.getVarDatas) || (!this.var_param)) {
-            return null;
+    private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
+    };
+
+    private var_data_updater() {
+        if (!this.var_param) {
+            this.var_data = null;
+            return;
         }
-
-        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
+        this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
     }
 
-    public destroyed() {
+    private destroyed() {
 
-        VarsController.getInstance().unregisterDataParam(this.var_param);
+        VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
     }
 
     @Watch('var_param', { immediate: true })
-    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+        if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
             return;
         }
 
         if (old_var_param) {
-            VarsController.getInstance().unregisterDataParam(old_var_param);
+            VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
         }
 
         if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
+            VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
 
@@ -68,5 +72,13 @@ export default class VarDataIfComponent extends VueComponentBase {
         }
 
         return this.condition(this.var_data);
+    }
+
+    private selectVar() {
+        if (!this.isDescMode) {
+            return;
+        }
+
+        this.setDescSelectedVarParam(this.var_param);
     }
 }

@@ -1,20 +1,11 @@
+import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
 
-export default class VoIdAndDateIndexParamVO {
+export default class VoIdAndDateIndexParamVO implements IAPIParamTranslator<VoIdAndDateIndexParamVO> {
 
     public static URL: string = ':vo_id/:date_index';
 
-    public static async translateCheckAccessParams(
-        vo_id: number,
-        date_index: string): Promise<VoIdAndDateIndexParamVO> {
-
-        return new VoIdAndDateIndexParamVO(vo_id, date_index);
-    }
-
-    public static async translateToURL(param: VoIdAndDateIndexParamVO): Promise<string> {
-
-        return param ? param.vo_id + '/' + param.date_index : '';
-    }
-    public static async translateFromREQ(req): Promise<VoIdAndDateIndexParamVO> {
+    public static fromREQ(req): VoIdAndDateIndexParamVO {
 
         if (!(req && req.params)) {
             return null;
@@ -22,8 +13,23 @@ export default class VoIdAndDateIndexParamVO {
         return new VoIdAndDateIndexParamVO(req.params.vo_id, req.params.date_index);
     }
 
+    public static fromParams(vo_id: number, date_index: string): VoIdAndDateIndexParamVO {
+        return new VoIdAndDateIndexParamVO(vo_id, date_index);
+    }
+
+    public static getAPIParams(param: VoIdAndDateIndexParamVO): any[] {
+        return [param.vo_id, param.date_index];
+    }
+
     public constructor(
         public vo_id: number,
         public date_index: string) {
     }
+
+    public translateToURL(): string {
+
+        return this.vo_id + '/' + this.date_index;
+    }
 }
+
+export const VoIdAndDateIndexParamVOStatic: IAPIParamTranslatorStatic<VoIdAndDateIndexParamVO> = VoIdAndDateIndexParamVO;

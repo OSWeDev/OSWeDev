@@ -137,7 +137,7 @@ export default class ModuleTableDBService {
             let max_id = 0;
 
             // Création / update des structures
-            await RangeHandler.getInstance().foreach_ranges(segments, async (segmented_value) => {
+            await RangeHandler.getInstance().foreach_ranges_batch_await(segments, async (segmented_value) => {
 
                 let table_name = moduleTable.get_segmented_name(segmented_value);
                 await self.do_check_or_update_moduletable(moduleTable, database_name, table_name, segmented_value);
@@ -157,7 +157,7 @@ export default class ModuleTableDBService {
                     // Si la séquence existe déjà, on doit pouvoir directement demander à changer le lien de séquence (pour le cas de création de nouvelle table)
                     await this.db.query("ALTER TABLE " + database_name + "." + table_name + " ALTER COLUMN id SET DEFAULT nextval('" + moduleTable.database + "." + common_id_seq_name + "'::regclass);");
                 }
-            }, moduleTable.table_segmented_field_segment_type);
+            }, moduleTable.table_segmented_field_segment_type, null, null, 20);
 
             if (migration_todo) {
 
@@ -266,7 +266,7 @@ export default class ModuleTableDBService {
         for (let i in fields_by_field_id) {
             let field = fields_by_field_id[i];
 
-            if (!field.has_relation) {
+            if (!field.has_single_relation) {
                 continue;
             }
 
@@ -353,7 +353,15 @@ export default class ModuleTableDBService {
             if (!fields_by_field_id[i]) {
                 console.error('-');
                 console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
-                console.error('ACTION: AUCUNE, résoudre manuellement');
+                console.error('ACTION: Suppression automatique...');
+
+                try {
+                    let pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP COLUMN ' + i + ';';
+                    await this.db.none(pgSQL);
+                    console.error('ACTION: OK');
+                } catch (error) {
+                    console.error(error);
+                }
                 console.error('---');
             }
         }
@@ -490,8 +498,11 @@ export default class ModuleTableDBService {
             if (field.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
                 continue;
             }
-            if (field.has_relation) {
-                pgSQL += ', ' + field.getPGSqlFieldConstraint();
+            if (field.has_single_relation) {
+                let pgSqlFieldConstraint: string = field.getPGSqlFieldConstraint();
+                if (pgSqlFieldConstraint) {
+                    pgSQL += ', ' + pgSqlFieldConstraint;
+                }
             }
         }
         pgSQL += ');';

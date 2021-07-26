@@ -4,15 +4,18 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleFileServerBase from './ModuleFileServerBase';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
@@ -64,23 +67,33 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
         ));
 
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf.bind(this));
-        preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf.bind(this));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Supprimer' },
+            'file.trash.___LABEL___'
+        ));
+
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf);
+        preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf_update);
     }
 
     protected getNewVo(): FileVO {
         return new FileVO();
     }
 
+    private async check_secured_files_conf_update(vo_update_handler: DAOUpdateVOHolder<FileVO>): Promise<boolean> {
+        return ModuleFileServer.getInstance().check_secured_files_conf(vo_update_handler.post_update_vo);
+    }
+
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
         if (f.is_secured && !f.file_access_policy_name) {
 
             if (!!uid) {
-                await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
+                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
             }
             return false;
         }
@@ -92,7 +105,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
             if (!f.path.startsWith(ModuleFile.FILES_ROOT)) {
                 if (!!uid) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
@@ -100,8 +113,8 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             let new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
             let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
-            await this.makeSureThisFolderExists(new_folder);
-            await this.moveFile(f.path, new_folder);
+            await ModuleFileServer.getInstance().makeSureThisFolderExists(new_folder);
+            await ModuleFileServer.getInstance().moveFile(f.path, new_folder);
             f.path = new_path;
             return true;
         }
@@ -113,7 +126,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
             if (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT)) {
                 if (!!uid) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
@@ -121,8 +134,8 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             let new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
             let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
-            await this.makeSureThisFolderExists(new_folder);
-            await this.moveFile(f.path, new_folder);
+            await ModuleFileServer.getInstance().makeSureThisFolderExists(new_folder);
+            await ModuleFileServer.getInstance().moveFile(f.path, new_folder);
             f.path = new_path;
             return true;
         }

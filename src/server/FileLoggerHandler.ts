@@ -31,11 +31,16 @@ export default class FileLoggerHandler implements ILoggerHandler {
         }
     }
 
-    public log(msg: string) {
+    public log(msg: string, ...params) {
 
         if (!this.log_file) {
             return;
         }
+
+        for (let i in params) {
+            msg = msg.replace(/$[Oo]/, params[i]);
+        }
+
         this.log_file.write(msg + '\n');
     }
 }

@@ -5,12 +5,10 @@ import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
 import FileLoggerHandler from '../server/FileLoggerHandler';
-import ServerAPIController from '../server/modules/API/ServerAPIController';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
@@ -29,6 +27,11 @@ import Patch20200914InitTeamsWebhookForDailyReports from './patchs/postmodules/P
 import Patch20200924UpgradeUserVOPost from './patchs/postmodules/Patch20200924UpgradeUserVOPost';
 import Patch20200926InitPoliciesINSERTORUPDATEUserLogs from './patchs/postmodules/Patch20200926InitPoliciesINSERTORUPDATEUserLogs';
 import Patch20201001InitPoliciesFeedback from './patchs/postmodules/Patch20201001InitPoliciesFeedback';
+import Patch20201006InitFrontVarsPolicies from './patchs/postmodules/Patch20201006InitFrontVarsPolicies';
+import Patch20201125InitVarsBDDIndexes from './patchs/postmodules/Patch20201125InitVarsBDDIndexes';
+import Patch20201214InitFrontVarsPolicies2 from './patchs/postmodules/Patch20201214InitFrontVarsPolicies2';
+import Patch20201218AddMaintenanceCreationPolicy from './patchs/postmodules/Patch20201218AddMaintenanceCreationPolicy';
+import Patch20210107InitLoggedOnce from './patchs/postmodules/Patch20210107InitLoggedOnce';
 import Patch20210202AnimationPrctReussite from './patchs/postmodules/Patch20210202AnimationPrctReussite';
 import Patch20210225AjoutDateCreationCompteUtilisateur from './patchs/postmodules/Patch20210225AjoutDateCreationCompteUtilisateur';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
@@ -43,9 +46,13 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924UpgradeUserVO';
+import Patch20201123UpdateVarCacheConfVO from './patchs/premodules/Patch20201123UpdateVarCacheConfVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305affichageIconePDF';
 import Patch20210310IDAnimationIE from './patchs/postmodules/Patch20210310IDAnimationIE';
+import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO';
+import Patch20210615ChangeLoginTrads from './patchs/postmodules/Patch20210615ChangeLoginTrads';
+import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615ChangeRecoverySMS';
 
 export default abstract class GeneratorBase {
 
@@ -62,13 +69,11 @@ export default abstract class GeneratorBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ModulesManager.getInstance().isServerSide = true;
-
-        // On initialise le Controller pour les APIs
-        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
 
         this.pre_modules_workers = [
             Patch20200331DeleteOrphanTranslations.getInstance(),
@@ -83,6 +88,8 @@ export default abstract class GeneratorBase {
             Patch20191008ChangeDILDateType.getInstance(),
             Patch20191008SupprimerTacheReimport.getInstance(),
             Patch20200924UpgradeUserVO.getInstance(),
+            Patch20201123UpdateVarCacheConfVO.getInstance(),
+            Patch20210608TrimUserVO.getInstance()
         ];
 
         this.post_modules_workers = [
@@ -101,10 +108,17 @@ export default abstract class GeneratorBase {
             Patch20200924UpgradeUserVOPost.getInstance(),
             Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
             Patch20201001InitPoliciesFeedback.getInstance(),
+            Patch20201006InitFrontVarsPolicies.getInstance(),
+            Patch20201125InitVarsBDDIndexes.getInstance(),
+            Patch20201214InitFrontVarsPolicies2.getInstance(),
+            Patch20201218AddMaintenanceCreationPolicy.getInstance(),
+            Patch20210107InitLoggedOnce.getInstance(),
             Patch20210202AnimationPrctReussite.getInstance(),
             Patch20210225AjoutDateCreationCompteUtilisateur.getInstance(),
             Patch20210305affichageIconePDF.getInstance(),
             Patch20210310IDAnimationIE.getInstance(),
+            Patch20210615ChangeLoginTrads.getInstance(),
+            Patch20210615ChangeRecoverySMS.getInstance()
         ];
     }
 

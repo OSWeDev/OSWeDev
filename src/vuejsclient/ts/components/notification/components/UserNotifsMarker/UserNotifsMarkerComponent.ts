@@ -1,5 +1,4 @@
 import { Component } from 'vue-property-decorator';
-import 'vue-tables-2';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import NotificationVO from '../../../../../../shared/modules/PushData/vos/NotificationVO';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';

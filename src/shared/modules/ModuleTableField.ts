@@ -28,6 +28,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_html_array: string = 'html_array';
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_password: string = 'password';
+    public static FIELD_TYPE_email: string = 'email';
     public static FIELD_TYPE_string: string = 'text';
     public static FIELD_TYPE_textarea: string = 'textarea';
     public static FIELD_TYPE_enum: string = 'enum';
@@ -49,6 +50,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_daterange: string = 'daterange';
     // public static FIELD_TYPE_daterange_array: string = 'daterange[]';
     public static FIELD_TYPE_tstz: string = 'tstz';
+    public static FIELD_TYPE_tstz_array: string = 'tstz[]';
     public static FIELD_TYPE_tstzrange_array: string = 'tstzrange[]'; // TimeStamp With TimeZone range array
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_hour: string = 'hour';
@@ -68,6 +70,8 @@ export default class ModuleTableField<T> {
     public field_value: T;
     public field_loaded: boolean;
 
+    public custom_translate_to_xlsx: (value: any) => any = null;
+
     public custom_translate_to_api: (value: any) => any = null;
     public custom_translate_from_api: (value: any) => any = null;
 
@@ -85,6 +89,7 @@ export default class ModuleTableField<T> {
     public max_values: number = 999;
 
     public is_indexed: boolean = false;
+    public is_unique: boolean = false;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -170,6 +175,11 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public unique(): ModuleTableField<T> {
+        this.is_unique = true;
+        return this;
+    }
+
     public index(): ModuleTableField<T> {
         this.is_indexed = true;
         return this;
@@ -200,6 +210,12 @@ export default class ModuleTableField<T> {
 
     public hide_from_datatable(): ModuleTableField<T> {
         this.is_visible_datatable = false;
+
+        return this;
+    }
+
+    public set_custom_translate_to_xlsx(custom_translate_to_xlsx: (value: any) => any): ModuleTableField<T> {
+        this.custom_translate_to_xlsx = custom_translate_to_xlsx;
 
         return this;
     }
@@ -307,11 +323,11 @@ export default class ModuleTableField<T> {
                 TypesHandler.getInstance().isNull(default_value) || TypesHandler.getInstance().isNumber(default_value) || TypesHandler.getInstance().isBoolean(default_value))) {
                 default_value = "'" + default_value.replace(/'/ig, "''") + "'";
             }
-            return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '');
+            return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '') + (this.is_unique ? ' UNIQUE' : '');
         } catch (error) {
             ConsoleHandler.getInstance().error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
         }
-        return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '');
+        return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.is_unique ? ' UNIQUE' : '');
     }
 
     public getPGSqlFieldIndex(database_name: string, table_name: string) {
@@ -332,10 +348,14 @@ export default class ModuleTableField<T> {
     }
 
     public getPGSqlFieldConstraint() {
-        if (!this.has_relation) {
+        if (!this.has_single_relation) {
             return null;
         }
         if (this.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
+            return null;
+        }
+
+        if (!this.target_database || !this.target_table || !this.target_field) {
             return null;
         }
 
@@ -363,6 +383,17 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    get has_single_relation() {
+        if ((this.field_type != ModuleTableField.FIELD_TYPE_file_ref) &&
+            (this.field_type != ModuleTableField.FIELD_TYPE_foreign_key) &&
+            (this.field_type != ModuleTableField.FIELD_TYPE_image_ref) &&
+            (this.field_type != ModuleTableField.FIELD_TYPE_int)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public isAcceptableCurrentDBType(db_type: string): boolean {
         switch (this.field_type) {
             case ModuleTableField.FIELD_TYPE_int:
@@ -374,6 +405,9 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_tstz:
                 return (db_type == "int8") || (db_type == "bigint");
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                return (db_type == "bigint[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_float:
@@ -441,6 +475,7 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_textarea:
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
@@ -475,6 +510,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_tstz:
                 return "bigint";
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                return "bigint[]";
 
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_html_array:
@@ -536,6 +574,7 @@ export default class ModuleTableField<T> {
                 return "real";
 
             case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
@@ -602,6 +641,7 @@ export default class ModuleTableField<T> {
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_float:
@@ -609,6 +649,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:

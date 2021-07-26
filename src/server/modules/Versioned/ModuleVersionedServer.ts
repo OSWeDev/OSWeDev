@@ -1,5 +1,5 @@
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -8,7 +8,10 @@ import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
 import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 const moment = require('moment');
 
@@ -28,7 +31,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVersioned.APINAME_RESTORE_TRASHED_VO, this.restoreTrashedVo.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVersioned.APINAME_RESTORE_TRASHED_VO, this.restoreTrashedVo.bind(this));
     }
 
     public async configure() {
@@ -36,14 +39,14 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         for (let i in VersionedVOController.getInstance().registeredModuleTables) {
             let registeredModuleTable = VersionedVOController.getInstance().registeredModuleTables[i];
 
-            let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-            preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreCreate.bind(this));
+            let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+            preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreCreate);
 
-            let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-            preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreUpdate.bind(this));
+            let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+            preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreUpdate);
 
-            let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
-            preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreDelete.bind(this));
+            let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+            preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreDelete);
         }
     }
 
@@ -85,12 +88,13 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         return true;
     }
 
-    private async handleTriggerVOPreUpdate(vo: IVersionedVO): Promise<boolean> {
-        if (!vo) {
+    private async handleTriggerVOPreUpdate(vo_update_handler: DAOUpdateVOHolder<IVersionedVO>): Promise<boolean> {
+
+        if (!vo_update_handler) {
             return false;
         }
 
-        let cloned: IVersionedVO = await ModuleDAO.getInstance().getVoById<IVersionedVO>(vo._type, vo.id);
+        let cloned: IVersionedVO = Object.create(vo_update_handler.pre_update_vo);
 
         if (!cloned) {
             return false;
@@ -98,22 +102,22 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         cloned.id = null;
         cloned._type = VersionedVOController.getInstance().getVersionedVoType(cloned._type);
-        cloned.parent_id = vo.id;
+        cloned.parent_id = vo_update_handler.post_update_vo.id;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
 
         let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         if (!!uid) {
-            vo.version_edit_author_id = uid;
+            vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
             let robot_user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
-            vo.version_edit_author_id = robot_user ? robot_user.id : null;
+            vo_update_handler.post_update_vo.version_edit_author_id = robot_user ? robot_user.id : null;
         }
 
-        vo.version_edit_timestamp = moment().utc(true);
+        vo_update_handler.post_update_vo.version_edit_timestamp = moment().utc(true);
 
-        vo.version_num++;
+        vo_update_handler.post_update_vo.version_num++;
 
         return true;
     }
@@ -142,7 +146,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
-        cloned.id = parseInt(insertionRes.id.toString());
+        cloned.id = insertionRes.id;
 
         let versions: IVersionedVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVersionedVO>(VersionedVOController.getInstance().getVersionedVoType(vo._type), 'parent_id', [vo.id]);
 
@@ -174,7 +178,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
-        cloned.id = parseInt(insertionRes.id.toString());
+        cloned.id = insertionRes.id;
 
         let versions: IVersionedVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVersionedVO>(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type), 'parent_id', [vo.id]);
 

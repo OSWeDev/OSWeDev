@@ -1,12 +1,12 @@
-import ModuleServerBase from '../../ModuleServerBase';
-import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../../shared/modules/API/vos/apis/NumberParamVO';
-import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
-import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
+import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
+import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
+import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
+import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ModuleServerBase from '../../ModuleServerBase';
 
 export default class ModuleClientServer extends ModuleServerBase {
 
@@ -24,26 +24,26 @@ export default class ModuleClientServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
     }
 
-    public async getInformationsClientUser(param: NumberParamVO): Promise<InformationsVO> {
+    public async getInformationsClientUser(num: number): Promise<InformationsVO> {
         return await ModuleDAOServer.getInstance().selectOne<InformationsVO>(
             InformationsVO.API_TYPE_ID,
             ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.informations_id = t.id ' +
-            ' WHERE c.user_id = $1', [param.num]
+            ' WHERE c.user_id = $1', [num]
         );
     }
 
-    public async getClientsByUserId(param: NumberParamVO): Promise<ClientVO[]> {
-        if (!param.num) {
+    public async getClientsByUserId(num: number): Promise<ClientVO[]> {
+        if (!num) {
             return null;
         }
 
         return await ModuleDAOServer.getInstance().selectAll<ClientVO>(
             ClientVO.API_TYPE_ID,
-            ' WHERE t.user_id = $1', [param.num]
+            ' WHERE t.user_id = $1', [num]
         );
     }
 
@@ -60,7 +60,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        let clients: ClientVO[] = await this.getClientsByUserId(new NumberParamVO(uid));
+        let clients: ClientVO[] = await this.getClientsByUserId(uid);
 
         return (clients && clients.length > 0) ? clients[0] : null;
     }

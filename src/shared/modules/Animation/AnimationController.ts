@@ -8,6 +8,11 @@ import AnimationUserQRVO from './vos/AnimationUserQRVO';
 
 export default class AnimationController {
 
+    public static VarDayPrctAtteinteSeuilAnimationController_VAR_NAME: string = 'VarDayPrctAtteinteSeuilAnimationController';
+    public static VarDayPrctReussiteAnimationController_VAR_NAME: string = 'VarDayPrctReussiteAnimationController';
+    public static VarDayPrctAvancementAnimationController_VAR_NAME: string = 'VarDayPrctAvancementAnimationController';
+    public static VarDayTempsPasseAnimationController_VAR_NAME: string = 'VarDayTempsPasseAnimationController';
+
     public static ROUTE_NAME_ANIMATION: string = 'animation';
     public static ROUTE_NAME_ANIMATION_MODULE: string = 'animation_module';
     public static ROUTE_NAME_ANIMATION_MODULE_FEEDBACK: string = 'animation_module_feedback';
@@ -28,7 +33,11 @@ export default class AnimationController {
     public skip_home: boolean = false;
 
     private constructor() { }
-
+    /**
+     * Parse les réponses du AnimationQRVO.
+     * @param vo AnimationQRVO
+     * @returns Liste des réponses AnimationReponseVO[].
+     */
     public getReponses(vo: AnimationQRVO): AnimationReponseVO[] {
         if ((vo) && (vo.reponses) && (vo.reponses != '') && (vo.reponses != '[]')) {
             try {
@@ -63,6 +72,12 @@ export default class AnimationController {
         return mms.find((m) => (m.min <= prct) && (m.max >= prct));
     }
 
+    /**
+     * Checks si la réponse de l'utilisateur est correcte ou non.
+     * @param qr AnimationQRVO
+     * @param uqr AnimationUserQRVO
+     * @returns true si la réponse de l'utilisateur est bonne sinon false
+     */
     public isUserQROk(qr: AnimationQRVO, uqr: AnimationUserQRVO): boolean {
         if (!qr || !uqr || !uqr.reponses) {
             return false;

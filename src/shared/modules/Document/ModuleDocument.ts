@@ -1,7 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
-import ModuleAPI from '../API/ModuleAPI';
+import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
@@ -42,6 +42,10 @@ export default class ModuleDocument extends Module {
 
     private static instance: ModuleDocument = null;
 
+    public get_ds_by_user_lang: () => Promise<DocumentVO[]> = APIControllerWrapper.sah(ModuleDocument.APINAME_get_ds_by_user_lang);
+    public get_dts_by_user_lang: () => Promise<DocumentTagVO[]> = APIControllerWrapper.sah(ModuleDocument.APINAME_get_dts_by_user_lang);
+    public get_dtgs_by_user_lang: () => Promise<DocumentTagGroupVO[]> = APIControllerWrapper.sah(ModuleDocument.APINAME_get_dtgs_by_user_lang);
+
     private constructor() {
 
         super("document", ModuleDocument.MODULE_NAME);
@@ -49,33 +53,21 @@ export default class ModuleDocument extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DocumentVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DocumentVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentVO.API_TYPE_ID),
             ModuleDocument.APINAME_get_ds_by_user_lang,
             [DocumentVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DocumentTagVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DocumentTagVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentTagVO.API_TYPE_ID),
             ModuleDocument.APINAME_get_dts_by_user_lang,
             [DocumentTagVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DocumentTagGroupVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DocumentTagGroupVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DocumentTagGroupVO.API_TYPE_ID),
             ModuleDocument.APINAME_get_dtgs_by_user_lang,
             [DocumentTagGroupVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
-    }
-
-    public async get_ds_by_user_lang(): Promise<DocumentVO[]> {
-        return ModuleAPI.getInstance().handleAPI<void, DocumentVO[]>(ModuleDocument.APINAME_get_ds_by_user_lang);
-    }
-
-    public async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        return ModuleAPI.getInstance().handleAPI<void, DocumentTagVO[]>(ModuleDocument.APINAME_get_dts_by_user_lang);
-    }
-
-    public async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        return ModuleAPI.getInstance().handleAPI<void, DocumentTagGroupVO[]>(ModuleDocument.APINAME_get_dtgs_by_user_lang);
     }
 
     public initialize() {
