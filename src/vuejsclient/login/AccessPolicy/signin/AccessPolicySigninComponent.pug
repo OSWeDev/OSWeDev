@@ -18,11 +18,11 @@
                     input.form-control(type='password', v-model='password' :placeholder='label("signin.password_placeholder")')
                     i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
                 .form-group.has-feedback
-                    input.form-control(type='password', v-model='confirm_password' :placeholder='label("signin.confrim_password_placeholder")')
+                    input.form-control(type='password', v-model='confirm_password' :placeholder='label("signin.confirm_password_placeholder")')
                     i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
                 .center
-                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('signin.signIn') }}
-            router-link(:to="{ name: 'login' }") {{ label('login.title') }}
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('signin.signin') }}
+            router-link(:to="{ name: 'login' }") {{ label('login.title') + " "}}
             router-link(:to="{ name: 'recover' }") {{ label('login.recoverlink') }}
 
     Sessionsharecomponent()
