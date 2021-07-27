@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import DAOUpdateVOHolder from '../../../../server/modules/DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from '../../../../server/modules/Var/datasource/DataSourceControllerBase';
 import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
@@ -85,9 +85,9 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         let datas: { [date_value: number]: FakeDistantVO } = varDAGNode.datasources[FakeDistantDatasourceController.getInstance().name];
 
-        RangeHandler.getInstance().foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: Moment) => {
+        RangeHandler.getInstance().foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: number) => {
 
-            res += (datas && datas[date.valueOf()]) ? datas[date.valueOf()].value : 0;
+            res += (datas && datas[date]) ? datas[date].value : 0;
 
         }, this.varConf.ts_ranges_segment_type);
         return res;

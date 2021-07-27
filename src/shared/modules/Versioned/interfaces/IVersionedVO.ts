@@ -1,5 +1,5 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import { Moment } from 'moment';
+
 
 export default interface IVersionedVO extends IDistantVOBase {
     parent_id: number;

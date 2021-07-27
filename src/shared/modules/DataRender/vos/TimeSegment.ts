@@ -1,7 +1,8 @@
-import { Moment } from 'moment';
+
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import ISegment from '../interfaces/ISegment';
 
-export default class TimeSegment implements ISegment<Moment> {
+export default class TimeSegment implements ISegment {
     public static TYPE_NAMES: string[] = [
         "timesegment.year.type_name",
         "timesegment.month.type_name",
@@ -11,7 +12,6 @@ export default class TimeSegment implements ISegment<Moment> {
         "timesegment.hour.type_name",
         "timesegment.minute.type_name",
         "timesegment.second.type_name",
-        "timesegment.ms.type_name",
     ];
     public static TYPE_YEAR: number = 0;
     public static TYPE_MONTH: number = 1;
@@ -21,7 +21,6 @@ export default class TimeSegment implements ISegment<Moment> {
     public static TYPE_HOUR: number = 5;
     public static TYPE_MINUTE: number = 6;
     public static TYPE_SECOND: number = 7;
-    public static TYPE_MS: number = 8;
     public static TYPE_NAMES_ENUM: { [type: number]: string } = {
         [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
         [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
@@ -31,19 +30,18 @@ export default class TimeSegment implements ISegment<Moment> {
         [TimeSegment.TYPE_HOUR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_HOUR],
         [TimeSegment.TYPE_MINUTE]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MINUTE],
         [TimeSegment.TYPE_SECOND]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_SECOND],
-        [TimeSegment.TYPE_MS]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MS],
     };
 
     /**
      * DON'T USE this method to create TimeSegments, use only the TimeSegmentHandler to get corresponding segment from Moment and segment_type
      */
-    public static createNew(date: Moment, type: number): TimeSegment {
+    public static createNew(date: number, type: number): TimeSegment {
         return new TimeSegment(date, type);
     }
 
-    private constructor(public index: Moment, public type: number) { }
+    private constructor(public index: number, public type: number) { }
 
     get dateIndex(): string {
-        return this.index ? this.index.format('Y-MM-DD') : null;
+        return this.index ? Dates.format(this.index, 'Y-MM-DD') : null;
     }
 }

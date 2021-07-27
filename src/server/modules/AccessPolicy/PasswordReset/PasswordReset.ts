@@ -1,7 +1,8 @@
-import * as moment from 'moment';
+
 import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -98,7 +99,7 @@ export default class PasswordReset {
             return false;
         }
 
-        if (user.recovery_expiration.isBefore(moment().utc(true))) {
+        if (user.recovery_expiration < Dates.now()) {
             return false;
         }
 
@@ -119,7 +120,7 @@ export default class PasswordReset {
             return false;
         }
 
-        if (user.recovery_expiration.isBefore(moment().utc(true))) {
+        if (user.recovery_expiration < Dates.now()) {
             return false;
         }
 

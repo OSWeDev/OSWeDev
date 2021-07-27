@@ -1,6 +1,6 @@
 import cloneDeep = require('lodash/cloneDeep');
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';

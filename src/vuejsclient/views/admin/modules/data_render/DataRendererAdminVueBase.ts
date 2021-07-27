@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
@@ -33,7 +33,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
 
         this.dataRenderer = await ModuleDataRender.getInstance().getDataRenderer(this.renderer_name);
 
-        let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), this.time_segment_type);
+        let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), this.time_segment_type);
         this.segment_start_date =
             moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).dateIndex).utc(true).toDate();
         this.segment_start_date = moment().utc(true).startOf('month').add(-1, 'month').toDate();

@@ -1,7 +1,7 @@
 import { EventObjectInput, View } from 'fullcalendar';
 import * as $ from 'jquery';
 import debounce from 'lodash/debounce';
-import * as moment from 'moment';
+
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -228,7 +228,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private user = VueAppController.getInstance().data_user;
     private fcEvents: EventObjectInput[] = [];
 
-    private calendar_date: string = DateHandler.getInstance().formatDayForIndex(moment().utc(true));
+    private calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
     private viewname: string = 'timelineWeek';
 
     private fcSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(

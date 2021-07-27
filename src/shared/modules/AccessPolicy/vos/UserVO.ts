@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class UserVO implements IDistantVOBase {
@@ -29,7 +29,7 @@ export default class UserVO implements IDistantVOBase {
     public email: string;
     public phone: string;
     public password: string;
-    public password_change_date: string;
+    public password_change_date: number;
 
     /**
      * Un compte bloqué est totalement inactivé et ne peut plus se connecter ni utiliser la procédure de
@@ -57,9 +57,9 @@ export default class UserVO implements IDistantVOBase {
     public logged_once: boolean;
 
     public recovery_challenge: string;
-    public recovery_expiration: Moment;
+    public recovery_expiration: number;
 
-    public creation_date: Moment;
+    public creation_date: number;
 
     public lang_id: number;
 }

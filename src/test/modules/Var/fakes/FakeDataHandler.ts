@@ -1,4 +1,5 @@
-import * as moment from 'moment';
+
+import * as  moment from 'moment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
@@ -67,7 +68,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -80,7 +81,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -90,8 +91,8 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY),
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -101,7 +102,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         let a = var_data.index;
         return var_data;
@@ -114,7 +115,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         let a = var_data.index;
         return var_data;
@@ -127,7 +128,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -140,7 +141,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)
         ];
         let a = var_data.index;
         return var_data;
@@ -153,7 +154,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         let a = var_data.index;
         return var_data;
@@ -166,7 +167,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 5;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_YEAR)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_YEAR)
         ];
         let a = var_data.index;
         return var_data;
@@ -181,8 +182,8 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment('2020-04-01').utc(true).startOf('day'),
-                moment('2021-02-01').utc(true).startOf('day'),
+                moment('2020-04-01').utc(true).startOf('day').unix(),
+                moment('2021-02-01').utc(true).startOf('day').unix(),
                 true,
                 false,
                 TimeSegment.TYPE_MONTH)
@@ -197,15 +198,15 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment('2020-02-01').utc(true).startOf('day'),
-                moment('2020-03-01').utc(true).startOf('day'),
+                moment('2020-02-01').utc(true).startOf('day').unix(),
+                moment('2020-03-01').utc(true).startOf('day').unix(),
                 true,
                 false,
                 TimeSegment.TYPE_MONTH),
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment('2020-04-01').utc(true).startOf('day'),
-                moment('2021-02-01').utc(true).startOf('day'),
+                moment('2020-04-01').utc(true).startOf('day').unix(),
+                moment('2021-02-01').utc(true).startOf('day').unix(),
                 true,
                 false,
                 TimeSegment.TYPE_MONTH)
@@ -220,8 +221,8 @@ export default class FakeDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment('2020-03-01').utc(true).startOf('day'),
-                moment('2021-02-01').utc(true).startOf('day'),
+                moment('2020-03-01').utc(true).startOf('day').unix(),
+                moment('2021-02-01').utc(true).startOf('day').unix(),
                 true,
                 false,
                 TimeSegment.TYPE_MONTH)
@@ -234,8 +235,8 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY),
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;

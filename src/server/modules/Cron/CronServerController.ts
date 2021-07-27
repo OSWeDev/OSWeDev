@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -12,6 +12,8 @@ import RunCronsForkMessage from './messages/RunCronsForkMessage';
 import DateHandler from '../../../shared/tools/DateHandler';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class CronServerController {
 
@@ -104,7 +106,7 @@ export default class CronServerController {
                     continue;
                 }
 
-                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).utc(true).isBefore(moment().utc(true))) {
+                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).utc(true).isBefore(Dates.now())) {
                     await this.executeWorker(plannedWorker.worker_uid);
                     await this.nextRecurrence(plannedWorker);
                 }
@@ -174,30 +176,30 @@ export default class CronServerController {
             return;
         }
 
-        let date_heure_planifiee: moment.Moment = moment(plannedWorker.date_heure_planifiee).utc(true);
+        let type_interval = null;
 
         switch (plannedWorker.type_recurrence) {
             case CronWorkerPlanification.TYPE_RECURRENCE_ANNEES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'year');
+                type_interval = TimeSegment.TYPE_YEAR;
                 break;
             case CronWorkerPlanification.TYPE_RECURRENCE_HEURES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'hour');
+                type_interval = TimeSegment.TYPE_HOUR;
                 break;
             case CronWorkerPlanification.TYPE_RECURRENCE_JOURS:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'day');
+                type_interval = TimeSegment.TYPE_DAY;
                 break;
             case CronWorkerPlanification.TYPE_RECURRENCE_MINUTES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'minute');
+                type_interval = TimeSegment.TYPE_MINUTE;
                 break;
             case CronWorkerPlanification.TYPE_RECURRENCE_MOIS:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'month');
+                type_interval = TimeSegment.TYPE_MONTH;
                 break;
             case CronWorkerPlanification.TYPE_RECURRENCE_SEMAINES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'week');
+                type_interval = TimeSegment.TYPE_WEEK;
                 break;
             default:
         }
-        plannedWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(date_heure_planifiee);
+        plannedWorker.date_heure_planifiee = Dates.add(plannedWorker.date_heure_planifiee, plannedWorker.intervale_recurrence, type_interval);
 
         await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
     }

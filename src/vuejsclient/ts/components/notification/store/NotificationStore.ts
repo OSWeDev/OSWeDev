@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
@@ -87,7 +87,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             },
             read_notification(state: INotificationState, notification: NotificationVO) {
                 state.notifications_by_ids[notification.id].read = true;
-                state.notifications_by_ids[notification.id].read_date = moment().utc(true);
+                state.notifications_by_ids[notification.id].read_date = Dates.now();
 
                 state.mark_as_read.push(state.notifications_by_ids[notification.id]);
                 NotificationStore.getInstance().debounced_read_notifs();

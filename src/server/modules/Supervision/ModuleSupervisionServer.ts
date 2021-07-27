@@ -1,10 +1,11 @@
-import * as moment from 'moment';
+
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
@@ -208,9 +209,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
 
             if (!vo_update_handler.post_update_vo.first_update) {
-                vo_update_handler.post_update_vo.first_update = moment().utc(true);
+                vo_update_handler.post_update_vo.first_update = Dates.now();
             }
-            vo_update_handler.post_update_vo.last_update = moment().utc(true);
+            vo_update_handler.post_update_vo.last_update = Dates.now();
 
             /**
              * On historise
@@ -232,14 +233,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
-        supervised_item.creation_date = moment().utc(true);
+        supervised_item.creation_date = Dates.now();
         if (supervised_item.state == null) {
             supervised_item.state = SupervisionController.STATE_UNKOWN;
         }
 
         if (supervised_item.state != SupervisionController.STATE_UNKOWN) {
-            supervised_item.first_update = moment().utc(true);
-            supervised_item.last_update = moment().utc(true);
+            supervised_item.first_update = Dates.now();
+            supervised_item.last_update = Dates.now();
 
             if (supervised_item.state == SupervisionController.STATE_ERROR) {
                 await ModuleSupervisionServer.getInstance().on_new_unread_error(supervised_item);

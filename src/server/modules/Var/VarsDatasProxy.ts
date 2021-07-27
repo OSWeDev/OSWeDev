@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
@@ -333,7 +333,7 @@ export default class VarsDatasProxy {
                             wrapper.needs_insert_or_update_ = false;
                             wrapper.var_data_origin_value = wrapper.var_data.value;
                             wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                            wrapper.last_insert_or_update = moment().utc(true);
+                            wrapper.last_insert_or_update = Dates.now();
 
                             // let index_to_delete: number = -1;
                             // for (let buffered_i in self.vars_datas_buffer) {
@@ -771,7 +771,7 @@ export default class VarsDatasProxy {
 
                             // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
                             if (just_been_loaded_from_db) {
-                                wrapper.last_insert_or_update = moment().utc(true);
+                                wrapper.last_insert_or_update = Dates.now();
                             }
                             wrapper.var_data = var_data;
                             this.add_read_stat(wrapper);
@@ -826,7 +826,7 @@ export default class VarsDatasProxy {
         if (!var_data_wrapper.var_data.last_reads_ts) {
             var_data_wrapper.var_data.last_reads_ts = [];
         }
-        var_data_wrapper.var_data.last_reads_ts.push(moment().utc(true));
+        var_data_wrapper.var_data.last_reads_ts.push(Dates.now());
         if (var_data_wrapper.var_data.last_reads_ts.length > 20) {
             var_data_wrapper.var_data.last_reads_ts.shift();
         }

@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import { Moment, unitOfTime } from "moment";
 import TSRange from '../modules/DataRender/vos/TSRange';
 import DateHandler from './DateHandler';

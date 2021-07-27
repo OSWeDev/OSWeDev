@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
@@ -51,7 +51,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
             api_type_id_tester: (api_type_id: string) => true,
             segment_type: TimeSegment.TYPE_MONTH,
             segment_offset: 9,
-            lower_segment: TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_MONTH),
+            lower_segment: TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH),
             segment_number: 12
         };
 
@@ -67,7 +67,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
 
                 let lower_time_segment = state.lower_segment ? state.lower_segment : null;
                 if (!lower_time_segment) {
-                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), state.segment_type);
+                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), state.segment_type);
 
                     lower_time_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(lower_time_segment, state.segment_type, medium_segment_i);
                 }
@@ -129,7 +129,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
                 state.api_type_id_tester = (api_type_id: string) => true;
                 state.segment_type = TimeSegment.TYPE_MONTH;
                 state.segment_offset = 9;
-                state.lower_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_MONTH);
+                state.lower_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH);
                 state.segment_number = 12;
             },
 

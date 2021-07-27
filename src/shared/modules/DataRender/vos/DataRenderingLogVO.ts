@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import ConversionHandler from '../../../tools/ConversionHandler';
 import DateHandler from '../../../tools/DateHandler';
-import * as moment from 'moment';
+
 
 export default class DataRenderingLogVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "data_rendering_log";

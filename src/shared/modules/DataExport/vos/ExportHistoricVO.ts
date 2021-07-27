@@ -1,5 +1,5 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import { Moment } from 'moment';
+
 
 export default class ExportHistoricVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "export_historic";
@@ -24,9 +24,9 @@ export default class ExportHistoricVO implements IDistantVOBase {
     public exported_file_id: number;
     public state: number;
 
-    public creation_date: Moment;
-    public start_date: Moment;
-    public prepare_date: Moment;
-    public export_date: Moment;
-    public sent_date: Moment;
+    public creation_date: number;
+    public start_date: number;
+    public prepare_date: number;
+    public export_date: number;
+    public sent_date: number;
 }

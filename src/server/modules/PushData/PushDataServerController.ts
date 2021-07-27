@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import * as socketIO from 'socket.io';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
@@ -916,7 +916,7 @@ export default class PushDataServerController {
                 // if sent then consider it read
                 if (notification.auto_read_if_connected) {
                     notification.read = true;
-                    notification.read_date = moment().utc(true);
+                    notification.read_date = Dates.now();
                 }
             }
 

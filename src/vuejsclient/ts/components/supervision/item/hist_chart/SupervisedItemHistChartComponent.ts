@@ -1,8 +1,9 @@
 import { debounce } from 'lodash';
-import * as moment from 'moment';
+
 import { Line } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemGraphSegmentation from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
@@ -99,11 +100,11 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         let current = RangeHandler.getInstance().getSegmentedMin(this.graph_segmentation.range);
         let max = RangeHandler.getInstance().getSegmentedMax(this.graph_segmentation.range);
 
-        while (current.isSameOrBefore(max)) {
+        while (current <= max) {
 
-            res.push(current.format(this.date_format));
+            res.push(Dates.format(current, this.date_format));
 
-            TimeSegmentHandler.getInstance().incMoment(current, this.graph_segmentation.range.segment_type, 1);
+            current = Dates.add(current, 1, this.graph_segmentation.range.segment_type);
         }
 
         return res;
@@ -150,7 +151,7 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
                 res.push(this.get_filtered_value(somme_historique / nb_historique));
             }
 
-            TimeSegmentHandler.getInstance().incMoment(current, this.graph_segmentation.range.segment_type, 1);
+            current = Dates.add(current, 1, this.graph_segmentation.range.segment_type);
         }
 
         return res;

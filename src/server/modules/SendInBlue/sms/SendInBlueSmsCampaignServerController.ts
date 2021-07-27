@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import ModuleRequest from '../../../../shared/modules/Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import SendInBlueListServerController from '../list/SendInBlueListServerController';
@@ -55,7 +55,7 @@ export default class SendInBlueSmsCampaignServerController {
             return false;
         }
 
-        if (scheduledAt && scheduledAt.isBefore(moment().utc(true), 'minute')) {
+        if (scheduledAt && scheduledAt.isBefore(Dates.now(), 'minute')) {
             return this.send(campaign.id, testSms, phoneTest);
         }
 
@@ -79,7 +79,7 @@ export default class SendInBlueSmsCampaignServerController {
 
         let scheduledAt_clone: Moment = moment(scheduledAt.format('Y-MM-DD')).utc(true).hour(scheduledAt.hour()).minute(scheduledAt.minute()).second(0);
 
-        if (scheduledAt_clone.isBefore(moment().utc(true), 'minute')) {
+        if (scheduledAt_clone.isBefore(Dates.now(), 'minute')) {
             scheduledAt_clone = moment().utc(true).add(3, 'minutes');
         }
 

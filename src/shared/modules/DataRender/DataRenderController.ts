@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import IRenderedData from './interfaces/IRenderedData';
 import TimeSegment from './vos/TimeSegment';
@@ -188,7 +188,7 @@ export default class DataRenderController {
                 continue;
             }
 
-            if (!TimeSegmentHandler.getInstance().isEltInSegment(moment(row.data_dateindex).utc(true), timeSegment)) {
+            if (!TimeSegmentHandler.getInstance().isEltInSegment(row.data_dateindex, timeSegment)) {
                 continue;
             }
 

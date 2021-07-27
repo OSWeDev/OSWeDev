@@ -1,6 +1,6 @@
 import { fork } from 'child_process';
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -94,7 +94,7 @@ export default class ForkServerController {
                 continue;
             }
 
-            ForkServerController.getInstance().forks_availability[i] = moment().utc(true);
+            ForkServerController.getInstance().forks_availability[i] = Dates.now();
 
             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {

@@ -74,7 +74,7 @@ export default class DataExportBGThread implements IBGThread {
             return false;
         }
 
-        exhi.start_date = moment().utc(true);
+        exhi.start_date = Dates.now();
         exhi.state = ExportHistoricVO.EXPORT_STATE_RUNNING;
         await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 
@@ -93,21 +93,21 @@ export default class DataExportBGThread implements IBGThread {
 
             let datas: IExportableDatas = await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].prepare_datas(exhi);
 
-            exhi.prepare_date = moment().utc(true);
+            exhi.prepare_date = Dates.now();
             await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 
             if (!await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].export(exhi, datas)) {
                 throw new Error('Echec lors de l\'export :' + exhi.id + ':' + exhi.export_type_id + ':');
             }
 
-            exhi.export_date = moment().utc(true);
+            exhi.export_date = Dates.now();
             await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 
             if (!await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].send(exhi)) {
                 throw new Error('Echec lors de l\'envoi :' + exhi.id + ':' + exhi.export_type_id + ':');
             }
 
-            exhi.sent_date = moment().utc(true);
+            exhi.sent_date = Dates.now();
             exhi.state = ExportHistoricVO.EXPORT_STATE_DONE;
             await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 

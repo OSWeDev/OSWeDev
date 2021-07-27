@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import * as moment from 'moment';
+
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
@@ -81,7 +81,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(latest_data.data_dateindex).utc(true), rendererModule.data_timesegment_type);
+        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(latest_data.data_dateindex, rendererModule.data_timesegment_type);
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
@@ -112,10 +112,10 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             let timeSegment_: TimeSegment = timeSegments[i];
 
             if (!timeSegments_in) {
-                timeSegments_in = "\'" + timeSegment_.dateIndex + "\'";
+                timeSegments_in = "" + timeSegment_.index;
             } else {
 
-                timeSegments_in += ", \'" + timeSegment_.dateIndex + "\'";
+                timeSegments_in += "," + timeSegment_.index;
             }
         }
         return await ModuleDAOServer.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
@@ -138,7 +138,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async clearDataSegment(moduletable: ModuleTable<any>, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
-        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.dateIndex]);
+        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.index]);
     }
 
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {

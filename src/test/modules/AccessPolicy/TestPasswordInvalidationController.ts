@@ -9,6 +9,8 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
 import moment = require('moment');
 import DateHandler from '../../../shared/tools/DateHandler';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 describe('TestPasswordInvalidationController', () => {
 
@@ -18,7 +20,7 @@ describe('TestPasswordInvalidationController', () => {
         let reminder2_days: number = 5;
         let invalid_days: number = 90;
 
-        let creation_date = moment().utc(true);
+        let creation_date = Dates.now();
 
         let user_toinvalidate: UserVO = {
             _type: UserVO.API_TYPE_ID,
@@ -28,7 +30,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toinvalid-namea',
             password: 'pwda',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -47,7 +49,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'invalidated-nameb',
             password: 'pwdb',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -66,7 +68,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toremind1-namec',
             password: 'pwdc',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder1_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder1_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -85,7 +87,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'reminded1-named',
             password: 'pwdd',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder1_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder1_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -104,7 +106,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toremind2-namee',
             password: 'pwde',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder2_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder2_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -123,7 +125,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toremind2b1-namee2',
             password: 'pwde2',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder2_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder2_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -142,7 +144,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'reminded2-namef',
             password: 'pwdf',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder2_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder2_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -161,7 +163,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'reminded2-namez',
             password: 'pwdz',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-1, 'days')),
+            password_change_date: Dates.add(Dates.now(), -1, TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -182,7 +184,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toinvalid-namea',
             password: 'pwda',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -201,7 +203,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'invalidated-nameb',
             password: 'pwdb',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -220,7 +222,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toremind1-namec',
             password: 'pwdc',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder1_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder1_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -239,7 +241,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'reminded1-named',
             password: 'pwdd',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder1_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder1_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -258,7 +260,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toremind2-namee',
             password: 'pwde',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder2_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder2_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -277,7 +279,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'toremind2b1-namee2',
             password: 'pwde2',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder2_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder2_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -296,7 +298,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'reminded2-namef',
             password: 'pwdf',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-(invalid_days - reminder2_days + 1), 'days')),
+            password_change_date: Dates.add(Dates.now(), -(invalid_days - reminder2_days + 1), TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,
@@ -315,7 +317,7 @@ describe('TestPasswordInvalidationController', () => {
             lang_id: 1,
             name: 'reminded2-namez',
             password: 'pwdz',
-            password_change_date: DateHandler.getInstance().formatDayForIndex(moment().utc(true).add(-1, 'days')),
+            password_change_date: Dates.add(Dates.now(), -1, TimeSegment.TYPE_DAY),
             phone: 'phone',
             recovery_challenge: null,
             recovery_expiration: null,

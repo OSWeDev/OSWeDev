@@ -1,5 +1,7 @@
-import * as moment from 'moment';
+
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import DailyReportCronWorker from './workers/DailyReport/DailyReportCronWorker';
@@ -20,7 +22,7 @@ export default class SupervisionCronWorkersHandler {
 
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
-        planCronWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true).startOf('day').add(8, 'hours'));
+        planCronWorker.date_heure_planifiee = Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_DAY), 8, TimeSegment.TYPE_HOUR);
         planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = "DailyReportCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;

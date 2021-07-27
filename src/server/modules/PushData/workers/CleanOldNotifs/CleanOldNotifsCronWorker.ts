@@ -1,5 +1,7 @@
-import * as moment from 'moment';
+
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../../shared/modules/PushData/vos/NotificationVO';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 
@@ -31,15 +33,13 @@ export default class CleanOldNotifsCronWorker implements ICronWorker {
             let notif: NotificationVO = notifs[i];
 
             if (notif.read && notif.read_date) {
-                let read_date: moment.Moment = moment(notif.read_date).utc(true);
-                if (read_date.isValid() && read_date.add(10, 'days').isBefore(moment().utc(true))) {
+                if (Dates.add(notif.read_date, 10, TimeSegment.TYPE_DAY) < Dates.now()) {
                     await ModuleDAO.getInstance().deleteVOs([notif]);
                     continue;
                 }
             }
 
-            let creation_date: moment.Moment = moment(notif.creation_date).utc(true);
-            if (creation_date.isValid() && creation_date.add(60, 'days').isBefore(moment().utc(true))) {
+            if (Dates.add(notif.creation_date, 60, TimeSegment.TYPE_DAY) < Dates.now()) {
                 await ModuleDAO.getInstance().deleteVOs([notif]);
                 continue;
             }

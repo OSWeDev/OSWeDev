@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ConsoleLog from './ConsoleLog';
 
 export default class ConsoleLogLogger {
@@ -31,7 +31,7 @@ export default class ConsoleLogLogger {
                 if (ConsoleLogLogger.getInstance().console_logs.length >= ConsoleLogLogger.getInstance().limit) {
                     ConsoleLogLogger.getInstance().console_logs.shift();
                 }
-                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("log", moment().utc(true), Array.from(arguments)));
+                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("log", Dates.now(), Array.from(arguments)));
                 any_console.defaultLog.apply(any_console, arguments);
             };
             any_console.defaultError = any_console.error.bind(any_console);
@@ -39,7 +39,7 @@ export default class ConsoleLogLogger {
                 if (ConsoleLogLogger.getInstance().console_logs.length >= ConsoleLogLogger.getInstance().limit) {
                     ConsoleLogLogger.getInstance().console_logs.shift();
                 }
-                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("error", moment().utc(true), Array.from(arguments)));
+                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("error", Dates.now(), Array.from(arguments)));
                 any_console.defaultError.apply(any_console, arguments);
             };
             any_console.defaultWarn = any_console.warn.bind(any_console);
@@ -47,7 +47,7 @@ export default class ConsoleLogLogger {
                 if (ConsoleLogLogger.getInstance().console_logs.length >= ConsoleLogLogger.getInstance().limit) {
                     ConsoleLogLogger.getInstance().console_logs.shift();
                 }
-                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("warn", moment().utc(true), Array.from(arguments)));
+                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("warn", Dates.now(), Array.from(arguments)));
                 any_console.defaultWarn.apply(any_console, arguments);
             };
             any_console.defaultDebug = any_console.debug.bind(any_console);
@@ -55,7 +55,7 @@ export default class ConsoleLogLogger {
                 if (ConsoleLogLogger.getInstance().console_logs.length >= ConsoleLogLogger.getInstance().limit) {
                     ConsoleLogLogger.getInstance().console_logs.shift();
                 }
-                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("debug", moment().utc(true), Array.from(arguments)));
+                ConsoleLogLogger.getInstance().console_logs.push(new ConsoleLog("debug", Dates.now(), Array.from(arguments)));
                 any_console.defaultDebug.apply(any_console, arguments);
             };
         }

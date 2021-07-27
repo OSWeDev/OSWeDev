@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';

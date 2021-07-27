@@ -1,9 +1,12 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import HourSegment from '../modules/DataRender/vos/HourSegment';
 import HourRange from '../modules/DataRender/vos/HourRange';
 import RangeHandler from './RangeHandler';
 import { deepEqual, deepStrictEqual } from 'assert';
+import Dates from '../modules/FormatDatesNombres/Dates/Dates';
+import Durations from '../modules/FormatDatesNombres/Dates/Durations';
+import * as moment from 'moment';
 
 export default class HourSegmentHandler {
 
@@ -61,8 +64,6 @@ export default class HourSegmentHandler {
                     return -1;
                 }
                 return 1;
-            case HourSegment.TYPE_MS:
-                return -1;
         }
 
         return null;
@@ -74,7 +75,7 @@ export default class HourSegmentHandler {
      * @param end
      * @param time_segment_type
      */
-    public getAllSegments(start: moment.Duration, end: moment.Duration, time_segment_type: number, exclude_end: boolean = false): HourSegment[] {
+    public getAllSegments(start: number, end: number, time_segment_type: number, exclude_end: boolean = false): HourSegment[] {
 
         if ((!start) || (!end) || (time_segment_type === null) || (typeof time_segment_type === 'undefined')) {
             return null;
@@ -82,20 +83,19 @@ export default class HourSegmentHandler {
 
         let res: HourSegment[] = [];
 
-        let time: moment.Duration = this.getStartHour(start, time_segment_type);
+        let time: number = this.getStartHour(start, time_segment_type);
 
-        let stop_at: moment.Duration = this.getStartHour(end, time_segment_type);
-        let stop_atms: number = stop_at.asMilliseconds();
+        let stop_at: number = this.getStartHour(end, time_segment_type);
 
         let segment: HourSegment = this.getCorrespondingHourSegment(time, time_segment_type);
-        let timems: number = segment.index.asMilliseconds();
+        let timesecs: number = segment.index;
 
-        while (((!exclude_end) && (timems <= stop_atms)) || (exclude_end && (timems < stop_atms))) {
+        while (((!exclude_end) && (timesecs <= stop_at)) || (exclude_end && (timesecs < stop_at))) {
 
-            res.push(HourSegment.createNew(segment.index.clone(), segment.type));
+            res.push(HourSegment.createNew(segment.index, segment.type));
             this.incHourSegment(segment);
 
-            timems = segment.index.asMilliseconds();
+            timesecs = segment.index;
         }
 
         return res;
@@ -113,7 +113,7 @@ export default class HourSegmentHandler {
             return null;
         }
         let type: number = null;
-        let ms: number = null;
+        let sec: number = null;
 
         switch (hourSegment.type) {
             case HourSegment.TYPE_HOUR:
@@ -121,19 +121,15 @@ export default class HourSegmentHandler {
                 return null;
             case HourSegment.TYPE_MINUTE:
                 type = HourSegment.TYPE_HOUR;
-                ms = Math.floor(hourSegment.index.asHours()) * 60 * 60 * 1000;
+                sec = Math.floor(Durations.as(hourSegment.index, HourSegment.TYPE_HOUR)) * 60 * 60 * 1000;
                 break;
             case HourSegment.TYPE_SECOND:
                 type = HourSegment.TYPE_MINUTE;
-                ms = Math.floor(hourSegment.index.asMinutes()) * 60 * 1000;
+                sec = Math.floor(Durations.as(hourSegment.index, HourSegment.TYPE_MINUTE)) * 60 * 1000;
                 break;
-            case HourSegment.TYPE_MS:
-            default:
-                type = HourSegment.TYPE_SECOND;
-                ms = Math.floor(hourSegment.index.asSeconds()) * 1000;
         }
 
-        let res: HourSegment = HourSegment.createNew(moment.duration(ms), type);
+        let res: HourSegment = HourSegment.createNew(sec, type);
 
         return res;
     }
@@ -163,35 +159,11 @@ export default class HourSegmentHandler {
     }
 
     /**
-     * ATTENTION le param est directement modifié, sans copie
-     * @param time
-     * @param segment_type
-     * @param offset
-     */
-    public incElt(time: moment.Duration, segment_type: number, offset: number = 1): void {
-        if (time == null || segment_type == null) {
-            return null;
-        }
-
-        time.add(offset, this.getCorrespondingMomentUnitOfTime(segment_type));
-    }
-
-    /**
-     * ATTENTION la date est directement modifiée, sans copie
-     * @param date
-     * @param segment_type
-     * @param offset
-     */
-    public decMoment(date: moment.Duration, segment_type: number, offset: number = 1): void {
-        this.incElt(date, segment_type, -offset);
-    }
-
-    /**
      *
      * @param hourSegment
      * @returns Inclusive lower bound of the HourSegment
      */
-    public getStartHourSegment(hourSegment: HourSegment): moment.Duration {
+    public getStartHourSegment(hourSegment: HourSegment): number {
 
         if ((!hourSegment) || (!hourSegment.index)) {
             return null;
@@ -204,7 +176,7 @@ export default class HourSegmentHandler {
      * @param hourSegment
      * @returns Inclusive lower bound of the HourSegment
      */
-    public getStartHour(time: moment.Duration, segment_type: number): moment.Duration {
+    public getStartHour(time: number, segment_type: number): number {
 
         if (!time || segment_type == null) {
             return null;
@@ -212,15 +184,13 @@ export default class HourSegmentHandler {
 
         switch (segment_type) {
             case HourSegment.TYPE_HOUR:
-                return moment.duration(Math.floor(time.asHours()) * 60 * 60 * 1000);
+                return Math.floor(Durations.as(time, segment_type)) * 60 * 60;
             case HourSegment.TYPE_MINUTE:
-                return moment.duration(Math.floor(time.asMinutes()) * 60 * 1000);
+                return Math.floor(Durations.as(time, segment_type)) * 60;
             case HourSegment.TYPE_SECOND:
-                return moment.duration(Math.floor(time.asSeconds()) * 1000);
-            case HourSegment.TYPE_MS:
-            default:
-                return time.clone();
+                return Math.floor(Durations.as(time, segment_type));
         }
+        return null;
     }
 
     /**
@@ -228,28 +198,14 @@ export default class HourSegmentHandler {
      * @param hourSegment
      * @returns Exclusive upper bound of the HourSegment
      */
-    public getEndHourSegment(hourSegment: HourSegment): moment.Duration {
+    public getEndHourSegment(hourSegment: HourSegment): number {
 
         if ((!hourSegment) || (!hourSegment.index) || (hourSegment.type == null)) {
             return null;
         }
 
-        let start: moment.Duration = this.getStartHourSegment(hourSegment);
-        switch (hourSegment.type) {
-            case HourSegment.TYPE_HOUR:
-                start.add(1, 'hour');
-                return start;
-            case HourSegment.TYPE_MINUTE:
-                start.add(1, 'minute');
-                return start;
-            case HourSegment.TYPE_SECOND:
-                start.add(1, 'second');
-                return start;
-            case HourSegment.TYPE_MS:
-            default:
-                start.add(1, 'ms');
-                return start;
-        }
+        let start: number = this.getStartHourSegment(hourSegment);
+        return Durations.add(start, 1, hourSegment.type);
     }
 
     /**
@@ -258,28 +214,14 @@ export default class HourSegmentHandler {
      * @param type_inclusion choose the granularity of the inclusive bound (day or month)
      * @returns Inclusive upper bound of the HourSegment (according to type_inclusion segmentation (last day of month, but not last second...))
      */
-    public getInclusiveEndHourSegment(hourSegment: HourSegment, type_inclusion: number = HourSegment.TYPE_MS): moment.Duration {
+    public getInclusiveEndHourSegment(hourSegment: HourSegment, type_inclusion: number = HourSegment.TYPE_SECOND): number {
 
         if (!hourSegment || !hourSegment.index || hourSegment.type == null) {
             return null;
         }
 
-        let end: moment.Duration = this.getEndHourSegment(hourSegment);
-        switch (type_inclusion) {
-            case HourSegment.TYPE_HOUR:
-                end.add(-1, 'hour');
-                return end;
-            case HourSegment.TYPE_MINUTE:
-                end.add(-1, 'minute');
-                return end;
-            case HourSegment.TYPE_SECOND:
-                end.add(-1, 'second');
-                return end;
-            case HourSegment.TYPE_MS:
-            default:
-                end.add(-1, 'ms');
-                return end;
-        }
+        let end: number = this.getEndHourSegment(hourSegment);
+        return Durations.add(end, -1, type_inclusion);
     }
 
     public getPreviousHourSegments(hourSegments: HourSegment[], type: number = null, offset: number = 1): HourSegment[] {
@@ -312,8 +254,8 @@ export default class HourSegmentHandler {
             type = hourSegment.type;
         }
 
-        let start: moment.Duration = this.getStartHourSegment(hourSegment);
-        this.incElt(start, type, -offset);
+        let start: number = this.getStartHourSegment(hourSegment);
+        start = Durations.add(start, -offset, type);
 
         return HourSegment.createNew(start, hourSegment.type);
     }
@@ -330,7 +272,7 @@ export default class HourSegmentHandler {
         }
 
         type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
-        this.decMoment(hourSegment.index, type, offset);
+        hourSegment.index = Dates.add(hourSegment.index, -offset, type);
     }
 
     /**
@@ -345,10 +287,10 @@ export default class HourSegmentHandler {
         }
 
         type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
-        this.incElt(hourSegment.index, type, offset);
+        hourSegment.index = Durations.add(hourSegment.index, offset, type);
     }
 
-    public getCorrespondingHourSegments(dates: moment.Duration[], type: number, offset: number = 0): HourSegment[] {
+    public getCorrespondingHourSegments(dates: number[], type: number, offset: number = 0): HourSegment[] {
         let res: HourSegment[] = [];
 
         for (let i in dates) {
@@ -357,13 +299,13 @@ export default class HourSegmentHandler {
         return res;
     }
 
-    public getCorrespondingHourSegment(time: moment.Duration, type: number, offset: number = 0): HourSegment {
+    public getCorrespondingHourSegment(time: number, type: number, offset: number = 0): HourSegment {
         if (time == null) {
             return null;
         }
 
         if ((type === null) || (typeof type === 'undefined')) {
-            type = HourSegment.TYPE_MS;
+            type = HourSegment.TYPE_SECOND;
         }
 
         let res: HourSegment = HourSegment.createNew(this.getStartHour(time, type), type);
@@ -375,15 +317,14 @@ export default class HourSegmentHandler {
         return res;
     }
 
-    public isEltInSegment(date: moment.Duration, hour_segment: HourSegment): boolean {
+    public isEltInSegment(date: number, hour_segment: HourSegment): boolean {
         if ((!date) || (!hour_segment)) {
             return false;
         }
 
-        let end: moment.Duration = this.getEndHourSegment(hour_segment);
-        let ms = date.asMilliseconds();
+        let end: number = this.getEndHourSegment(hour_segment);
 
-        return (ms >= hour_segment.index.asMilliseconds()) && (ms < end.asMilliseconds());
+        return (date >= hour_segment.index) && (date < end);
     }
 
     /**
@@ -401,13 +342,11 @@ export default class HourSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: moment.Duration = this.getStartHour(ts1.index, type);
-        let end: moment.Duration = start.clone();
-        this.incElt(end, type, 1);
+        let start: number = this.getStartHour(ts1.index, type);
+        let end: number = start;
+        end = Durations.add(end, 1, type);
 
-        let ms = ts2.index.asMilliseconds();
-
-        return (ms >= start.asMilliseconds()) && (ms < end.asMilliseconds());
+        return (ts2.index >= start) && (ts2.index < end);
     }
 
     public segmentsAreEquivalent(ts1: HourSegment, ts2: HourSegment): boolean {
@@ -427,7 +366,7 @@ export default class HourSegmentHandler {
             return false;
         }
 
-        if (ts1.index.asMilliseconds() != ts2.index.asMilliseconds()) {
+        if (ts1.index != ts2.index) {
             return false;
         }
 
@@ -476,8 +415,6 @@ export default class HourSegmentHandler {
                 return 'minute';
             case HourSegment.TYPE_SECOND:
                 return 'second';
-            case HourSegment.TYPE_MS:
-                return 'ms';
         }
         return null;
     }

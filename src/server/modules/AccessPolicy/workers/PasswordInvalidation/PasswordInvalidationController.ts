@@ -1,6 +1,8 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 
 export default class PasswordInvalidationController {
@@ -37,24 +39,22 @@ export default class PasswordInvalidationController {
                 continue;
             }
 
-            let date_modif_pass: Moment = moment(user.password_change_date).utc(true);
-
             /**
              * Si la date de modif est dans le futur, on ignore
              */
-            if (date_modif_pass.isSameOrAfter(moment().utc(true))) {
+            if (user.password_change_date >= Dates.now()) {
                 continue;
             }
 
             // combien de jours depuis date de changement de mdp ?
-            let nb_days: number = - moment(date_modif_pass).utc(true).diff(moment().utc(true)) / 1000 / 60 / 60 / 24; // Result of diff should be negativ
+            let nb_days: number = (Dates.now() - user.password_change_date) / 60 / 60 / 24; // Result of diff should be negativ
 
-            let expiration_date: Moment = moment(date_modif_pass).utc(true).add(invalid_days, 'days');
+            let expiration_date: number = Dates.add(user.password_change_date, invalid_days, TimeSegment.TYPE_DAY);
             let nb_days_to_invalidation: number = invalid_days - nb_days;
 
             // Le cas de l'invalidation
             // cas où la date de changement de mdp est passée de plus de PARAM_NAME_PWD_INVALIDATION_DAYS jours
-            if (moment().utc(true).isSameOrAfter(expiration_date)) {
+            if (Dates.now() >= expiration_date) {
                 users_to_invalidate.push(user);
                 continue;
             }

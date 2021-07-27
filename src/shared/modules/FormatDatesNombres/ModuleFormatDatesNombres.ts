@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../../tools/Filters';
 import TypesHandler from '../../tools/TypesHandler';

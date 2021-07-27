@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class NotificationVO implements IDistantVOBase {
@@ -54,8 +54,8 @@ export default class NotificationVO implements IDistantVOBase {
 
     public auto_read_if_connected: boolean;
 
-    public creation_date: Moment;
-    public read_date: Moment;
+    public creation_date: number;
+    public read_date: number;
 
     public vos: string;
 

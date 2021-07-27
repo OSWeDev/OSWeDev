@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 /**

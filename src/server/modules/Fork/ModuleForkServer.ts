@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
@@ -106,7 +106,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_pingack_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        ForkServerController.getInstance().forks_availability[msg.message_content] = moment().utc(true);
+        ForkServerController.getInstance().forks_availability[msg.message_content] = Dates.now();
         return true;
     }
 

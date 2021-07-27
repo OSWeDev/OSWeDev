@@ -1,9 +1,10 @@
-import * as moment from 'moment';
+
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/PasswordInvalidationCronWorker';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class AccessPolicyCronWorkersHandler {
 
@@ -21,7 +22,7 @@ export default class AccessPolicyCronWorkersHandler {
 
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
-        planCronWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
+        planCronWorker.date_heure_planifiee = Dates.now();
         planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = "PasswordInvalidationCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;

@@ -16,7 +16,7 @@ export default class CronWorkerPlanification implements IDistantVOBase {
 
     public planification_uid: string;
     public worker_uid: string;
-    public date_heure_planifiee: string;
+    public date_heure_planifiee: number;
     public type_recurrence: number;
     public intervale_recurrence: number;
 }

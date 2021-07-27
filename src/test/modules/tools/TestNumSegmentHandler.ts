@@ -4,7 +4,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect } from 'chai';
 import 'mocha';
-import * as moment from 'moment';
+
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import NumSegmentHandler from '../../../shared/tools/NumSegmentHandler';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';

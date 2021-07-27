@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -48,6 +48,7 @@ import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnim
 import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
 // Utilisé dans les commentaires @link
 import UQRsRangesDatasourceController from './datasources/UQRsRangesDatasourceController';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ModuleAnimationServer extends ModuleServerBase {
 
@@ -314,7 +315,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }
 
         let aum: AnimationUserModuleVO = new AnimationUserModuleVO();
-        aum.start_date = moment().utc(true);
+        aum.start_date = Dates.now();
         aum.user_id = user_id;
         aum.module_id = module_id;
         aum.support = support;
@@ -347,7 +348,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(themes[i].id, NumSegment.TYPE_INT));
             }
 
-            res.end_date = moment().utc(true);
+            res.end_date = Dates.now();
             let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
                 VarDayPrctReussiteAnimationController.getInstance().varConf.name,
                 true,

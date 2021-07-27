@@ -1,5 +1,5 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import { Moment } from 'moment';
+
 
 export default class DataImportLogVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dil";

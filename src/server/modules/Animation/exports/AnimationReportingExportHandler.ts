@@ -11,6 +11,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -46,7 +47,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             api_type_id: ModuleAnimation.EXPORT_API_TYPE_ID,
             column_labels: await this.get_column_labels(exhi),
             datas: await this.get_datas(exhi),
-            filename: ModuleAnimation.EXPORT_API_TYPE_ID + '_' + exhi.creation_date.format('DD_MM') + '_' + exhi.creation_date.unix() + '.xlsx',
+            filename: ModuleAnimation.EXPORT_API_TYPE_ID + '_' + Dates.format(exhi.creation_date, 'DD_MM') + '_' + exhi.creation_date + '.xlsx',
             ordered_column_list: this.ordered_column_list
         };
 
@@ -242,8 +243,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
         res.roles = (roles.length > 0) ? roles.join(' - ') : null;
         res.utilisateur = all_user_by_ids[aum.user_id] ? all_user_by_ids[aum.user_id].name : null;
-        res.debut = aum.start_date ? aum.start_date.format('DD/MM/YYYY HH:mm') : null;
-        res.fin = aum.end_date ? aum.end_date.format('DD/MM/YYYY HH:mm') : null;
+        res.debut = aum.start_date ? Dates.format(aum.start_date, 'DD/MM/YYYY HH:mm') : null;
+        res.fin = aum.end_date ? Dates.format(aum.end_date, 'DD/MM/YYYY HH:mm') : null;
         let data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges));
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
         res.feedback = (aum.like_vote != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.LIKE_VOTE_LABELS[aum.like_vote], user.lang_id) : null;

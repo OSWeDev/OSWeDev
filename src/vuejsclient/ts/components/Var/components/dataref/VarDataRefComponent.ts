@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import debounce from 'lodash/debounce';
 import cloneDeep from 'lodash/cloneDeep';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -120,7 +120,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             // Sinon on set le type import, et on met à jour la var puis on invalide l'arbre
             clone.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
             clone.value = value;
-            clone.value_ts = moment().utc(true);
+            clone.value_ts = Dates.now();
             clone.id = data.id;
 
             this.var_data.value = value;

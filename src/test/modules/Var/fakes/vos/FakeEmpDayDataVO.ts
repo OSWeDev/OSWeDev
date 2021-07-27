@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -17,5 +17,5 @@ export default class FakeEmpDayDataVO extends VarDataBaseVO {
     public employee_id_ranges: NumRange[];
 
     public value_type: number;
-    public value_ts: Moment;
+    public value_ts: number;
 }

@@ -1,6 +1,6 @@
 import { ChildProcess } from 'child_process';
 import { throttle } from 'lodash';
-import * as moment from 'moment';
+
 import { performance } from 'perf_hooks';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';

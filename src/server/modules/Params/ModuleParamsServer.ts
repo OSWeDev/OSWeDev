@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -79,7 +79,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param.name = param_name;
         }
         param.value = param_value as string;
-        param.last_up_date = moment().utc(true);
+        param.last_up_date = Dates.now();
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 
@@ -93,7 +93,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
         param = new ParamVO();
         param.name = param_name;
         param.value = param_value as string;
-        param.last_up_date = moment().utc(true);
+        param.last_up_date = Dates.now();
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 

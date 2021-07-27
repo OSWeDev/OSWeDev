@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import { Component, Prop } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';

@@ -1,5 +1,6 @@
-import * as moment from 'moment';
+
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import CleanOldNotifsCronWorker from './workers/CleanOldNotifs/CleanOldNotifsCronWorker';
@@ -20,7 +21,7 @@ export default class PushDataCronWorkersHandler {
 
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
-        planCronWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
+        planCronWorker.date_heure_planifiee = Dates.now();
         planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = "CleanOldNotifsCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;

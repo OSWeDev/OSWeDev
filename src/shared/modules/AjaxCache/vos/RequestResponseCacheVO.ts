@@ -1,6 +1,7 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import APIDefinition from '../../API/vos/APIDefinition';
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 
 export default class RequestResponseCacheVO {
 
@@ -15,8 +16,8 @@ export default class RequestResponseCacheVO {
 
     public state: number = RequestResponseCacheVO.STATE_INIT;
     public datas = null;
-    public creationDate: Moment = moment().utc(true);
-    public datasDate: Moment = null;
+    public creationDate: number = Dates.now();
+    public datasDate: number = null;
     public url: string;
     public contentType: string = null;
 

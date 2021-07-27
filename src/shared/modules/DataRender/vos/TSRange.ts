@@ -1,10 +1,11 @@
 const moment = require('moment');
 import TimeSegmentHandler from '../../../tools/TimeSegmentHandler';
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IRange from '../interfaces/IRange';
 import TimeSegment from './TimeSegment';
-import { Moment } from 'moment';
 
-export default class TSRange implements IRange<Moment> {
+
+export default class TSRange implements IRange {
 
 
     public static RANGE_TYPE: number = 2;
@@ -14,12 +15,12 @@ export default class TSRange implements IRange<Moment> {
      * @param min_inclusiv defaults to true
      * @param max_inclusiv defaults to true
      */
-    public static createNew(min: Moment, max: Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
-        if ((!min) || (!max) || (min && max && min.isAfter(max))) {
+    public static createNew(min: number, max: number, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
+        if ((!min) || (!max) || (min && max && (min > max))) {
             return null;
         }
 
-        if ((min == max) || (min && max && min.isSame(max))) {
+        if (min == max) {
             if ((!min_inclusiv) || (!max_inclusiv)) {
                 return null;
             }
@@ -36,11 +37,11 @@ export default class TSRange implements IRange<Moment> {
             return null;
         }
 
-        if (end_range.isBefore(start_range)) {
+        if (end_range < start_range) {
             return null;
         }
 
-        TimeSegmentHandler.getInstance().incMoment(end_range, segment_type, 1);
+        end_range = Dates.add(end_range, 1, segment_type);
 
         res.max = end_range;
         res.max_inclusiv = false;
@@ -53,7 +54,7 @@ export default class TSRange implements IRange<Moment> {
     /**
      * TODO ASAP TU
      */
-    public static getSegmentedMin(min: Moment, min_inclusiv: boolean, max: Moment, max_inclusiv: boolean, segment_type: number): Moment {
+    public static getSegmentedMin(min: number, min_inclusiv: boolean, max: number, max_inclusiv: boolean, segment_type: number): number {
 
 
         if ((min === null) || (typeof min == 'undefined')) {
@@ -72,11 +73,11 @@ export default class TSRange implements IRange<Moment> {
 
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
 
-        if (range_min_ts.index.isAfter(range_max_ts.index)) {
+        if (range_min_ts.index > range_max_ts.index) {
             return null;
         }
 
-        if ((!max_inclusiv) && (range_min_ts.index.isSameOrAfter(max))) {
+        if ((!max_inclusiv) && (range_min_ts.index >= max)) {
             return null;
         }
 
@@ -86,7 +87,7 @@ export default class TSRange implements IRange<Moment> {
     /**
      * TODO ASAP TU
      */
-    public static getSegmentedMax(min: Moment, min_inclusiv: boolean, max: Moment, max_inclusiv: boolean, segment_type: number): Moment {
+    public static getSegmentedMax(min: number, min_inclusiv: boolean, max: number, max_inclusiv: boolean, segment_type: number): number {
 
         if ((min === null) || (typeof min == 'undefined')) {
             return null;
@@ -102,13 +103,13 @@ export default class TSRange implements IRange<Moment> {
             TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
-        let range_max_end: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
+        let range_max_end: number = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
 
-        if (range_max_end.isBefore(min)) {
+        if (range_max_end < min) {
             return null;
         }
 
-        if ((!min_inclusiv) && (range_max_end.isSameOrBefore(min))) {
+        if ((!min_inclusiv) && (range_max_end <= min)) {
             return null;
         }
 
@@ -127,8 +128,8 @@ export default class TSRange implements IRange<Moment> {
         return res;
     }
 
-    public min: Moment;
-    public max: Moment;
+    public min: number;
+    public max: number;
 
     public min_inclusiv: boolean;
     public max_inclusiv: boolean;

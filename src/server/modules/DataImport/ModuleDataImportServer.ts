@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -738,7 +738,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let importHistoric: DataImportHistoricVO = vo_update_handler.post_update_vo;
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT) {
-            importHistoric.last_up_date = moment().utc(true);
+            importHistoric.last_up_date = Dates.now();
         }
 
         if (!importHistoric.end_date) {
@@ -746,7 +746,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION) ||
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT) ||
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED)) {
-                importHistoric.end_date = moment().utc(true);
+                importHistoric.end_date = Dates.now();
             }
         }
 
@@ -761,7 +761,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     private async handleImportHistoricDateCreation(importHistoric: DataImportHistoricVO): Promise<boolean> {
-        importHistoric.start_date = moment().utc(true);
+        importHistoric.start_date = Dates.now();
 
         // Dans le cas d'un réimport, on met à jour le state de l'import qu'on réimporte
         if (!!importHistoric.reimport_of_dih_id) {

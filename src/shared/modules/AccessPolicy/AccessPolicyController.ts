@@ -1,6 +1,7 @@
 import DateHandler from '../../tools/DateHandler';
+import Dates from '../FormatDatesNombres/Dates/Dates';
 import UserVO from './vos/UserVO';
-import * as moment from 'moment';
+
 
 export default class AccessPolicyController {
 
@@ -18,7 +19,7 @@ export default class AccessPolicyController {
     public prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): void {
 
         user.password = new_pwd1;
-        user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment().utc(true));
+        user.password_change_date = Dates.now();
         user.invalidated = false;
         user.recovery_expiration = null;
         user.recovery_challenge = null;

@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import { Component, Prop, Watch } from "vue-property-decorator";
 import AnimationController from "../../../../../../shared/modules/Animation/AnimationController";
 import AnimationReponseVO from "../../../../../../shared/modules/Animation/fields/reponse/vos/AnimationReponseVO";
@@ -88,7 +88,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         this.saving = true;
         this.editable_uqr.qr_id = this.qr.id;
         this.editable_uqr.user_id = this.logged_user_id;
-        this.editable_uqr.date = moment().utc(true);
+        this.editable_uqr.date = Dates.now();
         this.editable_uqr.reponses = [];
 
         for (let reponse_id in this.selected_reponse) {

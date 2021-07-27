@@ -1,5 +1,5 @@
-export default interface ISegment<T> {
+export default interface ISegment {
 
-    index: T;
+    index: number;
     type: number;
 }

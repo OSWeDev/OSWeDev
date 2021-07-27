@@ -32,7 +32,7 @@ export default class ModuleAbonnement extends Module {
 
     public initializeAbonnement(): void {
         // Création de la table Abonnement
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
             fr: 'Date echeance'
         }));
         let datatable_fields = [
@@ -40,7 +40,7 @@ export default class ModuleAbonnement extends Module {
                 fr: 'Renouvellement'
             })),
             default_label_field,
-            new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
+            new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
                 fr: 'Date resiliation'
             })),
         ];

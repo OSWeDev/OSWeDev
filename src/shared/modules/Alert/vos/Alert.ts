@@ -1,5 +1,5 @@
-import { Moment } from 'moment';
-const moment = require('moment');
+import Dates from "../../FormatDatesNombres/Dates/Dates";
+
 
 export default class Alert {
 
@@ -15,7 +15,7 @@ export default class Alert {
         public translatable_code: string,
         public type: number = Alert.TYPE_INFO,
         public translation_params: any = null,
-        public creation_date: Moment = moment().utc(true)
+        public creation_date: number = Dates.now()
     ) { }
 
     public pin(): Alert {

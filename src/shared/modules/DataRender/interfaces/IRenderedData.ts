@@ -1,3 +1,3 @@
 export default interface IRenderedData {
-    data_dateindex: string;
+    data_dateindex: number;
 }

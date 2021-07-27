@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DateHandler from '../../../../shared/tools/DateHandler';
@@ -32,7 +32,7 @@ export default class ImportLogger {
 
         log.data_import_format_id = historique.data_import_format_id;
         log.data_import_historic_id = historique.id;
-        log.date = moment().utc(true);
+        log.date = Dates.now();
         log.log_level = log_level;
         log.message = (format ? format.import_uid + '::' : '') + message;
         log.api_type_id = historique.api_type_id;

@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import INamedVO from '../../../interfaces/INamedVO';
 import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';

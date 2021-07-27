@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 
 export default class ConsoleLog {
 

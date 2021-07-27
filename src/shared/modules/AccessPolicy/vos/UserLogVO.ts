@@ -1,4 +1,3 @@
-import { Moment } from 'moment';
 
 export default class UserLogVO {
     public static API_TYPE_ID: string = "userlog";
@@ -13,7 +12,7 @@ export default class UserLogVO {
 
     public user_id: number;
     public log_type: number;
-    public log_time: Moment;
+    public log_time: number;
 
     public impersonated: boolean;
 

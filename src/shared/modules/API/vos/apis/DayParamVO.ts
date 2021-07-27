@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import DateHandler from '../../../../tools/DateHandler';
 import IAPIParamTranslator from '../../interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../interfaces/IAPIParamTranslatorStatic';

@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import Component from 'vue-class-component';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
@@ -72,7 +72,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
         // If first time, store date + url
         if (!this.tmp_start_date) {
-            this.tmp_start_date = moment().utc(true);
+            this.tmp_start_date = Dates.now();
             this.tmp_start_url = this.$route.fullPath;
         }
 
@@ -106,7 +106,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
         feedback.console_logs = this.console_logs_tostring_array();
         feedback.email = this.tmp_email;
-        feedback.feedback_end_date = moment().utc(true);
+        feedback.feedback_end_date = Dates.now();
         feedback.feedback_end_url = this.$route.fullPath;
         feedback.feedback_start_date = this.tmp_start_date;
         feedback.feedback_start_url = this.tmp_start_url;

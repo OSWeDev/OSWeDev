@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import * as moment from 'moment';
+
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -14,6 +14,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -726,7 +728,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log = new UserLogVO();
             user_log.user_id = uid;
             user_log.impersonated = (session && !!session.impersonated_from);
-            user_log.log_time = moment().utc(true);
+            user_log.log_time = Dates.now();
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             if (session && !!session.impersonated_from) {
@@ -895,9 +897,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
         // Si un code existe déjà et n'a pas encore expiré, on le prolonge et on le renvoie pour pas invalider un mail qui serait très récent
-        if (user.recovery_challenge && user.recovery_expiration && user.recovery_expiration.isSameOrAfter(moment().utc(true))) {
+        if (user.recovery_challenge && user.recovery_expiration && (user.recovery_expiration >= Dates.now())) {
             console.debug("challenge - pushing expiration:" + user.email + ':' + user.recovery_challenge + ':');
-            user.recovery_expiration = moment().utc(true).add(await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
+            user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
             await ModuleDAO.getInstance().insertOrUpdateVO(user);
             return;
         }
@@ -905,7 +907,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         console.debug("challenge:" + user.email + ':' + challenge + ':');
-        user.recovery_expiration = moment().utc(true).add(await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
+        user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
@@ -1065,7 +1067,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
-            user_log.log_time = moment().utc(true);
+            user_log.log_time = Dates.now();
             user_log.impersonated = false;
             user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
@@ -1411,7 +1413,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         // On ajoute la date de création
         if (!vo.creation_date) {
-            vo.creation_date = moment().utc(true);
+            vo.creation_date = Dates.now();
         }
 
         return true;
@@ -1565,7 +1567,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (user.invalidated) {
 
                 // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
-                // if ((!user.recovery_expiration) || user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
+                // if ((!user.recovery_expiration) || (user.recovery_expiration<=Dates.now())) {
                 await PasswordRecovery.getInstance().beginRecovery(user.email);
                 // }
                 return null;
@@ -1583,7 +1585,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
-            user_log.log_time = moment().utc(true);
+            user_log.log_time = Dates.now();
             user_log.impersonated = false;
             user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
@@ -1649,7 +1651,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
-            user_log.log_time = moment().utc(true);
+            user_log.log_time = Dates.now();
             user_log.impersonated = true;
             user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
@@ -1833,7 +1835,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log = new UserLogVO();
             user_log.user_id = uid;
             user_log.impersonated = (session && !!session.impersonated_from);
-            user_log.log_time = moment().utc(true);
+            user_log.log_time = Dates.now();
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             if (session && !!session.impersonated_from) {
@@ -1859,7 +1861,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log = new UserLogVO();
             user_log.user_id = uid;
             user_log.impersonated = false;
-            user_log.log_time = moment().utc(true);
+            user_log.log_time = Dates.now();
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
 

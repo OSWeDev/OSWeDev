@@ -1,6 +1,7 @@
 /* istanbul ignore file: not a usefull test to write */
 
 import { WriteStream } from 'fs';
+import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
 import ILoggerHandler from '../shared/tools/interfaces/ILoggerHandler';
 import ConfigurationService from './env/ConfigurationService';
 import FileServerController from './modules/File/FileServerController';
@@ -27,7 +28,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
         if (ConfigurationService.getInstance().getNodeConfiguration().CONSOLE_LOG_TO_FILE) {
             await FileServerController.getInstance().makeSureThisFolderExists('./nodes_logs');
-            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + moment().unix() + '.txt', 'a');
+            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + Dates.now() + '.txt', 'a');
         }
     }
 

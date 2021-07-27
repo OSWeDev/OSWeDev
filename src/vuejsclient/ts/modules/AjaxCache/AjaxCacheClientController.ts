@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import { decode, encode } from 'messagepack';
-import * as moment from 'moment';
-import { Duration } from 'moment';
+
+
 import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';
@@ -11,6 +11,9 @@ import RequestResponseCacheVO from '../../../../shared/modules/AjaxCache/vos/Req
 import RequestsCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestsCacheVO';
 import RequestsWrapperResult from '../../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 
@@ -28,7 +31,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     /**
      * This is used to identify the tab the app is running in to send appropriate notifications to the corresponding tab
      */
-    public client_tab_id: string = moment().valueOf() + '_' + Math.floor(Math.random() * 100000);
+    public client_tab_id: string = Dates.now() + '_' + Math.floor(Math.random() * 100000);
 
     public ajaxcache_debouncer: number = 200;
     public api_logs: LightWeightSendableRequestVO[] = [];
@@ -42,7 +45,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     // private timerProcessRequests = 100;
 
     private disableCache = false;
-    private defaultInvalidationTimeout = 300000;
+    private defaultInvalidationTimeout: number = 300; //seconds
 
     // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
     private api_logs_limit: number = 101;
@@ -376,7 +379,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let invalidationRule: CacheInvalidationRegexpRuleVO = this.invalidationRules.regexpRules[i];
 
             if (invalidationRule.regexp.test(cache.url)) {
-                if (cache.datasDate && moment(cache.datasDate).utc(true).add(invalidationRule.max_duration).isBefore(moment().utc(true))) {
+                if (cache.datasDate && (Dates.add(cache.datasDate, invalidationRule.max_duration) < Dates.now())) {
 
                     return false;
                 }
@@ -385,7 +388,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
 
         if (defaultTimeout) {
-            if (cache.datasDate && moment(cache.datasDate).utc(true).add(this.defaultInvalidationTimeout).isBefore(moment().utc(true))) {
+            if (cache.datasDate && (Dates.add(cache.datasDate, this.defaultInvalidationTimeout) < Dates.now())) {
                 return false;
             }
         }
@@ -401,8 +404,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         cache.datasDate = null;
     }
 
-    private addInvalidationRule(regexp: RegExp, max_duration: Duration) {
-        if ((!this.invalidationRules.regexpRules[regexp.source]) || (this.invalidationRules[regexp.source].max_duration.asMilliseconds() > max_duration.asMilliseconds())) {
+    private addInvalidationRule(regexp: RegExp, max_duration: number) {
+        if ((!this.invalidationRules.regexpRules[regexp.source]) || (this.invalidationRules[regexp.source].max_duration > max_duration)) {
             this.invalidationRules[regexp.source] = new CacheInvalidationRegexpRuleVO(regexp, max_duration);
         }
     }
@@ -438,7 +441,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
                 (window as any).alert('Loading failure - Please reload your page');
             }
-            request.datasDate = moment().utc(true);
+            request.datasDate = Dates.now();
             request.state = RequestResponseCacheVO.STATE_REJECTED;
 
             while (request.reject_callbacks && request.reject_callbacks.length) {
@@ -673,7 +676,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         if (request.type != RequestResponseCacheVO.API_TYPE_POST) {
             request.datas = datas;
-            request.datasDate = moment().utc(true);
+            request.datasDate = Dates.now();
             request.state = RequestResponseCacheVO.STATE_RESOLVED;
         }
 

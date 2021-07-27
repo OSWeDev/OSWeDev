@@ -6,6 +6,6 @@ export default class AbonnementVO implements IDistantVOBase {
     public id: number;
     public _type: string = AbonnementVO.API_TYPE_ID;
     public renouvellement: boolean;
-    public echeance: string;
-    public resiliation: string;
+    public echeance: number;
+    public resiliation: number;
 }

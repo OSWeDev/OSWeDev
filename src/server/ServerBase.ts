@@ -9,7 +9,7 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-import * as moment from 'moment';
+
 import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
 import * as pg from 'pg';
@@ -25,8 +25,10 @@ import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
+import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -540,7 +542,7 @@ export default abstract class ServerBase {
                 if (!session.returning) {
                     // session was just created
                     session.returning = true;
-                    session.creation_date_unix = moment().utc(true).unix();
+                    session.creation_date_unix = Dates.now();
                 } else {
                     // old session - on check qu'on doit pas invalider
                     if (!this.check_session_validity(session)) {
@@ -556,7 +558,7 @@ export default abstract class ServerBase {
             if (session && session.uid) {
 
                 if ((!session.last_check_blocked_or_expired) ||
-                    (moment().utc(true).add(-1, 'minute').unix() >= session.last_check_blocked_or_expired)) {
+                    (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) >= session.last_check_blocked_or_expired)) {
 
                     // On doit vérifier que le compte est ni bloqué ni expiré
                     let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
@@ -567,7 +569,7 @@ export default abstract class ServerBase {
                         });
                         return;
                     }
-                    session.last_check_blocked_or_expired = moment().utc(true).unix();
+                    session.last_check_blocked_or_expired = Dates.now();
                 }
 
                 PushDataServerController.getInstance().registerSession(session);
@@ -720,7 +722,7 @@ export default abstract class ServerBase {
             if (req && req.session) {
                 session = req.session;
 
-                session.last_load_date_unix = moment().utc(true).unix();
+                session.last_load_date_unix = Dates.now();
             }
 
             if (session && session.uid) {
@@ -735,14 +737,14 @@ export default abstract class ServerBase {
                     });
                     return;
                 }
-                session.last_check_blocked_or_expired = moment().utc(true).unix();
+                session.last_check_blocked_or_expired = Dates.now();
 
                 PushDataServerController.getInstance().registerSession(session);
 
                 // On stocke le log de connexion en base
                 let user_log: UserLogVO = new UserLogVO();
                 user_log.user_id = uid;
-                user_log.log_time = moment().utc(true);
+                user_log.log_time = Dates.now();
                 user_log.impersonated = false;
                 user_log.referer = req.headers.referer;
                 user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;

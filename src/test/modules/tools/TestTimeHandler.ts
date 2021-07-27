@@ -4,8 +4,9 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect } from 'chai';
 import 'mocha';
-import * as moment from 'moment';
+
 import TimeHandler from '../../../shared/tools/TimeHandler';
+import * as moment from 'moment';
 
 
 describe('TimeHandler', () => {

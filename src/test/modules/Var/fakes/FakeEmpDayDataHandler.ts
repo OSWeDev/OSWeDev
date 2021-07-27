@@ -1,8 +1,10 @@
-import * as moment from 'moment';
+
+import * as  moment from 'moment';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidCutResult from '../../../../shared/modules/Matroid/vos/MatroidCutResult';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import VarsInitController from '../../../../shared/modules/Var/VarsInitController';
@@ -12,13 +14,13 @@ import FakeEmpDayDataVO from './vos/FakeEmpDayDataVO';
 
 export default class FakeEmpDayDataHandler {
 
-    public static zero: moment.Moment = moment().utc(true).startOf('day');
-    public static zero_cinq: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(12, 'hour');
-    public static moins_zero_cinq: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(-12, 'hour');
-    public static un: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(1, 'day');
-    public static deux: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(2, 'day');
-    public static moins_un: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(-1, 'day');
-    public static moins_deux: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(-2, 'day');
+    public static zero: number = Dates.startOf(Dates.now(), TimeSegment.TYPE_DAY);
+    public static zero_cinq: number = FakeEmpDayDataHandler.zero + 12 * 60 * 60;
+    public static moins_zero_cinq: number = FakeEmpDayDataHandler.zero - 12 * 60 * 60;
+    public static un: number = FakeEmpDayDataHandler.zero + 24 * 60 * 60;
+    public static deux: number = FakeEmpDayDataHandler.zero + 48 * 60 * 60;
+    public static moins_un: number = FakeEmpDayDataHandler.zero - 24 * 60 * 60;
+    public static moins_deux: number = FakeEmpDayDataHandler.zero - 48 * 60 * 60;
 
     public static initializeFakeEmpDayDataVO() {
 
@@ -64,7 +66,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
         let a = var_data.index;
@@ -75,7 +77,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
         let a = var_data.index;
@@ -240,7 +242,7 @@ export default class FakeEmpDayDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment(1527804000), moment(1559253600),
+                1527804, 1559253,
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
@@ -254,8 +256,8 @@ export default class FakeEmpDayDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment(1527804000),
-                moment(1559253600),
+                1527804,
+                1559253,
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];
@@ -269,8 +271,8 @@ export default class FakeEmpDayDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                moment(1527804000),
-                moment(1559253600),
+                1527804000,
+                1559253600,
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];

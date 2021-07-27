@@ -1,9 +1,9 @@
-export default interface IRange<T> {
+export default interface IRange {
 
     range_type: number;
 
-    min: T;
-    max: T;
+    min: number;
+    max: number;
 
     min_inclusiv: boolean;
     max_inclusiv: boolean;

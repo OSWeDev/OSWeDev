@@ -1,9 +1,9 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import { Moment } from 'moment';
+
 
 export default interface IPlanRDV extends IDistantVOBase {
-    start_time: Moment;
-    end_time: Moment;
+    start_time: number;
+    end_time: number;
     task_id?: number;
     program_id?: number;
     state: number;

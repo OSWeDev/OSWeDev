@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class MaintenanceVO implements IDistantVOBase {
@@ -7,8 +7,8 @@ export default class MaintenanceVO implements IDistantVOBase {
     public id: number;
     public _type: string = MaintenanceVO.API_TYPE_ID;
 
-    public start_ts: Moment;
-    public end_ts: Moment;
+    public start_ts: number;
+    public end_ts: number;
 
     public broadcasted_msg1: boolean;
     public broadcasted_msg2: boolean;
@@ -16,6 +16,6 @@ export default class MaintenanceVO implements IDistantVOBase {
 
     public maintenance_over: boolean;
 
-    public creation_date: Moment;
+    public creation_date: number;
     public author_id: number;
 }

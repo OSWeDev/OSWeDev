@@ -1,5 +1,6 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+import { Moment } from "moment";
+import * as moment from "moment";
+
 
 export default class ResetDateHelper {
 

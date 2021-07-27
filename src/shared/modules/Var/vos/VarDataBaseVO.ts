@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';

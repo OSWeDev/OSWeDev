@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import { IDatabase } from 'pg-promise';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -30,7 +30,7 @@ export default class Patch20210225AjoutDateCreationCompteUtilisateur implements 
                 continue;
             }
 
-            users[i].creation_date = moment('1900-01-01').utc(true);
+            users[i].creation_date = 0;
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVOs(users);

@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import RangeHandler from '../../tools/RangeHandler';
 import TypesHandler from '../../tools/TypesHandler';

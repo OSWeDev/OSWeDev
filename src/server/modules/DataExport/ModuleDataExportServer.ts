@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -10,6 +10,7 @@ import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -273,7 +274,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (!!user_log_id) {
             await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
                 api_type_id,
-                moment().utc(true),
+                Dates.now(),
                 user_log_id
             ));
         }
@@ -393,7 +394,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (!!user_log_id) {
             await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
                 api_type_id,
-                moment().utc(true),
+                Dates.now(),
                 user_log_id
             ));
         }
@@ -404,7 +405,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
     private async handleTriggerExportHistoricVOCreate(exhi: ExportHistoricVO): Promise<boolean> {
 
-        exhi.creation_date = moment().utc(true);
+        exhi.creation_date = Dates.now();
         exhi.state = ExportHistoricVO.EXPORT_STATE_TODO;
         return true;
     }

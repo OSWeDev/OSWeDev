@@ -61,7 +61,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         vo.trashed = false;
 
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
-        let ts = moment().utc(true);
+        let ts = Dates.now();
         let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
         let robot_user: UserVO = null;
 
@@ -115,7 +115,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             vo_update_handler.post_update_vo.version_edit_author_id = robot_user ? robot_user.id : null;
         }
 
-        vo_update_handler.post_update_vo.version_edit_timestamp = moment().utc(true);
+        vo_update_handler.post_update_vo.version_edit_timestamp = Dates.now();
 
         vo_update_handler.post_update_vo.version_num++;
 

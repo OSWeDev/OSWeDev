@@ -53,6 +53,8 @@ import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO
 import Patch20210615ChangeLoginTrads from './patchs/postmodules/Patch20210615ChangeLoginTrads';
 import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615ChangeRecoverySMS';
 import Patch20210715ChangeMenuTranslations from './patchs/postmodules/Patch20210715ChangeMenuTranslations';
+import Patch20210726ChangeCRONDateType from './patchs/premodules/Patch20210726ChangeCRONDateType';
+import Patch20210727ChangeCommerceDatesType from './patchs/premodules/Patch20210727ChangeCommerceDatesType';
 
 export default abstract class GeneratorBase {
 
@@ -89,7 +91,9 @@ export default abstract class GeneratorBase {
             Patch20191008SupprimerTacheReimport.getInstance(),
             Patch20200924UpgradeUserVO.getInstance(),
             Patch20201123UpdateVarCacheConfVO.getInstance(),
-            Patch20210608TrimUserVO.getInstance()
+            Patch20210608TrimUserVO.getInstance(),
+            Patch20210726ChangeCRONDateType.getInstance(),
+            Patch20210727ChangeCommerceDatesType.getInstance(),
         ];
 
         this.post_modules_workers = [

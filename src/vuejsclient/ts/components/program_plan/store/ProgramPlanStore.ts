@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { Moment } from 'moment';
+
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';

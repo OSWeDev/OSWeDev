@@ -25,7 +25,7 @@ export default class CommandeVO implements IDistantVOBase {
     public id: number;
     public _type: string = CommandeVO.API_TYPE_ID;
     public identifiant: string;
-    public date: string;
+    public date: number;
     public statut: number;
     public client_id: number;
 }

@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
@@ -6,7 +6,7 @@ import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/S
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../VueComponentBase';
-import * as moment from 'moment';
+
 import VueAppController from '../../../VueAppController';
 
 @Component({

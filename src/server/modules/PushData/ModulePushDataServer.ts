@@ -1,5 +1,6 @@
-import * as moment from 'moment';
+
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -84,14 +85,14 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     private async handleNotificationCreation(notif: NotificationVO): Promise<boolean> {
-        notif.creation_date = moment().utc(true);
+        notif.creation_date = Dates.now();
         return true;
     }
 
     private async handleNotificationUpdate(vo_update_handler: DAOUpdateVOHolder<NotificationVO>): Promise<boolean> {
 
         if ((!vo_update_handler.pre_update_vo.read) && vo_update_handler.post_update_vo.read) {
-            vo_update_handler.post_update_vo.read_date = moment().utc(true);
+            vo_update_handler.post_update_vo.read_date = Dates.now();
         }
         return true;
     }

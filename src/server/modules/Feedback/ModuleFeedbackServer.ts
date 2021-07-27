@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -11,6 +11,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -234,17 +235,17 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             }
 
             // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
-            feedback.user_connection_date = moment(user_session.last_load_date_unix).utc(true);
+            feedback.user_connection_date = user_session.last_load_date_unix;
             feedback.user_id = user_session.uid;
-            feedback.user_login_date = moment(user_session.creation_date_unix).utc(true);
+            feedback.user_login_date = user_session.creation_date_unix;
 
             feedback.is_impersonated = false;
             if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
 
                 let admin_user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getAdminLogedUserSession();
-                feedback.impersonated_from_user_connection_date = moment(admin_user_session.last_load_date_unix).utc(true);
+                feedback.impersonated_from_user_connection_date = admin_user_session.last_load_date_unix;
                 feedback.impersonated_from_user_id = admin_user_session.uid;
-                feedback.impersonated_from_user_login_date = moment(admin_user_session.creation_date_unix).utc(true);
+                feedback.impersonated_from_user_login_date = admin_user_session.creation_date_unix;
                 feedback.is_impersonated = true;
             }
 
@@ -289,7 +290,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
             // Donc on limite à 15000 chars et on met tout dans un fichier dont on donne l'adresse au début du message
 
-            let feedback_file_patch = '/files/feedbacks/feedback_' + moment().utc(true).unix() + '.txt';
+            let feedback_file_patch = '/files/feedbacks/feedback_' + Dates.now() + '.txt';
             await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
             await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
 

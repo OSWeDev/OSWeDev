@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 
 export default class FakeDistantVO implements IDistantVOBase {
@@ -8,7 +8,7 @@ export default class FakeDistantVO implements IDistantVOBase {
     public id: number;
     public _type: string = FakeDistantVO.API_TYPE_ID;
 
-    public date: Moment;
+    public date: number;
 
     public value: number;
 }

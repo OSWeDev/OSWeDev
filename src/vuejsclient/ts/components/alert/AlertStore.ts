@@ -85,7 +85,7 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
                         return;
                     }
 
-                    if (a.creation_date.isAfter(alert.creation_date)) {
+                    if (a.creation_date > alert.creation_date) {
                         state.alerts[alert.path].splice(index, 0, alert);
                         return;
                     }
@@ -118,7 +118,7 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
                             break;
                         }
 
-                        if (a.creation_date.isAfter(alert.creation_date)) {
+                        if (a.creation_date > alert.creation_date) {
                             inserted = true;
                             state.alerts[alert.path].splice(index, 0, alert);
                             break;

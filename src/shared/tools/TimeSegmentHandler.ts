@@ -1,7 +1,8 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
+import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import RangeHandler from './RangeHandler';
 
 export default class TimeSegmentHandler {
@@ -77,8 +78,6 @@ export default class TimeSegmentHandler {
                     return -1;
                 }
                 return 1;
-            case TimeSegment.TYPE_MS:
-                return -1;
         }
 
         return null;
@@ -183,32 +182,19 @@ export default class TimeSegmentHandler {
                     return TimeSegment.TYPE_MINUTE;
                 }
                 return TimeSegment.TYPE_HOUR;
-            case TimeSegment.TYPE_MS:
-                return segment_type_b;
         }
     }
 
     public getSmallestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
         switch (segment_type_a) {
-            case TimeSegment.TYPE_MS:
-                return TimeSegment.TYPE_MS;
             case TimeSegment.TYPE_SECOND:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
                 return TimeSegment.TYPE_SECOND;
             case TimeSegment.TYPE_MINUTE:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
                 return TimeSegment.TYPE_MINUTE;
             case TimeSegment.TYPE_HOUR:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
@@ -218,9 +204,6 @@ export default class TimeSegmentHandler {
                 return TimeSegment.TYPE_HOUR;
 
             case TimeSegment.TYPE_DAY:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
@@ -232,9 +215,6 @@ export default class TimeSegmentHandler {
                 }
                 return TimeSegment.TYPE_DAY;
             case TimeSegment.TYPE_WEEK:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
@@ -249,9 +229,7 @@ export default class TimeSegmentHandler {
                 }
                 return TimeSegment.TYPE_WEEK;
             case TimeSegment.TYPE_MONTH:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
+
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
@@ -269,9 +247,7 @@ export default class TimeSegmentHandler {
                 }
                 return TimeSegment.TYPE_MONTH;
             case TimeSegment.TYPE_YEAR:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
+
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
@@ -292,9 +268,7 @@ export default class TimeSegmentHandler {
                 }
                 return TimeSegment.TYPE_YEAR;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                if (segment_type_b == TimeSegment.TYPE_MS) {
-                    return TimeSegment.TYPE_MS;
-                }
+
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
@@ -323,76 +297,24 @@ export default class TimeSegmentHandler {
      * @param end
      * @param time_segment_type
      */
-    public getAllDataTimeSegments(start: Moment, end: Moment, time_segment_type: number, exclude_end: boolean = false): TimeSegment[] {
+    public getAllDataTimeSegments(start: number, end: number, time_segment_type: number, exclude_end: boolean = false): TimeSegment[] {
 
         if ((!start) || (!end) || (time_segment_type == null) || (typeof time_segment_type === 'undefined')) {
             return null;
         }
 
         let res: TimeSegment[] = [];
-        let date: Moment = moment(start).utc(true);
-        let stop_at: Moment = moment(end).utc(true);
 
-        switch (time_segment_type) {
-            case TimeSegment.TYPE_YEAR:
-                date = date.startOf('year');
-                stop_at = stop_at.startOf('year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                date = date.startOf('month');
-                stop_at = stop_at.startOf('month');
-                break;
-            case TimeSegment.TYPE_WEEK:
-                date = date.startOf('isoWeek');
-                stop_at = stop_at.startOf('isoWeek');
-                break;
-            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                date = date.startOf('month');
-                stop_at = stop_at.startOf('month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                date = date.startOf('day');
-                stop_at = stop_at.startOf('day');
-                break;
-            case TimeSegment.TYPE_HOUR:
-            case TimeSegment.TYPE_MINUTE:
-            case TimeSegment.TYPE_SECOND:
-            case TimeSegment.TYPE_MS:
-                let type = this.getCorrespondingMomentUnitOfTime(time_segment_type);
-                date = date.startOf(type);
-                stop_at = stop_at.startOf(type);
-                break;
-        }
+        let date: number = Dates.startOf(start, time_segment_type);
+        let stop_at: number = Dates.startOf(end, time_segment_type);
 
-        while (((!exclude_end) && date.isSameOrBefore(stop_at)) || (exclude_end && (date.isBefore(stop_at) || (date.isSame(stop_at, 'day') && stop_at.isSame(start, 'day'))))) {
+        while (((!exclude_end) && (date <= stop_at)) || (exclude_end && ((date < stop_at) ||
+            (Dates.isSame(date, stop_at, TimeSegment.TYPE_DAY) && Dates.isSame(stop_at, start, TimeSegment.TYPE_DAY))))) {
 
             let timeSegment: TimeSegment = TimeSegment.createNew(date, time_segment_type);
             res.push(timeSegment);
 
-            switch (time_segment_type) {
-                case TimeSegment.TYPE_YEAR:
-                case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                    date = moment(date).utc(true).add(1, 'year');
-                    break;
-                case TimeSegment.TYPE_MONTH:
-                    date = moment(date).utc(true).add(1, 'month');
-                    break;
-                case TimeSegment.TYPE_WEEK:
-                    date = moment(date).utc(true).add(1, 'week');
-                    break;
-                case TimeSegment.TYPE_DAY:
-                default:
-                    date = moment(date).utc(true).add(1, 'day');
-                    break;
-                case TimeSegment.TYPE_HOUR:
-                case TimeSegment.TYPE_MINUTE:
-                case TimeSegment.TYPE_SECOND:
-                case TimeSegment.TYPE_MS:
-                    let type = this.getCorrespondingMomentUnitOfTime(time_segment_type);
-                    date = moment(date).utc(true).add(1, type);
-                    break;
-            }
+            date = Dates.add(date, 1, time_segment_type);
         }
 
         return res;
@@ -405,9 +327,7 @@ export default class TimeSegmentHandler {
      * @returns Corresponding CumulTimeSegment
      */
     public getParentTimeSegment(timeSegment: TimeSegment): TimeSegment {
-        let date_segment: Moment = moment(timeSegment.index).utc(true);
         let type: number = null;
-        let date: Moment = null;
 
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
@@ -416,38 +336,26 @@ export default class TimeSegmentHandler {
                 return null;
             case TimeSegment.TYPE_MONTH:
                 type = TimeSegment.TYPE_YEAR;
-                date = date_segment.startOf('year');
                 break;
             case TimeSegment.TYPE_WEEK:
                 type = TimeSegment.TYPE_YEAR;
-                date = date_segment.startOf('year');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
                 type = TimeSegment.TYPE_MONTH;
-                date = date_segment.startOf('month');
                 break;
             case TimeSegment.TYPE_HOUR:
                 type = TimeSegment.TYPE_DAY;
-                date = date_segment.startOf('day');
                 break;
             case TimeSegment.TYPE_MINUTE:
                 type = TimeSegment.TYPE_HOUR;
-                date = date_segment.startOf('hour');
                 break;
             case TimeSegment.TYPE_SECOND:
                 type = TimeSegment.TYPE_MINUTE;
-                date = date_segment.startOf('minute');
-                break;
-            case TimeSegment.TYPE_MS:
-                type = TimeSegment.TYPE_SECOND;
-                date = date_segment.startOf('second');
                 break;
         }
 
-        let res: TimeSegment = TimeSegment.createNew(date, type);
-
-        return res;
+        return TimeSegment.createNew(Dates.startOf(timeSegment.index, type), type);
     }
 
     /**
@@ -474,46 +382,9 @@ export default class TimeSegmentHandler {
         return this.getAllDataTimeSegments(start_period, end_period, timeSegment.type, true);
     }
 
-    /**
-     * ATTENTION la date est directement modifiée, sans copie
-     * @param date
-     * @param segment_type
-     * @param offset
-     */
-    public incMoment(date: Moment, segment_type: number, offset: number = 1): void {
+    public forceStartSegment(date: number, segment_type: number): void {
 
-        switch (segment_type) {
-            case TimeSegment.TYPE_HOUR:
-                date.add(offset, 'hour');
-                break;
-            case TimeSegment.TYPE_MINUTE:
-                date.add(offset, 'minute');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                date.add(offset, 'month');
-                break;
-            case TimeSegment.TYPE_MS:
-                date.add(offset, 'ms');
-                break;
-            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-            case TimeSegment.TYPE_YEAR:
-                date.add(offset, 'year');
-                break;
-            case TimeSegment.TYPE_SECOND:
-                date.add(offset, 'second');
-                break;
-            case TimeSegment.TYPE_WEEK:
-                date.add(offset, 'week');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                date.add(offset, 'day');
-                break;
-        }
-    }
-
-    public forceStartSegment(date: Moment, segment_type: number): void {
-
+        return Dates.add(date, offset, segment_type);
         switch (segment_type) {
             case TimeSegment.TYPE_HOUR:
                 date.startOf('hour');
@@ -542,16 +413,6 @@ export default class TimeSegmentHandler {
                 date.startOf('day');
                 break;
         }
-    }
-
-    /**
-     * ATTENTION la date est directement modifiée, sans copie
-     * @param date
-     * @param segment_type
-     * @param offset
-     */
-    public decMoment(date: Moment, segment_type: number, offset: number = 1): void {
-        this.incMoment(date, segment_type, -offset);
     }
 
     /**
@@ -757,7 +618,7 @@ export default class TimeSegmentHandler {
         }
 
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
-        this.decMoment(timeSegment.index, type, offset);
+        timeSegment.index = Dates.add(timeSegment.index, -offset, type);
     }
 
     /**
@@ -772,7 +633,7 @@ export default class TimeSegmentHandler {
         }
 
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
-        this.incMoment(timeSegment.index, type, offset);
+        timeSegment.index = Dates.add(timeSegment.index, offset, type);
     }
 
     public getCorrespondingTimeSegments(dates: Moment[] | string[], type: number, offset: number = 0): TimeSegment[] {
@@ -784,7 +645,7 @@ export default class TimeSegmentHandler {
         return res;
     }
 
-    public getCorrespondingTimeSegment(date: Moment | string, type: number, offset: number = 0): TimeSegment {
+    public getCorrespondingTimeSegment(date: number, type: number, offset: number = 0): TimeSegment {
 
         if ((type == null) || (typeof type === 'undefined')) {
             type = TimeSegment.TYPE_DAY;
@@ -884,46 +745,48 @@ export default class TimeSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: Moment = moment(ts1.index).utc(true);
-        let end: Moment;
+        let start: number = ts1.index;
+        let end: number;
 
         switch (type) {
             case TimeSegment.TYPE_YEAR:
-                start = start.startOf('year');
-                end = moment(start).add(1, 'year').utc(true);
+                start = Dates.startOf(start, TimeSegment.TYPE_YEAR);
+                end = Dates.add(start, 1, TimeSegment.TYPE_YEAR);
                 break;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                start = Dates.startOf(start, TimeSegment.TYPE_YEAR);
+                end = Dates.add(start, 1, TimeSegment.TYPE_YEAR);
                 start = start.startOf('month');
                 end = moment(start).add(1, 'year').utc(true);
                 break;
             case TimeSegment.TYPE_MONTH:
+                start = Dates.startOf(start, TimeSegment.TYPE_YEAR);
+                end = Dates.add(start, 1, TimeSegment.TYPE_YEAR);
                 start = start.startOf('month');
                 end = moment(start).add(1, 'month').utc(true);
                 break;
             case TimeSegment.TYPE_WEEK:
+                start = Dates.startOf(start, TimeSegment.TYPE_is);
+                end = Dates.add(start, 1, TimeSegment.TYPE_YEAR);
                 start = start.startOf('isoWeek');
                 end = moment(start).add(1, 'week').utc(true);
                 break;
             case TimeSegment.TYPE_DAY:
             default:
-                start = start.startOf('day');
-                end = moment(start).add(1, 'day').utc(true);
+                start = Dates.startOf(start, TimeSegment.TYPE_DAY);
+                end = Dates.add(start, 1, TimeSegment.TYPE_DAY);
                 break;
             case TimeSegment.TYPE_HOUR:
-                start = start.startOf('hour');
-                end = moment(start).add(1, 'hour').utc(true);
+                start = Dates.startOf(start, TimeSegment.TYPE_HOUR);
+                end = Dates.add(start, 1, TimeSegment.TYPE_HOUR);
                 break;
             case TimeSegment.TYPE_MINUTE:
-                start = start.startOf('minute');
-                end = moment(start).add(1, 'minute').utc(true);
+                start = Dates.startOf(start, TimeSegment.TYPE_MINUTE);
+                end = Dates.add(start, 1, TimeSegment.TYPE_MINUTE);
                 break;
             case TimeSegment.TYPE_SECOND:
-                start = start.startOf('second');
-                end = moment(start).add(1, 'second').utc(true);
-                break;
-            case TimeSegment.TYPE_MS:
-                start = start.startOf('ms');
-                end = moment(start).add(1, 'ms').utc(true);
+                start = Dates.startOf(start, TimeSegment.TYPE_SECOND);
+                end = Dates.add(start, 1, TimeSegment.TYPE_SECOND);
                 break;
         }
 
@@ -1008,8 +871,6 @@ export default class TimeSegmentHandler {
                 return 'minute';
             case TimeSegment.TYPE_SECOND:
                 return 'second';
-            case TimeSegment.TYPE_MS:
-                return 'ms';
         }
         return null;
     }

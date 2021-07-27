@@ -4,9 +4,10 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect } from 'chai';
 import 'mocha';
-import * as moment from 'moment';
+
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import PeriodHandler from '../../../shared/tools/PeriodHandler';
+import moment = require('moment');
 
 
 describe('PeriodHandler', () => {
@@ -95,10 +96,10 @@ describe('PeriodHandler', () => {
     it('PeriodHandler: get_ts_range_from_period', () => {
         expect(PeriodHandler.getInstance().get_ts_range_from_period(null, null)).to.equal(null);
 
-        let expected = TSRange.createNew(moment("'2020-02-25'").utc(true), moment("'2020-03-17'").utc(true).add(-1, 'days'), true, true, 1);
+        let expected = TSRange.createNew(moment("'2020-02-25'").utc(true).unix(), moment("'2020-03-17'").utc(true).add(-1, 'days').unix(), true, true, 1);
         expect(PeriodHandler.getInstance().get_ts_range_from_period("['2020-02-25','2020-03-17']", 1)).to.deep.equal(expected);
 
-        expected = TSRange.createNew(moment("2020-02-25").utc(true), moment("2020-03-17").utc(true).add(-1, 'days'), true, true, 1);
+        expected = TSRange.createNew(moment("2020-02-25").utc(true).unix(), moment("2020-03-17").utc(true).add(-1, 'days').unix(), true, true, 1);
         expect(PeriodHandler.getInstance().get_ts_range_from_period("[2020-02-25,2020-03-17]", 1)).to.deep.equal(expected);
     });
 

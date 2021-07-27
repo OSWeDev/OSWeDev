@@ -4,11 +4,12 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect } from 'chai';
 import 'mocha';
-import * as moment from 'moment';
+
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import * as moment from 'moment';
 
 describe('TimeSegmentHandler', () => {
 
@@ -21,7 +22,6 @@ describe('TimeSegmentHandler', () => {
         expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
         expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_DAY)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
         expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_DAY, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
-        expect(TimeSegmentHandler.getInstance().getBiggestTimeSegmentationType(TimeSegment.TYPE_MINUTE, TimeSegment.TYPE_MS)).to.equal(TimeSegment.TYPE_MINUTE);
     });
 
     it('test getSmallestTimeSegmentationType', () => {
@@ -33,7 +33,6 @@ describe('TimeSegmentHandler', () => {
         expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START);
         expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_ROLLING_YEAR_MONTH_START, TimeSegment.TYPE_DAY)).to.equal(TimeSegment.TYPE_DAY);
         expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_DAY, TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)).to.equal(TimeSegment.TYPE_DAY);
-        expect(TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(TimeSegment.TYPE_MINUTE, TimeSegment.TYPE_MS)).to.equal(TimeSegment.TYPE_MS);
     });
 
     it('test getAllDataTimeSegments', () => {

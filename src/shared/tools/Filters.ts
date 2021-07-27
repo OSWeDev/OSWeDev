@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import TypesHandler from './TypesHandler';
 import { stringify } from 'querystring';

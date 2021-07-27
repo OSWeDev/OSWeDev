@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+
 import Component from 'vue-class-component';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
@@ -32,7 +32,7 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
 
         await this.set_exportable_data();
         await ModuleDataExport.getInstance().exportDataToXLSX(
-            "export_translations_" + DateHandler.getInstance().formatDayForIndex(moment().utc(true)) + ".xlsx",
+            "export_translations_" + DateHandler.getInstance().formatDayForIndex(Dates.now()) + ".xlsx",
             this.exportable_data,
             this.exportable_columns,
             this.columns_labels,

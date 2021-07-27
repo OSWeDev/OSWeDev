@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import VarDataBaseVO from './VarDataBaseVO';
 
 export default class VarDataProxyWrapperVO<T extends VarDataBaseVO> {

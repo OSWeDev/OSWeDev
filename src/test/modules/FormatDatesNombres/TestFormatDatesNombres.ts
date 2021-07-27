@@ -5,9 +5,10 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 import { expect } from 'chai';
 import 'mocha';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import * as moment from 'moment';
-import { duration } from 'moment';
+
+
 import { ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_CEIL, ARRONDI_TYPE_ROUND } from '../../../shared/tools/Filters';
+import * as moment from 'moment';
 
 
 describe('ModuleFormatDatesNombres', () => {

@@ -1,8 +1,8 @@
 import * as $ from 'jquery';
 import { cloneDeep } from 'lodash';
 import debounce from 'lodash/debounce';
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';

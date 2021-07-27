@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import * as XLSX from 'xlsx';
 import { CellAddress, WorkBook, WorkSheet } from 'xlsx';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -18,6 +18,7 @@ import DateHandler from '../../../../shared/tools/DateHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ImportLogger from '../logger/ImportLogger';
 import TextHandler from '../../../../shared/tools/TextHandler';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
@@ -376,7 +377,7 @@ export default class ImportTypeXLSXHandler {
                 not_validated_msg: null,
                 not_imported_msg: null,
                 not_posttreated_msg: null,
-                creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true)),
+                creation_date: Dates.now(),
                 historic_id: historic.id,
                 imported_line_number: row_index
             } as any;

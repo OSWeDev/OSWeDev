@@ -1,5 +1,6 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -140,7 +141,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, num);
 
         maintenance.maintenance_over = true;
-        maintenance.end_ts = moment().utc(true);
+        maintenance.end_ts = Dates.now();
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
@@ -162,7 +163,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let session = StackContext.getInstance().get('SESSION');
 
         planned_maintenance.maintenance_over = true;
-        planned_maintenance.end_ts = moment().utc(true);
+        planned_maintenance.end_ts = Dates.now();
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(planned_maintenance);
@@ -195,7 +196,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.broadcasted_msg1 = true;
         maintenance.broadcasted_msg2 = true;
         maintenance.broadcasted_msg3 = false;
-        maintenance.start_ts = moment().utc(true);
+        maintenance.start_ts = Dates.now();
         maintenance.end_ts = moment().utc(true).add(1, 'hour');
         maintenance.maintenance_over = false;
 
@@ -237,7 +238,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         let session = StackContext.getInstance().get('SESSION');
 
-        maintenance.creation_date = moment().utc(true);
+        maintenance.creation_date = Dates.now();
         maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);
 
         return true;

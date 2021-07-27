@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import { Moment } from 'moment';
+
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';

@@ -4,7 +4,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 
 import { expect } from 'chai';
 import 'mocha';
-import * as moment from 'moment';
+
 import ImportTypeXLSXHandler from '../../../server/modules/DataImport/ImportTypeHandlers/ImportTypeXLSXHandler';
 
 describe('ImportTypeXLSXHandler', () => {

@@ -95,7 +95,7 @@ export default class ModuleCommande extends Module {
         let field_client_id: ModuleTableField<number> = new ModuleTableField('client_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Client', true);
         let datatable_fields = [
             new ModuleTableField('identifiant', ModuleTableField.FIELD_TYPE_string, 'Identifiant', true),
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_date, 'Date', true),
+            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
             new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_enum, 'Statut', true).setEnumValues({
                 [CommandeVO.STATUT_PANIER]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_PANIER],
                 [CommandeVO.STATUT_ANNULE]: CommandeVO.STATUT_LABELS[CommandeVO.STATUT_ANNULE],

@@ -205,8 +205,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('nb_targets', ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
             new ModuleTableField('total_days', ModuleTableField.FIELD_TYPE_int, 'Nb total de jours des programmes', true, true, 0),
 
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_date, 'Début', false),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_date, 'Fin', false),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
+            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
 
             new ModuleTableField('nb_created_targets', ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
             new ModuleTableField('nb_late_targets', ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
@@ -389,8 +389,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.unshift(
             label_field,
             category_id,
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_date, 'Début', false),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_date, 'Fin', false),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Début', false),
+            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
             new ModuleTableField('days_by_target', ModuleTableField.FIELD_TYPE_float, 'Nb. de jours par établissement', true, true, 1),
             new ModuleTableField('nb_targets', ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
             new ModuleTableField('nb_created_targets', ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),

@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import IDistantVOBase from '../../IDistantVOBase';
 
 /**
@@ -35,8 +35,8 @@ export default class AnimationUserModuleVO implements IDistantVOBase {
 
     public like_vote: number;
     public commentaire: string;
-    public start_date: Moment;
-    public end_date: Moment;
+    public start_date: number;
+    public end_date: number;
     public prct_reussite: number;
     public support: number;
 

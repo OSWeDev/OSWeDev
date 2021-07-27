@@ -64,7 +64,7 @@ export default class UserNotifsViewerComponent extends VueComponentBase {
 
         res.sort((a: NotificationVO, b: NotificationVO) => {
 
-            return b.creation_date.diff(a.creation_date);
+            return b.creation_date - a.creation_date;
             // return b.simple_notif_type - a.simple_notif_type;
         });
 

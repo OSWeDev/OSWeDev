@@ -1884,17 +1884,6 @@ describe('NumRangeHandler', () => {
         ])).to.equal(-1);
     });
 
-    it('test getValueFromFormattedMinOrMaxAPI', () => {
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, '0')).to.equal(0);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, 'a')).to.equal(null);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, undefined)).to.equal(null);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, null)).to.equal(null);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, '-1')).to.equal(-1);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, '-1000')).to.equal(-1000);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, '1')).to.equal(1);
-        expect(RangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(NumRange.RANGE_TYPE, '0.5')).to.equal(0.5);
-    });
-
     it('test isEndABeforeEndB', () => {
         expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);

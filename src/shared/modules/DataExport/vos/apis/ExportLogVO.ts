@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+
 import INamedVO from '../../../../interfaces/INamedVO';
 
 export default class ExportLogVO implements INamedVO {

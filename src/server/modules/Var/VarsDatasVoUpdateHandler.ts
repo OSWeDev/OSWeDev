@@ -1,5 +1,5 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+
+
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -94,7 +94,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         this.ordered_vos_cud.push(vo_cud);
-        this.last_registration = moment().utc(true);
+        this.last_registration = Dates.now();
 
         this.throttled_update_param();
     }
