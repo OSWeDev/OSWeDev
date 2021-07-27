@@ -25,6 +25,19 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
 
     private logo_url: string = null;
 
+
+    private async beforeCreate() {
+
+        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (!!logged_id) {
+            window.location = this.redirect_to as any;
+        }
+
+        let signin_allowed: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
+        if (!signin_allowed) {
+            window.location = this.redirect_to as any;
+        }
+    }
     private async mounted() {
         this.load_logo_url();
         for (let j in this.$route.query) {
@@ -32,12 +45,8 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
                 this.redirect_to = this.$route.query[j];
             }
         }
-
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
-        if (!!logged_id) {
-            window.location = this.redirect_to as any;
-        }
     }
+
 
     private async load_logo_url() {
         this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
@@ -58,6 +67,7 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
         if (!logged_id) {
             this.snotify.error(this.label('signin.failed'));
             this.password = "";
+            this.confirm_password = "";
             this.message = this.label('signin.failed.message');
         }
         /*else {
