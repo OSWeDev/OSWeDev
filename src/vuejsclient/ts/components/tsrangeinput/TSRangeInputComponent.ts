@@ -12,6 +12,8 @@ import VueComponentBase from '../VueComponentBase';
 
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import VueAppController from '../../../VueAppController';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import * as moment from 'moment';
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),
@@ -139,13 +141,13 @@ export default class TSRangeInputComponent extends VueComponentBase {
         return this.segmentation_type_ == TimeSegment.TYPE_MINUTE;
     }
 
-    get ts_start(): Moment {
+    get ts_start(): number {
         if (this.is_segmentation_minute) {
             if (!this.tsrange_start) {
                 return null;
             }
 
-            let start: Moment = moment(this.tsrange_start).utc(true);
+            let start: number = moment(this.tsrange_start).utc(true).unix();
             let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
 
             if (!hours) {
@@ -163,10 +165,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return null;
         }
 
-        return moment(this.tsrange_start).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
+        return Dates.startOf(moment(this.tsrange_start).utc(true).unix(), this.segmentation_type_);
     }
 
-    get ts_end(): Moment {
+    get ts_end(): number {
         if (this.is_segmentation_minute) {
             if (!this.tsrange_end) {
                 if (!this.tsrange_start) {
@@ -199,6 +201,6 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return null;
         }
 
-        return moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
+        return Dates.startOf(moment(this.tsrange_end).utc(true).unix(), this.segmentation_type_);
     }
 }

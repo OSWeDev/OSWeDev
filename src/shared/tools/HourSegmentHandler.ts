@@ -6,7 +6,7 @@ import RangeHandler from './RangeHandler';
 import { deepEqual, deepStrictEqual } from 'assert';
 import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import Durations from '../modules/FormatDatesNombres/Dates/Durations';
-import * as moment from 'moment';
+import { unitOfTime } from 'moment';
 
 export default class HourSegmentHandler {
 
@@ -407,7 +407,7 @@ export default class HourSegmentHandler {
         return this.getCorrespondingHourSegment(max, segment_type);
     }
 
-    public getCorrespondingMomentUnitOfTime(segment_type: number): moment.unitOfTime.Base {
+    public getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.Base {
         switch (segment_type) {
             case HourSegment.TYPE_HOUR:
                 return 'hour';

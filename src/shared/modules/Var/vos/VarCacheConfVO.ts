@@ -14,7 +14,7 @@ export default class VarCacheConfVO implements IDistantVOBase {
      *  FIXME TODO REFONTE dans quel cas on utiliserait ce truc ? Une var utilise des datasources, et donc si on configure
      *      correctement, on devrait pouvoir invalider par les datasources, et pas par un délai
      */
-    public cache_timeout_ms: number;
+    public cache_timeout_secs: number;
 
     public cache_seuil_a: number;
     public cache_seuil_b: number;

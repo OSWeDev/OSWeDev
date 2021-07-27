@@ -35,7 +35,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         let res: VarCacheConfVO = new VarCacheConfVO();
         res.id = 1;
         res.var_id = this.varConf.id;
-        res.cache_timeout_ms = 0;
+        res.cache_timeout_secs = 0;
         return res;
     }
 
@@ -60,7 +60,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         let typed: DAOUpdateVOHolder<FakeDistantVO> = u_vo_holder as any as DAOUpdateVOHolder<FakeDistantVO>;
 
-        if ((DateHandler.getInstance().isSameMoment((typed.pre_update_vo as FakeDistantVO).date, (typed.post_update_vo as FakeDistantVO).date)) &&
+        if (((typed.pre_update_vo as FakeDistantVO).date == (typed.post_update_vo as FakeDistantVO).date) &&
             ((typed.pre_update_vo as FakeDistantVO).value == (typed.post_update_vo as FakeDistantVO).value)) {
             return null;
         }

@@ -1,5 +1,6 @@
 
 import { Moment, unitOfTime } from "moment";
+import * as  moment from "moment";
 import TSRange from '../modules/DataRender/vos/TSRange';
 import DateHandler from './DateHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
@@ -22,7 +23,7 @@ export default class PeriodHandler {
 
     public lower(period: string, base: unitOfTime.Base = 'days'): string {
 
-        return DateHandler.getInstance().formatDayForIndex(this.lowerMoment(period, base));
+        return DateHandler.getInstance().formatDayForIndex(this.lowerMoment(period, base).unix());
     }
 
     public lowerMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
@@ -56,7 +57,7 @@ export default class PeriodHandler {
 
     public upper(period: string, base: unitOfTime.Base = 'days'): string {
 
-        return DateHandler.getInstance().formatDayForIndex(this.upperMoment(period, base));
+        return DateHandler.getInstance().formatDayForIndex(this.upperMoment(period, base).unix());
     }
 
     public upperMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
@@ -102,8 +103,8 @@ export default class PeriodHandler {
     public get_ts_range_from_period(period: string, segment_type: number): TSRange {
 
         return TSRange.createNew(
-            this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)),
-            this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)),
+            this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)).unix(),
+            this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)).unix(),
             true,
             true,
             segment_type);

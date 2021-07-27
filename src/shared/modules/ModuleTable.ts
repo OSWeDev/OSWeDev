@@ -12,6 +12,7 @@ import NumRange from './DataRender/vos/NumRange';
 import NumSegment from './DataRender/vos/NumSegment';
 import TimeSegment from './DataRender/vos/TimeSegment';
 import TSRange from './DataRender/vos/TSRange';
+import Dates from './FormatDatesNombres/Dates/Dates';
 import GeoPointVO from './GeoPoint/vos/GeoPointVO';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
@@ -224,7 +225,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_tstz:
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_hour:
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             case ModuleTableField.FIELD_TYPE_month:
@@ -269,7 +269,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
 
-    public get_segmented_full_name(segmented_value: number | moment.Duration | Moment): string {
+    public get_segmented_full_name(segmented_value: number): string {
 
         if (!this.is_segmented) {
             return null;
@@ -284,22 +284,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return this.database + '.' + name;
     }
 
-    public get_segmented_name(segmented_value: number | moment.Duration | Moment): string {
+    public get_segmented_name(segmented_value: number): string {
 
         if (!this.is_segmented) {
             return null;
         }
 
-        switch (this.table_segmented_field_range_type) {
-            case NumRange.RANGE_TYPE:
-                return this.name + '_' + (segmented_value as number).toString();
-            case TSRange.RANGE_TYPE:
-                return this.name + '_' + (segmented_value as moment.Duration).asMilliseconds().toString();
-            case HourRange.RANGE_TYPE:
-                return this.name + '_' + DateHandler.getInstance().getUnixForBDD(segmented_value as Moment).toString();
-            default:
-                return null;
-        }
+        return this.name + '_' + segmented_value.toString();
     }
 
     public get_segmented_full_name_from_vo(vo: IDistantVOBase): string {
@@ -675,19 +666,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
 
-                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
-                        res[field.field_id] = e[field.field_id];
-                    } else {
-                        let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
-                        res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.toISOString() : null;
-                    }
+                    res[field.field_id] = Dates.toISOString(e[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
                         res[field.field_id] = e[field.field_id];
                     } else {
-                        res[field.field_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.toISOString() : ts);
+                        res[field.field_id] = (e[field.field_id] as number[]).map((ts: number) => Dates.toISOString(ts));
                     }
                     break;
 
@@ -763,25 +749,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
                     break;
 
-                case ModuleTableField.FIELD_TYPE_tstz:
-
-                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
-                        res[new_id] = e[field.field_id];
-                    } else {
-                        let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
-                        res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
-                    }
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_tstz_array:
-                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
-                        res[new_id] = e[field.field_id];
-                    } else {
-                        res[new_id] = (e[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.unix() : ts);
-                    }
-                    break;
-
-
+                case ModuleTableField.FIELD_TYPE_tstz:
                 default:
                     res[new_id] = e[field.field_id];
             }
@@ -861,20 +830,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : e[old_id];
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    // Pourquoi ça marche avec un *1000 ici ????
-                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : e[old_id];
+                    res[field.field_id] = parseInt(e[old_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     if ((e[old_id] === null) || (typeof e[old_id] === 'undefined')) {
                         res[field.field_id] = e[old_id];
                     } else {
-                        let field_as_moment: Moment[] = (e[old_id] as string[]).map((ts: string) => moment(parseInt(ts) * 1000).utc(true));
-                        res[field.field_id] = field_as_moment;
+                        res[field.field_id] = (e[old_id] as string[]).map((ts: string) => parseInt(ts));
                     }
                     break;
 
@@ -908,20 +872,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             switch (field.field_type) {
 
-                case ModuleTableField.FIELD_TYPE_tstz:
-
-                    let field_as_moment: Moment = moment(res[field.field_id]).utc(true);
-                    res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                    if ((res[field.field_id] === null) || (typeof res[field.field_id] === 'undefined')) {
-                        res[field.field_id] = res[field.field_id];
-                    } else {
-                        res[field.field_id] = (res[field.field_id] as Moment[]).map((ts: Moment) => ts ? ts.unix() : ts);
-                    }
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -934,13 +884,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_timestamp:
-                    // A priori c'est without time zone du coup....
-                    if (res[field.field_id]) {
-                        res[field.field_id] = moment(res[field.field_id]).utc(true);
-                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
@@ -989,27 +932,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             switch (field.field_type) {
 
-                case ModuleTableField.FIELD_TYPE_timestamp:
-                    // A priori c'est without time zone du coup....
-                    // e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
-                    let value: string = null;
-                    let date: Moment = moment(field_value).utc(true);
-
-                    switch (field.segmentation_type) {
-                        case TimeSegment.TYPE_YEAR:
-                        case TimeSegment.TYPE_MONTH:
-                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                        case TimeSegment.TYPE_WEEK:
-                        case TimeSegment.TYPE_DAY:
-                            value = DateHandler.getInstance().formatDayForIndex(date);
-                            break;
-                        default:
-                            value = DateHandler.getInstance().formatDayForIndex(date) + ' ' + date.format('HH:mm:ss');
-                    }
-
-                    res[field.field_id] = value;
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_float:
                 case ModuleTableField.FIELD_TYPE_amount:
                 case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1051,27 +973,27 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = moment(parseInt(field_value) * 1000).utc();
+                    res[field.field_id] = (field_value == null) ? field_value : parseInt(field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     if ((field_value === null) || (typeof field_value === 'undefined')) {
                         res[field.field_id] = field_value;
                     } else {
-                        res[field.field_id] = field_value.map((ts: string) => moment(parseInt(ts) * 1000).utc(true));
+                        res[field.field_id] = field_value.map((ts: string) => parseInt(ts));
                     }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_SECOND);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hourrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    res[field.field_id] = moment.duration(parseInt(field_value));
+                    res[field.field_id] = (field_value == null) ? field_value : parseInt(field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:

@@ -359,7 +359,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 res.tstz_value = moment(db_res).utc(true);
                 break;
 
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 throw new Error('Not Implemented');
         }

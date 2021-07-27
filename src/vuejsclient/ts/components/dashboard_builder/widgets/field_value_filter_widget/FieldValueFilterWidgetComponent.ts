@@ -394,7 +394,6 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     active_option.tstz_value, (field.segmentation_type != null) ? field.segmentation_type : TimeSegment.TYPE_DAY)];
                 break;
 
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 throw new Error('Not Implemented');
         }

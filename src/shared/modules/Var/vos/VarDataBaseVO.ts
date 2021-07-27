@@ -2,7 +2,6 @@
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
-import NumRange from '../../DataRender/vos/NumRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
@@ -44,7 +43,7 @@ export default class VarDataBaseVO implements IMatroid {
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      * @param fields_ordered_as_in_moduletable_definition Les ranges du matroid ordonnés dans le même ordre que dans la définition du moduletable
      */
-    public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: Array<Array<IRange<any>>>): T {
+    public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
         let varConf = VarsController.getInstance().var_conf_by_name[var_name];
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[varConf.var_data_vo_type];
@@ -208,9 +207,9 @@ export default class VarDataBaseVO implements IMatroid {
      */
     public value: number;
     public value_type: number;
-    public value_ts: Moment;
+    public value_ts: number;
 
-    public last_reads_ts: Moment[];
+    public last_reads_ts: number[];
 
     /**
      * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant

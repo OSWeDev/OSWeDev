@@ -3,6 +3,8 @@ import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormat
 import TypesHandler from './TypesHandler';
 import { stringify } from 'querystring';
 import Humanizer from './Humanizer';
+import Durations from '../modules/FormatDatesNombres/Dates/Durations';
+import HourSegment from '../modules/DataRender/vos/HourSegment';
 
 export default class FilterObj<T, U> {
 
@@ -92,9 +94,9 @@ let readToHourFilter = (
     if (arrondi) {
         value = Math.round(value);
     }
-    let duration = moment.duration(Math.abs(value * 1000 * 60 * 60));
-    let heures = Math.floor(duration.asHours());
-    let minutes = Math.round(duration.asMinutes() - heures * 60);
+    let duration = Math.abs(value * 60 * 60);
+    let heures = Math.floor(Durations.as(duration, HourSegment.TYPE_HOUR));
+    let minutes = Math.round(Durations.as(duration, HourSegment.TYPE_MINUTE) - heures * 60);
 
     if (arrondiMinutes) {
         if (arrondiMinutes === true) {

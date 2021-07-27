@@ -2,6 +2,7 @@
 
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
@@ -101,9 +102,9 @@ export default class VarsServerController {
         if ((typeof param.value !== 'undefined') && (!!param.value_ts)) {
 
             let var_cache_conf = this.varcacheconf_by_var_ids[param.var_id];
-            if (var_cache_conf && !!var_cache_conf.cache_timeout_ms) {
-                let timeout: Moment = moment().utc(true).add(-var_cache_conf.cache_timeout_ms, 'ms');
-                if (param.value_ts.isSameOrAfter(timeout)) {
+            if (var_cache_conf && !!var_cache_conf.cache_timeout_secs) {
+                let timeout: number = Dates.add(Dates.now(), -var_cache_conf.cache_timeout_secs);
+                if (param.value_ts >= timeout) {
                     return true;
                 }
             } else {

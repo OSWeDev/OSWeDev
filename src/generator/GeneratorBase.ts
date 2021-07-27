@@ -55,6 +55,8 @@ import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615Ch
 import Patch20210715ChangeMenuTranslations from './patchs/postmodules/Patch20210715ChangeMenuTranslations';
 import Patch20210726ChangeCRONDateType from './patchs/premodules/Patch20210726ChangeCRONDateType';
 import Patch20210727ChangeCommerceDatesType from './patchs/premodules/Patch20210727ChangeCommerceDatesType';
+import Patch20210727RenameColumnVarCacheConf from './patchs/premodules/Patch20210727RenameColumnVarCacheConf';
+import Patch20210727VarsCacheMSToSEC from './patchs/postmodules/Patch20210727VarsCacheMSToSEC';
 
 export default abstract class GeneratorBase {
 
@@ -94,6 +96,7 @@ export default abstract class GeneratorBase {
             Patch20210608TrimUserVO.getInstance(),
             Patch20210726ChangeCRONDateType.getInstance(),
             Patch20210727ChangeCommerceDatesType.getInstance(),
+            Patch20210727RenameColumnVarCacheConf.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -122,7 +125,8 @@ export default abstract class GeneratorBase {
             Patch20210305affichageIconePDF.getInstance(),
             Patch20210615ChangeLoginTrads.getInstance(),
             Patch20210615ChangeRecoverySMS.getInstance(),
-            Patch20210715ChangeMenuTranslations.getInstance()
+            Patch20210715ChangeMenuTranslations.getInstance(),
+            Patch20210727VarsCacheMSToSEC.getInstance(),
         ];
     }
 

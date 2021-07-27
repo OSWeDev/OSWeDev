@@ -194,7 +194,6 @@ export default class DatatableComponent extends VueComponentBase {
                         case ModuleTableField.FIELD_TYPE_daterange:
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         case ModuleTableField.FIELD_TYPE_day:
-                        case ModuleTableField.FIELD_TYPE_timestamp:
                         case ModuleTableField.FIELD_TYPE_month:
                             if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
@@ -253,7 +252,6 @@ export default class DatatableComponent extends VueComponentBase {
                         case ModuleTableField.FIELD_TYPE_daterange:
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         case ModuleTableField.FIELD_TYPE_day:
-                        case ModuleTableField.FIELD_TYPE_timestamp:
                         case ModuleTableField.FIELD_TYPE_month:
                             if (!!this.embed_filter[field.datatable_field_uid].start) {
 
@@ -439,7 +437,6 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
                         res.push(field);
@@ -507,7 +504,6 @@ export default class DatatableComponent extends VueComponentBase {
                         }
 
                     case ModuleTableField.FIELD_TYPE_boolean:
-                    case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -726,7 +722,6 @@ export default class DatatableComponent extends VueComponentBase {
                         this.changeBooleanFilterValue(field.datatable_field_uid);
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_tstz:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1291,7 +1286,6 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_day:
-                                case ModuleTableField.FIELD_TYPE_timestamp:
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
                                     }

@@ -1012,10 +1012,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return field.field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field.field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
 
             case ModuleTableField.FIELD_TYPE_tstz:
-                return field.field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + " and " + field.field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + DateHandler.getInstance().getUnixForBDD(intersector_range.max);
+                return field.field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field.field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + "," + DateHandler.getInstance().getUnixForBDD(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
 
             case ModuleTableField.FIELD_TYPE_int_array:
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
@@ -1030,7 +1030,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 return field.field_id + "::date <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
 
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 // TODO FIXME
                 break;
@@ -1039,13 +1038,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + "," + DateHandler.getInstance().getUnixForBDD(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_numrange:
                 return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + "," + DateHandler.getInstance().getUnixForBDD(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_hourrange:
                 return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + (intersector_range.min as Duration).asMilliseconds() + "," + (intersector_range.max as Duration).asMilliseconds() + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
@@ -2725,7 +2724,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 break;
 
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "\"";
+                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
                                 break;
 
                             default:
@@ -2874,7 +2873,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 throw new Error('Not implemented');
 
-            case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
             case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
                 throw new Error('Not implemented');
 
@@ -2950,7 +2948,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 res += table_name + '.' + field.field_id + "::date <@ " + ranges_query;
                 break;
-            case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
             case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
                 res += table_name + '.' + field.field_id + " <@ " + ranges_query;
                 break;
@@ -3001,7 +2998,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             case ModuleTableField.FIELD_TYPE_geopoint:
                 return true;
@@ -3056,7 +3052,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 res += 'ARRAY[' + table_name + '.' + field.field_id + "::date" + "] = " + ranges_query;
                 break;
             case ModuleTableField.FIELD_TYPE_daterange: // TODO FIXME
-            case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
             case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
                 res += 'ARRAY[' + table_name + '.' + field.field_id + "] = " + ranges_query;
                 break;
@@ -3186,7 +3181,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
             case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 res += table_name + '.' + field.field_id + " <@ " + ranges_query;
                 break;
@@ -3300,15 +3294,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_tstz:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(range.min) + "," + DateHandler.getInstance().getUnixForBDD(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
-            case ModuleTableField.FIELD_TYPE_timestamp:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 // TODO FIXME
                 break;
             case ModuleTableField.FIELD_TYPE_daterange:
                 return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(range.min) + "," + DateHandler.getInstance().getUnixForBDD(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
             case ModuleTableField.FIELD_TYPE_numrange:
                 return '\'' + (range.min_inclusiv ? "[" : "(") + range.min.toString() + "," + range.max.toString() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
 
@@ -3364,15 +3357,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_tstz:
-                return DateHandler.getInstance().getUnixForBDD(segmented_value).toString();
-            case ModuleTableField.FIELD_TYPE_timestamp:
+                return segmented_value.toString();
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 // TODO FIXME
                 break;
             case ModuleTableField.FIELD_TYPE_daterange:
                 return DateHandler.getInstance().formatDayForIndex(segmented_value);
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return DateHandler.getInstance().getUnixForBDD(segmented_value).toString();
+                return segmented_value.toString();
             case ModuleTableField.FIELD_TYPE_numrange:
                 return segmented_value.toString();
 

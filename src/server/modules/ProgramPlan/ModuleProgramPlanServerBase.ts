@@ -255,21 +255,21 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let start_time: Moment = TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment);
-        let end_time: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment);
+        let start_time: number = TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment);
+        let end_time: number = TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment);
 
         if (!this.programplan_shared_module.program_type_id) {
 
             return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
                 this.programplan_shared_module.rdv_type_id,
                 ' where start_time < $2 and end_time >= $1',
-                [DateHandler.getInstance().getUnixForBDD(start_time), DateHandler.getInstance().getUnixForBDD(end_time)]);
+                [start_time, end_time]);
         }
 
         return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
             this.programplan_shared_module.rdv_type_id,
             ' where start_time < $2 and end_time >= $1 and program_id = $3',
-            [DateHandler.getInstance().getUnixForBDD(start_time), DateHandler.getInstance().getUnixForBDD(end_time), program_id]);
+            [start_time, end_time, program_id]);
     }
 
     private async registerFrontVisibilityAccessPolicies(group: AccessPolicyGroupVO, fo_access: AccessPolicyVO) {

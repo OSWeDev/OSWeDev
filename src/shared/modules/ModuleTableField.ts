@@ -56,8 +56,6 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_hour: string = 'hour';
     public static FIELD_TYPE_hourrange: string = 'hourrange';
     public static FIELD_TYPE_hourrange_array: string = 'hourrange[]';
-    public static FIELD_TYPE_timestamp: string = 'timestamp';
-    // public static FIELD_TYPE_timestamp_with_time_zone: string = 'timestamp with time zone';
     public static FIELD_TYPE_day: string = 'day';
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
     // public static FIELD_TYPE_unix_timestamp: string = 'unix_timestamp'; remplacé par le tstz
@@ -432,9 +430,6 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_geopoint:
                 return db_type == "point";
 
-            case ModuleTableField.FIELD_TYPE_timestamp:
-                return (db_type == "timestamp") || (db_type == "timestamp without time zone");
-
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case "ref.hours":
                 return (db_type == "ref.hours") || (db_type == "numeric");
@@ -531,9 +526,6 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_geopoint:
                 return "point";
-
-            case ModuleTableField.FIELD_TYPE_timestamp:
-                return "timestamp";
 
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case "ref.hours":
@@ -654,7 +646,6 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_string_array:
-            case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_hour:
             case ModuleTableField.FIELD_TYPE_hourrange:

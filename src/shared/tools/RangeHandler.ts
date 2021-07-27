@@ -825,11 +825,11 @@ export default class RangeHandler {
             }
 
             if (this.is_elt_inf_elt(range.range_type, range.min, res.min)) {
-                res.min = this.clone_elt(range.range_type, range.min);
+                res.min = range.min;
             }
 
             if (this.is_elt_equals_or_sup_elt(range.range_type, range.max, res.max)) {
-                res.max = this.clone_elt(range.range_type, range.max);
+                res.max = range.max;
             }
         }
 
@@ -1425,7 +1425,7 @@ export default class RangeHandler {
                 return HourRange.cloneFrom(from as any as HourRange) as any as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.cloneFrom(fromSRange) as any as U;
+                return TSRange.cloneFrom(from as any as TSRange) as any as U;
         }
     }
 
@@ -1847,20 +1847,20 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    HourSegmentHandler.getInstance().incElt(range_min_h.index, segment_type, offset);
+                    range_min_h.index = Dates.add(range_min_h.index, offset, segment_type);
                 }
 
                 return range_min_h.index;
 
             case TSRange.RANGE_TYPE:
-                let range_min_ts: ISegment<Moment> = this.get_segment(range.range_type, range.min as any as Moment, segment_type);
-                let range_max_ts: ISegment<Moment> = this.get_segment(range.range_type, range.max as any as Moment, segment_type);
+                let range_min_ts: ISegment = this.get_segment(range.range_type, range.min, segment_type);
+                let range_max_ts: ISegment = this.get_segment(range.range_type, range.max, segment_type);
 
-                if (range_min_ts.index.isAfter(moment(range_max_ts.index).utc(true))) {
+                if (range_min_ts.index > range_max_ts.index) {
                     return null;
                 }
 
-                if ((!range.max_inclusiv) && (range_min_ts.index.isSameOrAfter(moment(range.max).utc(true)))) {
+                if ((!range.max_inclusiv) && (range_min_ts.index >= range.max)) {
                     return null;
                 }
 
@@ -1932,7 +1932,7 @@ export default class RangeHandler {
                     range_max_seg = HourSegmentHandler.getInstance().getPreviousHourSegment(range_max_seg, segment_type);
                 }
 
-                let range_max_d: Duration = HourSegmentHandler.getInstance().getEndHourSegment(range_max_seg);
+                let range_max_d: number = HourSegmentHandler.getInstance().getEndHourSegment(range_max_seg);
 
                 if (this.is_elt_inf_elt(range.range_type, range_max_d, range.min)) {
                     return null;
@@ -1950,19 +1950,19 @@ export default class RangeHandler {
 
 
             case TSRange.RANGE_TYPE:
-                let range_max_ts: numberimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max as any as Moment, segment_type);
+                let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-                if ((!range.max_inclusiv) && (range_max_ts.index.isSame(moment(range.max).utc(true)))) {
+                if ((!range.max_inclusiv) && (range_max_ts.index == range.max)) {
                     TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
                 }
 
-                let range_max_end_moment: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
+                let range_max_end_moment: number = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
 
-                if (range_max_end_moment.isBefore(moment(range.min).utc(true))) {
+                if (range_max_end_moment < range.min) {
                     return null;
                 }
 
-                if ((!range.min_inclusiv) && (range_max_end_moment.isSameOrBefore(moment(range.min).utc(true)))) {
+                if ((!range.min_inclusiv) && (range_max_end_moment <= range.min)) {
                     return null;
                 }
 
@@ -2021,7 +2021,7 @@ export default class RangeHandler {
             if (res == null) {
                 res = range_min;
             } else {
-                res = this.min(range.range_type, range_min, res);
+                res = Math.min(range_min, res);
             }
         }
 
@@ -2085,7 +2085,7 @@ export default class RangeHandler {
             if (res == null) {
                 res = range_max;
             } else {
-                res = this.max(range.range_type, range_max, res);
+                res = Math.max(range_max, res);
             }
         }
 
@@ -2100,7 +2100,7 @@ export default class RangeHandler {
      * ATTENTION très gourmand en perf très rapidement, il ne faut utiliser que sur de très petits ensembles
      * Le segment_type est forcé à int
      */
-    public get_combinaisons(range_type: number, combinaisons: Array<IRange[]>, combinaison_actuelle: IRange[], elts: number[], index: number, cardinal: number) {
+    public get_combinaisons(range_type: number, combinaisons: IRange[][], combinaison_actuelle: IRange[], elts: number[], index: number, cardinal: number) {
 
         if (cardinal <= 0) {
             if ((!!combinaison_actuelle) && (!!combinaison_actuelle.length)) {
@@ -2179,16 +2179,16 @@ export default class RangeHandler {
             case HourRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    callback_sync(duration(min));
-                    HourSegmentHandler.getInstance().incElt(min, segment_type, 1);
+                    callback_sync(min);
+                    min = Dates.add(min, 1, segment_type);
                 }
                 return;
 
             case TSRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    callback_sync(moment(min).utc(true));
-                    (min) = Dates.add(min, 1, segment_type);
+                    callback_sync(min);
+                    min = Dates.add(min, 1, segment_type);
                 }
                 return;
         }
@@ -2256,15 +2256,15 @@ export default class RangeHandler {
             case HourRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    await callback(duration(min));
-                    HourSegmentHandler.getInstance().incElt(min, segment_type, 1);
+                    await callback(min);
+                    Dates.add(min, 1, segment_type);
                 }
                 return;
 
             case TSRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    await callback(moment(min).utc(true));
+                    await callback(min);
                     (min) = Dates.add(min, 1, segment_type);
                 }
                 return;
@@ -2330,15 +2330,15 @@ export default class RangeHandler {
             case HourRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    promises.push(callback(duration(min)));
-                    HourSegmentHandler.getInstance().incElt(min, segment_type, 1);
+                    promises.push(callback(min));
+                    Dates.add(min, 1, segment_type);
                 }
                 break;
 
             case TSRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    promises.push(callback(moment(min).utc(true)));
+                    promises.push(callback(min));
                     (min) = Dates.add(min, 1, segment_type);
                 }
                 break;
@@ -2414,10 +2414,10 @@ export default class RangeHandler {
                 return NumRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
 
             case HourRange.RANGE_TYPE:
-                return HourRange.createNew((start).clone(), (end), start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return HourRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.createNew(moment(start).utc(true), moment(end).utc(true), start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return TSRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as any as U;
         }
     }
 
@@ -2457,151 +2457,56 @@ export default class RangeHandler {
         return min;
     }
 
-    public max(range_type: number, a: number, b: number): number {
-        switch (range_type) {
-
-            case NumRange.RANGE_TYPE:
-                return Math.max(a, b);
-
-            case HourRange.RANGE_TYPE:
-                return Math.max((a).asMilliseconds(), (b).asMilliseconds());
-
-            case TSRange.RANGE_TYPE:
-                return moment.max(a as any as Moment, b as any as Moment);
-        }
-    }
-
-    public min(range_type: number, a: number, b: number): number {
-        switch (range_type) {
-
-            case NumRange.RANGE_TYPE:
-                return Math.min(a, b);
-            case HourRange.RANGE_TYPE:
-                return Math.min((a).asMilliseconds(), (b).asMilliseconds());
-            case TSRange.RANGE_TYPE:
-                return moment.min(a as any as Moment, b as any as Moment);
-        }
-    }
-
     private is_elt_equals_elt(range_type: number, a: number, b: number): boolean {
-        switch (range_type) {
 
-            case NumRange.RANGE_TYPE:
-                return a == b;
-
-            case HourRange.RANGE_TYPE:
-                return (a).asMilliseconds() == (b).asMilliseconds();
-
-            case TSRange.RANGE_TYPE:
-                return (a as any as Moment).unix() == (b as any as Moment).unix();
-        }
+        return a == b;
     }
 
     private is_elt_inf_elt(range_type: number, a: number, b: number): boolean {
-        if ((a == null) || (typeof a == 'undefined')) {
+        if ((a == null) || (b == null)) {
             return false;
         }
 
-        if ((b == null) || (typeof b == 'undefined')) {
-            return false;
-        }
-
-        switch (range_type) {
-
-            case NumRange.RANGE_TYPE:
-                return a < b;
-
-            case HourRange.RANGE_TYPE:
-                return (a).asMilliseconds() < (b).asMilliseconds();
-
-            case TSRange.RANGE_TYPE:
-                return (a as any as Moment).unix() < (b as any as Moment).unix();
-        }
+        return a < b;
     }
 
     private is_elt_sup_elt(range_type: number, a: number, b: number): boolean {
 
-        if ((a == null) || (typeof a == 'undefined')) {
+        if ((a == null) || (b == null)) {
             return false;
         }
 
-        if ((b == null) || (typeof b == 'undefined')) {
-            return false;
-        }
-
-        switch (range_type) {
-
-            case NumRange.RANGE_TYPE:
-                return a > b;
-
-            case HourRange.RANGE_TYPE:
-                return (a).asMilliseconds() > (b).asMilliseconds();
-
-            case TSRange.RANGE_TYPE:
-                return (a as any as Moment).unix() > (b as any as Moment).unix();
-        }
+        return a > b;
     }
 
     private is_elt_equals_or_inf_elt(range_type: number, a: number, b: number): boolean {
-        switch (range_type) {
 
-            case NumRange.RANGE_TYPE:
-                return a <= b;
-
-            case HourRange.RANGE_TYPE:
-                return (a).asMilliseconds() <= (b).asMilliseconds();
-
-            case TSRange.RANGE_TYPE:
-                return (a as any as Moment).unix() <= (b as any as Moment).unix();
+        if (a === b) {
+            return true;
         }
+
+        if ((a == null) || (b == null)) {
+            return false;
+        }
+
+        return a <= b;
     }
 
     private is_elt_equals_or_sup_elt(range_type: number, a: number, b: number): boolean {
-        switch (range_type) {
 
-            case NumRange.RANGE_TYPE:
-                return a >= b;
-
-            case HourRange.RANGE_TYPE:
-                return (a).asMilliseconds() >= (b).asMilliseconds();
-
-            case TSRange.RANGE_TYPE:
-                return (a as any as Moment).unix() >= (b as any as Moment).unix();
+        if (a === b) {
+            return true;
         }
-    }
 
-    private clone_elt(range_type: number, elt: number): number {
-        switch (range_type) {
-
-            case NumRange.RANGE_TYPE:
-                return elt;
-
-            case HourRange.RANGE_TYPE:
-                if (!elt) {
-                    return elt;
-                }
-                return (elt).clone();
-
-            case TSRange.RANGE_TYPE:
-                if (!elt) {
-                    return elt;
-                }
-                return moment(elt).utc(true);
+        if ((a == null) || (b == null)) {
+            return false;
         }
+
+        return a >= b;
     }
 
     private is_valid_elt(range_type: number, elt: number): boolean {
-        switch (range_type) {
-
-            case NumRange.RANGE_TYPE:
-                return (elt != null) && (typeof elt != 'undefined') && !isNaN(elt);
-
-            case HourRange.RANGE_TYPE:
-                return (elt != null) && (typeof elt != 'undefined');
-
-            case TSRange.RANGE_TYPE:
-                return (elt != null) && (typeof elt != 'undefined') && (elt as any as Moment).isValid();
-        }
+        return (elt != null) && (typeof elt != 'undefined') && !isNaN(elt);
     }
 
     private get_segment(range_type: number, elt: number, segment_type: number): ISegment {
@@ -2614,7 +2519,7 @@ export default class RangeHandler {
                 return HourSegmentHandler.getInstance().getCorrespondingHourSegment(elt, segment_type) as any as ISegment;
 
             case TSRange.RANGE_TYPE:
-                return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(elt as any as Moment, segment_type) as any as ISegment;
+                return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(elt, segment_type) as any as ISegment;
         }
     }
 
@@ -2630,7 +2535,7 @@ export default class RangeHandler {
                 break;
 
             case TSRange.RANGE_TYPE:
-                TimeSegmentHandler.getInstance().incTimeSegment(segmentimeSegment, segment_type, offset);
+                TimeSegmentHandler.getInstance().incTimeSegment(segment as any as TimeSegment, segment_type, offset);
                 break;
         }
     }
@@ -2649,7 +2554,7 @@ export default class RangeHandler {
                 return NumSegmentHandler.getInstance().incNum(elt, segment_type, offset);
 
             case HourRange.RANGE_TYPE:
-                HourSegmentHandler.getInstance().incElt(elt, segment_type, offset);
+                Dates.add(elt, offset, segment_type);
                 return elt;
 
             case TSRange.RANGE_TYPE:

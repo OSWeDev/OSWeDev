@@ -1,3 +1,5 @@
+import moment = require("moment");
+import Dates from "../modules/FormatDatesNombres/Dates/Dates";
 
 
 
@@ -19,65 +21,53 @@ export default class DateHandler {
     private constructor() {
     }
 
-    public isSameMoment(a: Moment, b: Moment): boolean {
-        if ((a == null) != (b == null)) {
-            return false;
-        }
-
-        if (a == null) {
-            return true;
-        }
-
-        return a.valueOf() == b.valueOf();
-    }
-
-    public getUnixForBDD(date: Moment): number {
+    public getUnixForBDD(date: number): number {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.unix();
+        return date;
     }
 
-    /* istanbul ignore next: quite difficult test : depends on the local and the moment... might want to write one anyway sometime but doesn't seem very important */
-    public humanizeDurationTo(date: Moment): string {
+    /* istanbul ignore next: quite difficult test : depends on the local and the number... might want to write one anyway sometime but doesn't seem very important */
+    public humanizeDurationTo(date: number): string {
         if (!date) {
             return "";
         }
         return moment.duration(date.diff(Dates.now())).humanize();
     }
 
-    public formatDayForIndex(date: Moment): string {
+    public formatDayForIndex(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.format(DateHandler.DAY_FOR_INDEX_FORMAT);
+        return Dates.format(date, DateHandler.DAY_FOR_INDEX_FORMAT);
     }
 
-    public formatDayForVO(date: Moment): string {
+    public formatDayForVO(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.format('YYYY-MM-DD');
+        return Dates.format(date, 'YYYY-MM-DD');
     }
 
-    public formatMonthFromVO(date: Moment): string {
+    public formatMonthFromVO(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.format('YYYY-MM');
+        return Dates.format(date, 'YYYY-MM');
     }
 
-    public formatDayForApi(date: Moment): string {
+    public formatDayForApi(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.format('YYYY-MM-DD');
+        return Dates.format(date, 'YYYY-MM-DD');
     }
 
-    public formatDayForSQL(date: Moment): string {
+    public formatDayForSQL(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.format('YYYY-MM-DD');
+        return Dates.format(date, 'YYYY-MM-DD');
     }
 }

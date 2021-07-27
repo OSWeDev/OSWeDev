@@ -1,5 +1,6 @@
 
 import HourSegment from "../../DataRender/vos/HourSegment";
+import Dates from "./Dates";
 
 export default class Durations {
 
@@ -69,15 +70,30 @@ export default class Durations {
         }
     }
 
-    public static hours(duration: number): number {
-        return ((duration - duration % 3600) / 3600) % 3600;
+    /**
+     * @param duration duration to get or set
+     * @param set_hours if omitted the function return the current hours in the day, else it sets it and return the updated time.
+     *  If > 23, it bubbles on the day
+     */
+    public static hours(duration: number, set_hours?: number): number {
+        return Dates.hours(duration, set_hours);
     }
 
-    public static minutes(duration: number): number {
-        return ((duration - duration % 60) / 60) % 60;
+    /**
+     * @param duration duration to get or set
+     * @param set_minutes if omitted the function return the current minutes in the hour, else it sets it and return the updated time.
+     *  If > 59, it bubbles on the hour
+     */
+    public static minutes(duration: number, set_minutes?: number): number {
+        return Dates.hours(duration, set_minutes);
     }
 
-    public static seconds(duration: number): number {
-        return duration % 60;
+    /**
+     * @param duration duration to get or set
+     * @param set_seconds if omitted the function return the current seconds in the minute, else it sets it and return the updated time.
+     *  If > 59, it bubbles on the minute
+     */
+    public static seconds(duration: number, set_seconds?: number): number {
+        return Dates.hours(duration, set_seconds);
     }
 }

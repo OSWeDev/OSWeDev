@@ -2,6 +2,7 @@
 
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
@@ -663,9 +664,9 @@ export default class VarsDatasProxy {
 
                             let varcacheconf: VarCacheConfVO = Ny.var_controller.var_cache_conf;
 
-                            if (!!varcacheconf.cache_timeout_ms) {
-                                let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                                condition += 'var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ')';
+                            if (!!varcacheconf.cache_timeout_secs) {
+                                let timeout: number = Dates.add(Dates.now(), -varcacheconf.cache_timeout_secs);
+                                condition += 'var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + timeout + ')';
                             } else {
                                 condition += 'var_id = ' + varcacheconf.var_id + ' and value_ts is null';
                             }
