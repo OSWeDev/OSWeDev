@@ -7,6 +7,7 @@ import ISupervisedItemController from '../../../../../shared/modules/Supervision
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
 import './SupervisionDashboardComponent.scss';
@@ -83,6 +84,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.debounced_on_change_show();
     }
 
+    /**
+     * Rafraichit compteurs et liste des sondes.
+     * @see {@link SupervisionDashboardComponent.set_nb_elems set_nb_elems}
+     * @see {@link SupervisionDashboardComponent.set_ordered_supervised_items set_ordered_supervised_items}
+     */
     private debounce_on_change_show() {
         this.set_nb_elems();
         this.set_ordered_supervised_items();
@@ -98,6 +104,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.continue_reloading = false;
     }
 
+    /**
+     * Appelle {@link SupervisionDashboardComponent.load_supervised_items load_supervised_items} pour mettre à jour le visuel.
+     * Se rappelle elle même toutes les 20 secondes.
+     * @param first_build
+     */
     private async load_supervised_items_and_continue(first_build: boolean = false) {
         if (!this.continue_reloading) {
             return;
@@ -110,7 +121,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     /**
-     * recharge les sondes
+     * Recharge les sondes (appelé toutes les 20 secondes par {@link SupervisionDashboardComponent.load_supervised_items_and_continue load_supervised_items_and_continue})
      * @param first_build true s'il s'agit de la première fois  que l'on charge les sondes
      */
     private async load_supervised_items(first_build: boolean) {
@@ -136,6 +147,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
             //récupération des sondes
             promises.push((async () => {
+                // pour éviter de récuperer le cache
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
                 let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
 
                 for (let i in items) {
