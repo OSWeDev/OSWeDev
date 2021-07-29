@@ -348,6 +348,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             }
 
             res.end_date = moment().utc(true);
+
+            // insertion en base pour pouvouvoir faire le calcul de la reussite apres qui demande une end_date sur les usermodules
+            await ModuleDAO.getInstance().insertOrUpdateVO(res);
+
             let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
                 VarDayPrctReussiteAnimationController.getInstance().varConf.name,
                 true,
@@ -360,7 +364,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
-        return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
+        return await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
     private async getAumsFiltered(
