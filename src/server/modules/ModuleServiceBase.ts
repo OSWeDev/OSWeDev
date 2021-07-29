@@ -531,7 +531,7 @@ export default abstract class ModuleServiceBase {
          * Handle query cache update
          */
 
-        DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+        await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
         return await this.db_.none(query, values);
     }
@@ -541,7 +541,7 @@ export default abstract class ModuleServiceBase {
         /**
          * Handle query cache update
          */
-        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+        let res = await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
         if (typeof res !== 'undefined') {
             return res;
@@ -559,7 +559,7 @@ export default abstract class ModuleServiceBase {
         /**
          * Handle query cache update
          */
-        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+        let res = await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
         if (typeof res !== 'undefined') {
             return res;
