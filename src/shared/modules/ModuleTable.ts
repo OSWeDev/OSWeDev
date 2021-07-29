@@ -718,6 +718,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
         for (let i in this.fields_) {
             let field = this.fields_[i];
 
+            if (field.is_readonly) {
+                continue;
+            }
+
             let new_id = fieldIdToAPIMap[field.field_id];
 
             /**
@@ -791,6 +795,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         for (let i in this.fields_) {
             let field = this.fields_[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
 
             let old_id = fieldIdToAPIMap[field.field_id];
 
@@ -914,6 +922,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
         // Si le type diffère, on veut créer une nouvelle instance et réinitialiser tous les champs ensuite
         let res: T = e;
         if (e._type != this.vo_type) {
+
+            for (let i in this.fields_) {
+                let field = this.fields_[i];
+                if (!field.is_readonly) {
+                    continue;
+                }
+                delete e[field.field_id];
+            }
             res = Object.assign(this.voConstructor(), e);
             res._type = this.vo_type;
         }

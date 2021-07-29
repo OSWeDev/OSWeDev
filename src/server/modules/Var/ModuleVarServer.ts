@@ -437,7 +437,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         if ((vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!vo.value_ts)) {
             vo.value_ts = Dates.now();
         }
-        vo['_bdd_only_index'] = vo.bdd_only_index;
+        // vo['_bdd_only_index'] = vo._bdd_only_index;
         return true;
     }
 
@@ -447,7 +447,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         if ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!vo_update_handler.post_update_vo.value_ts)) {
             vo_update_handler.post_update_vo.value_ts = Dates.now();
         }
-        vo_update_handler.post_update_vo['_bdd_only_index'] = vo_update_handler.post_update_vo.bdd_only_index;
+        // vo_update_handler.post_update_vo['_bdd_only_index'] = vo_update_handler.post_update_vo._bdd_only_index;
         return true;
     }
 

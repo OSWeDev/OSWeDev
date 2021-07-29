@@ -1,7 +1,11 @@
 import { cloneDeep } from "lodash";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
+import ForkedTasksController from "../Fork/ForkedTasksController";
+import ForkMessageController from "../Fork/ForkMessageController";
 
 export default class DAOQueryCacheController {
+
+    public static TASK_NAME_CLEAR: string = "DAOQueryCacheController.clear_cache";
 
     public static getInstance() {
         if (!DAOQueryCacheController.instance) {
@@ -29,12 +33,15 @@ export default class DAOQueryCacheController {
      */
 
     private constructor() {
+        ForkedTasksController.getInstance().register_task(
+            DAOQueryCacheController.TASK_NAME_CLEAR,
+            this.clear_cache.bind(this));
     }
 
     /**
      * Avant l'envoie en base on tente d'utiliser le cache
      */
-    public invalidate_cache_from_query_or_return_result(query: string, values: any): any {
+    public async invalidate_cache_from_query_or_return_result(query: string, values: any): Promise<any> {
 
         if (!query) {
             return undefined;
@@ -44,8 +51,8 @@ export default class DAOQueryCacheController {
 
         // Si c'est pas un select on vide le cache
         if (!trimed_lower.startsWith('select ')) {
-            this.simple_query_cache = {};
-            // ConsoleHandler.getInstance().log("CLEAR QUERY CACHE:" + query);
+
+            await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
             return undefined;
         }
 
@@ -62,6 +69,11 @@ export default class DAOQueryCacheController {
         }
 
         return cloneDeep(this.simple_query_cache[trimed_lower]);
+    }
+
+    public clear_cache(useless: boolean) {
+        // ConsoleHandler.getInstance().log("CLEAR QUERY CACHE:");
+        DAOQueryCacheController.getInstance().simple_query_cache = {};
     }
 
     /**

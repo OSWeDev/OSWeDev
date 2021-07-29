@@ -349,7 +349,7 @@ export default class VarsComputeController {
                 let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
                 await controller.computeValue(node);
 
-                VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
+                await VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
                 VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
                 node.has_compute_node_perf = true;
 

@@ -88,6 +88,7 @@ export default class ModuleTableField<T> {
 
     public is_indexed: boolean = false;
     public is_unique: boolean = false;
+    public is_readonly: boolean = false;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -170,6 +171,11 @@ export default class ModuleTableField<T> {
 
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
         this.segmentation_type = segmentation_type;
+        return this;
+    }
+
+    public readonly(): ModuleTableField<T> {
+        this.is_readonly = true;
         return this;
     }
 
