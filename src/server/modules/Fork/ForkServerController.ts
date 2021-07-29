@@ -2,6 +2,7 @@ import { fork } from 'child_process';
 
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -32,7 +33,7 @@ export default class ForkServerController {
      */
     public forks_are_initialized: boolean = false;
     public forks_waiting_to_be_alive: number = 0;
-    public forks_availability: { [uid: number]: Moment } = {};
+    public forks_availability: { [uid: number]: number } = {};
     public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false });
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};

@@ -14,7 +14,6 @@ import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
-const moment = require('moment');
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 

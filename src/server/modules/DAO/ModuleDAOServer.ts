@@ -1,4 +1,3 @@
-import { Duration, Moment } from 'moment';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -521,7 +520,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
          */
 
         // On stocke les ranges par field cible en bdd
-        let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: Array<IRange<any>> } = this.get_matroid_fields_ranges_by_datatable_field_id(matroid, moduleTable, fields_ids_mapper);
+        let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: IRange[] } = this.get_matroid_fields_ranges_by_datatable_field_id(matroid, moduleTable, fields_ids_mapper);
 
         if (!matroid_fields_ranges_by_datatable_field_id) {
             return null;
@@ -536,7 +535,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            matroid_fields_ranges_by_datatable_field_id[field_id] = RangeHandler.getInstance().getRangesUnion(matroid_fields_ranges_by_datatable_field_id[field_id]) as Array<IRange<any>>;
+            matroid_fields_ranges_by_datatable_field_id[field_id] = RangeHandler.getInstance().getRangesUnion(matroid_fields_ranges_by_datatable_field_id[field_id]) as IRange[];
         }
 
         // On stock l'info du type (cardinal 1 ou n pour chaque field du param)
@@ -585,7 +584,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let matroid_field = matroid_fields_by_ids[fields_ids_mapper_inverted[field_id] ? fields_ids_mapper_inverted[field_id] : field_id];
-            let field_ranges: Array<IRange<any>> = matroid_fields_ranges_by_datatable_field_id[field_id];
+            let field_ranges: IRange[] = matroid_fields_ranges_by_datatable_field_id[field_id];
             let field = moduleTable.getFieldFromId(field_id);
 
             if ((!field) || (!field_ranges) || (!field_ranges.length)) {
@@ -654,7 +653,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let first = true;
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
-            let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+            let ranges: IRange[] = matroid[matroid_field.field_id];
             let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
 
             if (!field) {
@@ -674,7 +673,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let first_in_clause = true;
 
             for (let j in ranges) {
-                let field_range: IRange<any> = ranges[j];
+                let field_range: IRange = ranges[j];
 
                 if (!RangeHandler.getInstance().isValid(field_range)) {
                     ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
@@ -707,7 +706,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-    public async truncate(api_type_id: string, ranges: Array<IRange<any>> = null) {
+    public async truncate(api_type_id: string, ranges: IRange[] = null) {
 
         if (this.global_update_blocker) {
             let uid: number = StackContext.getInstance().get('UID');
@@ -760,7 +759,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async selectAll<T extends IDistantVOBase>(
         API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
-        distinct: boolean = false, ranges: Array<IRange<any>> = null, limit: number = 0, offset: number = 0): Promise<T[]> {
+        distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
@@ -817,7 +816,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, res);
     }
 
-    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: Array<IRange<any>> = null): Promise<T> {
+    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
@@ -980,7 +979,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
-    public getClauseWhereRangeIntersectsField(field: ModuleTableField<any>, intersector_range: IRange<any>): string {
+    public getClauseWhereRangeIntersectsField(field: ModuleTableField<any>, intersector_range: IRange): string {
         switch (field.field_type) {
 
             case ModuleTableField.FIELD_TYPE_email:
@@ -1047,10 +1046,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_hourrange:
-                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + (intersector_range.min as Duration).asMilliseconds() + "," + (intersector_range.max as Duration).asMilliseconds() + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + (intersector_range.min as Duration).asMilliseconds() + "," + (intersector_range.max as Duration).asMilliseconds() + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_geopoint:
             default:
@@ -1765,7 +1764,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async getVoById<T extends IDistantVOBase>(
         API_TYPE_ID: string,
         id: number,
-        segmentation_ranges: Array<IRange<any>> = null
+        segmentation_ranges: IRange[] = null
     ): Promise<T> {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -2038,7 +2037,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         values2: string[] = null,
         field_name3: string = null,
         values3: string[] = null,
-        segmentation_ranges: Array<IRange<any>> = null
+        segmentation_ranges: IRange[] = null
     ): Promise<T[]> {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -2405,7 +2404,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            let segmentations: Array<IRange<any>> = [];
+            let segmentations: IRange[] = [];
             if ((!segmented_matroid_filed_id) || (!matroid[segmented_matroid_filed_id]) || (!matroid[segmented_matroid_filed_id].length)) {
                 ConsoleHandler.getInstance().log('filterVosByMatroid sur table segmentée - ' + moduleTable.full_name + ' - sans info de segment sur le matroid');
                 segmentations_tables = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
@@ -2476,13 +2475,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, null);
     }
 
-    private get_matroid_fields_ranges_by_datatable_field_id(matroid: IMatroid, moduleTable: ModuleTable<any>, fields_ids_mapper: { [matroid_field_id: string]: string }): { [field_id: string]: Array<IRange<any>> } {
+    private get_matroid_fields_ranges_by_datatable_field_id(matroid: IMatroid, moduleTable: ModuleTable<any>, fields_ids_mapper: { [matroid_field_id: string]: string }): { [field_id: string]: IRange[] } {
 
         let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
-        let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: Array<IRange<any>> } = {};
+        let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: IRange[] } = {};
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
-            let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+            let ranges: IRange[] = matroid[matroid_field.field_id];
             let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
 
             if (!field) {
@@ -2556,7 +2555,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in matroids) {
                 let matroid = matroids[i];
 
-                let segmentations: Array<IRange<any>> = matroid[segmented_matroid_field_id];
+                let segmentations: IRange[] = matroid[segmented_matroid_field_id];
 
                 // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
                 // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
@@ -2714,7 +2713,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let first = true;
                 for (let i in matroid_fields) {
                     let matroid_field = matroid_fields[i];
-                    let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+                    let ranges: IRange[] = matroid[matroid_field.field_id];
                     let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
 
                     if (!field) {
@@ -2734,7 +2733,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     let ranges_clause = "'{";
                     for (let j in ranges) {
-                        let field_range: IRange<any> = ranges[j];
+                        let field_range: IRange = ranges[j];
 
                         if (!RangeHandler.getInstance().isValid(field_range)) {
                             ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
@@ -2809,7 +2808,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let where_clause = where_clauses[i];
                 let matroid = matroids[i];
 
-                let segmentations: Array<IRange<any>> = matroid[segmented_matroid_field_id];
+                let segmentations: IRange[] = matroid[segmented_matroid_field_id];
 
                 // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
                 // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
@@ -2895,7 +2894,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return table_name + '.' + field.field_id + " = " + value;
 
             case ModuleTableField.FIELD_TYPE_tstz:
-                return table_name + '.' + field.field_id + " = " + (value as Moment).unix();
+                return table_name + '.' + field.field_id + " = " + value;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
                 throw new Error('Not implemented');
@@ -2931,7 +2930,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-    private get_ranges_query_cardinal_1(field: ModuleTableField<any>, filter_field_type: string, range: IRange<any>, table_name: string): string {
+    private get_ranges_query_cardinal_1(field: ModuleTableField<any>, filter_field_type: string, range: IRange, table_name: string): string {
 
         let res: string = '';
 
@@ -3050,7 +3049,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
-    private get_ranges_query_exact_search(field: ModuleTableField<any>, filter_field_type: string, field_ranges: Array<IRange<any>>, table_name: string): string {
+    private get_ranges_query_exact_search(field: ModuleTableField<any>, filter_field_type: string, field_ranges: IRange[], table_name: string): string {
 
         let res: string = '';
 
@@ -3108,7 +3107,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
-    private get_range_check_simple_field_type_valeur(field: ModuleTableField<any>, filter_field_type: string, range: IRange<any>, table_name: string): string {
+    private get_range_check_simple_field_type_valeur(field: ModuleTableField<any>, filter_field_type: string, range: IRange, table_name: string): string {
         if (RangeHandler.getInstance().getCardinal(range) == 1) {
             return table_name + '.' + field.field_id + ' = ' + this.get_range_segment_value_to_bdd(field, filter_field_type, RangeHandler.getInstance().getSegmentedMin(range)) + ' ';
         } else {
@@ -3120,7 +3119,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
-    private get_ranges_query_cardinal_supp_1(field: ModuleTableField<any>, filter_field_type: string, field_ranges: Array<IRange<any>>, table_name: string, full_name: string): string {
+    private get_ranges_query_cardinal_supp_1(field: ModuleTableField<any>, filter_field_type: string, field_ranges: IRange[], table_name: string, full_name: string): string {
 
         let res: string = '';
 
@@ -3259,7 +3258,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
-    private get_ranges_translated_to_bdd_queryable_ranges(ranges: Array<IRange<any>>, field: ModuleTableField<any>, filter_field_type: string): string {
+    private get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableField<any>, filter_field_type: string): string {
         let ranges_query: string = 'ARRAY[';
 
         let first_range: boolean = true;
@@ -3282,7 +3281,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-    private get_range_translated_to_bdd_queryable_range(range: IRange<any>, field: ModuleTableField<any>, filter_field_type: string): string {
+    private get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableField<any>, filter_field_type: string): string {
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:
@@ -3310,13 +3309,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if ((filter_field_type == ModuleTableField.FIELD_TYPE_refrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_numrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_isoweekdays)) {
                     return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
                 } else if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
-                    return '\'' + (range.min_inclusiv ? "[" : "(") + (range.min as Duration).asMilliseconds() + "," + (range.max as Duration).asMilliseconds() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange:
                 if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
-                    return '\'' + (range.min_inclusiv ? "[" : "(") + (range.min as Duration).asMilliseconds() + "," + (range.max as Duration).asMilliseconds() + (range.max_inclusiv ? "]" : ")") + '\'' + '::int8range';
+                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::int8range';
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_date:
@@ -3370,16 +3369,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
-                if ((filter_field_type == ModuleTableField.FIELD_TYPE_refrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_numrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_isoweekdays)) {
+                if (
+                    (filter_field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) ||
+                    (filter_field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (filter_field_type == ModuleTableField.FIELD_TYPE_isoweekdays)) {
                     return segmented_value;
-                } else if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
-                    return (segmented_value as Duration).asMilliseconds().toString();
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange:
                 if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
-                    return (segmented_value as Duration).asMilliseconds().toString();
+                    return segmented_value;
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_date:

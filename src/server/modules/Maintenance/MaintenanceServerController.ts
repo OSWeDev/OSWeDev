@@ -6,7 +6,6 @@ import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
-const moment = require('moment');
 
 export default class MaintenanceServerController {
 
@@ -85,11 +84,11 @@ export default class MaintenanceServerController {
         let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES);
         let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES);
 
-        if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(Dates.now())) {
+        if (Dates.add(this.planned_maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text);
-        } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(Dates.now())) {
+        } else if (Dates.add(this.planned_maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleWARN(user_id, null, ModuleMaintenance.MSG2_code_text);
-        } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(Dates.now())) {
+        } else if (Dates.add(this.planned_maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleINFO(user_id, null, ModuleMaintenance.MSG1_code_text);
         }
 

@@ -1,12 +1,10 @@
 
-import { Moment } from 'moment';
-import moment = require('moment');
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../../tools/Filters';
 import TypesHandler from '../../tools/TypesHandler';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
-import Dates from './Dates/Dates';
+import moment = require('moment');
 
 export default class ModuleFormatDatesNombres extends Module {
 
@@ -22,6 +20,29 @@ export default class ModuleFormatDatesNombres extends Module {
             ModuleFormatDatesNombres.instance = new ModuleFormatDatesNombres();
         }
         return ModuleFormatDatesNombres.instance;
+    }
+
+    public static get FORMAT_MMDD(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date);
+    }
+    public static get FORMAT_YYYYMM(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date);
+    }
+    public static get FORMAT_YYYYMMDD(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date);
+    }
+
+    public static get FORMAT_YYYYMMDD_HHmmss_ms(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss.SSS";
+    }
+    public static get FORMAT_YYYYMMDD_HHmmss(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss";
+    }
+    public static get FORMAT_YYYYMMDD_HHmm(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm";
+    }
+    public static get FORMAT_YYYYMMDD_HH(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:";
     }
 
     private static instance: ModuleFormatDatesNombres = null;

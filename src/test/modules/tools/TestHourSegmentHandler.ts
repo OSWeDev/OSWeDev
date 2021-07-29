@@ -136,7 +136,7 @@ describe('HourSegmentHandler', () => {
 
 
     it('test: getInclusiveEndHourSegment', () => {
-        let date = (((23 * 60 + 45) * 60 + 59) * 1000) + 999;
+        let date = (23 * 60 + 45) * 60 + 59;
 
         let hour: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
         let minute: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
@@ -154,7 +154,7 @@ describe('HourSegmentHandler', () => {
     });
 
     it('test: getPreviousHourSegments', () => {
-        let date = (((23 * 60 + 45) * 60 + 59) * 1000) + 999;
+        let date = (23 * 60 + 45) * 60 + 59;
 
         let hour: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
         let minute: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
@@ -171,7 +171,7 @@ describe('HourSegmentHandler', () => {
     });
 
     it('test: getPreviousHourSegment', () => {
-        let date = (((23 * 60 + 45) * 60 + 59) * 1000) + 999;
+        let date = (23 * 60 + 45) * 60 + 59;
 
         let hour: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_HOUR);
         let minute: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
@@ -252,10 +252,10 @@ describe('HourSegmentHandler', () => {
     });
 
     it('test: getCorrespondingHourSegment', () => {
-        let date = (((23 * 60 + 45) * 60 + 59) * 1000) + 999;
+        let date = (23 * 60 + 45) * 60 + 59;
 
-        let hourExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date - 60 * 60 * 1000, HourSegment.TYPE_HOUR);
-        let minuteExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date + 60 * 1000, HourSegment.TYPE_MINUTE);
+        let hourExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date - 60 * 60, HourSegment.TYPE_HOUR);
+        let minuteExpected = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date + 60, HourSegment.TYPE_MINUTE);
 
         expect(HourSegmentHandler.getInstance().getCorrespondingHourSegment(null, null, null)).equal(null);
         expect(HourSegmentHandler.getInstance().getCorrespondingHourSegment(null, null, 0)).equal(null);

@@ -1,4 +1,6 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
@@ -9,7 +11,6 @@ import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
-const moment = require('moment');
 
 export default class MaintenanceBGThread implements IBGThread {
 
@@ -56,7 +57,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance.broadcasted_msg1) {
 
-                if (moment(maintenance.start_ts).utc(true).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(Dates.now())) {
+                if (Dates.add(maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
                     await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_INFO, ModuleMaintenance.MSG1_code_text);
                     maintenance.broadcasted_msg1 = true;
                     changed = true;
@@ -65,7 +66,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance.broadcasted_msg2) {
 
-                if (moment(maintenance.start_ts).utc(true).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(Dates.now())) {
+                if (Dates.add(maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
                     await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_WARN, ModuleMaintenance.MSG2_code_text);
                     maintenance.broadcasted_msg2 = true;
                     changed = true;
@@ -74,7 +75,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance.broadcasted_msg3) {
 
-                if (moment(maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(Dates.now())) {
+                if (Dates.add(maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
                     await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_ERROR, ModuleMaintenance.MSG3_code_text);
                     maintenance.broadcasted_msg3 = true;
                     changed = true;

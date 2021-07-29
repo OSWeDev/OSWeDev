@@ -1,9 +1,10 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
+import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
+import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
-const moment = require('moment');
 
 export default class ObjectHandler {
 
@@ -220,34 +221,6 @@ export default class ObjectHandler {
 
             if (RangeHandler.getInstance().elt_intersects_any_range(parseInt(id.toString()), ranges)) {
                 res[id] = elt;
-            }
-        }
-
-        return res;
-    }
-
-    public filterVosDateIndexesByTSRange<T extends IDistantVOBase>(elts_by_date_index: { [date_index: string]: T }, range: TSRange): { [date_index: string]: T } {
-        let res: { [date_index: string]: T } = {};
-
-        for (let date_index in elts_by_date_index) {
-            let elt = elts_by_date_index[date_index];
-
-            if (RangeHandler.getInstance().elt_intersects_range(moment(date_index).startOf('day').utc(true), range)) {
-                res[date_index] = elt;
-            }
-        }
-
-        return res;
-    }
-
-    public filterVosDateIndexesByTSRanges<T>(elts_by_date_index: { [date_index: string]: T }, ranges: TSRange[]): { [date_index: string]: T } {
-        let res: { [date_index: string]: T } = {};
-
-        for (let date_index in elts_by_date_index) {
-            let elt = elts_by_date_index[date_index];
-
-            if (RangeHandler.getInstance().elt_intersects_any_range(moment(date_index).startOf('day').utc(true), ranges)) {
-                res[date_index] = elt;
             }
         }
 

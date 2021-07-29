@@ -5,16 +5,15 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 import { expect } from 'chai';
 import 'mocha';
 import TypesHandler from '../../../shared/tools/TypesHandler';
+import * as moment from 'moment';
 
 describe('TypesHandler', () => {
     it('test isMoment', () => {
-        const moment = require('moment');
         expect(TypesHandler.getInstance().isMoment(moment())).to.equal(true);
         expect(TypesHandler.getInstance().isMoment("notAMoment")).to.equal(false);
         expect(TypesHandler.getInstance().isMoment(null)).to.equal(null);
     });
     it('test isDuration', () => {
-        const moment = require('moment');
         expect(TypesHandler.getInstance().isDuration(moment.duration())).to.equal(true);
         expect(TypesHandler.getInstance().isDuration("notADuration")).to.equal(false);
         expect(TypesHandler.getInstance().isDuration(null)).to.equal(null);

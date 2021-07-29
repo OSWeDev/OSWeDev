@@ -14,7 +14,6 @@ import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
-const moment = require('moment');
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 

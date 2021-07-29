@@ -1668,8 +1668,8 @@ export default class RangeHandler {
                         return null;
                     }
 
-                    let lowerTSRange = parseInt(matches[2]) * 1000;
-                    let upperTSRange = parseInt(matches[4]) * 1000;
+                    let lowerTSRange = parseInt(matches[2]);
+                    let upperTSRange = parseInt(matches[4]);
                     return this.createNew(
                         range_type,
                         lowerTSRange,
@@ -1728,8 +1728,8 @@ export default class RangeHandler {
 
                 case TSRange.RANGE_TYPE:
 
-                    let lowerTSRange = parseInt(matches[3]) * 1000;
-                    let upperTSRange = parseInt(matches[5]) * 1000;
+                    let lowerTSRange = parseInt(matches[3]);
+                    let upperTSRange = parseInt(matches[5]);
                     return this.createNew(
                         range_type,
                         lowerTSRange,
@@ -2257,7 +2257,7 @@ export default class RangeHandler {
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
                     await callback(min);
-                    Dates.add(min, 1, segment_type);
+                    min = Dates.add(min, 1, segment_type);
                 }
                 return;
 
@@ -2265,7 +2265,7 @@ export default class RangeHandler {
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
                     await callback(min);
-                    (min) = Dates.add(min, 1, segment_type);
+                    min = Dates.add(min, 1, segment_type);
                 }
                 return;
         }
@@ -2331,7 +2331,7 @@ export default class RangeHandler {
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
                     promises.push(callback(min));
-                    Dates.add(min, 1, segment_type);
+                    min = Dates.add(min, 1, segment_type);
                 }
                 break;
 
@@ -2339,7 +2339,7 @@ export default class RangeHandler {
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
                     promises.push(callback(min));
-                    (min) = Dates.add(min, 1, segment_type);
+                    min = Dates.add(min, 1, segment_type);
                 }
                 break;
         }
@@ -2554,11 +2554,11 @@ export default class RangeHandler {
                 return NumSegmentHandler.getInstance().incNum(elt, segment_type, offset);
 
             case HourRange.RANGE_TYPE:
-                Dates.add(elt, offset, segment_type);
+                elt = Dates.add(elt, offset, segment_type);
                 return elt;
 
             case TSRange.RANGE_TYPE:
-                (elt) = Dates.add(elt, offset, segment_type);
+                elt = Dates.add(elt, offset, segment_type);
                 return elt;
         }
     }

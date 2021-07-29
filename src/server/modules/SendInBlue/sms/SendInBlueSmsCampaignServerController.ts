@@ -13,7 +13,6 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueRequestResultVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-const moment = require('moment');
 
 export default class SendInBlueSmsCampaignServerController {
 

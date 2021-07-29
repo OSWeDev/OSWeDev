@@ -1,6 +1,8 @@
 import * as $ from 'jquery';
 import { cloneDeep } from 'lodash';
 import debounce from 'lodash/debounce';
+import { Moment } from 'moment';
+import * as  moment from 'moment';
 
 
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -202,7 +204,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true));
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true).unix());
                             }
                             if (j == 'FILTER__' + field.datatable_field_uid + '__END') {
 
@@ -211,7 +213,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true));
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true).unix());
                             }
                             continue;
 
@@ -260,7 +262,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start).utc(true));
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start).utc(true).unix());
                             }
                             if (!!this.embed_filter[field.datatable_field_uid].end) {
 
@@ -269,7 +271,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end).utc(true));
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end).utc(true).unix());
                             }
                             continue;
                     }
@@ -1268,18 +1270,18 @@ export default class DatatableComponent extends VueComponentBase {
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
                                     }
-                                    let date_tstz: Moment = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
+                                    let date_tstz: number = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
 
-                                    let queryStart_tstz = moment(query.start).utc(true);
-                                    let queryEnd_tstz = moment(query.end).utc(true);
+                                    let queryStart_tstz: Moment = moment(query.start).utc(true);
+                                    let queryEnd_tstz: Moment = moment(query.end).utc(true);
 
-                                    if (((queryStart_tstz && queryStart_tstz.isValid()) || (queryEnd_tstz && queryEnd_tstz.isValid())) && ((!date_tstz) || (!date_tstz.isValid()))) {
+                                    if (((queryStart_tstz && queryStart_tstz.isValid()) || (queryEnd_tstz && queryEnd_tstz.isValid())) && (date_tstz == null)) {
                                         return false;
                                     }
-                                    if (queryStart_tstz && queryStart_tstz.isValid() && date_tstz.isBefore(queryStart_tstz)) {
+                                    if (queryStart_tstz && queryStart_tstz.isValid() && (date_tstz < queryStart_tstz.unix())) {
                                         return false;
                                     }
-                                    if (queryEnd_tstz && queryEnd_tstz.isValid() && date_tstz.isAfter(queryEnd_tstz)) {
+                                    if (queryEnd_tstz && queryEnd_tstz.isValid() && (date_tstz > queryEnd_tstz.unix())) {
                                         return false;
                                     }
                                     return true;
@@ -1312,7 +1314,7 @@ export default class DatatableComponent extends VueComponentBase {
                                         return true;
                                     }
 
-                                    date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY').utc(true));
+                                    date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY').utc(true).toString());
                                     queryStart_ = moment(query.start).utc(true);
                                     if (query.start && date.isBefore(queryStart_)) {
                                         return false;

@@ -1,7 +1,8 @@
 import { EventObjectInput } from 'fullcalendar';
-import { Duration, Moment } from 'moment';
-import RangeHandler from '../../../shared/tools/RangeHandler';
 import HourRange from '../../../shared/modules/DataRender/vos/HourRange';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 
 /**
  * Tools for fullcalendar usage
@@ -20,7 +21,7 @@ export default class FCHandler {
     private constructor() {
     }
 
-    public setEventObjectInputStart(fcevent: EventObjectInput, date: Moment, hour: Duration): void {
+    public setEventObjectInputStart(fcevent: EventObjectInput, date: number, hour: number): void {
         if ((fcevent == null) || (typeof fcevent == 'undefined')) {
             return;
         }
@@ -30,10 +31,10 @@ export default class FCHandler {
         if ((hour == null) || (typeof hour == 'undefined')) {
             return;
         }
-        fcevent.start = date.startOf('day').add(hour.asMilliseconds(), 'ms');
+        fcevent.start = Dates.startOf(date, TimeSegment.TYPE_DAY) + hour;
     }
 
-    public setEventObjectInputEnd(fcevent: EventObjectInput, date: Moment, hour: Duration): void {
+    public setEventObjectInputEnd(fcevent: EventObjectInput, date: number, hour: number): void {
         if ((fcevent == null) || (typeof fcevent == 'undefined')) {
             return;
         }
@@ -43,10 +44,10 @@ export default class FCHandler {
         if ((hour == null) || (typeof hour == 'undefined')) {
             return;
         }
-        fcevent.end = date.startOf('day').add(hour.asMilliseconds(), 'ms');
+        fcevent.end = Dates.startOf(date, TimeSegment.TYPE_DAY) + hour;
     }
 
-    public setEventObjectInputPeriodFromHourRange(fcevent: EventObjectInput, date: Moment, hour_range: HourRange, hour_segment_type: number): void {
+    public setEventObjectInputPeriodFromHourRange(fcevent: EventObjectInput, date: number, hour_range: HourRange, hour_segment_type: number): void {
         if ((hour_range == null) || (typeof hour_range == 'undefined')) {
             return;
         }

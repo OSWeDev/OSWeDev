@@ -1,4 +1,3 @@
-import { Moment } from "moment";
 import NumRange from "../../../DataRender/vos/NumRange";
 import VarDataBaseVO from "../../../Var/vos/VarDataBaseVO";
 

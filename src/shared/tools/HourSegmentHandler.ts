@@ -121,11 +121,11 @@ export default class HourSegmentHandler {
                 return null;
             case HourSegment.TYPE_MINUTE:
                 type = HourSegment.TYPE_HOUR;
-                sec = Math.floor(Durations.as(hourSegment.index, HourSegment.TYPE_HOUR)) * 60 * 60 * 1000;
+                sec = Math.floor(Durations.as(hourSegment.index, HourSegment.TYPE_HOUR)) * 60 * 60;
                 break;
             case HourSegment.TYPE_SECOND:
                 type = HourSegment.TYPE_MINUTE;
-                sec = Math.floor(Durations.as(hourSegment.index, HourSegment.TYPE_MINUTE)) * 60 * 1000;
+                sec = Math.floor(Durations.as(hourSegment.index, HourSegment.TYPE_MINUTE)) * 60;
                 break;
         }
 

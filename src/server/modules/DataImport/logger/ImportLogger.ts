@@ -5,6 +5,7 @@ import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/Data
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ImportLogger {
 

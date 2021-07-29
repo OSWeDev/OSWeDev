@@ -1,4 +1,5 @@
 
+import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -146,7 +147,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         let segment_date_index: string = target_segment_date_index;
         // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
         if (!segment_date_index) {
-            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (moment(this.upper_selected_segment.dateIndex).utc(true).isBefore(moment(this.lower_selected_segment.dateIndex).utc(true)))) {
+            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (this.upper_selected_segment.index < this.lower_selected_segment.index)) {
                 return;
             }
             segment_date_index = this.lower_selected_segment.dateIndex;
@@ -190,8 +191,8 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
 
         // Si le segment est pas chargé on le cible pour le trouver dans la liste
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment).utc(true), this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
-        await this.select_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment).utc(true), this.getsegment_type));
+        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment).utc(true).unix(), this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
+        await this.select_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment).utc(true).unix(), this.getsegment_type));
     }
 
     @Watch('getOptions')
@@ -227,10 +228,10 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     get lower_selected_segment(): TimeSegment {
-        return this.lower_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date_index).utc(true), this.getsegment_type) : null;
+        return this.lower_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
     }
     get upper_selected_segment(): TimeSegment {
-        return this.upper_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date_index).utc(true), this.getsegment_type) : null;
+        return this.upper_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
     }
 
     get is_selected_segment(): { [date_index: string]: boolean } {
@@ -241,11 +242,11 @@ export default class DataImportComponent extends DataImportComponentBase {
             return res;
         }
 
-        if (moment(this.upper_selected_segment.dateIndex).utc(true).isBefore(moment(this.lower_selected_segment.dateIndex).utc(true))) {
+        if (this.upper_selected_segment.index < this.lower_selected_segment.index) {
             return res;
         }
 
-        while (moment(segment.dateIndex).utc(true).isSameOrBefore(moment(this.upper_selected_segment.dateIndex).utc(true))) {
+        while (segment.index <= this.upper_selected_segment.index) {
 
             res[segment.dateIndex] = true;
             segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, this.getsegment_type, -1);
@@ -259,7 +260,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         for (let i in this.getsegments) {
             let segment: TimeSegment = this.getsegments[i];
 
-            res[segment.dateIndex] = !moment(this.upper_selected_segment.dateIndex).utc(true).isBefore(moment(segment.dateIndex).utc(true));
+            res[segment.dateIndex] = !(this.upper_selected_segment.index < segment.index);
         }
 
         return res;
@@ -271,7 +272,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         for (let i in this.getsegments) {
             let segment: TimeSegment = this.getsegments[i];
 
-            res[segment.dateIndex] = !moment(this.lower_selected_segment.dateIndex).utc(true).isAfter(moment(segment.dateIndex).utc(true));
+            res[segment.dateIndex] = !(this.lower_selected_segment.index > segment.index);
         }
 
         return res;
@@ -394,7 +395,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             }
 
             if (res[segment.dateIndex] == this.state_none) {
-                if (this.validate_previous_segment && moment(this.validate_previous_segment.dateIndex).utc(true).isSameOrAfter(segment.dateIndex)) {
+                if (this.validate_previous_segment && (this.validate_previous_segment.index >= segment.index)) {
                     res[segment.dateIndex] = this.state_ok;
                 }
             }
@@ -588,7 +589,7 @@ export default class DataImportComponent extends DataImportComponentBase {
                     res[segment.dateIndex] = {};
                 }
 
-                if (res[segment.dateIndex][api_type_id] && moment(res[segment.dateIndex][api_type_id].start_date).utc(true).isAfter(moment(historic.start_date).utc(true))) {
+                if (res[segment.dateIndex][api_type_id] && (res[segment.dateIndex][api_type_id].start_date > historic.start_date)) {
                     continue;
                 }
 
@@ -1172,7 +1173,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
     get has_imports_on_selected_segments(): boolean {
         let segment: TimeSegment = this.lower_selected_segment;
-        while (moment(segment.dateIndex).utc(true).isSameOrBefore(moment(this.upper_selected_segment.dateIndex).utc(true))) {
+        while (segment.index <= this.upper_selected_segment.index) {
 
             if ((!!this.import_historics) && (!!this.import_historics[segment.dateIndex])) {
                 return true;
@@ -1256,7 +1257,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
         // On est en import multiple, soit on passe au suivant, soit c'est terminé
         this.importing_multiple_segments_current_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
-        if (moment(this.upper_selected_segment.dateIndex).utc(true).isBefore(moment(this.importing_multiple_segments_current_segment.dateIndex).utc(true))) {
+        if (this.upper_selected_segment.index < this.importing_multiple_segments_current_segment.index) {
             this.importing_multiple_segments = false;
             return;
         }

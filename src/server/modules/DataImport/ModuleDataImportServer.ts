@@ -12,6 +12,7 @@ import DataImportColumnVO from '../../../shared/modules/DataImport/vos/DataImpor
 import DataImportFormatVO from '../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLogVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -666,7 +667,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         //     await PushDataServerController.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
         // }
 
-        await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().utc(true).format("Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
+        await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + Dates.format(Dates.now(), "Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {

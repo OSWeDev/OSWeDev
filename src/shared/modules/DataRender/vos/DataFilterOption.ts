@@ -1,4 +1,3 @@
-import { Moment } from "moment";
 
 export default class DataFilterOption {
     public static STATE_SELECTED: number = 1;
@@ -8,7 +7,7 @@ export default class DataFilterOption {
     public boolean_value: boolean = null;
     public numeric_value: number = null;
     public string_value: string = null;
-    public tstz_value: Moment = null;
+    public tstz_value: number = null;
 
     public text_uid: string = null;
 
@@ -38,7 +37,7 @@ export default class DataFilterOption {
         }
 
         if (this.tstz_value !== null) {
-            this.text_uid = this.tstz_value.unix().toString();
+            this.text_uid = this.tstz_value.toString();
             return;
         }
 

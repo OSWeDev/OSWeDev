@@ -92,20 +92,9 @@ export default class VarsPerfMonServerController {
                 pmlinfo.segment_type = range.segment_type;
                 pmlinfo.is_max_range = RangeHandler.getInstance().is_max_range(range);
 
-                switch (range.range_type) {
-                    case NumRange.RANGE_TYPE:
-                        pmlinfo.min_as_number = range.min;
-                        pmlinfo.max_as_number = range.max;
-                        break;
-                    case TSRange.RANGE_TYPE:
-                        pmlinfo.min_as_number = (range.min as any as Moment).unix();
-                        pmlinfo.max_as_number = (range.max as any as Moment).unix();
-                        break;
-                    case HourRange.RANGE_TYPE:
-                        pmlinfo.min_as_number = (range.min as any as Duration).asMilliseconds();
-                        pmlinfo.max_as_number = (range.max as any as Duration).asMilliseconds();
-                        break;
-                }
+                pmlinfo.min_as_number = range.min;
+                pmlinfo.max_as_number = range.max;
+
                 res.push(pmlinfo);
             }
         }

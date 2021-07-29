@@ -5,7 +5,6 @@ import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
 import ILoggerHandler from '../shared/tools/interfaces/ILoggerHandler';
 import ConfigurationService from './env/ConfigurationService';
 import FileServerController from './modules/File/FileServerController';
-const moment = require('moment');
 
 export default class FileLoggerHandler implements ILoggerHandler {
 

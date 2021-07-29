@@ -1,6 +1,7 @@
 import { throttle } from 'lodash';
 import moment = require('moment');
 import { performance } from 'perf_hooks';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -93,21 +94,21 @@ export default class VarsdatasComputerBGThread implements IBGThread {
          * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attent le timeout
          */
         if (this.semaphore) {
-            this.last_calculation_unix = moment().utc(true).unix();
+            this.last_calculation_unix = Dates.now();
             return;
         }
 
         let do_run: boolean = this.run_asap;
 
         if (!do_run) {
-            if (moment().utc(true).unix() > (this.last_calculation_unix + this.timeout_calculation)) {
+            if (Dates.now() > (this.last_calculation_unix + this.timeout_calculation)) {
                 do_run = true;
             }
         }
 
         if (do_run) {
             await this.do_calculation_run();
-            this.last_calculation_unix = moment().utc(true).unix();
+            this.last_calculation_unix = Dates.now();
         }
         return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
     }

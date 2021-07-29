@@ -449,9 +449,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         let date = momentSrc;
         if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
             if (moduleTableField.is_inclusive_data) {
-                Dates.add(date, is_data_to_ihm ? 1 : -1, moduleTableField.segmentation_type);
+                date = Dates.add(date, is_data_to_ihm ? 1 : -1, moduleTableField.segmentation_type);
             } else {
-                Dates.add(date, is_data_to_ihm ? -1 : 1, moduleTableField.segmentation_type);
+                date = Dates.add(date, is_data_to_ihm ? -1 : 1, moduleTableField.segmentation_type);
             }
         }
 

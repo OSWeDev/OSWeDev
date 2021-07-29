@@ -9,6 +9,7 @@ import IExportableDatas from '../interfaces/IExportableDatas';
 import moment = require('moment');
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class DataExportBGThread implements IBGThread {
 

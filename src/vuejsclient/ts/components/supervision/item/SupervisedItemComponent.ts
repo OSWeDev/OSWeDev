@@ -162,11 +162,11 @@ export default class SupervisedItemComponent extends VueComponentBase {
         tmp_hist = tmp_hist.filter((elt: ISupervisedItem) => (elt.last_update != null));
 
         tmp_hist.sort((a: ISupervisedItem, b: ISupervisedItem) => {
-            if (a.last_update.isBefore(b.last_update)) {
+            if (a.last_update < b.last_update) {
                 return -1;
             }
 
-            if (a.last_update.isAfter(b.last_update)) {
+            if (a.last_update > b.last_update) {
                 return 1;
             }
 

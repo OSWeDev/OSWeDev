@@ -178,7 +178,7 @@ export default abstract class ProgramPlanControllerBase {
                         continue;
                     }
 
-                    if (all_rdv.start_time.isAfter(rdv.start_time)) {
+                    if (all_rdv.start_time > rdv.start_time) {
                         VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.has_more_recent_task__denied'));
                         return true;
                     }

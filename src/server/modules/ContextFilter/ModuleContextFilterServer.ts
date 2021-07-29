@@ -1,4 +1,5 @@
 
+import moment = require('moment');
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -316,7 +317,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:
-                res.tstz_value = moment(parseInt(db_res.toString()) * 1000).utc();
+                res.tstz_value = parseInt(db_res.toString());
                 break;
 
 
@@ -356,7 +357,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
-                res.tstz_value = moment(db_res).utc(true);
+                res.tstz_value = moment(db_res).utc(true).unix();
                 break;
 
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:

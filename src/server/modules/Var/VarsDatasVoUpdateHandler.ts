@@ -116,7 +116,7 @@ export default class VarsDatasVoUpdateHandler {
                     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
                         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
-                    return false; // je vois pas pourquoi .... this.last_registration && moment().utc(true).add(-500, 'ms').isBefore(this.last_registration);
+                    return false; // je vois pas pourquoi .... this.last_registration && Dates.now() .add(-500, 'ms').isBefore(this.last_registration);
                 }
 
                 this.last_call_handled_something = true;

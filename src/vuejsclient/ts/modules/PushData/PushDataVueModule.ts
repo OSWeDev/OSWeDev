@@ -376,7 +376,7 @@ export default class PushDataVueModule extends VueModuleBase {
                             continue;
                         }
 
-                        if (var_by_indexes[e.index].value_ts.isAfter(e.value_ts)) {
+                        if (var_by_indexes[e.index].value_ts > e.value_ts) {
                             continue;
                         }
 

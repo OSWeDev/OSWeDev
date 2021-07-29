@@ -1,5 +1,6 @@
 import * as  moment from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -126,13 +127,13 @@ export default class VarsImportsHandler {
         /**
          * On prend tous les imports, qui intersecte pas ceux qu'on a déjà sélectionnés, et dont le cardinal est <= cardinal_max
          */
-        let start_time = moment().utc(true).unix();
+        let start_time = Dates.now();
         let real_start_time = start_time;
 
         i++;
         while ((cardinal_max > 0) && (i < ordered_imports.length)) {
 
-            let actual_time = moment().utc(true).unix();
+            let actual_time = Dates.now();
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;

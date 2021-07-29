@@ -428,13 +428,13 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         res += '##USER INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.name + ' | UID ' + feedback.user_id + '](' +
             envParam.BASE_URL + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.user_id) + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Connection : ' + ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(feedback.user_connection_date);
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Login : ' + ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(feedback.user_login_date);
+        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Connection : ' + Dates.format(feedback.user_connection_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Login : ' + Dates.format(feedback.user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         if (feedback.is_impersonated) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : [Admin user | UID ' + feedback.impersonated_from_user_id + '](' +
                 envParam.BASE_URL + 'admin/#' + CRUDHandler.getUpdateLink(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id) + ')';
-            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Connection : ' + ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(feedback.impersonated_from_user_connection_date);
-            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Login : ' + ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(feedback.impersonated_from_user_login_date);
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Connection : ' + Dates.format(feedback.impersonated_from_user_connection_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Login : ' + Dates.format(feedback.impersonated_from_user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         }
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.email + '](mailto:' + feedback.email + ')';
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.phone + '](tel:' + feedback.phone + ')';
@@ -465,10 +465,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
         let start_url = envParam.BASE_URL + '#' + feedback.feedback_start_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start URL : [' + start_url + '](' + start_url + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start date : ' + ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(feedback.feedback_start_date);
+        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Start date : ' + Dates.format(feedback.feedback_start_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         let end_url = envParam.BASE_URL + '#' + feedback.feedback_end_url;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission URL : [' + end_url + '](' + end_url + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission date : ' + ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(feedback.feedback_end_date);
+        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission date : ' + Dates.format(feedback.feedback_end_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission type : ' + type;
         return res;
     }

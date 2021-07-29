@@ -383,10 +383,6 @@ export default class TimeSegmentHandler {
         return this.getAllDataTimeSegments(start_period, end_period, timeSegment.type, true);
     }
 
-    public forceStartSegment(date: number, segment_type: number): number {
-        return Dates.startOf(date, segment_type);
-    }
-
     /**
      *
      * @param timeSegment

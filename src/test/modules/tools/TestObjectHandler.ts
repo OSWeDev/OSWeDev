@@ -287,8 +287,4 @@ describe('ObjectHandler', () => {
             3: 'c'
         });
     });
-    // it('test filterVosDateIndexesByTSRange', () => {
-    // });
-    // it('test filterVosDateIndexesByTSRanges', () => {
-    // });
 });

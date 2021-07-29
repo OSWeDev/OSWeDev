@@ -1,5 +1,6 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
@@ -20,7 +21,6 @@ import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
 import MaintenanceCronWorkersHandler from './MaintenanceCronWorkersHandler';
 import MaintenanceServerController from './MaintenanceServerController';
-const moment = require('moment');
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
 
@@ -197,7 +197,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.broadcasted_msg2 = true;
         maintenance.broadcasted_msg3 = false;
         maintenance.start_ts = Dates.now();
-        maintenance.end_ts = moment().utc(true).add(1, 'hour');
+        maintenance.end_ts = Dates.add(maintenance.start_ts, 1, TimeSegment.TYPE_HOUR);
         maintenance.maintenance_over = false;
 
         /**

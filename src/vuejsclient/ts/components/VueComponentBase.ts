@@ -1,4 +1,4 @@
-import * as moment from "moment";
+
 import { unitOfTime } from "moment";
 import * as screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";

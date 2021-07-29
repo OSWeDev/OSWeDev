@@ -2,6 +2,7 @@
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleServerBase from '../ModuleServerBase';

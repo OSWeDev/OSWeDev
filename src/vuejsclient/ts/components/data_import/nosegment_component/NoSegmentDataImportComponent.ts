@@ -354,7 +354,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
 
             let api_type_id = historic.api_type_id;
 
-            if (res[api_type_id] && moment(res[api_type_id].start_date).utc(true).isAfter(moment(historic.start_date).utc(true))) {
+            if (res[api_type_id] && (res[api_type_id].start_date > historic.start_date)) {
                 continue;
             }
 

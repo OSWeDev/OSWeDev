@@ -3,7 +3,6 @@ import ModuleTable from '../../modules/ModuleTable';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-const moment = require('moment');
 
 export default class VersionedVOController implements IVOController {
 

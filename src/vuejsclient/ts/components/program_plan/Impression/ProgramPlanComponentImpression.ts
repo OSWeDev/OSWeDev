@@ -48,12 +48,6 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
     public getPartnersByIds: { [id: number]: IPlanPartner };
 
     @ModuleProgramPlanGetter
-    public filter_date_debut: moment.Moment;
-
-    @ModuleProgramPlanGetter
-    public filter_date_fin: moment.Moment;
-
-    @ModuleProgramPlanGetter
     public printable_table_weeks: any;
 
     @Prop({ default: 1 })

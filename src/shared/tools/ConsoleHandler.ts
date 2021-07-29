@@ -1,7 +1,7 @@
 /* istanbul ignore file: not a usefull test to write */
 
+import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import ILoggerHandler from './interfaces/ILoggerHandler';
-const moment = require('moment');
 
 export default class ConsoleHandler {
 
@@ -72,6 +72,6 @@ export default class ConsoleHandler {
     }
 
     private get_timestamp(): string {
-        return moment().utc(true).format('YYYY-MM-DD HH:mm:ss.SSS');
+        return Dates.format(Dates.now(), 'YYYY-MM-DD HH:mm:ss.SSS');
     }
 }

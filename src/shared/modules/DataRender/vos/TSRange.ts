@@ -1,4 +1,3 @@
-const moment = require('moment');
 import TimeSegmentHandler from '../../../tools/TimeSegmentHandler';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IRange from '../interfaces/IRange';
@@ -119,9 +118,9 @@ export default class TSRange implements IRange {
     public static cloneFrom(from: TSRange): TSRange {
         let res: TSRange = new TSRange();
 
-        res.max = moment(from.max).utc(true);
+        res.max = from.max;
         res.max_inclusiv = from.max_inclusiv;
-        res.min = moment(from.min).utc(true);
+        res.min = from.min;
         res.min_inclusiv = from.min_inclusiv;
         res.segment_type = from.segment_type;
 

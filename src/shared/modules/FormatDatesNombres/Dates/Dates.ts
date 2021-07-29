@@ -193,10 +193,41 @@ export default class Dates {
      * @param a
      * @param b
      * @param segmentation
-     * @returns true if the diff according to the segmentation is < 0
+     * @returns true if the diff according to the segmentation is <= 0
+     */
+    public static isSameOrBefore(a: number, b: number, segmentation: number): boolean {
+        return this.diff(a, b, segmentation) <= 0;
+    }
+
+    /**
+     * @param a
+     * @param b
+     * @param segmentation
+     * @returns true if the diff according to the segmentation is > 0
      */
     public static isAfter(a: number, b: number, segmentation: number): boolean {
         return this.diff(a, b, segmentation) > 0;
+    }
+
+    /**
+     * @param a
+     * @param b
+     * @param segmentation
+     * @returns true if the diff according to the segmentation is >= 0
+     */
+    public static isSameOrAfter(a: number, b: number, segmentation: number): boolean {
+        return this.diff(a, b, segmentation) >= 0;
+    }
+
+    /**
+     * Exclusive test
+     * @param date
+     * @param start
+     * @param end
+     * @returns true if the diff according to the segmentation is > 0 for start and < 0 for end
+     */
+    public static isBetween(date: number, start: number, end: number): boolean {
+        return (this.diff(date, start) > 0) && (this.diff(date, end) < 0);
     }
 
     /**
@@ -285,6 +316,36 @@ export default class Dates {
         }
 
         return moment.unix(date).utc().date(set_date).unix();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_day if omitted the function return the current day in the week (0 = sunday), else it sets it and return the updated time.
+     */
+    public static day(date: number, set_day?: number): number {
+
+        if (set_day == null) {
+            return Math.floor((date % 604800) / 86400) + 4 % 7; // 0 == jeudi 01/01/1970
+        }
+
+        let current = this.day(date);
+
+        return (set_day - current) * 86400 + date;
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_isoWeekday if omitted the function return the current isoWeekday in the week (0 = monday), else it sets it and return the updated time.
+     */
+    public static isoWeekday(date: number, set_isoWeekday?: number): number {
+
+        if (set_isoWeekday == null) {
+            return Math.floor((date % 604800) / 86400) + 3 % 7; // 0 == jeudi 01/01/1970
+        }
+
+        let current = this.isoWeekday(date);
+
+        return (set_isoWeekday - current) * 86400 + date;
     }
 
     /**

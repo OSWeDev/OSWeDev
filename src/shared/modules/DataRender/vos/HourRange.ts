@@ -1,4 +1,3 @@
-const moment = require('moment');
 import HourSegmentHandler from '../../../tools/HourSegmentHandler';
 import Durations from '../../FormatDatesNombres/Dates/Durations';
 import IRange from '../interfaces/IRange';

@@ -1,4 +1,3 @@
-const moment = require('moment');
 import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import MatroidBase from './vos/MatroidBase';

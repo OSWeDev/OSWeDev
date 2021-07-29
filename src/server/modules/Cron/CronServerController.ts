@@ -12,8 +12,8 @@ import RunCronsForkMessage from './messages/RunCronsForkMessage';
 import DateHandler from '../../../shared/tools/DateHandler';
 import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class CronServerController {
 
@@ -106,7 +106,7 @@ export default class CronServerController {
                     continue;
                 }
 
-                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).utc(true).isBefore(Dates.now())) {
+                if (plannedWorker.date_heure_planifiee && (plannedWorker.date_heure_planifiee < Dates.now())) {
                     await this.executeWorker(plannedWorker.worker_uid);
                     await this.nextRecurrence(plannedWorker);
                 }

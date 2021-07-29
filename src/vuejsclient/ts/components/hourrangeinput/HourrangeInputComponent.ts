@@ -3,6 +3,8 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import HourRange from '../../../../shared/modules/DataRender/vos/HourRange';
+import HourSegment from '../../../../shared/modules/DataRender/vos/HourSegment';
+import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import HourHandler from '../../../../shared/tools/HourHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -77,15 +79,15 @@ export default class HourrangeInputComponent extends VueComponentBase {
     @Watch('hourrange_end')
     private emitInput(): void {
 
-        let hourstart: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.segmentation_type_value);
-        let hourend: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.segmentation_type_value);
+        let hourstart: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.segmentation_type_value);
+        let hourend: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.segmentation_type_value);
 
-        if (this.auto_next_day && hourend && hourstart && (hourend.asMilliseconds() <= hourstart.asMilliseconds())) {
-            hourend.add(24, 'hours');
+        if (this.auto_next_day && hourend && hourstart && (hourend <= hourstart)) {
+            hourend = Durations.add(hourend, 24, HourSegment.TYPE_HOUR);
         }
 
-        if (this.auto_max_one_day && hourend && hourstart && (hourend.asMilliseconds() > hourstart.asMilliseconds()) && ((hourend.asMilliseconds() - hourstart.asMilliseconds()) > (60 * 24 * 60 * 1000))) {
-            hourend.add(-24, 'hours');
+        if (this.auto_max_one_day && hourend && hourstart && (hourend > hourstart) && ((hourend - hourstart) > (60 * 24 * 60))) {
+            hourend = Durations.add(hourend, -24, HourSegment.TYPE_HOUR);
         }
 
         if (hourstart && hourend) {

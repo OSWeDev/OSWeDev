@@ -1,5 +1,6 @@
-import { Moment } from "moment";
-import * as moment from "moment";
+import TimeSegment from "../DataRender/vos/TimeSegment";
+import Dates from "../FormatDatesNombres/Dates/Dates";
+
 
 
 export default class ResetDateHelper {
@@ -24,7 +25,7 @@ export default class ResetDateHelper {
      * @param yearly_reset_day_in_month 1-31
      * @param yearly_reset_month 0-11
      */
-    public getClosestPreviousResetDate(date: Moment, inclusive: boolean, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
+    public getClosestPreviousResetDate(date: number, inclusive: boolean, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): number {
 
         if (!has_yearly_reset) {
             return null;
@@ -32,12 +33,12 @@ export default class ResetDateHelper {
 
         // Si on a une zone de balance, on doit vérifier qu'on est après la balance et dans ce cas on accepte la date de reset.
         // Sinon, on par de la date de reset Y-1
-        let date_reset: Moment = moment(date).startOf('day').utc(true);
-        date_reset.month(yearly_reset_month);
-        date_reset.date(yearly_reset_day_in_month);
+        let date_reset: number = Dates.startOf(date, TimeSegment.TYPE_DAY);
+        Dates.month(date_reset, yearly_reset_month);
+        Dates.date(date_reset, yearly_reset_day_in_month);
 
-        if ((inclusive && date_reset.isAfter(date, 'day')) || ((!inclusive) && date_reset.isSameOrAfter(date, 'day'))) {
-            date_reset.add(-1, 'year');
+        if ((inclusive && Dates.isAfter(date_reset, date, TimeSegment.TYPE_DAY)) || ((!inclusive) && Dates.isSameOrAfter(date_reset, date, TimeSegment.TYPE_DAY))) {
+            date_reset = Dates.add(date_reset, -1, TimeSegment.TYPE_YEAR);
         }
         return date_reset;
     }
@@ -49,18 +50,18 @@ export default class ResetDateHelper {
      * @param yearly_reset_day_in_month 1-31
      * @param yearly_reset_month 0-11
      */
-    public getClosestNextResetDate(date: Moment, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
+    public getClosestNextResetDate(date: number, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): number {
 
         if (!has_yearly_reset) {
             return null;
         }
 
-        let date_reset: Moment = moment(date).utc(true);
-        date_reset.month(yearly_reset_month);
-        date_reset.date(yearly_reset_day_in_month);
+        let date_reset: number = date;
+        Dates.month(date_reset, yearly_reset_month);
+        Dates.date(date_reset, yearly_reset_day_in_month);
 
-        if (date_reset.isBefore(date, 'day')) {
-            date_reset.add(1, 'year');
+        if (Dates.isBefore(date_reset, date, TimeSegment.TYPE_DAY)) {
+            date_reset = Dates.add(date_reset, 1, TimeSegment.TYPE_YEAR);
         }
         return date_reset;
     }
@@ -72,12 +73,12 @@ export default class ResetDateHelper {
      * @param yearly_reset_day_in_month 1-31
      * @param yearly_reset_month 0-11
      */
-    public isResetDate(date: Moment, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): boolean {
+    public isResetDate(date: number, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): boolean {
 
         if ((!has_yearly_reset) || (!date)) {
             return false;
         }
 
-        return (date.month() == yearly_reset_month) && (date.date() == yearly_reset_day_in_month);
+        return (Dates.month(date) == yearly_reset_month) && (Dates.date(date) == yearly_reset_day_in_month);
     }
 }

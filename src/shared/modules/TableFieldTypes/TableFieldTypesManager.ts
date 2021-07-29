@@ -1,5 +1,4 @@
 import TableFieldTypeControllerBase from './vos/TableFieldTypeControllerBase';
-const moment = require('moment');
 
 export default class TableFieldTypesManager {
 

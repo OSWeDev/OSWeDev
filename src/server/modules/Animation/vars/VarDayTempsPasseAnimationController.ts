@@ -3,6 +3,7 @@ import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params
 import AnimationParametersVO from '../../../../shared/modules/Animation/vos/AnimationParametersVO';
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
@@ -105,7 +106,7 @@ export default class VarDayTempsPasseAnimationController extends VarServerContro
                     continue;
                 }
 
-                let temps_passe: number = aum.end_date.diff(aum.start_date, 'hours', true);
+                let temps_passe: number = Dates.diff(aum.end_date, aum.start_date, TimeSegment.TYPE_HOUR, true);
 
                 if (animation_params && animation_params.limite_temps_passe_module) {
                     if (temps_passe > animation_params.limite_temps_passe_module) {

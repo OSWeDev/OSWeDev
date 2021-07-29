@@ -8,13 +8,13 @@ import ParamLigneCommandeVO from '../../../../shared/modules/Commerce/Commande/v
 import ProduitParamLigneParamVO from '../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 import ModuleClientServer from '../Client/ModuleClientServer';
 import ModuleProduitServer from '../Produit/ModuleProduitServer';
-const moment = require('moment');
 
 export default class ModuleCommandeServer extends ModuleServerBase {
 
@@ -60,7 +60,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
         let panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
-        panier.date = moment().utc(true).toLocaleString();
+        panier.date = Dates.now();
         panier.statut = CommandeVO.STATUT_PANIER;
 
         let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);

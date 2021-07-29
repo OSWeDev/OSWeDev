@@ -1,7 +1,7 @@
 import IAPIParamTranslator from "../../interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../interfaces/IAPIParamTranslatorStatic";
 
-export default class NumberParamVO implements IAPIParamTranslator<NumberParamVO>{
+export default class NumberParamVO implements IAPIParamTranslator<NumberParamVO> {
 
     public static URL: string = ':num';
 

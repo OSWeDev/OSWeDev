@@ -3,6 +3,8 @@ import { throttle } from 'lodash';
 
 import { performance } from 'perf_hooks';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
@@ -122,7 +124,7 @@ export default class ForkMessageController {
              * On log max 1 fois par minute
              */
             let log_msg_error = performance.now();
-            if (this.last_log_msg_error < (log_msg_error - (60 * 1000))) {
+            if (this.last_log_msg_error < (log_msg_error - 60)) {
                 this.last_log_msg_error = log_msg_error;
                 ConsoleHandler.getInstance().error(error);
             }
@@ -134,7 +136,7 @@ export default class ForkMessageController {
             if (msg_wrapper.forked_target) {
 
                 if (ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] &&
-                    moment().utc(true).add(-1, 'minute').isAfter(ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
+                    (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) > ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
                     ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();

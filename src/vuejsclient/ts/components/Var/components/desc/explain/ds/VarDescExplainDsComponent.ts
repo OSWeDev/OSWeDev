@@ -1,11 +1,10 @@
-import 'vue-json-pretty/lib/styles.css';
+import { Duration, Moment } from 'moment';
 import VueJsonPretty from 'vue-json-pretty';
+import 'vue-json-pretty/lib/styles.css';
 import { Component, Prop } from 'vue-property-decorator';
+import TypesHandler from '../../../../../../../../shared/tools/TypesHandler';
 import VueComponentBase from '../../../../../VueComponentBase';
 import './VarDescExplainDsComponent.scss';
-import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
-import TypesHandler from '../../../../../../../../shared/tools/TypesHandler';
-import { Duration, Moment } from 'moment';
 
 @Component({
     template: require('./VarDescExplainDsComponent.pug'),

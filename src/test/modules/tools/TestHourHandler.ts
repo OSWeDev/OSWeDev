@@ -7,8 +7,8 @@ import 'mocha';
 
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import HourHandler from '../../../shared/tools/HourHandler';
-import Durations from '../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import HourSegment from '../../../shared/modules/DataRender/vos/HourSegment';
+import Durations from '../../../shared/modules/FormatDatesNombres/Dates/Durations';
 // import * as moment from 'moment';
 
 describe('HourHandler', () => {
@@ -39,8 +39,8 @@ describe('HourHandler', () => {
     });
 
     it('test: force2DigitMin', () => {
-        let s = (((22 * 60) + 59 * 60) + 45 * 1000) + 999;
-        let e = (((22 * 60) + 59 * 60) + 47 * 1000) + 991;
+        let s = ((22 * 60) + 59 * 60) + 45;
+        let e = ((22 * 60) + 59 * 60) + 47;
         let start = Durations.from_segmentation(s);
         var end = Durations.from_segmentation(e);
         expect(HourHandler.getInstance()['force2DigitMin'](null)).to.equal("00");
@@ -51,8 +51,8 @@ describe('HourHandler', () => {
 
 
     it('test: force3Digit', () => {
-        let s = (((22 * 60) + 59 * 60) + 45 * 1000) + 999;
-        let e = (((22 * 60) + 59 * 60) + 47 * 1000) + 991;
+        let s = ((22 * 60) + 59 * 60) + 45;
+        let e = ((22 * 60) + 59 * 60) + 47;
         let start = Durations.from_segmentation(s);
         var end = Durations.from_segmentation(e);
         expect(HourHandler.getInstance()['force3Digit'](null)).to.equal("000");

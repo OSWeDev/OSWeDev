@@ -122,16 +122,16 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         let index_historique: number = 0;
         let last_historique_value: number = 0;
 
-        while (this.historiques[index_historique] && this.historiques[index_historique].last_update.isBefore(current)) {
+        while (this.historiques[index_historique] && (this.historiques[index_historique].last_update < current)) {
             index_historique++;
         }
 
-        while (current.isSameOrBefore(max)) {
+        while (current <= max) {
 
             /**
              * La valeur se défini par la moyenne des valeurs compatible, ou la valeur la plus proche
              */
-            let current_range: TSRange = RangeHandler.getInstance().create_single_elt_TSRange(moment(current), this.graph_segmentation.range.segment_type);
+            let current_range: TSRange = RangeHandler.getInstance().create_single_elt_TSRange(current, this.graph_segmentation.range.segment_type);
             let somme_historique: number = null;
             let nb_historique: number = 0;
             while (this.historiques[index_historique] && RangeHandler.getInstance().elt_intersects_range(this.historiques[index_historique].last_update, current_range)) {

@@ -18,6 +18,7 @@ import DateHandler from '../../../../shared/tools/DateHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ImportLogger from '../logger/ImportLogger';
 import TextHandler from '../../../../shared/tools/TextHandler';
+import moment = require('moment');
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ImportTypeXLSXHandler {
@@ -224,73 +225,73 @@ export default class ImportTypeXLSXHandler {
     /**
      * TODO FIXME ASAP TU
      */
-    public getMomentFromXLSDateString(column_data_string: any): Moment {
+    public getMomentFromXLSDateString(column_data_string: any): number {
         if (!column_data_string) {
             return null;
         }
 
         if (/^[0-9][0-9][/][0-9][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/MM/YYYY').utc(true);
+            return moment(column_data_string, 'DD/MM/YYYY').utc(true).unix();
         }
         if (/^[0-9][/][0-9][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/MM/YYYY').utc(true);
+            return moment(column_data_string, 'D/MM/YYYY').utc(true).unix();
         }
         if (/^[0-9][0-9][/][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/M/YYYY').utc(true);
+            return moment(column_data_string, 'DD/M/YYYY').utc(true).unix();
         }
         if (/^[0-9][/][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/M/YYYY').utc(true);
+            return moment(column_data_string, 'D/M/YYYY').utc(true).unix();
         }
 
         if (/^[0-9][0-9][/][0-9][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/MM/YY').utc(true);
+            return moment(column_data_string, 'DD/MM/YY').utc(true).unix();
         }
         if (/^[0-9][/][0-9][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/MM/YY').utc(true);
+            return moment(column_data_string, 'D/MM/YY').utc(true).unix();
         }
         if (/^[0-9][0-9][/][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/M/YY').utc(true);
+            return moment(column_data_string, 'DD/M/YY').utc(true).unix();
         }
         if (/^[0-9][/][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/M/YY').utc(true);
+            return moment(column_data_string, 'D/M/YY').utc(true).unix();
         }
 
 
         if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-MM-DD').utc(true);
+            return moment(column_data_string, 'YYYY-MM-DD').utc(true).unix();
         }
         if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-MM-D').utc(true);
+            return moment(column_data_string, 'YYYY-MM-D').utc(true).unix();
         }
         if (/^[0-9][0-9][0-9][0-9]-[0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-M-DD').utc(true);
+            return moment(column_data_string, 'YYYY-M-DD').utc(true).unix();
         }
         if (/^[0-9][0-9][0-9][0-9]-[0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-M-D').utc(true);
+            return moment(column_data_string, 'YYYY-M-D').utc(true).unix();
         }
 
         if (/^[0-9][0-9]-[0-9][0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-MM-DD').utc(true);
+            return moment(column_data_string, 'YY-MM-DD').utc(true).unix();
         }
         if (/^[0-9][0-9]-[0-9][0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-MM-D').utc(true);
+            return moment(column_data_string, 'YY-MM-D').utc(true).unix();
         }
         if (/^[0-9][0-9]-[0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-M-DD').utc(true);
+            return moment(column_data_string, 'YY-M-DD').utc(true).unix();
         }
         if (/^[0-9][0-9]-[0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-M-D').utc(true);
+            return moment(column_data_string, 'YY-M-D').utc(true).unix();
         }
 
         if (/^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYYMMDD').utc(true);
+            return moment(column_data_string, 'YYYYMMDD').utc(true).unix();
         }
         if (/^[0-9][0-9][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYMMDD').utc(true);
+            return moment(column_data_string, 'YYMMDD').utc(true).unix();
         }
 
         if (moment(column_data_string).utc(true).isValid()) {
-            return moment(column_data_string).utc(true);
+            return moment(column_data_string).utc(true).unix();
         }
 
         return null;
@@ -336,7 +337,7 @@ export default class ImportTypeXLSXHandler {
         return res;
     }
 
-    public parseExcelDate(dateValue, wbProps): Moment {
+    public parseExcelDate(dateValue, wbProps): number {
         if (dateValue) {
             // it is a string, but it really represents a number and not a date
             if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
@@ -346,12 +347,12 @@ export default class ImportTypeXLSXHandler {
                 var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: (wbProps && wbProps.date1904 === '1') });
                 // new Date(2015, 9, 18);  // 18th October(!) 2015 in @JavaScript
                 var monthToJs = dt.m - 1;
-                return moment(new Date(dt.y, monthToJs, dt.d)).utc(true);
+                return moment(new Date(dt.y, monthToJs, dt.d)).utc(true).unix();
             }
             // else assume a string representing a date
             // we use few allowed formats, but explicitly parse not strictly
             var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY'];
-            return moment(dateValue, formats, false).utc(true);
+            return moment(dateValue, formats, false).utc(true).unix();
         }
         return null;
     }
