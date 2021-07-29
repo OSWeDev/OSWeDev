@@ -2,6 +2,7 @@
 
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
@@ -11,16 +12,13 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
-import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
@@ -212,11 +210,11 @@ export default class VarsDatasProxy {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__handle_buffer],
             async () => {
 
-                let start_time = moment().utc(true).unix();
+                let start_time = Dates.now();
                 let real_start_time = start_time;
 
                 while (this.semaphore_handle_buffer) {
-                    let actual_time = moment().utc(true).unix();
+                    let actual_time = Dates.now();
 
                     if (actual_time > (start_time + 60)) {
                         start_time = actual_time;
@@ -250,7 +248,7 @@ export default class VarsDatasProxy {
                         }
 
                         // Si on a pas de modif à gérer et que le dernier accès date, on nettoie
-                        if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && wrapper.last_insert_or_update.isBefore(moment().utc(true).add(-5, 'minute')))) {
+                        if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && (wrapper.last_insert_or_update < Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE)))) {
                             // if (env.DEBUG_VARS) {
                             //     ConsoleHandler.getInstance().log(
                             //         'handle_buffer:pas de modif à gérer et que le dernier accès date:index|' + handle_var.bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
@@ -267,7 +265,7 @@ export default class VarsDatasProxy {
                             (!wrapper.needs_insert_or_update) &&
                             (!(
                                 (wrapper.nb_reads_since_last_insert_or_update >= 10) ||
-                                (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || wrapper.last_insert_or_update.isBefore(moment().utc(true).add(-2, 'minute'))))))) {
+                                (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || (wrapper.last_insert_or_update < Dates.add(Dates.now(), -2, TimeSegment.TYPE_MINUTE))))))) {
 
                             // if (env.DEBUG_VARS) {
                             //     ConsoleHandler.getInstance().log(
@@ -301,7 +299,7 @@ export default class VarsDatasProxy {
                                 let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(handle_var._type, [handle_var], null);
 
                                 if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
-                                    ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts.unix() < handle_var.value_ts.unix())))) {
+                                    ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts < handle_var.value_ts)))) {
 
                                     ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
 
@@ -646,12 +644,12 @@ export default class VarsDatasProxy {
                         let limit: number = 500;
                         let offset: number = 0;
 
-                        let start_time = moment().utc(true).unix();
+                        let start_time = Dates.now();
                         let real_start_time = start_time;
 
                         while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
 
-                            let actual_time = moment().utc(true).unix();
+                            let actual_time = Dates.now();
 
                             if (actual_time > (start_time + 60)) {
                                 start_time = actual_time;
@@ -730,11 +728,11 @@ export default class VarsDatasProxy {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes],
             async () => {
 
-                // let start_time = moment().utc(true).unix();
+                // let start_time = Dates.now();
                 // let real_start_time = start_time;
 
                 // while (this.semaphore_handle_buffer) {
-                //     let actual_time = moment().utc(true).unix();
+                //     let actual_time = Dates.now();
 
                 //     if (actual_time > (start_time + 60)) {
                 //         start_time = actual_time;
@@ -760,7 +758,7 @@ export default class VarsDatasProxy {
                          *  Si on vide le value_ts on prend la modif aussi ça veut dire qu'on invalide la valeur en cache
                          */
                         if ((!var_data.value_ts) || ((!!var_data.value_ts) && ((!wrapper.var_data.value_ts) ||
-                            (var_data.value_ts && (wrapper.var_data.value_ts.unix() < var_data.value_ts.unix()))))) {
+                            (var_data.value_ts && (wrapper.var_data.value_ts < var_data.value_ts))))) {
 
                             // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
                             if ((!var_data.id) && (wrapper.var_data.id)) {

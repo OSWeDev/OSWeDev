@@ -27,7 +27,7 @@ export default class ThemeModuleDataRangesVO extends VarDataBaseVO {
 
     public value: number;
     public value_type: number;
-    public value_ts: Moment;
+    public value_ts: number;
 
     public id: number;
     public var_id: number;

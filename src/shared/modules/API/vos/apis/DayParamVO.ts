@@ -13,10 +13,10 @@ export default class DayParamVO implements IAPIParamTranslator<DayParamVO>{
         if (!(req && req.params)) {
             return null;
         }
-        return new DayParamVO(moment(req.params.day).utc(true));
+        return new DayParamVO(parseInt(req.params.day));
     }
 
-    public static fromParams(day: Moment): DayParamVO {
+    public static fromParams(day: number): DayParamVO {
 
         return new DayParamVO(day);
     }
@@ -26,12 +26,12 @@ export default class DayParamVO implements IAPIParamTranslator<DayParamVO>{
     }
 
     public constructor(
-        public day: Moment) {
+        public day: number) {
     }
 
     public translateToURL(): string {
 
-        return DateHandler.getInstance().formatDayForApi(this.day);
+        return this.day.toString();
     }
 }
 

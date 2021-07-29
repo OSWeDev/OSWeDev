@@ -10,5 +10,5 @@ export default class NumberDatasourceFieldDataVO extends VarDataBaseVO {
     public value: number;
 
     public value_type: number;
-    public value_ts: Moment;
+    public value_ts: number;
 }

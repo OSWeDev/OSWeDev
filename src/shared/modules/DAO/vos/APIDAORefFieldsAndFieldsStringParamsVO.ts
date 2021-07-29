@@ -14,7 +14,7 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
         values2: string[] = null,
         field_name3: string = null,
         values3: string[] = null,
-        segmentation_ranges: Array<IRange<any>> = null): APIDAORefFieldsAndFieldsStringParamsVO {
+        segmentation_ranges: IRange[] = null): APIDAORefFieldsAndFieldsStringParamsVO {
 
         return new APIDAORefFieldsAndFieldsStringParamsVO(API_TYPE_ID, field_name1, ids1, field_name2, values2, field_name3, values3, segmentation_ranges);
     }
@@ -76,7 +76,7 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO implements IAPIParam
         public values2: string[] = null,
         public field_name3: string = null,
         public values3: string[] = null,
-        public segmentation_ranges: Array<IRange<any>> = null) {
+        public segmentation_ranges: IRange[] = null) {
     }
 
     public translateToURL(): string {

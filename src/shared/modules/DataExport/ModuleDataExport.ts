@@ -117,10 +117,10 @@ export default class ModuleDataExport extends Module {
             export_to_uid,
             exported_file_id,
             new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, new DefaultTranslation({ fr: "Status" }), true, true, ExportHistoricVO.EXPORT_STATE_TODO).setEnumValues(ExportHistoricVO.EXPORT_STATE_LABELS),
-            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date de création" }), true).set_segmentation_type(TimeSegment.TYPE_MS),
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date de début" }), false).set_segmentation_type(TimeSegment.TYPE_MS),
-            new ModuleTableField('sent_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date d'envoi" }), false).set_segmentation_type(TimeSegment.TYPE_MS),
-            new ModuleTableField('export_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_MS),
+            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date de création" }), true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date de début" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('sent_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date d'envoi" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('export_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
         let moduleTable: ModuleTable<ExportHistoricVO> = new ModuleTable<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);

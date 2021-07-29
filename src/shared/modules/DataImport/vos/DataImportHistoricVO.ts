@@ -23,11 +23,11 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     public data_import_format_id: number;
 
     // Heure de création de l'historique
-    public start_date: Moment;
+    public start_date: number;
     // Heure de modification de l'historique
-    public last_up_date: Moment;
+    public last_up_date: number;
     // Heure de modification de l'historique vers un status de fin d'import (en erreur ou non)
-    public end_date: Moment;
+    public end_date: number;
 
     // JSON des params (site, boutique, ...)
     public params: string;

@@ -84,7 +84,7 @@ export default class ModuleDAO extends Module {
         field_name1: string, ids1: number[],
         field_name2?: string, values2?: string[],
         field_name3?: string, values3?: string[],
-        segmentation_ranges?: Array<IRange<any>>) => Promise<T[]> = APIControllerWrapper.sah(
+        segmentation_ranges?: IRange[]) => Promise<T[]> = APIControllerWrapper.sah(
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
             null, (
                 API_TYPE_ID: string,
@@ -126,7 +126,7 @@ export default class ModuleDAO extends Module {
     public insertOrUpdateVOs: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS);
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME);
-    public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: Array<IRange<any>>) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
+    public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: IRange[]) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
     public getVosByIds: <T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS,
         null,

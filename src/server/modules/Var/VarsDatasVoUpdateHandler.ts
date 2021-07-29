@@ -2,6 +2,7 @@
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -55,7 +56,7 @@ export default class VarsDatasVoUpdateHandler {
 
     public ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public last_call_handled_something: boolean = false;
-    private last_registration: Moment = null;
+    private last_registration: number = null;
 
     private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false });
 
@@ -122,7 +123,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
                 // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
-                if ((this.ordered_vos_cud.length < 1000) && this.last_registration && moment().utc(true).add(-500, 'ms').isBefore(this.last_registration)) {
+                if ((this.ordered_vos_cud.length < 1000) && this.last_registration && ((Dates.now() - 1) < this.last_registration)) {
                     return true;
                 }
 
@@ -146,7 +147,7 @@ export default class VarsDatasVoUpdateHandler {
                 this.throttled_update_param();
 
                 // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
-                return this.last_registration && moment().utc(true).add(-500, 'ms').isBefore(this.last_registration);
+                return this.last_registration && ((Dates.now() - 1) < this.last_registration);
             },
             this
         );
@@ -257,7 +258,7 @@ export default class VarsDatasVoUpdateHandler {
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }
     ) {
 
-        let start_time = moment().utc(true).unix();
+        let start_time = Dates.now();
         let real_start_time = start_time;
 
         let original_markers = Object.assign({}, markers);
@@ -265,7 +266,7 @@ export default class VarsDatasVoUpdateHandler {
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
 
-            let actual_time = moment().utc(true).unix();
+            let actual_time = Dates.now();
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
@@ -552,13 +553,13 @@ export default class VarsDatasVoUpdateHandler {
      */
     private prepare_updates(limit: number, vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }, vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }, vo_types: string[]): number {
 
-        let start_time = moment().utc(true).unix();
+        let start_time = Dates.now();
         let real_start_time = start_time;
 
         while ((limit > 0) && this.ordered_vos_cud && this.ordered_vos_cud.length) {
 
 
-            let actual_time = moment().utc(true).unix();
+            let actual_time = Dates.now();
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;

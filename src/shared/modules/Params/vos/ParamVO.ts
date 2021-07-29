@@ -10,5 +10,5 @@ export default class ParamVO implements IDistantVOBase, INamedVO {
 
     public name: string;
     public value: string;
-    public last_up_date: Moment;
+    public last_up_date: number;
 }

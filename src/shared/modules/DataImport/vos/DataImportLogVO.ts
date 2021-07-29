@@ -26,7 +26,7 @@ export default class DataImportLogVO implements IDistantVOBase {
     public data_import_format_id: number;
     public data_import_historic_id: number;
 
-    public date: Moment;
+    public date: number;
     public log_level: number;
 
     // Uses code_text if defined or message if not

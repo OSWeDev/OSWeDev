@@ -1,4 +1,5 @@
 import cloneDeep = require('lodash/cloneDeep');
+import * as moment from 'moment';
 
 
 import ConsoleHandler from '../tools/ConsoleHandler';
@@ -969,7 +970,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_month:
-                    res[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true));
+                    res[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true).unix());
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:

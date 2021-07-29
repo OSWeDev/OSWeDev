@@ -282,9 +282,9 @@ export default class DataRenderController {
 
         let value: number = 0;
 
-        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(cumulSegment.dateIndex).utc(true), type_segmentation);
-        let end_cumul_dateindex: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
-        while (end_cumul_dateindex.isSameOrAfter(TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment))) {
+        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(cumulSegment.index, type_segmentation);
+        let end_cumul_dateindex: number = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
+        while (end_cumul_dateindex >= TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment)) {
 
             if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex]) ||
                 (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id]) ||

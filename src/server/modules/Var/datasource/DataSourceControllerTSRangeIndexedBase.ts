@@ -34,9 +34,9 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
         }
 
         node.datasources[this.name] = {};
-        await RangeHandler.getInstance().foreach_ranges(data_index, async (date: Moment) => {
+        await RangeHandler.getInstance().foreach_ranges(data_index, async (date: number) => {
 
-            let ms_i = date.valueOf();
+            let ms_i = date;
             if (typeof ds_cache[ms_i] === 'undefined') {
                 let data = await this.get_data(node.var_data, ds_cache);
 
@@ -62,5 +62,5 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
      * Dans ce cas la fonction qui load les datas doit aussi faire le lien entre le int qui vient du TSRange -valueOf- et chaque valeur
      * @param param
      */
-    public abstract async get_data(param: VarDataBaseVO, ds_cache: { [ds_data_index: string]: any }): Promise<{ [ms_i: number]: any }>;
+    public abstract get_data(param: VarDataBaseVO, ds_cache: { [ds_data_index: string]: any }): Promise<{ [ms_i: number]: any }>;
 }

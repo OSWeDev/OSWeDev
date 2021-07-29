@@ -1,6 +1,7 @@
 
 import { performance } from 'perf_hooks';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
@@ -384,13 +385,13 @@ export default class VarsComputeController {
                 let promises = [];
                 let i = 0;
 
-                let start_time = moment().utc(true).unix();
+                let start_time = Dates.now();
                 let real_start_time = start_time;
 
 
                 while (i < vars_datas_as_array.length) {
 
-                    let actual_time = moment().utc(true).unix();
+                    let actual_time = Dates.now();
 
                     if (actual_time > (start_time + 60)) {
                         start_time = actual_time;
@@ -434,12 +435,12 @@ export default class VarsComputeController {
                 let deps_ids_as_array = Object.keys(deps);
                 let deps_i = 0;
 
-                let start_time = moment().utc(true).unix();
+                let start_time = Dates.now();
                 let real_start_time = start_time;
 
                 while (deps_i < deps_as_array.length) {
 
-                    let actual_time = moment().utc(true).unix();
+                    let actual_time = Dates.now();
 
                     if (actual_time > (start_time + 60)) {
                         start_time = actual_time;

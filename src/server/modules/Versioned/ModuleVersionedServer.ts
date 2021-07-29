@@ -2,6 +2,7 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersionedVO';
 import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';

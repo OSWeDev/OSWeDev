@@ -70,14 +70,14 @@ export default class Dates {
                 return date - date % 60;
             case TimeSegment.TYPE_MONTH:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                let mm = moment(date).utc(true);
+                let mm = moment.unix(date).utc();
                 return mm.startOf('month').unix();
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
                 return date + ((date - 345600) % 604800); // 01/01/70 = jeudi
             case TimeSegment.TYPE_YEAR:
-                let my = moment(date).utc(true);
+                let my = moment.unix(date).utc();
                 return my.startOf('year').unix();
 
             default:
@@ -103,17 +103,17 @@ export default class Dates {
             case TimeSegment.TYPE_MINUTE:
                 return date - date % 60 + 60 - 1;
             case TimeSegment.TYPE_MONTH:
-                let mm = moment(date).utc(true);
+                let mm = moment.unix(date).utc();
                 return mm.endOf('month').unix();
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
                 return date - date % 592200 + 592200 - 1;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                let mryms = moment(date).utc(true);
+                let mryms = moment.unix(date).utc();
                 return mryms.endOf('month').add(1, 'year').unix();
             case TimeSegment.TYPE_YEAR:
-                let my = moment(date).utc(true);
+                let my = moment.unix(date).utc();
                 return my.endOf('year').unix();
 
             default:
@@ -126,7 +126,7 @@ export default class Dates {
             return null;
         }
 
-        let mm = moment(date).utc(true);
+        let mm = moment.unix(date).utc();
         return mm.format(formatstr);
     }
 
@@ -137,7 +137,7 @@ export default class Dates {
      * @param do_not_floor - defaults to false
      * @returns diff value between a and b
      */
-    public static diff(a: number, b: number, segmentation: number, do_not_floor: boolean = false): number {
+    public static diff(a: number, b: number, segmentation: number = TimeSegment.TYPE_SECOND, do_not_floor: boolean = false): number {
 
         let a_ = a;
         let b_ = b;
@@ -151,8 +151,8 @@ export default class Dates {
             case TimeSegment.TYPE_MINUTE:
                 return (a_ - a_ % 60) - (b_ - b_ % 60);
             case TimeSegment.TYPE_MONTH:
-                let mma = moment(a).utc(true);
-                let mmb = moment(b).utc(true);
+                let mma = moment.unix(a).utc();
+                let mmb = moment.unix(b).utc();
                 return mma.diff(mmb, 'month', do_not_floor);
             case TimeSegment.TYPE_SECOND:
                 return a_ - b_;
@@ -160,8 +160,8 @@ export default class Dates {
                 return (a_ - a_ % 592200) - (b_ - b_ % 592200);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
-                let mya = moment(a).utc(true);
-                let myb = moment(b).utc(true);
+                let mya = moment.unix(a).utc();
+                let myb = moment.unix(b).utc();
                 return mya.diff(myb, 'year', do_not_floor);
 
             default:
@@ -180,31 +180,65 @@ export default class Dates {
     }
 
     /**
-     * @param date date to get or set
-     * @param set_hours if omitted the function return the current hours in the day, else it sets it and return the updated time.
-     *  If > 23, it bubbles on the day
+     * @param a
+     * @param b
+     * @param segmentation
+     * @returns true if the diff according to the segmentation is < 0
      */
-    public static hours(date: number, set_hours?: number): number {
+    public static isBefore(a: number, b: number, segmentation: number): boolean {
+        return this.diff(a, b, segmentation) < 0;
+    }
 
-        if (set_hours == null) {
-            return Math.floor((date % 86400) / 3600);
-        }
-
-        return Dates.startOf(date, TimeSegment.TYPE_DAY) + set_hours * 3600;
+    /**
+     * @param a
+     * @param b
+     * @param segmentation
+     * @returns true if the diff according to the segmentation is < 0
+     */
+    public static isAfter(a: number, b: number, segmentation: number): boolean {
+        return this.diff(a, b, segmentation) > 0;
     }
 
     /**
      * @param date date to get or set
-     * @param set_minutes if omitted the function return the current minutes in the hour, else it sets it and return the updated time.
+     * @param set_hour if omitted the function return the current hours in the day, else it sets it and return the updated time.
+     *  If > 23, it bubbles on the day
+     */
+    public static hour(date: number, set_hour?: number): number {
+
+        if (set_hour == null) {
+            return Math.floor((date % 86400) / 3600);
+        }
+
+        return Dates.startOf(date, TimeSegment.TYPE_DAY) + set_hour * 3600;
+    }
+
+    /**
+     * Prefer hour for Dates
+     */
+    public static hours(date: number, set_hours?: number): number {
+        return Dates.hour(date, set_hours);
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_minute if omitted the function return the current minutes in the hour, else it sets it and return the updated time.
      *  If > 59, it bubbles on the hour
      */
-    public static minutes(date: number, set_minutes?: number): number {
+    public static minute(date: number, set_minute?: number): number {
 
-        if (set_minutes == null) {
+        if (set_minute == null) {
             return Math.floor((date % 3600) / 60);
         }
 
-        return Dates.startOf(date, TimeSegment.TYPE_HOUR) + set_minutes * 60;
+        return Dates.startOf(date, TimeSegment.TYPE_HOUR) + set_minute * 60;
+    }
+
+    /**
+     * Alias of minute
+     */
+    public static minutes(date: number, set_minutes?: number): number {
+        return Dates.minute(date, set_minutes);
     }
 
     /**
@@ -212,13 +246,20 @@ export default class Dates {
      * @param set_seconds if omitted the function return the current seconds in the minute, else it sets it and return the updated time.
      *  If > 59, it bubbles on the minute
      */
-    public static seconds(date: number, set_seconds?: number): number {
+    public static second(date: number, set_seconds?: number): number {
 
         if (set_seconds == null) {
             return Math.floor(date % 60);
         }
 
         return Dates.startOf(date, TimeSegment.TYPE_MINUTE) + set_seconds;
+    }
+
+    /**
+     * Alias of second
+     */
+    public static seconds(date: number, set_seconds?: number): number {
+        return Dates.second(date, set_seconds);
     }
 
     /**
@@ -230,5 +271,46 @@ export default class Dates {
             return null;
         }
         return new Date(date * 1000).toISOString();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_date if omitted the function return the current date in the month, else it sets it and return the updated time.
+     *  Bubbles on the month
+     */
+    public static date(date: number, set_date?: number): number {
+
+        if (set_date == null) {
+            return moment.unix(date).utc().date();
+        }
+
+        return moment.unix(date).utc().date(set_date).unix();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_month if omitted the function return the current month in the year, else it sets it and return the updated time.
+     *  Bubbles on the year
+     */
+    public static month(date: number, set_month?: number): number {
+
+        if (set_month == null) {
+            return moment.unix(date).utc().month();
+        }
+
+        return moment.unix(date).utc().month(set_month).unix();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_year if omitted the function return the current year, else it sets it and return the updated time.
+     */
+    public static year(date: number, set_year?: number): number {
+
+        if (set_year == null) {
+            return moment.unix(date).utc().year();
+        }
+
+        return moment.unix(date).utc().year(set_year).unix();
     }
 }

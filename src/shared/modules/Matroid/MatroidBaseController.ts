@@ -27,7 +27,7 @@ export default class MatroidBaseController {
      * On définit le cardinal du matroid base par la somme des ranges
      * @param matroid_base
      */
-    public get_cardinal<T>(matroid_base: MatroidBase<T>): number {
+    public get_cardinal<T>(matroid_base: MatroidBase): number {
 
         if (!matroid_base) {
             return 0;
@@ -50,7 +50,7 @@ export default class MatroidBaseController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroidbase_intersects_matroidbase<T>(a: MatroidBase<T>, b: MatroidBase<T>): boolean {
+    public matroidbase_intersects_matroidbase(a: MatroidBase, b: MatroidBase): boolean {
         // Si l'un des ranges intersect, les matroid base intersectent
 
         if ((!a) || (!b) || (a.api_type_id != b.api_type_id) || (a.field_id != b.field_id)) {
@@ -72,7 +72,7 @@ export default class MatroidBaseController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public matroidbase_intersects_any_matroidbase<T>(a: MatroidBase<T>, bs: Array<MatroidBase<T>>): boolean {
+    public matroidbase_intersects_any_matroidbase(a: MatroidBase, bs: MatroidBase[]): boolean {
         for (let i in bs) {
             if (this.matroidbase_intersects_matroidbase(a, bs[i])) {
                 return true;
@@ -85,7 +85,7 @@ export default class MatroidBaseController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public cut_matroid_base<T>(matroidbase_cutter: MatroidBase<T>, matroidbase_to_cut: MatroidBase<T>): MatroidBaseCutResult<T> {
+    public cut_matroid_base(matroidbase_cutter: MatroidBase, matroidbase_to_cut: MatroidBase): MatroidBaseCutResult {
 
         if (!matroidbase_to_cut) {
             return null;
@@ -95,7 +95,7 @@ export default class MatroidBaseController {
             return new MatroidBaseCutResult(null, matroidbase_to_cut);
         }
 
-        let cut_result: RangesCutResult<IRange<T>> = RangeHandler.getInstance().cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
+        let cut_result: RangesCutResult<IRange> = RangeHandler.getInstance().cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
 
         let res_chopped = (cut_result && cut_result.chopped_items && cut_result.chopped_items.length) ?
             MatroidBase.createNew(

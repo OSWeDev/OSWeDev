@@ -181,14 +181,14 @@ export default class MatroidController {
      * FIXME TODO ASAP WITH TU
      * @param sort Sorts by cardinal
      */
-    public getMatroidBases(matroid: IMatroid, sort: boolean = false, sort_asc: boolean = false): Array<MatroidBase<any>> {
+    public getMatroidBases(matroid: IMatroid, sort: boolean = false, sort_asc: boolean = false): MatroidBase[] {
 
         if (!matroid) {
             return null;
         }
 
         let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
-        let matroid_bases: Array<MatroidBase<any>> = [];
+        let matroid_bases: MatroidBase[] = [];
 
         if ((!matroid_fields) || (!matroid_fields.length)) {
             return null;
@@ -201,7 +201,7 @@ export default class MatroidController {
         }
 
         if (sort) {
-            matroid_bases.sort((a: MatroidBase<any>, b: MatroidBase<any>) => {
+            matroid_bases.sort((a: MatroidBase, b: MatroidBase) => {
                 return sort_asc ? MatroidBaseController.getInstance().get_cardinal(a) - MatroidBaseController.getInstance().get_cardinal(b) :
                     MatroidBaseController.getInstance().get_cardinal(b) - MatroidBaseController.getInstance().get_cardinal(a);
             });
@@ -444,8 +444,8 @@ export default class MatroidController {
 
         // On choisit (arbitrairement) de projeter la coupe selon une base du matroid
         //  de manière totalement arbitraire aussi, on priorise la base de cardinal la plus élevée
-        // on limite l'utilisation du get_cardinal très lourd pour peu de gain a priori let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut, true, false);
-        let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut);
+        // on limite l'utilisation du get_cardinal très lourd pour peu de gain a priori let matroid_to_cut_bases: MatroidBase[] = this.getMatroidBases(matroid_to_cut, true, false);
+        let matroid_to_cut_bases: MatroidBase[] = this.getMatroidBases(matroid_to_cut);
 
         // Le matroid chopped est unique par définition et reprend simplement les bases chopped
         let chopped_matroid = this.cloneFrom<T, T>(matroid_to_cut);
@@ -463,12 +463,12 @@ export default class MatroidController {
                 continue;
             }
 
-            let cutter_field_ranges: Array<IRange<any>> = matroid_cutter[matroid_to_cut_base.field_id];
+            let cutter_field_ranges: IRange[] = matroid_cutter[matroid_to_cut_base.field_id];
 
             let matroidbase_cutter = MatroidBase.createNew(
                 matroid_to_cut_base.api_type_id, matroid_to_cut_base.field_id,
                 cutter_field_ranges);
-            let cut_result: MatroidBaseCutResult<MatroidBase<any>> = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
+            let cut_result: MatroidBaseCutResult = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
 
             // ça marche que si il y a un remaining sur cette dimension, sinon on veut pas stocker des bases null...
             if (!cut_result) {

@@ -65,7 +65,7 @@ export default class ModuleTableDBService {
         return segments_by_segmented_value;
     }
 
-    public async create_or_update_datatable(moduleTable: ModuleTable<any>, segments: Array<IRange<any>> = null) {
+    public async create_or_update_datatable(moduleTable: ModuleTable<any>, segments: IRange[] = null) {
 
         let self = this;
 

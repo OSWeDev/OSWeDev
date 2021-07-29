@@ -95,7 +95,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
     public async getVosRefsById(
         API_TYPE_ID: string,
         id: number,
-        segmentation_ranges: Array<IRange<any>> = null,
+        segmentation_ranges: IRange[] = null,
         limit: number = 1000
     ): Promise<VocusInfoVO[]> {
 

@@ -12,7 +12,7 @@ export default class VarDataValueResVO {
     public is_computing: boolean;
     public value: number;
     public value_type: number;
-    public value_ts: Moment;
+    public value_ts: number;
 
     public constructor() { }
 
@@ -36,7 +36,7 @@ export default class VarDataValueResVO {
         return this;
     }
 
-    public set_value_ts(value_ts: Moment): VarDataValueResVO {
+    public set_value_ts(value_ts: number): VarDataValueResVO {
         this.value_ts = value_ts;
         return this;
     }

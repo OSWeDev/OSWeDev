@@ -11,6 +11,8 @@ import SendInBlueSmsFormatVO from '../../../../shared/modules/SendInBlue/vos/Sen
 import ConfigurationService from '../../../env/ConfigurationService';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueRequestResultVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 const moment = require('moment');
 
 export default class SendInBlueSmsCampaignServerController {
@@ -40,7 +42,7 @@ export default class SendInBlueSmsCampaignServerController {
         return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueSmsCampaignsVO>(ModuleRequest.METHOD_GET, SendInBlueSmsCampaignServerController.PATH_CAMPAIGN);
     }
 
-    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: Moment, testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
+    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: number, testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
 
         // On check que l'env permet d'envoyer des mails
         if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
@@ -55,14 +57,14 @@ export default class SendInBlueSmsCampaignServerController {
             return false;
         }
 
-        if (scheduledAt && scheduledAt.isBefore(Dates.now(), 'minute')) {
+        if (scheduledAt && Dates.isBefore(scheduledAt, Dates.now(), TimeSegment.TYPE_MINUTE)) {
             return this.send(campaign.id, testSms, phoneTest);
         }
 
         return true;
     }
 
-    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: Moment): Promise<SendInBlueSmsCampaignDetailVO> {
+    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: number): Promise<SendInBlueSmsCampaignDetailVO> {
         if (!campaignName || !content || !contacts || !contacts.length) {
             return null;
         }
@@ -77,10 +79,15 @@ export default class SendInBlueSmsCampaignServerController {
             listIds: [list.id]
         };
 
-        let scheduledAt_clone: Moment = moment(scheduledAt.format('Y-MM-DD')).utc(true).hour(scheduledAt.hour()).minute(scheduledAt.minute()).second(0);
+        let scheduledAt_clone: number =
+            Dates.minutes(
+                Dates.hours(
+                    Dates.startOf(scheduledAt, TimeSegment.TYPE_DAY),
+                    Dates.hours(scheduledAt)),
+                Dates.minutes(scheduledAt));
 
-        if (scheduledAt_clone.isBefore(Dates.now(), 'minute')) {
-            scheduledAt_clone = moment().utc(true).add(3, 'minutes');
+        if (Dates.isBefore(scheduledAt_clone, Dates.now(), TimeSegment.TYPE_MINUTE)) {
+            scheduledAt_clone = Dates.add(Dates.now(), 3, TimeSegment.TYPE_MINUTE);
         }
 
         let res: SendInBlueRequestResultVO = await SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueRequestResultVO>(
@@ -91,7 +98,7 @@ export default class SendInBlueSmsCampaignServerController {
                 sender: await SendInBlueServerController.getInstance().getSenderNameSMS(),
                 content: content,
                 recipients: recipientsData,
-                scheduledAt: scheduledAt_clone.toISOString(),
+                scheduledAt: Dates.toISOString(scheduledAt_clone),
             }
         );
 

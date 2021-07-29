@@ -20,5 +20,5 @@ export default class AnimationUserQRVO implements IDistantVOBase {
     public qr_id: number;
     public user_id: number;
 
-    public date: Moment;
+    public date: number;
 }

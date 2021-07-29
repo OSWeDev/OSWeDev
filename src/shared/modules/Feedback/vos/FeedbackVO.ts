@@ -26,18 +26,18 @@ export default class FeedbackVO implements IVersionedVO {
     public trello_ref: string;
 
     // When user opened the feedback window to start a feedback
-    public feedback_start_date: Moment;
+    public feedback_start_date: number;
     // When user sent the feedback
-    public feedback_end_date: Moment;
+    public feedback_end_date: number;
 
     // User connection date (according to the last load => server session)
-    public user_connection_date: Moment;
+    public user_connection_date: number;
     // User connection date (according to the last load => server session)
-    public impersonated_from_user_connection_date: Moment;
+    public impersonated_from_user_connection_date: number;
     // User login date (according to the last login => server session)
-    public user_login_date: Moment;
+    public user_login_date: number;
     // User login date (according to the last login => server session)
-    public impersonated_from_user_login_date: Moment;
+    public impersonated_from_user_login_date: number;
 
     public feedback_type: number;
 
@@ -67,7 +67,7 @@ export default class FeedbackVO implements IVersionedVO {
     public trashed: boolean;
     public version_num: number;
     public version_author_id: number;
-    public version_timestamp: Moment;
+    public version_timestamp: number;
     public version_edit_author_id: number;
-    public version_edit_timestamp: Moment;
+    public version_edit_timestamp: number;
 }

@@ -9,5 +9,5 @@ export default class BGThreadVO implements IDistantVOBase, INamedVO {
     public _type: string = BGThreadVO.API_TYPE_ID;
 
     public name: string;
-    public last_up_date: Moment;
+    public last_up_date: number;
 }

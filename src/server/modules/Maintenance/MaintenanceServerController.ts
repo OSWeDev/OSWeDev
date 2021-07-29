@@ -1,4 +1,6 @@
 
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -35,7 +37,7 @@ export default class MaintenanceServerController {
      * Local thread cache -----
      *  - Monothread car un seul thread, le main, peut et doit l'utiliser en CRUD
      */
-    private informed_users_tstzs: { [user_id: number]: Moment } = {};
+    private informed_users_tstzs: { [user_id: number]: number } = {};
     /**
      * ----- Local thread cache
      */
@@ -75,7 +77,7 @@ export default class MaintenanceServerController {
         }
 
         let timeout_info: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES, 1);
-        if ((!!this.informed_users_tstzs[user_id]) && (moment(this.informed_users_tstzs[user_id]).utc(true).add(timeout_info, 'minute').isAfter(Dates.now()))) {
+        if ((!!this.informed_users_tstzs[user_id]) && (Dates.add(this.informed_users_tstzs[user_id], timeout_info, TimeSegment.TYPE_MINUTE) > Dates.now())) {
             return;
         }
 

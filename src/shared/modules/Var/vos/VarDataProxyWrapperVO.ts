@@ -10,7 +10,7 @@ export default class VarDataProxyWrapperVO<T extends VarDataBaseVO> {
         public var_data: T,
         public needs_insert_or_update_: boolean = false,
         public nb_reads_since_last_insert_or_update: number = 0,
-        public last_insert_or_update: Moment = null) {
+        public last_insert_or_update: number = null) {
         this.var_data_origin_value = var_data.value;
         this.var_data_origin_type = var_data.value_type;
     }

@@ -76,7 +76,7 @@ export default class Durations {
      *  If > 23, it bubbles on the day
      */
     public static hours(duration: number, set_hours?: number): number {
-        return Dates.hours(duration, set_hours);
+        return Dates.hour(duration, set_hours);
     }
 
     /**
@@ -85,7 +85,7 @@ export default class Durations {
      *  If > 59, it bubbles on the hour
      */
     public static minutes(duration: number, set_minutes?: number): number {
-        return Dates.hours(duration, set_minutes);
+        return Dates.minute(duration, set_minutes);
     }
 
     /**
@@ -94,6 +94,6 @@ export default class Durations {
      *  If > 59, it bubbles on the minute
      */
     public static seconds(duration: number, set_seconds?: number): number {
-        return Dates.hours(duration, set_seconds);
+        return Dates.second(duration, set_seconds);
     }
 }

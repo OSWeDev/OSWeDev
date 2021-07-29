@@ -9,7 +9,7 @@ export default interface IVersionedVO extends IDistantVOBase {
     version_num: number;
 
     version_author_id: number;
-    version_timestamp: Moment;
+    version_timestamp: number;
     version_edit_author_id: number;
-    version_edit_timestamp: Moment;
+    version_edit_timestamp: number;
 }

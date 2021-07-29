@@ -14,7 +14,7 @@ export default class APIDAOParamVO implements IAPIParamTranslator<APIDAOParamVO>
         return new APIDAOParamVO(req.params.api_type_id, parseInt(req.params.id));
     }
 
-    public static fromParams(API_TYPE_ID: string, id: number, segmentation_ranges: Array<IRange<any>> = null): APIDAOParamVO {
+    public static fromParams(API_TYPE_ID: string, id: number, segmentation_ranges: IRange[] = null): APIDAOParamVO {
         return new APIDAOParamVO(API_TYPE_ID, id, segmentation_ranges);
     }
 
@@ -25,7 +25,7 @@ export default class APIDAOParamVO implements IAPIParamTranslator<APIDAOParamVO>
     public constructor(
         public API_TYPE_ID: string,
         public id: number,
-        public segmentation_ranges: Array<IRange<any>> = null) {
+        public segmentation_ranges: IRange[] = null) {
     }
 
     public translateToURL(): string {

@@ -55,9 +55,9 @@ export default class MenuElementVO implements IDistantVOBase {
     public trashed: boolean;
     public version_num: number;
     public version_author_id: number;
-    public version_timestamp: Moment;
+    public version_timestamp: number;
     public version_edit_author_id: number;
-    public version_edit_timestamp: Moment;
+    public version_edit_timestamp: number;
 
     get translatable_title(): string {
         return "menu.menuelements." + this.app_name + '.' + this.name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;

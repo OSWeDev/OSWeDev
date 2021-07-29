@@ -1,6 +1,6 @@
 import IRange from '../../DataRender/interfaces/IRange';
 
-export default class RangesCutResult<T extends IRange<any>> {
+export default class RangesCutResult<T extends IRange> {
 
     public constructor(
         public chopped_items: T[],

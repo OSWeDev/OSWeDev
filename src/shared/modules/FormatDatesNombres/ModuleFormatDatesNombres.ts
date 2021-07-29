@@ -1,9 +1,12 @@
 
+import { Moment } from 'moment';
+import moment = require('moment');
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../../tools/Filters';
 import TypesHandler from '../../tools/TypesHandler';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
+import Dates from './Dates/Dates';
 
 export default class ModuleFormatDatesNombres extends Module {
 
@@ -197,7 +200,7 @@ export default class ModuleFormatDatesNombres extends Module {
         return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date));
     }
 
-    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: moment.Moment | string): moment.Moment {
+    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: string): moment.Moment {
         if (dateToFormat == null) {
             return null;
         }

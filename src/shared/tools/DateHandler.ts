@@ -33,7 +33,7 @@ export default class DateHandler {
         if (!date) {
             return "";
         }
-        return moment.duration(date.diff(Dates.now())).humanize();
+        return moment.duration(Dates.diff(date, Dates.now()), 'seconds').humanize();
     }
 
     public formatDayForIndex(date: number): string {

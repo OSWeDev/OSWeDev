@@ -1,8 +1,8 @@
 import MatroidBase from './MatroidBase';
 
-export default class MatroidBaseCutResult<T> {
+export default class MatroidBaseCutResult {
 
     public constructor(
-        public chopped_items: MatroidBase<T>,
-        public remaining_items: MatroidBase<T>) { }
+        public chopped_items: MatroidBase,
+        public remaining_items: MatroidBase) { }
 }

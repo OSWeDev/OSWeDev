@@ -10,6 +10,7 @@ import ManualTasksController from '../../../shared/modules/Cron/ManualTasksContr
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidBaseController from '../../../shared/modules/Matroid/MatroidBaseController';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
@@ -631,7 +632,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
                     let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
                         query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
                     await ModuleServiceBase.getInstance().db.query(request);
@@ -666,7 +667,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
                     let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
                         query + ';';
                     await ModuleServiceBase.getInstance().db.query(request);
@@ -780,7 +781,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return;
             }
 
-            let start_time = moment().utc(true).unix();
+            let start_time = Dates.now();
             let real_start_time = start_time;
             while (
                 ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
@@ -788,7 +789,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ObjectHandler.getInstance().hasAtLeastOneAttribute(await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(1, 1, 1, 1))
             ) {
                 await ThreadHandler.getInstance().sleep(10000);
-                let actual_time = moment().utc(true).unix();
+                let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
                     start_time = actual_time;

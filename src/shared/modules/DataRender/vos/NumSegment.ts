@@ -1,6 +1,6 @@
 import ISegment from '../interfaces/ISegment';
 
-export default class NumSegment implements ISegment<number> {
+export default class NumSegment implements ISegment {
     public static TYPE_NAMES: string[] = ["numsegment.int.type_name"];
     public static TYPE_INT: number = 0;
 

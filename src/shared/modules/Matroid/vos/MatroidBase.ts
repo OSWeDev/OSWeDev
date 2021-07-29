@@ -1,18 +1,18 @@
 import IRange from '../../DataRender/interfaces/IRange';
 import RangeHandler from '../../../tools/RangeHandler';
 
-export default class MatroidBase<T> {
+export default class MatroidBase {
 
     /**
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      * @param ranges on clone les ranges passés en param
      */
-    public static createNew<T>(api_type_id: string, field_id: string, ranges: Array<IRange<T>>): MatroidBase<T> {
-        let res: MatroidBase<T> = new MatroidBase<T>();
+    public static createNew(api_type_id: string, field_id: string, ranges: IRange[]): MatroidBase {
+        let res: MatroidBase = new MatroidBase();
 
         for (let i in ranges) {
 
-            let from_IRange: IRange<T> = ranges[i];
+            let from_IRange: IRange = ranges[i];
             if (!from_IRange) {
                 return null;
             }
@@ -26,13 +26,13 @@ export default class MatroidBase<T> {
         return res;
     }
 
-    public static cloneFrom<T>(from: MatroidBase<T>): MatroidBase<T> {
-        let res: MatroidBase<T> = new MatroidBase<T>();
+    public static cloneFrom(from: MatroidBase): MatroidBase {
+        let res: MatroidBase = new MatroidBase();
         res.ranges_ = [];
 
         for (let i in from.ranges) {
 
-            let from_IRange: IRange<T> = from.ranges[i];
+            let from_IRange: IRange = from.ranges[i];
             if (!from_IRange) {
                 return null;
             }
@@ -49,11 +49,11 @@ export default class MatroidBase<T> {
     public api_type_id: string;
     public field_id: string;
 
-    private ranges_: Array<IRange<T>> = [];
+    private ranges_: IRange[] = [];
 
     private constructor() { }
 
-    get ranges(): Array<IRange<T>> {
+    get ranges(): IRange[] {
         return this.ranges_;
     }
 }

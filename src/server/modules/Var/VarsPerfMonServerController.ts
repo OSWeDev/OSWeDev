@@ -77,7 +77,7 @@ export default class VarsPerfMonServerController {
             return res;
         }
 
-        let matroid_bases: Array<MatroidBase<any>> = MatroidController.getInstance().getMatroidBases(data);
+        let matroid_bases: MatroidBase[] = MatroidController.getInstance().getMatroidBases(data);
         for (let i in matroid_bases) {
             let matroid_base = matroid_bases[i];
 

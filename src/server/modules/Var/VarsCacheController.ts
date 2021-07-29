@@ -13,6 +13,8 @@ import VarsServerController from './VarsServerController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -167,7 +169,7 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1].isBefore(moment().utc(true).add(-max_earliest_read_days, 'days'))) {
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1] < Dates.add(Dates.now(), -max_earliest_read_days, TimeSegment.TYPE_DAY)) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
@@ -175,11 +177,11 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1].isAfter(moment().utc(true).add(-min_earliest_read_days, 'days'))) {
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1] > Dates.add(Dates.now(), -min_earliest_read_days, TimeSegment.TYPE_DAY)) {
                             continue;
                         }
 
-                        if ((var_data.last_reads_ts.length > 1) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isBefore(moment().utc(true).add(-max_second_earliest_read_days, 'days')))) {
+                        if ((var_data.last_reads_ts.length > 1) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 2] < Dates.add(Dates.now(), -max_second_earliest_read_days, TimeSegment.TYPE_DAY))) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
@@ -187,11 +189,11 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 2] && var_data.last_reads_ts[var_data.last_reads_ts.length - 2].isAfter(moment().utc(true).add(-min_second_earliest_read_days, 'days'))) {
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 2] && var_data.last_reads_ts[var_data.last_reads_ts.length - 2] > Dates.add(Dates.now(), -min_second_earliest_read_days, TimeSegment.TYPE_DAY)) {
                             continue;
                         }
 
-                        if ((var_data.last_reads_ts.length > 2) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isBefore(moment().utc(true).add(-max_third_earliest_read_days, 'days')))) {
+                        if ((var_data.last_reads_ts.length > 2) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 3] < Dates.add(Dates.now(), -max_third_earliest_read_days, TimeSegment.TYPE_DAY))) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
@@ -199,11 +201,11 @@ export default class VarsCacheController {
                             continue;
                         }
 
-                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 3] && var_data.last_reads_ts[var_data.last_reads_ts.length - 3].isAfter(moment().utc(true).add(-min_third_earliest_read_days, 'days'))) {
+                        if (var_data.last_reads_ts[var_data.last_reads_ts.length - 3] && var_data.last_reads_ts[var_data.last_reads_ts.length - 3] > Dates.add(Dates.now(), -min_third_earliest_read_days, TimeSegment.TYPE_DAY)) {
                             continue;
                         }
 
-                        if ((var_data.last_reads_ts.length > 3) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 4].isBefore(moment().utc(true).add(-max_thourth_earliest_read_days, 'days')))) {
+                        if ((var_data.last_reads_ts.length > 3) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 4] < Dates.add(Dates.now(), -max_thourth_earliest_read_days, TimeSegment.TYPE_DAY))) {
                             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }

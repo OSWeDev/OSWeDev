@@ -7,7 +7,7 @@ export default class ExportLogVO implements INamedVO {
 
     public static createNew(
         name: string,
-        log_time: Moment,
+        log_time: number,
         user_id: number,
     ): ExportLogVO {
         let res = new ExportLogVO();
@@ -24,7 +24,7 @@ export default class ExportLogVO implements INamedVO {
     public id: number;
 
     public name: string;
-    public log_time: Moment;
+    public log_time: number;
 
     public user_id: number;
 }

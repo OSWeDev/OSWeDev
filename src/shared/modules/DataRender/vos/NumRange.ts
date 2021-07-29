@@ -2,7 +2,7 @@ import NumSegmentHandler from '../../../tools/NumSegmentHandler';
 import IRange from '../interfaces/IRange';
 import NumSegment from './NumSegment';
 
-export default class NumRange implements IRange<number> {
+export default class NumRange implements IRange {
 
     public static RANGE_TYPE: number = 1;
 
