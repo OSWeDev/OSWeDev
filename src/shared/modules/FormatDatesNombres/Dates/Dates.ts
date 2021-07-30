@@ -231,11 +231,15 @@ export default class Dates {
     }
 
     /**
-     * @param date date to get or set
+     * @param date date to get or set. If none, Dates.now() is used
      * @param set_hour if omitted the function return the current hours in the day, else it sets it and return the updated time.
      *  If > 23, it bubbles on the day
      */
-    public static hour(date: number, set_hour?: number): number {
+    public static hour(date?: number, set_hour?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_hour == null) {
             return Math.floor((date % 86400) / 3600);
@@ -247,7 +251,7 @@ export default class Dates {
     /**
      * Prefer hour for Dates
      */
-    public static hours(date: number, set_hours?: number): number {
+    public static hours(date?: number, set_hours?: number): number {
         return Dates.hour(date, set_hours);
     }
 
@@ -256,7 +260,11 @@ export default class Dates {
      * @param set_minute if omitted the function return the current minutes in the hour, else it sets it and return the updated time.
      *  If > 59, it bubbles on the hour
      */
-    public static minute(date: number, set_minute?: number): number {
+    public static minute(date?: number, set_minute?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_minute == null) {
             return Math.floor((date % 3600) / 60);
@@ -268,7 +276,7 @@ export default class Dates {
     /**
      * Alias of minute
      */
-    public static minutes(date: number, set_minutes?: number): number {
+    public static minutes(date?: number, set_minutes?: number): number {
         return Dates.minute(date, set_minutes);
     }
 
@@ -277,7 +285,11 @@ export default class Dates {
      * @param set_seconds if omitted the function return the current seconds in the minute, else it sets it and return the updated time.
      *  If > 59, it bubbles on the minute
      */
-    public static second(date: number, set_seconds?: number): number {
+    public static second(date?: number, set_seconds?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_seconds == null) {
             return Math.floor(date % 60);
@@ -289,7 +301,7 @@ export default class Dates {
     /**
      * Alias of second
      */
-    public static seconds(date: number, set_seconds?: number): number {
+    public static seconds(date?: number, set_seconds?: number): number {
         return Dates.second(date, set_seconds);
     }
 
@@ -309,7 +321,11 @@ export default class Dates {
      * @param set_date if omitted the function return the current date in the month, else it sets it and return the updated time.
      *  Bubbles on the month
      */
-    public static date(date: number, set_date?: number): number {
+    public static date(date?: number, set_date?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_date == null) {
             return moment.unix(date).utc().date();
@@ -322,7 +338,11 @@ export default class Dates {
      * @param date date to get or set
      * @param set_day if omitted the function return the current day in the week (0 = sunday), else it sets it and return the updated time.
      */
-    public static day(date: number, set_day?: number): number {
+    public static day(date?: number, set_day?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_day == null) {
             return Math.floor((date % 604800) / 86400) + 4 % 7; // 0 == jeudi 01/01/1970
@@ -337,7 +357,11 @@ export default class Dates {
      * @param date date to get or set
      * @param set_isoWeekday if omitted the function return the current isoWeekday in the week (0 = monday), else it sets it and return the updated time.
      */
-    public static isoWeekday(date: number, set_isoWeekday?: number): number {
+    public static isoWeekday(date?: number, set_isoWeekday?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_isoWeekday == null) {
             return Math.floor((date % 604800) / 86400) + 3 % 7; // 0 == jeudi 01/01/1970
@@ -353,7 +377,11 @@ export default class Dates {
      * @param set_month if omitted the function return the current month in the year, else it sets it (0 to 11) and return the updated time.
      *  Bubbles on the year
      */
-    public static month(date: number, set_month?: number): number {
+    public static month(date?: number, set_month?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_month == null) {
             return moment.unix(date).utc().month();
@@ -366,7 +394,11 @@ export default class Dates {
      * @param date date to get or set
      * @param set_year if omitted the function return the current year, else it sets it and return the updated time.
      */
-    public static year(date: number, set_year?: number): number {
+    public static year(date?: number, set_year?: number): number {
+
+        if (date == null) {
+            date = Dates.now();
+        }
 
         if (set_year == null) {
             return moment.unix(date).utc().year();
