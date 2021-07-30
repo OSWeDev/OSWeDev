@@ -41,9 +41,4 @@ describe('DateHandler', () => {
         expect(DateHandler.getInstance().formatMonthFromVO(moment('2020-02-01').startOf('day').utc(true).unix())).to.equal('2020-02');
         expect(DateHandler.getInstance().formatMonthFromVO(moment('2020-02-01').endOf('month').utc(true).unix())).to.equal('2020-02');
     });
-    it('test getUnixForBDD', () => {
-        expect(DateHandler.getInstance().getUnixForBDD(null)).to.equal(null);
-        expect(DateHandler.getInstance().getUnixForBDD(moment('2020-02-01').startOf('day').utc(true).unix())).to.equal(1580515200);
-        expect(DateHandler.getInstance().getUnixForBDD(moment('2020-02-01').endOf('day').utc(true).unix())).to.equal(1580601599);
-    });
 });

@@ -31,7 +31,7 @@ export default class FakeDistantDatasourceController extends DataSourceControlle
             let fake_distant_data = FakeDistantDatasourceController.fake_distant_datas[i];
 
             if (RangeHandler.getInstance().elt_intersects_any_range(fake_distant_data.date, param.ts_ranges)) {
-                res[fake_distant_data.date.valueOf()] = fake_distant_data;
+                res[fake_distant_data.date] = fake_distant_data;
             }
         }
         return res;

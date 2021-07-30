@@ -21,13 +21,6 @@ export default class DateHandler {
     private constructor() {
     }
 
-    public getUnixForBDD(date: number): number {
-        if ((date === null) || (typeof date == 'undefined')) {
-            return null;
-        }
-        return date;
-    }
-
     /* istanbul ignore next: quite difficult test : depends on the local and the number... might want to write one anyway sometime but doesn't seem very important */
     public humanizeDurationTo(date: number): string {
         if (!date) {
