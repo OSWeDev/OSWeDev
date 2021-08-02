@@ -1308,6 +1308,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let self = this;
+
         return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
             let isUpdate: boolean = vo.id ? true : false;
@@ -1318,6 +1320,35 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (!moduleTable) {
                 resolve(null);
                 return null;
+            }
+
+            /**
+             * Si on a des fields de type unique, et pas de id fourni, on veut tester de charger depuis la bdd un objet avec
+             *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
+             */
+            if (!vo.id) {
+
+                let fields = moduleTable.get_fields();
+                for (let fieldi in fields) {
+                    let field = fields[fieldi];
+
+                    if (field.is_unique && !!vo[field.field_id]) {
+
+                        let check_this_uniq_field =
+                            'select * from ' + moduleTable.full_name + ' t where ' +
+                            self.get_simple_field_query(field, vo[field.field_id]);
+
+                        try {
+                            let uniq_refs = moduleTable.forceNumerics(await self.query(check_this_uniq_field));
+                            if (uniq_refs && (uniq_refs.length == 1)) {
+                                vo.id = uniq_refs[0].id;
+                                break;
+                            }
+                        } catch (error) {
+                            ConsoleHandler.getInstance().error(error);
+                        }
+                    }
+                }
             }
 
             /**
@@ -2646,7 +2677,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return null;
                 }
 
-                where_clause += (first_matroid ? "" : ",") + "'" + (matroid as VarDataBaseVO).bdd_only_index + "'";
+                where_clause += (first_matroid ? "" : ",") + "'" + (matroid as VarDataBaseVO)._bdd_only_index + "'";
                 first_matroid = false;
             }
 
@@ -2851,6 +2882,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
+                return table_name + '.' + field.field_id + " = '" + value + "'";
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
