@@ -117,11 +117,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         signin_access = await this.registerPolicy(signin_access, new DefaultTranslation({
             fr: 'Droit à l\'inscription'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = signin_access.id;
-        dependency.depends_on_pol_id = fo_access.id;
-        dependency = await this.registerPolicyDependency(dependency);
 
         let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
         sessionshare_access.group_id = group.id;
@@ -162,7 +157,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         modules_managment_access = await this.registerPolicy(modules_managment_access, new DefaultTranslation({
             fr: 'Gestion des modules'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        dependency = new PolicyDependencyVO();
+        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = modules_managment_access.id;
         dependency.depends_on_pol_id = bo_access.id;
