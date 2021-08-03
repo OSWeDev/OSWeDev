@@ -459,7 +459,7 @@ describe('DataRender', () => {
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(null, null, null, null, null)).to.equal(null);
 
         let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -467,7 +467,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -475,7 +475,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-03-01': {
+            [moment('2018-03-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 10,
@@ -483,7 +483,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -491,7 +491,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,
@@ -536,7 +536,7 @@ describe('DataRender', () => {
         expect(DataRenderController.getInstance().getValueFromRendererData(null, null, null, null, null)).to.equal(null);
 
         let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -544,7 +544,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -552,7 +552,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-03-01': {
+            [moment('2018-03-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 10,
@@ -560,7 +560,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -568,7 +568,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,

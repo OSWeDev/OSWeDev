@@ -1,14 +1,13 @@
-import ServerAPIController from '../../../server/modules/API/ServerAPIController';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
-
 import { expect } from 'chai';
 import 'mocha';
-
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import HourHandler from '../../../shared/tools/HourHandler';
+import ServerAPIController from '../../../server/modules/API/ServerAPIController';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import HourSegment from '../../../shared/modules/DataRender/vos/HourSegment';
 import Durations from '../../../shared/modules/FormatDatesNombres/Dates/Durations';
+import HourHandler from '../../../shared/tools/HourHandler';
+APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
+
+
 // import * as moment from 'moment';
 
 describe('HourHandler', () => {
@@ -19,23 +18,18 @@ describe('HourHandler', () => {
         expect(HourHandler.getInstance().formatHourForIHM(duration, 0)).to.equal("02h");
         expect(HourHandler.getInstance().formatHourForIHM(duration, 1)).to.equal("02:15");
         expect(HourHandler.getInstance().formatHourForIHM(duration, 2)).to.equal("02:15:19");
-        expect(HourHandler.getInstance().formatHourForIHM(duration, 3)).to.equal("02:15:19.800");
     });
 
     it('test:formatHourFromIHM', () => {
         expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", null)).to.equal(null);
         expect(HourHandler.getInstance().formatHourFromIHM(null, 1)).to.equal(null);
         expect(HourHandler.getInstance().formatHourFromIHM(null, null)).to.equal(null);
-        var duration = Durations.from_segmentation(28800000);
+        var duration = Durations.from_segmentation(28800);
         expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 0)).to.deep.equal(duration);
-        duration = Durations.from_segmentation(29400000);
+        duration = Durations.from_segmentation(29400);
         expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 1)).to.deep.equal(duration);
-        duration = Durations.from_segmentation(29425000);
+        duration = Durations.from_segmentation(29425);
         expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 2)).to.deep.equal(duration);
-        duration = Durations.from_segmentation(29425100);
-        expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 3)).to.deep.equal(duration);
-        duration = Durations.from_segmentation(0);
-        expect(HourHandler.getInstance().formatHourFromIHM("0h00:00.000", 3)).to.deep.equal(duration);
     });
 
     it('test: force2DigitMin', () => {

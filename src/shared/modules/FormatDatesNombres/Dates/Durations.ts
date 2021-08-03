@@ -29,7 +29,7 @@ export default class Durations {
             case HourSegment.TYPE_MINUTE:
                 return 60 * nb + duration;
             case HourSegment.TYPE_SECOND:
-                return 60 * nb + duration;
+                return nb + duration;
 
             default:
                 return null;
