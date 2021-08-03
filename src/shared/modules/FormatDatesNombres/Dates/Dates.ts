@@ -37,7 +37,7 @@ export default class Dates {
             // case TimeSegment.TYPE_MS:
             //     return nb/1000 + date;
             case TimeSegment.TYPE_SECOND:
-                return 60 * nb + date;
+                return nb + date;
             case TimeSegment.TYPE_WEEK:
                 return 60 * 60 * 24 * 7 * nb + date;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
