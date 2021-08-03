@@ -1,4 +1,5 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import MatroidController from '../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
@@ -146,7 +147,7 @@ export default class VarDescComponent extends VueComponentBase {
 
         let var_data = this.var_data;
 
-        return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(var_data.value_ts);
+        return Dates.format(var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
     }
 
     @Watch('var_param', { immediate: true })

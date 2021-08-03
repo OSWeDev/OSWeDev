@@ -1,5 +1,6 @@
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
+import * as  moment from "moment";
 
 import 'select2';
 import VCalendar from 'v-calendar';

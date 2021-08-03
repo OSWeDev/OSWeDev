@@ -1,6 +1,5 @@
 
 import * as moment from 'moment';
-import { performance } from "perf_hooks";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 export default class Dates {
@@ -9,7 +8,30 @@ export default class Dates {
      * @returns current timestamp in secs
      */
     public static now(): number {
-        return Math.floor((performance.timeOrigin + performance.now()) / 1000);
+        if (!Dates.p) {
+
+            // server side
+            Dates.p = require("perf_hooks").performance;
+        }
+
+        return Math.floor((Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart + Dates.p.now()) / 1000);
+    }
+
+    public static init_now_handler() {
+        let p = performance;
+
+        if (!p) {
+
+            // server side
+            // @ts-ignore
+            p = require("perf_hooks").performance;
+
+            this.now = () => Math.floor((performance.timeOrigin + performance.now()) / 1000);
+        } else {
+
+            //client side
+            this.now = () => Math.floor((performance.timeOrigin ? performance.timeOrigin : performance.timing.navigationStart + performance.now()) / 1000);
+        }
     }
 
     /**
@@ -406,4 +428,12 @@ export default class Dates {
 
         return moment.unix(date).utc().year(set_year).unix();
     }
+
+    private static p = (() => {
+        try {
+            return performance;
+        } catch (e) {
+            return null;
+        }
+    })();
 }

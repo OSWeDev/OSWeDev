@@ -4,6 +4,6 @@ export default class ConsoleLog {
 
     public constructor(
         public type: string,
-        public datetime: Moment,
+        public datetime: number,
         public value: any) { }
 }

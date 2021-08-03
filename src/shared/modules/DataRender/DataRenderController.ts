@@ -278,7 +278,7 @@ export default class DataRenderController {
 
     public getCumulSegment<T extends IRenderedData>(
         cumulSegment: TimeSegment, type_segmentation: number, resource_id: number, field_name: string, segment_id: number,
-        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
+        renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
         let value: number = 0;
 
@@ -286,14 +286,14 @@ export default class DataRenderController {
         let end_cumul_dateindex: number = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
         while (end_cumul_dateindex >= TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment)) {
 
-            if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex]) ||
-                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id]) ||
-                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id]) ||
-                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id][field_name])) {
+            if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index]) ||
+                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id]) ||
+                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id]) ||
+                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id][field_name])) {
                 current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
                 continue;
             }
-            let segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id][field_name];
+            let segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id][field_name];
             value += segment_value;
 
             current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
@@ -304,7 +304,7 @@ export default class DataRenderController {
 
     public getValueFromRendererData<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
-        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
+        renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
         if (!timeSegment) {
             return null;
@@ -315,14 +315,14 @@ export default class DataRenderController {
         }
 
         segment_id = segment_id ? segment_id : 0;
-        if ((!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex]) ||
-            (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id]) ||
-            (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id]) ||
-            (renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id][field_name] === null) ||
-            (typeof renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name] == 'undefined')) {
+        if ((!renderedDatasBySegmentAndResourceId[timeSegment.index]) ||
+            (!renderedDatasBySegmentAndResourceId[timeSegment.index][resource_id]) ||
+            (!renderedDatasBySegmentAndResourceId[timeSegment.index][resource_id][segment_id]) ||
+            (renderedDatasBySegmentAndResourceId[timeSegment.index][resource_id][segment_id][field_name] === null) ||
+            (typeof renderedDatasBySegmentAndResourceId[timeSegment.index][resource_id][segment_id ? segment_id : 0][field_name] == 'undefined')) {
             return null;
         }
 
-        return renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name];
+        return renderedDatasBySegmentAndResourceId[timeSegment.index][resource_id][segment_id ? segment_id : 0][field_name];
     }
 }

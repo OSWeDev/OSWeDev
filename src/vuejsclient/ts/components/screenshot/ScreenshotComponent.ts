@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
@@ -67,7 +68,7 @@ export default class ScreenshotComponent extends VueComponentBase {
                             canvas.toBlob(async (imgData: Blob) => {
 
                                 let formData = new FormData();
-                                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + moment().utc(true).unix() + '.png');
+                                formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + Dates.now() + '.png');
 
                                 let res = await AjaxCacheClientController.getInstance().post(
                                     null,

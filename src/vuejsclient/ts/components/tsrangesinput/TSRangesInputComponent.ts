@@ -1,5 +1,6 @@
 
 
+import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -47,11 +48,11 @@ export default class TSRangesInputComponent extends VueComponentBase {
             return;
         }
 
-        RangeHandler.getInstance().foreach_ranges_sync(this.value, (e: Moment) => {
+        RangeHandler.getInstance().foreach_ranges_sync(this.value, (e: number) => {
             // On met UTC false car le composant v-date-picker utilise sans UTC et il compare directement la date
             // Ca pose donc un soucis de comparaison pour v-date-picker
             // Il faut bien laisser utc(false)
-            this.selectedDates.push(moment(e.format('Y-MM-DD')).utc(false).toDate());
+            this.selectedDates.push(moment.unix(e).utc().startOf('day').toDate());
         }, this.field.moduleTableField.segmentation_type);
     }
 
@@ -62,7 +63,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
         for (let i in this.selectedDates) {
             let selectedDate = this.selectedDates[i];
 
-            this.new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate).utc(true), this.field.moduleTableField.segmentation_type));
+            this.new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate).utc(true).unix(), this.field.moduleTableField.segmentation_type));
         }
         this.new_value = RangeHandler.getInstance().getRangesUnion(this.new_value);
         this.$emit('input', this.new_value);

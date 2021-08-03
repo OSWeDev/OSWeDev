@@ -33,7 +33,7 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     public params: string;
 
     // Le segment_cible.
-    public segment_date_index: string;
+    public segment_date_index: number;
     public segment_type: number;
 
     // La liste des états est la même que pour les lignes de la table d'import (ModuleDataImport.IMPORTATION_STATE_*)

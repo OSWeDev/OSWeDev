@@ -3,11 +3,10 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
-import VueComponentBase from '../VueComponentBase';
-
 import VueAppController from '../../../VueAppController';
+import VueComponentBase from '../VueComponentBase';
 
 @Component({
     template: require('./TSTZInputComponent.pug'),
@@ -22,7 +21,7 @@ export default class TSTZInputComponent extends VueComponentBase {
     private disabled: boolean;
 
     @Prop({ default: null })
-    private value: Moment;
+    private value: number;
 
     @Prop({ default: null })
     private field: SimpleDatatableField<any, any>;
@@ -36,7 +35,7 @@ export default class TSTZInputComponent extends VueComponentBase {
     private date_value: Date = null;
     private time_value: string = null;
 
-    private new_value: Moment = null;
+    private new_value: number = null;
 
     private format_datepicker_year: string = 'yyyy';
     private format_datepicker_month: string = 'MM/yyyy';
@@ -61,10 +60,10 @@ export default class TSTZInputComponent extends VueComponentBase {
             return;
         }
 
-        this.date_value = this.value.toDate();
+        this.date_value = new Date(this.value * 1000);
 
         if (this.value) {
-            this.time_value = this.value ? this.value.format(this.format_time) : null;
+            this.time_value = this.value ? Dates.format(this.value, this.format_time) : null;
         }
     }
 
@@ -79,19 +78,23 @@ export default class TSTZInputComponent extends VueComponentBase {
         }
     }
 
-    get tstz_value(): Moment {
+    get tstz_value(): number {
+        if (!this.date_value) {
+            return null;
+        }
+
         if (this.segmentation_time) {
-            let date_time: Moment = moment(this.date_value).utc(true);
+            let date_time: number = this.date_value.getTime() / 1000;
             let hours: string[] = (this.time_value) ? this.time_value.split(':') : null;
 
             if (hours && hours.length > 0) {
-                date_time.hours(parseInt(hours[0])).minutes(parseInt(hours[1]));
+                Dates.minutes(Dates.hours(date_time, parseInt(hours[0])), parseInt(hours[1]));
             }
 
             return date_time;
         }
 
-        return moment(this.date_value).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type));
+        return Dates.startOf(this.date_value.getTime() / 1000, this.segmentation_type);
     }
 
     get segmentation_time(): boolean {

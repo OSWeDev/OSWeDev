@@ -19,7 +19,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
     public abstract modal_dropzone_options: any;
     public abstract modal_dropzone_key: string;
 
-    public abstract get_url_for_modal: (segment_date_index: string) => string;
+    public abstract get_url_for_modal: (segment_date_index: number) => string;
 
     protected state_ok: string = "ok";
     protected state_ko: string = "ko";
@@ -29,7 +29,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
     protected state_info: string = "info";
 
     public abstract toggleShowNewImport(): void;
-    public abstract async uploadedFile(target_segment_date_index: string, fileVo: FileVO);
+    public abstract async uploadedFile(target_segment_date_index: number, fileVo: FileVO);
     public abstract async initialize_on_mount();
     public abstract async on_show_modal();
     public abstract hasSelectedOptions(historic: DataImportHistoricVO): boolean;

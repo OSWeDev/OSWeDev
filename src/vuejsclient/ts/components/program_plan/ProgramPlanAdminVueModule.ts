@@ -2,6 +2,8 @@ import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComputedDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
@@ -362,7 +364,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     [
                         new ComputedDatatableField(
                             'rdv_date',
-                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(rdv.start_time) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(rdv.start_time))
+                            (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT))
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_prep_date'));
 
@@ -426,7 +428,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     [
                         new ComputedDatatableField(
                             'rdv_date',
-                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(rdv.start_time) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(rdv.start_time))
+                            (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT))
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_cr_date'));
 

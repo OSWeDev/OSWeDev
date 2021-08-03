@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import HourSegment from '../../../../../shared/modules/DataRender/vos/HourSegment';
+import Durations from '../../../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../VueComponentBase';
@@ -24,14 +25,12 @@ export default class HourRangeComponent extends VueComponentBase {
 
         switch (this.range.segment_type) {
 
-            case HourSegment.TYPE_MS:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HHmmss_ms(RangeHandler.getInstance().getSegmentedMin(this.range));
             case HourSegment.TYPE_SECOND:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HHmmss(RangeHandler.getInstance().getSegmentedMin(this.range));
+                return Durations.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HHmmss);
             case HourSegment.TYPE_MINUTE:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HHmm(RangeHandler.getInstance().getSegmentedMin(this.range));
+                return Durations.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HHmm);
             case HourSegment.TYPE_HOUR:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HH(RangeHandler.getInstance().getSegmentedMin(this.range));
+                return Durations.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HH);
 
             default: return null;
         }
@@ -45,14 +44,12 @@ export default class HourRangeComponent extends VueComponentBase {
 
         switch (this.range.segment_type) {
 
-            case HourSegment.TYPE_MS:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HHmmss_ms(RangeHandler.getInstance().getSegmentedMax(this.range));
             case HourSegment.TYPE_SECOND:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HHmmss(RangeHandler.getInstance().getSegmentedMax(this.range));
+                return Durations.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HHmmss);
             case HourSegment.TYPE_MINUTE:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HHmm(RangeHandler.getInstance().getSegmentedMax(this.range));
+                return Durations.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HHmm);
             case HourSegment.TYPE_HOUR:
-                return ModuleFormatDatesNombres.getInstance().formatDuration_to_HH(RangeHandler.getInstance().getSegmentedMax(this.range));
+                return Durations.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HH);
 
             default: return null;
         }

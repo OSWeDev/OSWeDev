@@ -14,6 +14,11 @@ export default class ModuleFormatDatesNombres extends Module {
     public static PARAM_NAME_nombre_separateur_1000 = 'nombre_separateur_1000';
     public static PARAM_NAME_nombre_separateur_decimal = 'nombre_separateur_decimal';
 
+    public static FORMAT_HHmmss_ms: string = 'HH:mm:ss.SSS';
+    public static FORMAT_HHmmss: string = 'HH:mm:ss';
+    public static FORMAT_HHmm: string = 'HH:mm';
+    public static FORMAT_HH: string = 'HH:';
+
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ModuleFormatDatesNombres {
         if (!ModuleFormatDatesNombres.instance) {
@@ -54,9 +59,13 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date
-    public getMomentFromDate(dateToConvert: moment.Moment | string): moment.Moment {
+    public getMomentFromDate(dateToConvert: moment.Moment | string | number): moment.Moment {
         if (!dateToConvert) {
             return null;
+        }
+
+        if (typeof dateToConvert === 'number') {
+            return moment.unix(dateToConvert).utc();
         }
 
         return moment(dateToConvert).utc(true);
@@ -211,7 +220,7 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter une date de type 31/01/2017
-    public formatDate_FullyearMonthDay(dateToFormat: moment.Moment | string): string {
+    public formatDate_FullyearMonthDay(dateToFormat: moment.Moment | string | number): string {
 
         if (dateToFormat == null) {
             return null;

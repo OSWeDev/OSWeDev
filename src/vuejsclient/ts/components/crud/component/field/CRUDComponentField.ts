@@ -19,6 +19,7 @@ import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
@@ -333,7 +334,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         let dateCut: string[] = date.split(separator);
 
-        return DateHandler.getInstance().formatDayForIndex(moment().utc(true).year(parseInt(dateCut[2])).month(parseInt(dateCut[1]) - 1).date(parseInt(dateCut[0])));
+        return DateHandler.getInstance().formatDayForIndex(Dates.date(Dates.month(Dates.year(Dates.now(), parseInt(dateCut[2])), parseInt(dateCut[1]) - 1), parseInt(dateCut[0])));
     }
 
     private getInputValue(input: any): any {
@@ -549,7 +550,7 @@ export default class CRUDComponentField extends VueComponentBase
         let res = "";
         if (start) {
             try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start).utc(true));
+                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(start);
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
             }
@@ -559,7 +560,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (end) {
             try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end).utc(true));
+                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(end);
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
             }

@@ -12,7 +12,7 @@ export default class ProgramSegmentParamVO implements IAPIParamTranslator<Progra
         if (!(req && req.params)) {
             return null;
         }
-        return new ProgramSegmentParamVO(req.params.program_id, TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(req.params.date_index, parseInt(req.params.segment_type)));
+        return new ProgramSegmentParamVO(req.params.program_id, TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(parseInt(req.params.date_index.toString()), parseInt(req.params.segment_type)));
     }
 
     public static fromParams(program_id: number, timeSegment: TimeSegment): ProgramSegmentParamVO {
@@ -31,7 +31,7 @@ export default class ProgramSegmentParamVO implements IAPIParamTranslator<Progra
 
     public translateToURL(): string {
 
-        return this.program_id + '/' + this.timeSegment.dateIndex + '/' + this.timeSegment.type;
+        return this.program_id + '/' + this.timeSegment.index + '/' + this.timeSegment.type;
     }
 }
 

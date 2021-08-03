@@ -69,7 +69,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     public modal_show: boolean;
 
     @Prop({ default: null })
-    public get_url_for_modal: (segment_date_index: string) => string;
+    public get_url_for_modal: (segment_date_index: number) => string;
 
     public show_overview: boolean = false;
     public show_new_import: boolean = false;
@@ -96,7 +96,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         this.show_new_import = !this.show_new_import;
     }
 
-    public async uploadedFile(target_segment_date_index: string, fileVo: FileVO) {
+    public async uploadedFile(target_segment_date_index: number, fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }
