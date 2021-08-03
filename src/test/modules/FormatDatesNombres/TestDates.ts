@@ -53,8 +53,8 @@ describe('Dates', () => {
         a = Dates.add(basicDate, 1, TimeSegment.TYPE_MONTH);
         expect(a).to.equal(b);
 
-        b = moment.unix(edgeDate).add(1, 'month').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MONTH);
+        b = moment.unix(1580472000).add(1, 'month').unix();  // 31-01-2020 12:00:00 GMT
+        a = Dates.add(1580472000, 1, TimeSegment.TYPE_MONTH);
         expect(a).to.equal(b);
 
         b = moment.unix(basicDate).add(1, 'second').unix();
@@ -69,8 +69,8 @@ describe('Dates', () => {
         a = Dates.add(basicDate, 1, TimeSegment.TYPE_WEEK);
         expect(a).to.equal(b);
 
-        b = moment.unix(edgeDate).add(1, 'week').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_WEEK);
+        b = moment.unix(1582372800).add(1, 'week').unix();  // 22-02-2020 12:00:00 GMT
+        a = Dates.add(1582372800, 1, TimeSegment.TYPE_WEEK);
         expect(a).to.equal(b);
 
         /* b = moment().utc(true).add(1, 'year').unix();
@@ -128,8 +128,8 @@ describe('Dates', () => {
         a = Dates.add(basicDate, -1, TimeSegment.TYPE_MONTH);
         expect(a).to.equal(b);
 
-        b = moment.unix(reverseEdgeDate).add(-1, 'month').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_MONTH);
+        b = moment.unix(1585569600).utc(false).add(-1, 'month').unix();  // 30-03-2020 12:00:00 GMT
+        a = Dates.add(1585569600, -1, TimeSegment.TYPE_MONTH);
         expect(a).to.equal(b);
 
         b = moment.unix(basicDate).add(-1, 'second').unix();
@@ -144,8 +144,8 @@ describe('Dates', () => {
         a = Dates.add(basicDate, -1, TimeSegment.TYPE_WEEK);
         expect(a).to.equal(b);
 
-        b = moment.unix(reverseEdgeDate).add(-1, 'week').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_WEEK);
+        b = moment.unix(1583582400).add(-1, 'week').unix();  // 07-03-2020 12:00:00 GMT
+        a = Dates.add(1583582400, -1, TimeSegment.TYPE_WEEK);
         expect(a).to.equal(b);
 
         b = moment.unix(basicDate).add(-1, 'year').unix();
