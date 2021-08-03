@@ -57,6 +57,7 @@ import Patch20210726ChangeCRONDateType from './patchs/premodules/Patch20210726Ch
 import Patch20210727ChangeCommerceDatesType from './patchs/premodules/Patch20210727ChangeCommerceDatesType';
 import Patch20210727RenameColumnVarCacheConf from './patchs/premodules/Patch20210727RenameColumnVarCacheConf';
 import Patch20210727VarsCacheMSToSEC from './patchs/postmodules/Patch20210727VarsCacheMSToSEC';
+import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 
 export default abstract class GeneratorBase {
 
@@ -97,6 +98,7 @@ export default abstract class GeneratorBase {
             Patch20210726ChangeCRONDateType.getInstance(),
             Patch20210727ChangeCommerceDatesType.getInstance(),
             Patch20210727RenameColumnVarCacheConf.getInstance(),
+            Patch20210803ChangeDIHDateType.getInstance(),
         ];
 
         this.post_modules_workers = [

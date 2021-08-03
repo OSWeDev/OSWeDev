@@ -2,6 +2,7 @@
 import Component from 'vue-class-component';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ImportTranslation from '../../../../../../../shared/modules/Translation/import/vos/ImportTranslation';
 import LangVO from '../../../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';

@@ -1,5 +1,6 @@
 
 
+import * as  moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
@@ -89,7 +90,7 @@ export default class TimestampInputComponent extends VueComponentBase {
             return;
         }
 
-        let date: Moment = moment(this.value, 'DD/MM/YYYY HH:mm:ss').utc(true);
+        let date: moment.Moment = moment(this.value, 'DD/MM/YYYY HH:mm:ss').utc(true);
 
         if (!date.isValid()) {
             return;
@@ -120,7 +121,7 @@ export default class TimestampInputComponent extends VueComponentBase {
         this.new_value = null;
 
         if (this.date) {
-            let value: string = DateHandler.getInstance().formatDayForIndex(moment(this.date).utc(true));
+            let value: string = DateHandler.getInstance().formatDayForIndex(moment(this.date).utc(true).unix());
 
             switch (this.segmentation_type_) {
                 case TimeSegment.TYPE_YEAR:

@@ -14,15 +14,15 @@ include ../../../../views/mixins/loading.pug
                         i.fa.fa-arrow-right(aria-hidden="true")
             .row.justify-content-between.segments_overviews
                 template(v-for='segment in getsegments')
-                    template(v-if="segment_states && segment && segment_states[segment.dateIndex]")
-                        .col-sm.border-top.rounded-top.border-dark.data_import_segment_overview(v-if='segment_states[segment.dateIndex] == state_unavail' :class='{"is_not_selected_segment": is_selected_segment[segment.dateIndex] != true}')
+                    template(v-if="segment_states && segment && segment_states[segment.index]")
+                        .col-sm.border-top.rounded-top.border-dark.data_import_segment_overview(v-if='segment_states[segment.index] == state_unavail' :class='{"is_not_selected_segment": is_selected_segment[segment.index] != true}')
 
                             .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
                         .col-sm.border-top.rounded-top.data_import_segment_overview(v-else, 
-                            :class='{"is_not_selected_segment": is_selected_segment[segment.dateIndex] != true, "border-success": segment_states[segment.dateIndex] == state_ok, "border-danger": segment_states[segment.dateIndex] == state_ko, "border-secondary": segment_states[segment.dateIndex] == state_none, "border-warning": segment_states[segment.dateIndex] == state_warn, "border-primary": segment_states[segment.dateIndex] == state_info}')
+                            :class='{"is_not_selected_segment": is_selected_segment[segment.index] != true, "border-success": segment_states[segment.index] == state_ok, "border-danger": segment_states[segment.index] == state_ko, "border-secondary": segment_states[segment.index] == state_none, "border-warning": segment_states[segment.index] == state_warn, "border-primary": segment_states[segment.index] == state_info}')
 
                             .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
@@ -33,14 +33,14 @@ include ../../../../views/mixins/loading.pug
                                     i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
                             .row
                                 .col-sm
-                                    i.fa.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.dateIndex] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.dateIndex], "valid_selection": is_valid_lower[segment.dateIndex]}')
+                                    i.fa.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.index] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.index], "valid_selection": is_valid_lower[segment.index]}')
                                 .col-sm
-                                    i.fa.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.dateIndex] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.dateIndex], "valid_selection": is_valid_upper[segment.dateIndex]}')
+                                    i.fa.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.index] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.index], "valid_selection": is_valid_upper[segment.index]}')
                             .row
                                 .col-sm
                                     i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
 
-                            fileinput(:key="'fileinput_'+segment.dateIndex" :muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
+                            fileinput(:key="'fileinput_'+segment.index" :muted="true" :options="dropzoneOptions[segment.index]" @uploaded="uploadedFile(segment.index, ...arguments)")
             .row.justify-content-between.multiple_segments(v-if="show_multiple_segments")
                 .col-md-4.multiple_segments_block
                     .row

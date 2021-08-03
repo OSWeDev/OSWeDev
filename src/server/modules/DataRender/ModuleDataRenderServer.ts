@@ -128,10 +128,10 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             let timeSegment: TimeSegment = timeSegments[i];
 
             if (!timeSegments_in) {
-                timeSegments_in = "\'" + timeSegment.dateIndex + "\'";
+                timeSegments_in = "" + timeSegment.index;
             } else {
 
-                timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
+                timeSegments_in += "," + timeSegment.index;
             }
         }
         await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');

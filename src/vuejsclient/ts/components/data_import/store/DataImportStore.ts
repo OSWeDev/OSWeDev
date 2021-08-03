@@ -4,6 +4,7 @@ import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from "../../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import IStoreModule from '../../../store/IStoreModule';
 
@@ -73,7 +74,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
                 }
 
                 if (lower_time_segment.type != state.segment_type) {
-                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(lower_time_segment.dateIndex).utc(true), state.segment_type);
+                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(lower_time_segment.index, state.segment_type);
                 }
 
                 let segment = lower_time_segment;

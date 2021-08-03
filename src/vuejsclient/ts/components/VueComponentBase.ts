@@ -1,10 +1,12 @@
 
 import { unitOfTime } from "moment";
+import * as moment from "moment";
 import * as screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
 import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
@@ -390,13 +392,6 @@ export default class VueComponentBase extends Vue
         return dateToFormat;
     }
 
-    protected formatDate_Fullyear(dateToFormat) {
-        if (!dateToFormat) {
-            return "";
-        }
-        return moment(dateToFormat).utc(true).format("YYYY");
-    }
-
     protected formatDate_FullyearMonth(dateToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(
@@ -515,26 +510,20 @@ export default class VueComponentBase extends Vue
     }
 
     // MOMENT MIXIN
-    protected getNbWeekInMonth(month) {
-        let month_tmp = moment(month).utc(true);
-        let res = moment(month_tmp).utc(true)
-            .endOf("month")
-            .startOf("isoweek" as unitOfTime.StartOf);
-        return (
-            res.diff(
-                moment(month_tmp).utc(true)
-                    .startOf("month")
-                    .startOf("isoweek" as unitOfTime.StartOf),
-                "weeks"
-            ) + 1
-        );
+    protected getNbWeekInMonth(month: number) {
+        let month_tmp = month;
+        let res = Dates.startOf(Dates.endOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK);
+        return Dates.diff(
+            res,
+            Dates.startOf(Dates.startOf(month_tmp, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_WEEK),
+            TimeSegment.TYPE_WEEK) + 1;
     }
 
     // MONTHS MIXIN
     protected getMonthName(month_number) {
         return months[month_number];
     }
-    protected getMonthInTexte(month) {
+    protected getMonthInTexte(month: string) {
         return this.getMonthName(moment(month).utc(true).get("month"));
     }
     protected getJourInText(jour_iso) {
@@ -877,7 +866,7 @@ export default class VueComponentBase extends Vue
     }
 
     protected humanizeDurationTo(date: Date): string {
-        return DateHandler.getInstance().humanizeDurationTo(moment(date).utc(true));
+        return DateHandler.getInstance().humanizeDurationTo(moment(date).utc(true).unix());
     }
 
     protected routeExists(url: string): boolean {

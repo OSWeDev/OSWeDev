@@ -1,10 +1,10 @@
 
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDataRender from '../../../../../shared/modules/DataRender/ModuleDataRender';
 import DataRendererVO from '../../../../../shared/modules/DataRender/vos/DataRendererVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
@@ -34,10 +34,11 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
         this.dataRenderer = await ModuleDataRender.getInstance().getDataRenderer(this.renderer_name);
 
         let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), this.time_segment_type);
-        this.segment_start_date =
-            moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).dateIndex).utc(true).toDate();
-        this.segment_start_date = moment().utc(true).startOf('month').add(-1, 'month').toDate();
-        this.segment_end_date = moment(segment_correspondant.dateIndex).utc(true).toDate();
+        // ????
+        // this.segment_start_date =
+        //     new Date(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).index * 1000);
+        this.segment_start_date = new Date(Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_MONTH), -1, TimeSegment.TYPE_MONTH) * 1000);
+        this.segment_end_date = new Date(segment_correspondant.index * 1000);
 
         this.isLoading = false;
     }
@@ -46,7 +47,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
         try {
 
             var formData = new FormData();
-            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment(this.segment_start_date).utc(true), moment(this.segment_end_date).utc(true), this.time_segment_type)));
+            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(this.segment_start_date.getTime() / 1000, this.segment_end_date.getTime() / 1000, this.time_segment_type)));
 
             let $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
             await $.ajax({

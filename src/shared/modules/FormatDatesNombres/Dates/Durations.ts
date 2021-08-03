@@ -1,4 +1,5 @@
 
+import moment = require("moment");
 import HourSegment from "../../DataRender/vos/HourSegment";
 import Dates from "./Dates";
 
@@ -29,6 +30,15 @@ export default class Durations {
             default:
                 return null;
         }
+    }
+
+    public static format(duration: number, formatstr: string): string {
+        if (!duration) {
+            return null;
+        }
+
+        let mm = moment.unix(duration).utc();
+        return mm.format(formatstr);
     }
 
     /**

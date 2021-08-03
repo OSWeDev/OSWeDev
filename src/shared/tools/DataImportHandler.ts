@@ -21,6 +21,6 @@ export default class DataImportHandler {
         if ((!API_TYPE_IDs) || (!API_TYPE_IDs.length)) {
             return null;
         }
-        return DataImportHandler.getDATAIMPORTLink(API_TYPE_IDs) + "/segment/" + segment.dateIndex;
+        return DataImportHandler.getDATAIMPORTLink(API_TYPE_IDs) + "/segment/" + segment.index;
     }
 }

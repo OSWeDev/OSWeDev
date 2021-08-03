@@ -1,4 +1,5 @@
 
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleLog from './ConsoleLog';
 
 export default class ConsoleLogLogger {

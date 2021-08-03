@@ -325,11 +325,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
                 return 1;
             }
 
-            if (a.last_update && ((!b.last_update) || a.last_update.isBefore(b.last_update))) {
+            if (a.last_update && ((!b.last_update) || (a.last_update < b.last_update))) {
                 return -1;
             }
 
-            if (b.last_update && ((!a.last_update) || b.last_update.isBefore(a.last_update))) {
+            if (b.last_update && ((!a.last_update) || (b.last_update < a.last_update))) {
                 return 1;
             }
 

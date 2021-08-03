@@ -787,8 +787,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
             target_id: rdv.target_id,
             facilitator_id: rdv.facilitator_id,
             resourceId: undefined,
-            start: rdv.start_time,
-            end: rdv.end_time,
+            start: moment.unix(rdv.start_time).utc(),
+            end: moment.unix(rdv.end_time).utc(),
             title: null,
             state: rdv.state
         };

@@ -1,22 +1,23 @@
 
-import debounce from 'lodash/debounce';
 import cloneDeep from 'lodash/cloneDeep';
+import debounce from 'lodash/debounce';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -150,7 +151,7 @@ export default class VarDataRefComponent extends VueComponentBase {
                 ConsoleHandler.getInstance().log('...trouvé on met à jour');
                 let bdddata: VarDataBaseVO = bdddatas[0];
 
-                if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts.unix() > clone.value_ts.unix()))) {
+                if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
                     ConsoleHandler.getInstance().error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
                     return;
                 }
@@ -351,14 +352,14 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         if (this.is_show_import_aggregated) {
             if ((this.aggregated_var_param as any).ts_ranges) {
-                formatted_date = RangeHandler.getInstance().getSegmentedMax_from_ranges<moment.Moment>((this.aggregated_var_param as any).ts_ranges).format(
+                formatted_date = Dates.format(RangeHandler.getInstance().getSegmentedMax_from_ranges((this.aggregated_var_param as any).ts_ranges),
                     ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)
                 );
             } else {
-                formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.aggregated_var_param.value_ts);
+                formatted_date = Dates.format(this.aggregated_var_param.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
             }
         } else {
-            formatted_date = ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.var_data.value_ts);
+            formatted_date = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         }
 
         let value: any = (this.is_show_import_aggregated) ? this.aggregated_var_param.value : this.var_data_value;

@@ -4,6 +4,7 @@ import Component from 'vue-class-component';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
@@ -40,7 +41,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     private tmp_attachment_2_vo: FileVO = null;
     private tmp_attachment_3_vo: FileVO = null;
 
-    private tmp_start_date: Moment = null;
+    private tmp_start_date: number = null;
     private tmp_start_url: string = null;
 
     private mounted() {
@@ -162,7 +163,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         for (let i in ConsoleLogLogger.getInstance().console_logs) {
             let console_log = ConsoleLogLogger.getInstance().console_logs[i];
 
-            res.push(ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(console_log.datetime) + ':' + console_log.type + ':' + (console_log.value ? console_log.value.toString() : ''));
+            res.push(Dates.format(console_log.datetime, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) + ':' + console_log.type + ':' + (console_log.value ? console_log.value.toString() : ''));
         }
 
         return res;

@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
@@ -112,7 +113,7 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
             return;
         }
 
-        this.formatted_date = this.item.last_update ? ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.item.last_update) : "-";
+        this.formatted_date = this.item.last_update ? Dates.format(this.item.last_update, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) : "-";
     }
 
     private set_formatted_last_value() {

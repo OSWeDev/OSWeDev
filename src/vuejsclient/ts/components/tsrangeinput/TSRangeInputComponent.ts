@@ -1,19 +1,18 @@
 import cloneDeep from 'lodash/cloneDeep';
-
+import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
+import VueAppController from '../../../VueAppController';
 import VueComponentBase from '../VueComponentBase';
 
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
-import VueAppController from '../../../VueAppController';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import * as moment from 'moment';
+
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),
@@ -100,15 +99,15 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: Moment = RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
-        let max: Moment = RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
+        let min: number = RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
+        let max: number = RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
 
-        this.tsrange_start = min.toDate();
-        this.tsrange_end = max.toDate();
+        this.tsrange_start = new Date(min * 1000);
+        this.tsrange_end = new Date(max * 1000);
 
         if (this.tsrange_start) {
-            this.tsrange_start_time = (this.value && this.value.min) ? this.value.min.format(this.format_time) : null;
-            this.tsrange_end_time = (this.value && this.value.max) ? this.value.max.format(this.format_time) : null;
+            this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time) : null;
+            this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time) : null;
         }
     }
 
@@ -155,7 +154,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             }
 
             if (hours && hours.length > 0) {
-                start.hours(parseInt(hours[0])).minutes(parseInt(hours[1]));
+                Dates.minutes(Dates.hours(start, parseInt(hours[0])), parseInt(hours[1]));
             }
 
             return start;
@@ -178,7 +177,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
                 this.tsrange_end = cloneDeep(this.tsrange_start);
             }
 
-            let end: Moment = moment(this.tsrange_end).utc(true);
+            let end: number = this.tsrange_end.getTime() / 1000;
             let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
 
             if (!hours) {
@@ -186,12 +185,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
             }
 
             if (hours && hours.length > 0) {
-                end.hours(parseInt(hours[0])).minutes(parseInt(hours[1]));
-                end.add(-1, 'minute');
+                Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
+                Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
             }
 
-            if (end.isBefore(this.ts_start, 'minute')) {
-                end.add(1, 'day');
+            if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
+                Dates.add(end, 1, TimeSegment.TYPE_DAY);
             }
 
             return end;

@@ -33,7 +33,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     public static instance: VarsDatasExplorerFiltersComponent = null;
 
     public fitered_vars_confs: VarConfVO[] = [];
-    public fields_filters_range: { [field_id: string]: IRange<any> } = {};
+    public fields_filters_range: { [field_id: string]: IRange } = {};
     public fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
     public fields_filters_is_enum: { [field_id: string]: boolean } = {};
@@ -48,7 +48,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     /**
      * Utilisé pour trouver la trad du champ. on prend le premier vo_type qui contient ce champ
      */
-    private fields: { [field_id: string]: ModuleTableField<IRange<any>> } = {};
+    private fields: { [field_id: string]: ModuleTableField<IRange> } = {};
 
     private fields_filters_is_valid: { [field_id: string]: boolean } = {};
     private filtered_vo_types: { [vo_type: string]: boolean } = {};
@@ -71,7 +71,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         let filtered_vo_types: { [vo_type: string]: boolean } = {};
         let fields_filters_is_valid: { [field_id: string]: boolean } = {};
         let valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
-        let fields: { [field_id: string]: ModuleTableField<IRange<any>> } = {};
+        let fields: { [field_id: string]: ModuleTableField<IRange> } = {};
         let empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
         for (let i in vars_confs) {
@@ -285,18 +285,18 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         this.set_params();
     }
 
-    private is_ts_range_type(field: ModuleTableField<IRange<any>>): boolean {
+    private is_ts_range_type(field: ModuleTableField<IRange>): boolean {
         return (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
             (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
             (field.field_type == ModuleTableField.FIELD_TYPE_daterange);
     }
 
-    private is_hour_range_type(field: ModuleTableField<IRange<any>>): boolean {
+    private is_hour_range_type(field: ModuleTableField<IRange>): boolean {
         return (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
             (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array);
     }
 
-    private is_num_range_type(field: ModuleTableField<IRange<any>>): boolean {
+    private is_num_range_type(field: ModuleTableField<IRange>): boolean {
         return (field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
             (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
             (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array);
@@ -375,7 +375,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         return NumRangeComponentController.getInstance().get_enum_handler(field.module_table.vo_type, field.field_id).enum_query_options_handler;
     }
 
-    private on_edit_range(range: IRange<any>, field_id: string) {
+    private on_edit_range(range: IRange, field_id: string) {
         this.fields_filters_range[field_id] = range;
         this.set_params();
     }

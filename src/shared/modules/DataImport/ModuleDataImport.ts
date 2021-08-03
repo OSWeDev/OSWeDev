@@ -302,7 +302,7 @@ export default class ModuleDataImport extends Module {
 
             label_field,
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de démarrage', false),
-            new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_string, 'Segment cible', false),
+            new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_tstz, 'Segment cible', false),
             new ModuleTableField('segment_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment', false).setEnumValues({
                 [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
                 [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
