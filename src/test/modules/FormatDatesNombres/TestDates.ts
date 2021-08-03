@@ -15,9 +15,9 @@ describe('Dates', () => {
     const reverseEdgeDate = 1583020800;  // 00-03-2020 00:00:00 GMT
 
     it('now', () => {
-        let b = moment.unix(basicDate).unix();
-        let a = basicDate;
-        expect(a).to.equal(b);
+        let b = moment().utc(false).unix();
+        let a = Dates.now();
+        expect(a - b).to.be.lessThan(2);
     });
 
     it('add', () => {
