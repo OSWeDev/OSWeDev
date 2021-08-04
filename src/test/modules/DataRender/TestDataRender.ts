@@ -177,8 +177,8 @@ describe('DataRender', () => {
     it('test DataRender: getCumul', () => {
         expect(DataRenderController.getInstance().getCumul(null, null, null, null, null, null)).to.equal(null);
 
-        let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
-            '2018-01-01': {
+        let renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: any } } } = {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -186,7 +186,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -194,7 +194,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-03-01': {
+            [moment('2018-03-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 10,
@@ -202,7 +202,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -210,7 +210,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,
@@ -222,36 +222,36 @@ describe('DataRender', () => {
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-01-01').unix(),
+                moment('2018-01-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-02-01').unix(),
+                moment('2018-02-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(3);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(13);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-04-01').unix(),
+                moment('2018-04-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(33);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-05-01').unix(),
+                moment('2018-05-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(23);
 
         renderedDatasBySegmentAndResourceId = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -259,7 +259,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -267,7 +267,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-03-01': {
+            [moment('2018-03-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 10,
@@ -275,7 +275,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -283,7 +283,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,
@@ -295,38 +295,38 @@ describe('DataRender', () => {
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-01-01').unix(),
+                moment('2018-01-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-02-01').unix(),
+                moment('2018-02-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(17);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(35);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-04-01').unix(),
+                moment('2018-04-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(32);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-05-01').unix(),
+                moment('2018-05-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(26);
 
 
 
         renderedDatasBySegmentAndResourceId = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -334,7 +334,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -342,7 +342,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -350,7 +350,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,
@@ -362,31 +362,31 @@ describe('DataRender', () => {
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-01-01').unix(),
+                moment('2018-01-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-02-01').unix(),
+                moment('2018-02-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(17);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(25);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-04-01').unix(),
+                moment('2018-04-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(45);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-05-01').unix(),
+                moment('2018-05-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(26);
 
@@ -394,28 +394,28 @@ describe('DataRender', () => {
 
 
         renderedDatasBySegmentAndResourceId = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         cum: 15
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         cum: 25
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         cum: 36
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         cum: 21
@@ -426,31 +426,31 @@ describe('DataRender', () => {
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-01-01').unix(),
+                moment('2018-01-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(null);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-02-01').unix(),
+                moment('2018-02-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(15);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(25);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-04-01').unix(),
+                moment('2018-04-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(25);
 
         expect(DataRenderController.getInstance().getCumul(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-05-01').unix(),
+                moment('2018-05-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(36);
     });
@@ -459,7 +459,7 @@ describe('DataRender', () => {
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(null, null, null, null, null)).to.equal(null);
 
         let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -467,7 +467,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -475,7 +475,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-03-01': {
+            [moment('2018-03-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 10,
@@ -483,7 +483,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -491,7 +491,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,
@@ -503,31 +503,31 @@ describe('DataRender', () => {
 
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-01-01').unix(),
+                moment('2018-01-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
 
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-02-01').unix(),
+                moment('2018-02-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(3);
 
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(13);
 
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-04-01').unix(),
+                moment('2018-04-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(32);
 
         expect(DataRenderController.getInstance().getCumul_m_mm1_mm2(
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-05-01').unix(),
+                moment('2018-05-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(20);
     });
@@ -536,7 +536,7 @@ describe('DataRender', () => {
         expect(DataRenderController.getInstance().getValueFromRendererData(null, null, null, null, null)).to.equal(null);
 
         let renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: any } } } = {
-            '2018-01-01': {
+            [moment('2018-01-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 1,
@@ -544,7 +544,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-02-01': {
+            [moment('2018-02-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 2,
@@ -552,7 +552,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-03-01': {
+            [moment('2018-03-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 10,
@@ -560,7 +560,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-04-01': {
+            [moment('2018-04-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: 20,
@@ -568,7 +568,7 @@ describe('DataRender', () => {
                     } as any
                 }
             },
-            '2018-05-01': {
+            [moment('2018-05-01').startOf('day').utc(true).unix()]: {
                 1: {
                     2: {
                         val: -10,
@@ -580,25 +580,25 @@ describe('DataRender', () => {
 
         expect(DataRenderController.getInstance().getValueFromRendererData(
             TimeSegmentHandler.getInstance().getPreviousTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(2);
 
         expect(DataRenderController.getInstance().getValueFromRendererData(
             TimeSegmentHandler.getInstance().getPreviousTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH, 2),
             1, 'val', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
 
         expect(DataRenderController.getInstance().getValueFromRendererData(
             TimeSegmentHandler.getInstance().getPreviousTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH, 2),
             1, 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
 
         expect(DataRenderController.getInstance().getValueFromRendererData(
             TimeSegmentHandler.getInstance().getPreviousTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-                moment('2018-03-01').unix(),
+                moment('2018-03-01').startOf('day').utc(true).unix(),
                 TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH),
             1, 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(3);
     });

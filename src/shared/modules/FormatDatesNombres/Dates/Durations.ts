@@ -18,6 +18,10 @@ export default class Durations {
      */
     public static add(duration: number, nb: number, segmentation: number = HourSegment.TYPE_SECOND): number {
 
+        if (isNaN(nb) || (nb == null)) {
+            return duration;
+        }
+
         switch (segmentation) {
 
             case HourSegment.TYPE_HOUR:
@@ -25,7 +29,7 @@ export default class Durations {
             case HourSegment.TYPE_MINUTE:
                 return 60 * nb + duration;
             case HourSegment.TYPE_SECOND:
-                return 60 * nb + duration;
+                return nb + duration;
 
             default:
                 return null;
@@ -48,22 +52,28 @@ export default class Durations {
      * @param do_not_floor - defaults to false
      * @returns diff value between a and b
      */
-    public static diff(a: number, b: number, segmentation: number = HourSegment.TYPE_SECOND): number {
+    public static diff(a: number, b: number, segmentation: number = HourSegment.TYPE_SECOND, do_not_floor: boolean = false): number {
 
-        let a_ = a;
-        let b_ = b;
+        let coef = 0;
 
         switch (segmentation) {
 
             case HourSegment.TYPE_HOUR:
-                return (a_ - a_ % 3600) - (b_ - b_ % 3600);
+                coef = 3600;
+                break;
             case HourSegment.TYPE_MINUTE:
-                return (a_ - a_ % 60) - (b_ - b_ % 60);
+                coef = 60;
+                break;
             case HourSegment.TYPE_SECOND:
-                return a_ - b_;
+                return a - b;
+
             default:
                 return null;
         }
+
+        let start_a = Dates.startOf(a, segmentation);
+        let start_b = Dates.startOf(b, segmentation);
+        return do_not_floor ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
     }
 
     public static as(duration: number, segmentation: number): number {

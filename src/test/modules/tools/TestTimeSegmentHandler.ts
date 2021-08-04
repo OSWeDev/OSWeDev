@@ -72,7 +72,7 @@ describe('TimeSegmentHandler', () => {
 
     it('test getCorrespondingTimeSegment', () => {
         expect(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-            moment('2018-03-01').unix(),
+            moment('2018-03-01').utc(true).unix(),
             TimeSegment.TYPE_MONTH, 2).dateIndex).to.deep.equal(
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2018-05-01').utc(true).unix(), TimeSegment.TYPE_MONTH).dateIndex);
 
@@ -98,9 +98,9 @@ describe('TimeSegmentHandler', () => {
 
     it('test get_surrounding_ts_range', () => {
         expect(RangeHandler.getInstance().getIndex(TimeSegmentHandler.getInstance().get_surrounding_ts_range([
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-01-01').utc(true).unix(), TimeSegment.TYPE_YEAR)]))).to.equal('[1546300800000,1577836800000)');
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-01-01').utc(true).unix(), TimeSegment.TYPE_YEAR)]))).to.equal('[1546300800,1577836800)');
         expect(RangeHandler.getInstance().getIndex(TimeSegmentHandler.getInstance().get_surrounding_ts_range([
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2015-02-01').utc(true).unix(), TimeSegment.TYPE_MONTH)]))).to.equal('[1422748800000,1425168000000)');
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2015-02-01').utc(true).unix(), TimeSegment.TYPE_MONTH)]))).to.equal('[1422748800,1425168000)');
     });
 
     it('test getCumulTimeSegments', () => {
@@ -147,7 +147,7 @@ describe('TimeSegmentHandler', () => {
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-01-01').utc(true).unix(), TimeSegment.TYPE_YEAR).dateIndex);
 
         expect(TimeSegmentHandler.getInstance().getParentTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-19').utc(true).unix(), TimeSegment.TYPE_DAY)).dateIndex).to.deep.equal(
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-15').utc(true).unix(), TimeSegment.TYPE_DAY)).dateIndex).to.deep.equal(
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-01').utc(true).unix(), TimeSegment.TYPE_MONTH).dateIndex);
     });
 
@@ -161,19 +161,19 @@ describe('TimeSegmentHandler', () => {
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_YEAR).dateIndex);
 
         expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-19').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_DAY).dateIndex).to.deep.equal(
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-15').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_DAY).dateIndex).to.deep.equal(
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-14').utc(true).unix(), TimeSegment.TYPE_DAY).dateIndex);
 
         expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-19').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_DAY, 2).dateIndex).to.deep.equal(
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-15').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_DAY, 2).dateIndex).to.deep.equal(
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-13').utc(true).unix(), TimeSegment.TYPE_DAY).dateIndex);
 
         expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-19').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_DAY, -1).dateIndex).to.deep.equal(
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-15').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_DAY, -1).dateIndex).to.deep.equal(
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-16').utc(true).unix(), TimeSegment.TYPE_DAY).dateIndex);
 
         expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-19').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_MONTH, -1).dateIndex).to.deep.equal(
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-04-15').utc(true).unix(), TimeSegment.TYPE_DAY), TimeSegment.TYPE_MONTH, -1).dateIndex).to.deep.equal(
                 TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-15').utc(true).unix(), TimeSegment.TYPE_DAY).dateIndex);
 
         // Ambiguous
@@ -209,28 +209,28 @@ describe('TimeSegmentHandler', () => {
     });
     it('test getStartTimeSegment', () => {
         expect(TimeSegmentHandler.getInstance().getStartTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-01').utc(true).unix(), TimeSegment.TYPE_MONTH))).to.deep.equal(moment('2019-05-01').startOf('day').utc(true));
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-01').utc(true).unix(), TimeSegment.TYPE_MONTH))).to.deep.equal(moment('2019-05-01').startOf('day').utc(true).unix());
         expect(TimeSegmentHandler.getInstance().getStartTimeSegment(
-            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-15').utc(true).unix(), TimeSegment.TYPE_DAY))).to.deep.equal(moment('2019-05-15').startOf('day').utc(true));
+            TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-15').utc(true).unix(), TimeSegment.TYPE_DAY))).to.deep.equal(moment('2019-05-15').startOf('day').utc(true).unix());
     });
 
     it('test getInclusiveEndTimeSegment', () => {
         expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(null)).to.equal(null);
 
         let timeSeg = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-12').utc(true).unix(), TimeSegment.TYPE_MONTH);
-        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, null)).to.deep.equal(moment('2019-05-01').utc(true).add(1, "month").add(-1, "day"));
+        expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, null)).to.deep.equal(moment('2019-05-01').utc(true).add(1, "month").add(-1, "day").unix());
         expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg)).to.deep.equal(
-            moment('2019-05-01').utc(true).add(1, "month").add(-1, "day")
+            moment('2019-05-01').utc(true).add(1, "month").add(-1, "day").unix()
         );
 
         timeSeg = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-09-18').utc(true).unix(), TimeSegment.TYPE_YEAR);
         expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, TimeSegment.TYPE_HOUR)).to.deep.equal(
-            moment('2009-01-01').utc(true).add(1, "year").add(-1, "hour")
+            moment('2019-01-01').utc(true).add(1, "year").add(-1, "hour").unix()
         );
 
         timeSeg = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2021-11-05').utc(true).unix(), TimeSegment.TYPE_MINUTE);
         expect(TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(timeSeg, TimeSegment.TYPE_DAY)).to.deep.equal(
-            moment('2021-11-05').utc(true).add(1, "minute").add(-1, "day"));
+            moment('2021-11-05').utc(true).add(1, "minute").add(-1, "day").unix());
 
     });
 
@@ -244,9 +244,9 @@ describe('TimeSegmentHandler', () => {
         expect(TimeSegmentHandler.getInstance().isEltInSegment(null, timeSegmentTest)).to.equal(false);
         expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, null)).to.equal(false);
 
-        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, timeSegmentTest)).to.equal(false);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, timeSegmentTest)).to.equal(true);
         expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest2, timeSegmentTest)).to.equal(true);
-        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest3, timeSegmentTest)).to.equal(true);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest3, timeSegmentTest)).to.equal(false);
         expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest4, timeSegmentTest)).to.equal(false);
 
         timeSegmentTest = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-05-01').utc(true).unix(), TimeSegment.TYPE_YEAR);
@@ -254,9 +254,9 @@ describe('TimeSegmentHandler', () => {
         momentTest2 = moment('2019-01-02').utc(true).unix();
         momentTest3 = moment('2020-01-01').utc(true).unix();
         momentTest4 = moment('2020-01-02').utc(true).unix();
-        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, timeSegmentTest)).to.equal(false);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest1, timeSegmentTest)).to.equal(true);
         expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest2, timeSegmentTest)).to.equal(true);
-        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest3, timeSegmentTest)).to.equal(true);
+        expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest3, timeSegmentTest)).to.equal(false);
         expect(TimeSegmentHandler.getInstance().isEltInSegment(momentTest4, timeSegmentTest)).to.equal(false);
 
     });

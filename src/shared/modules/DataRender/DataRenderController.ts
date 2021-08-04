@@ -200,7 +200,7 @@ export default class DataRenderController {
 
     public getCumul<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, field_name_cumul: string, segment_id: number,
-        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
+        renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
         let timeSegment_prec: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
 
@@ -253,7 +253,7 @@ export default class DataRenderController {
 
     public getCumul_m_mm1_mm2<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
-        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
+        renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
         let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
         let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_mm1);

@@ -3,7 +3,7 @@ import TimeSegmentHandler from '../../../../tools/TimeSegmentHandler';
 import IAPIParamTranslator from '../../interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../interfaces/IAPIParamTranslatorStatic';
 
-export default class TimeSegmentParamVO implements IAPIParamTranslator<TimeSegmentParamVO>{
+export default class TimeSegmentParamVO implements IAPIParamTranslator<TimeSegmentParamVO> {
 
     public static URL: string = ':date_index/:type';
 

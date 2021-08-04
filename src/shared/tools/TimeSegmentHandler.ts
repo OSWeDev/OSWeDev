@@ -429,6 +429,10 @@ export default class TimeSegmentHandler {
             return null;
         }
 
+        if (type_inclusion == null) {
+            type_inclusion = TimeSegment.TYPE_DAY;
+        }
+
         let res: number = this.getStartTimeSegment(timeSegment);
         res = Dates.add(res, 1, timeSegment.type);
 
@@ -559,8 +563,8 @@ export default class TimeSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: number = this.getStartTimeSegment(ts1);
-        let end: number = this.getEndTimeSegment(ts1);
+        let start: number = this.getCorrespondingTimeSegment(ts1.index, type).index;
+        let end: number = this.getEndTimeSegment(this.getCorrespondingTimeSegment(ts1.index, type));
 
         return (ts2.index >= start) && (ts2.index < end);
     }

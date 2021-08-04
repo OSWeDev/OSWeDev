@@ -1,12 +1,10 @@
 
 
-import HourSegment from '../modules/DataRender/vos/HourSegment';
-import HourRange from '../modules/DataRender/vos/HourRange';
-import RangeHandler from './RangeHandler';
-import { deepEqual, deepStrictEqual } from 'assert';
-import Dates from '../modules/FormatDatesNombres/Dates/Dates';
-import Durations from '../modules/FormatDatesNombres/Dates/Durations';
 import { unitOfTime } from 'moment';
+import HourRange from '../modules/DataRender/vos/HourRange';
+import HourSegment from '../modules/DataRender/vos/HourSegment';
+import Durations from '../modules/FormatDatesNombres/Dates/Durations';
+import RangeHandler from './RangeHandler';
 
 export default class HourSegmentHandler {
 
@@ -141,7 +139,7 @@ export default class HourSegmentHandler {
      */
     public getCumulHourSegments(hourSegment: HourSegment): HourSegment[] {
 
-        if (!hourSegment) {
+        if (hourSegment == null) {
             return null;
         }
 
@@ -267,12 +265,12 @@ export default class HourSegmentHandler {
      * @param offset defaults to 1.
      */
     public decHourSegment(hourSegment: HourSegment, type: number = null, offset: number = 1): void {
-        if (!hourSegment) {
+        if (hourSegment == null) {
             return null;
         }
 
         type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
-        hourSegment.index = Dates.add(hourSegment.index, -offset, type);
+        hourSegment.index = Durations.add(hourSegment.index, -offset, type);
     }
 
     /**
@@ -282,7 +280,7 @@ export default class HourSegmentHandler {
      * @param offset defaults to 1.
      */
     public incHourSegment(hourSegment: HourSegment, type: number = null, offset: number = 1): void {
-        if (!hourSegment) {
+        if (hourSegment == null) {
             return null;
         }
 

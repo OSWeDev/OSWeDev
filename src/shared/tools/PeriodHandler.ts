@@ -4,6 +4,7 @@ import * as  moment from "moment";
 import TSRange from '../modules/DataRender/vos/TSRange';
 import DateHandler from './DateHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
+import RangeHandler from "./RangeHandler";
 
 export default class PeriodHandler {
 
@@ -23,7 +24,11 @@ export default class PeriodHandler {
 
     public lower(period: string, base: unitOfTime.Base = 'days'): string {
 
-        return DateHandler.getInstance().formatDayForIndex(this.lowerMoment(period, base).unix());
+        let m = this.lowerMoment(period, base);
+        if (!m) {
+            return null;
+        }
+        return DateHandler.getInstance().formatDayForIndex(m.unix());
     }
 
     public lowerMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
@@ -57,7 +62,11 @@ export default class PeriodHandler {
 
     public upper(period: string, base: unitOfTime.Base = 'days'): string {
 
-        return DateHandler.getInstance().formatDayForIndex(this.upperMoment(period, base).unix());
+        let m = this.upperMoment(period, base);
+        if (!m) {
+            return null;
+        }
+        return DateHandler.getInstance().formatDayForIndex(m.unix());
     }
 
     public upperMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
@@ -102,9 +111,16 @@ export default class PeriodHandler {
 
     public get_ts_range_from_period(period: string, segment_type: number): TSRange {
 
+        let ml = this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type));
+        let mu = this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type));
+
+        if ((!ml) || (!mu)) {
+            return null;
+        }
+
         return TSRange.createNew(
-            this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)).unix(),
-            this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)).unix(),
+            ml.unix(),
+            mu.unix(),
             true,
             true,
             segment_type);

@@ -13,8 +13,8 @@ describe('DateHandler', () => {
 
     it('test humanizeDurationTo', () => {
         expect(DateHandler.getInstance().humanizeDurationTo(null)).to.equal('');
-        expect(DateHandler.getInstance().humanizeDurationTo(moment('2020-02-01').startOf('day').utc(true).unix())).to.equal('a year');
-        expect(DateHandler.getInstance().humanizeDurationTo(moment('2020-02-27').endOf('day').utc(true).unix())).to.equal('a year');
+        expect(DateHandler.getInstance().humanizeDurationTo(moment().startOf('day').utc(true).add(-1, 'year').unix())).to.equal('a year');
+        expect(DateHandler.getInstance().humanizeDurationTo(moment().endOf('day').utc(true).add(1, 'year').unix())).to.equal('a year');
     });
     it('test formatDayForApi', () => {
         expect(DateHandler.getInstance().formatDayForApi(null)).to.equal(null);

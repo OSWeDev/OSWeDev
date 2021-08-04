@@ -1302,12 +1302,7 @@ export default class RangeHandler {
             return false;
         }
 
-        let a_min: any = null;
-        let b_min: any = null;
-        let a_max: any = null;
-        let b_max: any = null;
-
-        if ((a_min != b_min) || (a_max != b_max)) {
+        if ((a.min != b.min) || (a.max != b.max)) {
             return false;
         }
 

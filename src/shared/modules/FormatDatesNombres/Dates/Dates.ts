@@ -42,6 +42,10 @@ export default class Dates {
      */
     public static add(date: number, nb: number, segmentation: number = TimeSegment.TYPE_SECOND): number {
 
+        if (isNaN(nb) || (nb == null)) {
+            return date;
+        }
+
         switch (segmentation) {
 
             case TimeSegment.TYPE_DAY:
@@ -54,8 +58,8 @@ export default class Dates {
                 /**
                  * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
                  */
-                let date_ms = new Date(date);
-                return Math.floor(date_ms.setMonth(date_ms.getMonth() + nb) / 1000);
+                let date_ms = new Date(date * 1000);
+                return Math.floor(date_ms.setUTCMonth(date_ms.getUTCMonth() + nb) / 1000);
             // case TimeSegment.TYPE_MS:
             //     return nb/1000 + date;
             case TimeSegment.TYPE_SECOND:
@@ -64,8 +68,8 @@ export default class Dates {
                 return 60 * 60 * 24 * 7 * nb + date;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
-                let date_ys = new Date(date);
-                return Math.floor(date_ys.setFullYear(date_ys.getFullYear() + nb) / 1000);
+                let date_ys = new Date(date * 1000);
+                return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() + nb) / 1000);
 
             default:
                 return null;
@@ -97,7 +101,7 @@ export default class Dates {
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
-                return date + ((date - 345600) % 604800); // 01/01/70 = jeudi
+                return date - ((date - 345600) % 604800); // 01/01/70 = jeudi
             case TimeSegment.TYPE_YEAR:
                 let my = moment.unix(date).utc();
                 return my.startOf('year').unix();
@@ -130,7 +134,7 @@ export default class Dates {
             case TimeSegment.TYPE_SECOND:
                 return date; // useless as f*ck don't call this
             case TimeSegment.TYPE_WEEK:
-                return date - date % 592200 + 592200 - 1;
+                return date - ((date - 345600) % 604800) + 604800 - 1;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 let mryms = moment.unix(date).utc();
                 return mryms.endOf('month').add(1, 'year').unix();
@@ -161,25 +165,28 @@ export default class Dates {
      */
     public static diff(a: number, b: number, segmentation: number = TimeSegment.TYPE_SECOND, do_not_floor: boolean = false): number {
 
-        let a_ = a;
-        let b_ = b;
+        let coef = 0;
 
         switch (segmentation) {
 
             case TimeSegment.TYPE_DAY:
-                return (a_ - a_ % 86400) - (b_ - b_ % 86400);
+                coef = 86400;
+                break;
             case TimeSegment.TYPE_HOUR:
-                return (a_ - a_ % 3600) - (b_ - b_ % 3600);
+                coef = 3600;
+                break;
             case TimeSegment.TYPE_MINUTE:
-                return (a_ - a_ % 60) - (b_ - b_ % 60);
+                coef = 60;
+                break;
             case TimeSegment.TYPE_MONTH:
                 let mma = moment.unix(a).utc();
                 let mmb = moment.unix(b).utc();
                 return mma.diff(mmb, 'month', do_not_floor);
             case TimeSegment.TYPE_SECOND:
-                return a_ - b_;
+                return a - b;
             case TimeSegment.TYPE_WEEK:
-                return (a_ - a_ % 592200) - (b_ - b_ % 592200);
+                coef = 604800;
+                break;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
                 let mya = moment.unix(a).utc();
@@ -189,6 +196,10 @@ export default class Dates {
             default:
                 return null;
         }
+
+        let start_a = Dates.startOf(a, segmentation);
+        let start_b = Dates.startOf(b, segmentation);
+        return do_not_floor ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
     }
 
     /**
@@ -259,7 +270,7 @@ export default class Dates {
      */
     public static hour(date?: number, set_hour?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || (date == null)) {
             date = Dates.now();
         }
 
@@ -267,7 +278,11 @@ export default class Dates {
             return Math.floor((date % 86400) / 3600);
         }
 
-        return Dates.startOf(date, TimeSegment.TYPE_DAY) + set_hour * 3600;
+        if (isNaN(set_hour)) {
+            return date;
+        }
+
+        return date + (set_hour - Dates.hour(date)) * 3600;
     }
 
     /**
@@ -284,7 +299,7 @@ export default class Dates {
      */
     public static minute(date?: number, set_minute?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
@@ -292,7 +307,11 @@ export default class Dates {
             return Math.floor((date % 3600) / 60);
         }
 
-        return Dates.startOf(date, TimeSegment.TYPE_HOUR) + set_minute * 60;
+        if (isNaN(set_minute)) {
+            return date;
+        }
+
+        return date + (set_minute - Dates.minute(date)) * 60;
     }
 
     /**
@@ -309,7 +328,7 @@ export default class Dates {
      */
     public static second(date?: number, set_seconds?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
@@ -317,7 +336,11 @@ export default class Dates {
             return Math.floor(date % 60);
         }
 
-        return Dates.startOf(date, TimeSegment.TYPE_MINUTE) + set_seconds;
+        if (isNaN(set_seconds)) {
+            return date;
+        }
+
+        return date + (set_seconds - Dates.second(date));
     }
 
     /**
@@ -332,7 +355,7 @@ export default class Dates {
      */
     public static toISOString(date: number) {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             return null;
         }
         return new Date(date * 1000).toISOString();
@@ -345,12 +368,16 @@ export default class Dates {
      */
     public static date(date?: number, set_date?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
         if (set_date == null) {
             return moment.unix(date).utc().date();
+        }
+
+        if (isNaN(set_date)) {
+            return date;
         }
 
         return moment.unix(date).utc().date(set_date).unix();
@@ -362,7 +389,7 @@ export default class Dates {
      */
     public static day(date?: number, set_day?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
@@ -370,9 +397,11 @@ export default class Dates {
             return Math.floor((date % 604800) / 86400) + 4 % 7; // 0 == jeudi 01/01/1970
         }
 
-        let current = this.day(date);
+        if (isNaN(set_day)) {
+            return date;
+        }
 
-        return (set_day - current) * 86400 + date;
+        return date + (set_day - Dates.day(date)) * 86400;
     }
 
     /**
@@ -381,7 +410,7 @@ export default class Dates {
      */
     public static isoWeekday(date?: number, set_isoWeekday?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
@@ -389,9 +418,11 @@ export default class Dates {
             return Math.floor((date % 604800) / 86400) + 3 % 7; // 0 == jeudi 01/01/1970
         }
 
-        let current = this.isoWeekday(date);
+        if (isNaN(set_isoWeekday)) {
+            return date;
+        }
 
-        return (set_isoWeekday - current) * 86400 + date;
+        return date + (set_isoWeekday - Dates.isoWeekday(date)) * 86400;
     }
 
     /**
@@ -401,12 +432,16 @@ export default class Dates {
      */
     public static month(date?: number, set_month?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
         if (set_month == null) {
             return moment.unix(date).utc().month();
+        }
+
+        if (isNaN(set_month)) {
+            return date;
         }
 
         return moment.unix(date).utc().month(set_month).unix();
@@ -418,12 +453,16 @@ export default class Dates {
      */
     public static year(date?: number, set_year?: number): number {
 
-        if (date == null) {
+        if (isNaN(date) || date == null) {
             date = Dates.now();
         }
 
         if (set_year == null) {
             return moment.unix(date).utc().year();
+        }
+
+        if (isNaN(set_year)) {
+            return date;
         }
 
         return moment.unix(date).utc().year(set_year).unix();

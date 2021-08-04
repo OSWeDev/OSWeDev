@@ -29,9 +29,9 @@ describe('HourSegmentHandler', () => {
     });
 
     it('test: getAllSegments', () => {
-        let duration1 = 1000;
-        let duration2 = 2000;
-        let duration3 = 3000;
+        let duration1 = 1;
+        let duration2 = 2;
+        let duration3 = 3;
         let segmentExpected = [HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration1, HourSegment.TYPE_SECOND), HourSegmentHandler.getInstance().getCorrespondingHourSegment(duration2, HourSegment.TYPE_SECOND)];
 
         expect(HourSegmentHandler.getInstance().getAllSegments(null, duration2, HourSegment.TYPE_SECOND)).to.deep.equal(null);
@@ -142,9 +142,9 @@ describe('HourSegmentHandler', () => {
         let minute: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_MINUTE);
         let second: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(date, HourSegment.TYPE_SECOND);
 
-        let hourExpected = (24 * 60 + 0) * 60 + 0;
-        let minuteExpected = (23 * 60 + 46) * 60 + 0;
-        let secondExpected = (23 * 60 + 46) * 60 + 0;
+        let hourExpected = (24 * 60 + 0) * 60 - 1;
+        let minuteExpected = (23 * 60 + 46) * 60 - 1;
+        let secondExpected = (23 * 60 + 46) * 60 - 1;
 
         expect(HourSegmentHandler.getInstance().getInclusiveEndHourSegment(null)).equal(null);
 
@@ -243,11 +243,11 @@ describe('HourSegmentHandler', () => {
 
 
         durationExpected = (22 * 60 + 45) * 60 + 59;
-        duration = Durations.add(duration, 1, HourSegment.TYPE_HOUR);
+        duration = Durations.add(duration, -1, HourSegment.TYPE_HOUR);
         expect(duration).to.deep.equal(durationExpected);
 
-        durationExpected = (23 * 60 + 44) * 60 + 59;
-        duration = Durations.add(duration, 1, HourSegment.TYPE_MINUTE);
+        durationExpected = (22 * 60 + 44) * 60 + 59;
+        duration = Durations.add(duration, -1, HourSegment.TYPE_MINUTE);
         expect(duration).to.deep.equal(durationExpected);
     });
 
@@ -342,8 +342,7 @@ describe('HourSegmentHandler', () => {
         expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(0)).to.equal('hour');
         expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(1)).to.equal('minute');
         expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(2)).to.equal('second');
-        expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(3)).to.equal('ms');
-        expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(4)).to.equal(null);
+        expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(3)).to.equal(null);
         expect(HourSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(-1)).to.equal(null);
     });
 

@@ -74,7 +74,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_A_index() {
-        return "1_[[1577836800000,1577923200000)]";
+        return "1_[[1577836800,1577923200)]";
     }
 
     public static get_var_data_A2(): FakeDataVO {
@@ -108,7 +108,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_B_index() {
-        return "2_[[1580515200000,1583020800000)]";
+        return "2_[[1580515200,1583020800)]";
     }
 
     public static get_var_data_C(): FakeDataVO {
@@ -121,7 +121,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_C_index() {
-        return "2_[[1583020800000,1585695600000)]";
+        return "2_[[1583020800,1585695600)]";
     }
 
     public static get_var_data_E(): FakeDataVO {
@@ -134,7 +134,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_E_index() {
-        return "3_[[1580515200000,1580601600000)]";
+        return "3_[[1580515200,1580601600)]";
     }
 
     public static get_var_data_F(): FakeDataVO {
@@ -147,7 +147,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_F_index() {
-        return "4_[[1580515200000,1612137600000)]";
+        return "4_[[1580515200,1612137600)]";
     }
 
     public static get_var_data_G(): FakeDataVO {
@@ -160,7 +160,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_G_index() {
-        return "4_[[1577836800000,1580515200000)]";
+        return "4_[[1577836800,1580515200)]";
     }
 
     public static get_var_data_H(): FakeDataVO {
@@ -173,7 +173,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_H_index() {
-        return "1_[[1577836800000,1609459200000)]";
+        return "1_[[1577836800,1609459200)]";
     }
 
     public static get_var_data_F_moins_BC(): FakeDataVO {

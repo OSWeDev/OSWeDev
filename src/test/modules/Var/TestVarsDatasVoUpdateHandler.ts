@@ -25,10 +25,15 @@ import FakeDataVO from './fakes/vos/FakeDataVO';
 import FakeCyclicalDataHandler from './fakes/cyclical/FakeCyclicalDataHandler';
 import FakeVarControllerCyclA from './fakes/cyclical/FakeVarControllerCyclA';
 import FakeVarControllerCyclB from './fakes/cyclical/FakeVarControllerCyclB';
+import VarsCacheController from '../../../server/modules/Var/VarsCacheController';
 
 describe('VarsDatasVoUpdateHandler', () => {
 
     it('test compute_intersectors', async () => {
+
+        VarsController.getInstance().clear_all_inits();
+        VarsServerController.getInstance().clear_all_inits();
+
         FakeDataHandler.initializeFakeDataVO();
         FakeDistantHandler.initializeFakeDistantVO();
         await FakeVarControllerDsDistant.getInstance().initialize();
@@ -224,6 +229,10 @@ describe('VarsDatasVoUpdateHandler', () => {
 
 
     it('test compute_intersectors cyclical', async () => {
+
+        VarsController.getInstance().clear_all_inits();
+        VarsServerController.getInstance().clear_all_inits();
+
         FakeCyclicalDataHandler.initializeFakeEmpDayDataVO();
         await FakeVarControllerCyclA.getInstance().initialize();
         await FakeVarControllerCyclB.getInstance().initialize();
@@ -291,6 +300,10 @@ describe('VarsDatasVoUpdateHandler', () => {
 
 
     it('test compute_deps_intersectors_and_union', async () => {
+
+        VarsController.getInstance().clear_all_inits();
+        VarsServerController.getInstance().clear_all_inits();
+
         FakeDataHandler.initializeFakeDataVO();
         FakeDistantHandler.initializeFakeDistantVO();
         await FakeVarControllerDsDistant.getInstance().initialize();
@@ -548,6 +561,10 @@ describe('VarsDatasVoUpdateHandler', () => {
     });
 
     it('test init_markers', async () => {
+
+        VarsController.getInstance().clear_all_inits();
+        VarsServerController.getInstance().clear_all_inits();
+
         FakeDataHandler.initializeFakeDataVO();
         FakeDistantHandler.initializeFakeDistantVO();
         await FakeVarControllerDsDistant.getInstance().initialize();
@@ -732,6 +749,9 @@ describe('VarsDatasVoUpdateHandler', () => {
 
     it('test prepare_updates', async () => {
 
+        VarsController.getInstance().clear_all_inits();
+        VarsServerController.getInstance().clear_all_inits();
+
         FakeDataHandler.initializeFakeDataVO();
         FakeDistantHandler.initializeFakeDistantVO();
 
@@ -797,6 +817,9 @@ describe('VarsDatasVoUpdateHandler', () => {
     });
 
     it('test init_leaf_intersectors', async () => {
+
+        VarsController.getInstance().clear_all_inits();
+        VarsServerController.getInstance().clear_all_inits();
 
         FakeDataHandler.initializeFakeDataVO();
         FakeDistantHandler.initializeFakeDistantVO();
