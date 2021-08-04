@@ -618,6 +618,8 @@ describe('Dates', () => {
         expect(Dates.hour(basicDate)).to.equal(moment.unix(basicDate).utc().hour());
         expect(Dates.hour(basicDate, 18)).to.equal(moment.unix(basicDate).utc().hour(18).unix());
 
+        expect(Dates.hour(edgeDate, 25)).to.equal(moment.unix(edgeDate).utc().hour(25).unix());
+
         // forbidden values
 
         /**
@@ -663,6 +665,8 @@ describe('Dates', () => {
         expect(Dates.minute(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).minute(33).unix());
         expect(Dates.minute(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).minute(70).unix());
         expect(Dates.minute(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).minute(-10).unix());
+
+        expect(Dates.minute(1583013600, 122)).to.equal(moment.unix(1583013600).utc(false).minute(122).unix());  // 29-02-2020 22:00:00 GMT
 
         // forbidden values
         expect(Dates.minute(undefined)).to.equal(moment.unix(undefined).utc(false).minute());
@@ -727,6 +731,7 @@ describe('Dates', () => {
     it('toISOString', () => {
         expect(Dates.toISOString(basicDate)).to.equal(moment.unix(basicDate).toISOString());
         expect(Dates.toISOString(edgeDate)).to.equal(moment.unix(edgeDate).toISOString());
+        expect(Dates.toISOString(Dates.now())).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     });
 
     it('date', () => {
@@ -760,6 +765,8 @@ describe('Dates', () => {
         expect(Dates.day(basicDate, 5)).to.equal(moment.unix(basicDate).utc().day(5).unix());
         expect(Dates.day(basicDate, 10)).to.equal(moment.unix(basicDate).utc().day(10).unix());
         expect(Dates.day(basicDate, -3)).to.equal(moment.unix(basicDate).utc().day(-3).unix());
+
+        expect(Dates.day(edgeDate, 7)).to.equal(moment.unix(edgeDate).utc().day(7).unix());
 
         // forbidden values
         expect(Dates.day(undefined)).to.equal(moment.unix(undefined).utc().day());
