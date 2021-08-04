@@ -655,11 +655,68 @@ describe('Dates', () => {
         expect(Dates.minute(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).minute(70).unix());
         expect(Dates.minute(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).minute(-10).unix());
 
-        expect(Dates.minute(Dates.minute(edgeDate, 30), -30)).to.equal(moment.unix(edgeDate).utc(false).minute(30).minute(-30).unix());
-
         // forbidden values
         expect(Dates.minute(undefined)).to.equal(moment.unix(undefined).utc(false).minute());
         expect(Dates.minute(undefined, 18)).to.equal(moment.unix(undefined).utc(true).minute(18).unix());
         expect(Dates.minute(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).minute(undefined));
+    });
+
+    it('minutes', () => {
+        let b = moment().utc(false).minutes();
+        let a = Dates.minutes();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc(false).minutes(16).unix();
+        a = Dates.minute(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.minutes(basicDate)).to.equal(moment.unix(basicDate).utc(false).minutes());
+        expect(Dates.minutes(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).minutes(33).unix());
+        expect(Dates.minutes(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).minutes(70).unix());
+        expect(Dates.minutes(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).minutes(-10).unix());
+
+        // forbidden values
+        expect(Dates.minutes(undefined)).to.equal(moment.unix(undefined).utc(false).minutes());
+        expect(Dates.minutes(undefined, 18)).to.equal(moment.unix(undefined).utc(true).minutes(18).unix());
+        expect(Dates.minutes(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).minutes(undefined));
+    });
+
+    it('second', () => {
+        let b = moment().utc(false).second();
+        let a = Dates.second();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc(false).second(16).unix();
+        a = Dates.second(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.second(basicDate)).to.equal(moment.unix(basicDate).utc(false).second());
+        expect(Dates.second(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).second(33).unix());
+        expect(Dates.second(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).second(70).unix());
+        expect(Dates.second(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).second(-10).unix());
+
+        // forbidden values
+        expect(Dates.second(undefined)).to.equal(moment.unix(undefined).utc(false).second());
+        expect(Dates.second(undefined, 18)).to.equal(moment.unix(undefined).utc(true).second(18).unix());
+        expect(Dates.second(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).second(undefined));
+    });
+
+    it('seconds', () => {
+        let b = moment().utc(false).seconds();
+        let a = Dates.seconds();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc(false).seconds(16).unix();
+        a = Dates.seconds(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.seconds(basicDate)).to.equal(moment.unix(basicDate).utc(false).seconds());
+        expect(Dates.seconds(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).seconds(33).unix());
+        expect(Dates.seconds(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).seconds(70).unix());
+        expect(Dates.seconds(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).seconds(-10).unix());
+
+        // forbidden values
+        expect(Dates.seconds(undefined)).to.equal(moment.unix(undefined).utc(false).seconds());
+        expect(Dates.seconds(undefined, 18)).to.equal(moment.unix(undefined).utc(true).seconds(18).unix());
+        expect(Dates.seconds(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).seconds(undefined));
+    });
+
+    it('toISOString', () => {
+        expect(Dates.toISOString(basicDate)).to.equal(moment.unix(basicDate).toISOString());
+        expect(Dates.toISOString(edgeDate)).to.equal(moment.unix(edgeDate).toISOString());
     });
 });
