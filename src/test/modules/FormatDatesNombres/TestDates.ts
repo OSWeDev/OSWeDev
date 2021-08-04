@@ -815,6 +815,21 @@ describe('Dates', () => {
 
         expect(Dates.day(edgeDate, 7)).to.equal(moment.unix(edgeDate).utc().day(7).unix());
 
+        expect(Dates.day(1628337600, 0)).to.equal(moment.unix(1628337600).utc().day(0).unix());  // Sat Aug 07 2021 12:00:00 GMT+0000
+        expect(Dates.day(1628337600, 1)).to.equal(moment.unix(1628337600).utc().day(1).unix());
+        expect(Dates.day(1628337600, 7)).to.equal(moment.unix(1628337600).utc().day(7).unix());
+        expect(Dates.day(1628337600, 8)).to.equal(moment.unix(1628337600).utc().day(8).unix());
+
+        expect(Dates.day(1628424000, 0)).to.equal(moment.unix(1628424000).utc().day(0).unix());  // Sun Aug 08 2021 12:00:00 GMT+0000
+        expect(Dates.day(1628424000, 1)).to.equal(moment.unix(1628424000).utc().day(1).unix());
+        expect(Dates.day(1628424000, 7)).to.equal(moment.unix(1628424000).utc().day(7).unix());
+        expect(Dates.day(1628424000, 8)).to.equal(moment.unix(1628424000).utc().day(8).unix());
+
+        expect(Dates.day(1628510400, 0)).to.equal(moment.unix(1628510400).utc().day(0).unix());  // Mon Aug 09 2021 12:00:00 GMT+0000
+        expect(Dates.day(1628510400, 1)).to.equal(moment.unix(1628510400).utc().day(1).unix());
+        expect(Dates.day(1628510400, 7)).to.equal(moment.unix(1628510400).utc().day(7).unix());
+        expect(Dates.day(1628510400, 8)).to.equal(moment.unix(1628510400).utc().day(8).unix());
+
         // forbidden values
         // expect(Dates.day(undefined)).to.equal(moment.unix(undefined).utc().day());
         // expect(Dates.day(undefined, 18)).to.equal(moment.unix(undefined).utc().day(18).unix());
@@ -832,6 +847,21 @@ describe('Dates', () => {
         expect(Dates.isoWeekday(basicDate, 5)).to.equal(moment.unix(basicDate).utc().isoWeekday(5).unix());
         expect(Dates.isoWeekday(basicDate, 10)).to.equal(moment.unix(basicDate).utc().isoWeekday(10).unix());
         expect(Dates.isoWeekday(basicDate, -3)).to.equal(moment.unix(basicDate).utc().isoWeekday(-3).unix());
+
+        expect(Dates.isoWeekday(1628337600, 0)).to.equal(moment.unix(1628337600).utc().isoWeekday(0).unix());  // Sat Aug 07 2021 12:00:00 GMT+0000
+        expect(Dates.isoWeekday(1628337600, 1)).to.equal(moment.unix(1628337600).utc().isoWeekday(1).unix());
+        expect(Dates.isoWeekday(1628337600, 7)).to.equal(moment.unix(1628337600).utc().isoWeekday(7).unix());
+        expect(Dates.isoWeekday(1628337600, 8)).to.equal(moment.unix(1628337600).utc().isoWeekday(8).unix());
+
+        expect(Dates.isoWeekday(1628424000, 0)).to.equal(moment.unix(1628424000).utc().isoWeekday(0).unix());  // Sun Aug 08 2021 12:00:00 GMT+0000
+        expect(Dates.isoWeekday(1628424000, 1)).to.equal(moment.unix(1628424000).utc().isoWeekday(1).unix());
+        expect(Dates.isoWeekday(1628424000, 7)).to.equal(moment.unix(1628424000).utc().isoWeekday(7).unix());
+        expect(Dates.isoWeekday(1628424000, 8)).to.equal(moment.unix(1628424000).utc().isoWeekday(8).unix());
+
+        expect(Dates.isoWeekday(1628510400, 0)).to.equal(moment.unix(1628510400).utc().isoWeekday(0).unix());  // Mon Aug 09 2021 12:00:00 GMT+0000
+        expect(Dates.isoWeekday(1628510400, 1)).to.equal(moment.unix(1628510400).utc().isoWeekday(1).unix());
+        expect(Dates.isoWeekday(1628510400, 7)).to.equal(moment.unix(1628510400).utc().isoWeekday(7).unix());
+        expect(Dates.isoWeekday(1628510400, 8)).to.equal(moment.unix(1628510400).utc().isoWeekday(8).unix());
 
         // forbidden values
         // expect(Dates.isoWeekday(undefined)).to.equal(moment.unix(undefined).utc().isoWeekday());
