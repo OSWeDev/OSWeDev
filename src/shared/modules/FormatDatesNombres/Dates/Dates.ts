@@ -396,7 +396,7 @@ export default class Dates {
         }
 
         if (set_isoWeekday == null) {
-            return (Math.floor((date % 604800) / 86400) + 4) % 7; // 0 == jeudi 01/01/1970
+            return (Math.floor((date % 604800) / 86400) + 4 - 1) % 7 + 1; // 0 == jeudi 01/01/1970
         }
 
         if (isNaN(set_isoWeekday)) {
