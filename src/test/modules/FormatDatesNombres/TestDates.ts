@@ -156,6 +156,131 @@ describe('Dates', () => {
         a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_YEAR);
         expect(a).to.equal(b);
 
+        // add decimal numbers
+        b = moment.unix(basicDate).add(0.333, 'day').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_DAY);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(0.333, 'hour').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(-0.125, 'hour').unix();
+        a = Dates.add(basicDate, -0.333, TimeSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(0.333, 'minute').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(0.333, 'second').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(0.333, 'week').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_WEEK);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(-0.5, 'week').unix();
+        a = Dates.add(basicDate, -0.5, TimeSegment.TYPE_WEEK);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(0.333, 'month').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(0.333, 'year').unix();
+        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_YEAR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(edgeDate).add(0.333, 'month').unix();
+        a = Dates.add(edgeDate, 0.333, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(reverseEdgeDate).add(-0.25, 'month').unix();
+        a = Dates.add(reverseEdgeDate, -0.25, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        // Tests changement d'heures (dernier dimanche de mars et dernier dimanche d'octobre)
+        b = moment.unix(1616864400).utc(false).add(2, 'day').unix();  // 27-03-2021 18:00:00 GMT
+        a = Dates.add(1616864400, 2, TimeSegment.TYPE_DAY);
+        expect(a).to.equal(b);
+
+        b = moment.unix(1616864400).utc(false).add(15, 'hour').unix();  // 27-03-2021 18:00:00 GMT
+        a = Dates.add(1616864400, 15, TimeSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(1519862400).utc(false).add(2, 'month').unix();  // 01-03-2018 00:00:00 GMT
+        a = Dates.add(1519862400, 2, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(1603198800).utc(false).add(2, 'month').unix();  // 20-10-2020 13:00:00 GMT
+        a = Dates.add(1603198800, 2, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(1604406897).utc(false).add(-1, 'month').unix();  // 03-11-2020 12:34:57 GMT
+        a = Dates.add(1604406897, -1, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(1604406897).utc(false).add(-6, 'month').unix();  // 03-11-2020 12:34:57 GMT
+        b = moment.unix(b).utc(false).add(-6, 'month').unix();
+        a = Dates.add(1604406897, -6, TimeSegment.TYPE_MONTH);
+        a = Dates.add(a, -6, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        // Autres (enchaînement d'addition soustraction, overflow...)
+        b = moment.unix(basicDate).utc(false).add(1, 'month').unix();
+        b = moment.unix(b).utc(false).add(-1, 'month').unix();
+        a = Dates.add(basicDate, 1, TimeSegment.TYPE_MONTH);
+        a = Dates.add(a, -1, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).utc(false).add(2, 'month').unix();
+        b = moment.unix(b).utc(false).add(-3, 'month').unix();
+        a = Dates.add(basicDate, 2, TimeSegment.TYPE_MONTH);
+        a = Dates.add(a, -3, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(edgeDate).utc(false).add(1, 'month').unix();
+        b = moment.unix(b).utc(false).add(-1, 'month').unix();
+        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MONTH);
+        a = Dates.add(a, -1, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(edgeDate).utc(false).add(2, 'month').unix();
+        b = moment.unix(b).utc(false).add(-3, 'month').unix();
+        a = Dates.add(edgeDate, 2, TimeSegment.TYPE_MONTH);
+        a = Dates.add(a, -3, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(67, 'day').unix();
+        a = Dates.add(basicDate, 67, TimeSegment.TYPE_DAY);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(67, 'hour').unix();
+        a = Dates.add(basicDate, 67, TimeSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(67, 'minute').unix();
+        a = Dates.add(basicDate, 67, TimeSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(3700, 'second').unix();
+        a = Dates.add(basicDate, 3700, TimeSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(15, 'week').unix();
+        a = Dates.add(basicDate, 15, TimeSegment.TYPE_WEEK);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(67, 'week').unix();
+        a = Dates.add(basicDate, 67, TimeSegment.TYPE_WEEK);
+        expect(a).to.equal(b);
+
+        b = moment.unix(basicDate).add(13, 'month').unix();
+        a = Dates.add(basicDate, 13, TimeSegment.TYPE_MONTH);
+        expect(a).to.equal(b);
+
         // add forbidden values
         b = moment.unix(basicDate).add(undefined, 'day').unix();
         a = Dates.add(basicDate, undefined, TimeSegment.TYPE_DAY);
@@ -277,8 +402,8 @@ describe('Dates', () => {
     });
 
     it('diff', () => {
-        let a1 = basicDate;
-        let a = Dates.startOf(a1, TimeSegment.TYPE_DAY);
+        let a1 = edgeDate;
+        let a = Dates.add(a1, -1, TimeSegment.TYPE_YEAR);
 
         expect(Dates.diff(a1, a, TimeSegment.TYPE_DAY, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a).utc(true), 'day', false));
         expect(Dates.diff(a1, a, TimeSegment.TYPE_HOUR, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a).utc(true), 'hour', false));
@@ -303,6 +428,14 @@ describe('Dates', () => {
         expect(Dates.diff(a, a1, TimeSegment.TYPE_WEEK, false)).to.equal(moment.unix(a).utc(true).diff(moment.unix(a1).utc(true), 'week', false));
         expect(Dates.diff(a, a1, TimeSegment.TYPE_MONTH, false)).to.equal(moment.unix(a).utc(true).diff(moment.unix(a1).utc(true), 'month', false));
         expect(Dates.diff(a, a1, TimeSegment.TYPE_YEAR, false)).to.equal(moment.unix(a).utc(true).diff(moment.unix(a1).utc(true), 'year', false));
+
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_DAY, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'day', false));
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_HOUR, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'hour', false));
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_MINUTE, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'minute', false));
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_SECOND, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'second', false));
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_WEEK, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'week', false));
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_MONTH, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'month', false));
+        expect(Dates.diff(a1, a1, TimeSegment.TYPE_YEAR, false)).to.equal(moment.unix(a1).utc(true).diff(moment.unix(a1).utc(true), 'year', false));
     });
 
     it('isSame', () => {
@@ -467,14 +600,16 @@ describe('Dates', () => {
     });
 
     it('hour', () => {
-        let b = moment().utc(true).hour();
+        let b = moment().utc(false).hour();
         let a = Dates.hour();
         expect(a - b).to.be.lessThan(2);
-        b = moment().utc(true).hour(16).unix();
+        b = moment().utc(false).hour(16).unix();
         a = Dates.hour(null, 16);
         expect(a - b).to.be.lessThan(2);
         expect(Dates.hour(basicDate)).to.equal(moment.unix(basicDate).utc(false).hour());
         expect(Dates.hour(basicDate, 18)).to.equal(moment.unix(basicDate).utc(true).hour(18).unix());
+        expect(Dates.hour(basicDate, 35)).to.equal(moment.unix(basicDate).utc(true).hour(35).unix());
+        expect(Dates.hour(basicDate, -10)).to.equal(moment.unix(basicDate).utc(true).hour(-10).unix());
 
         // forbidden values
         expect(Dates.hour(undefined)).to.equal(moment.unix(undefined).utc(false).hour());
@@ -487,14 +622,16 @@ describe('Dates', () => {
     });
 
     it('hours', () => {
-        let b = moment().utc(true).hours();
+        let b = moment().utc(false).hours();
         let a = Dates.hours();
         expect(a - b).to.be.lessThan(2);
-        b = moment().utc(true).hours(16).unix();
+        b = moment().utc(false).hours(16).unix();
         a = Dates.hours(null, 16);
         expect(a - b).to.be.lessThan(2);
         expect(Dates.hours(basicDate)).to.equal(moment.unix(basicDate).utc(false).hours());
         expect(Dates.hours(basicDate, 18)).to.equal(moment.unix(basicDate).utc(true).hours(18).unix());
+        expect(Dates.hours(basicDate, -10)).to.equal(moment.unix(basicDate).utc(true).hours(-10).unix());
+        expect(Dates.hours(basicDate, 35)).to.equal(moment.unix(basicDate).utc(true).hours(35).unix());
 
         // forbidden values
         expect(Dates.hours(undefined)).to.equal(moment.unix(undefined).utc(false).hours());
@@ -504,5 +641,25 @@ describe('Dates', () => {
         expect(Dates.hours(NaN)).to.equal(moment.unix(NaN).utc(false).hours());
         expect(Dates.hours(NaN, 18)).to.equal(moment.unix(NaN).utc(true).hours(18).unix());
         expect(Dates.hours(basicDate, NaN)).to.equal(moment.unix(basicDate).utc(true).hours(NaN).unix());
+    });
+
+    it('minute', () => {
+        let b = moment().utc(false).minute();
+        let a = Dates.minute();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc(false).minute(16).unix();
+        a = Dates.minute(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.minute(basicDate)).to.equal(moment.unix(basicDate).utc(false).minute());
+        expect(Dates.minute(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).minute(33).unix());
+        expect(Dates.minute(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).minute(70).unix());
+        expect(Dates.minute(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).minute(-10).unix());
+
+        expect(Dates.minute(Dates.minute(edgeDate, 30), -30)).to.equal(moment.unix(edgeDate).utc(false).minute(30).minute(-30).unix());
+
+        // forbidden values
+        expect(Dates.minute(undefined)).to.equal(moment.unix(undefined).utc(false).minute());
+        expect(Dates.minute(undefined, 18)).to.equal(moment.unix(undefined).utc(true).minute(18).unix());
+        expect(Dates.minute(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).minute(undefined));
     });
 });
