@@ -14,24 +14,7 @@ export default class Dates {
             Dates.p = require("perf_hooks").performance;
         }
 
-        return Math.floor((Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart + Dates.p.now()) / 1000);
-    }
-
-    public static init_now_handler() {
-        let p = performance;
-
-        if (!p) {
-
-            // server side
-            // @ts-ignore
-            p = require("perf_hooks").performance;
-
-            this.now = () => Math.floor((performance.timeOrigin + performance.now()) / 1000);
-        } else {
-
-            //client side
-            this.now = () => Math.floor((performance.timeOrigin ? performance.timeOrigin : performance.timing.navigationStart + performance.now()) / 1000);
-        }
+        return Math.floor(((Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart) + Dates.p.now()) / 1000);
     }
 
     /**
@@ -49,30 +32,28 @@ export default class Dates {
         switch (segmentation) {
 
             case TimeSegment.TYPE_DAY:
-                return 60 * 60 * 24 * nb + date;
+                return Math.floor(60 * 60 * 24 * nb + date);
             case TimeSegment.TYPE_HOUR:
-                return 60 * 60 * nb + date;
+                return Math.floor(60 * 60 * nb + date);
             case TimeSegment.TYPE_MINUTE:
-                return 60 * nb + date;
+                return Math.floor(60 * nb + date);
             case TimeSegment.TYPE_MONTH:
                 /**
                  * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
                  */
                 let date_ms = new Date(date * 1000);
                 return Math.floor(date_ms.setUTCMonth(date_ms.getUTCMonth() + nb) / 1000);
-            // case TimeSegment.TYPE_MS:
-            //     return nb/1000 + date;
             case TimeSegment.TYPE_SECOND:
-                return nb + date;
+                return Math.floor(nb + date);
             case TimeSegment.TYPE_WEEK:
-                return 60 * 60 * 24 * 7 * nb + date;
+                return Math.floor(60 * 60 * 24 * 7 * nb + date);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
                 let date_ys = new Date(date * 1000);
                 return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() + nb) / 1000);
 
             default:
-                return null;
+                return Math.floor(null);
         }
     }
 
@@ -394,7 +375,7 @@ export default class Dates {
         }
 
         if (set_day == null) {
-            return Math.floor((date % 604800) / 86400) + 4 % 7; // 0 == jeudi 01/01/1970
+            return (Math.floor((date % 604800) / 86400) + 4) % 7; // 0 == jeudi 01/01/1970
         }
 
         if (isNaN(set_day)) {
@@ -406,7 +387,7 @@ export default class Dates {
 
     /**
      * @param date date to get or set
-     * @param set_isoWeekday if omitted the function return the current isoWeekday in the week (0 = monday), else it sets it and return the updated time.
+     * @param set_isoWeekday if omitted the function return the current isoWeekday in the week (1=monday, 7=sunday), else it sets it and return the updated time.
      */
     public static isoWeekday(date?: number, set_isoWeekday?: number): number {
 
@@ -415,7 +396,7 @@ export default class Dates {
         }
 
         if (set_isoWeekday == null) {
-            return Math.floor((date % 604800) / 86400) + 3 % 7; // 0 == jeudi 01/01/1970
+            return (Math.floor((date % 604800) / 86400) + 4) % 7; // 0 == jeudi 01/01/1970
         }
 
         if (isNaN(set_isoWeekday)) {

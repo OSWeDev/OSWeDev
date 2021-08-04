@@ -25,11 +25,11 @@ export default class Durations {
         switch (segmentation) {
 
             case HourSegment.TYPE_HOUR:
-                return 60 * 60 * nb + duration;
+                return Math.floor(60 * 60 * nb + duration);
             case HourSegment.TYPE_MINUTE:
-                return 60 * nb + duration;
+                return Math.floor(60 * nb + duration);
             case HourSegment.TYPE_SECOND:
-                return nb + duration;
+                return Math.floor(nb + duration);
 
             default:
                 return null;
