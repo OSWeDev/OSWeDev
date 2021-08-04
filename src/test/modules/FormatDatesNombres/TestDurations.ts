@@ -14,6 +14,77 @@ describe('Durations', () => {
     const edgeDate = 1583020799; // 29-02-2020 23:59:59 GMT
     const reverseEdgeDate = 1583020800;  // 00-03-2020 00:00:00 GMT
 
+    it('from_segmentation', () => {
+        // Add 1
+        let b = moment.unix(0).utc().add(1, 'hour').unix();
+        let a = Durations.from_segmentation(1, HourSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(1, 'minute').unix();
+        a = Durations.from_segmentation(1, HourSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(1, 'second').unix();
+        a = Durations.from_segmentation(1, HourSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+
+        // Add 0
+        expect(Durations.from_segmentation(0, HourSegment.TYPE_HOUR)).to.equal(0);
+        expect(Durations.from_segmentation(0, HourSegment.TYPE_MINUTE)).to.equal(0);
+        expect(Durations.from_segmentation(0, HourSegment.TYPE_SECOND)).to.equal(0);
+
+        // Remove 1
+        b = moment.unix(0).utc().add(-1, 'hour').unix();
+        a = Durations.from_segmentation(-1, HourSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(-1, 'minute').unix();
+        a = Durations.from_segmentation(-1, HourSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(-1, 'second').unix();
+        a = Durations.from_segmentation(-1, HourSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+
+        // Add decimal number
+        b = moment.unix(0).utc().add(0.125, 'hour').unix();
+        a = Durations.from_segmentation(0.125, HourSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(-0.25, 'hour').unix();
+        a = Durations.from_segmentation(-0.25, HourSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(0.333, 'minute').unix();
+        a = Durations.from_segmentation(0.333, HourSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(-0.2, 'minute').unix();
+        a = Durations.from_segmentation(-0.2, HourSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(0.654, 'second').unix();
+        a = Durations.from_segmentation(0.654, HourSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(-1.33, 'second').unix();
+        a = Durations.from_segmentation(-1.33, HourSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+
+        // Forbidden values
+        b = moment.unix(0).utc().add(null, 'hour').unix();
+        a = Durations.from_segmentation(null, HourSegment.TYPE_HOUR);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(undefined, 'minute').unix();
+        a = Durations.from_segmentation(undefined, HourSegment.TYPE_MINUTE);
+        expect(a).to.equal(b);
+
+        b = moment.unix(0).utc().add(NaN, 'second').unix();
+        a = Durations.from_segmentation(NaN, HourSegment.TYPE_SECOND);
+        expect(a).to.equal(b);
+    });
+
     it('add', () => {
         // Add 1
         let b = moment.unix(basicDate).utc().add(1, 'hour').unix();
@@ -156,6 +227,23 @@ describe('Durations', () => {
         expect(Durations.diff(undefined, a, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(undefined).utc().diff(moment.unix(a).utc(), 'hour', false));
         expect(Durations.diff(null, a, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(null).utc().diff(moment.unix(a).utc(), 'minute', false));
         expect(Durations.diff(NaN, a, HourSegment.TYPE_SECOND, false)).to.equal(moment.unix(NaN).utc().diff(moment.unix(a).utc(), 'second', false));
+    });
+
+    it('as', () => {
+        let b = moment().utc().hour(16).unix();
+        let a = Durations.hours(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Durations.hours(basicDate)).to.equal(moment.unix(basicDate).utc().hour());
+        expect(Durations.hours(basicDate, 18)).to.equal(moment.unix(basicDate).utc().hour(18).unix());
+
+        expect(Durations.hours(edgeDate, 25)).to.equal(moment.unix(edgeDate).utc().hour(25).unix());
+
+        // Forbidden values
+        b = moment().utc().hour();
+        a = Durations.as(null, HourSegment.TYPE_HOUR);
+        expect(a - b).to.be.lessThan(2);
+        expect(Durations.hours(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().hour(undefined));
+        expect(Durations.hours(basicDate, NaN)).to.equal(moment.unix(basicDate).utc().hour(NaN).unix());
     });
 
     it('hours', () => {
