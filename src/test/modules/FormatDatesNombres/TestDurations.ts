@@ -134,7 +134,7 @@ describe('Durations', () => {
 
     it('diff', () => {
         let a1 = edgeDate;
-        let a = moment.unix(edgeDate).utc().add(-1, 'year').unix();
+        let a = moment.unix(edgeDate).utc().add(-1, 'day').unix();
 
         expect(Durations.diff(a1, a, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'hour', false));
         expect(Durations.diff(a1, a, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'minute', false));
@@ -156,5 +156,58 @@ describe('Durations', () => {
         expect(Durations.diff(undefined, a, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(undefined).utc().diff(moment.unix(a).utc(), 'hour', false));
         expect(Durations.diff(null, a, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(null).utc().diff(moment.unix(a).utc(), 'minute', false));
         expect(Durations.diff(NaN, a, HourSegment.TYPE_SECOND, false)).to.equal(moment.unix(NaN).utc().diff(moment.unix(a).utc(), 'second', false));
+    });
+
+    it('hours', () => {
+        let b = moment().utc().hour();
+        let a = Durations.hours(null);
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc().hour(16).unix();
+        a = Durations.hours(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Durations.hours(basicDate)).to.equal(moment.unix(basicDate).utc().hour());
+        expect(Durations.hours(basicDate, 18)).to.equal(moment.unix(basicDate).utc().hour(18).unix());
+
+        expect(Durations.hours(edgeDate, 25)).to.equal(moment.unix(edgeDate).utc().hour(25).unix());
+
+        // Forbidden values
+        expect(Durations.hours(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().hour(undefined));
+        expect(Durations.hours(basicDate, NaN)).to.equal(moment.unix(basicDate).utc().hour(NaN).unix());
+    });
+
+    it('minutes', () => {
+        let b = moment().utc(false).minute();
+        let a = Durations.minutes(null);
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc(false).minute(16).unix();
+        a = Durations.minutes(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Durations.minutes(basicDate)).to.equal(moment.unix(basicDate).utc(false).minute());
+        expect(Durations.minutes(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).minute(33).unix());
+        expect(Durations.minutes(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).minute(70).unix());
+        expect(Durations.minutes(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).minute(-10).unix());
+
+        // forbidden values
+        expect(Durations.minutes(undefined)).to.equal(moment.unix(undefined).utc(false).minute());
+        expect(Durations.minutes(undefined, 18)).to.equal(moment.unix(undefined).utc(true).minute(18).unix());
+        expect(Durations.minutes(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).minute(undefined));
+    });
+
+    it('seconds', () => {
+        let b = moment().utc(false).second();
+        let a = Durations.seconds(null);
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc(false).second(16).unix();
+        a = Durations.seconds(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Durations.seconds(basicDate)).to.equal(moment.unix(basicDate).utc(false).second());
+        expect(Durations.seconds(basicDate, 33)).to.equal(moment.unix(basicDate).utc(false).second(33).unix());
+        expect(Durations.seconds(basicDate, 70)).to.equal(moment.unix(basicDate).utc(false).second(70).unix());
+        expect(Durations.seconds(basicDate, -10)).to.equal(moment.unix(basicDate).utc(false).second(-10).unix());
+
+        // forbidden values
+        expect(Durations.seconds(undefined)).to.equal(moment.unix(undefined).utc(false).second());
+        expect(Durations.seconds(undefined, 18)).to.equal(moment.unix(undefined).utc(true).second(18).unix());
+        expect(Durations.seconds(basicDate, undefined)).to.equal(moment.unix(basicDate).utc(false).second(undefined));
     });
 });
