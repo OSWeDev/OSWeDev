@@ -408,7 +408,7 @@ describe('Dates', () => {
 
         b = moment.unix(basicDate).utc().startOf('isoWeek');
         a = Dates.startOf(basicDate, TimeSegment.TYPE_WEEK);
-        // expect(Dates.format(a, "DD/MM/YYYY HH:mm:ss")).to.equal(b.format("DD/MM/YYYY HH:mm:ss"));
+        expect(Dates.format(a, "DD/MM/YYYY HH:mm:ss")).to.equal(b.format("DD/MM/YYYY HH:mm:ss"));
 
         // forbidden values
         expect(Dates.format(null, "DD/MM/YYYY HH:mm:ss")).to.equal(null);
