@@ -728,4 +728,100 @@ describe('Dates', () => {
         expect(Dates.toISOString(basicDate)).to.equal(moment.unix(basicDate).toISOString());
         expect(Dates.toISOString(edgeDate)).to.equal(moment.unix(edgeDate).toISOString());
     });
+
+    it('date', () => {
+        let b = moment().utc().date();
+        let a = Dates.date();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc().date(16).unix();
+        a = Dates.date(null, 16);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.date(basicDate)).to.equal(moment.unix(basicDate).utc().date());
+        expect(Dates.date(basicDate, 16)).to.equal(moment.unix(basicDate).utc().date(16).unix());
+        expect(Dates.date(basicDate, 35)).to.equal(moment.unix(basicDate).utc().date(35).unix());
+        expect(Dates.date(basicDate, -10)).to.equal(moment.unix(basicDate).utc().date(-10).unix());
+
+        expect(Dates.date(edgeDate, 30)).to.equal(moment.unix(edgeDate).utc().date(30).unix());
+
+        // forbidden values
+        expect(Dates.date(undefined)).to.equal(moment.unix(undefined).utc().date());
+        expect(Dates.date(undefined, 18)).to.equal(moment.unix(undefined).utc().date(18).unix());
+        expect(Dates.date(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().date(undefined));
+    });
+
+    it('day', () => {
+        let b = moment().utc().day();
+        let a = Dates.day();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc().day(5).unix();
+        a = Dates.day(null, 5);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.day(basicDate)).to.equal(moment.unix(basicDate).utc().day());
+        expect(Dates.day(basicDate, 5)).to.equal(moment.unix(basicDate).utc().day(5).unix());
+        expect(Dates.day(basicDate, 10)).to.equal(moment.unix(basicDate).utc().day(10).unix());
+        expect(Dates.day(basicDate, -3)).to.equal(moment.unix(basicDate).utc().day(-3).unix());
+
+        // forbidden values
+        expect(Dates.day(undefined)).to.equal(moment.unix(undefined).utc().day());
+        expect(Dates.day(undefined, 18)).to.equal(moment.unix(undefined).utc().day(18).unix());
+        expect(Dates.day(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().day(undefined));
+    });
+
+    it('isoWeekday', () => {
+        let b = moment().utc().isoWeekday();
+        let a = Dates.isoWeekday();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc().isoWeekday(5).unix();
+        a = Dates.isoWeekday(null, 5);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.isoWeekday(basicDate)).to.equal(moment.unix(basicDate).utc().isoWeekday());
+        expect(Dates.isoWeekday(basicDate, 5)).to.equal(moment.unix(basicDate).utc().isoWeekday(5).unix());
+        expect(Dates.isoWeekday(basicDate, 10)).to.equal(moment.unix(basicDate).utc().isoWeekday(10).unix());
+        expect(Dates.isoWeekday(basicDate, -3)).to.equal(moment.unix(basicDate).utc().isoWeekday(-3).unix());
+
+        // forbidden values
+        expect(Dates.isoWeekday(undefined)).to.equal(moment.unix(undefined).utc().isoWeekday());
+        expect(Dates.isoWeekday(undefined, 18)).to.equal(moment.unix(undefined).utc().isoWeekday(18).unix());
+        expect(Dates.isoWeekday(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().isoWeekday(undefined));
+    });
+
+    it('month', () => {
+        let b = moment().utc().month();
+        let a = Dates.month();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc().month(5).unix();
+        a = Dates.month(null, 5);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.month(basicDate)).to.equal(moment.unix(basicDate).utc().month());
+        expect(Dates.month(basicDate, 5)).to.equal(moment.unix(basicDate).utc().month(5).unix());
+        expect(Dates.month(basicDate, 13)).to.equal(moment.unix(basicDate).utc().month(13).unix());
+        expect(Dates.month(basicDate, -3)).to.equal(moment.unix(basicDate).utc().month(-3).unix());
+
+        expect(Dates.month(1612094400, 1)).to.equal(moment.unix(1612094400).utc().month(1).unix());  // 31-01-2021 12:00:00 GMT
+
+        // forbidden values
+        expect(Dates.month(undefined)).to.equal(moment.unix(undefined).utc().month());
+        expect(Dates.month(undefined, 18)).to.equal(moment.unix(undefined).utc().month(18).unix());
+        expect(Dates.month(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().month(undefined));
+    });
+
+    it('year', () => {
+        let b = moment().utc().year();
+        let a = Dates.year();
+        expect(a - b).to.be.lessThan(2);
+        b = moment().utc().year(5).unix();
+        a = Dates.year(null, 5);
+        expect(a - b).to.be.lessThan(2);
+        expect(Dates.year(basicDate)).to.equal(moment.unix(basicDate).utc().year());
+        expect(Dates.year(basicDate, 5)).to.equal(moment.unix(basicDate).utc().year(5).unix());
+        expect(Dates.year(basicDate, -3)).to.equal(moment.unix(basicDate).utc().year(-3).unix());
+
+        expect(Dates.year(basicDate, 271000)).to.equal(moment.unix(basicDate).utc().year(271000).unix());
+        expect(Dates.year(basicDate, -271000)).to.equal(moment.unix(basicDate).utc().year(-271000).unix());
+
+        // forbidden values
+        expect(Dates.year(undefined)).to.equal(moment.unix(undefined).utc().year());
+        expect(Dates.year(undefined, 18)).to.equal(moment.unix(undefined).utc().year(18).unix());
+        expect(Dates.year(basicDate, undefined)).to.equal(moment.unix(basicDate).utc().year(undefined));
+    });
 });
