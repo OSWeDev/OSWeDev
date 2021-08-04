@@ -233,6 +233,8 @@ export default class VarsDatasVoUpdateHandler {
                         var_datas.forEach((vd: VarDataBaseVO) => {
                             delete vd.value;
                             vd.value_ts = null;
+
+                            // ConsoleHandler.getInstance().log(vd.index);
                         });
                     }
 

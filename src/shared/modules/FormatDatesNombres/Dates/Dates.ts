@@ -128,12 +128,12 @@ export default class Dates {
         }
     }
 
-    public static format(date: number, formatstr: string): string {
+    public static format(date: number, formatstr: string, localized: boolean = false): string {
         if (!date) {
             return null;
         }
 
-        let mm = moment.unix(date).utc();
+        let mm = localized ? moment.unix(date) : moment.unix(date).utc();
         return mm.format(formatstr);
     }
 
