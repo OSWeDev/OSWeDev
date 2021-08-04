@@ -34,8 +34,8 @@ export default class ResetDateHelper {
         // Si on a une zone de balance, on doit vérifier qu'on est après la balance et dans ce cas on accepte la date de reset.
         // Sinon, on par de la date de reset Y-1
         let date_reset: number = Dates.startOf(date, TimeSegment.TYPE_DAY);
-        Dates.month(date_reset, yearly_reset_month);
-        Dates.date(date_reset, yearly_reset_day_in_month);
+        date_reset = Dates.month(date_reset, yearly_reset_month);
+        date_reset = Dates.date(date_reset, yearly_reset_day_in_month);
 
         if ((inclusive && Dates.isAfter(date_reset, date, TimeSegment.TYPE_DAY)) || ((!inclusive) && Dates.isSameOrAfter(date_reset, date, TimeSegment.TYPE_DAY))) {
             date_reset = Dates.add(date_reset, -1, TimeSegment.TYPE_YEAR);
@@ -57,8 +57,8 @@ export default class ResetDateHelper {
         }
 
         let date_reset: number = date;
-        Dates.month(date_reset, yearly_reset_month);
-        Dates.date(date_reset, yearly_reset_day_in_month);
+        date_reset = Dates.month(date_reset, yearly_reset_month);
+        date_reset = Dates.date(date_reset, yearly_reset_day_in_month);
 
         if (Dates.isBefore(date_reset, date, TimeSegment.TYPE_DAY)) {
             date_reset = Dates.add(date_reset, 1, TimeSegment.TYPE_YEAR);

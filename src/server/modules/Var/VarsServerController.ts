@@ -57,6 +57,17 @@ export default class VarsServerController {
     protected constructor() {
     }
 
+    public clear_all_inits() {
+        VarsServerController.getInstance()._varcontrollers_dag = null;
+        VarsServerController.getInstance()._registered_vars = {};
+        VarsServerController.getInstance()._registered_vars_by_ids = {};
+        VarsServerController.getInstance()._registered_vars_controller = {};
+        VarsServerController.getInstance()._registered_vars_by_datasource = {};
+        VarsServerController.getInstance()._registered_vars_controller_by_api_type_id = {};
+        VarsServerController.getInstance()._varcacheconf_by_var_ids = {};
+        VarsServerController.getInstance()._varcacheconf_by_api_type_ids = {};
+    }
+
     get varcontrollers_dag() {
         return this._varcontrollers_dag;
     }

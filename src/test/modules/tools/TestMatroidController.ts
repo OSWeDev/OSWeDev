@@ -134,10 +134,10 @@ describe('MatroidController', () => {
         ConsoleHandler.getInstance().log(res["index"]);
         expect(remaning_calcs[0].chopped_items).deep.eq([res]);
         // Le assign est juste à cause d'un pb de momentjs....
-        remaning_calcs[0].remaining_items[0].ts_ranges[1].max['_i'] = "2021-02-01";
-        remaning_calcs[0].remaining_items[0].ts_ranges[1].max['_pf'].parsedDateParts = [2021, 1, 1];
-        remaning_calcs[0].remaining_items[0].ts_ranges[1].min['_i'] = "2020-04-01";
-        remaning_calcs[0].remaining_items[0].ts_ranges[1].min['_pf'].parsedDateParts = [2020, 3, 1];
+        // remaning_calcs[0].remaining_items[0].ts_ranges[1].max['_i'] = "2021-02-01";
+        // remaning_calcs[0].remaining_items[0].ts_ranges[1].max['_pf'].parsedDateParts = [2021, 1, 1];
+        // remaning_calcs[0].remaining_items[0].ts_ranges[1].min['_i'] = "2020-04-01";
+        // remaning_calcs[0].remaining_items[0].ts_ranges[1].min['_pf'].parsedDateParts = [2020, 3, 1];
         remaning_calcs.forEach((e: MatroidCutResult<any>) => e.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
         expect(remaning_calcs[0].remaining_items).deep.eq([FakeDataHandler.get_var_data_F_moins_C()]);
 
@@ -151,10 +151,10 @@ describe('MatroidController', () => {
         res["_index"] = null;
         ConsoleHandler.getInstance().log(res["index"]);
         expect(remaning_calcs[0].chopped_items).deep.eq([res]);
-        remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_i'] = "2021-02-01";
-        remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
-        remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_i'] = "2020-03-01";
-        remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 2, 1];
+        // remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_i'] = "2021-02-01";
+        // remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
+        // remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_i'] = "2020-03-01";
+        // remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 2, 1];
         remaning_calcs.forEach((e: MatroidCutResult<any>) => e.remaining_items.forEach((f) => ConsoleHandler.getInstance().log(f['index'])));
         expect(remaning_calcs[0].remaining_items).deep.eq([FakeDataHandler.get_var_data_F_moins_B()]);
     });
@@ -353,10 +353,10 @@ describe('MatroidController', () => {
             [var_data_C, var_data_B],
             [var_data_F]);
 
-        remaning_calcs[0].ts_ranges[0].max['_i'] = "2021-02-01";
-        remaning_calcs[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
-        remaning_calcs[0].ts_ranges[0].min['_i'] = "2020-04-01";
-        remaning_calcs[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 3, 1];
+        // remaning_calcs[0].ts_ranges[0].max['_i'] = "2021-02-01";
+        // remaning_calcs[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
+        // remaning_calcs[0].ts_ranges[0].min['_i'] = "2020-04-01";
+        // remaning_calcs[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 3, 1];
 
         remaning_calcs.forEach((e) => ConsoleHandler.getInstance().log(e.index));
 

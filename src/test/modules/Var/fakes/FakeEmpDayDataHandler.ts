@@ -271,8 +271,8 @@ export default class FakeEmpDayDataHandler {
         var_data.ts_ranges = [
             RangeHandler.getInstance().createNew(
                 TSRange.RANGE_TYPE,
-                1527804000,
-                1559253600,
+                1527804,
+                1559253,
                 true, true, TimeSegment.TYPE_DAY)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1596, 1596, true, true, NumSegment.TYPE_INT)];

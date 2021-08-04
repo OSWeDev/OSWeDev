@@ -29,6 +29,11 @@ export default class VarsController {
     protected constructor() {
     }
 
+    public clear_all_inits() {
+        VarsController.getInstance().var_conf_by_id = {};
+        VarsController.getInstance().var_conf_by_name = {};
+    }
+
     public async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
         VarsController.getInstance().var_conf_by_id = var_conf_by_id;
         for (let i in VarsController.getInstance().var_conf_by_id) {
