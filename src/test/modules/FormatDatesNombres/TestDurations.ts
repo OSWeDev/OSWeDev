@@ -125,4 +125,36 @@ describe('Durations', () => {
         a = Durations.add(basicDate, NaN, HourSegment.TYPE_SECOND);
         expect(a).to.equal(b);
     });
+
+    it('format', () => {
+        expect(Durations.format(basicDate, "DD/MM/YYYY HH:mm:ss")).to.equal(moment.unix(basicDate).utc().format("DD/MM/YYYY HH:mm:ss"));
+        expect(Durations.format(edgeDate, "DD/MM/YYYY HH:mm:ss")).to.equal(moment.unix(edgeDate).utc().format("DD/MM/YYYY HH:mm:ss"));
+        expect(Durations.format(reverseEdgeDate, "DD/MM/YYYY HH:mm:ss")).to.equal(moment.unix(reverseEdgeDate).utc().format("DD/MM/YYYY HH:mm:ss"));
+    });
+
+    it('diff', () => {
+        let a1 = edgeDate;
+        let a = moment.unix(edgeDate).utc().add(-1, 'year').unix();
+
+        expect(Durations.diff(a1, a, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'hour', false));
+        expect(Durations.diff(a1, a, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'minute', false));
+        expect(Durations.diff(a1, a, HourSegment.TYPE_SECOND, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'second', false));
+
+        expect(Durations.diff(a1, a, HourSegment.TYPE_HOUR, true)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'hour', true));
+        expect(Durations.diff(a1, a, HourSegment.TYPE_MINUTE, true)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'minute', true));
+        expect(Durations.diff(a1, a, HourSegment.TYPE_SECOND, true)).to.equal(moment.unix(a1).utc().diff(moment.unix(a).utc(), 'second', true));
+
+        expect(Durations.diff(a, a1, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(a).utc().diff(moment.unix(a1).utc(), 'hour', false));
+        expect(Durations.diff(a, a1, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(a).utc().diff(moment.unix(a1).utc(), 'minute', false));
+        expect(Durations.diff(a, a1, HourSegment.TYPE_SECOND, false)).to.equal(moment.unix(a).utc().diff(moment.unix(a1).utc(), 'second', false));
+
+        // Forbidden values
+        expect(Durations.diff(a1, undefined, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(undefined).utc(), 'hour', false));
+        expect(Durations.diff(a1, null, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(null).utc(), 'minute', false));
+        expect(Durations.diff(a1, NaN, HourSegment.TYPE_SECOND, false)).to.equal(moment.unix(a1).utc().diff(moment.unix(NaN).utc(), 'second', false));
+
+        expect(Durations.diff(undefined, a, HourSegment.TYPE_HOUR, false)).to.equal(moment.unix(undefined).utc().diff(moment.unix(a).utc(), 'hour', false));
+        expect(Durations.diff(null, a, HourSegment.TYPE_MINUTE, false)).to.equal(moment.unix(null).utc().diff(moment.unix(a).utc(), 'minute', false));
+        expect(Durations.diff(NaN, a, HourSegment.TYPE_SECOND, false)).to.equal(moment.unix(NaN).utc().diff(moment.unix(a).utc(), 'second', false));
+    });
 });
