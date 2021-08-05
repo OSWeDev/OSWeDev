@@ -140,6 +140,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     private fields_: Array<ModuleTableField<any>> = [];
     private fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
+    private readonlyfields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
     private sortedFields: Array<ModuleTableField<any>> = [];
     /**
@@ -407,6 +408,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public push_field(field: ModuleTableField<any>) {
         this.fields_.push(field);
         this.fields_by_ids[field.field_id] = field;
+        this.readonlyfields_by_ids[field.field_id] = field;
 
         this.set_sortedFields();
     }
@@ -416,9 +418,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.fields_ = fields;
 
         this.fields_by_ids = {};
+        this.readonlyfields_by_ids = {};
         for (let i in this.fields_) {
             let field = this.fields_[i];
             this.fields_by_ids[field.field_id] = field;
+
+            if (field.is_readonly) {
+                this.readonlyfields_by_ids[field.field_id] = field;
+            }
         }
 
         this.set_sortedFields();
@@ -840,14 +847,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_hour:
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = parseInt(e[old_id]);
+                    res[field.field_id] = ConversionHandler.forceNumber(e[old_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     if ((e[old_id] === null) || (typeof e[old_id] === 'undefined')) {
                         res[field.field_id] = e[old_id];
                     } else {
-                        res[field.field_id] = (e[old_id] as string[]).map((ts: string) => parseInt(ts));
+                        res[field.field_id] = (e[old_id] as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
                     }
                     break;
 
@@ -923,17 +930,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res: T = e;
         if (e._type != this.vo_type) {
 
-            for (let i in this.fields_) {
-                let field = this.fields_[i];
-                if (!field.is_readonly) {
-                    continue;
-                }
+            for (let i in this.readonlyfields_by_ids) {
+                let field = this.readonlyfields_by_ids[i];
                 delete e[field.field_id];
             }
             res = Object.assign(this.voConstructor(), e);
             res._type = this.vo_type;
         }
-        res.id = ConversionHandler.getInstance().forceNumber(e.id);
+
+        res.id = ConversionHandler.forceNumber(e.id);
 
         if (!this.fields_) {
             return res;
@@ -959,7 +964,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_int:
                 case ModuleTableField.FIELD_TYPE_enum:
                 case ModuleTableField.FIELD_TYPE_prct:
-                    res[field.field_id] = ConversionHandler.getInstance().forceNumber(field_value);
+
+                case ModuleTableField.FIELD_TYPE_hour:
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    res[field.field_id] = ConversionHandler.forceNumber(field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_int_array:
@@ -989,15 +997,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true).unix());
                     break;
 
-                case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = (field_value == null) ? field_value : parseInt(field_value);
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_tstz_array:
-                    if ((field_value === null) || (typeof field_value === 'undefined')) {
-                        res[field.field_id] = field_value;
-                    } else {
-                        res[field.field_id] = field_value.map((ts: string) => parseInt(ts));
+                    if (!((field_value === null) || (typeof field_value === 'undefined'))) {
+                        res[field.field_id] = field_value.map((ts: string) => ConversionHandler.forceNumber(ts));
                     }
                     break;
 
@@ -1007,10 +1009,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_hour:
-                    res[field.field_id] = (field_value == null) ? field_value : parseInt(field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
@@ -1025,9 +1023,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     }
                     break;
 
-                default:
-                    res[field.field_id] = e[field.field_id];
-                    break;
+                // default:
+                // res[field.field_id] = e[field.field_id];
+                // break;
             }
         }
 

@@ -24,7 +24,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         await this.do_policies_activations(roles_ids_by_name, policies_ids_by_name);
     }
 
-    protected abstract async do_policies_activations(
+    protected abstract do_policies_activations(
         roles_ids_by_name: { [role_name: string]: number },
         policies_ids_by_name: { [policy_name: string]: number }
     );

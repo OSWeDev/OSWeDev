@@ -119,7 +119,10 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: true })
     public show_multiple_segments: boolean;
 
-    public show_overview: boolean = this.force_show_overview;
+    get show_overview(): boolean {
+        return this.force_show_overview;
+    }
+
     public show_new_import: boolean = false;
 
     private selected_segment: TimeSegment = null;

@@ -43,7 +43,7 @@ export default class ModulesClientInitializationDatasGenerator {
                 console.error(error);
                 reject(error);
             } finally {
-                resolve();
+                resolve(null);
             }
         });
     }

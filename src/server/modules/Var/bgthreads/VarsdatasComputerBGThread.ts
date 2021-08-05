@@ -261,31 +261,37 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsComputeController.compute:IN");
                         }
 
+                        let perf_start = performance.now();
+
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
                         await VarsComputeController.getInstance().compute(vars_datas); // PERF OK
                         VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
+
+                        let perf_end = performance.now();
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsComputeController.compute:OUT");
                         }
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
-                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"].sum_ms + ' ms] handling update buffer, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.selection"].sum_ms + ' ms] selecting, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute"].sum_ms + ' ms] computing, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.create_tree"].sum_ms + ' ms] computing.create_tree, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.load_nodes_datas"].sum_ms + ' ms] computing.load_nodes_datas, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.visit_bottom_up_to_node"].sum_ms + ' ms] computing.visit_bottom_up_to_node, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.cache_datas"].sum_ms + ' ms] computing.cache_datas, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.update_cards_in_perfs"].sum_ms + ' ms] computing.update_cards_in_perfs, [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.notify_vardatas_computing"].sum_ms + ' ms] notifying');
-                            } else {
-                                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
-                                    VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total');
-                            }
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
+                                (perf_end - perf_start) + ' ms] computing');
+                            // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                            //     ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"].sum_ms + ' ms] handling update buffer, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.selection"].sum_ms + ' ms] selecting, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute"].sum_ms + ' ms] computing, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.create_tree"].sum_ms + ' ms] computing.create_tree, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.load_nodes_datas"].sum_ms + ' ms] computing.load_nodes_datas, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.visit_bottom_up_to_node"].sum_ms + ' ms] computing.visit_bottom_up_to_node, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.cache_datas"].sum_ms + ' ms] computing.cache_datas, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute.update_cards_in_perfs"].sum_ms + ' ms] computing.update_cards_in_perfs, [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread.notify_vardatas_computing"].sum_ms + ' ms] notifying');
+                            // } else {
+                            //     ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
+                            //         VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total');
+                            // }
                             await VarsPerfsController.update_perfs_in_bdd(); // PERF OK
                         }
 

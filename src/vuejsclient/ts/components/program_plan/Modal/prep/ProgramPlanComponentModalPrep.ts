@@ -106,9 +106,17 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
     private edited_prep: IPlanRDVPrep = null;
 
-    private custom_prep_create_component: ICustomPrepCreateComponent = this.program_plan_controller.customPrepCreateComponent;
-    private custom_prep_read_component: ICustomPrepReadComponent = this.program_plan_controller.customPrepReadComponent;
-    private custom_prep_update_component: ICustomPrepUpdateComponent = this.program_plan_controller.customPrepUpdateComponent;
+    get custom_prep_create_component(): ICustomPrepCreateComponent {
+        return this.program_plan_controller.customPrepCreateComponent;
+    }
+
+    get custom_prep_read_component(): ICustomPrepReadComponent {
+        return this.program_plan_controller.customPrepReadComponent;
+    }
+
+    get custom_prep_update_component(): ICustomPrepUpdateComponent {
+        return this.program_plan_controller.customPrepUpdateComponent;
+    }
 
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {

@@ -313,7 +313,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hour:
-                res.numeric_value = ConversionHandler.getInstance().forceNumber(db_res);
+                res.numeric_value = ConversionHandler.forceNumber(db_res);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:

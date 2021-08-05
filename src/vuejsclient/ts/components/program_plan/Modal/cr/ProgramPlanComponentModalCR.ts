@@ -97,9 +97,17 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
     private edited_cr: IPlanRDVCR = null;
 
-    private custom_cr_create_component = this.program_plan_controller.customCRCreateComponent;
-    private custom_cr_read_component = this.program_plan_controller.customCRReadComponent;
-    private custom_cr_update_component = this.program_plan_controller.customCRUpdateComponent;
+    get custom_cr_create_component() {
+        return this.program_plan_controller.customCRCreateComponent;
+    }
+
+    get custom_cr_read_component() {
+        return this.program_plan_controller.customCRReadComponent;
+    }
+
+    get custom_cr_update_component() {
+        return this.program_plan_controller.customCRUpdateComponent;
+    }
 
     get target(): IPlanTarget {
         if ((!this.selected_rdv) || (!this.selected_rdv.target_id)) {

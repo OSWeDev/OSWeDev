@@ -61,7 +61,7 @@ export default class FileServerController {
                     console.error(err);
                     reject(err);
                 } else {
-                    resolve();
+                    resolve(null);
                 }
             });
         });
@@ -92,7 +92,7 @@ export default class FileServerController {
                     return;
                 }
                 console.log("File overwritten : " + filepath);
-                resolve();
+                resolve(null);
             });
         });
     }
@@ -120,7 +120,7 @@ export default class FileServerController {
                     resolve(err);
                     return;
                 }
-                resolve();
+                resolve(null);
             });
         });
     }

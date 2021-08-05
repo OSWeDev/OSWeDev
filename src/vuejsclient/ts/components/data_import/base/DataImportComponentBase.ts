@@ -29,9 +29,9 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
     protected state_info: string = "info";
 
     public abstract toggleShowNewImport(): void;
-    public abstract async uploadedFile(target_segment_date_index: number, fileVo: FileVO);
-    public abstract async initialize_on_mount();
-    public abstract async on_show_modal();
+    public abstract uploadedFile(target_segment_date_index: number, fileVo: FileVO): Promise<void>;
+    public abstract initialize_on_mount(): Promise<void>;
+    public abstract on_show_modal(): Promise<void>;
     public abstract hasSelectedOptions(historic: DataImportHistoricVO): boolean;
 
     protected check_change_import_historic(historic: DataImportHistoricVO, previous_historic: DataImportHistoricVO): boolean {

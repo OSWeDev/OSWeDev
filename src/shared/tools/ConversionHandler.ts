@@ -3,31 +3,20 @@ import ConsoleHandler from './ConsoleHandler';
 export default class ConversionHandler {
 
     /* istanbul ignore next: nothing to test here */
-    public static getInstance(): ConversionHandler {
-        if (!ConversionHandler.instance) {
-            ConversionHandler.instance = new ConversionHandler();
-        }
-        return ConversionHandler.instance;
-    }
-
-    private static instance: ConversionHandler = null;
-
-    private constructor() {
-    }
-
-    public forceNumber(e: string | number): number {
+    public static forceNumber(e: string | number): number {
         try {
-            if (isNaN(parseFloat(e.toString()))) {
+            let res = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
+            if (isNaN(res)) {
                 return null;
             }
-            return ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
+            return res;
         } catch (e) {
             ConsoleHandler.getInstance().error(e);
         }
         return null;
     }
 
-    public forceNumbers(es: Array<(string | number)>): number[] {
+    public static forceNumbers(es: Array<(string | number)>): number[] {
         if ((!es) || (es.length <= 0)) {
             return null;
         }
@@ -36,10 +25,11 @@ export default class ConversionHandler {
         try {
             for (let i in es) {
                 let e = es[i];
-                if (isNaN(parseFloat(e.toString()))) {
-                    return null;
+                let resi = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
+                if (isNaN(resi)) {
+                    res.push(null);
                 }
-                res.push(parseFloat(e.toString()));
+                res.push(resi);
             }
         } catch (e) {
             ConsoleHandler.getInstance().error(e);
@@ -48,7 +38,7 @@ export default class ConversionHandler {
     }
 
     /* istanbul ignore next */
-    public urlBase64ToUint8Array(base64String: string): Uint8Array {
+    public static urlBase64ToUint8Array(base64String: string): Uint8Array {
 
         if (base64String == null) {
             return null;

@@ -20,7 +20,7 @@ export default class ThreadHandler {
     public async sleep(timeout: number): Promise<void> {
         return new Promise<any>((resolve) => {
             setTimeout(() => {
-                resolve();
+                resolve(null);
             }, timeout);
         });
     }

@@ -93,10 +93,10 @@ export default class ModuleMailerServer extends ModuleServerBase {
                 mailtransport.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         ConsoleHandler.getInstance().error(error);
-                        resolve();
+                        resolve(null);
                     } else {
                         ConsoleHandler.getInstance().log('Message sent: ' + info.messageId);
-                        resolve();
+                        resolve(info.messageId);
                     }
                 });
             } catch (error) {

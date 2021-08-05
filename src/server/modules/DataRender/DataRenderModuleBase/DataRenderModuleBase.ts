@@ -13,6 +13,9 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
 
     public static ROLE_NAME: string = "DataRenderRoleName";
 
+    public abstract database: ModuleTable<IDistantVOBase & IRenderedData>;
+    public abstract data_timesegment_type: number;
+
     protected constructor(public name: string) {
         super(name);
         ModulesManager.getInstance().registerModule(DataRenderModuleBase.ROLE_NAME, this);
@@ -21,9 +24,6 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
     public registerApis() { }
     public initialize() { }
 
-    public abstract async hook_render_managed_data_in_database(timeSegments: TimeSegment[], log: DataRenderingLogVO, options: IRenderOptions): Promise<boolean>;
-    public abstract async hook_configure_renderer();
-
-    abstract database: ModuleTable<IDistantVOBase & IRenderedData>;
-    abstract data_timesegment_type: number;
+    public abstract hook_render_managed_data_in_database(timeSegments: TimeSegment[], log: DataRenderingLogVO, options: IRenderOptions): Promise<boolean>;
+    public abstract hook_configure_renderer();
 }

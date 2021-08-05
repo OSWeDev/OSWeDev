@@ -19,7 +19,7 @@ export default abstract class DataImportModuleBase<ImportedData extends IImporte
     public registerApis() { }
     public initialize() { }
 
-    public abstract async hook_merge_imported_datas_in_database(datas: ImportedData[], historic: DataImportHistoricVO): Promise<boolean>;
+    public abstract hook_merge_imported_datas_in_database(datas: ImportedData[], historic: DataImportHistoricVO): Promise<boolean>;
 
     // Méthode qui doit renvoyer la liste des api_types_ids qui sont concernés par ce post-traitement d'import.
     //  Permet d'informer immédiatement d'un changement de données au niveau client

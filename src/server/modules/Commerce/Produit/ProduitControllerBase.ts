@@ -11,5 +11,5 @@ export default abstract class ProduitControllerBase {
         }
     }
 
-    public async abstract calcPrixProduit(produit: ProduitVO, produit_base: ProduitVOBase, ligneParam: ParamLigneCommandeVO): Promise<number>;
+    public abstract calcPrixProduit(produit: ProduitVO, produit_base: ProduitVOBase, ligneParam: ParamLigneCommandeVO): Promise<number>;
 }
