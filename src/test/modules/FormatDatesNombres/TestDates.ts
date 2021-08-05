@@ -11,7 +11,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 describe('Dates', () => {
 
     const basicDate = 1627903493; // 2-08-2021 11:24:53 GMT
-    const edgeDate = 1583020799; // 28-02-2020 23:59:59 GMT
+    const edgeDate = 1583020799; // 29-02-2020 23:59:59 GMT
     const reverseEdgeDate = 1583020800;  // 00-03-2020 00:00:00 GMT
 
     it('now', () => {
@@ -455,7 +455,7 @@ describe('Dates', () => {
 
         b = moment.unix(basicDate).utc().startOf('isoWeek');
         a = Dates.startOf(basicDate, TimeSegment.TYPE_WEEK);
-        // expect(Dates.format(a, "DD/MM/YYYY HH:mm:ss")).to.equal(b.format("DD/MM/YYYY HH:mm:ss"));
+        expect(Dates.format(a, "DD/MM/YYYY HH:mm:ss")).to.equal(b.format("DD/MM/YYYY HH:mm:ss"));
 
         // forbidden values
         expect(Dates.format(null, "DD/MM/YYYY HH:mm:ss")).to.equal(null);
