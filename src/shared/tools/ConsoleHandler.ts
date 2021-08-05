@@ -72,6 +72,6 @@ export default class ConsoleHandler {
     }
 
     private get_timestamp(): string {
-        return Dates.format(Dates.now(), 'YYYY-MM-DD HH:mm:ss.SSS');
+        return Dates.format(Dates.now(), 'YYYY-MM-DD HH:mm:ss', true);
     }
 }
