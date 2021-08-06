@@ -325,6 +325,7 @@ export default class VarsDatasProxy {
                                          *  et on demande aux subscribers de recharger le navigateur pour éviter qu'ils la renvoie en boucle
                                          * => risque de recharger en boucle le front si on a une génération de var foireuse sur le front...
                                          */
+                                        ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:NO_datas:index|' + handle_var._bdd_only_index + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
 
                                         await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
 
