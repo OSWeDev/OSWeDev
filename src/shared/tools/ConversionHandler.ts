@@ -28,6 +28,7 @@ export default class ConversionHandler {
                 let resi = ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
                 if (isNaN(resi)) {
                     res.push(null);
+                    continue;
                 }
                 res.push(resi);
             }

@@ -23,8 +23,8 @@ describe('ConversionHandler', () => {
         expect(ConversionHandler.forceNumbers(['1', '2', '3'])).to.deep.equal([1, 2, 3]);
         expect(ConversionHandler.forceNumbers([1.25, 2, 3])).to.deep.equal([1.25, 2, 3]);
         expect(ConversionHandler.forceNumbers(['1.25', '2', '3'])).to.deep.equal([1.25, 2, 3]);
-        expect(ConversionHandler.forceNumbers(["notANumber"])).to.equal(null);
-        expect(ConversionHandler.forceNumbers(["notANumber", 3])).to.equal(null);
+        expect(ConversionHandler.forceNumbers(["notANumber"])).to.deep.equal([null]);
+        expect(ConversionHandler.forceNumbers(["notANumber", 3])).to.deep.equal([null, 3]);
         expect(ConversionHandler.forceNumbers([1, "2"])).to.deep.equal([1, 2]);
     });
 

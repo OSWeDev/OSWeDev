@@ -7,6 +7,14 @@ export default class Durations {
 
     public static from_segmentation(nb: number, segmentation: number = HourSegment.TYPE_SECOND): number {
 
+        if (nb == null) {
+            return 0;
+        }
+
+        if (isNaN(nb)) {
+            return NaN;
+        }
+
         return this.add(0, nb, segmentation);
     }
 
