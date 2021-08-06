@@ -112,8 +112,8 @@
         "mxgraph": "4.2.2",
         "node-powershell": "4.0.0",
         "nodemailer": "4.6.5",
-        "pg": "7.17.0",
-        "pg-promise": "10.3.2",
+        "pg": "8.7.1",
+        "pg-promise": "10.11.0",
         "qrcode": "1.4.4",
         "rimraf": "2.6.2",
         "screenfull": "3.3.2",
@@ -228,7 +228,7 @@
         "xlsx": "0.14.3"
     },
     "_dependencies": {
-        "pg-promise": "10.3.2"
+        "pg-promise": "10.11.0"
     },
     "engines": {
         "node": ">= 12.16.0",
