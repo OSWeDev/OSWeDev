@@ -1215,7 +1215,7 @@ export default class RangeHandler {
             if ((max != null) && (id != max + 1)) {
                 // on va changer de range
                 // on commence par créer le range précédent puis on reset le min et max
-                res.push(this.createNew(TSRange.RANGE_TYPE, min, max, true, true, segment_type));
+                res.push(this.createNew(NumRange.RANGE_TYPE, min, max, true, true, segment_type));
                 min = id;
             }
             max = id;
