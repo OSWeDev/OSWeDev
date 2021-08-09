@@ -364,7 +364,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
-        return await ModuleAnimation.getInstance().getUserModule(user_id, module_id);
+        return ModuleAnimation.getInstance().getUserModule(user_id, module_id);
     }
 
     private async getAumsFiltered(
