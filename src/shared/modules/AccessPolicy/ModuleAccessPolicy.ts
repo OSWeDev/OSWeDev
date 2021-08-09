@@ -22,6 +22,7 @@ import AccessPolicyVO from './vos/AccessPolicyVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
 import ResetPwdParamVO, { ResetPwdParamVOStatic } from './vos/apis/ResetPwdParamVO';
 import ResetPwdUIDParamVO, { ResetPwdUIDParamVOStatic } from './vos/apis/ResetPwdUIDParamVO';
+import SigninParamVO, { SigninParamVOStatic } from './vos/apis/SigninParamVO';
 import ToggleAccessParamVO, { ToggleAccessParamVOStatic } from './vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
@@ -42,6 +43,8 @@ export default class ModuleAccessPolicy extends Module {
 
     public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
     public static POLICY_SENDINITPWD: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDINITPWD";
+
+    public static POLICY_FO_SIGNIN_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_SIGNIN_ACCESS";
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
@@ -68,6 +71,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
+    public static APINAME_SIGNIN_AND_REDIRECT = "SIGNIN_AND_REDIRECT";
     public static APINAME_GET_LOGGED_USER_ID = "GET_LOGGED_USER_ID";
     public static APINAME_GET_LOGGED_USER_NAME = "GET_LOGGED_USER_NAME";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
@@ -116,6 +120,7 @@ export default class ModuleAccessPolicy extends Module {
     public getLoggedUserName: () => Promise<string> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     public impersonateLogin: (email: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_impersonateLogin);
     public loginAndRedirect: (email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT);
+    public signinAndRedirect: (nom: string, email: string, password: string, redirect_to: string) => Promise<number> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT);
     public getAccessMatrix: (inherited_only: boolean) => Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX);
     public togglePolicy: (policy_id: number, role_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS);
     /**
@@ -320,6 +325,12 @@ export default class ModuleAccessPolicy extends Module {
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SigninParamVO, number>(
+            null,
+            ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT,
+            [UserVO.API_TYPE_ID],
+            SigninParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(

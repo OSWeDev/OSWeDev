@@ -1,31 +1,43 @@
 import { Component, Prop } from "vue-property-decorator";
-import './AccessPolicyLoginComponent.scss';
+import './AccessPolicySigninComponent.scss';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
-import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 
 @Component({
-    template: require('./AccessPolicyLoginComponent.pug'),
+    template: require('./AccessPolicySigninComponent.pug'),
     components: {
-        Nfcconnectlogincomponent: NFCConnectLoginComponent,
         Sessionsharecomponent: SessionShareComponent
     }
 })
-export default class AccessPolicyLoginComponent extends VueComponentBase {
+export default class AccessPolicySigninComponent extends VueComponentBase {
 
+    private nom: string = "";
     private email: string = "";
     private password: string = "";
+    private confirm_password: string = "";
 
     private redirect_to: string = "/";
     private message: string = null;
 
     private logo_url: string = null;
-    private signin_allowed: boolean = false;
 
+
+    private async beforeCreate() {
+
+        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (!!logged_id) {
+            window.location = this.redirect_to as any;
+        }
+
+        let signin_allowed: boolean = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
+        if (!signin_allowed) {
+            window.location = this.redirect_to as any;
+        }
+    }
     private async mounted() {
         this.load_logo_url();
         for (let j in this.$route.query) {
@@ -33,14 +45,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
                 this.redirect_to = this.$route.query[j];
             }
         }
-
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
-        if (!!logged_id) {
-            window.location = this.redirect_to as any;
-        }
-
-        this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
     }
+
 
     private async load_logo_url() {
         this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
@@ -51,32 +57,21 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     }
 
     // On log si possible, si oui on redirige
-    private async login() {
-        this.snotify.info(this.label('login.start'));
+    private async signin() {
+        this.snotify.info(this.label('signin.start'));
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(this.email, this.password, this.redirect_to);
-
+        let logged_id: number = null;
+        if (this.password == this.confirm_password && this.nom && this.email) {
+            logged_id = await ModuleAccessPolicy.getInstance().signinAndRedirect(this.nom, this.email, this.password, this.redirect_to);
+        }
         if (!logged_id) {
-            this.snotify.error(this.label('login.failed'));
+            this.snotify.error(this.label('signin.failed'));
             this.password = "";
-            this.message = this.label('login.failed.message');
+            this.confirm_password = "";
+            this.message = this.label('signin.failed.message');
         }
         /*else {
             window.location = this.redirect_to as any;
         }*/
     }
-
-    get nfcconnect_available() {
-        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
-    }
-
-    private async nfcconnect() {
-
-        if (await NFCHandler.getInstance().make_sure_nfc_is_initialized()) {
-            this.snotify.info(this.label('login.nfcconnect.on'));
-        } else {
-            this.snotify.error(this.label('login.nfcconnect.off'));
-        }
-    }
-
 }
