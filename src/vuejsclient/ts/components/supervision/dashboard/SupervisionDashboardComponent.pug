@@ -1,4 +1,5 @@
 .supervision_dashboard
+    //-  premier bandeau des catégories
     template(v-if="(categorys) && (categorys.length) && (categorys.length > 1)")
         .row.mb-3
             .col-md-12
@@ -8,7 +9,8 @@
 
                 template(v-for="category in categorys")
                     .btn.btn-secondary.mr-3.mb-1(@click="selectCategory(category)", :class="{'btn-success': ((selected_category) && (selected_category.id == category.id))}") {{ category.name }}
-
+    
+    //- deuxième bandeau des types de sondes
     template(v-if="(filtered_api_type_ids) && (filtered_api_type_ids.length) && (filtered_api_type_ids.length > 1)")
         .row.mb-3
             .col-md-12
@@ -19,6 +21,7 @@
                 template(v-for="api_type_id in filtered_api_type_ids")
                     .btn.btn-secondary.mr-3.mb-1(@click="selectApiTypeId(api_type_id)", :class="{'btn-success': ((selected_api_type_id) && (selected_api_type_id == api_type_id))}") {{ label('supervision.dashboard.' + api_type_id) }}
 
+    //- bandeau des compteurs pour chaque états
     .row
         .col-md-1
             Supervisiondashboardwidgetcomponent(
@@ -56,7 +59,7 @@
                 :nb_elts="nb_unknowns"
             )
 
-
+    //- liste des sondes
     template(v-for='supervised_item in ordered_supervised_items')
         .row
             .col-md-7

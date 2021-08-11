@@ -1,0 +1,28 @@
+.signin-page
+    .signin-box
+        .signin-box-body
+            .signin-logo(v-if='logo_url')
+            h1.text-center(v-if='!logo_url') {{ label('signin.title') }}
+            h2.text-center {{ label('signin.sub_title') }}
+            p.signin-box-msg {{ label('signin.msg') }}
+            p.server-answer(v-if='message') {{ message }}
+
+            form(v-on:submit.prevent="signin")
+                .form-group.has-feedback
+                    input.form-control(type='text', v-model='nom', :placeholder='label("signin.nom_placeholder")')
+                    i.fa.fa-id-card.pull-right.fa-fw(aria-hidden="true")
+                .form-group.has-feedback
+                    input.form-control(type='text', v-model='email', :placeholder='label("signin.email_placeholder")')
+                    i.fa.fa-id-card.pull-right.fa-fw(aria-hidden="true")
+                .form-group.has-feedback
+                    input.form-control(type='password', v-model='password' :placeholder='label("signin.password_placeholder")')
+                    i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
+                .form-group.has-feedback
+                    input.form-control(type='password', v-model='confirm_password' :placeholder='label("signin.confirm_password_placeholder")')
+                    i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
+                .center
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('signin.signin') }}
+            router-link(:to="{ name: 'login' }") {{ label('login.title') + " "}}
+            router-link(:to="{ name: 'recover' }") {{ label('login.recoverlink') }}
+
+    Sessionsharecomponent()

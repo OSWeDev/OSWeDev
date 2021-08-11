@@ -17,6 +17,7 @@ import UQRsRangesDatasourceController from '../datasources/UQRsRangesDatasourceC
 
 /**
  * Réalise le calcul de score sur les modules: nombre de bonnes réponses / totalites réponses parmis les modules (potentiellement pour plusieurs utiliseurs).
+ * Ne prend en compte que les réponses des modules terminés.
  */
 export default class VarDayPrctReussiteAnimationController extends VarServerControllerBase<ThemeModuleDataRangesVO> {
 

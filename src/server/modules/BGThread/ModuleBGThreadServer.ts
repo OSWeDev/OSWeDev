@@ -67,7 +67,12 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    public registerBGThread(bgthread: IBGThread) {
+    /**
+     * Enregistre le bgthread dans {@link BGThreadServerController.register_bgthreads} et s'il est possible de l'executer l'execute.
+     * @param bgthread à enregistrer et executer
+     * @returns void
+     */
+    public registerBGThread(bgthread: IBGThread): void {
 
         // On vérifie qu'on peut register les bgthreads
         if (!BGThreadServerController.getInstance().register_bgthreads) {
@@ -89,7 +94,11 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         this.execute_bgthread(bgthread);
     }
 
-    private async execute_bgthread(bgthread: IBGThread) {
+    /**
+     * lance l'execution du bgthread
+     * @param bgthread bgthread à executer
+     */
+    private async execute_bgthread(bgthread: IBGThread): Promise<void> {
 
         if (!bgthread) {
             return;

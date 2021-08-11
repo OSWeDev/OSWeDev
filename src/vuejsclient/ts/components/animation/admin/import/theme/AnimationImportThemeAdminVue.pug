@@ -1,0 +1,14 @@
+include ../../../../../../../../dist/vuejsclient/views/mixins/loading.pug
+
+.import_animation
+    +loading()
+        .row
+            data_import_component(
+                :title="label(api_type_id_theme + '_import')",
+                :api_type_ids="api_type_id_theme",
+                :route_path="route_path",
+                :get_url_for_modal="getUrlForModal",
+                :initial_selected_segment="initial_selected_segment",
+                :modal_show="modal_show",
+                :show_multiple_segments="false",
+            )

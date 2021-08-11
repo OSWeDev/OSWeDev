@@ -49,6 +49,7 @@ import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924Upgrade
 import Patch20201123UpdateVarCacheConfVO from './patchs/premodules/Patch20201123UpdateVarCacheConfVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305affichageIconePDF';
+import Patch20210310IDAnimationIE from './patchs/postmodules/Patch20210310IDAnimationIE';
 import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO';
 import Patch20210615ChangeLoginTrads from './patchs/postmodules/Patch20210615ChangeLoginTrads';
 import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615ChangeRecoverySMS';
@@ -115,6 +116,7 @@ export default abstract class GeneratorBase {
             Patch20210202AnimationPrctReussite.getInstance(),
             Patch20210225AjoutDateCreationCompteUtilisateur.getInstance(),
             Patch20210305affichageIconePDF.getInstance(),
+            Patch20210310IDAnimationIE.getInstance(),
             Patch20210615ChangeLoginTrads.getInstance(),
             Patch20210615ChangeRecoverySMS.getInstance()
         ];

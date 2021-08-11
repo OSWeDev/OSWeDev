@@ -7,6 +7,7 @@ import ISupervisedItemController from '../../../../../shared/modules/Supervision
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
 import './SupervisionDashboardComponent.scss';
@@ -40,6 +41,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     @ModuleSupervisionGetter
     private get_show_unknowns: boolean;
 
+    /** liste des sondes */
     private supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
     private continue_reloading: boolean = true;
 
@@ -82,6 +84,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.debounced_on_change_show();
     }
 
+    /**
+     * Rafraichit compteurs et liste des sondes.
+     * @see {@link SupervisionDashboardComponent.set_nb_elems set_nb_elems}
+     * @see {@link SupervisionDashboardComponent.set_ordered_supervised_items set_ordered_supervised_items}
+     */
     private debounce_on_change_show() {
         this.set_nb_elems();
         this.set_ordered_supervised_items();
@@ -97,6 +104,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.continue_reloading = false;
     }
 
+    /**
+     * Appelle {@link SupervisionDashboardComponent.load_supervised_items load_supervised_items} pour mettre à jour le visuel.
+     * Se rappelle elle même toutes les 20 secondes.
+     * @param first_build
+     */
     private async load_supervised_items_and_continue(first_build: boolean = false) {
         if (!this.continue_reloading) {
             return;
@@ -108,8 +120,13 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         setTimeout(this.load_supervised_items_and_continue.bind(this), 20000);
     }
 
+    /**
+     * Recharge les sondes (appelé toutes les 20 secondes par {@link SupervisionDashboardComponent.load_supervised_items_and_continue load_supervised_items_and_continue})
+     * @param first_build true s'il s'agit de la première fois  que l'on charge les sondes
+     */
     private async load_supervised_items(first_build: boolean) {
 
+        /** liste des nouvelles sondes à afficher */
         let new_supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
         let promises = [];
 
@@ -128,7 +145,10 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
                 this.api_type_ids.push(api_type_id);
             }
 
+            //récupération des sondes
             promises.push((async () => {
+                // pour éviter de récuperer le cache
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
                 let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
 
                 for (let i in items) {
@@ -187,6 +207,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.debounced_on_change_show();
     }
 
+    /**
+     * refait le compte pour le compteur des états
+     */
     private set_nb_elems() {
         this.nb_errors = 0;
         this.nb_warns = 0;
@@ -239,6 +262,9 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * dresse la liste des sondes en la triant par état
+     */
     private set_ordered_supervised_items() {
         let res: ISupervisedItem[] = [];
 
@@ -283,6 +309,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
                     break;
             }
 
+            /** pour filtrer en fonction de la catégorie et du type de sonde selectioné */
             let is_ok: boolean = true;
 
             // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
@@ -300,6 +327,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             }
         }
 
+        // tri par état
         res.sort((a: ISupervisedItem, b: ISupervisedItem) => {
 
             if (a.state < b.state) {
@@ -381,7 +409,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     /**
-     * recupere les restrictions sur les categories s'il y en a une dans SupervisionAdminVueModule sinon null
+     * recupere les restrictions sur les categories s'il y en a une dans {@link SupervisionAdminVueModule} sinon null
      */
     get enabled_categories(): string[] {
         let enabled_categories_by_url_key = SupervisionAdminVueModule.getInstance().enabled_categories_by_key;
@@ -389,7 +417,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     /**
-     * recupere le filtre definit sur les items dans SupervisionAdminVueModule sinon renvoie une fonction qui retourne true (aucun filtre)
+     * recupere le filtre definit sur les items dans {@link SupervisionAdminVueModule} sinon renvoie une fonction qui retourne true (aucun filtre)
      */
     get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
         let item_filter_conditions_by_url_key = SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key;

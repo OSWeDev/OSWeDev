@@ -212,13 +212,6 @@ export default class VarDataBaseVO implements IMatroid {
 
     public last_reads_ts: Moment[];
 
-    /**
-     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
-     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
-     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
-     */
-    private _bdd_only_index: string;
-
     private _index: string;
 
     public constructor() { }
@@ -244,9 +237,11 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     /**
-     * Attention : L'index de bdd est recalculé à chaque appel
+     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
+     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
+     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
      */
-    get bdd_only_index(): string {
+    get _bdd_only_index(): string {
 
         return this.index;
     }

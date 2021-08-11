@@ -32,7 +32,7 @@ export default class Patch20201125InitVarsBDDIndexes implements IGeneratorWorker
             for (let i in vos) {
                 let vo = vos[i];
 
-                vo['_bdd_only_index'] = vo.index;
+                let a = vo._bdd_only_index;
             }
             await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
         }

@@ -2,6 +2,9 @@ import { Express } from 'express';
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
+import ModuleAnimationImportModule from '../../shared/modules/Animation/import/Module/ModuleAnimationImportModule';
+import ModuleAnimationImportQR from '../../shared/modules/Animation/import/QR/ModuleAnimationImportQR';
+import ModuleAnimationImportTheme from '../../shared/modules/Animation/import/Theme/ModuleAnimationImportTheme';
 import ModuleAnimation from '../../shared/modules/Animation/ModuleAnimation';
 import ModuleAnonymization from '../../shared/modules/Anonymization/ModuleAnonymization';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
@@ -51,6 +54,9 @@ import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
+import ModuleAnimationImportModuleServer from './Animation/import/module/ModuleAnimationImportModuleServer';
+import ModuleAnimationImportQRServer from './Animation/import/QR/ModuleAnimationImportQRServer';
+import ModuleAnimationImportThemeServer from './Animation/import/theme/ModuleAnimationImportThemeServer';
 import ModuleAnimationServer from './Animation/ModuleAnimationServer';
 import ModuleAnonymizationServer from './Anonymization/ModuleAnonymizationServer';
 import ModuleAPIServer from './API/ModuleAPIServer';
@@ -525,7 +531,7 @@ export default abstract class ModuleServiceBase {
          * Handle query cache update
          */
 
-        DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+        await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
         return await this.db_.none(query, values);
     }
@@ -535,7 +541,7 @@ export default abstract class ModuleServiceBase {
         /**
          * Handle query cache update
          */
-        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+        let res = await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
         if (typeof res !== 'undefined') {
             return res;
@@ -553,7 +559,7 @@ export default abstract class ModuleServiceBase {
         /**
          * Handle query cache update
          */
-        let res = DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
+        let res = await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
         if (typeof res !== 'undefined') {
             return res;

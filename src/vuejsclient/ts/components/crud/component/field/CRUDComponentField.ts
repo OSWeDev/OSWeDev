@@ -516,8 +516,18 @@ export default class CRUDComponentField extends VueComponentBase
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                let newOptions: IDistantVOBase[] = [];
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (!manyToOneField.select_options_enabled || manyToOneField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
 
@@ -530,8 +540,18 @@ export default class CRUDComponentField extends VueComponentBase
                     options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                let newOptions: IDistantVOBase[] = [];
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (!refrangesField.select_options_enabled || refrangesField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
         }
@@ -579,7 +599,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('uploadedfile', this.vo, this.field, fileVo);
     }
 
-    //prepare la listes des options
     private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||

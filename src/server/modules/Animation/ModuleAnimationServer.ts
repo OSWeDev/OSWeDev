@@ -348,6 +348,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             }
 
             res.end_date = moment().utc(true);
+
+            // insertion en base pour pouvouvoir faire le calcul de la reussite apres qui demande une end_date sur les usermodules
+            await ModuleDAO.getInstance().insertOrUpdateVO(res);
+
             let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
                 VarDayPrctReussiteAnimationController.getInstance().varConf.name,
                 true,
@@ -647,6 +651,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Activer mode édition' }, 'animation.inline_input_mode.off.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Désactiver mode édition' }, 'animation.inline_input_mode.on.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Total' }, 'animation.reporting.total.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Theme', en: 'Import/Export Theme', es: 'Importar/Exportar Tema' }, 'menu.menuelements.importThemeAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'menu.menuelements.importModuleAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'menu.menuelements.importQRAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Theme', en: 'Import/Export Theme', es: 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
+
     }
 
     private async configure_vars() {
