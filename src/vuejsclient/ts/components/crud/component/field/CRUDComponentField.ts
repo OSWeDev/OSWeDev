@@ -439,6 +439,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
     private validateToggle() {

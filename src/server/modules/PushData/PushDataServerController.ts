@@ -348,9 +348,12 @@ export default class PushDataServerController {
         let notification: NotificationVO = null;
         try {
             let session: IServerUserSession = StackContext.getInstance().get('SESSION');
-            notification = this.getTechNotif(
-                null, null,
-                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+
+            if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
+                notification = this.getTechNotif(
+                    null, null,
+                    Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -376,9 +379,12 @@ export default class PushDataServerController {
         let notification: NotificationVO = null;
         try {
             let session: IServerUserSession = StackContext.getInstance().get('SESSION');
-            notification = this.getTechNotif(
-                null, null,
-                Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
+
+            if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
+                notification = this.getTechNotif(
+                    null, null,
+                    Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -730,8 +736,10 @@ export default class PushDataServerController {
 
         try {
             let session: IServerUserSession = StackContext.getInstance().get('SESSION');
-            await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
-                null, null, notif_type, code_text, true);
+            if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
+                await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
+                    null, null, notif_type, code_text, true);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
