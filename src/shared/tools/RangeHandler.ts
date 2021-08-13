@@ -1197,6 +1197,11 @@ export default class RangeHandler {
         if ((!ids) || (!ids.length)) {
             return null;
         }
+
+        if (ids.length == 1) {
+            return [this.createNew(NumRange.RANGE_TYPE, ids[0], ids[0], true, true, segment_type)];
+        }
+
         // on ordonne les ids du plus petit au plus grand
         ids.sort((a: number, b: number) => {
             if (a < b) { return -1; }
@@ -1208,6 +1213,7 @@ export default class RangeHandler {
         let res: NumRange[] = [];
         let min: number = null;
         let max: number = null;
+
         for (let id of ids) {
             if (!min) {
                 min = id;
@@ -1220,6 +1226,9 @@ export default class RangeHandler {
             }
             max = id;
         }
+        // on crée le dernier range
+        res.push(this.createNew(NumRange.RANGE_TYPE, min, max, true, true, segment_type));
+
         return res;
     }
 
