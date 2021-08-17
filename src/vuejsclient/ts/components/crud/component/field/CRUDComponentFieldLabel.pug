@@ -1,8 +1,8 @@
 template(v-if="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))")
-    label(v-if="show_title") {{ t(field.translatable_title) }}
+    label(v-if="show_title" :class="{'inverse_label': inverse_label}") {{ t(field.translatable_title) }}
         template(v-if="show_mandatory_star")
             i.fa.fa-asterisk.mandatory
 template(v-else)
-    label(v-if="show_title", :for="field.datatable_field_uid") {{ t(field.translatable_title) }}
+    label(v-if="show_title", :for="field.datatable_field_uid" :class="{'inverse_label': inverse_label}") {{ t(field.translatable_title) }}
         template(v-if="show_mandatory_star")
             i.fa.fa-asterisk.mandatory
