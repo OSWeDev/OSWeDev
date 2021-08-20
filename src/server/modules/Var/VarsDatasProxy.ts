@@ -561,19 +561,20 @@ export default class VarsDatasProxy {
 
                     if (!VarsServerController.getInstance().has_valid_value(var_data)) {
 
-                        // debug
-                        if (!VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id]) {
+                        let estimated_ms_var = 0;
+
+                        if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id]) {
+                            estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
+                                * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
+                        } else {
+                            // debug
                             ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data.index + ':');
                             try {
                                 ConsoleHandler.getInstance().warn(JSON.stringify(VarsServerController.getInstance().varcacheconf_by_var_ids));
                             } catch (error) {
                                 ConsoleHandler.getInstance().error(error);
                             }
-                            continue;
                         }
-
-                        let estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
-                            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
 
                         // // cas spécifique isolement d'une var trop gourmande
                         // if ((estimated_ms_var > client_request_estimated_ms_limit) && (nb_vars > 0) && (nb_vars < client_request_min_nb_vars)) {
