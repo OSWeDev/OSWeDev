@@ -139,6 +139,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private for_export: boolean;
 
+    @Prop({ default: false })
+    private special_placeholder: boolean;
+
+    @Prop({ default: false })
+    private show_placeholder: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];
