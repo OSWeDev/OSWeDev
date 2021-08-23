@@ -36,6 +36,7 @@ import DataImportBGThread from './bgthreads/DataImportBGThread';
 import DataImportCronWorkersHandler from './DataImportCronWorkersHandler';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import FormattedDatasStats from './FormattedDatasStats';
+import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
 
@@ -448,6 +449,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             let datas: IImportedData[] = [];
             switch (format.type) {
+                case DataImportFormatVO.TYPE_CSV:
+                    datas = await ImportTypeCSVHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
+                    break;
                 case DataImportFormatVO.TYPE_XLS:
                 case DataImportFormatVO.TYPE_XLSX:
                 default:
