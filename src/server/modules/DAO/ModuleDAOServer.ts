@@ -1516,6 +1516,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return t.batch(queries);
         }).then(async (value: any) => {
 
+            // On vide le cache
+            await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
+
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];
                 await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo);
