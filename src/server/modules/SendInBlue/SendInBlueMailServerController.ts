@@ -152,7 +152,7 @@ export default class SendInBlueMailServerController {
         }
 
         let session = StackContext.getInstance().get('SESSION');
-        let sid = session.sid;
+        let sid = session ? session.sid : null;
         params['SESSION_SHARE_SID'] = sid ? encodeURIComponent(sid) : null;
     }
 

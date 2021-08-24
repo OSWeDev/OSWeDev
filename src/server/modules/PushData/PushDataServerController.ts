@@ -110,6 +110,10 @@ export default class PushDataServerController {
      */
     public registerSocket(session: IServerUserSession, socket: socketIO.Socket) {
 
+        if ((!session) || (!socket)) {
+            return;
+        }
+
         ForkedTasksController.getInstance().assert_is_main_process();
 
         let wrapper = new SocketWrapper(session.uid, session.id, socket.id, socket);
@@ -156,11 +160,11 @@ export default class PushDataServerController {
      */
     public unregisterSocket(session: IServerUserSession, socket: socketIO.Socket) {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
-
-        if (!socket) {
+        if ((!session) || (!socket)) {
             return;
         }
+
+        ForkedTasksController.getInstance().assert_is_main_process();
 
         try {
 
@@ -207,12 +211,12 @@ export default class PushDataServerController {
      */
     public registerSession(session: IServerUserSession) {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
-
         // No user or session, don't save this socket
         if ((!session) || (!session.id) || (!session.uid)) {
             return;
         }
+
+        ForkedTasksController.getInstance().assert_is_main_process();
 
         if (!this.registeredSessions[session.uid]) {
             this.registeredSessions[session.uid] = {};
@@ -227,6 +231,10 @@ export default class PushDataServerController {
      * @param session
      */
     public async unregisterSession(session: IServerUserSession, notify_redirect: boolean = true) {
+
+        if (!session) {
+            return;
+        }
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
@@ -254,11 +262,11 @@ export default class PushDataServerController {
      */
     public async unregisterUserSession(session: IServerUserSession) {
 
-        ForkedTasksController.getInstance().assert_is_main_process();
-
-        if (!session.uid) {
+        if ((!session) || (!session.uid)) {
             return;
         }
+
+        ForkedTasksController.getInstance().assert_is_main_process();
 
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
         await this.notifyRedirectHomeAndDisconnect();
