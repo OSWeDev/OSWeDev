@@ -1,5 +1,4 @@
 
-import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -7,9 +6,6 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import AnimationController from '../../../shared/modules/Animation/AnimationController';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
-import AnimationModuleParamVO from '../../../shared/modules/Animation/params/AnimationModuleParamVO';
-import AnimationParamVO from '../../../shared/modules/Animation/params/AnimationParamVO';
-import AnimationReportingParamVO from '../../../shared/modules/Animation/params/AnimationReportingParamVO';
 import ThemeModuleDataRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationModuleVO from '../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AnimationParametersVO from '../../../shared/modules/Animation/vos/AnimationParametersVO';
@@ -22,6 +18,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -46,9 +43,6 @@ import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteint
 import VarDayPrctAvancementAnimationController from './vars/VarDayPrctAvancementAnimationController';
 import VarDayPrctReussiteAnimationController from './vars/VarDayPrctReussiteAnimationController';
 import VarDayTempsPasseAnimationController from './vars/VarDayTempsPasseAnimationController';
-// Utilisé dans les commentaires @link
-import UQRsRangesDatasourceController from './datasources/UQRsRangesDatasourceController';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ModuleAnimationServer extends ModuleServerBase {
 
@@ -349,6 +343,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             }
 
             res.end_date = Dates.now();
+
+            // insertion en base pour pouvouvoir faire le calcul de la reussite apres qui demande une end_date sur les usermodules
+            await ModuleDAO.getInstance().insertOrUpdateVO(res);
+
             let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
                 VarDayPrctReussiteAnimationController.getInstance().varConf.name,
                 true,
@@ -648,6 +646,14 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Activer mode édition' }, 'animation.inline_input_mode.off.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Désactiver mode édition' }, 'animation.inline_input_mode.on.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Total' }, 'animation.reporting.total.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Theme', en: 'Import/Export Theme', es: 'Importar/Exportar Tema' }, 'menu.menuelements.importThemeAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'menu.menuelements.importModuleAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'menu.menuelements.importQRAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Theme', en: 'Import/Export Theme', es: 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
+
     }
 
     private async configure_vars() {

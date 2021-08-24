@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import MessageModuleTableFieldTypeController from '../../../../../shared/modules/Animation/fields/message_module/MessageModuleTableFieldTypeController';
 import ReponseTableFieldTypeController from '../../../../../shared/modules/Animation/fields/reponse/ReponseTableFieldTypeController';
 import ModuleAnimation from '../../../../../shared/modules/Animation/ModuleAnimation';
@@ -15,9 +14,13 @@ import TableFieldTypesManager from '../../../../../shared/modules/TableFieldType
 import VueAppController from '../../../../VueAppController';
 import VueModuleBase from '../../../modules/VueModuleBase';
 import CRUDComponentManager from '../../crud/CRUDComponentManager';
+import DataImportAdminVueModule from '../../data_import/DataImportAdminVueModule';
 import MenuController from '../../menu/MenuController';
 import MessageModuleCreateUpdateComponent from './create_update_component/message_module/MessageModuleCreateUpdateComponent';
 import ReponseCreateUpdateComponent from './create_update_component/reponse/ReponseCreateUpdateComponent';
+import AnimationImportModuleAdminVue from './import/module/AnimationImportModuleAdminVue';
+import AnimationImportQRAdminVue from './import/qr/AnimationImportQRAdminVue';
+import AnimationImportThemeAdminVue from './import/theme/AnimationImportThemeAdminVue';
 import MessageModuleReadComponent from './read_component/message_module/MessageModuleReadComponent';
 import ReponseReadComponent from './read_component/reponse/ReponseReadComponent';
 
@@ -105,6 +108,109 @@ export default class AnimationAdminVueModule extends VueModuleBase {
             ),
             this.routes
         );
+
+        await CRUDComponentManager.getInstance().registerCRUD(
+            AnimationParametersVO.API_TYPE_ID,
+            null,
+            MenuElementVO.create_new(
+                ModuleAnimation.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "AnimationParametersVO",
+                "fa-cogs",
+                40,
+                null,
+                null,
+                menubranch.id
+            ),
+            this.routes
+        );
+
+        //ajout d'importTheme
+        this.routes.push({
+            path: AnimationImportThemeAdminVue.ROUTE_PATH_IMPORT,
+            name: AnimationImportThemeAdminVue.ROUTE_NAME_IMPORT,
+            component: AnimationImportThemeAdminVue,
+        });
+        this.routes.push({
+            path: AnimationImportThemeAdminVue.ROUTE_PATH_IMPORT + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/:date_index',
+            name: AnimationImportThemeAdminVue.ROUTE_NAME_IMPORT + '_modal',
+            component: AnimationImportThemeAdminVue,
+            props: (route) => ({
+                modal_show: true,
+                initial_selected_segment: route.params.date_index,
+            })
+        });
+
+        let menuPointerTheme = MenuElementVO.create_new(
+            ModuleAnimation.POLICY_BO_ACCESS,
+            VueAppController.getInstance().app_name,
+            AnimationImportThemeAdminVue.ROUTE_NAME_IMPORT,
+            "fa-folder-open",
+            60,
+            AnimationImportThemeAdminVue.ROUTE_NAME_IMPORT,
+            true,
+            menubranch.id
+        );
+        await MenuController.getInstance().declare_menu_element(menuPointerTheme);
+
+
+
+        //importModule
+        this.routes.push({
+            path: AnimationImportModuleAdminVue.ROUTE_PATH_IMPORT,
+            name: AnimationImportModuleAdminVue.ROUTE_NAME_IMPORT,
+            component: AnimationImportModuleAdminVue,
+        });
+        this.routes.push({
+            path: AnimationImportModuleAdminVue.ROUTE_PATH_IMPORT + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/:date_index',
+            name: AnimationImportModuleAdminVue.ROUTE_NAME_IMPORT + '_modal',
+            component: AnimationImportModuleAdminVue,
+            props: (route) => ({
+                modal_show: true,
+                initial_selected_segment: route.params.date_index,
+            })
+        });
+
+        let menuPointerModule = MenuElementVO.create_new(
+            ModuleAnimation.POLICY_BO_ACCESS,
+            VueAppController.getInstance().app_name,
+            AnimationImportModuleAdminVue.ROUTE_NAME_IMPORT,
+            "fa-folder-open",
+            61,
+            AnimationImportModuleAdminVue.ROUTE_NAME_IMPORT,
+            true,
+            menubranch.id
+        );
+        await MenuController.getInstance().declare_menu_element(menuPointerModule);
+
+
+        //importQR
+        this.routes.push({
+            path: AnimationImportQRAdminVue.ROUTE_PATH_IMPORT,
+            name: AnimationImportQRAdminVue.ROUTE_NAME_IMPORT,
+            component: AnimationImportQRAdminVue,
+        });
+        this.routes.push({
+            path: AnimationImportQRAdminVue.ROUTE_PATH_IMPORT + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/:date_index',
+            name: AnimationImportQRAdminVue.ROUTE_NAME_IMPORT + '_modal',
+            component: AnimationImportQRAdminVue,
+            props: (route) => ({
+                modal_show: true,
+                initial_selected_segment: route.params.date_index,
+            })
+        });
+
+        let menuPointerQR = MenuElementVO.create_new(
+            ModuleAnimation.POLICY_BO_ACCESS,
+            VueAppController.getInstance().app_name,
+            AnimationImportQRAdminVue.ROUTE_NAME_IMPORT,
+            "fa-folder-open",
+            62,
+            AnimationImportQRAdminVue.ROUTE_NAME_IMPORT,
+            true,
+            menubranch.id
+        );
+        await MenuController.getInstance().declare_menu_element(menuPointerQR);
 
         await CRUDComponentManager.getInstance().registerCRUD(
             AnimationParametersVO.API_TYPE_ID,

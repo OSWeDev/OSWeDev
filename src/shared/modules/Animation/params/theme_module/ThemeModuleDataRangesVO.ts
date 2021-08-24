@@ -3,10 +3,10 @@ import VarDataBaseVO from "../../../Var/vos/VarDataBaseVO";
 
 /**
  * Paramètre pour le calcul de variables animation
- * @see variables {@link VarDayTempsPasseAnimationController temps passé},
- * {@link VarDayPrctReussiteAnimationController pourcentage réussite},
- * {@link VarDayPrctAvancementAnimationController avancement},
- * {@link VarDayPrctAtteinteSeuilAnimationController pourcentage modules validés}
+ * @see variables {@link VarDayTempsPasseAnimationController: temps passé},
+ * {@link VarDayPrctReussiteAnimationController: pourcentage réussite},
+ * {@link VarDayPrctAvancementAnimationController: avancement},
+ * {@link VarDayPrctAtteinteSeuilAnimationController: pourcentage modules validés}
  */
 export default class ThemeModuleDataRangesVO extends VarDataBaseVO {
 

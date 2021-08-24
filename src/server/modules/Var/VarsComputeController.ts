@@ -178,7 +178,7 @@ export default class VarsComputeController {
                 /**
                  * Imports
                  */
-                if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller.optimization__has_no_imports)) {
+                if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
 
                     /**
                      * On doit essayer de récupérer des données parcellaires

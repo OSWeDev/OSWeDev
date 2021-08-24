@@ -26,6 +26,11 @@ export default class AccessPolicyLoginVueModule extends VueModuleBase {
                 component: () => import(/* webpackChunkName: "AccessPolicyLoginComponent" */ './login/AccessPolicyLoginComponent')
             },
             {
+                path: '/signin',
+                name: 'signin',
+                component: () => import(/* webpackChunkName: "AccessPolicySigninComponent" */ './signin/AccessPolicySigninComponent')
+            },
+            {
                 path: '/recover',
                 name: 'recover',
                 component: () => import(/* webpackChunkName: "AccessPolicyRecoverComponent" */ './recover/AccessPolicyRecoverComponent')

@@ -27,10 +27,12 @@ export default class SupervisionController {
 
     private static instance: SupervisionController = null;
 
+    /** les sondes enregistrées */
     private registered_api_type_by_ids: { [api_type_id: string]: ISupervisedItemController<any> } = {};
 
     private constructor() { }
 
+    /** les sondes enregistrées */
     get registered_controllers(): { [api_type_id: string]: ISupervisedItemController<any> } {
         return this.registered_api_type_by_ids;
     }
@@ -39,6 +41,11 @@ export default class SupervisionController {
         return SupervisionController.SUP_HIST_TABLE_PREFIX + api_type_id;
     }
 
+    /**
+     * rajoute les champs des sondes/controllers dans la moduletable et enregistre le controller dans {@link SupervisionController.registered_api_type_by_ids}
+     * @param moduleTable
+     * @param controller
+     */
     public registerModuleTable(moduleTable: ModuleTable<any>, controller: ISupervisedItemController<any>) {
 
         this.registered_api_type_by_ids[moduleTable.vo_type] = controller;
@@ -50,6 +57,7 @@ export default class SupervisionController {
             VOsTypesManager.getInstance().moduleTables_by_voType[SupervisedCategoryVO.API_TYPE_ID]
         );
 
+        // rajoute les champs des sondes/controllers dans la moduletable
         moduleTable.push_field((new ModuleTableField('last_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false)).setModuleTable(moduleTable));
         moduleTable.push_field((new ModuleTableField('last_value', ModuleTableField.FIELD_TYPE_float, 'Dernière valeur', false)).setModuleTable(moduleTable));
         moduleTable.push_field((new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true)).setModuleTable(moduleTable));

@@ -5,6 +5,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -47,6 +48,8 @@ export default class AccessPolicyServerController {
     public role_anonymous: RoleVO = null;
     public role_logged: RoleVO = null;
     public role_admin: RoleVO = null;
+
+    public hook_user_login: (email: string, password: string) => Promise<UserVO> = null;
 
     /**
      * Global application cache - Brocasted CUD - Local R -----

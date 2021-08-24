@@ -1,4 +1,3 @@
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import MenuElementVO from '../../../shared/modules/Menu/vos/MenuElementVO';
 import Module from '../../../shared/modules/Module';
@@ -8,6 +7,7 @@ import CRUDComponentManager from '../../ts/components/crud/CRUDComponentManager'
 import MenuController from '../../ts/components/menu/MenuController';
 import VueModuleBase from '../../ts/modules/VueModuleBase';
 import VueAppController from '../../VueAppController';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 export default class ModulesAdminVueModule extends VueModuleBase {
 

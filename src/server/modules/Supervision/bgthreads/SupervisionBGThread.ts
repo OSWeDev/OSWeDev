@@ -32,6 +32,11 @@ export default class SupervisionBGThread implements IBGThread {
         return "SupervisionBGThread";
     }
 
+    /**
+     * Lance les worker_inavalid de chaque api/sonde enregistré dans {@link SupervisionController.registered_controllers}.
+     * @returns {number} : {@link ModuleBGThreadServer.TIMEOUT_COEF_SLOWER}
+     * @throws error
+     */
     public async work(): Promise<number> {
 
         try {

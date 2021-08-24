@@ -138,7 +138,6 @@ export default abstract class DatatableField<T, U> {
 
     public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): DatatableField<T, U> {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
-
         return this;
     }
 
@@ -169,6 +168,8 @@ export default abstract class DatatableField<T, U> {
      * permet de definir une fonction de filtrage sur les elts à afficher (sieve: passer au tamis)
      * par defaut laisse tout passer (pas de tri)
      * @param condition - la condition pour garder les elements
+     * (ex: (vo) => vo_ids.includes(vo.id) ou (vo) => vo.id>10)
+     * @returns datafield
      */
     public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): DatatableField<T, U> {
 
@@ -183,8 +184,12 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-    //applique tri et filtrage aux options
-    public triFiltrage(options: { [id: number]: IDistantVOBase; }): IDistantVOBase[] {
+    /**
+     * applique tri et filtrage aux options
+     * @param options liste d'options non triée/filtrée
+     * @returns liste d'options triée/filtrée
+     */
+    public triFiltrage(options: { [id: number]: IDistantVOBase; }) {
 
         //transforme les options en arrays pour le tri
         let optionsArray: IDistantVOBase[] = Object.values(options);
@@ -321,11 +326,11 @@ export default abstract class DatatableField<T, U> {
      * @returns le datatableField modifié
      */
     public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
-        this.select_options_enabled = options;
+        this.select_options_enabled = Array.from(options);
 
         if (!!this.vue_component) {
             // on informe
-            this.vue_component.$data.select_options_enabled = options;
+            this.vue_component.$data.select_options_enabled = Array.from(options);
             this.vue_component.on_reload_field_value();
         }
 

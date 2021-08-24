@@ -104,6 +104,7 @@ export default class ModuleTableField<T> {
     public is_visible_datatable: boolean = true;
 
     public enum_values: { [value: number]: string } = {};
+    public enum_image_values: { [value: number]: string } = {};
 
     public hidden_print: boolean = false;
 
@@ -291,6 +292,16 @@ export default class ModuleTableField<T> {
     public setEnumValues(enum_values: { [value: number]: string }): ModuleTableField<T> {
         this.field_type = ModuleTableField.FIELD_TYPE_enum;
         this.enum_values = enum_values;
+
+        return this;
+    }
+
+    /**
+     * @param enum_image_values An obj which for each key has as a value the code_text used for translation
+     */
+    public setEnumImageValues(enum_image_values: { [value: number]: string }): ModuleTableField<T> {
+        this.field_type = ModuleTableField.FIELD_TYPE_enum;
+        this.enum_image_values = enum_image_values;
 
         return this;
     }

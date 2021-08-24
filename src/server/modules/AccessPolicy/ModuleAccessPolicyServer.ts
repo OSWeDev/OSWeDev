@@ -1,3 +1,4 @@
+import { exception } from 'console';
 import { Response } from 'express';
 
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
@@ -108,6 +109,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
         fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Accès au front'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+
+        let signin_access: AccessPolicyVO = new AccessPolicyVO();
+        signin_access.group_id = group.id;
+        signin_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        signin_access.translatable_name = ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS;
+        signin_access = await this.registerPolicy(signin_access, new DefaultTranslation({
+            fr: 'Droit à l\'inscription'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
@@ -431,6 +441,34 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'login.recover.answersms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Inscription'
+        }, 'signin.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: ' '
+        }, 'signin.sub_title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Saisissez les informations demandées'
+        }, 'signin.msg.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Identifiant'
+        }, 'signin.nom_placeholder.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Email'
+        }, 'signin.email_placeholder.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mot de passe'
+        }, 'signin.password_placeholder.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Confirmer le mot de passe'
+        }, 'signin.confirm_password_placeholder.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'S\'inscrire'
+        }, 'signin.signin.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Les informations que vous avez saisi ne sont pas correctes'
+        }, 'signin.failed.message.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Le service est en cours de maintenance. Merci de votre patience.'
         }, 'error.global_update_blocker.activated.___LABEL___'));
 
@@ -662,6 +700,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT, this.signinAndRedirect.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, this.getLoggedUserId.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, this.getLoggedUserName.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
@@ -1529,6 +1568,102 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
+    private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
+
+        try {
+            let session = StackContext.getInstance().get('SESSION');
+
+            if (ModuleDAOServer.getInstance().global_update_blocker) {
+                // On est en readonly partout, donc on informe sur impossibilité de se connecter
+                await PushDataServerController.getInstance().notifySession(
+                    'error.global_update_blocker.activated.___LABEL___',
+                    NotificationVO.SIMPLE_ERROR
+                );
+                return null;
+            }
+
+            if (session && session.uid) {
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+                return session.uid;
+            }
+
+            session.uid = null;
+
+            if ((!email) || (!password) || (!nom)) {
+                return null;
+            }
+
+            return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+
+                if (!!user) {
+
+                    if (user.invalidated) {
+
+                        await PasswordRecovery.getInstance().beginRecovery(user.email);
+
+                    }
+                    return null;
+                } else {
+                    user = new UserVO();
+                }
+
+
+                user.logged_once = true;
+                user.name = nom;
+                user.password = password;
+                user.email = email;
+                user.blocked = false;
+                user.reminded_pwd_1 = false;
+                user.reminded_pwd_2 = false;
+                user.invalidated = false;
+                user.recovery_challenge = "";
+                user.phone = "";
+                user.recovery_expiration = moment(0).utc(true);
+                user.password_change_date = moment().utc(true).format("YYYY-MM-DD");
+                user.creation_date = moment().utc(true);
+
+
+                // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
+                let langs: LangVO[] = await ModuleDAO.getInstance().getVos(LangVO.API_TYPE_ID);
+                user.lang_id = langs[0].id;
+                // let res: InsertOrDeleteQueryResult = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () =>
+                //     await ModuleDAO.getInstance().insertOrUpdateVO(user)) as InsertOrDeleteQueryResult;
+
+
+                let insertOrDeleteQueryResult = null;
+
+                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
+
+                if (!res || !res.id) {
+                    throw new Error();
+                }
+                session.uid = res.id;
+                PushDataServerController.getInstance().registerSession(session);
+
+                // On stocke le log de connexion en base
+                let user_log = new UserLogVO();
+                user_log.user_id = res.id;
+                user_log.log_time = moment().utc(true);
+                user_log.impersonated = false;
+                user_log.referer = StackContext.getInstance().get('REFERER');
+                user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+                // On await pas ici on se fiche du résultat
+                await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
+
+                return res.id;
+
+            });
+        } catch (error) {
+            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
+        }
+
+        return null;
+    }
+
     private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
@@ -1554,7 +1689,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            let user: UserVO = null;
+
+            if (AccessPolicyServerController.getInstance().hook_user_login) {
+                user = await AccessPolicyServerController.getInstance().hook_user_login(email, password);
+            } else {
+                user = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            }
 
             if (!user) {
                 return null;

@@ -949,6 +949,9 @@ export default class CRUDComponent extends VueComponentBase {
 
             await ModuleDAO.getInstance().deleteVOs([this.selectedVO]);
 
+            // On invalide le cache pour éviter de récupérer le même vo depuis le cache
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.selectedVO._type]);
+
             deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
             if (deletedVO && deletedVO.id) {
                 this.snotify.error(this.label('crud.delete.errors.delete_failure'));

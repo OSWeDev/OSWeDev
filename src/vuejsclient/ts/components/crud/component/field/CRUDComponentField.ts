@@ -140,6 +140,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private for_export: boolean;
 
+    @Prop({ default: false })
+    private special_placeholder: boolean;
+
+    @Prop({ default: false })
+    private show_placeholder: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];
@@ -440,6 +446,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
     private validateToggle() {
@@ -516,8 +523,18 @@ export default class CRUDComponentField extends VueComponentBase
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                let newOptions: IDistantVOBase[] = [];
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (!manyToOneField.select_options_enabled || manyToOneField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
 
@@ -530,8 +547,18 @@ export default class CRUDComponentField extends VueComponentBase
                     options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                let newOptions: IDistantVOBase[] = [];
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (!refrangesField.select_options_enabled || refrangesField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
         }
@@ -579,7 +606,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('uploadedfile', this.vo, this.field, fileVo);
     }
 
-    //prepare la listes des options
     private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||

@@ -1209,6 +1209,44 @@ export default class RangeHandler {
         return this.createNew(TSRange.RANGE_TYPE, elt, elt, true, true, segment_type);
     }
 
+    public create_multiple_NumRange_from_ids(ids: number[], segment_type: number): NumRange[] {
+        if ((!ids) || (!ids.length)) {
+            return null;
+        }
+
+        if (ids.length == 1) {
+            return [this.createNew(NumRange.RANGE_TYPE, ids[0], ids[0], true, true, segment_type)];
+        }
+
+        // on ordonne les ids du plus petit au plus grand
+        ids.sort((a: number, b: number) => {
+            if (a < b) { return -1; }
+            if (a > b) { return 1; }
+            return 0;
+        });
+
+        // on les parcourt pour créer des ranges, si (B != A + 1) on créer un nv range
+        let res: NumRange[] = [];
+        let min: number = null;
+        let max: number = null;
+
+        for (let id of ids) {
+            if (!min) {
+                min = id;
+            }
+            if ((max != null) && (id != max + 1)) {
+                // on va changer de range
+                // on commence par créer le range précédent puis on reset le min et max
+                res.push(this.createNew(NumRange.RANGE_TYPE, min, max, true, true, segment_type));
+                min = id;
+            }
+            max = id;
+        }
+        // on crée le dernier range
+        res.push(this.createNew(NumRange.RANGE_TYPE, min, max, true, true, segment_type));
+
+        return res;
+    }
 
     /**
      * ATTENTION les ranges sont considérés comme indépendants entre eux. Sinon cela n'a pas de sens.

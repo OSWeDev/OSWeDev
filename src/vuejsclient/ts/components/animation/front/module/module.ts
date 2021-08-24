@@ -63,7 +63,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     private theme_id_ranges: NumRange[] = [];
 
     private prct_atteinte_seuil_module_param: ThemeModuleDataRangesVO = null;
-    /** paramètre pour le score (VarDayPrctReussiteAnimationController) */
+    /** paramètre pour le score {@link VarDayPrctReussiteAnimationController} */
     private prct_reussite_module_param: ThemeModuleDataRangesVO = null;
 
     @Watch('module_id')
@@ -260,6 +260,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
     /**
      * Passe a l'affichage de la page du score.
+     * Appelé par le bouton flèche de la dernière question et le bouton trophé sur la barre de navigation entre les questions.
      */
     private async show_recap_toggle() {
         if (this.recap_is_actif) {

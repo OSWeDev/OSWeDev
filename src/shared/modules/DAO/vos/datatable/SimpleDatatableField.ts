@@ -511,6 +511,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         return LocaleManager.getInstance().i18n.t(this.moduleTableField.enum_values[id]);
     }
 
+    public enumIdToHumanReadableImage: (id: number) => string = (id: number) => {
+        let res: string = "";
+
+        if ((typeof id === 'undefined') || (id === null)) {
+            return null;
+        }
+
+        return this.moduleTableField.enum_image_values ? this.moduleTableField.enum_image_values[id] : null;
+    }
+
     public setModuleTable(moduleTable: ModuleTable<any>) {
         this.moduleTable = moduleTable;
 

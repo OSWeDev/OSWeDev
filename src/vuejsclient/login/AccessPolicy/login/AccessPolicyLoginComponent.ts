@@ -24,6 +24,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private message: string = null;
 
     private logo_url: string = null;
+    private signin_allowed: boolean = false;
 
     private async mounted() {
         this.load_logo_url();
@@ -37,6 +38,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         if (!!logged_id) {
             window.location = this.redirect_to as any;
         }
+
+        this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
     }
 
     private async load_logo_url() {
@@ -75,4 +78,5 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             this.snotify.error(this.label('login.nfcconnect.off'));
         }
     }
+
 }
