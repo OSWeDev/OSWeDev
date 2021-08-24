@@ -1687,7 +1687,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            let user: UserVO = null;
+
+            if (AccessPolicyServerController.getInstance().hook_user_login) {
+                user = await AccessPolicyServerController.getInstance().hook_user_login(email, password);
+            } else {
+                user = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            }
 
             if (!user) {
                 return null;

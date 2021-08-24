@@ -27,6 +27,10 @@ export default class ModuleRequestServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
     }
 
+    /**
+     * Pour du POST, il faut ajouter Content-Length dans le header
+     * Sinon ça ne marche pas dans certain cas
+     */
     public async sendRequestFromApp(
         method: string,
         host: string,
@@ -44,6 +48,8 @@ export default class ModuleRequestServer extends ModuleServerBase {
                 method: method,
                 headers: headers,
             };
+
+            let dataPosts: any = posts ? JSON.stringify(posts) : null;
 
             // // Pour plus de compatibilité (avec Teams notamment) => mais incompatible avec lenvoi de SMS sur sendinblue...
             // if ((method.toLowerCase() == 'post') && ((!headers) || (!headers['Content-Length'])) && !!posts) {
@@ -82,8 +88,8 @@ export default class ModuleRequestServer extends ModuleServerBase {
 
             let request: http.ClientRequest = (sendHttps) ? https.request(options, callback) : http.request(options, callback);
 
-            if (posts) {
-                request.write(JSON.stringify(posts));
+            if (dataPosts) {
+                request.write(dataPosts);
             }
 
             request.end();
