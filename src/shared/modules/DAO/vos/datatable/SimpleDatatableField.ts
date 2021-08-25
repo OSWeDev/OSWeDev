@@ -315,9 +315,11 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return hourFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_float:
-                    return (isNaN(parseFloat(value))) ? null : parseFloat(value);
+                    let efloat = parseFloat(value);
+                    return (isNaN(efloat)) ? null : efloat;
                 case ModuleTableField.FIELD_TYPE_int:
-                    return (isNaN(parseInt(value))) ? null : parseInt(value);
+                    let eint = parseInt(value);
+                    return (isNaN(eint)) ? null : eint;
 
                 case ModuleTableField.FIELD_TYPE_enum:
                     for (let i in moduleTableField.enum_values) {
