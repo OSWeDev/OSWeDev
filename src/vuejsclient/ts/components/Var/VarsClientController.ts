@@ -298,6 +298,15 @@ export default class VarsClientController {
     }
 
     private async do_server_unregistration(params: { [index: string]: VarDataBaseVO }) {
-        await ModuleVar.getInstance().unregister_params(Object.values(params));
+
+        let filtered_unregistrations: { [index: string]: VarDataBaseVO } = {};
+
+        for (let i in params) {
+            if ((!this.registered_var_params[i]) || (!this.registered_var_params[i].nb_registrations)) {
+                filtered_unregistrations[i] = params[i];
+            }
+        }
+
+        await ModuleVar.getInstance().unregister_params(Object.values(filtered_unregistrations));
     }
 }
