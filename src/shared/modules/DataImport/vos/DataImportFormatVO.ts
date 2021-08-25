@@ -50,4 +50,14 @@ export default class DataImportFormatVO implements IDistantVOBase {
     public post_exec_module_id: number;
 
     public copy_folder: string;
+
+    /**
+     * Réaliser des imports en plusieurs petits bouts quand c'est possible
+     */
+    public batch_import: boolean;
+
+    /**
+     * Taille idéale d'une segmentation pour cet import (ni trop petit pour les perfs, ni trop grand pour la survie et disponibilité du serveur)
+     */
+    public batch_size: number;
 }

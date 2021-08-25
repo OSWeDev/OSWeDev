@@ -4,7 +4,7 @@ import IDistantVOBase from '../../IDistantVOBase';
 /**
  * Représente la session d’un user sur un module (aussi um).
  * @property {string} commentaire: enregistre le retour du user sur le module
- * @property {Moment} end_date, {Moment} start_date
+ * @property {number} end_date, {number} start_date
  * @property {number} module_id
  */
 

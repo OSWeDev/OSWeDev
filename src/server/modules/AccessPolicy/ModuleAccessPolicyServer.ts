@@ -1619,9 +1619,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user.invalidated = false;
                 user.recovery_challenge = "";
                 user.phone = "";
-                user.recovery_expiration = moment(0).utc(true);
-                user.password_change_date = moment().utc(true).format("YYYY-MM-DD");
-                user.creation_date = moment().utc(true);
+                user.recovery_expiration = 0;
+                user.password_change_date = Dates.now();
+                user.creation_date = Dates.now();
 
 
                 // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
@@ -1644,7 +1644,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 // On stocke le log de connexion en base
                 let user_log = new UserLogVO();
                 user_log.user_id = res.id;
-                user_log.log_time = moment().utc(true);
+                user_log.log_time = Dates.now();
                 user_log.impersonated = false;
                 user_log.referer = StackContext.getInstance().get('REFERER');
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;

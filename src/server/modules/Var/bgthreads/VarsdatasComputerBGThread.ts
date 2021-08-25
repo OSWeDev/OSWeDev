@@ -25,6 +25,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     public static TASK_NAME_force_run_asap: string = 'VarsdatasComputerBGThread.force_run_asap';
 
+    public static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
+    public static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
+    public static PARAM_NAME_bg_min_nb_vars: string = 'VarsdatasComputerBGThread.bg_min_nb_vars';
+    public static PARAM_NAME_client_request_min_nb_vars: string = 'VarsdatasComputerBGThread.client_request_min_nb_vars';
+
     public static getInstance() {
         if (!VarsdatasComputerBGThread.instance) {
             VarsdatasComputerBGThread.instance = new VarsdatasComputerBGThread();
@@ -32,10 +37,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         return VarsdatasComputerBGThread.instance;
     }
 
-    private static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
-    private static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
-    private static PARAM_NAME_bg_min_nb_vars: string = 'VarsdatasComputerBGThread.bg_min_nb_vars';
-    private static PARAM_NAME_client_request_min_nb_vars: string = 'VarsdatasComputerBGThread.client_request_min_nb_vars';
     private static instance: VarsdatasComputerBGThread = null;
 
     public current_timeout: number = 10;

@@ -1,4 +1,3 @@
-import { Moment } from "moment";
 import IImportedData from "../../../../DataImport/interfaces/IImportedData";
 
 
@@ -26,7 +25,7 @@ export default class AnimationImportQRVO implements IImportedData {
     public not_validated_msg: string;
     public not_imported_msg: string;
     public not_posttreated_msg: string;
-    public creation_date: Moment;
+    public creation_date: number;
     public target_vo_id: number;
     public historic_id: number;
     public imported_line_number: number;

@@ -239,7 +239,7 @@ export default class ModuleTableDBService {
         let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
         for (let i in moduleTable.get_fields()) {
             let field = moduleTable.get_fields()[i];
-            fields_by_field_id[field.field_id] = field;
+            fields_by_field_id[field.field_id.toLowerCase()] = field;
         }
 
         let table_cols_by_name: { [col_name: string]: TableColumnDescriptor } = {};
@@ -350,7 +350,7 @@ export default class ModuleTableDBService {
                 continue;
             }
 
-            if (!fields_by_field_id[i]) {
+            if (!fields_by_field_id[i.toLowerCase()]) {
                 console.error('-');
                 console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
                 console.error('ACTION: Suppression automatique...');
@@ -385,7 +385,7 @@ export default class ModuleTableDBService {
         for (let i in moduleTable.get_fields()) {
             let field = moduleTable.get_fields()[i];
 
-            if (!table_cols_by_name[field.field_id]) {
+            if (!table_cols_by_name[field.field_id.toLowerCase()]) {
                 console.error('-');
                 console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_id + ':table:' + full_name + ':');
                 console.error('ACTION: Création automatique...');

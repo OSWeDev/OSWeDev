@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
@@ -15,6 +16,7 @@ import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLo
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -24,6 +26,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
@@ -410,7 +413,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         await ImportLogger.getInstance().log(importHistoric, null, 'Début de l\'importation', DataImportLogVO.LOG_LEVEL_INFO);
 
         // On commence par nettoyer la table, quelle que soit l'issue
-        await ModuleDAOServer.getInstance().truncate(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id));
+        let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id);
+        await ModuleDAOServer.getInstance().truncate(raw_api_type_id);
 
         // 1
         let formats: DataImportFormatVO[] = await this.getImportFormatsForApiTypeId(importHistoric.api_type_id);
@@ -419,10 +423,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             return;
         }
 
+        let formats_by_ids: { [id: number]: DataImportFormatVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(formats);
+
         let all_formats_datas: { [format_id: number]: IImportedData[] } = {};
 
         let max_formattedDatasStats: FormattedDatasStats = new FormattedDatasStats();
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[importHistoric.api_type_id];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[raw_api_type_id];
 
         let has_datas: boolean = false;
 
@@ -447,17 +453,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 continue;
             }
 
-            let datas: IImportedData[] = [];
-            switch (format.type) {
-                case DataImportFormatVO.TYPE_CSV:
-                    datas = await ImportTypeCSVHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
-                    break;
-                case DataImportFormatVO.TYPE_XLS:
-                case DataImportFormatVO.TYPE_XLSX:
-                default:
-                    datas = await ImportTypeXLSXHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
-            }
-
             // Ensuite on demande au module responsable de l'import si on a des filtrages à appliquer
             let postTreatementModuleVO: ModuleVO = await ModuleDAO.getInstance().getVoById<ModuleVO>(ModuleVO.API_TYPE_ID, format.post_exec_module_id);
 
@@ -472,14 +467,39 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 continue;
             }
 
-            let pre_validation_formattedDatasStats: FormattedDatasStats = this.countValidatedDataAndColumns(datas, moduleTable, format.id);
-            let prevalidation_datas = datas;
-            datas = await postTraitementModule.validate_formatted_data(datas, importHistoric, format);
+            /**
+             * Si on est sur un import de type batch, on change de méthode et on met directement les lignes en BDD
+             */
+            let datas: IImportedData[] = [];
+            switch (format.type) {
+                case DataImportFormatVO.TYPE_CSV:
+                    if (format.batch_import) {
+                        if (!await ImportTypeCSVHandler.getInstance().importFileBatchMode(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL)) {
+                            /**
+                             * Format invalide
+                             */
+                            continue;
+                        } else {
+                            has_datas = true;
+                        }
+                    } else {
+                        datas = await ImportTypeCSVHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
+                    }
+                    break;
+                case DataImportFormatVO.TYPE_XLS:
+                case DataImportFormatVO.TYPE_XLSX:
+                default:
+                    datas = await ImportTypeXLSXHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
+            }
 
-            has_datas = has_datas || (datas && (datas.length > 0));
+            let pre_validation_formattedDatasStats: FormattedDatasStats = format.batch_import ? await this.countValidatedDataAndColumnsBatchMode(raw_api_type_id, moduleTable, format.id) : this.countValidatedDataAndColumns(datas, moduleTable, format.id);
+            let prevalidation_datas = datas;
+            datas = format.batch_import ? [] : await postTraitementModule.validate_formatted_data(datas, importHistoric, format);
+
+            has_datas = has_datas || ((pre_validation_formattedDatasStats.nb_row_unvalidated + pre_validation_formattedDatasStats.nb_row_validated) > 0);
             all_formats_datas[format.id] = datas;
 
-            let formattedDatasStats: FormattedDatasStats = this.countValidatedDataAndColumns(datas, moduleTable, format.id);
+            let formattedDatasStats: FormattedDatasStats = format.batch_import ? await this.countValidatedDataAndColumnsBatchMode(raw_api_type_id, moduleTable, format.id) : this.countValidatedDataAndColumns(datas, moduleTable, format.id);
 
             if ((formattedDatasStats.nb_fields_validated > 0) && (formattedDatasStats.nb_row_validated > 0) && (format.type_column_position == DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL)) {
                 max_formattedDatasStats = formattedDatasStats;
@@ -498,14 +518,17 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 if ((pre_validation_formattedDatasStats.nb_row_validated > 0) || (pre_validation_formattedDatasStats.nb_fields_validated > 0)) {
                     let messages_stats: { [msg: string]: number } = {};
 
-                    for (let data_i in datas) {
-                        let data: IImportedData = datas[data_i];
+                    if (!format.batch_import) {
 
-                        if ((!!data.not_validated_msg) && (data.not_validated_msg != '')) {
-                            if (!messages_stats[data.not_validated_msg]) {
-                                messages_stats[data.not_validated_msg] = 0;
+                        for (let data_i in datas) {
+                            let data: IImportedData = datas[data_i];
+
+                            if ((!!data.not_validated_msg) && (data.not_validated_msg != '')) {
+                                if (!messages_stats[data.not_validated_msg]) {
+                                    messages_stats[data.not_validated_msg] = 0;
+                                }
+                                messages_stats[data.not_validated_msg]++;
                             }
-                            messages_stats[data.not_validated_msg]++;
                         }
                     }
 
@@ -525,7 +548,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         importHistoric.data_import_format_id = max_formattedDatasStats.format_id;
         importHistoric.nb_row_unvalidated = max_formattedDatasStats.nb_row_unvalidated;
         importHistoric.nb_row_validated = max_formattedDatasStats.nb_row_validated;
-        await this.insertImportedDatasInDb(all_formats_datas[importHistoric.data_import_format_id], ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id), moduleTable);
+
+        if (!formats_by_ids[importHistoric.data_import_format_id].batch_import) {
+            await ModuleDAO.getInstance().insertOrUpdateVOs(all_formats_datas[importHistoric.data_import_format_id]);
+        }
 
         // 4
         await this.logAndUpdateHistoric(importHistoric, null, ModuleDataImport.IMPORTATION_STATE_FORMATTED, 'Formattage terminé', "import.success.formatted", DataImportLogVO.LOG_LEVEL_SUCCESS);
@@ -541,12 +567,18 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  1 - Récupérer le format validé, et les données importées ()
         let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, importHistoric.data_import_format_id);
-        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
 
-        if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
-            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data formattée ou pas de module configuré", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
-            return;
+        if (format.batch_import) {
+            await this.importDatas_batch_mode(importHistoric, format);
+        } else {
+            await this.importDatas_classic(importHistoric, format);
         }
+    }
+
+    public async importDatas_classic(importHistoric: DataImportHistoricVO, format: DataImportFormatVO): Promise<void> {
+
+        //  1 - Récupérer le format validé, et les données importées ()
+        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
 
         // On garde que les données, validées et importées
         let validated_imported_datas: IImportedData[] = [];
@@ -557,48 +589,54 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             validated_imported_datas.push(raw_imported_datas[i]);
         }
 
+        if ((!format) || (!format.post_exec_module_id)) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data formattée ou pas de module configuré", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return;
+        }
+
         if ((!validated_imported_datas) || (!validated_imported_datas.length)) {
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data validée pour importation", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
             return;
         }
 
-        // 2 - Importer dans le vo cible, suivant le mode d'importation (remplacement ou mise à jour)
-        switch (importHistoric.import_type) {
-            case DataImportHistoricVO.IMPORT_TYPE_REPLACE:
-                await ModuleDAOServer.getInstance().truncate(format.api_type_id);
+        await this.importDatas_batch(importHistoric, format, validated_imported_datas);
 
-                // a priori on a juste à virer les ids et modifier les _type, on peut insérer dans le vo cible
-                let insertable_datas: IImportedData[] = [];
-                for (let i in validated_imported_datas) {
-                    let insertable_data: IImportedData = Object.assign({}, validated_imported_datas[i]);
-                    delete insertable_data.id;
-                    insertable_data._type = format.api_type_id;
-                    insertable_datas.push(insertable_data);
-                }
+        // 3 - Mettre à jour le status et informer le client
+        await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_IMPORTED, "Import terminé", "import.success.imported", DataImportLogVO.LOG_LEVEL_SUCCESS);
+    }
 
-                let inserteds: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().insertOrUpdateVOs(insertable_datas);
+    public async importDatas_batch_mode(importHistoric: DataImportHistoricVO, format: DataImportFormatVO): Promise<void> {
 
-                if ((!inserteds) || (inserteds.length != insertable_datas.length)) {
+        if ((!format) || (!format.post_exec_module_id)) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data formattée ou pas de module configuré", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return;
+        }
 
-                    for (let i in validated_imported_datas) {
-                        validated_imported_datas[i].importation_state = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
-                    }
-                    await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+        //  1 - Récupérer les données importées
+        let had_datas = true;
+        let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id);
 
-                    await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Le nombre d'éléments importés ne correspond pas au nombre d'éléments validés", "import.errors.failed_importation_numbers_not_matching", DataImportLogVO.LOG_LEVEL_FATAL);
-                    return;
-                }
+        let offset = 0;
+        let batch_size = await this.get_batch_mode_batch_size(raw_api_type_id, importHistoric, format, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
 
+        while (had_datas) {
+
+            let validated_imported_datas: IImportedData[] = await this.get_batch_mode_batch_datas(raw_api_type_id, importHistoric, format, offset, batch_size, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+
+            had_datas = validated_imported_datas && (validated_imported_datas.length > 0);
+            if (!had_datas) {
                 break;
-            default:
-                await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Type d\'importation non supporté", "import.errors.failed_importation_unknown_import_type", DataImportLogVO.LOG_LEVEL_FATAL);
-                return;
+            }
+
+            offset += validated_imported_datas.length;
+
+            await this.importDatas_batch(importHistoric, format, validated_imported_datas);
         }
 
-        for (let i in validated_imported_datas) {
-            validated_imported_datas[i].importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTED;
+        if (!offset) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data validée pour importation", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return;
         }
-        await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
 
         // 3 - Mettre à jour le status et informer le client
         await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_IMPORTED, "Import terminé", "import.success.imported", DataImportLogVO.LOG_LEVEL_SUCCESS);
@@ -613,45 +651,17 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  1 - Récupérer le format validé, et les données importées ()
         let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, importHistoric.data_import_format_id);
-        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
 
-        if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
+        if ((!format) || (!format.post_exec_module_id)) {
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data formattée ou pas de module configuré", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
             return;
         }
 
-        // On garde que les données, validées et importées
-        let validated_imported_datas: IImportedData[] = [];
-        for (let i in raw_imported_datas) {
-            if (raw_imported_datas[i].importation_state != ModuleDataImport.IMPORTATION_STATE_IMPORTED) {
-                continue;
-            }
-            validated_imported_datas.push(raw_imported_datas[i]);
-        }
-
         let postTreated = false;
-        let postTreatementModuleVO: ModuleVO = await ModuleDAO.getInstance().getVoById<ModuleVO>(ModuleVO.API_TYPE_ID, format.post_exec_module_id);
-
-        if ((!validated_imported_datas) || (!validated_imported_datas.length)) {
-            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data importée", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
-            return;
-        }
-        if ((!postTreatementModuleVO) || (!postTreatementModuleVO.name)) {
-            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Impossible de retrouver le module", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
-            return;
-        }
-
-        //  2 - Post-traiter les données
-        // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
-        let postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
-        try {
-            if (await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric)) {
-                postTreated = true;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Le post-traitement a échoué :" + error, "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
-            return;
+        if (format.batch_import) {
+            postTreated = await this.posttreatDatas_batch_mode(importHistoric, format);
+        } else {
+            postTreated = await this.posttreatDatas_classic(importHistoric, format);
         }
 
         if (!postTreated) {
@@ -672,6 +682,89 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // }
 
         await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + Dates.format(Dates.now(), "Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
+    }
+
+    public async posttreatDatas_batch_mode(importHistoric: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean> {
+
+        //  1 - Récupérer les données importées
+        let had_datas = true;
+        let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id);
+
+        let offset = 0;
+        let batch_size = await this.get_batch_mode_batch_size(raw_api_type_id, importHistoric, format, ModuleDataImport.IMPORTATION_STATE_IMPORTED);
+
+        while (had_datas) {
+
+            let validated_imported_datas: IImportedData[] = await this.get_batch_mode_batch_datas(raw_api_type_id, importHistoric, format, offset, batch_size, ModuleDataImport.IMPORTATION_STATE_IMPORTED);
+
+            had_datas = validated_imported_datas && (validated_imported_datas.length > 0);
+            if (!had_datas) {
+                break;
+            }
+
+            offset += validated_imported_datas.length;
+
+            if (!await this.posttreat_batch(importHistoric, format, validated_imported_datas)) {
+                return false;
+            }
+        }
+
+        if (!offset) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data validée pour importation", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return false;
+        }
+
+        return true;
+    }
+
+    public async posttreatDatas_classic(importHistoric: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean> {
+
+        //  1 - Récupérer le format validé, et les données importées ()
+        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
+
+        if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data formattée ou pas de module configuré", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return false;
+        }
+
+        // On garde que les données, validées et importées
+        let validated_imported_datas: IImportedData[] = [];
+        for (let i in raw_imported_datas) {
+            if (raw_imported_datas[i].importation_state != ModuleDataImport.IMPORTATION_STATE_IMPORTED) {
+                continue;
+            }
+            validated_imported_datas.push(raw_imported_datas[i]);
+        }
+
+        return await this.posttreat_batch(importHistoric, format, validated_imported_datas);
+    }
+
+    public async posttreat_batch(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, validated_imported_datas: IImportedData[]): Promise<boolean> {
+        let postTreatementModuleVO: ModuleVO = await ModuleDAO.getInstance().getVoById<ModuleVO>(ModuleVO.API_TYPE_ID, format.post_exec_module_id);
+
+        if ((!validated_imported_datas) || (!validated_imported_datas.length)) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data importée", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return false;
+        }
+        if ((!postTreatementModuleVO) || (!postTreatementModuleVO.name)) {
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Impossible de retrouver le module", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return false;
+        }
+
+        //  2 - Post-traiter les données
+        // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
+        let postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+        try {
+            if (!await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric)) {
+                return false;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Le post-traitement a échoué :" + error, "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
+            return false;
+        }
+
+        return true;
     }
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
@@ -707,30 +800,38 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         await this.updateImportHistoric(importHistoric);
     }
 
-    private async insertImportedDatasInDb(vos: IImportedData[], api_type_id: string, moduleTable: ModuleTable<any>): Promise<InsertOrDeleteQueryResult[]> {
+    /**
+     * Renvoie le nombre de segments de datas à charger en mode batch. Par défaut un segment est une ligne de la base donc on renvoie autant de segment que de lignes ciblées par le format
+     * @param raw_api_type_id
+     * @param importHistoric
+     * @param format
+     * @param importation_state
+     */
+    protected async get_batch_mode_batch_size(raw_api_type_id: string, importHistoric: DataImportHistoricVO, format: DataImportFormatVO, importation_state: number) {
+        return format.batch_size;
+    }
 
-        // Avant de remplir la base, on la vide.
-        await ModuleDAOServer.getInstance().truncate(api_type_id);
+    /**
+     * Renvoie un batch de données
+     */
+    protected async get_batch_mode_batch_datas<T extends IImportedData>(raw_api_type_id: string, importHistoric: DataImportHistoricVO, format: DataImportFormatVO, offset: number, batch_size: number, importation_state: number): Promise<T[]> {
 
-        let insertVos: IImportedData[] = [];
+        let filter = new ContextFilterVO();
+        filter.field_id = 'importation_state';
+        filter.vo_type = raw_api_type_id;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.param_numeric = importation_state;
 
-        for (let i in vos) {
-            let vo: IImportedData = vos[i];
-
-            // let hasIncompatibleData: boolean = false;
-            // for (const f in moduleTable.fields) {
-
-            //     if (typeof vo[moduleTable.fields[f].field_id] != "undefined") {
-
-            //         // On peut tester le format des datas suivant le type source et le type dest pour voir si c'est cohérent
-            //         //  et mettre à jour hasIncompatibleData
-            //     }
-            // }
-
-            insertVos.push(vo);
-        }
-
-        return ModuleDAO.getInstance().insertOrUpdateVOs(insertVos);
+        /**
+         * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
+         */
+        return await ModuleContextFilterServer.getInstance().query_vos_from_active_filters(
+            raw_api_type_id,
+            { [raw_api_type_id]: { ['importation_state']: filter } },
+            [raw_api_type_id],
+            0,
+            batch_size
+        );
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
@@ -778,6 +879,21 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return true;
     }
 
+    private async countValidatedDataAndColumnsBatchMode(raw_api_type_id: string, moduletable: ModuleTable<any>, data_import_format_id: number): Promise<FormattedDatasStats> {
+
+        let res: FormattedDatasStats = new FormattedDatasStats();
+        res.format_id = data_import_format_id;
+        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(*) a FROM ' + moduletable.full_name + ' WHERE importation_state!=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        res.nb_row_unvalidated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
+        query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(*) a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        res.nb_row_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
+        let fields = moduletable.get_fields().map((field: ModuleTableField<any>) => field.field_id).join(') + COUNT(');
+        query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(' + fields + ') a FROM ' + moduletable.full_name + ' WHERE importation_state=' + ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT);
+        res.nb_fields_validated = (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : null;
+
+        return res;
+    }
+
     private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTable<any>, data_import_format_id: number): FormattedDatasStats {
         let res: FormattedDatasStats = new FormattedDatasStats();
         res.format_id = data_import_format_id;
@@ -809,5 +925,46 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
         await ModuleDAO.getInstance().insertOrUpdateVO(dih);
 
+    }
+
+    private async importDatas_batch(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, validated_imported_datas: IImportedData[]): Promise<void> {
+
+        // 2 - Importer dans le vo cible, suivant le mode d'importation (remplacement ou mise à jour)
+        switch (importHistoric.import_type) {
+            case DataImportHistoricVO.IMPORT_TYPE_REPLACE:
+                await ModuleDAOServer.getInstance().truncate(format.api_type_id);
+
+                // a priori on a juste à virer les ids et modifier les _type, on peut insérer dans le vo cible
+                let insertable_datas: IImportedData[] = [];
+                for (let i in validated_imported_datas) {
+                    let insertable_data: IImportedData = Object.assign({}, validated_imported_datas[i]);
+                    delete insertable_data.id;
+                    insertable_data._type = format.api_type_id;
+                    insertable_datas.push(insertable_data);
+                }
+
+                let inserteds: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().insertOrUpdateVOs(insertable_datas);
+
+                if ((!inserteds) || (inserteds.length != insertable_datas.length)) {
+
+                    for (let i in validated_imported_datas) {
+                        validated_imported_datas[i].importation_state = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
+                    }
+                    await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+
+                    await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Le nombre d'éléments importés ne correspond pas au nombre d'éléments validés", "import.errors.failed_importation_numbers_not_matching", DataImportLogVO.LOG_LEVEL_FATAL);
+                    return;
+                }
+
+                break;
+            default:
+                await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Type d\'importation non supporté", "import.errors.failed_importation_unknown_import_type", DataImportLogVO.LOG_LEVEL_FATAL);
+                return;
+        }
+
+        for (let i in validated_imported_datas) {
+            validated_imported_datas[i].importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTED;
+        }
+        await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
     }
 }

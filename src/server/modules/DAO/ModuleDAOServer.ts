@@ -980,6 +980,54 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
+    public async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vos: T[]): Promise<T[]> {
+
+        if (!ModuleAccessPolicy.getInstance().actif) {
+            return vos;
+        }
+
+        // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
+        let hooks = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : [];
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            // Server
+            return vos;
+        }
+
+        for (let i in hooks) {
+            let hook = hooks[i];
+
+            let uid: number = StackContext.getInstance().get('UID');
+            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
+            vos = await hook(datatable, vos, uid, user_data) as T[];
+        }
+
+        if (vos && vos.length && !this.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
+
+            for (let j in vos) {
+                let vo: IDistantVOBase = vos[j];
+
+                for (let i in datatable.get_fields()) {
+                    let field: ModuleTableField<any> = datatable.get_fields()[i];
+
+                    if (datatable.default_label_field &&
+                        (field.field_id == datatable.default_label_field.field_id)) {
+                        continue;
+                    }
+
+                    if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
+                        (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
+                        continue;
+                    }
+
+                    delete vo[field.field_id];
+                }
+            }
+        }
+
+        return vos;
+    }
+
     public getClauseWhereRangeIntersectsField(field: ModuleTableField<any>, intersector_range: IRange): string {
         switch (field.field_type) {
 
@@ -1671,54 +1719,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return sql;
-    }
-
-    private async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vos: T[]): Promise<T[]> {
-
-        if (!ModuleAccessPolicy.getInstance().actif) {
-            return vos;
-        }
-
-        // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
-        let hooks = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : [];
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
-            // Server
-            return vos;
-        }
-
-        for (let i in hooks) {
-            let hook = hooks[i];
-
-            let uid: number = StackContext.getInstance().get('UID');
-            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
-            vos = await hook(datatable, vos, uid, user_data) as T[];
-        }
-
-        if (vos && vos.length && !this.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
-            // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
-
-            for (let j in vos) {
-                let vo: IDistantVOBase = vos[j];
-
-                for (let i in datatable.get_fields()) {
-                    let field: ModuleTableField<any> = datatable.get_fields()[i];
-
-                    if (datatable.default_label_field &&
-                        (field.field_id == datatable.default_label_field.field_id)) {
-                        continue;
-                    }
-
-                    if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
-                        (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
-                        continue;
-                    }
-
-                    delete vo[field.field_id];
-                }
-            }
-        }
-
-        return vos;
     }
 
     private async filterVOAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vo: T): Promise<T> {

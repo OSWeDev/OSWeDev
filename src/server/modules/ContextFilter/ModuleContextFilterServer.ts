@@ -3,7 +3,9 @@ import moment = require('moment');
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
@@ -35,6 +37,17 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_get_filter_visible_options, this.get_filter_visible_options.bind(this));
     }
 
+    /**
+     * Builds a query to return the field values according to the context filters
+     * @param api_type_id
+     * @param field_id null returns all fields as would a getvo
+     * @param get_active_field_filters
+     * @param active_api_type_ids
+     * @param limit
+     * @param offset
+     * @param res_field_alias ignored if field_id is null
+     * @returns
+     */
     public build_request_from_active_field_filters(
         api_type_id: string,
         field_id: string,
@@ -42,14 +55,14 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         active_api_type_ids: string[],
         limit: number,
         offset: number,
-        res_field_alias: string
+        res_field_alias: string,
     ): string {
 
         /**
          * Par mesure de sécu on check que les éléments proposés existent en base
          */
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-        if ((!moduletable) || ((field_id != 'id') && (!moduletable.get_field_by_id(field_id)))) {
+        if ((!moduletable) || ((!!field_id) && (field_id != 'id') && (!moduletable.get_field_by_id(field_id)))) {
             return null;
         }
 
@@ -57,8 +70,15 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         let tables_aliases_by_type: { [vo_type: string]: string } = {
             [api_type_id]: 't' + (aliases_n++)
         };
-        let res: string = "SELECT DISTINCT " + tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_alias +
-            " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+
+        let res: string = null;
+
+        if (!field_id) {
+            res = "SELECT " + tables_aliases_by_type[api_type_id] + ".* FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+        } else {
+            res = "SELECT DISTINCT " + tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_alias +
+                " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+        }
 
         /**
          * On agrémente la liste des active_api_type_ids par les relations N/N dont les types liés sont actifs
@@ -171,6 +191,16 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Query field values
+     * @param api_type_id
+     * @param field_id
+     * @param get_active_field_filters
+     * @param active_api_type_ids
+     * @param limit
+     * @param offset
+     * @returns
+     */
     public async query_from_active_filters(
         api_type_id: string,
         field_id: string,
@@ -212,6 +242,46 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    /**
+     * Query vos
+     * @param api_type_id
+     * @param get_active_field_filters
+     * @param active_api_type_ids
+     * @param limit
+     * @param offset
+     * @returns
+     */
+    public async query_vos_from_active_filters<T extends IDistantVOBase>(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        limit: number,
+        offset: number
+    ): Promise<T[]> {
+        let request: string = this.build_request_from_active_field_filters(
+            api_type_id,
+            null,
+            get_active_field_filters,
+            active_api_type_ids,
+            limit,
+            offset,
+            null
+        );
+
+        if (!request) {
+            return null;
+        }
+
+        let query_res: any[] = await ModuleDAOServer.getInstance().query(request);
+        if ((!query_res) || (!query_res.length)) {
+            return null;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        return await ModuleDAOServer.getInstance().filterVOsAccess(moduletable, ModuleDAO.DAO_ACCESS_TYPE_READ, moduletable.forceNumerics(query_res));
     }
 
     private async get_filter_visible_options(
@@ -419,7 +489,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text) {
-                            where_conditions.push("'%" + active_field_filter.param_text + "%' ILIKE ANY " + field_id);
+                            where_conditions.push("'%" + active_field_filter.param_text + "%' ILIKE ANY(" + field_id + ')');
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -427,7 +497,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 if (!text) {
                                     continue;
                                 }
-                                like_array.push("'%" + text + "%' ILIKE ANY " + field_id);
+                                like_array.push("'%" + text + "%' ILIKE ANY(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -436,6 +506,101 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                         } else {
                             throw new Error('Not Implemented');
                         }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_EQUALS_ANY:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            where_conditions.push(field_id + " = '" + active_field_filter.param_text + "'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                like_array.push("'" + text + "'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " = ANY(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            where_conditions.push("'" + active_field_filter.param_text + "' = ANY(" + field_id + ")");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                like_array.push("'" + text + "' = ANY(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') OR (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_NUMERIC_EQUALS:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        if (active_field_filter.param_numeric) {
+                            where_conditions.push(field_id + " = '" + active_field_filter.param_numeric + "'");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        throw new Error('Not Implemented');
 
                     default:
                         throw new Error('Not Implemented');
@@ -451,7 +616,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ContextFilterVO.TYPE_NULL_NONE:
 
             case ContextFilterVO.TYPE_NUMERIC_INTERSECTS:
-            case ContextFilterVO.TYPE_NUMERIC_EQUALS:
             case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_ID_INTERSECTS:
@@ -467,7 +631,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ContextFilterVO.TYPE_DATE_INCLUDES:
             case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_TEXT_EQUALS_ALL:
-            case ContextFilterVO.TYPE_TEXT_EQUALS_ANY:
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY:

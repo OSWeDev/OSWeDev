@@ -564,48 +564,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
     }
 
-    // public async invalidate_cache_intersection(vos: VarDataBaseVO[]) {
-
-    //     if ((!vos) || (!vos.length)) {
-    //         return;
-    //     }
-
-    //     this.invalidate_cache_intersection_and_parents(vos);
-
-
-    //     for (let i in vos) {
-    //         let vo = vos[i];
-
-    //         if (!vo.check_param_is_valid(vo._type)) {
-    //             ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-    //             continue;
-    //         }
-
-    //         let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-    //         let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
-
-    //         if (moduletable_vardata.is_segmented) {
-
-    //             let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
-
-    //             await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
-    //                 let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value=null, value_ts=null where ' +
-    //                     query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-    //                 await ModuleServiceBase.getInstance().db.query(request);
-
-    //                 TODO mettre à jour le cache aussi
-    //             }, moduletable_vardata.table_segmented_field_segment_type);
-
-    //         } else {
-    //             let request: string = 'update ' + moduletable_vardata.full_name + ' t set value=null, value_ts=null where ' +
-    //                 query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-    //             await ModuleServiceBase.getInstance().db.query(request);
-
-    //             TODO mettre à jour le cache aussi
-    //         }
-    //     }
-    // }
-
     public async delete_cache_intersection(vos: VarDataBaseVO[]) {
 
         if ((!vos) || (!vos.length)) {

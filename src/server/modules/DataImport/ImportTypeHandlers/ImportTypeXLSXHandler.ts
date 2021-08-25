@@ -408,12 +408,6 @@ export default class ImportTypeXLSXHandler {
 
                         switch (dataImportColumn.type) {
                             case DataImportColumnVO.TYPE_DATE:
-                                // let epoch: Moment = moment('1900-01-01');
-                                // if (!!(((workbook.Workbook || {}).WBProps || {}).date1904)) {
-                                //     epoch = moment('1904-01-01');
-                                // }
-                                // epoch.add(column_data_string.v, 'days');
-                                // rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(epoch);
 
                                 switch (moduletable_field.field_type) {
                                     case ModuleTableField.FIELD_TYPE_tstz:

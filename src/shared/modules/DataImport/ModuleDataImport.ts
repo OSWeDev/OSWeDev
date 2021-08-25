@@ -224,7 +224,9 @@ export default class ModuleDataImport extends Module {
             }),
             new ModuleTableField('column_labels_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la ligne des titres de colonne (1ère ligne = 0)', false),
 
-            field_post_exec_module_id
+            field_post_exec_module_id,
+            new ModuleTableField('batch_import', ModuleTableField.FIELD_TYPE_boolean, 'Import par segments', true, true, false),
+            new ModuleTableField('batch_size', ModuleTableField.FIELD_TYPE_int, 'Taille d\'un segment (si import par segment)', true, true, 10000)
         ];
         let datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();

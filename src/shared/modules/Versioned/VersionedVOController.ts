@@ -115,7 +115,14 @@ export default class VersionedVOController implements IVOController {
                 } else if ((database == VersionedVOController.VERSIONED_DATABASE) || (database == VersionedVOController.VERSIONED_TRASHED_DATABASE) || (database == VersionedVOController.TRASHED_DATABASE)) {
                     let newField = newTable.getFieldFromId(vofield.field_id);
                     newField.has_relation = false;
-                    newField.field_type = ModuleTableField.FIELD_TYPE_int;
+
+                    switch (vofield.field_type) {
+                        case ModuleTableField.FIELD_TYPE_refrange_array:
+                            newField.field_type = ModuleTableField.FIELD_TYPE_int_array;
+                            break;
+                        default:
+                            newField.field_type = ModuleTableField.FIELD_TYPE_int;
+                    }
                 } else {
                     newTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
                 }

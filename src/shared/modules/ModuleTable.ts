@@ -408,7 +408,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public push_field(field: ModuleTableField<any>) {
         this.fields_.push(field);
         this.fields_by_ids[field.field_id] = field;
-        this.readonlyfields_by_ids[field.field_id] = field;
+        if (field.is_readonly) {
+            this.readonlyfields_by_ids[field.field_id] = field;
+        }
 
         this.set_sortedFields();
     }
@@ -869,7 +871,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
     /**
      * Permet de récupérer un clone dont les fields sont insérables en bdd.
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec le format de la BDD
-     *  (exemple du unix_timestamp qu'on stocke comme un bigint en BDD mais qu'on manipule en Moment)
      * @param e Le VO dont on veut une version insérable en BDD
      */
     private default_get_bdd_version(e: T): T {
@@ -946,7 +947,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         for (let i in this.fields_) {
             let field = this.fields_[i];
 
-            let field_value = e[field.field_id];
+            let field_value = e[field.field_id.toLowerCase()] ? e[field.field_id.toLowerCase()] : e[field.field_id];
 
             if ((typeof field_value == 'undefined') || (field_value === null)) {
                 continue;
@@ -1012,20 +1013,20 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
-                    if (e[field.field_id]) {
+                    if (field_value) {
                         res[field.field_id] = GeoPointVO.clone(field_value);
                     }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_email:
-                    if (e[field.field_id] && e[field.field_id].trim) {
-                        res[field.field_id] = e[field.field_id].trim();
+                    if (field_value && field_value.trim) {
+                        res[field.field_id] = field_value.trim();
                     }
                     break;
 
-                // default:
-                // res[field.field_id] = e[field.field_id];
-                // break;
+                default:
+                    res[field.field_id] = field_value;
+                    break;
             }
         }
 

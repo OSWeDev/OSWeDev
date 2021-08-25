@@ -619,18 +619,6 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_password:
                 return this.passwordIsValidProposition(data);
 
-            // case ModuleTableField.FIELD_TYPE_unix_timestamp:
-            //     if (data == null || data == "") {
-            //         return null;
-            //     }
-
-            //     // DIRTY : Pour éviter une dep circulaire de modules, on utilise le nom du module pour le retrouver
-            //     if (ModulesManager.getInstance().getModuleByNameAndRole('format_dates_nombres', Module.SharedModuleRoleName)['formatYYYYMMDD_HHmmss_to_Moment'](data) != null) {
-            //         return null;
-            //     }
-
-            //     return ModuleTableField.VALIDATION_CODE_TEXT_format_unix_timestamp_invalid;
-
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_file_field:
