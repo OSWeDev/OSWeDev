@@ -54,7 +54,7 @@ export default class VarsPerfsController {
         for (let i in VarsPerfsController.current_batch_perfs) {
             let current_batch_perf = VarsPerfsController.current_batch_perfs[i];
 
-            if (current_batch_perf.name.startsWith(var_id + '__')) {
+            if (current_batch_perf && current_batch_perf.name.startsWith(var_id + '__')) {
 
                 let perf_id = current_batch_perf.name.substring(current_batch_perf.name.lastIndexOf('.') + 1, current_batch_perf.name.length);
                 if (!node['has_' + perf_id + '_perf']) {
@@ -89,6 +89,11 @@ export default class VarsPerfsController {
                  */
                 for (let i in VarsPerfsController.current_batch_perfs) {
                     let current_batch_perf = VarsPerfsController.current_batch_perfs[i];
+
+                    if (!current_batch_perf) {
+                        continue;
+                    }
+
                     let bdd_data = await ModuleDAO.getInstance().getNamedVoByName<VarPerfVO>(VarPerfVO.API_TYPE_ID, current_batch_perf.name);
 
                     if (!!bdd_data) {

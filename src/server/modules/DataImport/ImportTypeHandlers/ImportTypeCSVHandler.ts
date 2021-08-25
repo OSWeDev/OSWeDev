@@ -293,10 +293,11 @@ export default class ImportTypeCSVHandler {
                         }
 
                         if (batch_datas && (batch_datas.length >= dataImportFormat.batch_size)) {
-                            inputStream.pause();
+                            let self = this;
+                            self.pause();
                             ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
                                 batch_datas = [];
-                                inputStream.resume();
+                                self.resume();
                             });
                         }
                     }

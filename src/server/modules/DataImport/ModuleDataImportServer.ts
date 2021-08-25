@@ -705,7 +705,18 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             offset += validated_imported_datas.length;
 
             if (!await this.posttreat_batch(importHistoric, format, validated_imported_datas)) {
+                for (let i in validated_imported_datas) {
+                    let validated_imported_data = validated_imported_datas[i];
+                    validated_imported_data.importation_state = ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT;
+                }
+                await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
                 return false;
+            } else {
+                for (let i in validated_imported_datas) {
+                    let validated_imported_data = validated_imported_datas[i];
+                    validated_imported_data.importation_state = ModuleDataImport.IMPORTATION_STATE_POSTTREATED;
+                }
+                await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
             }
         }
 
@@ -736,7 +747,22 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             validated_imported_datas.push(raw_imported_datas[i]);
         }
 
-        return await this.posttreat_batch(importHistoric, format, validated_imported_datas);
+        if (await this.posttreat_batch(importHistoric, format, validated_imported_datas)) {
+            for (let i in validated_imported_datas) {
+                let validated_imported_data = validated_imported_datas[i];
+                validated_imported_data.importation_state = ModuleDataImport.IMPORTATION_STATE_POSTTREATED;
+            }
+            await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+            return true;
+        } else {
+            for (let i in validated_imported_datas) {
+                let validated_imported_data = validated_imported_datas[i];
+                validated_imported_data.importation_state = ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT;
+            }
+            await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+            return false;
+        }
+
     }
 
     public async posttreat_batch(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, validated_imported_datas: IImportedData[]): Promise<boolean> {
@@ -829,8 +855,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             raw_api_type_id,
             { [raw_api_type_id]: { ['importation_state']: filter } },
             [raw_api_type_id],
-            0,
-            batch_size
+            batch_size,
+            0
         );
     }
 
