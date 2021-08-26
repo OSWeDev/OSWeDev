@@ -310,6 +310,8 @@ export default class ImportTypeCSVHandler {
                             resolve(!closed);
                             batch_datas = [];
                         });
+                    } else {
+                        resolve(!closed);
                     }
                 });
         });
