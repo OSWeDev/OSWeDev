@@ -266,7 +266,7 @@ export default class ImportTypeCSVHandler {
 
                                 if (misses_mandatory_columns) {
                                     closed = true;
-                                    inputStream.close();
+                                    this.destroy();
                                     resolve(false); // TODO FIXME ATTENTION si le close() trigger le end, alors il faut surtout pas resolve ici
                                     return;
                                 }
