@@ -194,7 +194,7 @@
                 span.option__desc
                     span.option__label {{ field.enumIdToHumanReadable(props.option) }}
             template(slot="option", slot-scope="props")
-                img.option__image(v-if="field.enumIdToHumanReadableImage(props.option)" :src="field.enumIdToHumanReadableImage(props.option)", :alt="field.enumIdToHumanReadable(props.option)")
+                img.option__image(v-if="field.enumIdToHumanReadableImage(props.option) && show_option_image" :src="field.enumIdToHumanReadableImage(props.option)", :alt="field.enumIdToHumanReadable(props.option)")
                 .option__desc
                     span.option__label {{ field.enumIdToHumanReadable(props.option) }}
 
