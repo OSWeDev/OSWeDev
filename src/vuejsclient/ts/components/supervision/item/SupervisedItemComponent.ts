@@ -7,6 +7,7 @@ import ISupervisedItemClientController from '../../../../../shared/modules/Super
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import ISupervisedItemGraphSegmentation from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
 import ISupervisedItemURL from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
+import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
@@ -114,6 +115,18 @@ export default class SupervisedItemComponent extends VueComponentBase {
 
         this.continue_reloading = true;
         await this.load_supervised_item_and_continue();
+    }
+
+    private async reload() {
+        await this.load_supervised_item_and_continue();
+    }
+
+    private async invalidate() {
+        if (!this.supervised_item) {
+            return;
+        }
+
+        await ModuleSupervision.getInstance().refresh_one_manually(this.supervised_item._type, this.supervised_item.name);
     }
 
     private async beforeDestroy() {

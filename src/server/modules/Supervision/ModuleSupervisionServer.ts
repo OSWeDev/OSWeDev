@@ -58,6 +58,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_refresh_one_manually, this.refresh_one_manually.bind(this));
     }
 
     public async configure() {
@@ -346,5 +347,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         await SupervisionServerController.getInstance().registered_controllers[text].work_all();
+    }
+
+    private async refresh_one_manually(api_type_id: string, name: string) {
+        if (!api_type_id) {
+            return null;
+        }
+
+        if (!SupervisionServerController.getInstance().registered_controllers[api_type_id]) {
+            return null;
+        }
+
+        await SupervisionServerController.getInstance().registered_controllers[api_type_id].work_one(await ModuleDAO.getInstance().getNamedVoByName(api_type_id, name));
     }
 }

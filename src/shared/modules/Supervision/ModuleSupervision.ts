@@ -1,5 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
+import String2ParamVO, { String2ParamVOStatic } from '../API/vos/apis/String2ParamVO';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
@@ -15,6 +16,7 @@ export default class ModuleSupervision extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_execute_manually: string = 'execute_manually';
+    public static APINAME_refresh_one_manually: string = 'refresh_one_manually';
 
     public static getInstance(): ModuleSupervision {
         if (!ModuleSupervision.instance) {
@@ -26,6 +28,7 @@ export default class ModuleSupervision extends Module {
     private static instance: ModuleSupervision = null;
 
     public execute_manually: (api_type_id: string) => void = APIControllerWrapper.sah(ModuleSupervision.APINAME_execute_manually);
+    public refresh_one_manually: (api_type_id: string, name: string) => void = APIControllerWrapper.sah(ModuleSupervision.APINAME_refresh_one_manually);
 
     private constructor() {
 
@@ -39,6 +42,12 @@ export default class ModuleSupervision extends Module {
             ModuleSupervision.APINAME_execute_manually,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, void>(
+            ModuleSupervision.POLICY_BO_ACCESS,
+            ModuleSupervision.APINAME_refresh_one_manually,
+            (param: String2ParamVO) => [param.text],
+            String2ParamVOStatic
         ));
     }
 
