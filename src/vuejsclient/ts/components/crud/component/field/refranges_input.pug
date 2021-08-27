@@ -22,7 +22,7 @@
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",
         :id="field.datatable_field_uid",
-        :searchable="true",
+        :searchable="searchable",
         :internal-search="false",
         :allow-empty="!field.is_required",
         :disabled="is_readonly",

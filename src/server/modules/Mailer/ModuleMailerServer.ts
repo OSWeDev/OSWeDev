@@ -147,7 +147,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
             for (let i in address as Array<string | Address>) {
                 let e = address[i];
 
-                if (!this.check_adresses_whitelist(address, whitelisted_emails)) {
+                if (!this.check_adresses_whitelist(e, whitelisted_emails)) {
                     return false;
                 }
             }

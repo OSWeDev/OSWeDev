@@ -72,10 +72,14 @@ export default class VarsManagerComponent extends VueComponentBase {
     private initialy_var_desc: number = 56;
     private opened_var_desc: boolean = true;
 
-    public mounted() { }
+    private has_access_desc_mode: boolean = false;
+
+    public async mounted() {
+        this.has_access_desc_mode = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_DESC_MODE_ACCESS);
+    }
 
     private async switchDescMode() {
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_DESC_MODE_ACCESS)) {
+        if (!this.has_access_desc_mode) {
             return;
         }
 
