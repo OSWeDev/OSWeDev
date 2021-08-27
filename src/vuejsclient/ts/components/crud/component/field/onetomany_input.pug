@@ -1,5 +1,5 @@
 .form-group
-    
+
     Alertcomponent.datatable_field_alert.onetomany_datatable_field_alert(:path='alert_path')
 
     label(v-if="show_title") {{ t(field.translatable_title) }}
@@ -17,7 +17,7 @@
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",
         :id="field.datatable_field_uid",
-        :searchable="true",
+        :searchable="searchable",
         :internal-search="false",
         :allow-empty="!field.is_required",
         :preselect-first="false",
