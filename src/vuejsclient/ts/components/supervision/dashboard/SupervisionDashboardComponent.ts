@@ -6,6 +6,7 @@ import ISupervisedItem from '../../../../../shared/modules/Supervision/interface
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
@@ -364,33 +365,37 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      * filtre les objets pour ne garder que ce qui est associé aux categories voulues
      */
     private filter_objects(): void {
-        let enabled_categories_ids = this.categorys.map((cat) => cat.id);
 
-        // api_type_ids_by_category_ids
-        let new_api_type_ids_by_category_ids: { [id: number]: string[]; } = {};
-        for (const category_id of enabled_categories_ids) {
-            new_api_type_ids_by_category_ids[category_id] = this.api_type_ids_by_category_ids[category_id];
-        }
+        if (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.categorys)) {
 
-        // supervised_items_by_names
-        // let i = 0;
-        let new_supervised_items_by_names: { [name: string]: ISupervisedItem; } = {};
-        for (const name in this.supervised_items_by_names) {
-            // i += 1;
+            let enabled_categories_ids = this.categorys.map((cat) => cat.id);
 
-            let supervised_item = this.supervised_items_by_names[name];
-            if (this.is_item_accepted(supervised_item/*, (i % 1000 == 0) */) && enabled_categories_ids.includes(supervised_item.category_id)) {
-                new_supervised_items_by_names[name] = supervised_item;
+            // api_type_ids_by_category_ids
+            let new_api_type_ids_by_category_ids: { [id: number]: string[]; } = {};
+            for (const category_id of enabled_categories_ids) {
+                new_api_type_ids_by_category_ids[category_id] = this.api_type_ids_by_category_ids[category_id];
             }
+
+            // supervised_items_by_names
+            // let i = 0;
+            let new_supervised_items_by_names: { [name: string]: ISupervisedItem; } = {};
+            for (const name in this.supervised_items_by_names) {
+                // i += 1;
+
+                let supervised_item = this.supervised_items_by_names[name];
+                if (this.is_item_accepted(supervised_item/*, (i % 1000 == 0) */) && ((!supervised_item.category_id) || enabled_categories_ids.includes(supervised_item.category_id))) {
+                    new_supervised_items_by_names[name] = supervised_item;
+                }
+            }
+
+            // api_type_ids
+            let new_api_type_ids: string[] = [].concat(...Object.values(new_api_type_ids_by_category_ids));
+
+
+            this.api_type_ids_by_category_ids = new_api_type_ids_by_category_ids;
+            this.supervised_items_by_names = new_supervised_items_by_names;
+            this.api_type_ids = new_api_type_ids;
         }
-
-        // api_type_ids
-        let new_api_type_ids: string[] = [].concat(...Object.values(new_api_type_ids_by_category_ids));
-
-
-        this.api_type_ids_by_category_ids = new_api_type_ids_by_category_ids;
-        this.supervised_items_by_names = new_supervised_items_by_names;
-        this.api_type_ids = new_api_type_ids;
     }
 
     /**

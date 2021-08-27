@@ -175,6 +175,7 @@ export default class ImportTypeCSVHandler {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
+                return;
             }
 
             let raw_row_index: number = 0;
