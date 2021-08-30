@@ -7,6 +7,7 @@ import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
+import AccessPolicyController from "../../../../shared/modules/AccessPolicy/AccessPolicyController";
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
@@ -66,10 +67,6 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         }*/
     }
 
-    get nfcconnect_available() {
-        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
-    }
-
     private async nfcconnect() {
 
         if (await NFCHandler.getInstance().make_sure_nfc_is_initialized()) {
@@ -79,4 +76,27 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         }
     }
 
+    private signin_action() {
+        if (AccessPolicyController.getInstance().hook_user_signin) {
+            return AccessPolicyController.getInstance().hook_user_signin();
+        }
+
+        this.$router.push({
+            name: 'signin'
+        });
+    }
+
+    private recover_action() {
+        if (AccessPolicyController.getInstance().hook_user_recover) {
+            return AccessPolicyController.getInstance().hook_user_recover();
+        }
+
+        this.$router.push({
+            name: 'recover'
+        });
+    }
+
+    get nfcconnect_available() {
+        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
+    }
 }
