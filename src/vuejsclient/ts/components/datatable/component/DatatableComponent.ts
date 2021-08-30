@@ -616,6 +616,22 @@ export default class DatatableComponent extends VueComponentBase {
             let field_value_id = data[datatable_field.datatable_field_uid + '___id___'];
 
             switch (datatable_field.type) {
+                case DatatableField.SIMPLE_FIELD_TYPE:
+                    let simpleField = (datatable_field as SimpleDatatableField<any, any>);
+                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+
+                        for (let j in simpleField.moduleTableField.enum_values) {
+                            let enum_value = simpleField.moduleTableField.enum_values[j];
+
+                            res.push(new CustomFilterItem(
+                                this.t(enum_value),
+                                this.t(enum_value),
+                                datatable_field.datatable_field_uid,
+                                parseInt(j),
+                            ));
+                        }
+                        return res;
+                    }
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     if (!field_values[field_value_id]) {
                         field_values[field_value_id] = field_value;
