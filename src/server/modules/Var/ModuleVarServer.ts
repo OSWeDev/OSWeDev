@@ -401,7 +401,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
             await VarsTabsSubsController.getInstance().notify_vardatas([vo]);
-            VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
+            await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
             await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
@@ -417,7 +417,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
             await VarsTabsSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
-            VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+            await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
             await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
@@ -729,7 +729,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve)) {
                 return;
             }

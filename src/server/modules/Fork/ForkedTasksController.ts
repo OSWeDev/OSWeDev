@@ -50,28 +50,35 @@ export default class ForkedTasksController {
      */
     public async broadexec(task_uid: string, ...task_params): Promise<boolean> {
         if (!ForkServerController.getInstance().is_main_process) {
-            ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+            // ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+
+            await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+            // Si on est pas sur le thread parent, on doit d'abord le lancer en local, puis envoyer aux autres threads
+            await ForkedTasksController.getInstance().process_registered_tasks[task_uid](...task_params);
+
             return true;
         } else {
+
+            // Si on est sur le thread parent, le broadcast s'occupe de lancer la tache en local aussi
             return await ForkMessageController.getInstance().broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
         }
     }
 
     /**
-     * Objectif : Exécuter la fonction sur le thread principal et récupérer la valeur de retour. 
+     * Objectif : Exécuter la fonction sur le thread principal et récupérer la valeur de retour.
      *  On envoie la demande au thread maitre si besoin, sinon on exécute directement
      * @param task_uid
      * @param task_params
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
-    public exec_self_on_main_process_and_return_value(task_uid: string, resolver, ...task_params): boolean {
+    public async exec_self_on_main_process_and_return_value(task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!ForkServerController.getInstance().is_main_process) {
 
             let result_task_uid = this.get_result_task_uid();
             this.registered_task_result_resolvers[result_task_uid] = resolver;
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
+            await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
             return false;
         }
         return true;
@@ -82,9 +89,9 @@ export default class ForkedTasksController {
      * @param task_uid
      * @param task_params
      */
-    public exec_self_on_main_process(task_uid: string, ...task_params): boolean {
+    public async exec_self_on_main_process(task_uid: string, ...task_params): Promise<boolean> {
         if (!ForkServerController.getInstance().is_main_process) {
-            ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
+            await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
             return false;
         }
         return true;

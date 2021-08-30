@@ -106,6 +106,6 @@ export default abstract class ForkedProcessWrapperBase {
         });
 
         // On prévient le process parent qu'on est ready
-        ForkMessageController.getInstance().send(new AliveForkMessage());
+        await ForkMessageController.getInstance().send(new AliveForkMessage());
     }
 }

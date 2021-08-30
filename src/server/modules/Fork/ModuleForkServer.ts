@@ -76,7 +76,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            ForkMessageController.getInstance().send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+            await ForkMessageController.getInstance().send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
         }
 
         return true;
@@ -112,7 +112,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_ping_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        ForkMessageController.getInstance().send(new PingForkACKMessage(msg.message_content));
+        await ForkMessageController.getInstance().send(new PingForkACKMessage(msg.message_content));
         return true;
     }
 

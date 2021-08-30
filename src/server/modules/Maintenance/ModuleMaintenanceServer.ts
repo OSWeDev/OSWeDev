@@ -124,7 +124,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async end_maintenance(num: number): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_maintenance, num)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_maintenance, num)) {
             return;
         }
 
@@ -150,7 +150,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async end_planned_maintenance(): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_planned_maintenance)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_end_planned_maintenance)) {
             return;
         }
 
@@ -174,7 +174,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async start_maintenance(validation_code: string): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance)) {
             return;
         }
 
@@ -227,7 +227,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
             return false;
         }
 

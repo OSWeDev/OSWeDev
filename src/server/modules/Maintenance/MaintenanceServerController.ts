@@ -45,9 +45,9 @@ export default class MaintenanceServerController {
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
     }
 
-    public set_planned_maintenance_vo(maintenance: MaintenanceVO): void {
+    public async set_planned_maintenance_vo(maintenance: MaintenanceVO): Promise<void> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, maintenance)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, maintenance)) {
             return;
         }
 

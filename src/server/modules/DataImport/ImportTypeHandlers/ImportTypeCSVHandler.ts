@@ -43,7 +43,13 @@ export default class ImportTypeCSVHandler {
     public async importFile(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<IImportedData[]> {
 
         return new Promise(async (resolve, reject) => {
-            let inputStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, muted);
+            let inputStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
+                if (!muted) {
+                    await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
+                }
+                resolve(null);
+                return;
+            }, muted);
 
             if (!inputStream) {
                 if (!muted) {
@@ -168,7 +174,13 @@ export default class ImportTypeCSVHandler {
     public async importFileBatchMode(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
-            let inputStream: ReadStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, muted);
+            let inputStream: ReadStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
+                if (!muted) {
+                    await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
+                }
+                resolve(null);
+                return;
+            }, muted);
 
             if (!inputStream) {
                 if (!muted) {
@@ -318,37 +330,47 @@ export default class ImportTypeCSVHandler {
         });
     }
 
-    public async loadFile(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<ReadStream> {
-        let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+    public async loadFile(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, error_handler: (err) => void, muted: boolean = true): Promise<ReadStream> {
 
-        if ((!fileVO) || (!fileVO.path)) {
-            if (!muted) {
-                await ImportLogger.getInstance().log(importHistoric, dataImportFormat, "Aucun fichier à importer", DataImportLogVO.LOG_LEVEL_FATAL);
+        return new Promise(async (resolve, reject) => {
+
+            let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+
+            if ((!fileVO) || (!fileVO.path)) {
+                if (!muted) {
+                    await ImportLogger.getInstance().log(importHistoric, dataImportFormat, "Aucun fichier à importer", DataImportLogVO.LOG_LEVEL_FATAL);
+                }
+                resolve(null);
             }
-            return null;
-        }
 
-        let inputStream = null;
+            let inputStream = null;
 
-        try {
-            inputStream = createReadStream(fileVO.path)
-                .pipe(new AutoDetectDecoderStream({ defaultEncoding: '1255' })); // If failed to guess encoding, default to 1255
-            // if ((dataImportFormat.encoding === null) || (typeof dataImportFormat.encoding == 'undefined') || (dataImportFormat.encoding == DataImportFormatVO.TYPE_WINDOWS1252)) {
-            //     inputStream = createReadStream(fileVO.path)
-            //         .pipe(new AutoDetectDecoderStream({ defaultEncoding: '1255' })); // If failed to guess encoding, default to 1255
-            // } else {
-            //     // On tente d'ouvrir en UTF-8
-            // ???inputStream = createReadStream(fileVO.path, { encoding: 'utf8' });
-            // }
-        } catch (error) {
-            if (!muted) {
-                ConsoleHandler.getInstance().error(error);
-                await ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
+            try {
+                inputStream = createReadStream(fileVO.path)
+                    .on('error', async function (err) {
+                        error_handler(err);
+                    })
+                    .pipe(new AutoDetectDecoderStream({ defaultEncoding: '1255' })) // If failed to guess encoding, default to 1255
+                    .on('error', async function (err) {
+                        error_handler(err);
+                    });
+                // if ((dataImportFormat.encoding === null) || (typeof dataImportFormat.encoding == 'undefined') || (dataImportFormat.encoding == DataImportFormatVO.TYPE_WINDOWS1252)) {
+                //     inputStream = createReadStream(fileVO.path)
+                //         .pipe(new AutoDetectDecoderStream({ defaultEncoding: '1255' })); // If failed to guess encoding, default to 1255
+                // } else {
+                //     // On tente d'ouvrir en UTF-8
+                // ???inputStream = createReadStream(fileVO.path, { encoding: 'utf8' });
+                // }
+            } catch (error) {
+                if (!muted) {
+                    ConsoleHandler.getInstance().error(error);
+                    await ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
+                }
+                resolve(null);
             }
-            return null;
-        }
 
-        return inputStream;
+            resolve(inputStream);
+        });
     }
 
     /**

@@ -212,7 +212,7 @@ export default class ForkServerController {
                     continue;
                 }
 
-                ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
+                await ForkMessageController.getInstance().send(new PingForkMessage(forked.uid), forked.child_process, forked);
             }
         }
     }

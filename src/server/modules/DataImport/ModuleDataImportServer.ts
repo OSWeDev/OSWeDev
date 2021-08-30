@@ -492,6 +492,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     datas = await ImportTypeXLSXHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
             }
 
+            if (!datas) {
+                continue;
+            }
+
             let pre_validation_formattedDatasStats: FormattedDatasStats = format.batch_import ? await this.countValidatedDataAndColumnsBatchMode(raw_api_type_id, moduleTable, format.id) : this.countValidatedDataAndColumns(datas, moduleTable, format.id);
             let prevalidation_datas = datas;
             datas = format.batch_import ? [] : await postTraitementModule.validate_formatted_data(datas, importHistoric, format);

@@ -350,7 +350,7 @@ export default class VarsComputeController {
                 await controller.computeValue(node);
 
                 await VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
-                VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
+                await VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
                 node.has_compute_node_perf = true;
 
                 VarsPerfsController.addPerfs(performance.now(), [
@@ -506,7 +506,7 @@ export default class VarsComputeController {
 
                     if (!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
 
-                        VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
+                        await VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
                         deps_promises.push(this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache));
                         // await this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache);
                     }

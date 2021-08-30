@@ -57,42 +57,47 @@ export default class ForkMessageController {
     public async broadcast(msg: IForkMessage, ignore_uid: number = null): Promise<boolean> {
 
         if (!ForkServerController.getInstance().is_main_process) {
-            this.send(new BroadcastWrapperForkMessage(msg));
+            await this.send(new BroadcastWrapperForkMessage(msg));
             return true;
         } else {
 
             for (let i in ForkServerController.getInstance().process_forks) {
                 let forked = ForkServerController.getInstance().process_forks[i];
 
-                if ((!!ignore_uid) && (ignore_uid == forked.uid)) {
+                if ((ignore_uid != null) && (ignore_uid == forked.uid)) {
                     continue;
                 }
-                this.send(msg, forked.child_process, forked);
+                await this.send(msg, forked.child_process, forked);
             }
             await this.message_handler(msg);
         }
     }
 
-    public send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): boolean {
+    public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
-        msg = APIControllerWrapper.getInstance().try_translate_vo_to_api(msg);
-        let res: boolean = false;
-        let sendHandle = (!child_process) ? process : child_process;
-        let self = this;
+        return new Promise((resolve, reject) => {
 
-        res = sendHandle.send(msg, (error: Error) => {
-            self.handle_send_error({
-                message: msg,
-                sendHandle: sendHandle,
-                forked_target: forked_target
-            }, error);
+            msg = APIControllerWrapper.getInstance().try_translate_vo_to_api(msg);
+            let res: boolean = false;
+            let sendHandle = (!child_process) ? process : child_process;
+            let self = this;
+
+            res = sendHandle.send(msg, (error: Error) => {
+                if (!!error) {
+                    self.handle_send_error({
+                        message: msg,
+                        sendHandle: sendHandle,
+                        forked_target: forked_target
+                    }, error);
+                }
+
+                resolve(!error);
+            });
+
+            if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
+                this.throttled_retry();
+            }
         });
-
-        if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-            this.throttled_retry();
-        }
-
-        return res;
     }
 
     public retry() {
@@ -142,6 +147,8 @@ export default class ForkMessageController {
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
                 }
             }
+        } else {
+            ConsoleHandler.getInstance().log('ok');
         }
     }
 }

@@ -84,7 +84,7 @@ export default class VarsTabsSubsController {
      */
     public async notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, is_computing: boolean = false): Promise<boolean> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, var_datas, is_computing)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, var_datas, is_computing)) {
             return false;
         }
 
@@ -139,7 +139,7 @@ export default class VarsTabsSubsController {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 VarsTabsSubsController.TASK_NAME_filter_by_subs, resolve, var_datas)) {
                 return;
             }

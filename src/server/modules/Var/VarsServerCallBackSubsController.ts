@@ -49,7 +49,7 @@ export default class VarsServerCallBackSubsController {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve, params)) {
                 return;
             }
@@ -84,7 +84,7 @@ export default class VarsServerCallBackSubsController {
             await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
 
             if (notifyable_vars && notifyable_vars.length) {
-                this.notify_vardatas(notifyable_vars);
+                await this.notify_vardatas(notifyable_vars);
             }
         });
     }
@@ -101,7 +101,7 @@ export default class VarsServerCallBackSubsController {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 VarsServerCallBackSubsController.TASK_NAME_get_var_data, resolve, param)) {
                 return;
             }
@@ -114,7 +114,7 @@ export default class VarsServerCallBackSubsController {
             await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation);
 
             if (notifyable_vars && notifyable_vars.length) {
-                this.notify_vardatas(notifyable_vars);
+                await this.notify_vardatas(notifyable_vars);
             }
         });
     }
@@ -126,9 +126,9 @@ export default class VarsServerCallBackSubsController {
      *  A la différence d'un abonnement permanent, on supprime le callback suite à l'appel
      * @param var_datas Tableau ou map (sur index) des vars datas
      */
-    public notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }): boolean {
+    public async notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }): Promise<boolean> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
             return;
         }
 

@@ -43,7 +43,7 @@ export default class MaintenanceBGThread implements IBGThread {
             //  et on informe si c'est pas fait les utilisateurs
             let maintenance: MaintenanceVO = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
 
-            MaintenanceServerController.getInstance().set_planned_maintenance_vo(maintenance);
+            await MaintenanceServerController.getInstance().set_planned_maintenance_vo(maintenance);
 
             if (!maintenance) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

@@ -331,7 +331,7 @@ export default class PushDataServerController {
     public async notifyVarData(user_id: number, client_tab_id: string, vo: VarDataValueResVO) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarData, user_id, client_tab_id, vo)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarData, user_id, client_tab_id, vo)) {
             return;
         }
 
@@ -350,7 +350,7 @@ export default class PushDataServerController {
     public async notifyRedirectHomeAndDisconnect() {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect)) {
             return;
         }
 
@@ -384,7 +384,7 @@ export default class PushDataServerController {
     public async notifyUserLoggedAndRedirectHome() {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome)) {
             return;
         }
 
@@ -415,7 +415,7 @@ export default class PushDataServerController {
     public async notifyTabReload(UID: number, CLIENT_TAB_ID: string) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyTabReload)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyTabReload)) {
             return;
         }
 
@@ -444,7 +444,7 @@ export default class PushDataServerController {
         // Permet d'assurer un lancement uniquement sur le main process
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
                 return;
             }
@@ -498,7 +498,7 @@ export default class PushDataServerController {
      */
     public async notifyVarsDatas(user_id: number, client_tab_id: string, vos: VarDataValueResVO[]) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, user_id, client_tab_id, vos)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, user_id, client_tab_id, vos)) {
             return;
         }
 
@@ -513,7 +513,7 @@ export default class PushDataServerController {
 
     public async notifyVarsDatasBySocket(socket_id: string, vos: VarDataValueResVO[]) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, socket_id, vos)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, socket_id, vos)) {
             return;
         }
 
@@ -528,7 +528,7 @@ export default class PushDataServerController {
 
     public async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVoById, user_id, client_tab_id, api_type_id, vo_id)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVoById, user_id, client_tab_id, api_type_id, vo_id)) {
             return;
         }
 
@@ -552,7 +552,7 @@ export default class PushDataServerController {
 
     public async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAORemoveId, user_id, client_tab_id, api_type_id, vo_id)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAORemoveId, user_id, client_tab_id, api_type_id, vo_id)) {
             return;
         }
 
@@ -576,7 +576,7 @@ export default class PushDataServerController {
 
     public async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVos, user_id, client_tab_id, api_type_id)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAOGetVos, user_id, client_tab_id, api_type_id)) {
             return;
         }
 
@@ -599,7 +599,7 @@ export default class PushDataServerController {
 
     public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastLoggedSimple, msg_type, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastLoggedSimple, msg_type, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -624,7 +624,7 @@ export default class PushDataServerController {
 
     public async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastAllSimple, msg_type, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastAllSimple, msg_type, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -642,7 +642,7 @@ export default class PushDataServerController {
 
     public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleSimple, role_name, msg_type, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleSimple, role_name, msg_type, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -696,7 +696,7 @@ export default class PushDataServerController {
         auto_read_if_connected: boolean = false
     ) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleRedirect, role_name, msg_type, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleRedirect, role_name, msg_type, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -742,7 +742,7 @@ export default class PushDataServerController {
 
     public async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
             return;
         }
 
@@ -759,7 +759,7 @@ export default class PushDataServerController {
 
     public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -768,7 +768,7 @@ export default class PushDataServerController {
 
     public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -777,7 +777,7 @@ export default class PushDataServerController {
 
     public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -786,7 +786,7 @@ export default class PushDataServerController {
 
     public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
@@ -795,7 +795,7 @@ export default class PushDataServerController {
 
     public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string): Promise<string> {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyPrompt, user_id, client_tab_id, code_text)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyPrompt, user_id, client_tab_id, code_text)) {
             return null;
         }
 
@@ -838,7 +838,7 @@ export default class PushDataServerController {
 
     public async notifyRedirectINFO(user_id: number, client_tab_id: string, code_text: string, redirect_route: string = "", notif_route_params_name: string[] = null, notif_route_params_values: string[] = null, auto_read_if_connected: boolean = false) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectINFO, user_id, client_tab_id, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectINFO, user_id, client_tab_id, code_text, redirect_route, notif_route_params_name, notif_route_params_values, auto_read_if_connected)) {
             return;
         }
 
