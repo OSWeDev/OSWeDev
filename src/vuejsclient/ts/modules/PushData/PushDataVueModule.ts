@@ -448,7 +448,7 @@ export default class PushDataVueModule extends VueModuleBase {
                             case NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME:
 
                                 let content_user_logged = LocaleManager.getInstance().i18n.t('PushDataServerController.user_logged.___LABEL___');
-                                VueAppBase.instance_.vueInstance.snotify.warning(content_user_logged, {
+                                VueAppBase.instance_.vueInstance.snotify.success(content_user_logged, {
                                     timeout: 3000
                                 });
                                 setTimeout(() => {
