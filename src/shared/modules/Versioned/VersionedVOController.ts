@@ -118,7 +118,7 @@ export default class VersionedVOController implements IVOController {
 
                     switch (vofield.field_type) {
                         case ModuleTableField.FIELD_TYPE_refrange_array:
-                            newField.field_type = ModuleTableField.FIELD_TYPE_int_array;
+                            newField.field_type = ModuleTableField.FIELD_TYPE_numrange_array;
                             break;
                         default:
                             newField.field_type = ModuleTableField.FIELD_TYPE_int;

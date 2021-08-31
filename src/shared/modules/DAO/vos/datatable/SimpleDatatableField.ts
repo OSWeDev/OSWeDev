@@ -370,17 +370,17 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
-                            return value ? moment(value).startOf('month').utc(true).unix() : null;
+                            return value ? Dates.startOf(value, TimeSegment.TYPE_MONTH) : null;
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true).unix(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_MONTH), moduleTableField, false) : null;
                         case TimeSegment.TYPE_WEEK:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('isoWeek').utc(true).unix(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_WEEK), moduleTableField, false) : null;
                         case TimeSegment.TYPE_YEAR:
-                            return value ? moment().year(parseInt(value)).startOf('year').utc(true).unix() : null;
+                            return value ? Dates.year(Dates.startOf(value, TimeSegment.TYPE_YEAR)) : null;
                         case TimeSegment.TYPE_DAY:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true).unix(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_DAY), moduleTableField, false) : null;
                         default:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).utc(true).unix(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(value, moduleTableField, false) : null;
                     }
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -391,17 +391,17 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                         switch (moduleTableField.segmentation_type) {
                             case TimeSegment.TYPE_MONTH:
-                                res_tstz_array.push(v ? moment(v).startOf('month').utc(true).unix() : null);
+                                res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_MONTH) : null);
                             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('day').utc(true).unix(), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), moduleTableField, false) : null);
                             case TimeSegment.TYPE_WEEK:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('isoWeek').utc(true).unix(), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_WEEK), moduleTableField, false) : null);
                             case TimeSegment.TYPE_YEAR:
-                                res_tstz_array.push(moment().year(parseInt(v)).startOf('year').utc(true).unix());
+                                res_tstz_array.push(Dates.year(Dates.startOf(v, TimeSegment.TYPE_YEAR)));
                             case TimeSegment.TYPE_DAY:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).startOf('day').utc(true).unix(), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), moduleTableField, false) : null);
                             default:
-                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(moment(v).utc(true).unix(), moduleTableField, false) : null);
+                                res_tstz_array.push(v ? this.getMomentDateFieldInclusif(v, moduleTableField, false) : null);
                         }
                     }
 

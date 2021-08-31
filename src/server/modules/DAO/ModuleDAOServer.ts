@@ -1263,7 +1263,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (vo.id) {
 
                     if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
-                        preUpdates[i] = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id);
+
+                        let segment = null;
+                        if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
+                            segment = moduleTable.get_segmented_field_value_from_vo(vo);
+                        }
+                        preUpdates[i] = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, [RangeHandler.getInstance().create_single_elt_NumRange(segment, NumSegment.TYPE_INT)]);
                     }
                 }
 
@@ -1407,7 +1412,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (vo.id) {
 
                 if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
-                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id);
+
+                    let segment = null;
+                    if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
+                        segment = moduleTable.get_segmented_field_value_from_vo(vo);
+                    }
+                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, [RangeHandler.getInstance().create_single_elt_NumRange(segment, NumSegment.TYPE_INT)]);
 
                     if (!preUpdate) {
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
