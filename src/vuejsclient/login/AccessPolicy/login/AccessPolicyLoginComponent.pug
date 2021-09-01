@@ -3,7 +3,7 @@
         .login-box-body
             .login-logo(v-if='logo_url')
             h1.text-center(v-if='!logo_url') {{ label('login.title') }}
-            h2.text-center {{ label('login.sub_title') }}
+            h2.text-center.sub_title {{ label('login.sub_title') }}
             p.login-box-msg {{ label('login.msg') }}
             p.server-answer(v-if='message') {{ message }}
 
@@ -16,8 +16,11 @@
                     i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
                 .center
                     button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.signIn') }}
-            router-link(v-if="signin_allowed" :to="{ name: 'signin' }" ) {{ label('signin.title') }}
-            router-link(:to="{ name: 'recover' }") {{ label('login.recoverlink') }}
+            .mt-2.actions
+                template(v-if="signin_allowed")
+                    a(@click="signin_action" href="#" target="_blank") {{ label('signin.title') }}
+
+                a(@click="recover_action" href="#" target="_blank") {{ label('login.recoverlink') }}
 
     Nfcconnectlogincomponent()
     Sessionsharecomponent()
