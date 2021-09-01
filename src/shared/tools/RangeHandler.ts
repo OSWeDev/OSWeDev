@@ -2064,7 +2064,7 @@ export default class RangeHandler {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMax<T>(range: IRange<T>, segment_type: number = null, offset: number = 0): T {
+    public getSegmentedMax<T>(range: IRange<T>, segment_type: number = null, offset: number = 0, return_max_value: boolean = true): T {
 
         if (!range) {
             return null;
@@ -2155,6 +2155,11 @@ export default class RangeHandler {
 
                 if (!!offset) {
                     TimeSegmentHandler.getInstance().incTimeSegment(range_max_ts, segment_type, offset);
+                }
+
+                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                if (!return_max_value && this.is_max_range(range)) {
+                    return null;
                 }
 
                 return range_max_ts.index as any as T;
