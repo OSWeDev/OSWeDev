@@ -5,6 +5,7 @@ import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -42,6 +43,15 @@ export default class TableWidgetComponent extends VueComponentBase {
     private data_rows: any[] = [];
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+
+    get vo_field_refs(): VOFieldRefVO[] {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.vo_field_refs;
+    }
 
     get fields(): { [vo_ref_field_id: number]: ModuleTableField<any> } {
         let res: { [vo_ref_field_id: number]: ModuleTableField<any> } = {};

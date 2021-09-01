@@ -353,7 +353,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (this.is_show_import_aggregated) {
             if ((this.aggregated_var_param as any).ts_ranges) {
                 formatted_date = Dates.format(RangeHandler.getInstance().getSegmentedMax_from_ranges((this.aggregated_var_param as any).ts_ranges),
-                    ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)
+                    ModuleFormatDatesNombres.FORMAT_YYYYMMDD
                 );
             } else {
                 formatted_date = Dates.format(this.aggregated_var_param.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);

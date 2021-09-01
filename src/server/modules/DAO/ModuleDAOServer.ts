@@ -702,6 +702,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return where_clause;
     }
 
+    public async delete_all_vos(api_type_id: string) {
+
+        let datatable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        if (datatable.is_segmented) {
+
+            let ranges = this.get_all_ranges_from_segmented_table(datatable);
+
+            if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
+                return null;
+            }
+
+            let self = this;
+            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
+
+                if (!self.has_segmented_known_database(datatable, segment_value)) {
+                    return;
+                }
+                await ModuleServiceBase.getInstance().db.none("DELETE FROM " + datatable.get_segmented_full_name(segment_value) + ";");
+
+            }, datatable.table_segmented_field_segment_type);
+        } else {
+            await ModuleServiceBase.getInstance().db.none("DELETE FROM " + datatable.full_name + ";");
+        }
+    }
+
     public async truncate_api(api_type_id: string) {
         await this.truncate(api_type_id);
     }
@@ -743,11 +768,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (!self.has_segmented_known_database(datatable, segment_value)) {
                         return;
                     }
-                    await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.get_segmented_full_name(segment_value) + " CASCADE;");
+                    await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.get_segmented_full_name(segment_value) + ";");
 
                 }, datatable.table_segmented_field_segment_type);
             } else {
-                await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + " CASCADE;");
+                await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

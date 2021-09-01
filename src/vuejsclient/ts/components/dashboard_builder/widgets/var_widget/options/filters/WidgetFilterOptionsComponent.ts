@@ -51,7 +51,7 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
         let ftype = this.filter_by_names[this.filter_type];
         if (ftype != this.actual_filter_type) {
             this.filter_type = this.filter_names[this.actual_filter_type];
-            this.actual_additional_options = null;
+            this.$emit('update_additional_options', null);
         }
     }
 

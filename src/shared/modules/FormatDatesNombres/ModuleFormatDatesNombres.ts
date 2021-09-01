@@ -76,7 +76,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss.SSS");
+        return date.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:mm:ss.SSS");
     }
 
     public formatMoment_to_YYYYMMDD_HHmmss(date: moment.Moment): string {
@@ -84,7 +84,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss");
+        return date.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:mm:ss");
     }
 
     public formatMoment_to_YYYYMMDD_HHmm(date: moment.Moment): string {
@@ -92,7 +92,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm");
+        return date.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:mm");
     }
 
     public formatMoment_to_YYYYMMDD_HH(date: moment.Moment): string {
@@ -100,13 +100,13 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:");
+        return date.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:");
     }
 
     public formatYYYYMMDD_HHmmss_to_Moment(date: string): moment.Moment {
 
         try {
-            let res: moment.Moment = moment(date, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss").utc(true);
+            let res: moment.Moment = moment(date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + " HH:mm:ss").utc(true);
 
             if (res.isValid()) {
                 return res;
@@ -227,7 +227,7 @@ export default class ModuleFormatDatesNombres extends Module {
         }
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
-        return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date));
+        return momentToFormat.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
     }
 
     public getMomentFromFormatted_FullyearMonthDay(dateToFormat: string): moment.Moment {
@@ -235,7 +235,7 @@ export default class ModuleFormatDatesNombres extends Module {
             return null;
         }
 
-        return moment(dateToFormat, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)).utc(true);
+        return moment(dateToFormat, ModuleFormatDatesNombres.FORMAT_YYYYMMDD).utc(true);
     }
 
     public formatNumber_sign(numberToFormat: number): string {

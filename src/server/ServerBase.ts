@@ -206,17 +206,17 @@ export default abstract class ServerBase {
         process.stdin.resume(); //so the program will not close instantly
 
         //do something when app is closing
-        process.on('exit', this.exitHandler.bind(null, { cleanup: true }));
+        process.on('exit', this.exitHandler.bind(null, { cleanup: true, from: 'exit' }));
 
         //catches ctrl+c event
-        process.on('SIGINT', this.exitHandler.bind(null, { exit: true }));
+        process.on('SIGINT', this.exitHandler.bind(null, { exit: true, from: 'SIGINT' }));
 
         // catches "kill pid" (for example: nodemon restart)
-        process.on('SIGUSR1', this.exitHandler.bind(null, { exit: true }));
-        process.on('SIGUSR2', this.exitHandler.bind(null, { exit: true }));
+        process.on('SIGUSR1', this.exitHandler.bind(null, { exit: true, from: 'SIGUSR1' }));
+        process.on('SIGUSR2', this.exitHandler.bind(null, { exit: true, from: 'SIGUSR2' }));
 
         //catches uncaught exceptions
-        process.on('uncaughtException', this.exitHandler.bind(null, { exit: true }));
+        process.on('uncaughtException', (err) => this.exitHandler.bind(null, { exit: true, from: 'uncaughtException:' + err }));
 
         this.app.use(cookieParser());
 
@@ -1015,8 +1015,8 @@ export default abstract class ServerBase {
     //     ]);
     // }
 
-    protected exitHandler(options, exitCode) {
-        ConsoleHandler.getInstance().log('Server is starting cleanup');
+    protected exitHandler(options, exitCode, from) {
+        ConsoleHandler.getInstance().log('Server is starting cleanup: ' + from);
 
         ConsoleHandler.getInstance().log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
         VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();

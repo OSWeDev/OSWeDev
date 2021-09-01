@@ -11,16 +11,16 @@ import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import TableWidgetOptions from './TableWidgetOptions';
-import './VarWidgetOptionsComponent.scss';
+import './TableWidgetOptionsComponent.scss';
 
 @Component({
-    template: require('./VarWidgetOptionsComponent.pug'),
+    template: require('./TableWidgetOptionsComponent.pug'),
     components: {
         Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent,
         Inlinetranslatabletext: InlineTranslatableText
     }
 })
-export default class VarWidgetOptionsComponent extends VueComponentBase {
+export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;

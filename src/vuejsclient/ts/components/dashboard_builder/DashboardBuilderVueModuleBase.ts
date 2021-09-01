@@ -4,6 +4,7 @@ import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/D
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
@@ -56,6 +57,24 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeDefaultWidgets() {
         await this.initializeWidget_FieldValueFilter();
         await this.initializeWidget_Var();
+        await this.initializeWidget_Table();
+    }
+
+    private async initializeWidget_Table() {
+        let Table = new DashboardWidgetVO();
+
+        Table.default_height = 18;
+        Table.default_width = 45;
+        Table.icone_class = 'fa-table';
+        Table.widget_component = 'Tablewidgetcomponent';
+        Table.options_component = 'Tablewidgetoptionscomponent';
+        Table.weight = 0;
+        Table.default_background = '#f5f5f5';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null));
+
+        Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
+        Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
     }
 
     private async initializeWidget_FieldValueFilter() {
