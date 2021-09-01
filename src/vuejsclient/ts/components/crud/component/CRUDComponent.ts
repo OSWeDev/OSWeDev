@@ -207,10 +207,6 @@ export default class CRUDComponent extends VueComponentBase {
             if (this.modal_show_delete) {
                 modal_type = 'delete';
             }
-
-            if (this.crud && this.crud.callback_handle_modal_show_hide) {
-                await this.crud.callback_handle_modal_show_hide(vo, modal_type);
-            }
         } else {
             vo = this.getSelectedVOs[0];
             $('#createData' + embed_append).on("hidden.bs.modal", () => {
@@ -222,7 +218,10 @@ export default class CRUDComponent extends VueComponentBase {
             $('#deleteData' + embed_append).on("hidden.bs.modal", () => {
                 this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete');
             });
+        }
 
+        if (this.crud && this.crud.callback_handle_modal_show_hide) {
+            await this.crud.callback_handle_modal_show_hide(vo, modal_type);
         }
 
         if (this.modal_show_create) {
