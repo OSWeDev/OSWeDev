@@ -1,0 +1,16 @@
+.table_widget_options_component
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('table_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")
+
+    .field_refs
+        .input_label {{ label('table_widget_options_component.vo_field_refs') }}
+
+        template(v-for='vo_field_ref in vo_field_refs')
+            .field_ref
+                .input_wrapper
+                    Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
