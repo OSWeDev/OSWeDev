@@ -111,7 +111,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         let res: VOFieldRefVO[] = [];
         for (let i in options.vo_field_refs) {
-            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_refs));
+            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_refs[i]));
         }
 
         return res;

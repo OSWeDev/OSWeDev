@@ -1,14 +1,6 @@
-.var_widget_component {
+.table_widget_component {
 
-    .var_data {
-        text-align: center;
-        font-size: 3em;
-        overflow: hidden;
-    }
-
-    .var_label {
-        text-align: center;
-        color: #888;
-        font-size: smaller;
+    table {
+        width: -webkit-fill-available;
     }
 }

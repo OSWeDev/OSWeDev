@@ -2,25 +2,30 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TableWidgetOptions from './options/TableWidgetOptions';
+import TablePaginationComponent from './pagination/TablePaginationComponent';
 import './TableWidgetComponent.scss';
 
 @Component({
     template: require('./TableWidgetComponent.pug'),
     components: {
-        Inlinetranslatabletext: InlineTranslatableText
+        Inlinetranslatabletext: InlineTranslatableText,
+        Datatablecomponentfield: DatatableComponentField,
+        Tablepaginationcomponent: TablePaginationComponent
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {
@@ -44,17 +49,34 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
 
-    get vo_field_refs(): VOFieldRefVO[] {
+    private pagination_count: number = 0;
+    private pagination_offset: number = 0;
+    private pagination_pagesize: number = 100;
 
-        if (!this.widget_options) {
+    private async change_offset(new_offset: number) {
+        if (new_offset != this.pagination_offset) {
+            this.pagination_offset = new_offset;
+            await this.throttled_update_visible_options();
+        }
+    }
+
+    get vo_field_refs(): VOFieldRefVO[] {
+        let options: TableWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.vo_field_refs)) {
             return null;
         }
 
-        return this.widget_options.vo_field_refs;
+        let res: VOFieldRefVO[] = [];
+        for (let i in options.vo_field_refs) {
+            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_refs[i]));
+        }
+
+        return res;
     }
 
-    get fields(): { [vo_ref_field_id: number]: ModuleTableField<any> } {
-        let res: { [vo_ref_field_id: number]: ModuleTableField<any> } = {};
+    get fields(): { [vo_ref_field_id: number]: DatatableField<any, any> } {
+        let res: { [vo_ref_field_id: number]: DatatableField<any, any> } = {};
 
         if (!this.widget_options) {
             return res;
@@ -63,7 +85,12 @@ export default class TableWidgetComponent extends VueComponentBase {
         for (let i in this.widget_options.vo_field_refs) {
             let vo_field_ref = this.widget_options.vo_field_refs[i];
 
-            res[vo_field_ref.id] = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id].get_field_by_id(vo_field_ref.field_id);
+            let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
+            let field = moduleTable.get_field_by_id(vo_field_ref.field_id);
+            let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
+            data_field.setModuleTable(moduleTable);
+
+            res[vo_field_ref.id] = data_field;
         }
 
         return res;
@@ -81,24 +108,53 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        // TODO remplacer puisqu'on doit pouvoir grouper en fonction de tous les fields et récupérer directement toute le table.
-        //  par ailleurs si on veut pouvoir mettre des vars, il faut pouvoir identifier le context de la ligne
-        //  (peut - être en prenant les valeurs de toutes les colonnes qui ne sont pas des vars)
-        if ((!this.widget_options.vo_field_refs) || (this.widget_options.vo_field_refs.length != 1)) {
+        if ((!this.widget_options.vo_field_refs) || (!this.widget_options.vo_field_refs.length)) {
             this.data_rows = [];
             return;
         }
 
-        let field_ref = this.widget_options.vo_field_refs[0];
-        this.data_rows = await ModuleContextFilter.getInstance().get_filter_visible_options(
-            field_ref.api_type_id,
-            field_ref.field_id,
+        if (!this.fields) {
+            this.data_rows = [];
+            return;
+        }
+
+        if (!this.dashboard.api_type_ids) {
+            this.data_rows = [];
+            return;
+        }
+
+        let api_type_ids: string[] = [];
+        let field_ids: string[] = [];
+        let res_field_aliases: string[] = [];
+
+        for (let i in this.fields) {
+            let field = this.fields[i];
+
+            if (this.dashboard.api_type_ids.indexOf(field.moduleTable.vo_type) < 0) {
+                ConsoleHandler.getInstance().warn('get_filtered_datatable_rows: asking for datas from types not included in request:' +
+                    field.datatable_field_uid + ':' + field.moduleTable.vo_type);
+                this.data_rows = [];
+                return;
+            }
+
+            api_type_ids.push(field.moduleTable.vo_type);
+            field_ids.push(field.module_table_field_id);
+            res_field_aliases.push(field.datatable_field_uid);
+        }
+        this.data_rows = await ModuleContextFilter.getInstance().get_filtered_datatable_rows(
+            api_type_ids,
+            field_ids,
             this.get_active_field_filters,
             this.dashboard.api_type_ids,
-            null,
-            100,
-            0
-        );
+            this.pagination_pagesize,
+            this.pagination_offset,
+            res_field_aliases);
+
+        this.pagination_count = await ModuleContextFilter.getInstance().query_rows_count_from_active_filters(
+            api_type_ids,
+            field_ids,
+            this.get_active_field_filters,
+            this.dashboard.api_type_ids);
     }
 
     @Watch('widget_options', { immediate: true })

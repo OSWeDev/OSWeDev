@@ -9,6 +9,7 @@
 
         .vue-grid-item {
             padding: 1em;
+            overflow: auto;
         }
 
         &.selected {

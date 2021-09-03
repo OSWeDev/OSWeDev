@@ -1,5 +1,14 @@
 .table_widget_component
     template(v-if='vo_field_refs')
+
+        .upper_pagination(v-if="pagination_count > 10")
+            Tablepaginationcomponent(
+                :pagination_offset='pagination_offset'
+                :pagination_pagesize='pagination_pagesize'
+                :pagination_count='pagination_count'
+                @change_offset='change_offset'
+            )
+
         table.table-striped.table-hover
             thead 
                 th.table_header(v-for='vo_field_ref in vo_field_refs')
@@ -11,3 +20,10 @@
                             :field="fields[vo_field_ref.id]",
                             :vo="row",
                         )
+
+        .lower_pagination 
+            Tablepaginationcomponent(
+                :pagination_offset='pagination_offset'
+                :pagination_pagesize='pagination_pagesize'
+                :pagination_count='pagination_count'
+            )

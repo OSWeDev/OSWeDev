@@ -11,6 +11,10 @@
         .input_label {{ label('table_widget_options_component.vo_field_refs') }}
 
         template(v-for='vo_field_ref in vo_field_refs')
-            .field_ref
+            .field_ref.existing
                 .input_wrapper
                     Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
+
+        .field_ref.new
+            .input_wrapper
+                Singlevofieldrefholdercomponent(:vo_field_ref="null" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")

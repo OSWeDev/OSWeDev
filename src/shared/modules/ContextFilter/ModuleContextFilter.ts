@@ -1,11 +1,14 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import DatatableField from '../DAO/vos/datatable/DatatableField';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import ContextFilterVO from './vos/ContextFilterVO';
+import GetDatatableRowsCountFromContextFiltersParamVO, { GetDatatableRowsCountFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsCountFromContextFiltersParamVO';
+import GetDatatableRowsFromContextFiltersParamVO, { GetDatatableRowsFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsFromContextFiltersParamVO';
 import GetOptionsFromContextFiltersParamVO, { GetOptionsFromContextFiltersParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
 
 export default class ModuleContextFilter extends Module {
@@ -16,6 +19,8 @@ export default class ModuleContextFilter extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleContextFilter.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_get_filter_visible_options: string = "get_filter_visible_options";
+    public static APINAME_get_filtered_datatable_rows: string = "get_filtered_datatable_rows";
+    public static APINAME_query_rows_count_from_active_filters: string = "query_rows_count_from_active_filters";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
@@ -25,6 +30,22 @@ export default class ModuleContextFilter extends Module {
     }
 
     private static instance: ModuleContextFilter = null;
+
+    public get_filtered_datatable_rows: (
+        api_type_ids: string[],
+        field_ids: string[],
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        limit: number,
+        offset: number,
+        res_field_aliases: string[]) => Promise<DataFilterOption[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_get_filtered_datatable_rows);
+
+    public query_rows_count_from_active_filters: (
+        api_type_ids: string[],
+        field_ids: string[],
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[]
+    ) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_rows_count_from_active_filters);
 
     public get_filter_visible_options: (
         api_type_id: string,
@@ -44,6 +65,36 @@ export default class ModuleContextFilter extends Module {
     public initialize() {
         this.fields = [];
         this.datatables = [];
+
+        this.init_ContextFilterVO();
+    }
+
+    public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetOptionsFromContextFiltersParamVO, DataFilterOption[]>(
+            null,
+            ModuleContextFilter.APINAME_get_filter_visible_options,
+            null,
+            GetOptionsFromContextFiltersParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetDatatableRowsFromContextFiltersParamVO, any[]>(
+            null,
+            ModuleContextFilter.APINAME_get_filtered_datatable_rows,
+            null,
+            GetDatatableRowsFromContextFiltersParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetDatatableRowsCountFromContextFiltersParamVO, number>(
+            null,
+            ModuleContextFilter.APINAME_query_rows_count_from_active_filters,
+            null,
+            GetDatatableRowsCountFromContextFiltersParamVOStatic
+        ));
+
+    }
+
+    private init_ContextFilterVO() {
 
         let left_hook_id = new ModuleTableField('left_hook_id', ModuleTableField.FIELD_TYPE_string, 'left_hook_id', false);
         let right_hook_id = new ModuleTableField('right_hook_id', ModuleTableField.FIELD_TYPE_string, 'right_hook_id', false);
@@ -67,15 +118,5 @@ export default class ModuleContextFilter extends Module {
         left_hook_id.addManyToOneRelation(datatable);
         right_hook_id.addManyToOneRelation(datatable);
         this.datatables.push(datatable);
-    }
-
-    public registerApis() {
-
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetOptionsFromContextFiltersParamVO, DataFilterOption[]>(
-            null,
-            ModuleContextFilter.APINAME_get_filter_visible_options,
-            null,
-            GetOptionsFromContextFiltersParamVOStatic
-        ));
     }
 }

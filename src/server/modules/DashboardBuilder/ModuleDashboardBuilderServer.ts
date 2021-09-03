@@ -257,6 +257,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Widgets'
         }, 'menu.menuelements.admin.dashboard_widget.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Champs'
+        }, 'table_widget_options_component.vo_field_refs.___LABEL___'));
+
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);
