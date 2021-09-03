@@ -11,7 +11,20 @@
 
         table.table-striped.table-hover
             thead 
-                th.table_header(v-for='vo_field_ref in vo_field_refs')
+                th.table_header(
+                    v-for='vo_field_ref in vo_field_refs' 
+                    :class="{ order_asc: order_asc_on_id == vo_field_ref.id, order_desc: order_desc_on_id == vo_field_ref.id }"
+                    @click="sort_by(vo_field_ref)"
+                    )
+
+                    .order_by
+                        template(v-if='(order_asc_on_id != vo_field_ref.id) && (order_desc_on_id != vo_field_ref.id)')
+                            i.fa.fa-sort.fa-fw(aria-hidden="true")
+                        template(v-if='order_asc_on_id == vo_field_ref.id')
+                            i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
+                        template(v-if='order_desc_on_id == vo_field_ref.id')
+                            i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
+
                     Inlinetranslatabletext(:code_text="vo_field_ref.translatable_name_code_text")
             tbody
                 tr.table_row(v-for='row in data_rows')

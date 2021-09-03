@@ -3,6 +3,7 @@ import moment = require('moment');
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -58,6 +59,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         active_api_type_ids: string[],
         limit: number,
         offset: number,
+        sort_by: SortByVO,
         res_field_aliases: string[]
     ): string {
 
@@ -66,6 +68,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             field_ids,
             get_active_field_filters,
             active_api_type_ids,
+            sort_by,
             res_field_aliases
         );
 
@@ -93,6 +96,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             field_ids,
             get_active_field_filters,
             active_api_type_ids,
+            null,
             res_field_aliases
         ) + ') as tocount';
 
@@ -155,6 +159,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         active_api_type_ids: string[],
         limit: number,
         offset: number,
+        sort_by: SortByVO,
         res_field_aliases?: string[]
     ): Promise<any[]> {
 
@@ -173,6 +178,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             active_api_type_ids,
             limit,
             offset,
+            sort_by,
             res_field_aliases
         );
 
@@ -209,6 +215,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             active_api_type_ids,
             limit,
             offset,
+            null,
             [res_field_alias]
         );
 
@@ -259,6 +266,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             active_api_type_ids,
             limit,
             offset,
+            null,
             null
         );
 
@@ -283,6 +291,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         active_api_type_ids: string[],
         limit: number,
         offset: number,
+        sort_by: SortByVO,
         res_field_aliases: string[]): Promise<any[]> {
 
         return await this.query_rows_from_active_filters(
@@ -292,6 +301,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             active_api_type_ids,
             limit,
             offset,
+            sort_by,
             res_field_aliases
         );
     }
@@ -1080,6 +1090,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
+        sort_by: SortByVO,
         res_field_aliases: string[]
     ): string {
 
@@ -1277,6 +1288,11 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         if (where_conditions && where_conditions.length) {
             res += ' WHERE (' + where_conditions.join(') AND (') + ')';
+        }
+
+        if (sort_by) {
+
+            res += ' ORDER BY ' + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
         }
 
         return res;

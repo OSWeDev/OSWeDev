@@ -1,6 +1,7 @@
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
 import ContextFilterVO from "./ContextFilterVO";
+import SortByVO from "./SortByVO";
 
 export default class GetDatatableRowsFromContextFiltersParamVO implements IAPIParamTranslator<GetDatatableRowsFromContextFiltersParamVO> {
 
@@ -11,9 +12,10 @@ export default class GetDatatableRowsFromContextFiltersParamVO implements IAPIPa
         active_api_type_ids: string[],
         limit: number,
         offset: number,
+        sort_by: SortByVO,
         res_field_aliases: string[]): GetDatatableRowsFromContextFiltersParamVO {
 
-        return new GetDatatableRowsFromContextFiltersParamVO(api_type_ids, field_ids, get_active_field_filters, active_api_type_ids, limit, offset, res_field_aliases);
+        return new GetDatatableRowsFromContextFiltersParamVO(api_type_ids, field_ids, get_active_field_filters, active_api_type_ids, limit, offset, sort_by, res_field_aliases);
     }
 
     public static getAPIParams(param: GetDatatableRowsFromContextFiltersParamVO): any[] {
@@ -24,6 +26,7 @@ export default class GetDatatableRowsFromContextFiltersParamVO implements IAPIPa
             param.active_api_type_ids,
             param.limit,
             param.offset,
+            param.sort_by,
             param.res_field_aliases
         ];
     }
@@ -35,6 +38,7 @@ export default class GetDatatableRowsFromContextFiltersParamVO implements IAPIPa
         public active_api_type_ids: string[],
         public limit: number,
         public offset: number,
+        public sort_by: SortByVO,
         public res_field_aliases: string[]) {
     }
 }

@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -52,6 +53,37 @@ export default class TableWidgetComponent extends VueComponentBase {
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
     private pagination_pagesize: number = 100;
+
+    private order_asc_on_id: number = null;
+    private order_desc_on_id: number = null;
+
+    private sort_by(vo_field_ref: VOFieldRefVO) {
+        if (!vo_field_ref) {
+            this.order_asc_on_id = null;
+            this.order_desc_on_id = null;
+            this.update_visible_options();
+            return;
+        }
+
+        if ((this.order_asc_on_id != vo_field_ref.id) && (this.order_desc_on_id != vo_field_ref.id)) {
+            this.order_asc_on_id = vo_field_ref.id;
+            this.order_desc_on_id = null;
+            this.update_visible_options();
+            return;
+        }
+
+        if (this.order_asc_on_id != vo_field_ref.id) {
+            this.order_asc_on_id = vo_field_ref.id;
+            this.order_desc_on_id = null;
+            this.update_visible_options();
+            return;
+        }
+
+        this.order_desc_on_id = vo_field_ref.id;
+        this.order_asc_on_id = null;
+        this.update_visible_options();
+        return;
+    }
 
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
@@ -127,6 +159,21 @@ export default class TableWidgetComponent extends VueComponentBase {
         let field_ids: string[] = [];
         let res_field_aliases: string[] = [];
 
+        let sort_by: SortByVO = null;
+
+        if (this.fields && (
+            (this.order_asc_on_id && this.fields[this.order_asc_on_id]) ||
+            (this.order_desc_on_id && this.fields[this.order_desc_on_id]))) {
+
+            let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
+
+            sort_by = new SortByVO();
+            sort_by.vo_type = field.moduleTable.vo_type;
+            sort_by.field_id = field.module_table_field_id;
+            sort_by.sort_asc = !!this.order_asc_on_id;
+        }
+
+
         for (let i in this.fields) {
             let field = this.fields[i];
 
@@ -148,6 +195,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.dashboard.api_type_ids,
             this.pagination_pagesize,
             this.pagination_offset,
+            sort_by,
             res_field_aliases);
 
         this.pagination_count = await ModuleContextFilter.getInstance().query_rows_count_from_active_filters(

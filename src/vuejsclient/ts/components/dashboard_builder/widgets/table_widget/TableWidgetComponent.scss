@@ -2,5 +2,28 @@
 
     table {
         width: -webkit-fill-available;
+
+        thead {
+            th {
+                border: solid 1px #EEE;
+                padding: .2em;
+                background: white;
+                font-size: 1.2em;
+                font-weight: 700;
+                color: #555;
+                cursor: pointer;
+
+                .order_by {
+                    float: left;
+                }
+            }
+        }
+
+        tr {
+            td {
+                border: solid 1px #EEE;
+                padding: .2em;
+            }
+        }
     }
 }

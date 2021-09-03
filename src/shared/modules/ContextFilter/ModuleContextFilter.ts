@@ -1,7 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import DatatableField from '../DAO/vos/datatable/DatatableField';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -10,6 +9,7 @@ import ContextFilterVO from './vos/ContextFilterVO';
 import GetDatatableRowsCountFromContextFiltersParamVO, { GetDatatableRowsCountFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsCountFromContextFiltersParamVO';
 import GetDatatableRowsFromContextFiltersParamVO, { GetDatatableRowsFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsFromContextFiltersParamVO';
 import GetOptionsFromContextFiltersParamVO, { GetOptionsFromContextFiltersParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
+import SortByVO from './vos/SortByVO';
 
 export default class ModuleContextFilter extends Module {
 
@@ -38,6 +38,7 @@ export default class ModuleContextFilter extends Module {
         active_api_type_ids: string[],
         limit: number,
         offset: number,
+        sort_by: SortByVO,
         res_field_aliases: string[]) => Promise<DataFilterOption[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_get_filtered_datatable_rows);
 
     public query_rows_count_from_active_filters: (
@@ -67,6 +68,7 @@ export default class ModuleContextFilter extends Module {
         this.datatables = [];
 
         this.init_ContextFilterVO();
+        this.init_SortByVO();
     }
 
     public registerApis() {
@@ -92,6 +94,18 @@ export default class ModuleContextFilter extends Module {
             GetDatatableRowsCountFromContextFiltersParamVOStatic
         ));
 
+    }
+
+    private init_SortByVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID'),
+            new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID'),
+            new ModuleTableField('sort_asc', ModuleTableField.FIELD_TYPE_boolean, 'ASC', true, true, true),
+        ];
+
+        let datatable = new ModuleTable(this, SortByVO.API_TYPE_ID, () => new SortByVO(), datatable_fields, null, "Trier");
+        this.datatables.push(datatable);
     }
 
     private init_ContextFilterVO() {
