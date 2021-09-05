@@ -22,5 +22,14 @@
 
                 a(@click="recover_action" href="#" target="_blank") {{ label('login.recoverlink') }}
 
+            .mt-4.text-center.infos_cgu
+                template(v-if="pdf_info")
+                    a.btn.btn-primary.infos(:href="pdf_info" target="_blank")
+                        i.fa.fa-info
+                        span {{ label('signin.informations') }}
+
+                template(v-if="pdf_cgu")
+                    a.btn.btn-primary.cgu(:href="pdf_cgu" target="_blank") {{ label('signin.cgu') }}
+
     Nfcconnectlogincomponent()
     Sessionsharecomponent()

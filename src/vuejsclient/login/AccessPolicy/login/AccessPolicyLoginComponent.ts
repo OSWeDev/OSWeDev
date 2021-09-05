@@ -27,20 +27,43 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private logo_url: string = null;
     private signin_allowed: boolean = false;
 
+    private pdf_info: string = null;
+    private pdf_cgu: string = null;
+
     private async mounted() {
-        this.load_logo_url();
+        let promises = [];
+
+        promises.push(this.load_logo_url());
+
         for (let j in this.$route.query) {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];
             }
         }
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        let logged_id: number = null;
+
+        promises.push((async () =>
+            logged_id = await ModuleAccessPolicy.getInstance().getLoggedUserId()
+        )());
+
+        promises.push((async () =>
+            this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS)
+        )());
+
+        promises.push((async () =>
+            this.pdf_info = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_INFOS)
+        )());
+
+        promises.push((async () =>
+            this.pdf_cgu = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
+        )());
+
+        await Promise.all(promises);
+
         if (!!logged_id) {
             window.location = this.redirect_to as any;
         }
-
-        this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
     }
 
     private async load_logo_url() {
