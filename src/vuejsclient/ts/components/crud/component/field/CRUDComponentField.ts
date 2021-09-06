@@ -151,6 +151,9 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: true })
     private searchable: boolean;
 
+    @Prop({ default: null })
+    private option: string;
+
     private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];

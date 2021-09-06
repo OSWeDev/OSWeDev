@@ -43,6 +43,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Prop({ default: null })
     private vo: IDistantVOBase;
 
+    @Prop({ default: null })
+    private option: string;
+
     private tsrange_start: Date = null;
     private tsrange_end: Date = null;
     private tsrange_start_time: string = null;
@@ -200,5 +203,16 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         return moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
+    }
+
+    get date_option(): string {
+        if (!this.option) {
+            return null;
+        }
+        let option_arr = this.option.split('.');
+        if (option_arr.length < 3 || option_arr[0] !== 'ts_range' || option_arr[1] !== 'date') {
+            return null;
+        }
+        return option_arr[2];
     }
 }
