@@ -1,4 +1,4 @@
-import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 
 export default class TableWidgetOptions {
@@ -6,8 +6,9 @@ export default class TableWidgetOptions {
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
 
     public constructor(
-        public vo_field_refs: VOFieldRefVO[],
+        public columns: TableColumnDescVO[],
         public page_widget_id: number,
+        public crud_api_type_id: string
     ) { }
 
     get title_name_code_text(): string {

@@ -19,6 +19,7 @@ export default abstract class DatatableField<T, U> {
     public static COMPONENT_FIELD_TYPE: string = "COMPONENT";
     public static INPUT_FIELD_TYPE: string = "INPUT";
     public static FILE_FIELD_TYPE: string = "FILE";
+    public static VAR_FIELD_TYPE: string = "VAR";
 
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;

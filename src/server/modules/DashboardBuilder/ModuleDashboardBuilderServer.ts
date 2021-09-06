@@ -258,8 +258,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'menu.menuelements.admin.dashboard_widget.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Champs'
-        }, 'table_widget_options_component.vo_field_refs.___LABEL___'));
+            fr: 'Colonnes'
+        }, 'table_widget_options_component.columns.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Activer la fonction CRUD'
+        }, 'table_widget_options_component.crud_api_type_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Choisir type pour activer'
+        }, 'table_widget_options_component.crud_api_type_id_select.___LABEL___'));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

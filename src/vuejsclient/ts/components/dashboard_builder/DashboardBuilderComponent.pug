@@ -107,7 +107,7 @@
                     .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
                         i.fa.fa-caret-square-o-up.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
                         i.fa.fa-caret-square-o-down.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
-                    Dashboardbuilderwidgetscomponent(:selected_widget='selected_widget' v-show='!collapsed_fields_wrapper')
+                    Dashboardbuilderwidgetscomponent(:dashboard='dashboard' :selected_widget='selected_widget' v-show='!collapsed_fields_wrapper')
                     Droppablevofieldscomponent(:dashboard='dashboard' v-show='!collapsed_fields_wrapper')
             
             .row(v-if='show_menu_conf')

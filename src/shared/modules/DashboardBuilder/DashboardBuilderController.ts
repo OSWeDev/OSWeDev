@@ -9,7 +9,7 @@ export default class DashboardBuilderController {
     public static PAGE_NAME_CODE_PREFIX: string = "dashboard.page.name.";
     public static WIDGET_NAME_CODE_PREFIX: string = "dashboard.widget.name.";
     public static VOFIELDREF_NAME_CODE_PREFIX: string = "dashboard.vofieldref.name.";
-
+    public static TableColumnDesc_NAME_CODE_PREFIX: string = "dashboard.table_column_desc.name.";
 
     public static getInstance(): DashboardBuilderController {
         if (!DashboardBuilderController.instance) {

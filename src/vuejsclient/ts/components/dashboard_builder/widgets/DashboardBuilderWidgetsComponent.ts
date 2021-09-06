@@ -3,6 +3,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
@@ -15,6 +16,9 @@ import DashboardBuilderWidgetsController from './DashboardBuilderWidgetsControll
     }
 })
 export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
+
+    @Prop()
+    private dashboard: DashboardVO;
 
     @Prop()
     private page_id: number;

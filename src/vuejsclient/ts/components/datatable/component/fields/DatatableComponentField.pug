@@ -62,5 +62,8 @@
         template(v-else-if="field.type == 'FILE'")
             Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")
 
+        template(v-else-if="field.type == 'VAR'")
+            Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")
+
         template(v-else)
             span {{ field_value }}

@@ -1,5 +1,5 @@
 .table_widget_component
-    template(v-if='vo_field_refs')
+    template(v-if='columns')
 
         .upper_pagination(v-if="pagination_count > 10")
             Tablepaginationcomponent(
@@ -12,25 +12,26 @@
         table.table-striped.table-hover
             thead 
                 th.table_header(
-                    v-for='vo_field_ref in vo_field_refs' 
-                    :class="{ order_asc: order_asc_on_id == vo_field_ref.id, order_desc: order_desc_on_id == vo_field_ref.id }"
-                    @click="sort_by(vo_field_ref)"
+                    v-for='column in columns' 
+                    :class="{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id }"
+                    @click="sort_by(column)"
                     )
 
                     .order_by
-                        template(v-if='(order_asc_on_id != vo_field_ref.id) && (order_desc_on_id != vo_field_ref.id)')
+                        template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
                             i.fa.fa-sort.fa-fw(aria-hidden="true")
-                        template(v-if='order_asc_on_id == vo_field_ref.id')
+                        template(v-if='order_asc_on_id == column.id')
                             i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
-                        template(v-if='order_desc_on_id == vo_field_ref.id')
+                        template(v-if='order_desc_on_id == column.id')
                             i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
 
-                    Inlinetranslatabletext(:code_text="vo_field_ref.translatable_name_code_text")
+                    Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
             tbody
                 tr.table_row(v-for='row in data_rows')
-                    td.table_col(v-for='vo_field_ref in vo_field_refs')
+                    td.table_col(v-for='column in columns')
+                        template()
                         Datatablecomponentfield(
-                            :field="fields[vo_field_ref.id]",
+                            :field="fields[column.id]",
                             :vo="row",
                         )
 

@@ -1,3 +1,4 @@
+import { borderTopRightRadius } from 'html2canvas/dist/types/css/property-descriptors/border-radius';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -5,9 +6,11 @@ import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -57,6 +60,14 @@ export default class TableWidgetComponent extends VueComponentBase {
     private order_asc_on_id: number = null;
     private order_desc_on_id: number = null;
 
+    get crud_activated_api_type(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.crud_api_type_id;
+    }
+
     private sort_by(vo_field_ref: VOFieldRefVO) {
         if (!vo_field_ref) {
             this.order_asc_on_id = null;
@@ -92,37 +103,46 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
     }
 
-    get vo_field_refs(): VOFieldRefVO[] {
+    get columns(): TableColumnDescVO[] {
         let options: TableWidgetOptions = this.widget_options;
 
-        if ((!options) || (!options.vo_field_refs)) {
+        if ((!options) || (!options.columns)) {
             return null;
         }
 
-        let res: VOFieldRefVO[] = [];
-        for (let i in options.vo_field_refs) {
-            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_refs[i]));
+        let res: TableColumnDescVO[] = [];
+        for (let i in options.columns) {
+            res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
         }
 
         return res;
     }
 
-    get fields(): { [vo_ref_field_id: number]: DatatableField<any, any> } {
-        let res: { [vo_ref_field_id: number]: DatatableField<any, any> } = {};
+    get fields(): { [column_id: number]: DatatableField<any, any> } {
+        let res: { [column_id: number]: DatatableField<any, any> } = {};
 
         if (!this.widget_options) {
             return res;
         }
 
-        for (let i in this.widget_options.vo_field_refs) {
-            let vo_field_ref = this.widget_options.vo_field_refs[i];
+        for (let i in this.widget_options.columns) {
+            let column: TableColumnDescVO = this.widget_options.columns[i];
 
-            let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
-            let field = moduleTable.get_field_by_id(vo_field_ref.field_id);
-            let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
-            data_field.setModuleTable(moduleTable);
-
-            res[vo_field_ref.id] = data_field;
+            switch (column.type) {
+                case TableColumnDescVO.TYPE_var_ref:
+                    let var_data_field: VarDatatableField<any, any> = new VarDatatableField(column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params, this.dashboard.id, column.translatable_name_code_text);
+                    res[column.id] = var_data_field;
+                    break;
+                case TableColumnDescVO.TYPE_vo_field_ref:
+                    let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
+                    let field = moduleTable.get_field_by_id(column.field_id);
+                    let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
+                    data_field.setModuleTable(moduleTable);
+                    res[column.id] = data_field;
+                    break;
+                case TableColumnDescVO.TYPE_crud_actions:
+                    todo
+            }
         }
 
         return res;
@@ -140,7 +160,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if ((!this.widget_options.vo_field_refs) || (!this.widget_options.vo_field_refs.length)) {
+        if ((!this.widget_options.columns) || (!this.widget_options.columns.length)) {
             this.data_rows = [];
             return;
         }
@@ -227,7 +247,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = new TableWidgetOptions(options.vo_field_refs, options.page_widget_id);
+                options = new TableWidgetOptions(options.columns, options.page_widget_id, options.crud_api_type_id);
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
