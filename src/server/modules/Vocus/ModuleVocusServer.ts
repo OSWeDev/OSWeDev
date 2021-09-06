@@ -117,6 +117,13 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 continue;
             }
 
+            /**
+             * On ignore les modules inactifs
+             */
+            if (table.module && !table.module.actif) {
+                continue;
+            }
+
             // // On ignore les liens entre tables de versioning
             // if ((VersionedVOController.getInstance().getVersionedVoType(moduleTable.vo_type) == table.vo_type) ||
             //     (VersionedVOController.getInstance().getTrashedVersionedVoType(moduleTable.vo_type) == table.vo_type) ||
