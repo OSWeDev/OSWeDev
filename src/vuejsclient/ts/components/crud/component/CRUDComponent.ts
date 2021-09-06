@@ -162,6 +162,12 @@ export default class CRUDComponent extends VueComponentBase {
     @Watch("modal_show_update")
     @Watch("modal_show_delete")
     private async handle_modal_show_hide() {
+        this.crud.createDatatable.refresh();
+        this.crud_createDatatable_key = this.crud.createDatatable.key;
+
+        this.crud.updateDatatable.refresh();
+        this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+
         this.clear_alerts();
 
         if (!this.embed) {
@@ -197,16 +203,6 @@ export default class CRUDComponent extends VueComponentBase {
             $("#updateData,#createData,#deleteData").on("hidden.bs.modal", () => {
                 this.$router.push(this.callback_route);
             });
-
-            if (this.modal_show_create) {
-                modal_type = 'create';
-            }
-            if (this.modal_show_update) {
-                modal_type = 'update';
-            }
-            if (this.modal_show_delete) {
-                modal_type = 'delete';
-            }
         } else {
             vo = this.getSelectedVOs[0];
             $('#createData' + embed_append).on("hidden.bs.modal", () => {
@@ -218,6 +214,16 @@ export default class CRUDComponent extends VueComponentBase {
             $('#deleteData' + embed_append).on("hidden.bs.modal", () => {
                 this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete');
             });
+        }
+
+        if (this.modal_show_create) {
+            modal_type = 'create';
+        }
+        if (this.modal_show_update) {
+            modal_type = 'update';
+        }
+        if (this.modal_show_delete) {
+            modal_type = 'delete';
         }
 
         if (this.crud && this.crud.callback_handle_modal_show_hide) {
