@@ -209,8 +209,8 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (!this.option) {
             return null;
         }
-        let option_arr = this.option.split('.');
-        if (option_arr.length < 3 || option_arr[0] !== 'ts_range' || option_arr[1] !== 'date') {
+        let option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 3 || option_arr[0] !== 'tsrange' || option_arr[1] !== 'date') {
             return null;
         }
         return option_arr[2];

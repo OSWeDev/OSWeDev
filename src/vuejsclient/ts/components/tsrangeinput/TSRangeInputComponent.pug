@@ -11,16 +11,16 @@
     template(v-if='is_segmentation_minute')
         .row
             .col-sm-6
-                template(v-if='date_option == \'non_editable\'')
-                    inpute.max-width(:class="{'form-control': !inline_input_mode}" class="disabled" v-model="tsrange_start", type="time", id="tsrange_end_time" :disabled="disabled")
+                template(v-if="date_option == 'noneditable'")
+                    Datepicker(:clear-button="!required" v-model="tsrange_start" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="true" :format="format_datepicker_day" :class="form_control?'form-control max-width disabled':'max-width disabled'" input-class="disabled" @input="emitInput")
                 template(v-else)
                     Datepicker(:clear-button="!required" v-model="tsrange_start" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control max-width':'max-width'" @input="emitInput")
             .col-sm-6
                 input.max-width(:class="{'form-control': !inline_input_mode}" v-model="tsrange_start_time", type="time", id="tsrange_start_time" :disabled="disabled")
         .row
             .col-sm-6
-                template(v-if='option == \'ts_range.non_editable_date\'') 
-                    inpute.max-width(:class="{'form-control': !inline_input_mode}" class="disabled" v-model="tsrange_end", type="time", id="tsrange_end_time" :disabled="disabled")
+                template(v-if="date_option == 'noneditable'")
+                    Datepicker(:clear-button="!required" v-model="tsrange_end" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_fin')" :required="required" :disabled="true" :format="format_datepicker_day" :class="form_control?'form-control max-width disabled':'max-width disabled'" input-class="disabled" @input="emitInput")
                 template(v-else)
                     Datepicker(:clear-button="!required" v-model="tsrange_end" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_fin')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control max-width':'max-width'" @input="emitInput")
             .col-sm-6

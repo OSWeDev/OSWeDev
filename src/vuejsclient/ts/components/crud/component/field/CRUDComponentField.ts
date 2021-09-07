@@ -1181,4 +1181,15 @@ export default class CRUDComponentField extends VueComponentBase
 
         return this.field.datatable_field_uid;
     }
+
+    get option_ts_range(): string {
+        if (!this.option) {
+            return null;
+        }
+        let option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 2 || option_arr[0] !== 'tsrange') {
+            return null;
+        }
+        return this.option;
+    }
 }
