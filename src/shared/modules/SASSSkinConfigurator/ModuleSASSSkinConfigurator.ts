@@ -65,6 +65,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
         animation_orange: '#ea911b',
         animation_rouge: '#b7013d',
         animation_vert: '#b6c209',
+        header_text_color_mid_opacity: '#563c2299',
     };
 
     public static getInstance(): ModuleSASSSkinConfigurator {
