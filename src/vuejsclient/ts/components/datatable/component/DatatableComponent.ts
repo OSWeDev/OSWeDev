@@ -14,6 +14,7 @@ import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
@@ -196,6 +197,7 @@ export default class DatatableComponent extends VueComponentBase {
                         case ModuleTableField.FIELD_TYPE_day:
                         case ModuleTableField.FIELD_TYPE_timestamp:
                         case ModuleTableField.FIELD_TYPE_month:
+                        case ModuleTableField.FIELD_TYPE_tsrange:
                             if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
@@ -255,6 +257,7 @@ export default class DatatableComponent extends VueComponentBase {
                         case ModuleTableField.FIELD_TYPE_day:
                         case ModuleTableField.FIELD_TYPE_timestamp:
                         case ModuleTableField.FIELD_TYPE_month:
+                        case ModuleTableField.FIELD_TYPE_tsrange:
                             if (!!this.embed_filter[field.datatable_field_uid].start) {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
@@ -442,6 +445,7 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
                         res.push(field);
                         break;
 
@@ -516,8 +520,8 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_html_array:
-
                     case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
                         //TODO ?
                         continue;
                 }
@@ -749,7 +753,7 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
-
+                    case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     //TODO ?
                     default:
@@ -1314,16 +1318,16 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let date: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(row[field.datatable_field_uid]);
 
-                                    let queryStart_ = moment(query.start).utc(true);
-                                    let queryEnd_ = moment(query.end).utc(true);
+                                    let queryStart_date = moment(query.start).utc(true);
+                                    let queryEnd_date = moment(query.end).utc(true);
 
-                                    if (((queryStart_ && queryStart_.isValid()) || (queryEnd_ && queryEnd_.isValid())) && ((!date) || (!date.isValid()))) {
+                                    if (((queryStart_date && queryStart_date.isValid()) || (queryEnd_date && queryEnd_date.isValid())) && ((!date) || (!date.isValid()))) {
                                         return false;
                                     }
-                                    if (queryStart_ && queryStart_.isValid() && date.isBefore(queryStart_)) {
+                                    if (queryStart_date && queryStart_date.isValid() && date.isBefore(queryStart_date)) {
                                         return false;
                                     }
-                                    if (queryEnd_ && queryEnd_.isValid() && date.isAfter(queryEnd_)) {
+                                    if (queryEnd_date && queryEnd_date.isValid() && date.isAfter(queryEnd_date)) {
                                         return false;
                                     }
 
@@ -1335,17 +1339,44 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
 
                                     date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY').utc(true));
-                                    queryStart_ = moment(query.start).utc(true);
-                                    if (query.start && date.isBefore(queryStart_)) {
+                                    let queryStart_month = moment(query.start).utc(true);
+                                    if (query.start && date.isBefore(queryStart_month)) {
                                         return false;
                                     }
 
-                                    queryEnd_ = moment(query.end).utc(true);
-                                    if (query.end && date.isAfter(queryEnd_)) {
+                                    let queryEnd_month = moment(query.end).utc(true);
+                                    if (query.end && date.isAfter(queryEnd_month)) {
                                         return false;
                                     }
 
                                     return true;
+
+                                case ModuleTableField.FIELD_TYPE_tsrange:
+                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                        return true;
+                                    }
+
+                                    let tsrange: TSRange = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
+
+                                    if (!tsrange) {
+                                        return false;
+                                    }
+
+                                    let is_ok: boolean = false;
+
+                                    if (query.start && query.start.length > 0) {
+                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.start).utc(true), tsrange)) {
+                                            is_ok = true;
+                                        }
+                                    }
+
+                                    if (query.end && query.end.length > 0) {
+                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.end).utc(true), tsrange)) {
+                                            is_ok = true;
+                                        }
+                                    }
+
+                                    return is_ok;
 
                                 case ModuleTableField.FIELD_TYPE_enum:
                                     if ((!query) || (!query.length)) {
