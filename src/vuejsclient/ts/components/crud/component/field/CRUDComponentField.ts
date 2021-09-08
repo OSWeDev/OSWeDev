@@ -151,6 +151,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: true })
     private searchable: boolean;
 
+    /**
+     * Une string de la forme composant_partieconcernee_option
+     * Ex: 'tsrange_date_noneditable'
+     * Ajouté à la base pour désactiver seulement une partie du composant TSRangeInputComponent
+     * (en l'occurence ne permettre de modifier que les heures/minutes et pas la date)
+     */
     @Prop({ default: null })
     private option: string;
 
@@ -1182,6 +1188,12 @@ export default class CRUDComponentField extends VueComponentBase
         return this.field.datatable_field_uid;
     }
 
+    /**
+     * Fonction liée au param option
+     * Vérifie si l'option concerne le composant des tsrange
+     * Si oui, transmet la chaîne de caractères complète
+     * Sinon, ne transmet rien (option_ts_range = null)
+     */
     get option_ts_range(): string {
         if (!this.option) {
             return null;
