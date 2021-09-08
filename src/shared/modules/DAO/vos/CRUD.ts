@@ -290,6 +290,9 @@ export default class CRUD<T extends IDistantVOBase> {
     public preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
     public preCreate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
 
+    public postCreate: (dataVO: IDistantVOBase) => Promise<void>;
+    public postUpdate: (dataVO: IDistantVOBase) => Promise<void>;
+
     public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
 
     public callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void>;
@@ -314,6 +317,8 @@ export default class CRUD<T extends IDistantVOBase> {
         this.updateDatatable = this.updateDatatable ? this.updateDatatable : (this.createDatatable ? this.createDatatable : this.readDatatable);
         this.preUpdate = null;
         this.preCreate = null;
+        this.postCreate = null;
+        this.postUpdate = null;
         this.api_type_id = this.readDatatable.API_TYPE_ID;
     }
 
@@ -354,6 +359,18 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public setPreCreate(preCreate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>): CRUD<T> {
         this.preCreate = preCreate;
+
+        return this;
+    }
+
+    public setPostCreate(postCreate: (dataVO: IDistantVOBase) => Promise<void>): CRUD<T> {
+        this.postCreate = postCreate;
+
+        return this;
+    }
+
+    public setPostUpdate(postUpdate: (dataVO: IDistantVOBase) => Promise<void>): CRUD<T> {
+        this.postUpdate = postUpdate;
 
         return this;
     }

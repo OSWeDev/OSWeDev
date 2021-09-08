@@ -662,6 +662,10 @@ export default class CRUDComponent extends VueComponentBase {
             await this.updateOneToMany(this.newVO, this.crud.createDatatable, createdVO);
 
             this.storeData(createdVO);
+
+            if (this.crud.postCreate) {
+                await this.crud.postCreate(createdVO);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
@@ -917,6 +921,10 @@ export default class CRUDComponent extends VueComponentBase {
             await this.updateOneToMany(this.editableVO, this.crud.createDatatable, updatedVO);
 
             this.updateData(updatedVO);
+
+            if (this.crud.postUpdate) {
+                await this.crud.postUpdate(updatedVO);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.update.errors.update_failure') + ": " + error);

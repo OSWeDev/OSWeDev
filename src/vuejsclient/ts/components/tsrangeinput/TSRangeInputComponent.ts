@@ -43,6 +43,14 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Prop({ default: null })
     private vo: IDistantVOBase;
 
+    /**
+     * Une string de la forme composant_partieconcernee_option
+     * Ex: 'tsrange_date_noneditable'
+     * Ajouté à la base pour désactiver la partie date et ne permettre de modifier que les heures / minutes
+     */
+    @Prop({ default: null })
+    private option: string;
+
     private tsrange_start: Date = null;
     private tsrange_end: Date = null;
     private tsrange_start_time: string = null;
@@ -200,5 +208,22 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         return moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
+    }
+
+    /**
+     * Fonction liée au param option
+     * Vérifie qu'il correspond à la partie date d'un tsrange
+     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable')
+     * Sinon, renvoie null
+     */
+    get date_option(): string {
+        if (!this.option) {
+            return null;
+        }
+        let option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 3 || option_arr[0] !== 'tsrange' || option_arr[1] !== 'date') {
+            return null;
+        }
+        return option_arr[2];
     }
 }
