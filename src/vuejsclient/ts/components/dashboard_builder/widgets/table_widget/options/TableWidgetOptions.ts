@@ -10,7 +10,12 @@ export default class TableWidgetOptions {
         public page_widget_id: number,
         public crud_api_type_id: string,
         public vocus_button: boolean,
-        public delete_button: boolean
+        public delete_button: boolean,
+        public delete_all_button: boolean,
+        public create_button: boolean,
+        public update_button: boolean,
+        public refresh_button: boolean,
+        public export_button: boolean,
     ) { }
 
     get title_name_code_text(): string {

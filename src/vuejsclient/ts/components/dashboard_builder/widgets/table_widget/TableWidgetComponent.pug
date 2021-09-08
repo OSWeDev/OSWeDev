@@ -1,6 +1,21 @@
 .table_widget_component
     template(v-if='columns')
 
+        template(v-if='!!crud_activated_api_type')
+            .btn-group.d-print-none
+                button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                    i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                    | {{ label('crud.actions.delete_all') }}
+                button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='throttled_update_visible_options')
+                    i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                    | {{ label('crud.actions.refresh') }}
+                button.btn.btn-sm.btn-outline-dark(v-if='can_export && isExportableToXLSX' @click="export_to_xlsx")
+                    i.fa.fa-download.fa-lg.btn_icon
+                    | {{ label('crud.actions.export') }}
+                button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
+                    i.fa.fa-plus-circle.fa-lg.btn_icon
+                    | {{ label('crud.actions.create') }}
+
         .upper_pagination(v-if="pagination_count > 10")
             Tablepaginationcomponent(
                 :pagination_offset='pagination_offset'
@@ -35,9 +50,9 @@
 
                         template(v-if="column.type == 0")
                             .btn-group.d-print-none
-                                router-link.btn.btn-sm.btn-primary(:to="getCRUDUpdateLink(column.api_type_id, row.__crud_actions)")
+                                .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
                                     i.fa.fa-pencil
-                                template(v-if="vocus_button")
+                                template(v-if="can_open_vocus")
                                     .btn.btn-sm.btn-secondary(@click="open_vocus(column, row)")
                                         i.fa.fa-search
                                 template(v-if="delete_button")
@@ -59,3 +74,7 @@
                 :pagination_pagesize='pagination_pagesize'
                 :pagination_count='pagination_count'
             )
+
+    template(v-if='!!crud_activated_api_type')
+        Crudupdatemodalcomponent(:vo='update_vo' ref='Crudupdatemodalcomponent')
+        Crudcreatemodalcomponent(:api_type_id='crud_activated_api_type' ref='Crudcreatemodalcomponent')

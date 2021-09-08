@@ -1,40 +1,47 @@
-import { borderTopRightRadius } from 'html2canvas/dist/types/css/property-descriptors/border-radius';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUDActionsDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableField';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import WeightHandler from '../../../../../../shared/tools/WeightHandler';
+import CRUDComponentManager from '../../../crud/CRUDComponentManager';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import CRUDCreateModalComponent from './crud_modals/create/CRUDCreateModalComponent';
+import CRUDUpdateModalComponent from './crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
 import TablePaginationComponent from './pagination/TablePaginationComponent';
 import './TableWidgetComponent.scss';
-import WeightHandler from '../../../../../../shared/tools/WeightHandler';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 
 @Component({
     template: require('./TableWidgetComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Datatablecomponentfield: DatatableComponentField,
-        Tablepaginationcomponent: TablePaginationComponent
+        Tablepaginationcomponent: TablePaginationComponent,
+        Crudupdatemodalcomponent: CRUDUpdateModalComponent,
+        Crudcreatemodalcomponent: CRUDCreateModalComponent
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {
@@ -66,6 +73,111 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private order_asc_on_id: number = null;
     private order_desc_on_id: number = null;
+
+    private update_vo: IDistantVOBase = null;
+
+    private can_open_vocus_right: boolean = null;
+    private can_delete_all_right: boolean = null;
+    private can_delete_right: boolean = null;
+    private can_update_right: boolean = null;
+    private can_create_right: boolean = null;
+
+    get can_refresh(): boolean {
+        return this.widget_options && this.widget_options.refresh_button;
+    }
+
+    get can_export(): boolean {
+        return this.widget_options && this.widget_options.export_button;
+    }
+
+    get can_create(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_create_right && this.widget_options.create_button;
+    }
+
+    get can_update(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_update_right && this.widget_options.update_button;
+    }
+
+    get can_delete(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_delete_right && this.widget_options.delete_button;
+    }
+
+    get can_delete_all(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_delete_all_right && this.widget_options.delete_all_button;
+    }
+
+    get can_open_vocus(): boolean {
+        if (!this.crud_activated_api_type) {
+            return false;
+        }
+
+        return this.can_open_vocus_right && this.widget_options.vocus_button;
+    }
+
+    @Watch('crud_activated_api_type', { immediate: true })
+    private async onchange_crud_activated_api_type() {
+        if (!this.crud_activated_api_type) {
+            return;
+        }
+
+        if (this.can_delete_all_right == null) {
+            let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
+            if (!crud) {
+                this.can_delete_all_right = false;
+                this.can_open_vocus_right = false;
+                return;
+            }
+            this.can_delete_all_right = await ModuleAccessPolicy.getInstance().checkAccess(crud.delete_all_access_right);
+        }
+
+        if (this.can_open_vocus_right == null) {
+            this.can_open_vocus_right = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS);
+        }
+
+        if (this.can_delete_right == null) {
+            this.can_delete_right = await ModuleAccessPolicy.getInstance().checkAccess(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
+        }
+
+        if (this.can_update_right == null) {
+            this.can_update_right = await ModuleAccessPolicy.getInstance().checkAccess(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+        }
+
+        if (this.can_create_right == null) {
+            this.can_create_right = await ModuleAccessPolicy.getInstance().checkAccess(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
+        }
+    }
+
+    private async open_update(type: string, id: number) {
+        let update_vo = await ModuleDAO.getInstance().getVoById(type, id);
+
+        if (update_vo && update_vo.id) {
+            this.update_vo = update_vo;
+            (this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent).open_modal();
+        }
+    }
+
+    private async open_create() {
+        (this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent).open_modal();
+    }
 
     get vocus_button(): boolean {
         return (this.widget_options && this.widget_options.vocus_button);
@@ -283,7 +395,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = options ? new TableWidgetOptions(options.columns, options.page_widget_id, options.crud_api_type_id, options.vocus_button, options.delete_button) : null;
+                options = options ? new TableWidgetOptions(
+                    options.columns, options.page_widget_id, options.crud_api_type_id, options.vocus_button,
+                    options.delete_button, options.delete_all_button, options.create_button, options.update_button,
+                    options.refresh_button, options.export_button) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -321,6 +436,38 @@ export default class TableWidgetComponent extends VueComponentBase {
                             self.snotify.success(self.label('TableWidgetComponent.confirm_delete.ok'));
                         }
                         await this.throttled_update_visible_options();
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private async confirm_delete_all() {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('crud.actions.delete_all.confirmation.body'), self.label('crud.actions.delete_all.confirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('crud.actions.delete_all.start'));
+
+                        await ModuleDAO.getInstance().truncate(self.crud_activated_api_type);
+                        await self.throttled_update_visible_options();
                     },
                     bold: false
                 },

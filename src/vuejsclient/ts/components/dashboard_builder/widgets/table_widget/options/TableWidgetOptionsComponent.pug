@@ -68,15 +68,25 @@
                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
-    .vocus_button(v-if='widget_options && widget_options.crud_api_type_id')
-        .input_label {{ label('table_widget_options_component.vocus_button') }}
+    .create_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.create_button') }}
         
         toggle-button(
-            @change="switch_vocus_button" 
-            :value="vocus_button" 
+            @change="switch_create_button" 
+            :value="create_button" 
             :sync="true"
             :width="100"
-            :labels="{checked: label('table_widget_options_component.vocus_button.visible'), unchecked: label('table_widget_options_component.vocus_button.hidden')}")
+            :labels="{checked: label('table_widget_options_component.create_button.visible'), unchecked: label('table_widget_options_component.create_button.hidden')}")
+
+    .update_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.update_button') }}
+        
+        toggle-button(
+            @change="switch_update_button" 
+            :value="update_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.update_button.visible'), unchecked: label('table_widget_options_component.update_button.hidden')}")
 
     .delete_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.delete_button') }}
@@ -88,4 +98,42 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.delete_button.visible'), unchecked: label('table_widget_options_component.delete_button.hidden')}")
 
+    .delete_all_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.delete_all_button') }}
+        
+        toggle-button(
+            @change="switch_delete_all_button" 
+            :value="delete_all_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.delete_all_button.visible'), unchecked: label('table_widget_options_component.delete_all_button.hidden')}")
 
+    .refresh_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.refresh_button') }}
+        
+        toggle-button(
+            @change="switch_refresh_button" 
+            :value="refresh_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.refresh_button.visible'), unchecked: label('table_widget_options_component.refresh_button.hidden')}")
+
+    .export_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.export_button') }}
+        
+        toggle-button(
+            @change="switch_export_button" 
+            :value="export_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
+
+    .vocus_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.vocus_button') }}
+        
+        toggle-button(
+            @change="switch_vocus_button" 
+            :value="vocus_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.vocus_button.visible'), unchecked: label('table_widget_options_component.vocus_button.hidden')}")

@@ -1,5 +1,11 @@
 .table_widget_component {
 
+    .btn-group.d-print-none {
+        text-align: right;
+        float: right;
+        margin-top: -3px;
+    }
+
     table {
         width: -webkit-fill-available;
 

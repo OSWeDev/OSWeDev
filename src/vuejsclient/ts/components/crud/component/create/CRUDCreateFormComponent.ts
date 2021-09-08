@@ -51,8 +51,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private removeData: (infos: { API_TYPE_ID: string, id: number }) => void;
     @ModuleDAOAction
     private storeData: (vo: IDistantVOBase) => void;
-    @ModuleCRUDAction
-    private setSelectedVOs: (selectedVOs: IDistantVOBase[]) => void;
 
     @ModuleCRUDGetter
     private getSelectedVOs: IDistantVOBase[];
@@ -62,14 +60,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     @ModuleAlertAction
     private register_alerts: (alerts: Alert[]) => void;
 
-    @Prop()
-    private crud: CRUD<IDistantVOBase>;
+    @Prop({ default: null })
+    private api_type_id: string;
 
     @Prop({ default: false })
     private close_on_submit: boolean;
 
-    @Prop()
-    private selected_vo: IDistantVOBase;
     @Prop({ default: null })
     private vo_init: IDistantVOBase;
 
@@ -86,6 +82,23 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private crud_createDatatable_key: number = 0;
 
+    get crud(): CRUD<any> {
+        if (!this.api_type_id) {
+            return null;
+        }
+
+        if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id]) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                this.api_type_id,
+                null,
+                null,
+                null
+            );
+        }
+
+        return CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+    }
+
     @Watch("vo_init")
     private on_change_vo_init() {
         this.prepareNewVO();
@@ -95,27 +108,24 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
         this.isLoading = true;
 
-        this.loadingProgression = 0;
-        this.nbLoadingSteps = 5;
-
         if (!this.crud) {
             this.snotify.error(this.label('crud.errors.loading'));
+            this.isLoading = false;
             return;
         }
 
         await Promise.all(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.createDatatable, this.api_types_involved, this.storeDatas));
-        this.nextLoadingStep();
 
         this.prepareNewVO();
-        this.nextLoadingStep();
-        this.nextLoadingStep();
 
         this.isLoading = false;
     }
 
     @Watch("crud", { immediate: true })
     private async updatedCRUD() {
-        await this.reload_datas();
+        if (this.crud) {
+            await this.reload_datas();
+        }
     }
 
     private prepareNewVO() {
@@ -134,25 +144,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             datatable_title:
                 this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
         });
-    }
-
-    get selectedVO(): IDistantVOBase {
-        if ((!this.getSelectedVOs) || (!this.getSelectedVOs[0])) {
-            return null;
-        }
-
-        return this.getSelectedVOs[0];
-    }
-
-    @Watch("selectedVO")
-    private updateSelectedVO() {
-        if (!this.selectedVO) {
-            this.editableVO = null;
-        }
-
-        // On passe la traduction en IHM sur les champs
-        this.editableVO = CRUDFormServices.getInstance().dataToIHM(this.getSelectedVOs[0], this.crud.updateDatatable, true);
-        this.onChangeVO(this.editableVO);
     }
 
     private async createVO() {
@@ -276,15 +267,27 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
     }
 
-    get api_type_id(): string {
-        return this.crud.readDatatable.API_TYPE_ID;
-    }
-
     get has_createDatatable(): boolean {
         if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Cas spécifique du FileVo sur lequel on a un champ fichier qui crée l'objet que l'on souhaite update ou create.
+     * Si on est en cours d'update, il faut conserver l'ancien vo (pour maintenir les liaisons vers son id)
+     *  et lui mettre en path le nouveau fichier. On garde aussi le nouveau file, pour archive de l'ancien fichier
+     * @param vo
+     * @param field
+     * @param fileVo
+     */
+    private async uploadedFile_(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
+        await CRUDFormServices.getInstance().uploadedFile(vo, field, fileVo, this.api_type_id, this.editableVO, this.updateData, this);
+    }
+
+    private async cancel() {
+        this.$emit('cancel');
     }
 }

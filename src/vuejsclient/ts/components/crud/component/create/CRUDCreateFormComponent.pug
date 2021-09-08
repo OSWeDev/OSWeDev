@@ -1,4 +1,4 @@
-include ../../../../views/mixins/loading.pug
+include ../../../../../views/mixins/loading.pug
 
 .crud_create_form
     +loading()
@@ -18,7 +18,7 @@ include ../../../../views/mixins/loading.pug
                             :vo="newVO",
                             :datatable="crud.createDatatable",
                             :auto_update_field_value="true",
-                            @uploadedfile="uploadedFile",
+                            @uploadedfile="uploadedFile_",
                             @onchangevo="onChangeVO",
                             :show_insert_or_update_target='show_insert_or_update_target'
                         )

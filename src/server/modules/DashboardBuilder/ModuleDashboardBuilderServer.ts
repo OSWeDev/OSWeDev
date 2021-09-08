@@ -299,6 +299,55 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Non'
         }, 'table_widget_options_component.delete_button.hidden.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Bouton pour modifier la ligne ?'
+        }, 'table_widget_options_component.update_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.update_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.update_button.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Bouton pour ajouter une ligne ?'
+        }, 'table_widget_options_component.create_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.create_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.create_button.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Bouton pour rafraîchir les données ?'
+        }, 'table_widget_options_component.refresh_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.refresh_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.refresh_button.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Bouton pour exporter ?'
+        }, 'table_widget_options_component.export_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.export_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.export_button.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Bouton "Tout supprimer"'
+        }, 'table_widget_options_component.delete_all_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.delete_all_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.delete_all_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Confirmer ?'

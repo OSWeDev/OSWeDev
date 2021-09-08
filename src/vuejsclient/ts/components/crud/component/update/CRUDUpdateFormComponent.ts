@@ -12,6 +12,7 @@ import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import DatatableComponent from '../../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDUpdateFormComponent.scss";
 
@@ -40,22 +41,16 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     @ModuleAlertAction
     private register_alerts: (alerts: Alert[]) => void;
 
-    @Prop()
-    private crud: CRUD<IDistantVOBase>;
-
     @Prop({ default: true })
     private close_on_submit: boolean;
 
     @Prop()
     private selected_vo: IDistantVOBase;
-    @Prop({ default: null })
-    private vo_init: IDistantVOBase;
 
     @Prop({ default: true })
     private show_insert_or_update_target: boolean;
 
     private editableVO: IDistantVOBase = null;
-    private newVO: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
 
@@ -64,9 +59,21 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
     private crud_updateDatatable_key: number = 0;
 
-    @Watch("vo_init")
-    private on_change_vo_init() {
-        this.prepareNewVO();
+    get crud(): CRUD<any> {
+        if ((!this.selected_vo) || (!this.selected_vo._type)) {
+            return null;
+        }
+
+        if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.selected_vo._type]) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                this.selected_vo._type,
+                null,
+                null,
+                null
+            );
+        }
+
+        return CRUDComponentManager.getInstance().cruds_by_api_type_id[this.selected_vo._type];
     }
 
     private async loaddatas() {
@@ -75,12 +82,11 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
         if (!this.crud) {
             this.snotify.error(this.label('crud.errors.loading'));
+            this.isLoading = false;
             return;
         }
 
         await Promise.all(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.updateDatatable, this.api_types_involved, this.storeDatas));
-
-        this.prepareNewVO();
 
         this.isLoading = false;
     }
@@ -89,11 +95,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
     @Watch("crud", { immediate: true })
     private async updatedCRUD() {
-        await this.reload_datas();
-    }
 
-    private prepareNewVO() {
-        this.newVO = CRUDFormServices.getInstance().getNewVO(this.crud, this.vo_init, this.onChangeVO);
+        if (this.crud) {
+            await this.reload_datas();
+        }
     }
 
     get CRUDTitle(): string {
@@ -107,10 +112,11 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         });
     }
 
-    @Watch("selectedVO")
-    private updateSelectedVO() {
+    @Watch("selected_vo", { immediate: true })
+    private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
+            return;
         }
 
         // On passe la traduction en IHM sur les champs

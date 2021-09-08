@@ -43,7 +43,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     private crud_api_type_id_selected: string = null;
     private vocus_button: boolean = false;
-    private delete_button: boolean = false;
+    private delete_button: boolean = true;
+    private delete_all_button: boolean = false;
+    private refresh_button: boolean = true;
+    private export_button: boolean = true;
+    private update_button: boolean = true;
+    private create_button: boolean = true;
 
     private editable_columns: TableColumnDescVO[] = null;
 
@@ -64,8 +69,23 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.vocus_button) {
                 this.vocus_button = false;
             }
-            if (!!this.delete_button) {
+            if (!this.delete_button) {
                 this.delete_button = true;
+            }
+            if (!!this.delete_all_button) {
+                this.delete_all_button = false;
+            }
+            if (!this.update_button) {
+                this.delete_button = true;
+            }
+            if (!this.create_button) {
+                this.delete_button = true;
+            }
+            if (!this.export_button) {
+                this.export_button = true;
+            }
+            if (!this.refresh_button) {
+                this.refresh_button = true;
             }
             return;
         }
@@ -80,6 +100,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.delete_button != this.widget_options.delete_button) {
             this.delete_button = this.widget_options.delete_button;
         }
+        if (this.create_button != this.widget_options.create_button) {
+            this.create_button = this.widget_options.create_button;
+        }
+        if (this.export_button != this.widget_options.export_button) {
+            this.export_button = this.widget_options.export_button;
+        }
+        if (this.refresh_button != this.widget_options.refresh_button) {
+            this.refresh_button = this.widget_options.refresh_button;
+        }
+        if (this.delete_all_button != this.widget_options.delete_all_button) {
+            this.delete_all_button = this.widget_options.delete_all_button;
+        }
+        if (this.update_button != this.widget_options.update_button) {
+            this.update_button = this.widget_options.update_button;
+        }
     }
 
     @Watch('crud_api_type_id_selected')
@@ -87,7 +122,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+            this.next_update_options = this.get_default_options();
         }
 
         if (this.next_update_options.crud_api_type_id != this.crud_api_type_id_selected) {
@@ -159,11 +194,15 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
+    private get_default_options(): TableWidgetOptions {
+        return new TableWidgetOptions(null, this.page_widget.id, null, false, true, false, true, true, true, true);
+    }
+
     private async add_column(add_column: TableColumnDescVO) {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+            this.next_update_options = this.get_default_options();
         }
 
         let i = -1;
@@ -252,7 +291,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = options ? new TableWidgetOptions(options.columns, options.page_widget_id, options.crud_api_type_id, options.vocus_button, options.delete_button) : null;
+                options = options ? new TableWidgetOptions(
+                    options.columns, options.page_widget_id, options.crud_api_type_id,
+                    options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
+                    options.refresh_button, options.export_button) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -286,7 +328,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+            this.next_update_options = this.get_default_options();
         }
 
         if (this.next_update_options.vocus_button != this.vocus_button) {
@@ -301,11 +343,86 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+            this.next_update_options = this.get_default_options();
         }
 
         if (this.next_update_options.delete_button != this.delete_button) {
             this.next_update_options.delete_button = this.delete_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_delete_all_button() {
+        this.delete_all_button = !this.delete_all_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.delete_all_button != this.delete_all_button) {
+            this.next_update_options.delete_all_button = this.delete_all_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_refresh_button() {
+        this.refresh_button = !this.refresh_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.refresh_button != this.refresh_button) {
+            this.next_update_options.refresh_button = this.refresh_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_export_button() {
+        this.export_button = !this.export_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.export_button != this.export_button) {
+            this.next_update_options.export_button = this.export_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_update_button() {
+        this.update_button = !this.update_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.update_button != this.update_button) {
+            this.next_update_options.update_button = this.update_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_create_button() {
+        this.create_button = !this.create_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.create_button != this.create_button) {
+            this.next_update_options.create_button = this.create_button;
             await this.throttled_update_options();
         }
     }

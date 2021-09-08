@@ -1,0 +1,12 @@
+.crud_update_modal_wrapper
+    #crud_update_modal.modal.fade.in(tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content
+                Crudupdateformcomponent(
+                    :close_on_submit="true"
+                    :selected_vo="vo"
+                    :show_insert_or_update_target="true"
+
+                    @close='close_modal'
+                    @cancel='close_modal'
+                )
