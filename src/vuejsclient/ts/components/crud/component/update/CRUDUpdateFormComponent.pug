@@ -1,0 +1,32 @@
+include ../../../../views/mixins/loading.pug
+
+.crud_update_form
+    +loading()
+        form(v-on:submit.prevent="updateVO")
+            .crud_update_form_header
+                .title.d-ib {{ label('crud.update.modal.title') }}
+                a.btn.close(@click="cancel") &times;
+
+            .crud_update_form_body
+                .alert.alert-danger(v-if="is_only_readable") {{ label('crud.update.modal.readonly') }}
+                template(v-if="selected_vo && editableVO")
+                    template(v-for="field in crud.updateDatatable.fields")
+                        Crudcomponentfield(
+                            v-show="!field.hidden",
+                            :key="newVO._type + '_updateDatatable_' + field.datatable_field_uid + '_' + crud_updateDatatable_key",
+                            :field="field",
+                            :vo="editableVO",
+                            :datatable="crud.updateDatatable",
+                            :auto_update_field_value="true",
+                            @uploadedfile="uploadedFile_",
+                            @onchangevo="onChangeVO",
+                            :show_insert_or_update_target='show_insert_or_update_target'
+                        )
+
+                template(v-else)
+                    p {{ label('crud.update.modal.content.selection_failure') }}
+
+            .crud_update_form_footer
+                a.btn.btn-default(v-if="!updating_vo", @click="cancel") {{ label('crud.update.modal.cancel') }}
+                template(v-if="selected_vo && editableVO && !updating_vo && !is_only_readable")
+                    input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")

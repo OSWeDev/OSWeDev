@@ -1,17 +1,20 @@
 import { Component, Prop } from 'vue-property-decorator';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
+import DBVarDatatableFieldComponent from './dashboard_var/db_var_datatable_field';
 import './DatatableComponentField.scss';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
     components: {
-        Filedatatablefieldcomponent: FileDatatableFieldComponent
+        Filedatatablefieldcomponent: FileDatatableFieldComponent,
+        Dbvardatatablefieldcomponent: DBVarDatatableFieldComponent
     }
 })
 export default class DatatableComponentField extends VueComponentBase {
@@ -21,6 +24,9 @@ export default class DatatableComponentField extends VueComponentBase {
 
     @Prop()
     private vo: IDistantVOBase;
+
+    @Prop({ default: null })
+    private columns: TableColumnDescVO[];
 
     @Prop({ default: false })
     private show_label: boolean;

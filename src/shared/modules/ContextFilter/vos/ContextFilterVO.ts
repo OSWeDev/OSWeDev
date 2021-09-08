@@ -172,4 +172,10 @@ export default class ContextFilterVO implements IDistantVOBase {
 
     public left_hook_id: number;
     public right_hook_id: number;
+
+    /**
+     * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
+     */
+    public left_hook: ContextFilterVO;
+    public right_hook: ContextFilterVO;
 }

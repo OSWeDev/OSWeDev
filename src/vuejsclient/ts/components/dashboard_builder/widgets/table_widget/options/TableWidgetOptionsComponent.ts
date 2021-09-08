@@ -6,6 +6,7 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -14,12 +15,16 @@ import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
 import TableWidgetOptions from './TableWidgetOptions';
 import './TableWidgetOptionsComponent.scss';
+import { cloneDeep } from 'lodash';
+import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
-        Tablewidgetcolumnoptionscomponent: TableWidgetColumnOptionsComponent
+        Tablewidgetcolumnoptionscomponent: TableWidgetColumnOptionsComponent,
+        Vuenestable: VueNestable,
+        Vuenestablehandle: VueNestableHandle,
     }
 })
 export default class TableWidgetOptionsComponent extends VueComponentBase {
@@ -37,6 +42,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false });
 
     private crud_api_type_id_selected: string = null;
+    private vocus_button: boolean = false;
+    private delete_button: boolean = false;
+
+    private editable_columns: TableColumnDescVO[] = null;
 
     get crud_api_type_id_select_options(): string[] {
         return this.dashboard.api_type_ids;
@@ -46,22 +55,82 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].label.code_text);
     }
 
+    @Watch('page_widget', { immediate: true })
+    private onchange_page_widget() {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            if (!!this.crud_api_type_id_selected) {
+                this.crud_api_type_id_selected = null;
+            }
+            if (!!this.vocus_button) {
+                this.vocus_button = false;
+            }
+            if (!!this.delete_button) {
+                this.delete_button = true;
+            }
+            return;
+        }
+
+        if (this.crud_api_type_id_selected != this.widget_options.crud_api_type_id) {
+            this.crud_api_type_id_selected = this.widget_options.crud_api_type_id;
+        }
+
+        if (this.vocus_button != this.widget_options.vocus_button) {
+            this.vocus_button = this.widget_options.vocus_button;
+        }
+        if (this.delete_button != this.widget_options.delete_button) {
+            this.delete_button = this.widget_options.delete_button;
+        }
+    }
+
     @Watch('crud_api_type_id_selected')
     private async onchange_crud_api_type_id_selected() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null);
+            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
         }
 
         if (this.next_update_options.crud_api_type_id != this.crud_api_type_id_selected) {
             this.next_update_options.crud_api_type_id = this.crud_api_type_id_selected;
+
+            /**
+             * Si on configure un crud_api_type_id_selected et qu'on a pas de colonne pour traiter les crud actions, on rajoute la colonne
+             */
+
+            if ((!!this.crud_api_type_id_selected) && ((!this.next_update_options.columns) || (!this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions)))) {
+                let crud_actions_column = new TableColumnDescVO();
+                crud_actions_column.api_type_id = this.crud_api_type_id_selected;
+                crud_actions_column.page_widget_id = this.page_widget.id;
+                crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
+                crud_actions_column.weight = -1;
+                await this.add_column(crud_actions_column);
+                return;
+            } else if (!!this.crud_api_type_id_selected) {
+                // On check qu'on a le bon type
+                let existing_column = this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions);
+                if (existing_column.api_type_id != this.crud_api_type_id_selected) {
+                    existing_column.api_type_id = this.crud_api_type_id_selected;
+                }
+            }
+
             await this.throttled_update_options();
         }
     }
 
     private async changed_columns() {
+
+        /**
+         * On applique les nouveaux poids
+         */
+        for (let i in this.editable_columns) {
+            let column = this.editable_columns[i];
+
+            this.columns.find((c) => c.id == column.id).weight = parseInt(i.toString());
+        }
+
         await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
+        this.next_update_options = this.widget_options;
+        this.next_update_options.columns = this.columns;
         await this.throttled_update_options();
     }
 
@@ -94,7 +163,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null);
+            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
         }
 
         let i = -1;
@@ -136,6 +205,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         let options: TableWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.columns)) {
+            this.editable_columns = null;
             return null;
         }
 
@@ -143,6 +213,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         for (let i in options.columns) {
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
         }
+        WeightHandler.getInstance().sortByWeight(res);
+
+        this.editable_columns = cloneDeep(res);
 
         return res;
     }
@@ -167,7 +240,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     get default_title_translation(): string {
-        return null;
+        return 'Table#' + this.page_widget.id;
     }
 
     get widget_options(): TableWidgetOptions {
@@ -179,12 +252,61 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
-                options = new TableWidgetOptions(options.columns, options.page_widget_id, options.crud_api_type_id);
+                options = options ? new TableWidgetOptions(options.columns, options.page_widget_id, options.crud_api_type_id, options.vocus_button, options.delete_button) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
 
         return options;
+    }
+
+    // @Watch('vocus_button')
+    // @Watch('delete_button')
+    // private async onchange_switches() {
+    //     if (this.widget_options && (
+    //         (this.delete_button != this.widget_options.delete_button) ||
+    //         (this.vocus_button != this.widget_options.vocus_button))) {
+
+    //         this.next_update_options = this.widget_options;
+
+    //         if (!this.next_update_options) {
+    //             this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+    //         }
+
+    //         this.next_update_options.vocus_button = this.vocus_button;
+    //         this.next_update_options.delete_button = this.delete_button;
+    //         await this.throttled_update_options();
+    //         }
+    //     }
+
+    private async switch_vocus_button() {
+        this.vocus_button = !this.vocus_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+        }
+
+        if (this.next_update_options.vocus_button != this.vocus_button) {
+            this.next_update_options.vocus_button = this.vocus_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_delete_button() {
+        this.delete_button = !this.delete_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = new TableWidgetOptions(null, this.page_widget.id, null, false, true);
+        }
+
+        if (this.next_update_options.delete_button != this.delete_button) {
+            this.next_update_options.delete_button = this.delete_button;
+            await this.throttled_update_options();
+        }
     }
 }

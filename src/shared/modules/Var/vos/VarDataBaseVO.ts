@@ -58,7 +58,7 @@ export default class VarDataBaseVO implements IMatroid {
             let field = fields[i];
 
             if ((!fields_ordered_as_in_moduletable_definition[param_i]) || (fields_ordered_as_in_moduletable_definition[param_i].indexOf(null) >= 0)) {
-                ConsoleHandler.getInstance().warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
+                // ConsoleHandler.getInstance().warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                         res[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];

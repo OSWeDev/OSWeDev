@@ -113,7 +113,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
-                options = new VarWidgetOptions(options.var_id, options.page_widget_id, options.filter_type, options.filter_additional_params);
+                options = options ? new VarWidgetOptions(options.var_id, options.page_widget_id, options.filter_type, options.filter_additional_params) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

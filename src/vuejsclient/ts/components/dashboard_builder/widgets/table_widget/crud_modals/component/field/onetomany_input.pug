@@ -1,0 +1,35 @@
+.form-group
+
+    Alertcomponent.datatable_field_alert.onetomany_datatable_field_alert(:path='alert_path')
+
+    label(v-if="show_title") {{ t(field.translatable_title) }}
+        template(v-if="field.is_required")
+            i.fa.fa-asterisk.mandatory
+
+    .btn-group.link_ref(v-if='can_insert_or_update_target && show_insert_or_update_target')
+        router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+            i.fa.fa-plus-circle
+
+    multiselect(
+        v-model="field_value",
+        :custom-label="field.voIdToHumanReadable",
+        :options="select_options",
+        :placeholder="t(field.translatable_place_holder)",
+        :loading="isLoadingOptions",
+        :id="field.datatable_field_uid",
+        :searchable="searchable",
+        :internal-search="false",
+        :allow-empty="!field.is_required",
+        :preselect-first="false",
+        :disabled="is_readonly",
+        @search-change="asyncLoadOptions",
+        @input="onChangeField",
+        :multiple="true"
+        :close-on-select="false"
+
+        :select-label='label("multiselect.selectLabel")'
+        :select-group-label='label("multiselect.selectGroupLabel")'
+        :selected-label='label("multiselect.selectedLabel")'
+        :deselect-label='label("multiselect.deselectLabel")'
+        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+    )

@@ -29,3 +29,15 @@
                         :deselect-label='label("multiselect.deselectLabel")'
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
+
+    template(v-else)
+        .table_widget_column_conf
+            .column_label(v-if='!!translatable_name_code_text')
+                Inlinetranslatabletext(                    
+                    :code_text="translatable_name_code_text" 
+                    :is_editable="true"
+                    :default_translation="default_column_label")
+
+            .remove_column(@click="remove_column")
+                i.fa.fa-trash.fa-fw(aria-hidden="true")
+

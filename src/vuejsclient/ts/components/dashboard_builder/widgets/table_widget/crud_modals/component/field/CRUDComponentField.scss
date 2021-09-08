@@ -1,0 +1,187 @@
+.field {
+
+    textarea {
+        min-width: 45em;
+        min-height: 10em;
+    }
+
+    .datatable_field_alert {
+        float: right;
+    }
+
+    .text_cliquable {
+        display: inline-block;
+        color: #555 !important;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.8em;
+    }
+
+    .inter_text {
+        display: inline-block;
+        font-size: 0.8em;
+        margin: 0em 0.2em;
+    }
+
+    .inline_input_show_clear,
+    .inline_input_hide_clear,
+    .inline_input_is_editing,
+    .inline_input_cancel_input,
+    .inline_input_is_not_editing {
+
+        padding: 5px;
+        height: 1.8em;
+        padding-top: 0.3em;
+        font-size: 1em;
+        width: 1.8em;
+        vertical-align: top;
+        cursor: pointer;
+    }
+
+    .inline_input_hide_clear {
+        opacity: 0.5;
+        cursor: inherit;
+    }
+
+    .inline_input_show_clear.busy,
+    .inline_input_hide_clear.busy,
+    .inline_input_is_editing.busy,
+    .inline_input_cancel_input.busy,
+    .inline_input_is_not_editing.busy {
+        opacity: 0.5;
+        color: #888 !important;
+        background-color: #AAA !important;
+        cursor: wait;
+    }
+}
+
+.inline_input_mode_simple_text {
+    background: white;
+    line-height: 1.8em;
+    text-align: center;
+}
+
+.inline_input_mode {
+    text-align: center;
+
+    input[type~="number"],
+    input[type~="text"],
+    input[type~="password"],
+    .bool_field_inline_readonly_value,
+    .html_field_inline_readonly_value {
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        background: white;
+        border: none;
+        line-height: 1.7em;
+        vertical-align: bottom;
+        text-align: center;
+    }
+
+    .bool_field_inline_readonly_value,
+    .html_field_inline_readonly_value {
+        display: inline-block;
+    }
+
+    .multiselect {
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        display: inline-block;
+        line-height: 1em;
+        border: none;
+        line-height: 1.7em;
+        vertical-align: top;
+        text-align: center;
+
+        .multiselect__option {
+            white-space: inherit;
+        }
+
+        .multiselect__option::after {
+            display: none;
+        }
+
+        .multiselect__tags {
+            border: none;
+            border-radius: 0;
+        }
+    }
+
+    .multiselect--disabled {
+        opacity: 1;
+    }
+
+    .multiselect--disabled .multiselect__current,
+    .multiselect--disabled .multiselect__select {
+        background: none;
+        color: transparent;
+    }
+
+    .multiselect--disabled .multiselect__current::before,
+    .multiselect--disabled .multiselect__select::before {
+        display: none;
+    }
+
+    .multiselect,
+    .multiselect__input,
+    .multiselect__single {
+        font-size: inherit;
+    }
+
+    .quill-editor {
+
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        display: inline-block;
+    }
+
+    .form-checks {
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        display: inline-block;
+        background: white;
+
+        .form-check label {
+
+            margin-left: 0.3em;
+            vertical-align: middle;
+        }
+    }
+}
+
+.multiselect {
+    .option__image {
+        max-width: 60px;
+        max-height: 60px;
+        margin-right: 10px;
+    }
+
+    .option__desc {
+        display: inline-block;
+        vertical-align: middle;
+
+        .option__small {
+            display: block;
+            font-style: italic;
+            font-size: 14px;
+        }
+    }
+}
+
+.special_placeholder_field {
+
+    .special_placeholder_label {
+        transition: all 0.3s;
+        opacity: 0;
+        position: relative;
+        bottom: -26px;
+        z-index: -1;
+
+        &.has_value {
+            opacity: 1;
+            bottom: 0;
+            z-index: 0;
+            transition: all 0.3s;
+        }
+    }
+}

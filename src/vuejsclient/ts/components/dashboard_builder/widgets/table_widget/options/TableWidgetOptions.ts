@@ -8,7 +8,9 @@ export default class TableWidgetOptions {
     public constructor(
         public columns: TableColumnDescVO[],
         public page_widget_id: number,
-        public crud_api_type_id: string
+        public crud_api_type_id: string,
+        public vocus_button: boolean,
+        public delete_button: boolean
     ) { }
 
     get title_name_code_text(): string {

@@ -18,4 +18,17 @@
             }
         }
     }
+
+    .field_refs {
+        .nestable-item {
+            background: white;
+            padding: 1em;
+
+            .nestable-handle {
+                float: left;
+                margin-right: 1em;
+                padding-top: 0.5em;
+            }
+        }
+    }
 }

@@ -12,7 +12,7 @@
 
         template(v-if='columns && (columns.length > 1)')
             Vuenestable(
-                v-model="columns" 
+                v-model="editable_columns" 
                 @change="changed_columns"
                 key-prop="id"
                 :max-depth="1"
@@ -25,10 +25,16 @@
                     
                     .item_content
                         Tablewidgetcolumnoptionscomponent(
-                            :column="column" @add_column="add_column" @remove_column="remove_column"
+                            :column="item" @add_column="add_column" @remove_column="remove_column"
                             :page_widget="page_widget"
                         )
-                    
+
+        template(v-if='columns && (columns.length == 1)')
+            .item_content
+                Tablewidgetcolumnoptionscomponent(
+                    :column="columns[0]" @add_column="add_column" @remove_column="remove_column"
+                    :page_widget="page_widget"
+                )
 
         .column_wrapper
             Tablewidgetcolumnoptionscomponent(
@@ -61,3 +67,25 @@
                     :deselect-label='label("multiselect.deselectLabel")'
                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
+
+    .vocus_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.vocus_button') }}
+        
+        toggle-button(
+            @change="switch_vocus_button" 
+            :value="vocus_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.vocus_button.visible'), unchecked: label('table_widget_options_component.vocus_button.hidden')}")
+
+    .delete_button(v-if='widget_options && widget_options.crud_api_type_id')
+        .input_label {{ label('table_widget_options_component.delete_button') }}
+        
+        toggle-button(
+            @change="switch_delete_button" 
+            :value="delete_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.delete_button.visible'), unchecked: label('table_widget_options_component.delete_button.hidden')}")
+
+

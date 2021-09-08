@@ -1046,8 +1046,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let var_param: VarDataBaseVO = VarDataBaseVO.createNew(
-            var_name);
+        let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);
 
         let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];

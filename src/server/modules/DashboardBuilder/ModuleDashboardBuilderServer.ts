@@ -146,8 +146,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'droppable_vo_fields.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ajouter une colonne (champs ou variable)'
+        }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Glisser/déposer un champs'
         }, 'single_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélectionner une Variable'
+        }, 'table_widget_column.new_column_select_type_var_ref.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Filter'
@@ -266,6 +274,48 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Choisir type pour activer'
         }, 'table_widget_options_component.crud_api_type_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Afficher un lien Vocus'
+        }, 'table_widget_options_component.vocus_button.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Titre'
+        }, 'table_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.vocus_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.vocus_button.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Bouton pour supprimer la ligne ?'
+        }, 'table_widget_options_component.delete_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'table_widget_options_component.delete_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'table_widget_options_component.delete_button.hidden.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Confirmer ?'
+        }, 'TableWidgetComponent.confirm_delete.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'TableWidgetComponent.confirm_delete.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression en cours'
+        }, 'TableWidgetComponent.confirm_delete.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression terminée'
+        }, 'TableWidgetComponent.confirm_delete.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur lors de la suppression'
+        }, 'TableWidgetComponent.confirm_delete.ko.___LABEL___'));
+
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

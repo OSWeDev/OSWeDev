@@ -163,7 +163,7 @@ export default class ModuleDashboardBuilder extends Module {
     private init_TableColumnDescVO() {
 
         let page_widget_id = new ModuleTableField('page_widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var', true);
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var', false);
 
         let datatable_fields = [
             page_widget_id,

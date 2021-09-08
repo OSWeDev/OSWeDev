@@ -23,6 +23,10 @@
             td {
                 border: solid 1px #EEE;
                 padding: .2em;
+
+                &.type_0 {
+                    width: 0;
+                }
             }
         }
     }

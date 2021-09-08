@@ -1,0 +1,140 @@
+@import 'skin-variables.scss';
+
+.crud-wrapper {
+
+    .select2-container .select2-selection--single {
+        height: inherit;
+        min-height: calc(1em + 20px);
+    }
+
+    .select2-container {
+        display: block;
+    }
+
+    #updateData,
+    #createData {
+        .form-group {
+
+            label.vue-js-switch{
+                margin-left: 1em;
+            }
+
+            .vue-js-switch .v-switch-label.v-left {
+                left: 20px;
+            }
+
+            input[type=checkbox] {
+                width: 20px;
+                height: 20px;
+                display: inline-block;
+                vertical-align: middle;
+                margin-left: 10px;
+            }
+
+            input[type=checkbox].v-switch-input{
+                display: none;
+            }
+
+            .v-switch-core {
+                margin-left: 1em;
+            }
+
+            label {
+                font-weight: bold;
+
+                i.fa.fa-asterisk.mandatory {
+                    color: red;
+                    font-size: 0.4rem;
+                    vertical-align: top;
+                    margin-left: 1px;
+                }
+            }
+        }
+    }
+
+    @media (min-width: 820px) {
+        .modal-dialog {
+            max-width: 800px;
+        }
+    }
+
+    .crud_datatable {
+
+        margin-top: 25px;
+
+        .VuePagination {
+            @media print{
+                display:none;
+            }
+        }
+
+        .table-responsive {
+
+            min-height: 40em;
+            @media print{
+                min-height: auto;
+            }
+
+            table {
+
+                @media print{
+
+                    tr th:nth-child(1),
+                    tr th:nth-child(2),
+                    tr td:nth-child(1),
+                    tr td:nth-child(2) {
+                        display:none;
+                    }
+                }
+
+                tr th {
+                    color: #337ab7;
+                    cursor: pointer;
+                    padding-right: 1rem;
+                }
+
+                tr td {
+                    padding-right: 1rem;
+                }
+
+                tr th:focus,
+                tr th:hover {
+                    
+                    color: #23527c;
+                    text-decoration: underline;
+                }
+
+                tr th .v-select .dropdown-menu {
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                }
+
+                // tr th .form-control {
+                //     padding: .2rem .35rem;
+                //     font-size: 0.9rem;
+                //     line-height: 1.2;
+                //     border-radius: 0;
+                //     margin-bottom: 0.3rem;
+                // }
+
+                tr th input[type=checkbox],
+                tr td input[type=checkbox]{
+                    width: 18px;
+                    height: 18px;
+                    margin: 0.1rem 1rem;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * CRUD sur le front
+ */
+#app .crud-wrapper .crud_datatable .table-responsive table tr th.VueTables__sortable {
+    background: $button_primary_bg_color;
+    color: white;
+    padding: 5px;
+}
+

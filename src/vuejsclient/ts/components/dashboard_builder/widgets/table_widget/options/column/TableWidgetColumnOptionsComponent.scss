@@ -1,12 +1,49 @@
-.single_vo_field_ref_holder {
+.table_widget_column {
 
-    .vo_ref_field_receiver_placeholder {
-        width: 100%;
-        height: 5em;
-        padding: 2em;
-        text-align: center;
-        background: darkgray;
-        color: #EEE;
-        text-transform: uppercase;
+    .new_column_select_type {
+        padding: 1em;
+        background: white;
+        margin: 0.5em 0em;
+
+        .new_column_select_type_label {
+            margin-bottom: 1em;
+            color: dodgerblue;
+        }
+
+        .new_column_select_type_vo_field_ref {
+            .vo_ref_field_receiver_placeholder {
+                width: 100%;
+                height: 5em;
+                padding: 2em;
+                text-align: center;
+                background: darkgray;
+                color: #EEE;
+                text-transform: uppercase;
+            }
+        }
+
+        .new_column_select_type_var_ref {
+            margin-top: 0.5em;
+        }
+    }
+
+    .table_widget_column_conf {
+
+        padding: .2em 0em;
+
+        .remove_column {
+            display: inline-block;
+            padding: 0.2em;
+            background: indianred;
+            color: #EEE;
+            border-radius: 2px;
+            cursor: pointer;
+            margin-top: 1px;
+            margin-left: 6px;
+        }
+
+        .column_label {
+            display: inline-block;
+        }
     }
 }

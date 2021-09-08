@@ -10,10 +10,12 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         "table_column_desc.type.crud_actions",
         "table_column_desc.type.vo_field_ref",
         "table_column_desc.type.var_ref",
+        "table_column_desc.type.select_box",
     ];
     public static TYPE_crud_actions: number = 0;
     public static TYPE_vo_field_ref: number = 1;
     public static TYPE_var_ref: number = 2;
+    public static TYPE_select_box: number = 3;
 
     public id: number;
     public _type: string = TableColumnDescVO.API_TYPE_ID;
