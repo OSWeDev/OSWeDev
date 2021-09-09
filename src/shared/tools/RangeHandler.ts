@@ -76,6 +76,27 @@ export default class RangeHandler {
         return false;
     }
 
+    public is_one_max_range<T>(range: IRange<T>): boolean {
+
+        if (!range) {
+            return false;
+        }
+
+        switch (range.range_type) {
+            case TSRange.RANGE_TYPE:
+                return ((this.getSegmentedMin<T>(range) as any as Moment).isSame(RangeHandler.MIN_TS.utc(true), 'day')) ||
+                    ((this.getSegmentedMax<T>(range) as any as Moment).isSame(RangeHandler.MAX_TS.utc(true), 'day'));
+            case NumRange.RANGE_TYPE:
+                return ((this.getSegmentedMin<T>(range) as any as number) == RangeHandler.MIN_INT) ||
+                    ((this.getSegmentedMax<T>(range) as any as number) == RangeHandler.MAX_INT);
+            case HourRange.RANGE_TYPE:
+                return ((this.getSegmentedMin<T>(range) as any as Duration).asMilliseconds() == RangeHandler.MIN_HOUR.asMilliseconds()) ||
+                    ((this.getSegmentedMax<T>(range) as any as Duration).asMilliseconds() == RangeHandler.MAX_HOUR.asMilliseconds());
+        }
+
+        return false;
+    }
+
     /**
      * Renvoi une liste (union) de ranges optimisée pour correspondre au nouveau segment_type
      * si le segment_type est le même que celui actuellement en place dans le param, on renvoie le param
@@ -2158,7 +2179,7 @@ export default class RangeHandler {
                 }
 
                 // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
-                if (!return_max_value && this.is_max_range(range)) {
+                if (!return_max_value && this.is_one_max_range(range)) {
                     return null;
                 }
 
