@@ -318,7 +318,7 @@ export default class RangeHandler {
                         continue;
                     }
 
-                    if (k <= j) {
+                    if (parseInt(k.toString()) <= parseInt(j.toString())) {
                         continue;
                     }
 
