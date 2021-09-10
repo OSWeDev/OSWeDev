@@ -1,8 +1,13 @@
+import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 
 export default class VarWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "VarWidgetOptions.title.";
+
+    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
+        return {};
+    }
 
     public constructor(
         public var_id: number,

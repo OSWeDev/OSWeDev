@@ -2,7 +2,27 @@
 
 .crud_create_form {
 
+    padding: 2em;
+
+    .crud_create_form_header {
+
+        .title {
+
+            font-size: 1.5em;
+            margin-bottom: 1em;
+            border-bottom: solid 2px #DDD;
+        }
+    }
+
+    .crud_create_form_footer {
+        text-align: right;
+    }
+
     .form-group {
+
+        .btn-group {
+            margin-left: 1em;
+        }
 
         label.vue-js-switch{
             margin-left: 1em;

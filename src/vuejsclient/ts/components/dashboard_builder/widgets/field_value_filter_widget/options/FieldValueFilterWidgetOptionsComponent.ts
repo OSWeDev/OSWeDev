@@ -4,11 +4,14 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from './FieldValueFilterWidgetOptions';
 import './FieldValueFilterWidgetOptionsComponent.scss';
 
@@ -22,6 +25,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @ModuleDroppableVoFieldsAction
+    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
@@ -75,6 +81,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         this.set_page_widget(this.page_widget);
+
+        let icone_class = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].icone_class;
+        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[icone_class];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     get can_select_multiple(): boolean {

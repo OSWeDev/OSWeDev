@@ -12,10 +12,10 @@ import "./CRUDUpdateModalComponent.scss";
 })
 export default class CRUDUpdateModalComponent extends VueComponentBase {
 
-    @Prop({ default: null })
-    private vo: IDistantVOBase;
+    private vo: IDistantVOBase = null;
 
-    public open_modal() {
+    public open_modal(vo: IDistantVOBase) {
+        this.vo = vo;
         $('#crud_update_modal').modal('show');
     }
 

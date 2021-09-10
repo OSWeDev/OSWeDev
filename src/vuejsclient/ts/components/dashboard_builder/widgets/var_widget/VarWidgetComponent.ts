@@ -1,3 +1,4 @@
+import { debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -39,7 +40,7 @@ export default class VarWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+    private throttled_update_visible_options = debounce(this.update_visible_options.bind(this), 500);
 
     private var_param: VarDataBaseVO = null;
 

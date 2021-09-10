@@ -5,6 +5,8 @@ import { getStoreAccessors } from "vuex-typescript";
 import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import IStoreModule from "../../../store/IStoreModule";
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
+import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -12,6 +14,9 @@ export interface IDashboardPageState {
     page_widgets: DashboardPageWidgetVO[];
 
     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
+    Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+    Crudcreatemodalcomponent: CRUDCreateModalComponent;
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -39,11 +44,21 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.state = {
             page_widgets: [],
-            active_field_filters: {}
+            active_field_filters: {},
+            Crudupdatemodalcomponent: null,
+            Crudcreatemodalcomponent: null,
         };
 
 
         this.getters = {
+            get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
+                return state.Crudupdatemodalcomponent;
+            },
+
+            get_Crudcreatemodalcomponent(state: IDashboardPageState): CRUDCreateModalComponent {
+                return state.Crudcreatemodalcomponent;
+            },
+
             get_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
                 return state.page_widgets;
             },
@@ -56,6 +71,16 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.mutations = {
+
+
+            set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
+                state.Crudupdatemodalcomponent = Crudupdatemodalcomponent;
+            },
+
+            set_Crudcreatemodalcomponent(state: IDashboardPageState, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
+                state.Crudcreatemodalcomponent = Crudcreatemodalcomponent;
+            },
+
             set_active_field_filters(state: IDashboardPageState, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
                 state.active_field_filters = active_field_filters;
             },
@@ -129,6 +154,14 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.actions = {
 
+            set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
+                commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
+            },
+
+            set_Crudcreatemodalcomponent(context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
+                commit_set_Crudcreatemodalcomponent(context, Crudcreatemodalcomponent);
+            },
+
             set_active_field_filters(context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
                 commit_set_active_field_filters(context, active_field_filters);
             },
@@ -169,3 +202,5 @@ export const commit_delete_page_widget = commit(DashboardPageStoreInstance.mutat
 export const commit_set_active_field_filters = commit(DashboardPageStoreInstance.mutations.set_active_field_filters);
 export const commit_set_active_field_filter = commit(DashboardPageStoreInstance.mutations.set_active_field_filter);
 export const commit_remove_active_field_filter = commit(DashboardPageStoreInstance.mutations.remove_active_field_filter);
+export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
+export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);

@@ -12,10 +12,10 @@ import "./CRUDCreateModalComponent.scss";
 })
 export default class CRUDCreateModalComponent extends VueComponentBase {
 
-    @Prop()
-    private api_type_id: string;
+    private api_type_id: string = null;
 
-    public open_modal() {
+    public open_modal(api_type_id: string) {
+        this.api_type_id = api_type_id;
         $('#crud_create_modal').modal('show');
     }
 

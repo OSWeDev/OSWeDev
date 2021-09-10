@@ -4,6 +4,13 @@
         text-align: right;
         float: right;
         margin-top: -3px;
+
+        opacity: 0.5;
+        transition: opacity 300ms ease-in-out;
+
+        &:hover {
+            opacity: 1;
+        }
     }
 
     table {
@@ -14,7 +21,7 @@
                 border: solid 1px #EEE;
                 padding: .2em;
                 background: white;
-                font-size: 1.2em;
+                font-size: 1em;
                 font-weight: 700;
                 color: #555;
                 cursor: pointer;
@@ -32,6 +39,15 @@
 
                 &.type_0 {
                     width: 0;
+                }
+
+                .btn-group.d-print-none {
+                    opacity: 0.5;
+                    transition: opacity 300ms ease-in-out;
+
+                    &:hover {
+                        opacity: 1;
+                    }
                 }
             }
         }

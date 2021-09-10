@@ -6,6 +6,7 @@ import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/Das
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
@@ -15,10 +16,12 @@ import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardCompone
 import './DashboardBuilderComponent.scss';
 import DroppableVosComponent from './droppable_vos/DroppableVosComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
+import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import { ModuleDashboardPageAction } from './page/DashboardPageStore';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
+import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -39,6 +42,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
+    @ModuleDroppableVoFieldsAction
+    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
+
     private dashboards: DashboardVO[] = [];
     private dashboard: DashboardVO = null;
     private loading: boolean = true;
@@ -58,6 +64,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
+
+        let icone_class = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].icone_class;
+        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[icone_class];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
     }
 
     @Watch("dashboard_id", { immediate: true })

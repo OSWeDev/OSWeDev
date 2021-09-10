@@ -296,7 +296,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
     }
 
-    public invalidateUsingURLRegexp(regexp) {
+    public invalidateUsingURLRegexp(regexp: RegExp) {
 
         for (let i in this.cache.requestResponseCaches) {
             let cachedItem: RequestResponseCacheVO = this.cache.requestResponseCaches[i];

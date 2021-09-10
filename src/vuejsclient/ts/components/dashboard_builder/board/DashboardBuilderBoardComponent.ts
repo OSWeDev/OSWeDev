@@ -8,10 +8,13 @@ import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction } from '../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
+import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
+import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 
@@ -20,7 +23,9 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
     components: {
         Gridlayout: GridLayout,
         Griditem: GridItem,
-        Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent
+        Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
+        Crudupdatemodalcomponent: CRUDUpdateModalComponent,
+        Crudcreatemodalcomponent: CRUDCreateModalComponent,
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
@@ -37,6 +42,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
     @ModuleDashboardPageAction
     private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
+    @ModuleDashboardPageAction
+    private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
+
+    @ModuleDashboardPageAction
+    private set_Crudcreatemodalcomponent: (Crudcreatemodalcomponent: CRUDCreateModalComponent) => void;
 
     @Prop()
     private dashboard_page: DashboardPageVO;
@@ -57,6 +68,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private editable_dashboard_page: IEditableDashboardPage = null;
 
     private widgets: DashboardPageWidgetVO[] = [];
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
 
     get draggable(): boolean {
         return this.editable;
@@ -86,6 +101,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
+        this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
+        this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
     }
 
     private async add_widget_to_page(widget: DashboardWidgetVO) {

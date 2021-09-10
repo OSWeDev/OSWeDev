@@ -1,9 +1,35 @@
+import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 
 export default class TableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
+
+    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
+        let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
+
+        let options: TableWidgetOptions = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
+        if (!options) {
+            return res;
+        }
+
+        for (let i in options.columns) {
+            let column = options.columns[i];
+
+            if ((!column.api_type_id) || (!column.field_id)) {
+                continue;
+            }
+
+            if (!res[column.api_type_id]) {
+                res[column.api_type_id] = {};
+            }
+
+            res[column.api_type_id][column.field_id] = true;
+        }
+
+        return res;
+    }
 
     public constructor(
         public columns: TableColumnDescVO[],

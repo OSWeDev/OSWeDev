@@ -17,6 +17,8 @@ import TableWidgetOptions from './TableWidgetOptions';
 import './TableWidgetOptionsComponent.scss';
 import { cloneDeep } from 'lodash';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
+import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -34,6 +36,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @ModuleDroppableVoFieldsAction
+    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
@@ -268,6 +273,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         this.set_page_widget(this.page_widget);
+
+        let icone_class = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].icone_class;
+        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[icone_class];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
     get title_name_code_text(): string {

@@ -20,14 +20,17 @@
     }
 
     .field_refs {
-        .nestable-item {
+        .nested_field_refs {
             background: white;
             padding: 1em;
 
-            .nestable-handle {
-                float: left;
-                margin-right: 1em;
-                padding-top: 0.5em;
+            .nestable-item {
+
+                .nestable-handle {
+                    float: left;
+                    margin-right: 1em;
+                    padding-top: 0.5em;
+                }
             }
         }
     }

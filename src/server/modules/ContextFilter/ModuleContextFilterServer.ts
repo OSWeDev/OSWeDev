@@ -6,6 +6,7 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -489,7 +490,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text) {
-                            where_conditions.push(field_id + " ILIKE '%" + active_field_filter.param_text + "%'");
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " ILIKE '%" + text + "%'");
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -497,6 +499,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 if (!text) {
                                     continue;
                                 }
+                                text = text.replace(/'/g, "''");
                                 like_array.push("'%" + text + "%'");
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -511,7 +514,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text) {
-                            where_conditions.push("'%" + active_field_filter.param_text + "%' ILIKE ANY(" + field_id + ')');
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'%" + text + "%' ILIKE ANY(" + field_id + ')');
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -519,12 +523,75 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 if (!text) {
                                     continue;
                                 }
+                                text = text.replace(/'/g, "''");
                                 like_array.push("'%" + text + "%' ILIKE ANY(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
                             }
                             where_conditions.push("(" + like_array.join(') OR (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_DATE_EQUALS:
+                throw new Error('Not Implemented');
+
+            case ContextFilterVO.TYPE_TEXT_EQUALS_ALL:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " = '" + text + "'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            // TODO on peut aussi identifie qu'on a plusieurs chaines différentes et fuir la requete (si on doit être = à TOUS il vaut mieux en avoir qu'un...)
+                            where_conditions.push(field_id + " = ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'" + active_field_filter.param_text + "' = ALL(" + field_id + ")");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                like_array.push(text.replace(/'/g, "''"));
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("['" + like_array.join("','") + "'] <@ " + field_id + " AND ['" + like_array.join("','") + "'] @> " + field_id);
                         } else {
                             throw new Error('Not Implemented');
                         }
@@ -544,7 +611,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text) {
-                            where_conditions.push(field_id + " = '" + active_field_filter.param_text + "'");
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " = '" + text + "'");
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -552,6 +620,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 if (!text) {
                                     continue;
                                 }
+                                text = text.replace(/'/g, "''");
                                 like_array.push("'" + text + "'");
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -566,6 +635,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
                             where_conditions.push("'" + active_field_filter.param_text + "' = ANY(" + field_id + ")");
                         } else if (active_field_filter.param_textarray) {
                             let like_array = [];
@@ -574,6 +644,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 if (!text) {
                                     continue;
                                 }
+                                text = text.replace(/'/g, "''");
                                 like_array.push("'" + text + "' = ANY(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -629,15 +700,83 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_NUMERIC_INTERSECTS:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+
+                        let where_clause: string = '';
+
+                        for (let j in active_field_filter.param_numranges) {
+                            let field_range: NumRange = active_field_filter.param_numranges[j];
+
+                            where_clause += (where_clause == '') ? "" : " OR ";
+
+                            where_clause += ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(field, field_range);
+                        }
+
+                        where_conditions.push(where_clause);
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_NULL_ALL:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    default:
+                        where_conditions.push(field_id + " is NULL");
+                }
+                break;
+
+
             case ContextFilterVO.TYPE_FILTER_NOT:
             case ContextFilterVO.TYPE_FILTER_AND:
             case ContextFilterVO.TYPE_FILTER_OR:
             case ContextFilterVO.TYPE_FILTER_XOR:
-            case ContextFilterVO.TYPE_NULL_ALL:
             case ContextFilterVO.TYPE_NULL_ANY:
             case ContextFilterVO.TYPE_NULL_NONE:
 
-            case ContextFilterVO.TYPE_NUMERIC_INTERSECTS:
             case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_ID_INTERSECTS:
@@ -649,10 +788,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ContextFilterVO.TYPE_HOUR_INCLUDES:
             case ContextFilterVO.TYPE_HOUR_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_DATE_INTERSECTS:
-            case ContextFilterVO.TYPE_DATE_EQUALS:
             case ContextFilterVO.TYPE_DATE_INCLUDES:
             case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
-            case ContextFilterVO.TYPE_TEXT_EQUALS_ALL:
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY:

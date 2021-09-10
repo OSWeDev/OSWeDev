@@ -71,7 +71,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.weight = 0;
         Table.default_background = '#f5f5f5';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, null, false, true, false, true, true, true, true));
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, null, false, true, false, true, true, true, true), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -88,7 +88,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.weight = 0;
         fieldValueFilter.default_background = '#f5f5f5';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, true, 50));
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, true, 50), FieldValueFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
@@ -105,7 +105,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         var_widget.weight = 0;
         var_widget.default_background = '#f5f5f5';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null));
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null), VarWidgetOptions.get_selected_fields);
 
         Vue.component('Varwidgetcomponent', () => import(/* webpackChunkName: "VarWidgetComponent" */ './widgets/var_widget/VarWidgetComponent'));
         Vue.component('Varwidgetoptionscomponent', () => import(/* webpackChunkName: "VarWidgetOptionsComponent" */ './widgets/var_widget/options/VarWidgetOptionsComponent'));

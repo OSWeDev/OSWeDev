@@ -11,7 +11,7 @@
         .input_label {{ label('table_widget_options_component.columns') }}
 
         template(v-if='columns && (columns.length > 1)')
-            Vuenestable(
+            Vuenestable.nested_field_refs(
                 v-model="editable_columns" 
                 @change="changed_columns"
                 key-prop="id"

@@ -142,6 +142,10 @@
         color: $success_color;
     }
 
+    .fields_wrapper {
+        z-index: 2;
+    }
+    
     .collapse_fields_wrapper {
         padding: 0.2em;
         margin: 0em;

@@ -3,7 +3,6 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
@@ -144,15 +143,13 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hour:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                    translated_active_options.param_numranges = [RangeHandler.getInstance().create_single_elt_NumRange(
-                        this.row_value[column.field_id], NumSegment.TYPE_INT)];
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+                    translated_active_options.param_numeric = this.row_value[column.field_id];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-                    translated_active_options.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(
-                        this.row_value[column.field_id], (field.segmentation_type != null) ? field.segmentation_type : TimeSegment.TYPE_DAY)];
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
+                    translated_active_options.param_numeric = this.row_value[column.field_id];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_html:
@@ -161,8 +158,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_string:
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_translatable_text:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
-                    translated_active_options.param_textarray = [this.row_value[column.field_id]];
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
+                    translated_active_options.param_text = this.row_value[column.field_id];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_html_array:
@@ -170,9 +167,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
                 case ModuleTableField.FIELD_TYPE_boolean:
                     if (!!this.row_value[column.field_id]) {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY;
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
                     } else {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY;
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
                     }
                     break;
 
@@ -208,9 +205,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_month:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-                    translated_active_options.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(
-                        this.row_value[column.field_id], (field.segmentation_type != null) ? field.segmentation_type : TimeSegment.TYPE_DAY)];
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
+                    translated_active_options.param_numeric = this.row_value[column.field_id];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
