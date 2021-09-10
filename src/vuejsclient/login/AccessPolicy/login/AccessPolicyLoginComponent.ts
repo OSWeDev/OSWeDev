@@ -30,6 +30,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private pdf_info: string = null;
     private pdf_cgu: string = null;
 
+    private show_password: boolean = false;
+
     private async mounted() {
         let promises = [];
 
@@ -117,6 +119,10 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         this.$router.push({
             name: 'recover'
         });
+    }
+
+    private set_show_password(show_password: boolean) {
+        this.show_password = show_password;
     }
 
     get nfcconnect_available() {
