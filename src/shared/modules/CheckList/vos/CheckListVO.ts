@@ -7,5 +7,5 @@ export default class CheckListVO implements ICheckList {
     public _type: string = CheckListVO.API_TYPE_ID;
 
     public name: string;
-
+    public limit_affichage: number;
 }

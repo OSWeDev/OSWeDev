@@ -39,6 +39,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_get_filter_visible_options, this.get_filter_visible_options.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_get_filtered_datatable_rows, this.get_filtered_datatable_rows.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_from_active_filters, this.query_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_rows_count_from_active_filters, this.query_rows_count_from_active_filters.bind(this));
     }
 
@@ -1234,10 +1235,11 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         /**
          * Par mesure de sécu on check que les éléments proposés existent en base
          */
-        if ((!field_ids) || (!api_type_ids) || (!res_field_aliases) ||
+        if ((!api_type_ids) ||
             (api_type_ids.length <= 0) ||
-            (res_field_aliases.length != field_ids.length) ||
-            (api_type_ids.length != field_ids.length)) {
+            ((field_ids && res_field_aliases) &&
+                ((res_field_aliases.length != field_ids.length) ||
+                    (api_type_ids.length != field_ids.length)))) {
             return null;
         }
 

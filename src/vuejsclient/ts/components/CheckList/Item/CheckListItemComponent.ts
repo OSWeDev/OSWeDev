@@ -45,7 +45,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             return;
         }
 
-        if (!(this.checkpoints_editable_fields[step_id] && this.checkpoints_editable_fields[step_id].length)) {
+        if (step_id && !(this.checkpoints_editable_fields[step_id] && this.checkpoints_editable_fields[step_id].length)) {
             return;
         }
 

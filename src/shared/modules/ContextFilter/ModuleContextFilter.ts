@@ -2,12 +2,14 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
+import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import ContextFilterVO from './vos/ContextFilterVO';
 import GetDatatableRowsCountFromContextFiltersParamVO, { GetDatatableRowsCountFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsCountFromContextFiltersParamVO';
 import GetDatatableRowsFromContextFiltersParamVO, { GetDatatableRowsFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsFromContextFiltersParamVO';
+import GetOptionsForVosByContextParamVO, { GetOptionsForVosByContextParamVOStatic } from './vos/GetOptionsForVosByContextParamVO';
 import GetOptionsFromContextFiltersParamVO, { GetOptionsFromContextFiltersParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
 import SortByVO from './vos/SortByVO';
 
@@ -21,6 +23,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_get_filter_visible_options: string = "get_filter_visible_options";
     public static APINAME_get_filtered_datatable_rows: string = "get_filtered_datatable_rows";
     public static APINAME_query_rows_count_from_active_filters: string = "query_rows_count_from_active_filters";
+    public static APINAME_query_vos_from_active_filters: string = "query_vos_from_active_filters";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
@@ -47,6 +50,14 @@ export default class ModuleContextFilter extends Module {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[]
     ) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_rows_count_from_active_filters);
+
+    public query_vos_from_active_filters: <T extends IDistantVOBase>(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        limit: number,
+        offset: number
+    ) => Promise<T[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_vos_from_active_filters);
 
     public get_filter_visible_options: (
         api_type_id: string,
@@ -93,6 +104,14 @@ export default class ModuleContextFilter extends Module {
             null,
             GetDatatableRowsCountFromContextFiltersParamVOStatic
         ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetOptionsForVosByContextParamVO, number>(
+            null,
+            ModuleContextFilter.APINAME_query_vos_from_active_filters,
+            null,
+            GetOptionsForVosByContextParamVOStatic
+        ));
+
 
     }
 

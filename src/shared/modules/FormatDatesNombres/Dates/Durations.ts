@@ -40,7 +40,7 @@ export default class Durations {
                 return Math.floor(nb + duration);
 
             default:
-                return null;
+                return Math.floor(nb + duration);
         }
     }
 
@@ -76,7 +76,7 @@ export default class Durations {
                 return a - b;
 
             default:
-                return null;
+                return a - b;
         }
 
         let start_a = Dates.startOf(a, segmentation);
