@@ -288,11 +288,11 @@ export default class TableWidgetComponent extends VueComponentBase {
                         case ModuleTableField.FIELD_TYPE_foreign_key:
                         case ModuleTableField.FIELD_TYPE_image_ref:
                         case ModuleTableField.FIELD_TYPE_refrange_array:
-                            TODO
-                            let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
-                            data_field.setModuleTable(moduleTable);
-                            res[column.id] = data_field;
-                            break;
+                        // TODO
+                        // let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
+                        // data_field.setModuleTable(moduleTable);
+                        // res[column.id] = data_field;
+                        // break;
                         default:
 
                             let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);

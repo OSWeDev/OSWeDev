@@ -876,6 +876,22 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                         break;
                 }
             } else if ((!joined_tables_by_vo_type[field.module_table.vo_type]) && (field.module_table.vo_type != targeted_type)) {
+                // } else if (field.module_table.vo_type != targeted_type) {
+
+                /**
+                 * On est sur un many to one
+                 */
+
+                /**
+                 * Si la table cible n'est pas join on doit l'ajouter et faire le join dessus
+                 */
+
+                /**
+                 * Si les deux tables sont connues on devrait avoir
+                 */
+                // if ((!joined_tables_by_vo_type[field.module_table.vo_type]) && (!tables_aliases_by_type) {
+
+                // }
 
                 joined_tables_by_vo_type[field.module_table.vo_type] = field.module_table;
 
@@ -921,6 +937,61 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int_array:
                         jointures.push(
                             field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
+                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
+                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+                        );
+                        break;
+                }
+            } else if (joined_tables_by_vo_type[field.module_table.vo_type] && (field.module_table.vo_type != targeted_type) && (!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type])) {
+
+                /**
+                 * manytoOne mais dont c'est la cible qui est pas join encore
+                 */
+
+                joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type] = field.manyToOne_target_moduletable;
+
+                if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
+                    tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
+                }
+
+                if (!tables_aliases_by_type[field.module_table.vo_type]) {
+                    tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
+                }
+
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_file_field:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_image_field:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                        jointures.push(
+                            field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
+                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
+                        );
+                        break;
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                        // jointures.push(
+                        //     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+                        // );
+                        throw new Error('Not Implemented');
+
+                        break;
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        throw new Error('Not Implemented');
+                        // jointures.push(
+                        //     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+                        // );
+                        break;
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                        jointures.push(
+                            field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
                             tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
                             tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
                         );
@@ -1328,6 +1399,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     main_api_type_id = api_type_id;
 
                     FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+                    joined_tables_by_vo_type[api_type_id] = moduletable;
                 } else {
                     /**
                      * Si on connait déjà, rien à faire
