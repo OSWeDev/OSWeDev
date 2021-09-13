@@ -1559,20 +1559,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
                 //  deps sont définitivement perdues...
                 let deps_to_delete: IDistantVOBase[] = [];
+                let DEBUG_deps_types_to_delete: string = null;
+
                 for (let dep_i in deps) {
                     let dep = deps[dep_i];
 
                     if (!dep.is_cascade) {
                         continue;
                     }
+                    let depVO = await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id);
                     deps_to_delete.push(await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id));
+                    if (!DEBUG_deps_types_to_delete) {
+                        DEBUG_deps_types_to_delete = depVO._type;
+                    } else {
+                        DEBUG_deps_types_to_delete += ', ' + depVO._type;
+                    }
                 }
 
                 if (deps_to_delete && deps_to_delete.length) {
                     let dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(deps_to_delete);
 
                     if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
-                        ConsoleHandler.getInstance().error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION:');
+                        ConsoleHandler.getInstance().error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
                         continue;
                     }
                 }

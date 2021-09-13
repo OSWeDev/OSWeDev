@@ -162,6 +162,12 @@ export default class CRUDComponent extends VueComponentBase {
     @Watch("modal_show_update")
     @Watch("modal_show_delete")
     private async handle_modal_show_hide() {
+        this.crud.createDatatable.refresh();
+        this.crud_createDatatable_key = this.crud.createDatatable.key;
+
+        this.crud.updateDatatable.refresh();
+        this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+
         this.clear_alerts();
 
         if (!this.embed) {
@@ -197,20 +203,6 @@ export default class CRUDComponent extends VueComponentBase {
             $("#updateData,#createData,#deleteData").on("hidden.bs.modal", () => {
                 this.$router.push(this.callback_route);
             });
-
-            if (this.modal_show_create) {
-                modal_type = 'create';
-            }
-            if (this.modal_show_update) {
-                modal_type = 'update';
-            }
-            if (this.modal_show_delete) {
-                modal_type = 'delete';
-            }
-
-            if (this.crud && this.crud.callback_handle_modal_show_hide) {
-                await this.crud.callback_handle_modal_show_hide(vo, modal_type);
-            }
         } else {
             vo = this.getSelectedVOs[0];
             $('#createData' + embed_append).on("hidden.bs.modal", () => {
@@ -222,7 +214,20 @@ export default class CRUDComponent extends VueComponentBase {
             $('#deleteData' + embed_append).on("hidden.bs.modal", () => {
                 this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete');
             });
+        }
 
+        if (this.modal_show_create) {
+            modal_type = 'create';
+        }
+        if (this.modal_show_update) {
+            modal_type = 'update';
+        }
+        if (this.modal_show_delete) {
+            modal_type = 'delete';
+        }
+
+        if (this.crud && this.crud.callback_handle_modal_show_hide) {
+            await this.crud.callback_handle_modal_show_hide(vo, modal_type);
         }
 
         if (this.modal_show_create) {
@@ -657,6 +662,10 @@ export default class CRUDComponent extends VueComponentBase {
             await this.updateOneToMany(this.newVO, this.crud.createDatatable, createdVO);
 
             this.storeData(createdVO);
+
+            if (this.crud.postCreate) {
+                await this.crud.postCreate(createdVO);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
@@ -912,6 +921,10 @@ export default class CRUDComponent extends VueComponentBase {
             await this.updateOneToMany(this.editableVO, this.crud.createDatatable, updatedVO);
 
             this.updateData(updatedVO);
+
+            if (this.crud.postUpdate) {
+                await this.crud.postUpdate(updatedVO);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.update.errors.update_failure') + ": " + error);

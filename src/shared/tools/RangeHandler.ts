@@ -116,6 +116,27 @@ export default class RangeHandler {
         return false;
     }
 
+    public is_one_max_range(range: IRange): boolean {
+
+        if (!range) {
+            return false;
+        }
+
+        switch (range.range_type) {
+            case TSRange.RANGE_TYPE:
+                return (Dates.isSame(this.getSegmentedMin(range), RangeHandler.MIN_TS, TimeSegment.TYPE_DAY)) ||
+                    (Dates.isSame(this.getSegmentedMax(range), RangeHandler.MAX_TS, TimeSegment.TYPE_DAY));
+            case NumRange.RANGE_TYPE:
+                return (this.getSegmentedMin(range) == RangeHandler.MIN_INT) ||
+                    (this.getSegmentedMax(range) == RangeHandler.MAX_INT);
+            case HourRange.RANGE_TYPE:
+                return (this.getSegmentedMin(range) == RangeHandler.MIN_HOUR) ||
+                    (this.getSegmentedMax(range) == RangeHandler.MAX_HOUR);
+        }
+
+        return false;
+    }
+
     /**
      * Renvoi une liste (union) de ranges optimisée pour correspondre au nouveau segment_type
      * si le segment_type est le même que celui actuellement en place dans le param, on renvoie le param
@@ -350,7 +371,7 @@ export default class RangeHandler {
                         continue;
                     }
 
-                    if (k <= j) {
+                    if (parseInt(k.toString()) <= parseInt(j.toString())) {
                         continue;
                     }
 
@@ -1910,7 +1931,7 @@ export default class RangeHandler {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMax(range: IRange, segment_type: number = null, offset: number = 0): number {
+    public getSegmentedMax(range: IRange, segment_type: number = null, offset: number = 0, return_max_value: boolean = true): number {
 
         if (!range) {
             return null;
@@ -2001,6 +2022,11 @@ export default class RangeHandler {
 
                 if (!!offset) {
                     TimeSegmentHandler.getInstance().incTimeSegment(range_max_ts, segment_type, offset);
+                }
+
+                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                if (!return_max_value && this.is_one_max_range(range)) {
+                    return null;
                 }
 
                 return range_max_ts.index;

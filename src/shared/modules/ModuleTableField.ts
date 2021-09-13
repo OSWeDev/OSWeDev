@@ -128,6 +128,8 @@ export default class ModuleTableField<T> {
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
 
+    public return_max_value: boolean = true;
+
     /**
      * ----- Local thread cache
      */
@@ -172,6 +174,11 @@ export default class ModuleTableField<T> {
 
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
         this.segmentation_type = segmentation_type;
+        return this;
+    }
+
+    public set_return_max_value(return_max_value: boolean): ModuleTableField<T> {
+        this.return_max_value = return_max_value;
         return this;
     }
 

@@ -680,6 +680,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Session supprimée'
         }, 'session_share.delete_session.success.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: "Informations"
+        }, 'signin.informations.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: "Conditions d'utilisation"
+        }, 'signin.cgu.___LABEL___'));
 
 
 

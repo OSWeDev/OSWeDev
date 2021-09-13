@@ -17,6 +17,7 @@ import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
+import RangeHandler from '../../../../tools/RangeHandler';
 import DatatableField from './DatatableField';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
@@ -177,8 +178,22 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     return res_numranges;
 
-                case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
+                    let res_tsrange: string[] = [];
+
+                    res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(RangeHandler.getInstance().getSegmentedMin(field_value)));
+
+                    let max_period: number = RangeHandler.getInstance().getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
+
+                    if (max_period) {
+                        res_tsrange.push(Dates.format(max_period, ModuleFormatDatesNombres.FORMAT_YYYYMMDD));
+                    } else {
+                        res_tsrange.push('');
+                    }
+
+                    return res_tsrange.join(' - ');
+
+                case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_int_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
@@ -279,6 +294,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                 case ModuleTableField.FIELD_TYPE_tstz:
+                case ModuleTableField.FIELD_TYPE_tsrange:
                     return field_value;
 
                 default:
