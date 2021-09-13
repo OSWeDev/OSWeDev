@@ -238,7 +238,7 @@ export default class PushDataServerController {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
-        await this.notifyRedirectHomeAndDisconnect();
+        await this.notifyRedirectHomeAndDisconnect(session);
 
         if (this.registeredSockets_by_sessionid[session.id]) {
             delete this.registeredSockets_by_sessionid[session.id];
@@ -347,16 +347,16 @@ export default class PushDataServerController {
     /**
      * On notifie un utilisateur pour forcer la déco et rechargement de la page d'accueil
      */
-    public async notifyRedirectHomeAndDisconnect() {
+    public async notifyRedirectHomeAndDisconnect(session: IServerUserSession = null) {
 
         // Permet d'assurer un lancement uniquement sur le main process
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyRedirectHomeAndDisconnect, session)) {
             return;
         }
 
         let notification: NotificationVO = null;
         try {
-            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            session = session ? session : StackContext.getInstance().get('SESSION');
             if (!session) {
                 return;
             }

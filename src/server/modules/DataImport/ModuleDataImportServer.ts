@@ -860,7 +860,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             { [raw_api_type_id]: { ['importation_state']: filter } },
             [raw_api_type_id],
             batch_size,
-            0
+            0,
+            null
         );
     }
 

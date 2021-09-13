@@ -56,7 +56,8 @@ export default class ModuleContextFilter extends Module {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         limit: number,
-        offset: number
+        offset: number,
+        sort_by: SortByVO,
     ) => Promise<T[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_vos_from_active_filters);
 
     public get_filter_visible_options: (

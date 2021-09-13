@@ -259,7 +259,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         limit: number,
-        offset: number
+        offset: number,
+        sort_by: SortByVO
     ): Promise<T[]> {
         let request: string = this.build_request_from_active_field_filters(
             [api_type_id],
@@ -268,7 +269,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             active_api_type_ids,
             limit,
             offset,
-            null,
+            sort_by,
             null
         );
 

@@ -62,6 +62,21 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
         }
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Confirmer ?'
+        }, 'programplan.create_cr.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Enregistrer le compte-rendu'
+        }, 'programplan.create_cr.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Enregistrement en cours...'
+        }, 'programplan.create_cr.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur lors de l\'enregistrement du compte-rendu'
+        }, 'programplan.create_cr.error.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Enregistrement du compte-rendu terminé'
+        }, 'programplan.create_cr.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Animateur'

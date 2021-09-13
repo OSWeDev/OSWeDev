@@ -757,52 +757,57 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public async logout() {
 
-        let user_log = null;
-        let session = StackContext.getInstance().get('SESSION');
+        return new Promise(async (accept, reject) => {
 
-        if (session && session.uid) {
-            let uid: number = session.uid;
+            let user_log = null;
+            let session = StackContext.getInstance().get('SESSION');
 
-            // On stocke le log de connexion en base
-            user_log = new UserLogVO();
-            user_log.user_id = uid;
-            user_log.impersonated = (session && !!session.impersonated_from);
-            user_log.log_time = Dates.now();
-            user_log.referer = null;
-            user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-            if (session && !!session.impersonated_from) {
-                user_log.comment = 'Impersonated from user_id [' + uid + ']';
+            if (session && session.uid) {
+                let uid: number = session.uid;
+
+                // On stocke le log de connexion en base
+                user_log = new UserLogVO();
+                user_log.user_id = uid;
+                user_log.impersonated = (session && !!session.impersonated_from);
+                user_log.log_time = Dates.now();
+                user_log.referer = null;
+                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+                if (session && !!session.impersonated_from) {
+                    user_log.comment = 'Impersonated from user_id [' + uid + ']';
+                }
+
+                await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
             }
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-        }
+            /**
+             * Gestion du impersonate => on restaure la session précédente
+             */
+            if (session && !!session.impersonated_from) {
 
-        /**
-         * Gestion du impersonate => on restaure la session précédente
-         */
-        if (session && !!session.impersonated_from) {
+                await PushDataServerController.getInstance().unregisterSession(session);
 
-            await PushDataServerController.getInstance().unregisterSession(session);
+                session = Object.assign(session, session.impersonated_from);
+                delete session.impersonated_from;
 
-            session = Object.assign(session, session.impersonated_from);
-            delete session.impersonated_from;
+                session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.getInstance().log(err);
+                    }
+                    accept(err);
+                });
+            } else {
 
-            session.save((err) => {
-                if (err) {
-                    ConsoleHandler.getInstance().log(err);
-                }
-            });
-        } else {
+                await PushDataServerController.getInstance().unregisterSession(session);
 
-            await PushDataServerController.getInstance().unregisterSession(session);
-
-            session.uid = null;
-            session.save((err) => {
-                if (err) {
-                    ConsoleHandler.getInstance().log(err);
-                }
-            });
-        }
+                session.uid = null;
+                session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.getInstance().log(err);
+                    }
+                    accept(err);
+                });
+            }
+        });
     }
 
     public async begininitpwd(text: string): Promise<void> {

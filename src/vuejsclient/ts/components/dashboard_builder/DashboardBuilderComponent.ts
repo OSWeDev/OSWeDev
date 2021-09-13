@@ -135,7 +135,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        this.pages = [page];
+        page.id = insertOrDeleteQueryResult.id;
+
+        this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = page;
     }
 
@@ -152,9 +155,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {
             await this.create_dashboard_page();
+        } else {
+            WeightHandler.getInstance().sortByWeight(this.pages);
+            this.page = this.pages[0];
         }
-        WeightHandler.getInstance().sortByWeight(this.pages);
-        this.page = this.pages[0];
     }
 
     get dashboard_name_code_text(): string {
