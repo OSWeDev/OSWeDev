@@ -63,8 +63,7 @@ export default class RangeHandler {
 
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
-                return range.min_inclusiv && ((range.min as any as Moment).unix() == RangeHandler.MIN_TS.unix()) &&
-                    (!range.max_inclusiv) && ((range.max as any as Moment).unix() == RangeHandler.MAX_TS.unix());
+                return range.min_inclusiv && this.is_left_open(range) && !range.max_inclusiv && this.is_right_open(range);
             case NumRange.RANGE_TYPE:
                 return range.min_inclusiv && ((range.min as any as number) == RangeHandler.MIN_INT) &&
                     (!range.max_inclusiv) && ((range.max as any as number) == RangeHandler.MAX_INT);
