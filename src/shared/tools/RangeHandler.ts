@@ -97,6 +97,68 @@ export default class RangeHandler {
         return false;
     }
 
+    public is_left_open<T>(range: IRange<T>): boolean {
+        if (!range) {
+            return false;
+        }
+        switch (range.range_type) {
+            case TSRange.RANGE_TYPE:
+                let segmented_min: number = (this.getSegmentedMin<T>(range) as any as Moment).unix();
+                switch (range.segment_type) {
+                    case TimeSegment.TYPE_DAY:
+                        return segmented_min === -9223286400 || segmented_min === -9223372800; // min_inclusive = false || min_inclusive = true
+                    case TimeSegment.TYPE_WEEK:
+                        return segmented_min === -9222854400 || segmented_min === -9223459200;
+                    case TimeSegment.TYPE_MONTH:
+                        return segmented_min === -9222508800 || segmented_min === -9225100800;
+                    case TimeSegment.TYPE_YEAR:
+                        return segmented_min === -9214560000 || segmented_min === -9246096000;
+                    case TimeSegment.TYPE_HOUR:
+                        return segmented_min === -9223372800;
+                    case TimeSegment.TYPE_MINUTE:
+                        return segmented_min === -9223372800;
+                    case TimeSegment.TYPE_SECOND:
+                        return segmented_min === -9223372800;
+                }
+            case NumRange.RANGE_TYPE:
+                return ((this.getSegmentedMin<T>(range) as any as number) == RangeHandler.MIN_INT);
+            case HourRange.RANGE_TYPE:
+                return ((this.getSegmentedMin<T>(range) as any as Duration).asMilliseconds() == RangeHandler.MIN_HOUR.asMilliseconds());
+        }
+        return false;
+    }
+
+    public is_right_open<T>(range: IRange<T>): boolean {
+        if (!range) {
+            return false;
+        }
+        switch (range.range_type) {
+            case TSRange.RANGE_TYPE:
+                let segmented_max: number = (this.getSegmentedMax<T>(range) as any as Moment).unix();
+                switch (range.segment_type) {
+                    case TimeSegment.TYPE_DAY:
+                        return segmented_max === 9223372800;
+                    case TimeSegment.TYPE_WEEK:
+                        return segmented_max === 9222854400 || segmented_max === 9223459200; // idem left_open
+                    case TimeSegment.TYPE_MONTH:
+                        return segmented_max === 9222336000 || segmented_max === 9224928000;
+                    case TimeSegment.TYPE_YEAR:
+                        return segmented_max === 9214560000 || segmented_max === 9246096000;
+                    case TimeSegment.TYPE_HOUR:
+                        return segmented_max === 9223372800;
+                    case TimeSegment.TYPE_MINUTE:
+                        return segmented_max === 9223372800;
+                    case TimeSegment.TYPE_SECOND:
+                        return segmented_max === 9223372800;
+                }
+            case NumRange.RANGE_TYPE:
+                return ((this.getSegmentedMax<T>(range) as any as number) == RangeHandler.MAX_INT);
+            case HourRange.RANGE_TYPE:
+                return ((this.getSegmentedMax<T>(range) as any as Duration).asMilliseconds() == RangeHandler.MAX_HOUR.asMilliseconds());
+        }
+        return false;
+    }
+
     /**
      * Renvoi une liste (union) de ranges optimisée pour correspondre au nouveau segment_type
      * si le segment_type est le même que celui actuellement en place dans le param, on renvoie le param
