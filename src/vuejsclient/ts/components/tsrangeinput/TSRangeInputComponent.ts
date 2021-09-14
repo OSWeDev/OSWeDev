@@ -106,15 +106,27 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: Moment = RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
-        let max: Moment = RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
+        let min: Moment = RangeHandler.getInstance().is_left_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
+        let max: Moment = RangeHandler.getInstance().is_right_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
 
-        this.tsrange_start = min.toDate();
-        this.tsrange_end = max.toDate();
+        if (min) {
+            this.tsrange_start = min.toDate();
+            if (this.tsrange_start) {
+                this.tsrange_start_time = (this.value && this.value.min) ? this.value.min.format(this.format_time) : null;
+            }
+        } else {
+            this.tsrange_start = null;
+            this.tsrange_start_time = null;
+        }
 
-        if (this.tsrange_start) {
-            this.tsrange_start_time = (this.value && this.value.min) ? this.value.min.format(this.format_time) : null;
-            this.tsrange_end_time = (this.value && this.value.max) ? this.value.max.format(this.format_time) : null;
+        if (max) {
+            this.tsrange_end = max.toDate();
+            if (this.tsrange_end) {
+                this.tsrange_end_time = (this.value && this.value.max) ? this.value.max.format(this.format_time) : null;
+            }
+        } else {
+            this.tsrange_end = null;
+            this.tsrange_end_time = null;
         }
     }
 
@@ -123,7 +135,11 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.segmentation_type_);
+        this.new_value = RangeHandler.getInstance().createNew(
+            TSRange.RANGE_TYPE,
+            this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
+            this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
+            true, true, this.segmentation_type_);
         this.$emit('input', this.new_value);
 
         if (!!this.vo) {

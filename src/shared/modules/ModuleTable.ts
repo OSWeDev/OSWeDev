@@ -1079,7 +1079,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_MS));
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hourrange:

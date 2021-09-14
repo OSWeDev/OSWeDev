@@ -130,6 +130,7 @@ export default class ModuleTableField<T> {
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
 
+    public return_min_value: boolean = true;
     public return_max_value: boolean = true;
 
     /**
@@ -181,6 +182,11 @@ export default class ModuleTableField<T> {
 
     public set_return_max_value(return_max_value: boolean): ModuleTableField<T> {
         this.return_max_value = return_max_value;
+        return this;
+    }
+
+    public set_return_min_value(return_min_value: boolean): ModuleTableField<T> {
+        this.return_min_value = return_min_value;
         return this;
     }
 
