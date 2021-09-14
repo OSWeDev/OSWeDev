@@ -26,7 +26,7 @@
                     //- @click="(event) => select_widget_and_stop(event, item)"
                     .grid_item_wrapper(
                         @click="select_widget(item)"
-                        :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_icone_class__' + widgets_by_id[item.widget_id].icone_class] : true }"
+                        :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name] : true }"
                     )
                         Griditem(
                             :static="(!editable) || item.static"
@@ -41,6 +41,7 @@
                         )
                             Dashboardbuilderboarditemcomponent(
                                 :dashboard_page='dashboard_page'
+                                :dashboard_pages='dashboard_pages'
                                 :dashboard='dashboard'
                                 :page_widget='item'
                                 :is_edit_mode='editable'
@@ -48,5 +49,6 @@
 
                                 @delete_widget='delete_widget'
                                 @select_widget='select_widget'
+                                @select_page='select_page'
                             )
                     

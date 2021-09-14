@@ -434,7 +434,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.page_widget_id, options.crud_api_type_id, options.vocus_button,
+                    options.columns, options.page_widget_id, options.is_focus_api_type_id,
+                    options.limit, options.crud_api_type_id, options.vocus_button,
                     options.delete_button, options.delete_all_button, options.create_button, options.update_button,
                     options.refresh_button, options.export_button) : null;
             }

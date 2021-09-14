@@ -7,7 +7,7 @@
         .widgets 
             template(v-for="(widget_, widget_i) in widgets")
                 .widget(@click="add_widget_to_page(widget_)" :tooltip="widgets_name[widget_i]")
-                    i(aria-hidden="true" :class="widget_.icone_class + ' fa fa-fw'")
+                    .widget_icone(:is="widget_.icon_component")
 
         .widget_options_wrapper
             template(v-if="!selected_widget")
@@ -16,4 +16,4 @@
                 template(v-if="!selected_widget_type")
                     i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                 template(v-else)
-                    .widget_options(:is="selected_widget_type.options_component" :page_widget='selected_widget' :dashboard='dashboard')
+                    .widget_options(:is="selected_widget_type.options_component" :page_widget='selected_widget' :dashboard='dashboard' :dashboard_pages="dashboard_pages" :dashboard_page="dashboard_page")

@@ -86,7 +86,8 @@ export default class ModuleDashboardBuilder extends Module {
 
         let datatable_fields = [
             dashboard_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('hide_navigation', ModuleTableField.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false),
         ];
 
         let res = new ModuleTable(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
@@ -97,13 +98,15 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_DashboardWidgetVO(): ModuleTable<any> {
 
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
+
         let datatable_fields = [
+            name,
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField('widget_component', ModuleTableField.FIELD_TYPE_string, 'Composant - Widget', true),
             new ModuleTableField('options_component', ModuleTableField.FIELD_TYPE_string, 'Composant - Options', true),
             new ModuleTableField('default_width', ModuleTableField.FIELD_TYPE_int, 'Largeur par défaut', true, true, 106),
             new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30),
-            new ModuleTableField('icone_class', ModuleTableField.FIELD_TYPE_string, 'Classe - icône', true).unique(),
             new ModuleTableField('default_background', ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
         ];
 

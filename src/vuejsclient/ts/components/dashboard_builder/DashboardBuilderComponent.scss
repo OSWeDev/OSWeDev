@@ -82,7 +82,8 @@
             margin: 0.5em;
 
             .select,
-            .selected {
+            .selected,
+            .hide_navigation {
 
                 text-align: center;
                 vertical-align: middle;
@@ -98,6 +99,16 @@
                 font-size: 1.2em;
             }
             
+            .hide_navigation {
+                background: #0d6efd;
+            }
+
+            .hide_navigation i.disabled {
+                background: #555;
+                color: #AAA;
+                cursor: not-allowed;
+            }
+
             .select {
                 background: #0d6efd;
             }

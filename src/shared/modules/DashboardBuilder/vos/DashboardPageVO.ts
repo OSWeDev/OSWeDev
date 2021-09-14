@@ -11,6 +11,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
 
     public dashboard_id: number;
     public weight: number;
+    public hide_navigation: boolean;
 
     get translatable_name_code_text(): string {
 

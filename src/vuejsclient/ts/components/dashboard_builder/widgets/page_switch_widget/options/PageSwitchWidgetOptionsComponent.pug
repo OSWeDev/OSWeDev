@@ -1,0 +1,33 @@
+.page_switch_widget_options_component
+    .page_name 
+        .input_label {{ label('page_switch_widget_options_component.page_name') }}
+        .input_wrapper
+            multiselect.page_name_selector(
+                :preselect-first="false"
+                :multiple="false"
+                v-model="tmp_selected_page_name"
+                :options="page_names"
+                :allow-empty="false",
+
+                :searchable="true"
+                :internal-search="true"
+                
+                select-label=''
+                select-group-label=''
+                selected-label=''
+                deselect-label=''
+                deselect-group-label=''
+
+                placeholder=''
+                
+                name="page_name_selector"
+            )
+                .lang_selector_option(slot="noOptions") -
+
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('page_switch_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")

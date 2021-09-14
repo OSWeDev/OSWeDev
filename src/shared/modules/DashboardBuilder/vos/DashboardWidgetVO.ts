@@ -1,9 +1,10 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import INamedVO from "../../../interfaces/INamedVO";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardBuilderController from "../DashboardBuilderController";
 
-export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem {
+export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem, INamedVO {
     public static API_TYPE_ID: string = "dashboard_widget";
 
     public id: number;
@@ -21,6 +22,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem 
 
     public widget_component: string;
     public options_component: string;
+    public icon_component: string;
 
     public default_width: number;
     public default_height: number;
@@ -28,7 +30,7 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem 
     /**
      * Needs to be unique for ergonomy and widget retrieval
      */
-    public icone_class: string;
+    public name: string;
 
     public default_background: string;
 }

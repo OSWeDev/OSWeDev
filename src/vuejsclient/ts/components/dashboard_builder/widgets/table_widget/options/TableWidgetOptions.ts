@@ -34,6 +34,8 @@ export default class TableWidgetOptions {
     public constructor(
         public columns: TableColumnDescVO[],
         public page_widget_id: number,
+        public is_focus_api_type_id: boolean,
+        public limit: number,
         public crud_api_type_id: string,
         public vocus_button: boolean,
         public delete_button: boolean,

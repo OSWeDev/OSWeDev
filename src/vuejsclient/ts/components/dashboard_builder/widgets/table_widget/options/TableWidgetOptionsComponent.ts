@@ -200,7 +200,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, this.page_widget.id, null, false, true, false, true, true, true, true);
+        return new TableWidgetOptions(null, this.page_widget.id, false, 10, null, false, true, false, true, true, true, true);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -274,8 +274,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         this.set_page_widget(this.page_widget);
 
-        let icone_class = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].icone_class;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[icone_class];
+        let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 
@@ -301,7 +301,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.page_widget_id, options.crud_api_type_id,
+                    options.columns, options.page_widget_id, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
                     options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
                     options.refresh_button, options.export_button) : null;
             }

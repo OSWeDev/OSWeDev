@@ -72,16 +72,24 @@
                         template(v-for='(page_, pagei) in pages')
                             .page
                                 .select(v-if='page_.id != page.id')
-                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page(page_)")
+                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
                                 .selected(v-else)
-                                    i.fa.fa-check-circle.fa-fw(aria-hidden="true")
+                                    i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
                                 .name
                                     Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
+                                .hide_navigation
+                                    template(v-if='parseInt(pagei.toString()) != 0')
+                                        template(v-if='page_.hide_navigation')
+                                            i.fa.fa-eye-slash.fa-fw.btn_icon(aria-hidden="true" @click="switch_hide_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_click_to_show_navigation")')
+                                        template(v-else)
+                                            i.fa.fa-eye.fa-fw.btn_icon(aria-hidden="true" @click="switch_hide_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_click_to_hide_navigation")')
+                                    template(v-else)
+                                        i.fa.fa-eye.fa-fw.btn_icon.disabled(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_cannot_hide_navigation")')
                                 .delete 
-                                    i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)")
+                                    i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_delete_page")')
 
                         .create_dashboard_page
-                            i.fa.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page")
+                            i.fa.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 
         template(v-if='!page')
             .row
@@ -101,13 +109,24 @@
 
             .row(v-if='show_build_page')
                 .col-md-9.builder_wrapper
-                    Dashboardbuilderboardcomponent(:dashboard_page='page' :dashboard='dashboard' :selected_widget='selected_widget' @select_widget='select_widget')
+                    Dashboardbuilderboardcomponent(
+                        :dashboard_page='page' 
+                        :dashboard_pages='pages'
+                        :dashboard='dashboard' 
+                        :selected_widget='selected_widget' 
+                        @select_widget='select_widget'
+                        @select_page='select_page'
+                    )
 
                 .col-md-3.fields_wrapper
                     .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
                         i.fa.fa-caret-square-o-up.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
                         i.fa.fa-caret-square-o-down.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
-                    Dashboardbuilderwidgetscomponent(:dashboard='dashboard' :selected_widget='selected_widget' v-show='!collapsed_fields_wrapper')
+                    Dashboardbuilderwidgetscomponent(
+                        :dashboard='dashboard' :selected_widget='selected_widget' v-show='!collapsed_fields_wrapper'
+                        :dashboard_page='page'
+                        :dashboard_pages='pages'
+                    )
                     Droppablevofieldscomponent(:dashboard='dashboard' v-show='!collapsed_fields_wrapper')
             
             .row(v-if='show_menu_conf')

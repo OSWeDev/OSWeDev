@@ -82,8 +82,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         this.set_page_widget(this.page_widget);
 
-        let icone_class = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].icone_class;
-        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[icone_class];
+        let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
 

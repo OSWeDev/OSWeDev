@@ -53,6 +53,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     @Prop()
+    private dashboard_pages: DashboardPageVO[];
+
+    @Prop()
     private dashboard: DashboardVO;
 
     @Prop({ default: null })
@@ -130,8 +133,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         page_widget.background = widget.default_background;
 
         try {
-            if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.icone_class]) {
-                let options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.icone_class]();
+            if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.name]) {
+                let options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.name]();
                 page_widget.json_options = JSON.stringify(options);
             }
         } catch (error) {
@@ -235,6 +238,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private select_widget(page_widget) {
         this.$emit('select_widget', page_widget);
+    }
+
+    private select_page(page) {
+        this.$emit('select_page', page);
     }
 
     // private select_widget_and_stop(event, page_widget) {

@@ -35,6 +35,24 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.selected_widget = page_widget;
     }
 
+    get visible_pages(): DashboardPageVO[] {
+
+        if (!this.pages) {
+            return null;
+        }
+
+        let res: DashboardPageVO[] = [];
+
+        for (let i in this.pages) {
+            let page = this.pages[i];
+            if (!page.hide_navigation) {
+                res.push(page);
+            }
+        }
+
+        return res;
+    }
+
     @Watch("dashboard_id", { immediate: true })
     private async onchange_dashboard_id() {
         this.loading = true;

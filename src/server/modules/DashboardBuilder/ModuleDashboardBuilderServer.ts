@@ -53,6 +53,51 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Sélectionner un Dashboard...'
         }, 'dashboard_builder.select_dashboard.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Onglet caché. Cliquer pour le rendre visible sur le Tableau de bord.'
+        }, 'dashboard_builder.pages.tooltip_click_to_show_navigation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Onglet visible. Cliquer pour le cacher sur le Tableau de bord.'
+        }, 'dashboard_builder.pages.tooltip_click_to_hide_navigation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Le premier onglet est obligatoirement visible.'
+        }, 'dashboard_builder.pages.tooltip_cannot_hide_navigation.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Cliquer pour sélectionner et afficher cette page du Tableau de bord.'
+        }, 'dashboard_builder.pages.tooltip_select_page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Cette page est actuellement sélectionnée et affichée.'
+        }, 'dashboard_builder.pages.tooltip_selected_page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer cette page du Tableaud de bord. Attention tous les widgets inclus dans la page seront également supprimés.'
+        }, 'dashboard_builder.pages.tooltip_delete_page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ajouter une page au Tableau de bord.'
+        }, 'dashboard_builder.pages.tooltip_create_dashboard_page.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Table de données. Permet de lister, modifier et supprimer des données de l\'application.'
+        }, 'dashboards.widgets.icons_tooltips.datatable.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Table de valeurs. Pour aggréger les données (et variables) suivant les filtres sélectionnés et les colonnes affichées.'
+        }, 'dashboards.widgets.icons_tooltips.valuetable.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtre sur la valeur d\'un champs. Sélectionner un champs et les paramètres de filtrage. Le filtre est appliqué à toutes les pages du Tableau de bord.'
+        }, 'dashboards.widgets.icons_tooltips.fieldvaluefilter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'KPI. Sélectionner une variable et un format d\'affichage.'
+        }, 'dashboards.widgets.icons_tooltips.var.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lien vers une autre page. Permet de naviguer vers une autre page du Tableau de bord, même si celle-ci est cachée par ailleurs du menu.'
+        }, 'dashboards.widgets.icons_tooltips.pageswitch.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Au clic, ouvrir cette page'
+        }, 'page_switch_widget_options_component.page_name.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Texte du lien'
+        }, 'page_switch_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Impossible de supprimer la page principale'
@@ -463,7 +508,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             return;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT max(id) as max_i from ' + VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID].full_name);
+        let query_res = await ModuleDAOServer.getInstance().query('SELECT max(i) as max_i from ' + VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID].full_name);
         let max_i = (query_res && (query_res.length == 1) && (typeof query_res[0]['max_i'] != 'undefined') && (query_res[0]['max_i'] !== null)) ? query_res[0]['max_i'] : null;
         max_i = max_i ? parseInt(max_i.toString()) : null;
         if (!max_i) {

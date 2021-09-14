@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
@@ -21,7 +22,10 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     private dashboard: DashboardVO;
 
     @Prop()
-    private page_id: number;
+    private dashboard_page: DashboardPageVO;
+
+    @Prop()
+    private dashboard_pages: DashboardPageVO[];
 
     @Prop({ default: null })
     private selected_widget: DashboardPageWidgetVO;

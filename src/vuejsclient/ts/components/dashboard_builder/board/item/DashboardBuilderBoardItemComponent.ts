@@ -18,6 +18,9 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     private dashboard_page: DashboardPageVO;
 
     @Prop()
+    private dashboard_pages: DashboardPageVO[];
+
+    @Prop()
     private dashboard: DashboardVO;
 
     @Prop()
@@ -48,5 +51,9 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         // event.stopPropagation();
 
         this.$emit('select_widget', this.page_widget);
+    }
+
+    private select_page(page) {
+        this.$emit('select_page', page);
     }
 }
