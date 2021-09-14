@@ -84,8 +84,7 @@ export default class RangeHandler {
 
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
-                return ((this.getSegmentedMin<T>(range) as any as Moment).isSame(RangeHandler.MIN_TS.utc(true), 'day')) ||
-                    ((this.getSegmentedMax<T>(range) as any as Moment).isSame(RangeHandler.MAX_TS.utc(true), 'day'));
+                return this.is_left_open(range) || this.is_right_open(range);
             case NumRange.RANGE_TYPE:
                 return ((this.getSegmentedMin<T>(range) as any as number) == RangeHandler.MIN_INT) ||
                     ((this.getSegmentedMax<T>(range) as any as number) == RangeHandler.MAX_INT);
