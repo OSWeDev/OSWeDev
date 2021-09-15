@@ -7,7 +7,8 @@
 
     .grid_item_wrapper {
 
-        &.widget_name__fa-table .vue-grid-item {
+        &.widget_name__datatable .vue-grid-item,
+        &.widget_name__valuetable .vue-grid-item {
             overflow: auto;
         }
 

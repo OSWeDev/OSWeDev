@@ -34,6 +34,7 @@
             cursor: pointer;
             margin: 0.5em;
 
+            .back,
             .select,
             .selected {
 
@@ -48,8 +49,20 @@
                 border-radius: 2px;
                 display: inline-block;
                 font-size: 1.2em;
+
+                transition: all ease-in-out 0.4s;
             }
-            
+
+            .back, .select {
+                &:hover {
+                    background-color: goldenrod;
+                }
+            }
+
+            .back {
+                background: #333;
+            }
+
             .select {
                 background: #0d6efd;
             }

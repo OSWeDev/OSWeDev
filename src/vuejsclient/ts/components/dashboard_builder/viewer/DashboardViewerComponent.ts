@@ -8,7 +8,7 @@ import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
-import { ModuleDashboardPageAction } from '../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import './DashboardViewerComponent.scss';
 
 @Component({
@@ -19,6 +19,16 @@ import './DashboardViewerComponent.scss';
     }
 })
 export default class DashboardViewerComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_page_history: DashboardPageVO[];
+
+    @ModuleDashboardPageAction
+    private add_page_history: (page_history: DashboardPageVO) => void;
+    @ModuleDashboardPageAction
+    private set_page_history: (page_history: DashboardPageVO[]) => void;
+    @ModuleDashboardPageAction
+    private pop_page_history: (fk) => void;
 
     @Prop({ default: null })
     private dashboard_id: number;
@@ -33,6 +43,20 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
+    }
+
+    get has_navigation_history(): boolean {
+        return this.get_page_history && (this.get_page_history.length > 0);
+    }
+
+    private select_previous_page() {
+        this.page = this.get_page_history[this.get_page_history.length - 1];
+        this.pop_page_history(null);
+    }
+
+    private select_page_clear_navigation(page: DashboardPageVO) {
+        this.set_page_history([]);
+        this.page = page;
     }
 
     get visible_pages(): DashboardPageVO[] {
@@ -79,6 +103,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
     }
 
     private select_page(page: DashboardPageVO) {
+        this.add_page_history(this.page);
         this.page = page;
     }
 

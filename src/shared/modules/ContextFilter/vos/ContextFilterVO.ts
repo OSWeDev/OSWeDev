@@ -154,6 +154,11 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_TEXT_ENDSWITH_ALL: number = 33;
     public static TYPE_TEXT_ENDSWITH_ANY: number = 34;
 
+    public static TYPE_TEXT_EQUALS_NONE: number = 35;
+    public static TYPE_TEXT_INCLUDES_NONE: number = 36;
+    public static TYPE_TEXT_STARTSWITH_NONE: number = 37;
+    public static TYPE_TEXT_ENDSWITH_NONE: number = 38;
+
 
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;

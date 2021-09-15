@@ -1,9 +1,11 @@
 import Vue from 'vue';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
+import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 
@@ -59,6 +61,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_Var();
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
+        await this.initializeWidget_PageSwitch();
     }
 
     private async initializeWidget_DataTable() {
@@ -138,21 +141,21 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     }
 
     private async initializeWidget_PageSwitch() {
-        let var_widget = new DashboardWidgetVO();
+        let pageswitch_widget = new DashboardWidgetVO();
 
-        var_widget.default_height = 6;
-        var_widget.default_width = 20;
-        var_widget.name = 'pageswitch';
-        var_widget.widget_component = 'Pageswitchwidgetcomponent';
-        var_widget.options_component = 'Pageswitchwidgetoptionscomponent';
-        var_widget.weight = 5;
-        var_widget.default_background = '#f5f5f5';
-        var_widget.icon_component = 'Pageswitchwidgeticoncomponent';
+        pageswitch_widget.default_height = 6;
+        pageswitch_widget.default_width = 20;
+        pageswitch_widget.name = 'pageswitch';
+        pageswitch_widget.widget_component = 'Pageswitchwidgetcomponent';
+        pageswitch_widget.options_component = 'Pageswitchwidgetoptionscomponent';
+        pageswitch_widget.weight = 5;
+        pageswitch_widget.default_background = '#f5f5f5';
+        pageswitch_widget.icon_component = 'Pageswitchwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null), VarWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(pageswitch_widget, () => new PageSwitchWidgetOptions(null, null), () => null);
 
-        Vue.component('Varwidgetcomponent', () => import(/* webpackChunkName: "VarWidgetComponent" */ './widgets/var_widget/VarWidgetComponent'));
-        Vue.component('Varwidgetoptionscomponent', () => import(/* webpackChunkName: "VarWidgetOptionsComponent" */ './widgets/var_widget/options/VarWidgetOptionsComponent'));
-        Vue.component('Varwidgeticoncomponent', () => import(/* webpackChunkName: "VarWidgetIconComponent" */ './widgets/var_widget/icon/VarWidgetIconComponent'));
+        Vue.component('Pageswitchwidgetcomponent', () => import(/* webpackChunkName: "PageSwitchWidgetComponent" */ './widgets/page_switch_widget/PageSwitchWidgetComponent'));
+        Vue.component('Pageswitchwidgetoptionscomponent', () => import(/* webpackChunkName: "PageSwitchWidgetOptionsComponent" */ './widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
+        Vue.component('Pageswitchwidgeticoncomponent', () => import(/* webpackChunkName: "PageSwitchWidgetIconComponent" */ './widgets/page_switch_widget/icon/PageSwitchWidgetIconComponent'));
     }
 }

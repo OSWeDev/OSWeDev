@@ -7,6 +7,7 @@ import IStoreModule from "../../../store/IStoreModule";
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
 import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
+import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -17,6 +18,8 @@ export interface IDashboardPageState {
 
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
+    page_history: DashboardPageVO[];
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -47,10 +50,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             active_field_filters: {},
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
+            page_history: []
         };
 
 
         this.getters = {
+            get_page_history(state: IDashboardPageState): DashboardPageVO[] {
+                return state.page_history;
+            },
+
             get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
                 return state.Crudupdatemodalcomponent;
             },
@@ -72,6 +80,17 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.mutations = {
 
+            set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
+                state.page_history = page_history;
+            },
+
+            add_page_history(state: IDashboardPageState, page_history: DashboardPageVO) {
+                state.page_history.push(page_history);
+            },
+
+            pop_page_history(state: IDashboardPageState, fk) {
+                state.page_history.pop();
+            },
 
             set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
                 state.Crudupdatemodalcomponent = Crudupdatemodalcomponent;
@@ -154,6 +173,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.actions = {
 
+            set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
+                commit_set_page_history(context, page_history);
+            },
+            add_page_history(context: DashboardPageContext, page_history: DashboardPageVO) {
+                commit_add_page_history(context, page_history);
+            },
+            pop_page_history(context: DashboardPageContext, fk) {
+                commit_pop_page_history(context, null);
+            },
             set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
                 commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
             },
@@ -204,3 +232,6 @@ export const commit_set_active_field_filter = commit(DashboardPageStoreInstance.
 export const commit_remove_active_field_filter = commit(DashboardPageStoreInstance.mutations.remove_active_field_filter);
 export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
 export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
+export const commit_set_page_history = commit(DashboardPageStoreInstance.mutations.set_page_history);
+export const commit_add_page_history = commit(DashboardPageStoreInstance.mutations.add_page_history);
+export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);

@@ -663,6 +663,360 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " ILIKE '" + text + "%'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "%'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " ILIKE ANY(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'" + text + "%' ILIKE ANY(" + field_id + ')');
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "%' ILIKE ANY(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') OR (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_ENDSWITH_ANY:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " ILIKE '%" + text + "'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'%" + text + "'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " ILIKE ANY(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'%" + text + "' ILIKE ANY(" + field_id + ')');
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'%" + text + "' ILIKE ANY(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') OR (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " != '" + text + "'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " != ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'" + active_field_filter.param_text + "' != ALL(" + field_id + ")");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "' != ALL(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') AND (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " NOT ILIKE '%" + text + "%'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'%" + text + "%'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " NOT ILIKE ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'%" + text + "%' NOT ILIKE ALL(" + field_id + ')');
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'%" + text + "%' NOT ILIKE ALL(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') AND (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " NOT ILIKE '" + text + "%'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "%'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " NOT ILIKE ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'" + text + "%' NOT ILIKE ALL(" + field_id + ')');
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'" + text + "%' NOT ILIKE ALL(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') AND (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push(field_id + " NOT ILIKE '%" + text + "'");
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'%" + text + "'");
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push(field_id + " NOT ILIKE ALL(ARRAY[" + like_array.join(',') + "])");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                        if (active_field_filter.param_text) {
+                            let text = active_field_filter.param_text.replace(/'/g, "''");
+                            where_conditions.push("'%" + text + "' NOT ILIKE ALL(" + field_id + ')');
+                        } else if (active_field_filter.param_textarray) {
+                            let like_array = [];
+                            for (let i in active_field_filter.param_textarray) {
+                                let text = active_field_filter.param_textarray[i];
+                                if (!text) {
+                                    continue;
+                                }
+                                text = text.replace(/'/g, "''");
+                                like_array.push("'%" + text + "' NOT ILIKE ALL(" + field_id + ')');
+                            }
+                            if ((!like_array) || (!like_array.length)) {
+                                return;
+                            }
+                            where_conditions.push("(" + like_array.join(') AND (') + ")");
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
             case ContextFilterVO.TYPE_NUMERIC_EQUALS:
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
@@ -794,9 +1148,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
-            case ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY:
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ALL:
-            case ContextFilterVO.TYPE_TEXT_ENDSWITH_ANY:
                 throw new Error('Not Implemented');
         }
     }

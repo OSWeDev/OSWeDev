@@ -66,7 +66,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         let res: string[] = [];
 
         for (let i in this.widgets) {
-            let widget = this.widgets[0];
+            let widget = this.widgets[i];
 
             res.push(this.t(widget.translatable_name_code_text ? widget.translatable_name_code_text : null));
         }

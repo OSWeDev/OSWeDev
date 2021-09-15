@@ -9,7 +9,7 @@ export default class FieldValueFilterWidgetOptions {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
 
         let options: FieldValueFilterWidgetOptions = (page_widget && page_widget.json_options) ? JSON.parse(page_widget.json_options) : null;
-        if (!options) {
+        if ((!options) || (!options.vo_field_ref)) {
             return res;
         }
 

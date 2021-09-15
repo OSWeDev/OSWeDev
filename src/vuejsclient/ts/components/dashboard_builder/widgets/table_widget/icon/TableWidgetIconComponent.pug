@@ -1,11 +1,11 @@
-.table_widget_icon(v-tooltip.top='tooltip')
+.table_widget_icon
     template(v-if='!widget')
     template(v-else)
         template(v-if='widget.name == "datatable"')
-            span.fa-stack.fa-lg.fa-fw(aria-hidden='true')
+            .fa-stack.fa-lg.fa-fw(aria-hidden='true')
                 i.fa.fa-table.fa-stack-2x
                 i.fa.fa-pencil-square.fa-stack-1x
         template(v-else)
-            span.fa-stack.fa-lg.fa-fw(aria-hidden='true')
+            .fa-stack.fa-lg.fa-fw(aria-hidden='true')
                 i.fa.fa-table.fa-stack-2x
                 i.fa.fa-bar-chart.fa-stack-1x

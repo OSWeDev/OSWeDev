@@ -67,6 +67,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Cliquer pour sélectionner et afficher cette page du Tableau de bord.'
         }, 'dashboard_builder.pages.tooltip_select_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Cliquer pour revenir à la page précédente.'
+        }, 'dashboard_builder.pages.tooltip_select_previous_page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Cette page est actuellement sélectionnée et affichée.'
         }, 'dashboard_builder.pages.tooltip_selected_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -98,6 +101,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Texte du lien'
         }, 'page_switch_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Avancé'
+        }, 'vo_field_ref_advanced.advanced_filters.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Simple'
+        }, 'vo_field_ref_advanced.advanced_filters.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Impossible de supprimer la page principale'
@@ -410,6 +420,56 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             fr: 'Erreur lors de la suppression'
         }, 'TableWidgetComponent.confirm_delete.ko.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Contient' },
+            'adv_str_fltr.contient'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Ne contient pas' },
+            'adv_str_fltr.contient_pas'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Commence par' },
+            'adv_str_fltr.commence'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Ne commence pas par' },
+            'adv_str_fltr.commence_pas'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Est' },
+            'adv_str_fltr.est'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'N\'est pas' },
+            'adv_str_fltr.nest_pas'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Est vide' },
+            'adv_str_fltr.est_vide'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'N\'est pas vide' },
+            'adv_str_fltr.nest_pas_vide'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Est null' },
+            'adv_str_fltr.est_null'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'N\'est pas null' },
+            'adv_str_fltr.nest_pas_null'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Ajouter un filtre' },
+            'advanced_filters.add.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Valider le filtre' },
+            'advanced_filters.validate.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Choisir le type de liaison entre ce filtre et le suivant (ET ou OU)' },
+            'advanced_filters.link_type.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Supprimer ce filtre' },
+            'advanced_filters.delete.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'ET' },
+            'adv_str_fltr.et'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'OU' },
+            'adv_str_fltr.ou'));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

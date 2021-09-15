@@ -18,7 +18,7 @@ import DroppableVosComponent from './droppable_vos/DroppableVosComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
-import { ModuleDashboardPageAction } from './page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/DashboardPageStore';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
@@ -39,8 +39,18 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_id: number = null;
 
+    @ModuleDashboardPageGetter
+    private get_page_history: DashboardPageVO[];
+
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
+    @ModuleDashboardPageAction
+    private add_page_history: (page_history: DashboardPageVO) => void;
+    @ModuleDashboardPageAction
+    private set_page_history: (page_history: DashboardPageVO[]) => void;
+    @ModuleDashboardPageAction
+    private pop_page_history: (fk) => void;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -64,6 +74,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
+
+        if (!this.selected_widget) {
+            this.set_selected_fields({});
+            return;
+        }
 
         let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
         let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
@@ -121,6 +136,21 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private select_page(page: DashboardPageVO) {
+        this.add_page_history(this.page);
+        this.page = page;
+    }
+
+    get has_navigation_history(): boolean {
+        return this.get_page_history && (this.get_page_history.length > 0);
+    }
+
+    private select_previous_page() {
+        this.page = this.get_page_history[this.get_page_history.length - 1];
+        this.pop_page_history(null);
+    }
+
+    private select_page_clear_navigation(page: DashboardPageVO) {
+        this.set_page_history([]);
         this.page = page;
     }
 

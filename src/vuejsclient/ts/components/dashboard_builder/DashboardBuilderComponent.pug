@@ -69,15 +69,19 @@
                         .col-md-3.step.build_page(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
 
                     .pages
+                        template(v-if='has_navigation_history')
+                            .page
+                                .back
+                                    i.fa.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
                         template(v-for='(page_, pagei) in pages')
                             .page
                                 .select(v-if='page_.id != page.id')
-                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
+                                    i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
                                 .selected(v-else)
                                     i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
                                 .name
                                     Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
-                                .hide_navigation
+                                .hide_navigation(:class='{"disabled" : !parseInt(pagei.toString()), "not_disabled": !!parseInt(pagei.toString())}')
                                     template(v-if='parseInt(pagei.toString()) != 0')
                                         template(v-if='page_.hide_navigation')
                                             i.fa.fa-eye-slash.fa-fw.btn_icon(aria-hidden="true" @click="switch_hide_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_click_to_show_navigation")')

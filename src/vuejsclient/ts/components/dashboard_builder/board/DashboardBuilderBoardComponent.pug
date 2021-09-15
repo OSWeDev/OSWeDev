@@ -21,6 +21,7 @@
                 :prevent-collision="true"
                 :use-css-transforms="true"
                 :margin="[0, 0]"
+                :key="'Gridlayout__' + dashboard_page.id"
             )
                 template(v-for="item in editable_dashboard_page.layout")
                     //- @click="(event) => select_widget_and_stop(event, item)"
@@ -38,6 +39,7 @@
                             @resized="resizedEvent"
                             @moved="movedEvent"
                             :style="'background:' + item.background"
+                            :key="'Griditem__' + item.id"
                         )
                             Dashboardbuilderboarditemcomponent(
                                 :dashboard_page='dashboard_page'
@@ -46,6 +48,7 @@
                                 :page_widget='item'
                                 :is_edit_mode='editable'
                                 :is_selected='selected_widget && (item.i == selected_widget.i)'
+                                :key="'Dashboardbuilderboarditemcomponent__' + item.id"
 
                                 @delete_widget='delete_widget'
                                 @select_widget='select_widget'
