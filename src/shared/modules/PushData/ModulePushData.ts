@@ -12,6 +12,7 @@ import { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 export default class ModulePushData extends Module {
 
     public static APINAME_set_prompt_result: string = 'set_prompt_result';
+    public static PARAM_TECH_DISCONNECT_URL: string = 'TECH_DISCONNECT_URL';
 
     public static getInstance(): ModulePushData {
         if (!ModulePushData.instance) {

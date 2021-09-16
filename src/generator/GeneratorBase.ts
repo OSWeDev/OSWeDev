@@ -53,6 +53,7 @@ import Patch20210310IDAnimationIE from './patchs/postmodules/Patch20210310IDAnim
 import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO';
 import Patch20210615ChangeLoginTrads from './patchs/postmodules/Patch20210615ChangeLoginTrads';
 import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615ChangeRecoverySMS';
+import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
 
 export default abstract class GeneratorBase {
 
@@ -118,7 +119,8 @@ export default abstract class GeneratorBase {
             Patch20210305affichageIconePDF.getInstance(),
             Patch20210310IDAnimationIE.getInstance(),
             Patch20210615ChangeLoginTrads.getInstance(),
-            Patch20210615ChangeRecoverySMS.getInstance()
+            Patch20210615ChangeRecoverySMS.getInstance(),
+            Patch20210916SetParamPushData.getInstance(),
         ];
     }
 
