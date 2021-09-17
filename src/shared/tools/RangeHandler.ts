@@ -400,6 +400,12 @@ export default class RangeHandler {
                         continue;
                     }
 
+                    /**
+                     * Anciennement k <= j mais il y avait un pb dans certains cas précis où res contenait + de 10 ranges
+                     * Ainsi, si k était inférieur à j mais que la somme de ses chiffres était supérieure à celle des chiffre de j (ex k=2 et j=10),
+                     * k était considéré supérieur à j car les deux sont des strings et la comparaison s'effectue de façon linéaire (premier chiffre de k et de j etc)
+                     * Le résultat était faux et les vars chargeait indéfiniment
+                     */
                     if (parseInt(k.toString()) <= parseInt(j.toString())) {
                         continue;
                     }
