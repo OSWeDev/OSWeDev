@@ -110,7 +110,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         let max: Moment = RangeHandler.getInstance().is_right_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
 
         if (min) {
-            this.tsrange_start = min.toDate();
+            this.tsrange_start = new Date(min.year(), min.month(), min.date(), min.hours(), min.minutes(), min.seconds(), min.milliseconds());
             if (this.tsrange_start) {
                 this.tsrange_start_time = (this.value && this.value.min) ? this.value.min.format(this.format_time) : null;
             }
@@ -120,7 +120,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         if (max) {
-            this.tsrange_end = max.toDate();
+            this.tsrange_end = new Date(max.year(), max.month(), max.date(), max.hours(), max.minutes(), max.seconds(), max.milliseconds());
             if (this.tsrange_end) {
                 this.tsrange_end_time = (this.value && this.value.max) ? this.value.max.format(this.format_time) : null;
             }
