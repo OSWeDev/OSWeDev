@@ -88,7 +88,7 @@ export default class TSTZInputComponent extends VueComponentBase {
             let hours: string[] = (this.time_value) ? this.time_value.split(':') : null;
 
             if (hours && hours.length > 0) {
-                Dates.minutes(Dates.hours(date_time, parseInt(hours[0])), parseInt(hours[1]));
+                date_time = Dates.minutes(Dates.hours(date_time, parseInt(hours[0])), parseInt(hours[1]));
             }
 
             return date_time;
