@@ -104,6 +104,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     private select_page(page: DashboardPageVO) {
         this.add_page_history(this.page);
+        this.select_widget(null);
         this.page = page;
     }
 

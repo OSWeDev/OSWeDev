@@ -223,7 +223,7 @@ export default class APIControllerWrapper {
                 let res = Object.assign({}, e);
                 for (let i in res) {
 
-                    res[i] = this.try_translate_vo_to_api(res[i]);
+                    res[i] = this.try_translate_vo_to_api(e[i]);
                 }
                 return res;
             }

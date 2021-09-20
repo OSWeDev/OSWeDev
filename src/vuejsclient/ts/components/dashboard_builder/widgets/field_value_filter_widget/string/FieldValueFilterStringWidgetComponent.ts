@@ -317,7 +317,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
             locale_tmp_filter_active_options = this.tmp_filter_active_options;
         } else {
-            if (!!this.tmp_filter_active_options) {
+            if (this.tmp_filter_active_options != null) {
                 locale_tmp_filter_active_options = [this.tmp_filter_active_options];
             }
         }

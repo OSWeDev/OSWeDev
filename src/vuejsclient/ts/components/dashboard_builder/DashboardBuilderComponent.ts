@@ -309,6 +309,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         });
     }
 
+    @Watch('page')
+    private onchange_page() {
+        this.select_widget(null);
+    }
+
     private async confirm_delete_page(page: DashboardPageVO) {
 
         if ((!page) || (!this.page) || (!this.dashboard) || (!this.pages) || (!this.pages.length)) {

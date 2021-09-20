@@ -22,7 +22,7 @@
                 template(v-if="signin_allowed")
                     a(@click="signin_action" href="#" target="_blank") {{ label('signin.title') }}
 
-                a(@click="recover_action" href="#" target="_blank") {{ label('login.recoverlink') }}
+                a(@click="recover_action") {{ label('login.recoverlink') }}
 
             .mt-4.text-center.infos_cgu
                 template(v-if="pdf_info")

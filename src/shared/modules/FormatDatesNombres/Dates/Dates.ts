@@ -128,7 +128,7 @@ export default class Dates {
         }
     }
 
-    public static format(date: number, formatstr: string, localized: boolean = false): string {
+    public static format(date: number, formatstr: string, localized: boolean = true): string {
         if (!date) {
             return null;
         }

@@ -1,33 +1,23 @@
-import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
-import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { Prop } from 'vue-property-decorator';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import FieldValueFilterBooleanWidgetComponent from './boolean/FieldValueFilterBooleanWidgetComponent';
 import './FieldValueFilterWidgetComponent.scss';
 import FieldValueFilterWidgetOptions from './options/FieldValueFilterWidgetOptions';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import TypesHandler from '../../../../../../shared/tools/TypesHandler';
-import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStringWidgetComponent';
 
 @Component({
     template: require('./FieldValueFilterWidgetComponent.pug'),
     components: {
-        Fieldvaluefilterstringwidgetcomponent: FieldValueFilterStringWidgetComponent
+        Fieldvaluefilterstringwidgetcomponent: FieldValueFilterStringWidgetComponent,
+        Fieldvaluefilterbooleanwidgetcomponent: FieldValueFilterBooleanWidgetComponent
     }
 })
 export default class FieldValueFilterWidgetComponent extends VueComponentBase {
@@ -40,6 +30,23 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
+    get is_type_boolean(): boolean {
+
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
+            return false;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_boolean:
+                return true;
+
+            default:
+                return false;
+        }
+    }
 
     get is_type_string(): boolean {
 

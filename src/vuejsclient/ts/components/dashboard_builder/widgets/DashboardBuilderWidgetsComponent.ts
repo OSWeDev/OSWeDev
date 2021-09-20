@@ -35,10 +35,14 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
     private loading: boolean = true;
 
-    @Watch('selected_widget')
+    @Watch('selected_widget', { immediate: true })
     private async onchange_selected_widget() {
         if (!this.selected_widget) {
             this.selected_widget_type = null;
+            return;
+        }
+
+        if (!this.widgets) {
             return;
         }
 
@@ -49,6 +53,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
         await DashboardBuilderWidgetsController.getInstance().initialize();
         this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+        this.onchange_selected_widget();
 
         this.loading = false;
     }
