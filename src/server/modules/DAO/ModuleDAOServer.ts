@@ -667,7 +667,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!ranges) || (!ranges.length)) {
-                ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                ConsoleHandler.getInstance().error('getWhereClauseForFilterByMatroidIntersection :: Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                 return null;
             }
 
@@ -2513,7 +2513,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!ranges) || (!ranges.length)) {
-                ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + moduleTable.vo_type + ':' + matroid_fields[i].field_id + ':');
+                ConsoleHandler.getInstance().error('get_matroid_fields_ranges_by_datatable_field_id :: Matroid field vide ou inexistant:' + moduleTable.vo_type + ':' + matroid_fields[i].field_id + ':');
                 return null;
             }
 
@@ -2742,7 +2742,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
 
                     if ((!ranges) || (!ranges.length)) {
-                        ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                        ConsoleHandler.getInstance().error('getVosByExactMatroid :: Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                         return null;
                     }
 
