@@ -30,6 +30,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_password: string = 'password';
     public static FIELD_TYPE_email: string = 'email';
     public static FIELD_TYPE_string: string = 'text';
+    public static FIELD_TYPE_plain_vo_obj: string = 'plain_vo_obj';
     public static FIELD_TYPE_textarea: string = 'textarea';
     public static FIELD_TYPE_enum: string = 'enum';
     public static FIELD_TYPE_int: string = 'number';
@@ -496,6 +497,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
@@ -592,6 +594,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
@@ -655,6 +658,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_string_array:

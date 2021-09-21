@@ -494,6 +494,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 translated_active_options.param_textarray = [active_option.string_value];
                 break;
 
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             case ModuleTableField.FIELD_TYPE_html_array:
                 throw new Error('Not Implemented');
 
@@ -576,6 +577,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             case ModuleTableField.FIELD_TYPE_hour:
             case ModuleTableField.FIELD_TYPE_tstz:
             case ModuleTableField.FIELD_TYPE_boolean:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 throw new Error('Not Implemented');
 
             case ModuleTableField.FIELD_TYPE_html:

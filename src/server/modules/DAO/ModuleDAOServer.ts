@@ -1126,6 +1126,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             default:
                 return null;
         }
@@ -2974,6 +2975,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+
             default:
                 throw new Error('Not implemented');
         }
@@ -3054,6 +3057,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             default:
                 res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numrange[])";
                 break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not Implemented');
         }
 
         return res;
@@ -3081,6 +3087,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 return true;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -3152,6 +3159,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             default:
                 res += ranges_query + " = " + table_name + '.' + field.field_id;
                 break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
         }
 
         return res;
@@ -3303,6 +3313,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     '  where t1.a <@ ' + ranges_query +
                     '  ) = array_length(' + table_name + '.' + field.field_id + ',1) ';
                 break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
         }
 
         return res;
@@ -3387,6 +3400,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return '\'' + (range.min_inclusiv ? "[" : "(") + range.min.toString() + "," + range.max.toString() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
 
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
                 // TODO
                 break;
         }
@@ -3452,6 +3467,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return segmented_value.toString();
 
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
                 // TODO
                 break;
         }

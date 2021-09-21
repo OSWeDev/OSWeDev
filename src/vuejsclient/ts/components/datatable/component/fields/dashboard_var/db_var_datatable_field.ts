@@ -162,6 +162,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                     translated_active_options.param_text = this.row_value[column.field_id];
                     break;
 
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 case ModuleTableField.FIELD_TYPE_html_array:
                     throw new Error('Not Implemented');
 

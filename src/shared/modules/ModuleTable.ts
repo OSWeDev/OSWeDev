@@ -218,6 +218,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_string_array:
@@ -687,6 +688,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     }
                     break;
 
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    delete res[field.field_id];
+                    break;
 
                 default:
                     res[field.field_id] = e[field.field_id];
@@ -761,6 +765,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    let trans_ = e[field.field_id] ? this.default_get_api_version(e[field.field_id]) : null;
+                    res[new_id] = trans_ ? JSON.stringify(trans_) : null;
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -852,6 +861,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = ConversionHandler.forceNumber(e[old_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    let trans_ = e[old_id] ? JSON.parse(e[old_id]) : null;
+                    res[field.field_id] = trans_ ? this.default_from_api_version(trans_) : null;
+                    break;
+
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     if ((e[old_id] === null) || (typeof e[old_id] === 'undefined')) {
                         res[field.field_id] = e[old_id];
@@ -907,6 +921,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (res[field.field_id]) {
                         res[field.field_id] = GeoPointHandler.getInstance().format(res[field.field_id]);
                     }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    let trans_ = e[field.field_id] ? this.default_get_bdd_version(e[field.field_id]) : null;
+                    res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
                     break;
 
                 case ModuleTableField.FIELD_TYPE_email:
@@ -1022,6 +1041,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (field_value && field_value.trim) {
                         res[field.field_id] = field_value.trim();
                     }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    let trans_ = field_value ? JSON.parse(field_value) : null;
+                    res[field.field_id] = trans_ ? this.defaultforceNumeric(trans_) : null;
                     break;
 
                 default:

@@ -305,6 +305,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'var_widget_options_component.widget_filter_options.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Type de filtre'
+        }, 'widget_filter_options.filter_type.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Dashboards'
         }, 'menu.menuelements.admin.dashboard.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

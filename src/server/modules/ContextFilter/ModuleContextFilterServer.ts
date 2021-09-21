@@ -447,6 +447,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 throw new Error('Not Implemented');
 
             case ModuleTableField.FIELD_TYPE_date:

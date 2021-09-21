@@ -98,6 +98,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             case ModuleTableField.FIELD_TYPE_month:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             default:
                 return false;
         }
