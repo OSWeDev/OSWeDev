@@ -58,6 +58,12 @@ export default class FileHandler {
         }
     }
 
+    public get_file_size(filePath: string): number {
+
+        let stats = statSync(filePath);
+        return stats ? stats.size : null;
+    }
+
     public get_full_url(BASE_URL: string, file_path: string): string {
 
         let url = null;

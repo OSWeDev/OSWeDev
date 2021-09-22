@@ -14,12 +14,6 @@
         top: .8em;
     }
 
-    .advanced_string_filter_type {
-        max-width: fit-content;
-        display: inline-block;
-        min-width: 10em;
-    }
-
     .advanced_string_filter_content{
         display: inline-block;
         width: 8em;
@@ -74,6 +68,11 @@
     }
 
     .advanced_string_filter_type {
+        margin-right: .2em;
+        max-width: fit-content;
+        display: inline-block;
+        min-width: 10em;
+
         .multiselect, .multiselect__input, .multiselect__single, .multiselect__option {
             font-size: .8em;
         }

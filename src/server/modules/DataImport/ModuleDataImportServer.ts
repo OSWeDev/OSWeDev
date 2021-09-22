@@ -13,6 +13,7 @@ import DataImportColumnVO from '../../../shared/modules/DataImport/vos/DataImpor
 import DataImportFormatVO from '../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLogVO';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleTable from '../../../shared/modules/ModuleTable';
@@ -23,6 +24,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import FileHandler from '../../../shared/tools/FileHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -421,6 +423,18 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if ((!formats) || (!formats.length)) {
             await this.logAndUpdateHistoric(importHistoric, null, ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED, "Aucun format pour l'import", "import.errors.failed_formatting_no_format", DataImportLogVO.LOG_LEVEL_FATAL);
             return;
+        }
+
+        /**
+         * On test le cas fichier vide :
+         */
+        let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+        let file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
+        if (!file_size) {
+            if ((!!importHistoric) && (!!importHistoric.id)) {
+                await this.logAndUpdateHistoric(importHistoric, null, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Aucune donnée formattable", "import.errors.failed_formatting_no_data", DataImportLogVO.LOG_LEVEL_DEBUG);
+                return;
+            }
         }
 
         let formats_by_ids: { [id: number]: DataImportFormatVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(formats);

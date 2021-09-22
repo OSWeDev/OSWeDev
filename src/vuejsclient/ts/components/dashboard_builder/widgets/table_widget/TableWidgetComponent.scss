@@ -4,6 +4,7 @@
         text-align: right;
         float: right;
         margin-top: -3px;
+        margin-bottom: .2em;
 
         opacity: 0.5;
         transition: opacity 300ms ease-in-out;
@@ -15,6 +16,7 @@
 
     table {
         width: -webkit-fill-available;
+        clear: both;
 
         thead {
             th {

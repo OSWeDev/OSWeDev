@@ -190,6 +190,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.advanced_filters = !this.advanced_filters;
 
         this.tmp_filter_active_options = null;
+        if (!!this.vo_field_ref) {
+            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+        }
         this.advanced_string_filters = [new AdvancedStringFilter()];
 
         await this.throttled_update_visible_options();

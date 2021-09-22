@@ -129,6 +129,8 @@ export default class ModuleTableField<T> {
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
 
+    public plain_obj_cstr: () => any = null;
+
     public return_max_value: boolean = true;
 
     /**
@@ -166,6 +168,11 @@ export default class ModuleTableField<T> {
         this.target_database = null;                        //la database en base avec laquelle il y a une relation (generalement "ref")
         this.target_table = null;                           //la table de la database en base avec laquelle il y a une relation
         this.target_field = null;                           //le champ de la table en base avec laquelle il y a une relation
+    }
+
+    public set_plain_obj_cstr(plain_obj_cstr: () => any): ModuleTableField<T> {
+        this.plain_obj_cstr = plain_obj_cstr;
+        return this;
     }
 
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {

@@ -42,9 +42,9 @@ export default class ModulesClientInitializationDatasGenerator {
             } catch (error) {
                 console.error(error);
                 reject(error);
-            } finally {
-                resolve(null);
+                return;
             }
+            resolve(null);
         });
     }
 

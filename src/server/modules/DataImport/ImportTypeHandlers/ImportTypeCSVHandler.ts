@@ -19,6 +19,7 @@ import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ImportLogger from '../logger/ImportLogger';
 import moment = require('moment');
 import { createReadStream, ReadStream } from 'fs';
+import FileHandler from '../../../../shared/tools/FileHandler';
 const CsvReadableStream = require('csv-reader');
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 
@@ -56,6 +57,7 @@ export default class ImportTypeCSVHandler {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
+                return;
             }
 
             let raw_rows: any[] = [];
@@ -341,6 +343,18 @@ export default class ImportTypeCSVHandler {
                     await ImportLogger.getInstance().log(importHistoric, dataImportFormat, "Aucun fichier à importer", DataImportLogVO.LOG_LEVEL_FATAL);
                 }
                 resolve(null);
+                return;
+            }
+
+            /**
+             * On test le cas fichier vide :
+             */
+            let file_size = fileVO ? FileHandler.getInstance().get_file_size(fileVO.path) : null;
+            if (!file_size) {
+                if ((!!importHistoric) && (!!importHistoric.id)) {
+                    resolve(null);
+                    return;
+                }
             }
 
             let inputStream = null;
@@ -367,6 +381,7 @@ export default class ImportTypeCSVHandler {
                     await ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
+                return;
             }
 
             resolve(inputStream);

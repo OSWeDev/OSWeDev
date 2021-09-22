@@ -863,6 +863,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                     let trans_ = e[old_id] ? JSON.parse(e[old_id]) : null;
+                    if ((!!trans_) && !!field.plain_obj_cstr) {
+                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                    }
                     res[field.field_id] = trans_ ? this.default_from_api_version(trans_) : null;
                     break;
 
@@ -1045,6 +1048,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                     let trans_ = field_value ? JSON.parse(field_value) : null;
+                    if ((!!trans_) && !!field.plain_obj_cstr) {
+                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                    }
                     res[field.field_id] = trans_ ? this.defaultforceNumeric(trans_) : null;
                     break;
 

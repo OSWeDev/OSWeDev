@@ -1309,6 +1309,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let results: InsertOrDeleteQueryResult[] = null;
+            let resolved = false;
 
             if (sqls.length > 0) {
                 results = await ModuleServiceBase.getInstance().db.tx(async (t) => {
@@ -1326,6 +1327,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }).catch((reason) => {
                     ConsoleHandler.getInstance().error('insertOrUpdateVOs :' + reason);
                     resolve(null);
+                    resolved = true;
                 });
             }
 
@@ -1352,7 +1354,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            resolve(InsertOrDeleteQueryResults);
+            if (!resolved) {
+                resolve(InsertOrDeleteQueryResults);
+            }
         });
     }
 

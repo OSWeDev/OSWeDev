@@ -144,9 +144,6 @@ export default class ModuleContextFilter extends Module {
 
     private init_ContextFilterVO() {
 
-        let left_hook_id = new ModuleTableField('left_hook_id', ModuleTableField.FIELD_TYPE_string, 'left_hook_id', false);
-        let right_hook_id = new ModuleTableField('right_hook_id', ModuleTableField.FIELD_TYPE_string, 'right_hook_id', false);
-
         let datatable_fields = [
             new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'API TYPE ID', true),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'FIELD ID', true),
@@ -158,13 +155,11 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('param_numranges', ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),
             new ModuleTableField('param_hourranges', ModuleTableField.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
 
-            left_hook_id,
-            right_hook_id
+            new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
+            new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
         ];
 
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
-        left_hook_id.addManyToOneRelation(datatable);
-        right_hook_id.addManyToOneRelation(datatable);
         this.datatables.push(datatable);
     }
 }

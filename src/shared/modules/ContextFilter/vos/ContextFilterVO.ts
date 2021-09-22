@@ -175,9 +175,6 @@ export default class ContextFilterVO implements IDistantVOBase {
     public param_numranges: NumRange[];
     public param_hourranges: HourRange[];
 
-    public left_hook_id: number;
-    public right_hook_id: number;
-
     /**
      * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
      */
