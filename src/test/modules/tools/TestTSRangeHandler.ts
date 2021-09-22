@@ -342,14 +342,12 @@ describe('TSRangeHandler', () => {
             un
         ]);
 
-
         res = [];
 
         await RangeHandler.getInstance().foreach(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), (date: number) => {
             res.push(date);
         });
         expect(res).to.deep.equal([
-
             moins_un,
             zero,
             un
@@ -361,7 +359,6 @@ describe('TSRangeHandler', () => {
             res.push(date);
         });
         expect(res).to.deep.equal([
-
             moins_un,
             zero
         ]);
@@ -372,7 +369,6 @@ describe('TSRangeHandler', () => {
             res.push(date);
         });
         expect(res).to.deep.equal([
-
             moins_un
         ]);
 
@@ -1614,6 +1610,66 @@ describe('TSRangeHandler', () => {
         expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
+
+
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, true, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, true, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, true, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, true, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR)
+        ])).to.equal(null);
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+
+        expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_HOUR)
+        ])).to.equal(null);
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, false, false, TimeSegment.TYPE_HOUR)
+        ])).to.equal(null);
+
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, true, TimeSegment.TYPE_HOUR), TSRange.createNew(zero_cinq_moins_un, zero_cinq, true, true, TimeSegment.TYPE_HOUR)
+        ]), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero_cinq_moins_un).utc().startOf('hour').format('Y-MM-DD HH:mm'));
     });
 
     it('test isEndABeforeEndB_optimized_normalized', () => {
