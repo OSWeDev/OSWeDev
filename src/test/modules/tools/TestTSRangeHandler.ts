@@ -1467,35 +1467,40 @@ describe('TSRangeHandler', () => {
 
     it('test getSegmentedMin', () => {
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(null);
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(null);
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(null);
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(null);
+
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY))).to.deep.equal(null);
 
         // le test unitaire qui marche pas le 31/12 après midi ou le 01/01 avant midi...
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.deep.equal(null);
     });
 

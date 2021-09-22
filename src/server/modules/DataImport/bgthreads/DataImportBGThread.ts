@@ -99,8 +99,10 @@ export default class DataImportBGThread implements IBGThread {
             if (!dih) {
                 await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
+            } else {
+                await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
+                return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
-            return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -172,6 +174,8 @@ export default class DataImportBGThread implements IBGThread {
                     ConsoleHandler.getInstance().error('!id dans handleImportHistoricProgression');
                     return false;
                 }
+
+                return true;
 
             default:
                 return false;

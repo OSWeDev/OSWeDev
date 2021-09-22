@@ -41,6 +41,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_get_filtered_datatable_rows, this.get_filtered_datatable_rows.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_from_active_filters, this.query_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_rows_count_from_active_filters, this.query_rows_count_from_active_filters.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos_from_active_filters, this.delete_vos_from_active_filters.bind(this));
     }
 
     /**
@@ -62,7 +63,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         limit: number,
         offset: number,
         sort_by: SortByVO,
-        res_field_aliases: string[]
+        res_field_aliases: string[],
+        is_delete: boolean = false
     ): string {
 
         let res = this.build_request_from_active_field_filters_(
@@ -243,6 +245,30 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    public async delete_vos_from_active_filters(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[]
+    ): Promise<void> {
+        let request: string = this.build_request_from_active_field_filters(
+            [api_type_id],
+            null,
+            get_active_field_filters,
+            active_api_type_ids,
+            null,
+            null,
+            null,
+            null,
+            true
+        );
+
+        if (!request) {
+            return null;
+        }
+
+        await ModuleDAOServer.getInstance().query(request);
     }
 
     /**
@@ -1189,6 +1215,13 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
                 }
 
+                /**
+                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                 */
+                if (field.manyToOne_target_moduletable.is_segmented) {
+                    throw new Error('Not implemented');
+                }
+
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1256,6 +1289,13 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
                 }
 
+                /**
+                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                 */
+                if (field.module_table.is_segmented) {
+                    throw new Error('Not implemented');
+                }
+
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1309,6 +1349,13 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
                 if (!tables_aliases_by_type[field.module_table.vo_type]) {
                     tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
+                }
+
+                /**
+                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                 */
+                if (field.manyToOne_target_moduletable.is_segmented) {
+                    throw new Error('Not implemented');
                 }
 
                 switch (field.field_type) {
@@ -1654,7 +1701,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         sort_by: SortByVO,
-        res_field_aliases: string[]
+        res_field_aliases: string[],
+        is_delete: boolean = false
     ): string {
 
         /**
@@ -1719,10 +1767,28 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 return null;
             }
 
+            /**
+             * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+             */
+            if (moduletable.is_segmented) {
+                throw new Error('Not implemented');
+            }
+
             tables_aliases_by_type[main_api_type_id] = 't' + (aliases_n++);
-            res = "SELECT " + tables_aliases_by_type[main_api_type_id] + ".* ";
-            FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
+
+            if (!is_delete) {
+                res = "SELECT " + tables_aliases_by_type[main_api_type_id] + ".* ";
+                FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
+            } else {
+                res = "DELETE ";
+                FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
+            }
         } else {
+
+            if (is_delete) {
+                throw new Error('Not implemented');
+            }
+
             res = "SELECT DISTINCT ";
             let first = true;
 
@@ -1734,6 +1800,14 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 if ((!moduletable) || ((!!field_id) && (field_id != 'id') && (!moduletable.get_field_by_id(field_id)))) {
                     return null;
                 }
+
+                /**
+                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                 */
+                if (moduletable.is_segmented) {
+                    throw new Error('Not implemented');
+                }
+
 
                 let is_new_t = false;
                 if (!tables_aliases_by_type[api_type_id]) {
