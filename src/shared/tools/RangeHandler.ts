@@ -1835,15 +1835,15 @@ export default class RangeHandler {
             switch (range.range_type) {
 
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
@@ -1920,15 +1920,15 @@ export default class RangeHandler {
             switch (range.range_type) {
 
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
@@ -2028,15 +2028,15 @@ export default class RangeHandler {
             switch (first_range.range_type) {
 
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = first_range.segment_type != null ? first_range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = first_range.segment_type != null ? first_range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = first_range.segment_type != null ? first_range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
@@ -2086,16 +2086,17 @@ export default class RangeHandler {
         if (segment_type == null) {
             switch (first_range.range_type) {
 
+
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = first_range.segment_type != null ? first_range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = first_range.segment_type != null ? first_range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = first_range.segment_type != null ? first_range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
@@ -2163,15 +2164,15 @@ export default class RangeHandler {
             switch (range.range_type) {
 
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
@@ -2236,15 +2237,15 @@ export default class RangeHandler {
             switch (range.range_type) {
 
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
@@ -2313,15 +2314,15 @@ export default class RangeHandler {
             switch (range.range_type) {
 
                 case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
+                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
                     break;
 
                 case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
+                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
+                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
                     break;
             }
         }
