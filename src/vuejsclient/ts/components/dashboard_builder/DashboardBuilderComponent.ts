@@ -8,6 +8,7 @@ import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/Dashboa
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
@@ -51,6 +52,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private set_page_history: (page_history: DashboardPageVO[]) => void;
     @ModuleDashboardPageAction
     private pop_page_history: (fk) => void;
+
+    @ModuleDashboardPageAction
+    private set_custom_filters: (custom_filters: string[]) => void;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -124,6 +128,23 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {
             await this.create_dashboard_page();
+        }
+        let page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', this.pages.map((p) => p.id));
+        if (page_widgets && page_widgets.length) {
+            let custom_filters: { [name: string]: boolean } = {};
+            for (let i in page_widgets) {
+                let page_widget = page_widgets[i];
+                if (page_widget.json_options) {
+                    let options = JSON.parse(page_widget.json_options);
+                    if (options && options['custom_filter_name']) {
+                        custom_filters[options['custom_filter_name']] = true;
+                    }
+                }
+            }
+
+            if (custom_filters && ObjectHandler.getInstance().hasAtLeastOneAttribute(custom_filters)) {
+                this.set_custom_filters(Object.keys(custom_filters));
+            }
         }
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
