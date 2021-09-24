@@ -233,6 +233,9 @@ i.fa.fa-spin:before {
     background-color: #eeeeee;
     cursor: not-allowed;
   }
+  &.hide {
+      display: none;
+  }
 }
 
 .v-select .selected-tag {
