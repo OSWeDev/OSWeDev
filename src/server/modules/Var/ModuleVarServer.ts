@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
@@ -22,6 +23,7 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -57,6 +59,9 @@ import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 
 
@@ -69,6 +74,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
 
+    public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
 
     public static getInstance() {
         if (!ModuleVarServer.instance) {
@@ -1034,6 +1040,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async getVarParamFromContextFilters(
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[]
     ): Promise<VarDataBaseVO> {
 
@@ -1051,6 +1058,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
+        let cleaned_active_field_filters = ContextFilterHandler.getInstance().clean_context_filters_for_request(get_active_field_filters);
+        let refuse_param: boolean = false;
+
         for (let i in matroid_fields) {
             let matroid_field_ = matroid_fields[i];
 
@@ -1062,7 +1072,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let ids_db: any[] = await ModuleContextFilterServer.getInstance().query_from_active_filters(
                                 matroid_field.manyToOne_target_moduletable.vo_type,
                                 matroid_field.target_field,
-                                get_active_field_filters,
+                                cleaned_active_field_filters,
                                 active_api_type_ids,
                                 0,
                                 0
@@ -1085,6 +1095,17 @@ export default class ModuleVarServer extends ModuleServerBase {
                         var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        if (!!custom_filters[matroid_field.field_id]) {
+                            // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
+                            // on compte en nombre de range et non en cardinal
+                            // et on limite à la limite configurée dans l'application
+                            let limit_nb_range = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
+                            var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
+                            if (!var_param[matroid_field.field_id]) {
+                                refuse_param = true;
+                                return;
+                            }
+                        }
                         var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                         break;
                 }
@@ -1093,6 +1114,169 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await Promise.all(field_promises);
 
-        return var_param;
+        return refuse_param ? null : var_param;
+    }
+
+    private get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let res: TSRange[] = [];
+
+        /**
+         * On va chercher par type, et on décide d'un ordre de priorité. Le but étant d'être le plus discriminant possible pour éviter de dépasser la limite du nombre de ranges
+         *  Par exemple sur un filtre 2019, 2020 | janvier, février, mars | lundi, jeudi
+         *      si on prend lundi, jeudi en premier, sur un max_range initial, on se retrouve avec une "infinité" de ranges.
+         *      par contre si on commence par limiter à 2019 et 2020 on a 1 range, puis 2 avec le découpage mois, puis ~60 avec les découpages lundi et jeudi donc là ça passe
+         */
+        if (!custom_filter) {
+            return [RangeHandler.getInstance().getMaxTSRange()];
+        }
+
+        /**
+         * Si on a pas de filtre année, on peut de toutes façons rien faire
+         */
+        let year = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        if (!year) {
+            return [RangeHandler.getInstance().getMaxTSRange()];
+        }
+
+        let tsranges = this.get_ts_ranges_from_custom_filter_year(year, limit_nb_range);
+        if (!tsranges) {
+            return null;
+        }
+
+        let month = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        if (!!month) {
+            tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
+        }
+
+        let week = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        if (!!week) {
+            throw new Error('Not implemented');
+            // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
+        }
+
+        let dow = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
+        if (!!dow) {
+            tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
+        }
+
+
+        let dom = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
+        if (!!dom) {
+            tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
+        }
+
+        return tsranges;
+    }
+
+    private get_ts_ranges_from_custom_filter_dom(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let numranges: NumRange[] = null;
+
+        if (custom_filter.param_numeric != null) {
+            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        numranges = numranges ? numranges : custom_filter.param_numranges;
+
+        if ((!numranges) || (!numranges.length)) {
+            return tsranges;
+        }
+
+        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (day: number) => {
+
+            RangeHandler.getInstance().foreach_ranges_sync(numranges, (dom: number) => {
+
+                if (dom == Dates.date(day)) {
+                    res.push(RangeHandler.getInstance().create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                }
+            });
+        }, TimeSegment.TYPE_DAY);
+
+        if (res && res.length) {
+            res = RangeHandler.getInstance().getRangesUnion(res);
+        }
+        return res;
+    }
+
+    private get_ts_ranges_from_custom_filter_dow(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let numranges: NumRange[] = null;
+
+        if (custom_filter.param_numeric != null) {
+            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        numranges = numranges ? numranges : custom_filter.param_numranges;
+
+        if ((!numranges) || (!numranges.length)) {
+            return tsranges;
+        }
+
+        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (day: number) => {
+
+            RangeHandler.getInstance().foreach_ranges_sync(numranges, (dow: number) => {
+
+                if (dow == Dates.isoWeekday(day)) {
+                    res.push(RangeHandler.getInstance().create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                }
+            });
+        }, TimeSegment.TYPE_DAY);
+
+        if (res && res.length) {
+            res = RangeHandler.getInstance().getRangesUnion(res);
+        }
+        return res;
+    }
+
+    private get_ts_ranges_from_custom_filter_month(tsranges: TSRange[], custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        let numranges: NumRange[] = null;
+
+        if (custom_filter.param_numeric != null) {
+            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        numranges = numranges ? numranges : custom_filter.param_numranges;
+
+        if ((!numranges) || (!numranges.length)) {
+            return tsranges;
+        }
+
+        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+            return null;
+        }
+
+        let res: TSRange[] = [];
+        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (year: number) => {
+
+            RangeHandler.getInstance().foreach_ranges_sync(numranges, (month_i: number) => {
+
+                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
+            });
+        });
+
+        if (res && res.length) {
+            res = RangeHandler.getInstance().getRangesUnion(res);
+        }
+        return res;
+    }
+
+    private get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
+        if (custom_filter.param_numeric != null) {
+            return [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+        }
+
+        if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
+            return null;
+        }
+
+        return custom_filter.param_numranges;
     }
 }

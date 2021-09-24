@@ -20,6 +20,8 @@ export interface IDashboardPageState {
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
     page_history: DashboardPageVO[];
+
+    custom_filters: string[];
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -50,11 +52,16 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             active_field_filters: {},
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
-            page_history: []
+            page_history: [],
+            custom_filters: []
         };
 
 
         this.getters = {
+            get_custom_filters(state: IDashboardPageState): string[] {
+                return state.custom_filters;
+            },
+
             get_page_history(state: IDashboardPageState): DashboardPageVO[] {
                 return state.page_history;
             },
@@ -79,6 +86,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.mutations = {
+
+            set_custom_filters(state: IDashboardPageState, custom_filters: string[]) {
+                state.custom_filters = custom_filters;
+            },
 
             set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
                 state.page_history = page_history;
@@ -173,6 +184,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.actions = {
 
+            set_custom_filters(context: DashboardPageContext, custom_filters: string[]) {
+                commit_set_custom_filters(context, custom_filters);
+            },
             set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
                 commit_set_page_history(context, page_history);
             },
@@ -235,3 +249,4 @@ export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInst
 export const commit_set_page_history = commit(DashboardPageStoreInstance.mutations.set_page_history);
 export const commit_add_page_history = commit(DashboardPageStoreInstance.mutations.add_page_history);
 export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);
+export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);

@@ -41,3 +41,18 @@
                 @update_additional_options="update_additional_options"
                 @update_filter_type="update_filter_type"
             )
+
+    template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+        .fields_that_could_get_custom_filter
+            template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                .field_that_could_get_custom_filter
+                    .field_id {{ field_that_could_get_custom_filter }}
+                    .custom_filter 
+                        input(
+                            type="text"
+                            v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                            :disabled="true"
+                        )
+                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                        template(v-for='custom_filter in get_custom_filters')
+                            .custom_filter(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}

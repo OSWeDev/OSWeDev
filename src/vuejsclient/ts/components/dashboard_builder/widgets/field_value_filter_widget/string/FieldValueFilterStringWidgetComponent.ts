@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -247,7 +248,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
             this.vo_field_ref.api_type_id,
             this.vo_field_ref.field_id,
-            this.get_active_field_filters,
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids,
             this.actual_query,
             this.widget_options.max_visible_options,

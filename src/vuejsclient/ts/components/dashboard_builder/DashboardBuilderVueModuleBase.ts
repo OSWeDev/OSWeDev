@@ -4,6 +4,7 @@ import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/v
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
+import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
@@ -58,9 +59,14 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
     private async initializeDefaultWidgets() {
         await this.initializeWidget_FieldValueFilter();
+
+        await this.initializeWidget_DOWFilter();
+
         await this.initializeWidget_Var();
+
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
+
         await this.initializeWidget_PageSwitch();
     }
 
@@ -121,6 +127,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Fieldvaluefilterwidgeticoncomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetIconComponent" */ './widgets/field_value_filter_widget/icon/FieldValueFilterWidgetIconComponent'));
     }
 
+    private async initializeWidget_DOWFilter() {
+        let DOWFilter = new DashboardWidgetVO();
+
+        DOWFilter.default_height = 9;
+        DOWFilter.default_width = 36;
+        DOWFilter.name = 'dowfilter';
+        DOWFilter.widget_component = 'Dowfilterwidgetcomponent';
+        DOWFilter.options_component = 'Dowfilterwidgetoptionscomponent';
+        DOWFilter.weight = 1;
+        DOWFilter.default_background = '#f5f5f5';
+        DOWFilter.icon_component = 'Dowfilterwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(DOWFilter, () => new DOWFilterWidgetOptions(true, null, null), DOWFilterWidgetOptions.get_selected_fields);
+
+        Vue.component('Dowfilterwidgetcomponent', () => import(/* webpackChunkName: "DOWFilterWidgetComponent" */ './widgets/dow_filter_widget/DOWFilterWidgetComponent'));
+        Vue.component('Dowfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "DOWFilterWidgetOptionsComponent" */ './widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
+        Vue.component('Dowfilterwidgeticoncomponent', () => import(/* webpackChunkName: "DOWFilterWidgetIconComponent" */ './widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
+    }
+
     private async initializeWidget_Var() {
         let var_widget = new DashboardWidgetVO();
 
@@ -133,7 +158,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         var_widget.default_background = '#f5f5f5';
         var_widget.icon_component = 'Varwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null), VarWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null, null), VarWidgetOptions.get_selected_fields);
 
         Vue.component('Varwidgetcomponent', () => import(/* webpackChunkName: "VarWidgetComponent" */ './widgets/var_widget/VarWidgetComponent'));
         Vue.component('Varwidgetoptionscomponent', () => import(/* webpackChunkName: "VarWidgetOptionsComponent" */ './widgets/var_widget/options/VarWidgetOptionsComponent'));

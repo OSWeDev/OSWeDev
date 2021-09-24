@@ -13,6 +13,7 @@ export default class VarWidgetOptions {
         public var_id: number,
         public page_widget_id: number,
         public filter_type: string,
+        public filter_custom_field_filters: { [field_id: string]: string },
         public filter_additional_params: string
     ) { }
 

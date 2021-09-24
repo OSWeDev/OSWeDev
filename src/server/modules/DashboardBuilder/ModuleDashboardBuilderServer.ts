@@ -301,6 +301,29 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'filters.names.__amount__.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtre de données ou de valeurs'
+        }, 'dow_filter_widget_component.is_vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Données'
+        }, 'dow_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valeurs'
+        }, 'dow_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Référence de champs (donnée filtrée)'
+        }, 'dow_filter_widget_component.vo_field_ref.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtrer une date par le jour de la semaine'
+        }, 'dashboards.widgets.icons_tooltips.dowfilter.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Nom du filtre personnalisé'
+        }, 'dow_filter_widget_component.custom_filter_name.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Filtre'
         }, 'var_widget_options_component.widget_filter_options.___LABEL___'));
 

@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -390,7 +391,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         this.data_rows = await ModuleContextFilter.getInstance().get_filtered_datatable_rows(
             api_type_ids,
             field_ids,
-            this.get_active_field_filters,
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids,
             this.pagination_pagesize,
             this.pagination_offset,
@@ -400,7 +401,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         this.pagination_count = await ModuleContextFilter.getInstance().query_rows_count_from_active_filters(
             api_type_ids,
             field_ids,
-            this.get_active_field_filters,
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids);
 
         this.stopLoading();

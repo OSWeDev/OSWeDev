@@ -6,6 +6,8 @@ import TSRange from "../../DataRender/vos/TSRange";
 export default class ContextFilterVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_filter";
 
+    public static CUSTOM_FILTERS_TYPE: string = "__custom_filters__";
+
     public static TYPE_LABELS: string[] = [
         'context_filter.type.FILTER_NOT',
         'context_filter.type.FILTER_AND',
@@ -42,6 +44,11 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.TEXT_STARTSWITH_ANY',
         'context_filter.type.TEXT_ENDSWITH_ALL',
         'context_filter.type.TEXT_ENDSWITH_ANY',
+        'context_filter.type.TYPE_DATE_DOW',
+        'context_filter.type.TYPE_DATE_DOM',
+        'context_filter.type.TYPE_DATE_WEEK',
+        'context_filter.type.TYPE_DATE_MONTH',
+        'context_filter.type.TYPE_DATE_YEAR',
     ];
 
     /**
@@ -159,6 +166,14 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_TEXT_STARTSWITH_NONE: number = 37;
     public static TYPE_TEXT_ENDSWITH_NONE: number = 38;
 
+    /**
+     * Dates special filters
+     */
+    public static TYPE_DATE_DOW: number = 39;
+    public static TYPE_DATE_DOM: number = 40;
+    public static TYPE_DATE_WEEK: number = 41;
+    public static TYPE_DATE_MONTH: number = 42;
+    public static TYPE_DATE_YEAR: number = 43;
 
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;
