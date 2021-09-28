@@ -3,10 +3,10 @@ import NotificationVO from '../../../../../../shared/modules/PushData/vos/Notifi
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction } from '../../store/NotificationStore';
 import './UserNotifComponent.scss';
-import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import { RawLocation } from 'vue-router';
 import { Dictionary } from 'vue-router/types/router';
 import * as moment from 'moment';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./UserNotifComponent.pug')
@@ -49,7 +49,7 @@ export default class UserNotifComponent extends VueComponentBase {
             return null;
         }
 
-        return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(moment(this.notification.creation_date).utc(true));
+        return Dates.format(this.notification.creation_date, "DD/MM/YYYY HH:mm:ss");
     }
 
     get is_warn(): boolean {
