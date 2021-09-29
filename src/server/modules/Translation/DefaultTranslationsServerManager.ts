@@ -108,7 +108,7 @@ export default class DefaultTranslationsServerManager {
 
             let translation_str: string = default_translation.default_translations[lang.code_lang];
 
-            if (!translation_str) {
+            if (translation_str == null) {
                 // Si pas de trad, on passe au suivant pour ne pas créer de trad par defaut sur les autres langues
 
                 // if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
