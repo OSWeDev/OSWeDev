@@ -43,6 +43,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     private tmp_start_date: Moment = null;
     private tmp_start_url: string = null;
 
+    private is_already_sending_feedback: boolean = false;
+
     private mounted() {
         this.reload();
     }
@@ -66,6 +68,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_capture_1_vo = null;
         this.tmp_capture_2_vo = null;
         this.tmp_capture_3_vo = null;
+
+        this.is_already_sending_feedback = false;
     }
 
     private switch_hidden() {
@@ -82,22 +86,34 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     private async send_feedback() {
 
         /**
+         * On empêche d'appeler à nouveau la fonction tant que l'envoi n'a pas été effectué
+         * Cela permet d'éviter l'envoi multiple du ticket en spammant le btn d'envoi
+         */
+        if (this.is_already_sending_feedback) {
+            return;
+        }
+        this.is_already_sending_feedback = true;
+
+        /**
          * On vérifie :
          *  - Si on a pas de capture écran, on en fait une avant d'enregistrer
          *  - Si on a pas de titre ou de message (l'un des deux suffit) on refuse avec un snotify
          */
         if ((!this.tmp_message) || (!this.tmp_title)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_message_and_title'));
+            this.is_already_sending_feedback = false;
             return;
         }
 
         if ((!this.tmp_user) || (!this.tmp_email)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_user_and_email'));
+            this.is_already_sending_feedback = false;
             return;
         }
 
         if ((!this.tmp_capture_1_vo) || (!this.tmp_capture_1_vo.id)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_at_least_one_screenshot'));
+            this.is_already_sending_feedback = false;
             return;
         }
 
@@ -125,10 +141,12 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
         if (!await ModuleFeedback.getInstance().feedback(feedback)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
+            this.is_already_sending_feedback = false;
             return;
         }
 
         this.hidden = true;
+        this.is_already_sending_feedback = false;
         this.reload();
     }
 
