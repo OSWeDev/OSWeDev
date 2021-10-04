@@ -100,7 +100,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAccessPolicy.POLICY_GROUP;
         group = await this.registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Droits d\'administration principaux'
+            'fr-fr': 'Droits d\'administration principaux'
         }));
 
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -108,7 +108,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
         fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
         fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Accès au front'
+            'fr-fr': 'Accès au front'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
 
@@ -117,7 +117,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         signin_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         signin_access.translatable_name = ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS;
         signin_access = await this.registerPolicy(signin_access, new DefaultTranslation({
-            fr: 'Droit à l\'inscription'
+            'fr-fr': 'Droit à l\'inscription'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
@@ -125,7 +125,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         sessionshare_access.translatable_name = ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS;
         sessionshare_access = await this.registerPolicy(sessionshare_access, new DefaultTranslation({
-            fr: 'Accès au SessionShare'
+            'fr-fr': 'Accès au SessionShare'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let POLICY_IMPERSONATE: AccessPolicyVO = new AccessPolicyVO();
@@ -133,7 +133,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         POLICY_IMPERSONATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
         POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
-            fr: 'Impersonate'
+            'fr-fr': 'Impersonate'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let POLICY_SENDINITPWD: AccessPolicyVO = new AccessPolicyVO();
@@ -141,7 +141,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         POLICY_SENDINITPWD.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
         POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
-            fr: 'Envoi Mail init PWD'
+            'fr-fr': 'Envoi Mail init PWD'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -149,7 +149,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleAccessPolicy.POLICY_BO_ACCESS;
         bo_access = await this.registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Accès à l\'administration'
+            'fr-fr': 'Accès à l\'administration'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let modules_managment_access: AccessPolicyVO = new AccessPolicyVO();
@@ -157,7 +157,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         modules_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         modules_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
         modules_managment_access = await this.registerPolicy(modules_managment_access, new DefaultTranslation({
-            fr: 'Gestion des modules'
+            'fr-fr': 'Gestion des modules'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -170,7 +170,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         rights_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         rights_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS;
         rights_managment_access = await this.registerPolicy(rights_managment_access, new DefaultTranslation({
-            fr: 'Gestion des droits'
+            'fr-fr': 'Gestion des droits'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         dependency = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -183,7 +183,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         users_list_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         users_list_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS;
         users_list_access = await this.registerPolicy(users_list_access, new DefaultTranslation({
-            fr: 'Liste des utilisateurs'
+            'fr-fr': 'Liste des utilisateurs'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         dependency = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -196,7 +196,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         users_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         users_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS;
         users_managment_access = await this.registerPolicy(users_managment_access, new DefaultTranslation({
-            fr: 'Gestion des utilisateurs'
+            'fr-fr': 'Gestion des utilisateurs'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         dependency = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -218,19 +218,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
         AccessPolicyServerController.getInstance().role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
         AccessPolicyServerController.getInstance().role_anonymous = await this.registerRole(AccessPolicyServerController.getInstance().role_anonymous, new DefaultTranslation({
-            fr: 'Utilisateur anonyme'
+            'fr-fr': 'Utilisateur anonyme'
         }));
 
         AccessPolicyServerController.getInstance().role_logged = new RoleVO();
         AccessPolicyServerController.getInstance().role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
         AccessPolicyServerController.getInstance().role_logged = await this.registerRole(AccessPolicyServerController.getInstance().role_logged, new DefaultTranslation({
-            fr: 'Utilisateur connecté'
+            'fr-fr': 'Utilisateur connecté'
         }));
 
         AccessPolicyServerController.getInstance().role_admin = new RoleVO();
         AccessPolicyServerController.getInstance().role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
         AccessPolicyServerController.getInstance().role_admin = await this.registerRole(AccessPolicyServerController.getInstance().role_admin, new DefaultTranslation({
-            fr: 'Administrateur'
+            'fr-fr': 'Administrateur'
         }));
     }
 
@@ -299,392 +299,392 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Partager la connexion'
+            'fr-fr': 'Partager la connexion'
         }, 'session_share.navigator_share_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Partager votre connexion à l\'outil Wedev'
+            'fr-fr': 'Partager votre connexion à l\'outil Wedev'
         }, 'session_share.navigator_share_content.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Partager la connexion'
+            'fr-fr': 'Partager la connexion'
         }, 'session_share.navigator_share.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Copier l\'url de partage'
+            'fr-fr': 'Copier l\'url de partage'
         }, 'session_share.copy_url.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion partagée !'
+            'fr-fr': 'Connexion partagée !'
         }, 'session_share.navigator_share_success.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec du partage.'
+            'fr-fr': 'Echec du partage.'
         }, 'session_share.navigator_share_error.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Gestion des droits'
+            'fr-fr': 'Gestion des droits'
         }, 'access_policy.admin.filters.filters-title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Caché'
+            'fr-fr': 'Caché'
         }, 'access_policy.admin.filters.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Visible'
+            'fr-fr': 'Visible'
         }, 'access_policy.admin.filters.visible.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mise à jour des droits : OK'
+            'fr-fr': 'Mise à jour des droits : OK'
         }, 'access_policy.admin.set_policy.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mise à jour des droits : En cours...'
+            'fr-fr': 'Mise à jour des droits : En cours...'
         }, 'access_policy.admin.set_policy.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Refusé'
+            'fr-fr': 'Refusé'
         }, 'access_policy.admin.table.denied.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accordé'
+            'fr-fr': 'Accordé'
         }, 'access_policy.admin.table.granted.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ''
+            'fr-fr': ''
         }, 'access_policy.admin.table.headers.first_header.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accès admin uniquement'
+            'fr-fr': 'Accès admin uniquement'
         }, 'accpol.default_behaviour.access_denied_to_all_but_admin'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accès utilisateur connecté'
+            'fr-fr': 'Accès utilisateur connecté'
         }, 'accpol.default_behaviour.access_denied_to_anonymous'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accès pour tous'
+            'fr-fr': 'Accès pour tous'
         }, 'accpol.default_behaviour.access_granted_to_anyone'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Utilisateurs'
+            'fr-fr': 'Utilisateurs'
         }, 'menu.menuelements.admin.AccessPolicyAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Gestion des droits'
+            'fr-fr': 'Gestion des droits'
         }, 'menu.menuelements.admin.AccessPolicyComponent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Gourpe d\'accès'
+            'fr-fr': 'Gourpe d\'accès'
         }, 'menu.menuelements.admin.AccessPolicyGroupVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accès'
+            'fr-fr': 'Accès'
         }, 'menu.menuelements.admin.AccessPolicyVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Droit'
+            'fr-fr': 'Droit'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____group_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Admin'
+            'fr-fr': 'Admin'
         }, 'access.roles.names.admin.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non connecté'
+            'fr-fr': 'Non connecté'
         }, 'access.roles.names.anonymous.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connecté'
+            'fr-fr': 'Connecté'
         }, 'access.roles.names.logged.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mon compte'
+            'fr-fr': 'Mon compte'
         }, 'client.my_account.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion'
+            'fr-fr': 'Connexion'
         }, 'login.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ''
+            'fr-fr': ''
         }, 'login.sub_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Saisissez vos identifiants'
+            'fr-fr': 'Saisissez vos identifiants'
         }, 'login.msg.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Login'
+            'fr-fr': 'Login'
         }, 'login.password_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion'
+            'fr-fr': 'Connexion'
         }, 'login.signIn.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mot de passe oublié'
+            'fr-fr': 'Mot de passe oublié'
         }, 'login.recoverlink.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion...'
+            'fr-fr': 'Connexion...'
         }, 'login.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec de la connexion'
+            'fr-fr': 'Echec de la connexion'
         }, 'login.failed.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Récupération du mot de passe'
+            'fr-fr': 'Récupération du mot de passe'
         }, 'login.recover.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ''
+            'fr-fr': ''
         }, 'login.recover.sub_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Merci de renseigner votre adresse email.'
+            'fr-fr': 'Merci de renseigner votre adresse email.'
         }, 'login.recover.desc.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Login/email/n° de téléphone'
+            'fr-fr': 'Login/email/n° de téléphone'
         }, 'login.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Envoyer le mail'
+            'fr-fr': 'Envoyer le mail'
         }, 'login.recover.submit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Envoyer le SMS'
+            'fr-fr': 'Envoyer le SMS'
         }, 'login.recover.sms.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
+            'fr-fr': 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
         }, 'login.recover.answersms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Inscription'
+            'fr-fr': 'Inscription'
         }, 'signin.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ' '
+            'fr-fr': ' '
         }, 'signin.sub_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Saisissez les informations demandées'
+            'fr-fr': 'Saisissez les informations demandées'
         }, 'signin.msg.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Identifiant'
+            'fr-fr': 'Identifiant'
         }, 'signin.nom_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Email'
+            'fr-fr': 'Email'
         }, 'signin.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mot de passe'
+            'fr-fr': 'Mot de passe'
         }, 'signin.password_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Confirmer le mot de passe'
+            'fr-fr': 'Confirmer le mot de passe'
         }, 'signin.confirm_password_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'S\'inscrire'
+            'fr-fr': 'S\'inscrire'
         }, 'signin.signin.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Les informations que vous avez saisi ne sont pas correctes'
+            'fr-fr': 'Les informations que vous avez saisi ne sont pas correctes'
         }, 'signin.failed.message.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Le service est en cours de maintenance. Merci de votre patience.'
+            'fr-fr': 'Le service est en cours de maintenance. Merci de votre patience.'
         }, 'error.global_update_blocker.activated.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Récupération...'
+            'fr-fr': 'Récupération...'
         }, 'recover.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Récupération échouée'
+            'fr-fr': 'Récupération échouée'
         }, 'recover.failed.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Consultez vos mails'
+            'fr-fr': 'Consultez vos mails'
         }, 'recover.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
+            'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
         }, 'login.recover.answercansms.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
+            'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
         }, 'login.recover.answer.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Réinitialisation de votre mot de passe'
+            'fr-fr': 'Réinitialisation de votre mot de passe'
         }, 'login.reset.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ''
+            'fr-fr': ''
         }, 'login.reset.sub_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Merci de renseigner votre adresse email, le code reçu par mail sur cette même adresse, ainsi que votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
+            'fr-fr': 'Merci de renseigner votre adresse email, le code reçu par mail sur cette même adresse, ainsi que votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Merci de renseigner votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
+            'fr-fr': 'Merci de renseigner votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc_simplified.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Code de sécurité'
+            'fr-fr': 'Code de sécurité'
         }, 'login.code_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Nouveau mot de passe'
+            'fr-fr': 'Nouveau mot de passe'
         }, 'login.password_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valider'
+            'fr-fr': 'Valider'
         }, 'login.reset.submit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Me connecter'
+            'fr-fr': 'Me connecter'
         }, 'login.reset.reco.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification...'
+            'fr-fr': 'Modification...'
         }, 'reset.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification échouée'
+            'fr-fr': 'Modification échouée'
         }, 'reset.failed.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Le mot de passe a été réinitialisé. Vous pouvez vous connecter avec votre nouveau mot de passe.'
+            'fr-fr': 'Le mot de passe a été réinitialisé. Vous pouvez vous connecter avec votre nouveau mot de passe.'
         }, 'login.reset.answer_ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification réussie'
+            'fr-fr': 'Modification réussie'
         }, 'reset.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'La saisie est invalide. Vérifiez l\'adresse mail, le code envoyé sur cette même adresse et le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
+            'fr-fr': 'La saisie est invalide. Vérifiez l\'adresse mail, le code envoyé sur cette même adresse et le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'La saisie est invalide. Vérifiez le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
+            'fr-fr': 'La saisie est invalide. Vérifiez le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko_simplified.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Se connecter'
+            'fr-fr': 'Se connecter'
         }, 'login.reset.lien_connect.___LABEL___'));
 
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accéder au site'
+            'fr-fr': 'Accéder au site'
         }, 'mails.pwd.initpwd.submit'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Initialisation du mot de passe'
+            'fr-fr': 'Initialisation du mot de passe'
         }, 'mails.pwd.initpwd.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cliquez sur le lien ci-dessous pour initialiser votre mot de passe.'
+            'fr-fr': 'Cliquez sur le lien ci-dessous pour initialiser votre mot de passe.'
         }, 'mails.pwd.initpwd.html'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accéder au site'
+            'fr-fr': 'Accéder au site'
         }, 'mails.pwd.recovery.submit'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Récupération du mot de passe'
+            'fr-fr': 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+            'fr-fr': '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'mails.pwd.recovery.sms'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+            'fr-fr': '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.initpwd'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
+            'fr-fr': 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe a expiré'
+            'fr-fr': 'Votre mot de passe a expiré'
         }, 'mails.pwd.invalidation.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe a été invalidé. Vous pouvez utiliser la page de récupération du mot de passe accessible en cliquant sur le lien ci-dessous.'
+            'fr-fr': 'Votre mot de passe a été invalidé. Vous pouvez utiliser la page de récupération du mot de passe accessible en cliquant sur le lien ci-dessous.'
         }, 'mails.pwd.invalidation.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe a expiré'
+            'fr-fr': 'Votre mot de passe a expiré'
         }, 'mails.pwd.invalidation.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe arrive à expiration'
+            'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder1.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe arrive à expiration'
+            'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder2.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe arrive à expiration'
+            'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder1.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe expire dans 20 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
+            'fr-fr': 'Votre mot de passe expire dans 20 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder1.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe arrive à expiration'
+            'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder2.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
+            'fr-fr': 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder2.html'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion impossible. Vérifiez le mot de passe. Si votre mot de passe a été invalidé, vous devriez recevoir un mail vous invitant à le renouveler. Vous pouvez également utiliser la procédure d\'oubli du mot de passe en cliquant sur "Mot de passe oublié".'
+            'fr-fr': 'Connexion impossible. Vérifiez le mot de passe. Si votre mot de passe a été invalidé, vous devriez recevoir un mail vous invitant à le renouveler. Vous pouvez également utiliser la procédure d\'oubli du mot de passe en cliquant sur "Mot de passe oublié".'
         }, 'login.failed.message.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'LogAs'
+            'fr-fr': 'LogAs'
         }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mise à jour de la langue et rechargement...'
+            'fr-fr': 'Mise à jour de la langue et rechargement...'
         }, 'lang_selector.encours.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ''
+            'fr-fr': ''
         }, 'lang_selector.lang_prefix.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: ''
+            'fr-fr': ''
         }, 'lang_selector.lang_suffix.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Consultez vos SMS'
+            'fr-fr': 'Consultez vos SMS'
         }, 'recover.oksms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Langue'
+            'fr-fr': 'Langue'
         }, 'lang_selector.label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Droits'
+            'fr-fr': 'Droits'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____module_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mail d\'initialisation du mot de passe envoyé'
+            'fr-fr': 'Mail d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'SMS d\'initialisation du mot de passe envoyé'
+            'fr-fr': 'SMS d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.oksms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mail init mdp'
+            'fr-fr': 'Mail init mdp'
         }, 'fields.labels.ref.user.__component__sendinitpwd.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Renvoyer le mail'
+            'fr-fr': 'Renvoyer le mail'
         }, 'login.reset.send_init_pwd.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Renvoyer le SMS'
+            'fr-fr': 'Renvoyer le SMS'
         }, 'login.reset.send_init_pwd_sms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
+            'fr-fr': 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
         }, 'login.reset.code_invalid.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dans la page de connexion, cliquez sur "oubli du mot de passe"'
+            'fr-fr': 'Dans la page de connexion, cliquez sur "oubli du mot de passe"'
         }, 'reset.code_invalid.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mail renvoyé, merci de consulter votre messagerie'
+            'fr-fr': 'Mail renvoyé, merci de consulter votre messagerie'
         }, 'reset.sent_init_pwd.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de l\'envoi du mail'
+            'fr-fr': 'Erreur lors de l\'envoi du mail'
         }, 'session_share.mail_not_sent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mail envoyé'
+            'fr-fr': 'Mail envoyé'
         }, 'session_share.mail_sent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de l\'envoi du SMS'
+            'fr-fr': 'Erreur lors de l\'envoi du SMS'
         }, 'session_share.sms_not_sent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lien de session partagée : '
+            'fr-fr': 'Lien de session partagée : '
         }, 'session_share.sms_preurl.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'SMS envoyé'
+            'fr-fr': 'SMS envoyé'
         }, 'session_share.sms_sent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Envoyer à cet email'
+            'fr-fr': 'Envoyer à cet email'
         }, 'session_share.email.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Envoyer par SMS à ce numéro'
+            'fr-fr': 'Envoyer par SMS à ce numéro'
         }, 'session_share.phone.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Partager la session'
+            'fr-fr': 'Partager la session'
         }, 'session_share.open_show.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer la session'
+            'fr-fr': 'Supprimer la session'
         }, 'session_share.delete_session.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Session supprimée'
+            'fr-fr': 'Session supprimée'
         }, 'session_share.delete_session.success.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: "Informations"
+            'fr-fr': "Informations"
         }, 'signin.informations.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: "Conditions d'utilisation"
+            'fr-fr': "Conditions d'utilisation"
         }, 'signin.cgu.___LABEL___'));
 
 

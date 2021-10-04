@@ -37,56 +37,56 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '{worker_uid}'
+            'fr-fr': '{worker_uid}'
         }, 'cron.run_cron_individuel.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lancer une tâche planifiée manuellement'
+            'fr-fr': 'Lancer une tâche planifiée manuellement'
         }, 'cron.run_cron_individuel.head.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mettre à jour la supervision'
+            'fr-fr': 'Mettre à jour la supervision'
         }, 'cron.update_supervised.head.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâche manuelles'
+            'fr-fr': 'Tâche manuelles'
         }, 'cron.manual_task.head.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '{manual_task}'
+            'fr-fr': '{manual_task}'
         }, 'cron.manual_task.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '{supervised_uid}'
+            'fr-fr': '{supervised_uid}'
         }, 'cron.update_supervised.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mise à jour supervision {supervised_uid} débutée'
+            'fr-fr': 'Mise à jour supervision {supervised_uid} débutée'
         }, 'CronComponent.info.update_supervised.started.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mise à jour supervision {supervised_uid} terminée'
+            'fr-fr': 'Mise à jour supervision {supervised_uid} terminée'
         }, 'CronComponent.info.update_supervised.ended.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâche manuelle en cours'
+            'fr-fr': 'Tâche manuelle en cours'
         }, 'CronComponent.info.run_manual_task.started.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâche manuelle terminée'
+            'fr-fr': 'Tâche manuelle terminée'
         }, 'CronComponent.info.run_manual_task.ended.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lancement manuel des tâches'
+            'fr-fr': 'Lancement manuel des tâches'
         }, 'cron.execute_manually.start'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâches terminées'
+            'fr-fr': 'Tâches terminées'
         }, 'cron.execute_manually.success'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâches échouées'
+            'fr-fr': 'Tâches échouées'
         }, 'cron.execute_manually.failed'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâche manuelle en cours'
+            'fr-fr': 'Tâche manuelle en cours'
         }, 'CronComponent.info.executeWorkerManually.started.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lancement manuel'
+            'fr-fr': 'Lancement manuel'
         }, 'cron.execute_manually_indiv.start'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tâche manuelle terminée'
+            'fr-fr': 'Tâche manuelle terminée'
         }, 'cron.execute_manually_indiv.success'));
     }
 
@@ -97,7 +97,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCron.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Tâches planifiées'
+            'fr-fr': 'Tâches planifiées'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -105,7 +105,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleCron.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration des tâches planifiées'
+            'fr-fr': 'Administration des tâches planifiées'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

@@ -63,64 +63,64 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Confirmer ?'
+            'fr-fr': 'Confirmer ?'
         }, 'programplan.create_cr.confirmation.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrer le compte-rendu'
+            'fr-fr': 'Enregistrer le compte-rendu'
         }, 'programplan.create_cr.confirmation.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrement en cours...'
+            'fr-fr': 'Enregistrement en cours...'
         }, 'programplan.create_cr.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de l\'enregistrement du compte-rendu'
+            'fr-fr': 'Erreur lors de l\'enregistrement du compte-rendu'
         }, 'programplan.create_cr.error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrement du compte-rendu terminé'
+            'fr-fr': 'Enregistrement du compte-rendu terminé'
         }, 'programplan.create_cr.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Animateur'
+            'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____manager_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Animateur'
+            'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____region_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Animateur'
+            'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____user_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Boutique'
+            'fr-fr': 'Boutique'
         }, 'fields.labels.ref.module_sfam_program_plan_boutique.___LABEL____enseigne_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Contact'
+            'fr-fr': 'Contact'
         }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____contact_type_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Contact'
+            'fr-fr': 'Contact'
         }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____user_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Manager'
+            'fr-fr': 'Manager'
         }, 'fields.labels.ref.module_sfam_program_plan_manager.___LABEL____user_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Création interdite'
+            'fr-fr': 'Création interdite'
         }, 'programplan.fc.create.denied.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur de création'
+            'fr-fr': 'Erreur de création'
         }, 'programplan.fc.create.error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression interdite'
+            'fr-fr': 'Suppression interdite'
         }, 'programplan.fc.delete.denied.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur de suppression'
+            'fr-fr': 'Erreur de suppression'
         }, 'programplan.delete.error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification interdite'
+            'fr-fr': 'Modification interdite'
         }, 'programplan.fc.update.denied.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur de modification'
+            'fr-fr': 'Erreur de modification'
         }, 'programplan.fc.update.error.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Date'
+            'fr-fr': 'Date'
         }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
     }
 
@@ -183,7 +183,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.programplan_shared_module.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'ProgramPlan - ' + this.programplan_shared_module.name
+            'fr-fr': 'ProgramPlan - ' + this.programplan_shared_module.name
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -191,7 +191,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = this.programplan_shared_module.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration du ProgramPlan - ' + this.programplan_shared_module.name
+            'fr-fr': 'Administration du ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -204,7 +204,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = this.programplan_shared_module.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Accès au ProgramPlan - ' + this.programplan_shared_module.name
+            'fr-fr': 'Accès au ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let fo_see_fc: AccessPolicyVO = new AccessPolicyVO();
@@ -212,7 +212,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_see_fc.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_FC;
         fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
-            fr: 'Vision calendrier du ProgramPlan - ' + this.programplan_shared_module.name
+            'fr-fr': 'Vision calendrier du ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency_seefc: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency_seefc.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -226,7 +226,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_edit.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT;
         fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
-            fr: 'Edition du ProgramPlan - ' + this.programplan_shared_module.name
+            'fr-fr': 'Edition du ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -293,7 +293,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         see_own_team.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         see_own_team.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM;
         see_own_team = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_own_team, new DefaultTranslation({
-            fr: 'Voir son équipe - ' + this.programplan_shared_module.name
+            'fr-fr': 'Voir son équipe - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -306,7 +306,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         see_all_teams.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         see_all_teams.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS;
         see_all_teams = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_all_teams, new DefaultTranslation({
-            fr: 'Voir toutes les équipes - ' + this.programplan_shared_module.name
+            'fr-fr': 'Voir toutes les équipes - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -327,7 +327,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_own_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_RDVS;
         edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, new DefaultTranslation({
-            fr: 'Modifier ses propres RDVs - ' + this.programplan_shared_module.name
+            'fr-fr': 'Modifier ses propres RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -340,7 +340,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_team_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_own_team_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_TEAM_RDVS;
         edit_own_team_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_team_rdvs, new DefaultTranslation({
-            fr: 'Modifier les RDVs de son équipe - ' + this.programplan_shared_module.name
+            'fr-fr': 'Modifier les RDVs de son équipe - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -358,7 +358,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_all_teams_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_all_teams_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_ALL_RDVS;
         edit_all_teams_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_all_teams_rdvs, new DefaultTranslation({
-            fr: 'Modifier tous les RDVs - ' + this.programplan_shared_module.name
+            'fr-fr': 'Modifier tous les RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

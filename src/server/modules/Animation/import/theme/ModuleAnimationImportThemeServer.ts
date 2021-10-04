@@ -43,7 +43,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
     //     access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     //     access.translatable_name = ModuleAnimationImportTheme.POLICY_BO_ACCESS;
     //     access = await ModuleAccessPolicyServer.getInstance().registerPolicy(access, new DefaultTranslation({
-    //         fr: 'Importer les themes animation'
+    //         'fr-fr': 'Importer les themes animation'
     //     }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
     //     let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();

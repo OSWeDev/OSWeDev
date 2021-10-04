@@ -193,7 +193,7 @@ export default abstract class ServerBase {
         //     },
         // }
         // /*, function() {
-        //   i18nextMiddleware.addRoute(i18next, '/:lng/key-to-translate', ['fr', 'de', 'es'], app, 'get',
+        //   i18nextMiddleware.addRoute(i18next, '/:lng/key-to-translate', ['fr-FR', 'de', 'es'], app, 'get',
         //     function(req, res) {
         //       // endpoint function
         //     })
@@ -270,7 +270,7 @@ export default abstract class ServerBase {
 
         this.app.use(createLocaleMiddleware({
             priority: ["accept-language", "default"],
-            default: "fr_FR"
+            default: this.envParam.DEFAULT_LOCALE
         }));
 
         // Chargement des WebPack Client et Admin

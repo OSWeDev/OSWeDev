@@ -23,43 +23,43 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Aucun élément à afficher'
+            'fr-fr': 'Aucun élément à afficher'
         }, 'checklist.no_elts.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtrer'
+            'fr-fr': 'Filtrer'
         }, 'checklist.filter_text.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'checklist.checklist_item_modal.delete.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Fermer'
+            'fr-fr': 'Fermer'
         }, 'checklist.checklist_item_modal.close.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'CheckList'
+            'fr-fr': 'CheckList'
         }, 'menu.menuelements.admin.checklist.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de la suppression'
+            'fr-fr': 'Erreur lors de la suppression'
         }, 'CheckListComponent.deleteSelectedItem.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Archiver'
+            'fr-fr': 'Archiver'
         }, 'checklist.archive.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'CheckPoint'
+            'fr-fr': 'CheckPoint'
         }, 'menu.menuelements.admin.checkpoint.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Nouveau'
+            'fr-fr': 'Nouveau'
         }, 'checklist.createNew.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Aucun champs lié à cette étape'
+            'fr-fr': 'Aucun champs lié à cette étape'
         }, 'checklist_modal.no_fields.___LABEL___'));
     }
 
@@ -70,7 +70,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.checklist_shared_module.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'CheckList - ' + this.checklist_shared_module.name
+            'fr-fr': 'CheckList - ' + this.checklist_shared_module.name
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -78,7 +78,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = this.checklist_shared_module.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration de la CheckList - ' + this.checklist_shared_module.name
+            'fr-fr': 'Administration de la CheckList - ' + this.checklist_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -91,7 +91,7 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = this.checklist_shared_module.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Accès à la CheckList - ' + this.checklist_shared_module.name
+            'fr-fr': 'Accès à la CheckList - ' + this.checklist_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 }

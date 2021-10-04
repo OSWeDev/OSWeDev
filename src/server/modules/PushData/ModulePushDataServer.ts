@@ -49,38 +49,38 @@ export default class ModulePushDataServer extends ModuleServerBase {
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valider'
+            'fr-fr': 'Valider'
         }, 'snotify.prompt.submit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler'
+            'fr-fr': 'Annuler'
         }, 'snotify.prompt.cancel.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Votre session a été invalidée, la page va être rechargée automatiquement...'
+            'fr-fr': 'Votre session a été invalidée, la page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_SESSION_INVALIDATED));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion en cours. La page va être rechargée automatiquement...'
+            'fr-fr': 'Connexion en cours. La page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_USER_LOGGED));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'La page va être rechargée automatiquement...'
+            'fr-fr': 'La page va être rechargée automatiquement...'
         }, PushDataServerController.NOTIFY_RELOAD));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Aucune notification en attente'
+            'fr-fr': 'Aucune notification en attente'
         }, 'UserNotifsViewerComponent.placeholder.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Notifications'
+            'fr-fr': 'Notifications'
         }, 'UserNotifsViewerComponent.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'UserNotifComponent.mark_as_read.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tout supprimer'
+            'fr-fr': 'Tout supprimer'
         }, 'UserNotifsViewerComponent.footer_delete_all.___LABEL___'));
     }
 

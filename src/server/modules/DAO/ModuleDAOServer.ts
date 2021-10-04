@@ -104,19 +104,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let group_overall: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group_overall.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL;
         group_overall = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_overall, new DefaultTranslation({
-            fr: '!!! Accès à toutes les tables'
+            'fr-fr': '!!! Accès à toutes les tables'
         }));
 
         let group_datas: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group_datas.translatable_name = ModuleDAO.POLICY_GROUP_DATAS;
         group_datas = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_datas, new DefaultTranslation({
-            fr: 'Données'
+            'fr-fr': 'Données'
         }));
 
         let group_modules_conf: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group_modules_conf.translatable_name = ModuleDAO.POLICY_GROUP_MODULES_CONF;
         group_modules_conf = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_modules_conf, new DefaultTranslation({
-            fr: 'Paramètres des modules'
+            'fr-fr': 'Paramètres des modules'
         }));
 
         // On déclare un droit permettant de faire appel à la fonction query du module dao server
@@ -125,7 +125,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
         query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
-            fr: 'Utiliser la fonction QUERY'
+            'fr-fr': 'Utiliser la fonction QUERY'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         // On déclare un droit global d'accès qui déclenche tous les autres
@@ -134,7 +134,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         global_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS + "." + "___GLOBAL_ACCESS___";
         global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, new DefaultTranslation({
-            fr: 'Outrepasser les droits d\'accès'
+            'fr-fr': 'Outrepasser les droits d\'accès'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         // On doit déclarer les access policies de tous les VO
@@ -291,48 +291,48 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_delete_trigger_hook);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modifier'
+            'fr-fr': 'Modifier'
         }, 'editable_page_switch.edit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Consulter'
+            'fr-fr': 'Consulter'
         }, 'editable_page_switch.read.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler les modifications en cours ?'
+            'fr-fr': 'Annuler les modifications en cours ?'
         }, 'crud.inline_input_mode_semaphore.confirm.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Des modifications sont en cours'
+            'fr-fr': 'Des modifications sont en cours'
         }, 'crud.inline_input_mode_semaphore.confirm.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Demande refusée : Le système est en lecture seule'
+            'fr-fr': 'Demande refusée : Le système est en lecture seule'
         }, 'dao.global_update_blocker.actif'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression impossible, consulter les logs du serveur'
+            'fr-fr': 'Suppression impossible, consulter les logs du serveur'
         }, 'dao.truncate.error'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrement...'
+            'fr-fr': 'Enregistrement...'
         }, 'EditablePageController.save.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de l\'enregistrement'
+            'fr-fr': 'Erreur lors de l\'enregistrement'
         }, 'EditablePageController.save.error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrement terminé'
+            'fr-fr': 'Enregistrement terminé'
         }, 'EditablePageController.save.success.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Afficher / masquer les {ranges_length} elts...'
+            'fr-fr': 'Afficher / masquer les {ranges_length} elts...'
         }, 'ranges.limited.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Toutes les dates'
+            'fr-fr': 'Toutes les dates'
         }, 'tsrange.max_range.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Toutes les heures'
+            'fr-fr': 'Toutes les heures'
         }, 'hourrange.max_range.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tous/Toutes'
+            'fr-fr': 'Tous/Toutes'
         }, 'numrange.max_range.___LABEL___'));
     }
 

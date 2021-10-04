@@ -46,7 +46,7 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
     //     access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
     //     access.translatable_name = ModuleAnimationImportModule.POLICY_BO_ACCESS;
     //     access = await ModuleAccessPolicyServer.getInstance().registerPolicy(access, new DefaultTranslation({
-    //         fr: 'Importer les modules animation'
+    //         'fr-fr': 'Importer les modules animation'
     //     }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     //     let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
     //     access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

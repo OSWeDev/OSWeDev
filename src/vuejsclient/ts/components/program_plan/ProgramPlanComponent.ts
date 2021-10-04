@@ -1107,7 +1107,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
 
         return {
-            locale: 'fr',
+            locale: 'fr-fr',
             timeZone: 'UTC',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: Dates.format(Dates.now(), 'Y-MM-DD'),

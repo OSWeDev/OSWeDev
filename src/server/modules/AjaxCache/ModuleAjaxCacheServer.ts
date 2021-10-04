@@ -41,7 +41,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAjaxCache.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Cache de requêtes'
+            'fr-fr': 'Cache de requêtes'
         }));
 
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -49,7 +49,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
         fo_access.translatable_name = ModuleAjaxCache.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Configuration sur le front'
+            'fr-fr': 'Configuration sur le front'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 

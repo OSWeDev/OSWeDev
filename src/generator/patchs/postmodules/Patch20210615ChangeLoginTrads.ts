@@ -23,7 +23,7 @@ export default class Patch20210615ChangeLoginTrads implements IGeneratorWorker {
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        let lang = await ModuleTranslation.getInstance().getLang('fr');
+        let lang = await ModuleTranslation.getInstance().getLang('fr-fr');
         let text = await ModuleTranslation.getInstance().getTranslatableText("login.email_placeholder.___LABEL___");
 
         if ((!lang) || (!text)) {

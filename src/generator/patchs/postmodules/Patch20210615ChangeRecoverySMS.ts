@@ -23,7 +23,7 @@ export default class Patch20210615ChangeRecoverySMS implements IGeneratorWorker 
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        let lang = await ModuleTranslation.getInstance().getLang('fr');
+        let lang = await ModuleTranslation.getInstance().getLang('fr-fr');
         let text = await ModuleTranslation.getInstance().getTranslatableText("mails.pwd.recovery.sms");
 
         if ((!lang) || (!text)) {

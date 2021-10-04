@@ -35,19 +35,19 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Jour'
+            'fr-fr': 'Jour'
         }, 'timesegment.day.type_name'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mois'
+            'fr-fr': 'Mois'
         }, 'timesegment.month.type_name'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Année glissante'
+            'fr-fr': 'Année glissante'
         }, 'timesegment.rolling_year_month_start.type_name'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Semaine'
+            'fr-fr': 'Semaine'
         }, 'timesegment.week.type_name'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Année'
+            'fr-fr': 'Année'
         }, 'timesegment.year.type_name'));
     }
 

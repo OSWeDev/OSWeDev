@@ -34,417 +34,417 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Activer le menu sur : {app_name}'
+            'fr-fr': 'Activer le menu sur : {app_name}'
         }, 'dashboard_menu_conf.menu_switch.label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '3 - Menus'
+            'fr-fr': '3 - Menus'
         }, 'dashboard_builder.menu_conf.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Impossible de créer un nouveau Dashboard...'
+            'fr-fr': 'Impossible de créer un nouveau Dashboard...'
         }, 'DashboardBuilderComponent.create_new_dashboard.ko.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur de chargement du Dashboard Builder'
+            'fr-fr': 'Erreur de chargement du Dashboard Builder'
         }, 'dashboard_builder.loading_failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionner un Dashboard...'
+            'fr-fr': 'Sélectionner un Dashboard...'
         }, 'dashboard_builder.select_dashboard.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Onglet caché. Cliquer pour le rendre visible sur le Tableau de bord.'
+            'fr-fr': 'Onglet caché. Cliquer pour le rendre visible sur le Tableau de bord.'
         }, 'dashboard_builder.pages.tooltip_click_to_show_navigation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Onglet visible. Cliquer pour le cacher sur le Tableau de bord.'
+            'fr-fr': 'Onglet visible. Cliquer pour le cacher sur le Tableau de bord.'
         }, 'dashboard_builder.pages.tooltip_click_to_hide_navigation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Le premier onglet est obligatoirement visible.'
+            'fr-fr': 'Le premier onglet est obligatoirement visible.'
         }, 'dashboard_builder.pages.tooltip_cannot_hide_navigation.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cliquer pour sélectionner et afficher cette page du Tableau de bord.'
+            'fr-fr': 'Cliquer pour sélectionner et afficher cette page du Tableau de bord.'
         }, 'dashboard_builder.pages.tooltip_select_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cliquer pour revenir à la page précédente.'
+            'fr-fr': 'Cliquer pour revenir à la page précédente.'
         }, 'dashboard_builder.pages.tooltip_select_previous_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cette page est actuellement sélectionnée et affichée.'
+            'fr-fr': 'Cette page est actuellement sélectionnée et affichée.'
         }, 'dashboard_builder.pages.tooltip_selected_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer cette page du Tableaud de bord. Attention tous les widgets inclus dans la page seront également supprimés.'
+            'fr-fr': 'Supprimer cette page du Tableaud de bord. Attention tous les widgets inclus dans la page seront également supprimés.'
         }, 'dashboard_builder.pages.tooltip_delete_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajouter une page au Tableau de bord.'
+            'fr-fr': 'Ajouter une page au Tableau de bord.'
         }, 'dashboard_builder.pages.tooltip_create_dashboard_page.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Table de données. Permet de lister, modifier et supprimer des données de l\'application.'
+            'fr-fr': 'Table de données. Permet de lister, modifier et supprimer des données de l\'application.'
         }, 'dashboards.widgets.icons_tooltips.datatable.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Table de valeurs. Pour aggréger les données (et variables) suivant les filtres sélectionnés et les colonnes affichées.'
+            'fr-fr': 'Table de valeurs. Pour aggréger les données (et variables) suivant les filtres sélectionnés et les colonnes affichées.'
         }, 'dashboards.widgets.icons_tooltips.valuetable.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtre sur la valeur d\'un champs. Sélectionner un champs et les paramètres de filtrage. Le filtre est appliqué à toutes les pages du Tableau de bord.'
+            'fr-fr': 'Filtre sur la valeur d\'un champs. Sélectionner un champs et les paramètres de filtrage. Le filtre est appliqué à toutes les pages du Tableau de bord.'
         }, 'dashboards.widgets.icons_tooltips.fieldvaluefilter.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'KPI. Sélectionner une variable et un format d\'affichage.'
+            'fr-fr': 'KPI. Sélectionner une variable et un format d\'affichage.'
         }, 'dashboards.widgets.icons_tooltips.var.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lien vers une autre page. Permet de naviguer vers une autre page du Tableau de bord, même si celle-ci est cachée par ailleurs du menu.'
+            'fr-fr': 'Lien vers une autre page. Permet de naviguer vers une autre page du Tableau de bord, même si celle-ci est cachée par ailleurs du menu.'
         }, 'dashboards.widgets.icons_tooltips.pageswitch.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Au clic, ouvrir cette page'
+            'fr-fr': 'Au clic, ouvrir cette page'
         }, 'page_switch_widget_options_component.page_name.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Texte du lien'
+            'fr-fr': 'Texte du lien'
         }, 'page_switch_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Avancé'
+            'fr-fr': 'Avancé'
         }, 'vo_field_ref_advanced.advanced_filters.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Simple'
+            'fr-fr': 'Simple'
         }, 'vo_field_ref_advanced.advanced_filters.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Impossible de supprimer la page principale'
+            'fr-fr': 'Impossible de supprimer la page principale'
         }, 'DashboardBuilderComponent.delete_page.cannot_delete_master_page.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer la page ?'
+            'fr-fr': 'Supprimer la page ?'
         }, 'DashboardBuilderComponent.delete_page.confirmation.body.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression'
+            'fr-fr': 'Suppression'
         }, 'DashboardBuilderComponent.delete_page.confirmation.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Page en cours de suppression...'
+            'fr-fr': 'Page en cours de suppression...'
         }, 'DashboardBuilderComponent.delete_page.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Page supprimée'
+            'fr-fr': 'Page supprimée'
         }, 'DashboardBuilderComponent.delete_page.ok.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Composants'
+            'fr-fr': 'Composants'
         }, 'dashboard_builder_widgets.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionnez un composant dans la page pour le configurer'
+            'fr-fr': 'Sélectionnez un composant dans la page pour le configurer'
         }, 'dashboard_builder_widgets.first_select_a_widget.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de l\'ajout du composant'
+            'fr-fr': 'Erreur lors de l\'ajout du composant'
         }, 'DashboardBuilderBoardComponent.add_widget_to_page.ko.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Composant ajouté'
+            'fr-fr': 'Composant ajouté'
         }, 'DashboardBuilderBoardComponent.add_widget_to_page.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dashboard Builder'
+            'fr-fr': 'Dashboard Builder'
         }, 'dashboard_builder.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dashboard Builder'
+            'fr-fr': 'Dashboard Builder'
         }, 'menu.menuelements.admin.DashboardBuilder.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dashboard Builder'
+            'fr-fr': 'Dashboard Builder'
         }, 'menu.menuelements.admin.DashboardBuilderAdminVueModule.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Impossible de supprimer le dernier Dashboard'
+            'fr-fr': 'Impossible de supprimer le dernier Dashboard'
         }, 'DashboardBuilderComponent.delete_dashboard.cannot_delete_master_dashboard.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer le Dashboard ?'
+            'fr-fr': 'Supprimer le Dashboard ?'
         }, 'DashboardBuilderComponent.delete_dashboard.confirmation.body.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Confirmer'
+            'fr-fr': 'Confirmer'
         }, 'DashboardBuilderComponent.delete_dashboard.confirmation.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression en cours...'
+            'fr-fr': 'Suppression en cours...'
         }, 'DashboardBuilderComponent.delete_dashboard.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supression terminée.'
+            'fr-fr': 'Supression terminée.'
         }, 'DashboardBuilderComponent.delete_dashboard.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Champs'
+            'fr-fr': 'Champs'
         }, 'field_value_filter_widget_component.vo_field_ref.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélection multiple ?'
+            'fr-fr': 'Sélection multiple ?'
         }, 'field_value_filter_widget_component.can_select_multiple.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Texte champs de sélection'
+            'fr-fr': 'Texte champs de sélection'
         }, 'field_value_filter_widget_component.placeholder_name_code_text.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Nombre max. valeurs visibles'
+            'fr-fr': 'Nombre max. valeurs visibles'
         }, 'field_value_filter_widget_component.max_visible_options.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtrer'
+            'fr-fr': 'Filtrer'
         }, 'droppable_vo_fields.filter_by_field_id_or_api_type_id.placeholder.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Champs'
+            'fr-fr': 'Champs'
         }, 'droppable_vo_fields.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajouter une colonne (champs ou variable)'
+            'fr-fr': 'Ajouter une colonne (champs ou variable)'
         }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Glisser/déposer un champs'
+            'fr-fr': 'Glisser/déposer un champs'
         }, 'single_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionner une Variable'
+            'fr-fr': 'Sélectionner une Variable'
         }, 'table_widget_column.new_column_select_type_var_ref.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filter'
+            'fr-fr': 'Filter'
         }, 'FieldValueFilterWidget.filter_placeholder.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer le composant ?'
+            'fr-fr': 'Supprimer le composant ?'
         }, 'DashboardBuilderBoardComponent.delete_widget.body.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression'
+            'fr-fr': 'Suppression'
         }, 'DashboardBuilderBoardComponent.delete_widget.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression en cours...'
+            'fr-fr': 'Suppression en cours...'
         }, 'DashboardBuilderBoardComponent.delete_widget.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression terminée'
+            'fr-fr': 'Suppression terminée'
         }, 'DashboardBuilderBoardComponent.delete_widget.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Variable'
+            'fr-fr': 'Variable'
         }, 'var_widget_component.var_name.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Titre'
+            'fr-fr': 'Titre'
         }, 'var_widget_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filter'
+            'fr-fr': 'Filter'
         }, 'droppable_vos.set_filter_by_api_type_id.placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tables'
+            'fr-fr': 'Tables'
         }, 'droppable_vos.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '1 - Tables'
+            'fr-fr': '1 - Tables'
         }, 'dashboard_builder.select_vos.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '2 - Widgets'
+            'fr-fr': '2 - Widgets'
         }, 'dashboard_builder.build_page.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Editer'
+            'fr-fr': 'Editer'
         }, 'tables_graph_edit_form.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'tables_graph_edit_form.delete.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionner un élément'
+            'fr-fr': 'Sélectionner un élément'
         }, 'tables_graph_edit_form.no_object_selected.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Confirmer la suppression ?'
+            'fr-fr': 'Confirmer la suppression ?'
         }, 'TablesGraphEditFormComponent.confirm_delete_cell.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'TablesGraphEditFormComponent.confirm_delete_cell.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression en cours...'
+            'fr-fr': 'Suppression en cours...'
         }, 'TablesGraphEditFormComponent.confirm_delete_cell.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression terminée'
+            'fr-fr': 'Suppression terminée'
         }, 'TablesGraphEditFormComponent.confirm_delete_cell.ok.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Variable'
+            'fr-fr': 'Variable'
         }, 'var_widget_options_component.var_name.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Titre'
+            'fr-fr': 'Titre'
         }, 'var_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Monnaie'
+            'fr-fr': 'Monnaie'
         }, 'amount_filter_options.currency.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Décimales'
+            'fr-fr': 'Décimales'
         }, 'amount_filter_options.fractionalDigits.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Humaniser'
+            'fr-fr': 'Humaniser'
         }, 'amount_filter_options.humanize.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Pas de valeur négative'
+            'fr-fr': 'Pas de valeur négative'
         }, 'amount_filter_options.onlyPositive.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Montant'
+            'fr-fr': 'Montant'
         }, 'filters.names.__amount__.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtre de données ou de valeurs'
+            'fr-fr': 'Filtre de données ou de valeurs'
         }, 'dow_filter_widget_component.is_vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Données'
+            'fr-fr': 'Données'
         }, 'dow_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valeurs'
+            'fr-fr': 'Valeurs'
         }, 'dow_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Référence de champs (donnée filtrée)'
+            'fr-fr': 'Référence de champs (donnée filtrée)'
         }, 'dow_filter_widget_component.vo_field_ref.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtrer une date par le jour de la semaine'
+            'fr-fr': 'Filtrer une date par le jour de la semaine'
         }, 'dashboards.widgets.icons_tooltips.dowfilter.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Nom du filtre personnalisé'
+            'fr-fr': 'Nom du filtre personnalisé'
         }, 'dow_filter_widget_component.custom_filter_name.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtre'
+            'fr-fr': 'Filtre'
         }, 'var_widget_options_component.widget_filter_options.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Type de filtre'
+            'fr-fr': 'Type de filtre'
         }, 'widget_filter_options.filter_type.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dashboards'
+            'fr-fr': 'Dashboards'
         }, 'menu.menuelements.admin.dashboard.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'GraphVORefs'
+            'fr-fr': 'GraphVORefs'
         }, 'menu.menuelements.admin.dashboard_graphvoref.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Pages'
+            'fr-fr': 'Pages'
         }, 'menu.menuelements.admin.dashboard_page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Widgets / pages'
+            'fr-fr': 'Widgets / pages'
         }, 'menu.menuelements.admin.dashboard_pwidget.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Widgets'
+            'fr-fr': 'Widgets'
         }, 'menu.menuelements.admin.dashboard_widget.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Colonnes'
+            'fr-fr': 'Colonnes'
         }, 'table_widget_options_component.columns.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Activer la fonction CRUD'
+            'fr-fr': 'Activer la fonction CRUD'
         }, 'table_widget_options_component.crud_api_type_id.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Choisir type pour activer'
+            'fr-fr': 'Choisir type pour activer'
         }, 'table_widget_options_component.crud_api_type_id_select.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Afficher un lien Vocus'
+            'fr-fr': 'Afficher un lien Vocus'
         }, 'table_widget_options_component.vocus_button.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Titre'
+            'fr-fr': 'Titre'
         }, 'table_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.vocus_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.vocus_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Bouton pour supprimer la ligne ?'
+            'fr-fr': 'Bouton pour supprimer la ligne ?'
         }, 'table_widget_options_component.delete_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.delete_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.delete_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Bouton pour modifier la ligne ?'
+            'fr-fr': 'Bouton pour modifier la ligne ?'
         }, 'table_widget_options_component.update_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.update_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.update_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Bouton pour ajouter une ligne ?'
+            'fr-fr': 'Bouton pour ajouter une ligne ?'
         }, 'table_widget_options_component.create_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.create_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.create_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Bouton pour rafraîchir les données ?'
+            'fr-fr': 'Bouton pour rafraîchir les données ?'
         }, 'table_widget_options_component.refresh_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.refresh_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.refresh_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Bouton pour exporter ?'
+            'fr-fr': 'Bouton pour exporter ?'
         }, 'table_widget_options_component.export_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.export_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.export_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Bouton "Tout supprimer"'
+            'fr-fr': 'Bouton "Tout supprimer"'
         }, 'table_widget_options_component.delete_all_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'table_widget_options_component.delete_all_button.visible.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'table_widget_options_component.delete_all_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Confirmer ?'
+            'fr-fr': 'Confirmer ?'
         }, 'TableWidgetComponent.confirm_delete.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'TableWidgetComponent.confirm_delete.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression en cours'
+            'fr-fr': 'Suppression en cours'
         }, 'TableWidgetComponent.confirm_delete.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression terminée'
+            'fr-fr': 'Suppression terminée'
         }, 'TableWidgetComponent.confirm_delete.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de la suppression'
+            'fr-fr': 'Erreur lors de la suppression'
         }, 'TableWidgetComponent.confirm_delete.ko.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
@@ -507,7 +507,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDashboardBuilder.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Dashboards'
+            'fr-fr': 'Dashboards'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -515,7 +515,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleDashboardBuilder.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration des Dashboards'
+            'fr-fr': 'Administration des Dashboards'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -528,7 +528,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = ModuleDashboardBuilder.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Consultation des Dashboards'
+            'fr-fr': 'Consultation des Dashboards'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

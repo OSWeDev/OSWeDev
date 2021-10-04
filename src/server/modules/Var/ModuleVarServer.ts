@@ -193,139 +193,139 @@ export default class ModuleVarServer extends ModuleServerBase {
         postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPostDVarCacheConf);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Calculée'
+            'fr-fr': 'Calculée'
         }, 'var_data.value_type.computed'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Importée'
+            'fr-fr': 'Importée'
         }, 'var_data.value_type.import'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Datasources'
+            'fr-fr': 'Datasources'
         }, 'var.desc_mode.var_datasources.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vider l\'arbre'
+            'fr-fr': 'Vider l\'arbre'
         }, 'var_desc.clearDag.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Actualiser la HeatMap des deps'
+            'fr-fr': 'Actualiser la HeatMap des deps'
         }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valeur brute importée ou saisie manuellement le {formatted_date} : {value}'
+            'fr-fr': 'Valeur brute importée ou saisie manuellement le {formatted_date} : {value}'
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Matroids calculés'
+            'fr-fr': 'Matroids calculés'
         }, 'var.desc_mode.computed_datas_matroids.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Matroids chargés'
+            'fr-fr': 'Matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valeur totale des matroids chargés'
+            'fr-fr': 'Valeur totale des matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids_sum_value.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Variable invalidée, calcul en cours...'
+            'fr-fr': 'Variable invalidée, calcul en cours...'
         }, 'var.desc_mode.update_var_data.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Invalidation impossible sur un import'
+            'fr-fr': 'Invalidation impossible sur un import'
         }, 'var.desc_mode.update_var_data.not_allowed_on_imports.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Indicateurs - Objectif'
+            'fr-fr': 'Indicateurs - Objectif'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_objectif_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Indicateurs - Réalisé'
+            'fr-fr': 'Indicateurs - Réalisé'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Var conf cache'
+            'fr-fr': 'Var conf cache'
         }, 'menu.menuelements.admin.VarCacheConfVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Nombre de deps'
+            'fr-fr': 'Nombre de deps'
         }, 'var.desc_mode.dependencies_number.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Deps en % de l\'arbre'
+            'fr-fr': 'Deps en % de l\'arbre'
         }, 'var.desc_mode.dependencies_tree_prct.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '% de vars enregistrées'
+            'fr-fr': '% de vars enregistrées'
         }, 'var_desc_registrations.vardag_registered_prct.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: '% de vars enregistrées / var_id'
+            'fr-fr': '% de vars enregistrées / var_id'
         }, 'var_desc_registrations.vardag_registered_prct_by_var_id.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Taille de l\'arbre'
+            'fr-fr': 'Taille de l\'arbre'
         }, 'var_desc_registrations.vardag_size.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Données importées/aggrégées'
+            'fr-fr': 'Données importées/aggrégées'
         }, 'var_desc.aggregated_var_datas.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
+            'fr-fr': 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
         }, 'force_empty_vars_datas_vo_update_cache.done'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Import ?'
+            'fr-fr': 'Import ?'
         }, 'var_desc.var_data_is_import.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Date màj : {last_update}'
+            'fr-fr': 'Date màj : {last_update}'
         }, 'var_desc.var_data_last_update.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Explication du calcul'
+            'fr-fr': 'Explication du calcul'
         }, 'var_desc.explaination.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Markers'
+            'fr-fr': 'Markers'
         }, 'var.desc_mode.var_markers.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Actualiser le graph'
+            'fr-fr': 'Actualiser le graph'
         }, 'var_desc.create_graph.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'StepByStep'
+            'fr-fr': 'StepByStep'
         }, 'var_desc.pause.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Variable'
+            'fr-fr': 'Variable'
         }, 'var_desc.var_controller_label.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valeur non formatée'
+            'fr-fr': 'Valeur non formatée'
         }, 'var_desc.var_data_label.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Source de données'
+            'fr-fr': 'Source de données'
         }, 'var_desc.var_ds_label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer le cache par intersection'
+            'fr-fr': 'Supprimer le cache par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_intersection.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Afficher les données exactes'
+            'fr-fr': 'Afficher les données exactes'
         }, 'vars_datas_explorer_actions.get_exact.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Calculer ce paramètre'
+            'fr-fr': 'Calculer ce paramètre'
         }, 'vars_datas_explorer_actions.show_exact.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Afficher les données incluses'
+            'fr-fr': 'Afficher les données incluses'
         }, 'vars_datas_explorer_actions.get_included.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Afficher les données intersectées'
+            'fr-fr': 'Afficher les données intersectées'
         }, 'vars_datas_explorer_actions.get_intersection.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Invalider le cache par intersection'
+            'fr-fr': 'Invalider le cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Invalider l\'arbre en cache par intersection'
+            'fr-fr': 'Invalider l\'arbre en cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection_and_depstree.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer le cache et les imports par intersection'
+            'fr-fr': 'Supprimer le cache et les imports par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Variables'
+            'fr-fr': 'Variables'
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Performances'
+            'fr-fr': 'Performances'
         }, 'menu.menuelements.admin.VarPerfVO.___LABEL___'));
 
 
@@ -673,7 +673,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVar.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Variables'
+            'fr-fr': 'Variables'
         }));
 
         let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
@@ -681,7 +681,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
-            fr: 'Accès aux Variables sur le front'
+            'fr-fr': 'Accès aux Variables sur le front'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let desc_mode_access: AccessPolicyVO = new AccessPolicyVO();
@@ -689,7 +689,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         desc_mode_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         desc_mode_access.translatable_name = ModuleVar.POLICY_DESC_MODE_ACCESS;
         desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, new DefaultTranslation({
-            fr: 'Accès au "Mode description"'
+            'fr-fr': 'Accès au "Mode description"'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -697,7 +697,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleVar.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration des vars'
+            'fr-fr': 'Administration des vars'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_varconf_access: AccessPolicyVO = new AccessPolicyVO();
@@ -705,7 +705,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         bo_varconf_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_varconf_access.translatable_name = ModuleVar.POLICY_BO_VARCONF_ACCESS;
         bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, new DefaultTranslation({
-            fr: 'Configuration des types de vars'
+            'fr-fr': 'Configuration des types de vars'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -719,7 +719,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         bo_imported_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_imported_access.translatable_name = ModuleVar.POLICY_BO_IMPORTED_ACCESS;
         bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, new DefaultTranslation({
-            fr: 'Configuration des données importées'
+            'fr-fr': 'Configuration des données importées'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         access_dependency = new PolicyDependencyVO();
         access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

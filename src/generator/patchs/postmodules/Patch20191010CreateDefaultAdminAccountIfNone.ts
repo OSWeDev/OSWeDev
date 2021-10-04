@@ -69,7 +69,7 @@ export default class Patch20191010CreateDefaultAdminAccountIfNone implements IGe
             return user;
         }
 
-        let lang: LangVO = await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, ' where code_lang=$1', ['fr']);
+        let lang: LangVO = await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, ' where code_lang=$1', ['fr-fr']);
 
         user = new UserVO();
 

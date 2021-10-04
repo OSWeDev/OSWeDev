@@ -49,28 +49,28 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this.handleTriggerExportHistoricVOCreate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Exports'
+            'fr-fr': 'Exports'
         }, 'fields.labels.ref.module_data_export_export_log.___LABEL____user_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
+            'fr-fr': 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
         }, 'export.default_mail.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Cliquez sur le lien ci-dessous pour télcharger le fichier exporté.'
+            'fr-fr': 'Cliquez sur le lien ci-dessous pour télcharger le fichier exporté.'
         }, 'export.default_mail.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Télécharger'
+            'fr-fr': 'Télécharger'
         }, 'export.default_mail.download'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Export de données en cours...'
+            'fr-fr': 'Export de données en cours...'
         }, 'DataExportBGThread.handleHistoric.start'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Export de données terminé, vous devriez le recevoir par mail'
+            'fr-fr': 'Export de données terminé, vous devriez le recevoir par mail'
         }, 'DataExportBGThread.handleHistoric.success'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec de l\'export de données'
+            'fr-fr': 'Echec de l\'export de données'
         }, 'DataExportBGThread.handleHistoric.failed'));
     }
 

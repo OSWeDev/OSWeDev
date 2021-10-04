@@ -74,7 +74,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleAnimation.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Animation'
+            'fr-fr': 'Animation'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -82,7 +82,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleAnimation.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration Animation'
+            'fr-fr': 'Administration Animation'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency_bo: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency_bo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -95,7 +95,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = ModuleAnimation.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Front Animation'
+            'fr-fr': 'Front Animation'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency_fo: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency_fo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -108,7 +108,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         fo_inline_edit_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_inline_edit_access.translatable_name = ModuleAnimation.POLICY_FO_INLINE_EDIT_ACCESS;
         fo_inline_edit_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_inline_edit_access, new DefaultTranslation({
-            fr: 'Front Animation - Inline Edit'
+            'fr-fr': 'Front Animation - Inline Edit'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency_fo_inline_edit: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency_fo_inline_edit.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -121,7 +121,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         fo_reporting_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_reporting_access.translatable_name = ModuleAnimation.POLICY_FO_REPORTING_ACCESS;
         fo_reporting_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_reporting_access, new DefaultTranslation({
-            fr: 'Front Animation Reporting'
+            'fr-fr': 'Front Animation Reporting'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency_fo_reporting: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency_fo_reporting.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

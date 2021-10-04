@@ -35,28 +35,28 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vocus'
+            'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.Vocus.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vocus'
+            'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.VocusAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'CRUD'
+            'fr-fr': 'CRUD'
         }, 'vocus.crud.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'ID'
+            'fr-fr': 'ID'
         }, 'vocus.id.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Label'
+            'fr-fr': 'Label'
         }, 'vocus.label.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Type'
+            'fr-fr': 'Type'
         }, 'vocus.vo_type.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Limité à 1000 lignes...'
+            'fr-fr': 'Limité à 1000 lignes...'
         }, 'vocus.limit1000.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vocus'
+            'fr-fr': 'Vocus'
         }, 'vocus.vocus.___LABEL___'));
     }
 
@@ -67,7 +67,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleVocus.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Vocus'
+            'fr-fr': 'Vocus'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -75,7 +75,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleVocus.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration du Vocus'
+            'fr-fr': 'Administration du Vocus'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
