@@ -15,7 +15,7 @@ export default interface ICustomCRUpdateComponent {
     /**
      * PROP to call when the cr is ready to be saved in server (confirmation is handled by this prop)
      */
-    update_cr: (cr: IPlanRDVCR) => Promise<void>;
+    update_cr: (cr: IPlanRDVCR, autosave: boolean) => Promise<void>;
 
     /**
      * PROP to call when ready to cancel the modifications

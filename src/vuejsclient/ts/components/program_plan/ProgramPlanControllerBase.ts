@@ -53,6 +53,8 @@ export default abstract class ProgramPlanControllerBase {
         public show_calendar: boolean = true,
         public show_targets_pp: boolean = true,
         public show_rdv_historic: boolean = true,
+        public show_confirmation_create_cr: boolean = true,
+        public show_confirmation_update_cr: boolean = true,
     ) {
         ProgramPlanControllerBase.controller_by_name[name] = this;
     }
