@@ -39,6 +39,18 @@ export default class Durations {
             case HourSegment.TYPE_SECOND:
                 return Math.floor(nb + duration);
 
+            case HourSegment.TYPE_YEAR:
+            case HourSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                let date_ys = new Date(duration * 1000);
+                return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() + nb) / 1000);
+            case HourSegment.TYPE_MONTH:
+                let date_ms = new Date(duration * 1000);
+                return Math.floor(date_ms.setUTCMonth(date_ms.getUTCMonth() + nb) / 1000);
+            case HourSegment.TYPE_WEEK:
+                return Math.floor(60 * 60 * 24 * 7 * nb + duration);
+            case HourSegment.TYPE_DAY:
+                return Math.floor(60 * 60 * 24 * nb + duration);
+
             default:
                 return Math.floor(nb + duration);
         }
@@ -66,12 +78,27 @@ export default class Durations {
 
         switch (segmentation) {
 
+            case HourSegment.TYPE_DAY:
+                coef = 86400;
+                break;
             case HourSegment.TYPE_HOUR:
                 coef = 3600;
                 break;
             case HourSegment.TYPE_MINUTE:
                 coef = 60;
                 break;
+            case HourSegment.TYPE_MONTH:
+                let mma = moment.unix(a).utc();
+                let mmb = moment.unix(b).utc();
+                return mma.diff(mmb, 'month', do_not_floor);
+            case HourSegment.TYPE_WEEK:
+                coef = 604800;
+                break;
+            case HourSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case HourSegment.TYPE_YEAR:
+                let mya = moment.unix(a).utc();
+                let myb = moment.unix(b).utc();
+                return mya.diff(myb, 'year', do_not_floor);
             case HourSegment.TYPE_SECOND:
                 return a - b;
 
@@ -93,6 +120,17 @@ export default class Durations {
                 return duration / 60;
             case HourSegment.TYPE_SECOND:
                 return duration;
+
+            case HourSegment.TYPE_YEAR:
+            case HourSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return duration / (365 * 60 * 60 * 24); // Un choix, différent de moment, on prend 30 jours pour un mois sur une Duration, moment prend 0.9993360575508051*365
+            case HourSegment.TYPE_MONTH:
+                return duration / (30 * 60 * 60 * 24); // Un choix, différent de moment, on prend 30 jours pour un mois sur une Duration, moment prend 30.436875
+            case HourSegment.TYPE_WEEK:
+                return duration / (60 * 60 * 24 * 7);
+            case HourSegment.TYPE_DAY:
+                return duration / (60 * 60 * 24);
+
             default:
                 return null;
         }

@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import Alert from '../../../../shared/modules/Alert/vos/Alert';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueComponentBase from '../VueComponentBase';
 import './AlertViewComponent.scss';
@@ -70,6 +71,6 @@ export default class AlertViewComponent extends VueComponentBase {
             return null;
         }
 
-        return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(moment(this.alert.creation_date).utc(true));
+        return Dates.format(this.alert.creation_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
     }
 }

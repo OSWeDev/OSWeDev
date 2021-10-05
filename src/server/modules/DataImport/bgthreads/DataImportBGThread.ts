@@ -10,6 +10,10 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleDataImportServer from '../ModuleDataImportServer';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -74,6 +78,18 @@ export default class DataImportBGThread implements IBGThread {
                     ModuleDataImport.IMPORTATION_STATE_IMPORTED,
                     ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
                 ]);
+            }
+
+            if (!dih) {
+
+                /**
+                 * If there's nothing to do at the time, we try to find a import than meets these requirements :
+                 *  - state == ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION
+                 *  - reimport_of_dih_id is null
+                 *  - no import references this one in reimport_of_dih_id
+                 *  - last_up_date is older than 5 mninutes
+                 */
+                dih = await this.try_getting_failed_retryable_import();
             }
 
             if (!dih) {
@@ -180,5 +196,67 @@ export default class DataImportBGThread implements IBGThread {
             default:
                 return false;
         }
+    }
+
+    private async try_getting_failed_retryable_import(): Promise<DataImportHistoricVO> {
+        /**
+         * If there's nothing to do at the time, we try to find a import than meets these requirements :
+         *  - state == ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION
+         *  - reimport_of_dih_id is null
+         *  - status_of_last_reimport is null
+         *  - status_before_reimport is null
+         *  - last_up_date is older than 5 mninutes
+         */
+        let filter_state = new ContextFilterVO();
+        filter_state.field_id = 'state';
+        filter_state.vo_type = DataImportHistoricVO.API_TYPE_ID;
+        filter_state.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter_state.param_numeric = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
+
+        let filter_reimport_of_dih_id = new ContextFilterVO();
+        filter_reimport_of_dih_id.field_id = 'reimport_of_dih_id';
+        filter_reimport_of_dih_id.vo_type = DataImportHistoricVO.API_TYPE_ID;
+        filter_reimport_of_dih_id.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+
+        let filter_status_before_reimport = new ContextFilterVO();
+        filter_status_before_reimport.field_id = 'status_before_reimport';
+        filter_status_before_reimport.vo_type = DataImportHistoricVO.API_TYPE_ID;
+        filter_status_before_reimport.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+
+        let filter_status_of_last_reimport = new ContextFilterVO();
+        filter_status_of_last_reimport.field_id = 'status_of_last_reimport';
+        filter_status_of_last_reimport.vo_type = DataImportHistoricVO.API_TYPE_ID;
+        filter_status_of_last_reimport.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+
+        let filter_last_up_date = new ContextFilterVO();
+        filter_last_up_date.field_id = 'last_up_date';
+        filter_last_up_date.vo_type = DataImportHistoricVO.API_TYPE_ID;
+        filter_last_up_date.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
+        filter_last_up_date.param_numeric = Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE);
+
+        let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<DataImportHistoricVO>(
+            DataImportHistoricVO.API_TYPE_ID,
+            {
+                [DataImportHistoricVO.API_TYPE_ID]: {
+                    ['state']: filter_state,
+                    ['reimport_of_dih_id']: filter_reimport_of_dih_id,
+                    ['status_of_last_reimport']: filter_status_of_last_reimport,
+                    ['last_up_date']: filter_last_up_date,
+                    ['status_before_reimport']: filter_status_before_reimport
+                }
+            },
+            [DataImportHistoricVO.API_TYPE_ID],
+            0,
+            0,
+            null
+        );
+
+        if ((!dihs) || (!dihs.length)) {
+            return null;
+        }
+
+        let dih = dihs[0];
+        await ModuleDataImport.getInstance().reimportdih(dih);
+        return await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, dih.id);
     }
 }

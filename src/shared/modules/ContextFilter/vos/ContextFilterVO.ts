@@ -36,6 +36,7 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.DATE_EQUALS',
         'context_filter.type.DATE_INCLUDES',
         'context_filter.type.DATE_IS_INCLUDED_IN',
+
         'context_filter.type.TEXT_EQUALS_ALL',
         'context_filter.type.TEXT_EQUALS_ANY',
         'context_filter.type.TEXT_INCLUDES_ALL',
@@ -44,11 +45,21 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.TEXT_STARTSWITH_ANY',
         'context_filter.type.TEXT_ENDSWITH_ALL',
         'context_filter.type.TEXT_ENDSWITH_ANY',
+
         'context_filter.type.TYPE_DATE_DOW',
         'context_filter.type.TYPE_DATE_DOM',
         'context_filter.type.TYPE_DATE_WEEK',
         'context_filter.type.TYPE_DATE_MONTH',
         'context_filter.type.TYPE_DATE_YEAR',
+
+        'context_filter.type.NUMERIC_INF_ANY',
+        'context_filter.type.NUMERIC_INF_ALL',
+        'context_filter.type.NUMERIC_INFEQ_ANY',
+        'context_filter.type.NUMERIC_INFEQ_ALL',
+        'context_filter.type.NUMERIC_SUP_ANY',
+        'context_filter.type.NUMERIC_SUP_ALL',
+        'context_filter.type.NUMERIC_SUPEQ_ANY',
+        'context_filter.type.NUMERIC_SUPEQ_ALL',
     ];
 
     /**
@@ -174,6 +185,18 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_DATE_WEEK: number = 41;
     public static TYPE_DATE_MONTH: number = 42;
     public static TYPE_DATE_YEAR: number = 43;
+
+    /**
+     * Numeric > >= < <=
+     */
+    public static TYPE_NUMERIC_INF_ANY: number = 44;
+    public static TYPE_NUMERIC_INF_ALL: number = 45;
+    public static TYPE_NUMERIC_INFEQ_ANY: number = 46;
+    public static TYPE_NUMERIC_INFEQ_ALL: number = 47;
+    public static TYPE_NUMERIC_SUP_ANY: number = 48;
+    public static TYPE_NUMERIC_SUP_ALL: number = 49;
+    public static TYPE_NUMERIC_SUPEQ_ANY: number = 50;
+    public static TYPE_NUMERIC_SUPEQ_ALL: number = 51;
 
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;

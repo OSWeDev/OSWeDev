@@ -7,6 +7,7 @@ import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDat
 import { RawLocation } from 'vue-router';
 import { Dictionary } from 'vue-router/types/router';
 import * as moment from 'moment';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./UserNotifComponent.pug')
@@ -49,7 +50,7 @@ export default class UserNotifComponent extends VueComponentBase {
             return null;
         }
 
-        return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(moment(this.notification.creation_date).utc(true));
+        return Dates.format(this.notification.creation_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
     }
 
     get is_warn(): boolean {

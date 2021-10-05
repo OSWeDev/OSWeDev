@@ -137,11 +137,17 @@ export default abstract class VueAppBase {
 
         ConsoleLogLogger.getInstance().prepare_console_logger();
 
-        let language_found = !!user_lang;
+        let language_found = false;
+        if (!!user_lang) {
+            let filtered = this.try_language(user_lang);
+
+            if (filtered) {
+                LocaleManager.getInstance().setDefaultLocale(filtered);
+                language_found = true;
+            }
+        }
+
         if ((!language_found) && accepted_language) {
-            /**
-             * On tente de filtrer sur les langs existantes
-             */
             let filtered = this.try_language(accepted_language);
 
             if (filtered) {
@@ -151,9 +157,6 @@ export default abstract class VueAppBase {
         }
 
         if ((!language_found) && navigator.language) {
-            /**
-             * On tente de filtrer sur les langs existantes
-             */
             let filtered = this.try_language(navigator.language);
 
             if (filtered) {
@@ -163,9 +166,6 @@ export default abstract class VueAppBase {
         }
 
         if ((!language_found) && this.appController.data_default_locale) {
-            /**
-             * On tente de filtrer sur les langs existantes
-             */
             let filtered = this.try_language(this.appController.data_default_locale);
 
             if (filtered) {
@@ -464,13 +464,17 @@ export default abstract class VueAppBase {
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 
-    private try_language(code_lang): string {
+    private try_language(code_lang: string): string {
         /**
          * On tente de filtrer sur les langs existantes
          */
+        if (!code_lang) {
+            return null;
+        }
 
         let exact = null;
         let start_exact = null;
+        let code_lang_start = (code_lang && (code_lang.indexOf('-') > 0)) ? code_lang.split('-')[0] : code_lang;
         for (let i in this.appController.ALL_LANGS) {
             let lang = this.appController.ALL_LANGS[i];
 
@@ -479,7 +483,8 @@ export default abstract class VueAppBase {
                 break;
             }
 
-            if (lang.code_lang.toLowerCase().startsWith(code_lang.toLowerCase())) {
+            let lang_start = (lang.code_lang && (lang.code_lang.indexOf('-') > 0)) ? lang.code_lang.split('-')[0] : lang.code_lang;
+            if (lang_start.toLowerCase() == code_lang_start.toLowerCase()) {
                 start_exact = lang;
             }
         }

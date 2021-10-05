@@ -49,6 +49,22 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année'
         }, 'timesegment.year.type_name'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'HourSegment.day.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'HourSegment.month.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année glissante'
+        }, 'HourSegment.rolling_year_month_start.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Semaine'
+        }, 'HourSegment.week.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'HourSegment.year.type_name'));
     }
 
     public registerExpressApis(app: Express): void { }
