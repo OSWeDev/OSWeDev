@@ -1,8 +1,21 @@
 
 import * as moment from 'moment';
+import ConsoleHandler from '../../../tools/ConsoleHandler';
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 export default class Dates {
+
+    public static parse(date: string, format: string = null): number {
+        try {
+            if (!date) {
+                return null;
+            }
+            return moment(date, format).utc(true).unix();
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
+    }
 
     /**
      * @returns current timestamp in secs
