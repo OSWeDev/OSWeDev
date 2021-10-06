@@ -178,7 +178,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             }
 
             if (hours && hours.length > 0) {
-                Dates.minutes(Dates.hours(start, parseInt(hours[0])), parseInt(hours[1]));
+                start = Dates.minutes(Dates.hours(start, parseInt(hours[0])), parseInt(hours[1]));
             }
 
             return start;
@@ -209,12 +209,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
             }
 
             if (hours && hours.length > 0) {
-                Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
-                Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
+                end = Dates.minutes(Dates.hours(end, parseInt(hours[0])), parseInt(hours[1]));
+                end = Dates.add(end, -1, TimeSegment.TYPE_MINUTE);
             }
 
             if (Dates.isBefore(end, this.ts_start, TimeSegment.TYPE_MINUTE)) {
-                Dates.add(end, 1, TimeSegment.TYPE_DAY);
+                end = Dates.add(end, 1, TimeSegment.TYPE_DAY);
             }
 
             return end;

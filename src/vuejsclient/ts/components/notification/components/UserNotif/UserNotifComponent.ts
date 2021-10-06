@@ -3,11 +3,10 @@ import NotificationVO from '../../../../../../shared/modules/PushData/vos/Notifi
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction } from '../../store/NotificationStore';
 import './UserNotifComponent.scss';
-import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import { RawLocation } from 'vue-router';
 import { Dictionary } from 'vue-router/types/router';
-import * as moment from 'moment';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 
 @Component({
     template: require('./UserNotifComponent.pug')

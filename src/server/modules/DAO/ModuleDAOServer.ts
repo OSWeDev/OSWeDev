@@ -619,6 +619,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     /**
      * TODO : A relire, c'est un copie rapide de filtervoby matroid intersection
+     * TODO : A confirmer que cela fonctionne avec des matroids
      */
     public getWhereClauseForFilterByMatroidIntersection<T extends IDistantVOBase>(
         api_type_id: string,
@@ -638,14 +639,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let first_matroid = true;
 
-        let where_clause: string = "";
+        let where_clause_params: string[] = [];
+        // let where_clause: string = "";
 
         // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
         // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
         if (!!(matroid as VarDataBaseVO).var_id) {
 
             if (!!moduleTable.getFieldFromId('var_id')) {
-                where_clause += '(var_id = ' + (matroid as VarDataBaseVO).var_id + ') AND ';
+                where_clause_params.push('(var_id = ' + (matroid as VarDataBaseVO).var_id + ') ');
             }
         }
 
@@ -670,36 +672,48 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            where_clause += first ? "(" : ") AND (";
-            let first_in_clause = true;
-
-            for (let j in ranges) {
-                let field_range: IRange = ranges[j];
-
-                if (!RangeHandler.getInstance().isValid(field_range)) {
-                    ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
-                    return null;
-                }
-
-                where_clause += first_in_clause ? "" : " OR ";
-
-                first = false;
-                first_in_clause = false;
-                first_matroid = false;
-
-                where_clause += this.getClauseWhereRangeIntersectsField(field, field_range);
+            let where_clause_ranges: string = this.getWhereClauseForRangeArray(api_type_id, field, ranges);
+            if (where_clause_ranges == null) {
+                return null;
             }
+            where_clause_params.push(where_clause_ranges);
+            first = false;
+            first_matroid = false;
+
         }
         if (first) {
             return null;
         }
-        where_clause += ")";
 
         if (first_matroid) {
             return null;
         }
 
-        return where_clause;
+        return where_clause_params.join(" AND ");
+    }
+
+    public getWhereClauseForRangeArray(
+        api_type_id: string,
+        field: ModuleTableField<any>,
+        ranges: IRange[],
+    ): string {
+        if (!field) {
+            return null;
+        }
+
+        let where_clause_params: string[] = [];
+
+        for (let j in ranges) {
+            let field_range: IRange = ranges[j];
+
+            if (!RangeHandler.getInstance().isValid(field_range)) {
+                ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                return null;
+            }
+
+            where_clause_params.push(this.getClauseWhereRangeIntersectsField(field, field_range));
+        }
+        return " (" + where_clause_params.join(" OR ") + ") ";
     }
 
     public async delete_all_vos(api_type_id: string) {
