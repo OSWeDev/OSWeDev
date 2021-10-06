@@ -7,6 +7,7 @@ import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
+import AccessPolicyController from "../../../../shared/modules/AccessPolicy/AccessPolicyController";
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
@@ -26,20 +27,45 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private logo_url: string = null;
     private signin_allowed: boolean = false;
 
+    private pdf_info: string = null;
+    private pdf_cgu: string = null;
+
+    private show_password: boolean = false;
+
     private async mounted() {
-        this.load_logo_url();
+        let promises = [];
+
+        promises.push(this.load_logo_url());
+
         for (let j in this.$route.query) {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];
             }
         }
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        let logged_id: number = null;
+
+        promises.push((async () =>
+            logged_id = await ModuleAccessPolicy.getInstance().getLoggedUserId()
+        )());
+
+        promises.push((async () =>
+            this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS)
+        )());
+
+        promises.push((async () =>
+            this.pdf_info = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_INFOS)
+        )());
+
+        promises.push((async () =>
+            this.pdf_cgu = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
+        )());
+
+        await Promise.all(promises);
+
         if (!!logged_id) {
             window.location = this.redirect_to as any;
         }
-
-        this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS);
     }
 
     private async load_logo_url() {
@@ -66,10 +92,6 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         }*/
     }
 
-    get nfcconnect_available() {
-        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
-    }
-
     private async nfcconnect() {
 
         if (await NFCHandler.getInstance().make_sure_nfc_is_initialized()) {
@@ -79,4 +101,31 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         }
     }
 
+    private signin_action() {
+        if (AccessPolicyController.getInstance().hook_user_signin) {
+            return AccessPolicyController.getInstance().hook_user_signin();
+        }
+
+        this.$router.push({
+            name: 'signin'
+        });
+    }
+
+    private recover_action() {
+        if (AccessPolicyController.getInstance().hook_user_recover) {
+            return AccessPolicyController.getInstance().hook_user_recover();
+        }
+
+        this.$router.push({
+            name: 'recover'
+        });
+    }
+
+    private set_show_password(show_password: boolean) {
+        this.show_password = show_password;
+    }
+
+    get nfcconnect_available() {
+        return (!NFCHandler.getInstance().ndef_active) && !!window['NDEFReader'];
+    }
 }

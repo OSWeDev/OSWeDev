@@ -322,7 +322,7 @@ export default class ModuleDataImport extends Module {
                 [DataImportHistoricVO.IMPORT_TYPE_REPLACE]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_REPLACE],
             }),
             new ModuleTableField('nb_row_validated', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({
-                fr: 'Nb. de lignes validées'
+                'fr-fr': 'Nb. de lignes validées'
             }), false),
             new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
             new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),

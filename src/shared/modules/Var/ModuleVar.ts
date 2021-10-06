@@ -94,6 +94,7 @@ export default class ModuleVar extends Module {
     public getVarParamFromContextFilters: (
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[]
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters);
 
@@ -172,7 +173,7 @@ export default class ModuleVar extends Module {
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [var_data_index: string]: VarDataBaseVO }>(
-            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_getAggregatedVarDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic

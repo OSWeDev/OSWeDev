@@ -35,7 +35,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModulePowershell.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Powershell'
+            'fr-fr': 'Powershell'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -43,7 +43,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModulePowershell.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration Powershell'
+            'fr-fr': 'Administration Powershell'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -56,7 +56,7 @@ export default class ModulePowershellServer extends ModuleServerBase {
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModulePowershell.POLICY_FO_ACCESS;
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
-            fr: 'Accès front - Powershell'
+            'fr-fr': 'Accès front - Powershell'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
@@ -67,10 +67,10 @@ export default class ModulePowershellServer extends ModuleServerBase {
         });
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Identifiant AD'
+            'fr-fr': 'Identifiant AD'
         }, 'ActiveDirectory.prompt.login.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mot de passe AD'
+            'fr-fr': 'Mot de passe AD'
         }, 'ActiveDirectory.prompt.pwd.___LABEL___'));
     }
 

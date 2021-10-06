@@ -28,6 +28,7 @@ export default abstract class VueAppController {
     public data_user_roles: RoleVO[] = null;
     // public data_base_api_url;
     public data_default_locale;
+    public ALL_LANGS: LangVO[];
     public ALL_LOCALES: any;
     public ALL_FLAT_LOCALE_TRANSLATIONS: { [code_text: string]: string };
     public SERVER_HEADERS;
@@ -66,6 +67,10 @@ export default abstract class VueAppController {
 
         promises.push((async () => {
             await MenuController.getInstance().reload_from_db();
+        })());
+
+        promises.push((async () => {
+            self.ALL_LANGS = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
         })());
 
         promises.push((async () => {

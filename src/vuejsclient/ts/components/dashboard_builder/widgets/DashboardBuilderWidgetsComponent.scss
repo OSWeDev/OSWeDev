@@ -5,6 +5,7 @@
     background: #F5F5F5;
     max-height: 720px;
     margin-bottom: 1em;
+    overflow-y: auto;
 
     .dashboard_builder_widgets_wrapper {
 
@@ -17,19 +18,22 @@
         }
 
         .widget {
-            width: 2em;
-            height: 2em;
+            width: 3em;
+            height: 2.5em;
             vertical-align: middle;
             text-align: center;
-            padding: 0.3em;
+            padding: .5em;
             margin: 0.1em;
-            background: #666;
-            font-size: 1.2em;
+            background: #999;
+            font-size: 2em;
             display: inline-block;
             cursor: pointer;
             color: white;
-            text-shadow: 1px 1px 2px black;
             box-shadow: 1px 1px 1px black;
+
+            .fa-stack {
+                font-size: 0.6em;
+            }
         }
 
         .widget_options_wrapper {

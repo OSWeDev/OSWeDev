@@ -1,0 +1,81 @@
+.field_value_filter_string_widget_component
+    template(v-if='vo_field_ref')
+        .vo_field_ref_label {{ vo_field_ref_label }}
+        .vo_field_ref_advanced
+            toggle-button(
+                @change="switch_advanced_filters" 
+                :value="advanced_filters" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+
+        template(v-if='advanced_filters')
+            .vo_field_advanced_string_filters
+                template(v-for='(advanced_string_filter, i) in advanced_string_filters')
+                    .vo_field_advanced_string_filter
+                        form(v-on:submit.prevent="validate_advanced_string_filter")
+                            .advanced_string_filter_type
+                                multiselect(
+                                    :preselect-first="true"
+                                    :multiple="false"
+                                    :close-on-select="true"
+                                    v-model="advanced_string_filter.filter_type"
+                                    :options="filter_type_options"
+                                    :custom-label="filter_type_label"
+
+                                    :show-labels="false"
+                                    :searchable="false"
+                                    :internal-search="false"
+                                    :hide-selected="false"
+
+                                    :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i" 
+                                    
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )
+                            .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]')
+                                input(v-model='advanced_string_filter.filter_content')
+                            template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
+                                //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
+                                //-     i.fa.fa-plus-circle.fa-lg.btn_icon
+                                .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
+                                    i.fa.fa-check-circle.fa-lg.btn_icon
+                            template(v-else)
+                                .advanced_string_filter_link_type(v-tooltip.top='label("advanced_filters.link_type")' @click='switch_link_type(advanced_string_filter)')
+                                    i.fa.fa-circle.fa-lg.btn_icon
+                                    .link_type {{ t(link_type_labels[advanced_string_filter.link_type]) }}
+                                .advanced_string_filter_delete_filter(v-tooltip.top='label("advanced_filters.delete")' @click='delete_advanced_string_filter(parseInt(i.toString()))')
+                                    i.fa.fa-trash.fa-lg.btn_icon
+
+
+        template(v-else)
+            .vo_field_ref_filter
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="can_select_multiple"
+                    :close-on-select="false"
+                    v-model="tmp_filter_active_options"
+                    :placeholder="placeholder"
+                    :options="filter_visible_options"
+                    label="label"
+
+                    :searchable="true"
+                    :internal-search="false"
+                    :hide-selected="true"
+
+                    track-by="text_uid"
+                    
+                    :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                    
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                    @search-change="query_update_visible_options"
+                )
+                    span(slot="noOptions") -

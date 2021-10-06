@@ -33,29 +33,29 @@ export default class ModuleAbonnement extends Module {
     public initializeAbonnement(): void {
         // Création de la table Abonnement
         let default_label_field: ModuleTableField<string> = new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
-            fr: 'Date echeance'
+            'fr-fr': 'Date echeance'
         }));
         let datatable_fields = [
             new ModuleTableField('renouvellement', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({
-                fr: 'Renouvellement'
+                'fr-fr': 'Renouvellement'
             })),
             default_label_field,
             new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({
-                fr: 'Date resiliation'
+                'fr-fr': 'Date resiliation'
             })),
         ];
         this.datatables.push(new ModuleTable<AbonnementVO>(this, AbonnementVO.API_TYPE_ID, () => new AbonnementVO(), datatable_fields, default_label_field, new DefaultTranslation({
-            fr: 'Abonnement'
+            'fr-fr': 'Abonnement'
         })));
     }
 
     public initializePackAbonnement(): void {
         // Création de la table PackAbonnement
         let field_ligne_commande_id: ModuleTableField<number> = new ModuleTableField('ligne_commande_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
-            fr: 'Ligne Commande'
+            'fr-fr': 'Ligne Commande'
         }), true);
         let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
-            fr: 'Abonnement'
+            'fr-fr': 'Abonnement'
         }), true);
 
         let datatable_fields = [
@@ -63,7 +63,7 @@ export default class ModuleAbonnement extends Module {
             field_abonnement_id,
         ];
         let dt = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, () => new PackAbonnementVO(), datatable_fields, field_ligne_commande_id, new DefaultTranslation({
-            fr: 'PackAbonnement'
+            'fr-fr': 'PackAbonnement'
         }));
         field_ligne_commande_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         field_abonnement_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);

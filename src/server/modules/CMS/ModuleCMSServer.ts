@@ -42,7 +42,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleCMS.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'CMS'
+            'fr-fr': 'CMS'
         }));
 
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -50,7 +50,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = ModuleCMS.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Accès aux pages CMS'
+            'fr-fr': 'Accès aux pages CMS'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -58,7 +58,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleCMS.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration'
+            'fr-fr': 'Administration'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

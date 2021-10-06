@@ -1,0 +1,43 @@
+.table_widget_column
+    template(v-if='!column')
+        .new_column_select_type 
+            .new_column_select_type_label {{ label('table_widget_column.new_column_select_type_label') }}
+        
+            .new_column_select_type_vo_field_ref
+                .vo_ref_field_receiver(@dragover="allowDrop" @drop="drop")
+                    .vo_ref_field_receiver_placeholder {{ label('single_vo_field_ref_holder.vo_ref_field_receiver_placeholder') }}
+
+            .new_column_select_type_var_ref
+                .input_wrapper
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="new_column_select_type_var_ref"
+                        :placeholder="label('table_widget_column.new_column_select_type_var_ref')"
+                        :options="vars_options"
+                        :custom-label="var_label"
+                        :allow-empty="false",
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        id="new_column_select_type_var_ref"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
+    template(v-else)
+        .table_widget_column_conf
+            .column_label(v-if='!!translatable_name_code_text')
+                Inlinetranslatabletext(                    
+                    :code_text="translatable_name_code_text" 
+                    :is_editable="true"
+                    :default_translation="default_column_label")
+
+            .remove_column(@click="remove_column")
+                i.fa.fa-trash.fa-fw(aria-hidden="true")
+

@@ -44,7 +44,7 @@ export default class Patch20200325PresetExistingLangsChangeRights implements IGe
                 LANG_SELECTOR_PER_LANG_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
                 LANG_SELECTOR_PER_LANG_ACCESS.translatable_name = ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id);
                 LANG_SELECTOR_PER_LANG_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_PER_LANG_ACCESS, new DefaultTranslation({
-                    fr: 'Outil - Peut choisir la langue : ' + lang.code_lang
+                    'fr-fr': 'Outil - Peut choisir la langue : ' + lang.code_lang
                 }), await ModulesManagerServer.getInstance().getModuleVOByName(ModuleTranslationServer.getInstance().name));
             }
         } catch (error) {

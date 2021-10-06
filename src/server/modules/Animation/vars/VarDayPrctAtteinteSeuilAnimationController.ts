@@ -40,7 +40,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
             new VarConfVO(AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
             { fr: 'Prct atteinte seuil animation' },
             {
-                fr: 'Prctage atteinte seuil de l\'animation.'
+                'fr-fr': 'Prctage atteinte seuil de l\'animation.'
             },
             {}, {});
 

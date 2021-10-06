@@ -2,13 +2,15 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from './filters/WidgetFilterOptionsComponent';
 import VarWidgetOptions from './VarWidgetOptions';
 import './VarWidgetOptionsComponent.scss';
@@ -29,10 +31,59 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
+    @ModuleDashboardPageGetter
+    private get_custom_filters: string[];
+
     private next_update_options: VarWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false });
 
     private tmp_selected_var_name: string = null;
+    private custom_filter_names: { [field_id: string]: string } = {};
+
+    private async change_custom_filter(field_id: string, custom_filter: string) {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = new VarWidgetOptions(
+                this.widget_options.var_id,
+                this.widget_options.page_widget_id,
+                this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
+                this.widget_options.filter_additional_params);
+        }
+        this.custom_filter_names[field_id] = custom_filter;
+        await this.throttled_update_options();
+    }
+
+    get fields_that_could_get_custom_filter(): string[] {
+        let res: string[] = [];
+
+        if (!this.widget_options.var_id) {
+            return null;
+        }
+
+        let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id].var_data_vo_type;
+        if (!var_param_type) {
+            return null;
+        }
+
+        let fields = VOsTypesManager.getInstance().moduleTables_by_voType[var_param_type].get_fields();
+        for (let i in fields) {
+            let field = fields[i];
+
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                res.push(field.field_id);
+                if (typeof this.custom_filter_names[field.field_id] === "undefined") {
+                    this.custom_filter_names[field.field_id] = null;
+                }
+            }
+        }
+
+        return res;
+    }
 
     private async update_additional_options(additional_options: string) {
         if (!this.widget_options) {
@@ -44,6 +95,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 this.widget_options.var_id,
                 this.widget_options.page_widget_id,
                 this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
                 this.widget_options.filter_additional_params);
         }
         this.next_update_options.filter_additional_params = additional_options;
@@ -60,6 +112,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 this.widget_options.var_id,
                 this.widget_options.page_widget_id,
                 this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
                 this.widget_options.filter_additional_params);
         }
         this.next_update_options.filter_type = filter_type;
@@ -110,6 +163,8 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
             if (this.widget_options.var_id) {
                 this.widget_options.var_id = null;
+                this.custom_filter_names = {};
+                this.widget_options.filter_custom_field_filters = {};
                 await this.throttled_update_options();
             }
             return;
@@ -171,7 +226,12 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
-                options = new VarWidgetOptions(options.var_id, options.page_widget_id, options.filter_type, options.filter_additional_params);
+                options = options ? new VarWidgetOptions(
+                    options.var_id,
+                    options.page_widget_id,
+                    options.filter_type,
+                    options.filter_custom_field_filters,
+                    options.filter_additional_params) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

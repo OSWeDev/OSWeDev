@@ -14,6 +14,9 @@ export default class AccessPolicyController {
 
     private static instance: AccessPolicyController = null;
 
+    public hook_user_recover: () => Promise<void> = null;
+    public hook_user_signin: () => Promise<void> = null;
+
     private constructor() { }
 
     public prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): void {

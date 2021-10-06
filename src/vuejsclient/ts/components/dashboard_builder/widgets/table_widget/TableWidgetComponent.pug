@@ -1,13 +1,79 @@
+include ../../../../../views/mixins/loading.pug
+
 .table_widget_component
-    template(v-if='vo_field_refs')
-        table.table-striped.table-hover
-            thead 
-                th.table_header(v-for='vo_field_ref in vo_field_refs')
-                    Inlinetranslatabletext(:code_text="vo_field_ref.translatable_name_code_text")
-            tbody
-                tr.table_row(v-for='row in data_rows')
-                    td.table_col(v-for='vo_field_ref in vo_field_refs')
-                        Datatablecomponentfield(
-                            :field="fields[vo_field_ref.id]",
-                            :vo="row",
+    +loading()
+        template(v-if='columns')
+
+            template(v-if='!!crud_activated_api_type')
+                .btn-group.d-print-none
+                    button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                        i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.delete_all') }}
+                    button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                        i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.refresh') }}
+                    button.btn.btn-sm.btn-outline-dark(v-if='can_export && isExportableToXLSX' @click="export_to_xlsx")
+                        i.fa.fa-download.fa-lg.btn_icon
+                        | {{ label('crud.actions.export') }}
+                    button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
+                        i.fa.fa-plus-circle.fa-lg.btn_icon
+                        | {{ label('crud.actions.create') }}
+
+            .upper_pagination(v-if="pagination_count > 10")
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_pagesize='pagination_pagesize'
+                    :pagination_count='pagination_count'
+                    @change_offset='change_offset'
+                )
+
+            table.table-striped.table-hover
+                thead 
+                    th.table_header(
+                        v-for='column in columns' 
+                        :class="{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id }"
+                        @click="sort_by(column)"
                         )
+
+                        template(v-if="column.type == 1")
+                            .order_by
+                                template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
+                                    i.fa.fa-sort.fa-fw(aria-hidden="true")
+                                template(v-if='order_asc_on_id == column.id')
+                                    i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
+                                template(v-if='order_desc_on_id == column.id')
+                                    i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
+
+                        Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
+                tbody
+                    tr.table_row(v-for='row in data_rows')
+                        td.table_col(v-for='column in columns' :class='"type_" + column.type')
+                            template(v-if="column.type == 3")
+                                input.d-print-none.form-control(type="checkbox" v-model="selected_rows[row.__crud_actions]")
+
+                            template(v-if="column.type == 0")
+                                .btn-group.d-print-none
+                                    .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
+                                        i.fa.fa-pencil
+                                    template(v-if="can_open_vocus")
+                                        .btn.btn-sm.btn-secondary(@click="open_vocus(column, row)")
+                                            i.fa.fa-search
+                                    template(v-if="delete_button")
+                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column, row)")
+                                            i.fa.fa-trash
+                                            
+                            template(v-else)
+                                Datatablecomponentfield(
+                                    :field="fields[column.id]"
+                                    :vo="row"
+                                    :columns="columns"
+                                )
+
+
+
+            .lower_pagination 
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_pagesize='pagination_pagesize'
+                    :pagination_count='pagination_count'
+                )

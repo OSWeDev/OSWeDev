@@ -52,9 +52,9 @@ export default class ForkedTasksController {
         if (!ForkServerController.getInstance().is_main_process) {
             // ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
 
-            await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
             // Si on est pas sur le thread parent, on doit d'abord le lancer en local, puis envoyer aux autres threads
             await ForkedTasksController.getInstance().process_registered_tasks[task_uid](...task_params);
+            await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
 
             return true;
         } else {

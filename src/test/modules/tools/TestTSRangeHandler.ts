@@ -33,6 +33,264 @@ describe('TSRangeHandler', () => {
     let zero_cinq_plus_un = zero + 13 * 60 * 60;
     let bidon: number = zero + 10 * 60 * 60 * 24;
 
+    describe('is_max_range', () => {
+        it('test null', () => {
+            expect(RangeHandler.getInstance().is_one_max_range(null)).to.equal(false);
+        });
+
+        it('test bounded range', () => {
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test left-open range', () => {
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test right-open range', () => {
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test unbounded range', () => {
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, false, true, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+    });
+
+    describe('is_one_max_range', () => {
+        it('test null', () => {
+            expect(RangeHandler.getInstance().is_one_max_range(null)).to.equal(false);
+        });
+
+        it('test bounded range', () => {
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test left-open range', () => {
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+
+        it('test right-open range', () => {
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+
+        it('test unbounded range', () => {
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_one_max_range(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+    });
+
+    describe('is_left_open', () => {
+
+        it('test null', () => {
+            expect(RangeHandler.getInstance().is_left_open(null)).to.equal(false);
+        });
+
+        it('test bounded range', () => {
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test left-open range', () => {
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, deux, false, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+
+        it('test right-open range', () => {
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test unbounded range', () => {
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_left_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+    });
+
+    describe('is_right_open', () => {
+
+        it('test null', () => {
+            expect(RangeHandler.getInstance().is_right_open(null)).to.equal(false);
+        });
+
+        it('test bounded range', () => {
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test left-open range', () => {
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MONTH))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_WEEK))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_YEAR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_HOUR))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_MINUTE))).to.equal(false);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, deux, true, false, TimeSegment.TYPE_SECOND))).to.equal(false);
+        });
+
+        it('test right-open range', () => {
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(zero, RangeHandler.MAX_TS, true, true, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+
+        it('test unbounded range', () => {
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MONTH))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_WEEK))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_YEAR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_HOUR))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_MINUTE))).to.equal(true);
+            expect(RangeHandler.getInstance().is_right_open(TSRange.createNew(RangeHandler.MIN_TS, RangeHandler.MAX_TS, true, false, TimeSegment.TYPE_SECOND))).to.equal(true);
+        });
+    });
+
     it('test get_ranges_according_to_segment_type', () => {
         expect(RangeHandler.getInstance().get_ranges_according_to_segment_type(null, null)).to.equal(null);
         expect(RangeHandler.getInstance().get_ranges_according_to_segment_type([
@@ -1514,16 +1772,25 @@ describe('TSRangeHandler', () => {
 
     it('test getSegmentedMin', () => {
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(null);
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
 
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
         expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, true, TimeSegment.TYPE_HOUR)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero_cinq_moins_un).utc(false).format('Y-MM-DD HH:mm'));
         expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, true, false, TimeSegment.TYPE_HOUR)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero_cinq_moins_un).utc().format('Y-MM-DD HH:mm'));
         expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero_cinq_moins_un, zero_cinq_plus_un, false, true, TimeSegment.TYPE_HOUR)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero_cinq).utc(false).format('Y-MM-DD HH:mm'));
@@ -1534,20 +1801,20 @@ describe('TSRangeHandler', () => {
         expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
         expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(null);
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(null);
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_YEAR)), 'Y-MM-DD HH:mm')).to.deep.equal(null);
 
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('day').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('day').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('day').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY))).to.deep.equal(null);
 
         // le test unitaire qui marche pas le 31/12 après midi ou le 01/01 avant midi...
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moins_un).utc().startOf('year').format('Y-MM-DD HH:mm'));
-        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(zero).utc().startOf('year').format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(moins_un).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
+        expect(Dates.format(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR), 'Y-MM-DD HH:mm')).to.deep.equal(moment.unix(moment.unix(zero).utc().startOf('year').unix()).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.deep.equal(null);
     });
 

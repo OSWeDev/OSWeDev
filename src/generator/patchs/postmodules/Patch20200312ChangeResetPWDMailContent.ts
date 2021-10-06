@@ -30,7 +30,7 @@ export default class Patch20200312ChangeResetPWDMailContent implements IGenerato
 
         try {
             let code_trad = await ModuleDAOServer.getInstance().selectOne(TranslatableTextVO.API_TYPE_ID, ' where code_text=$1;', ['mails.pwd.recovery.html']);
-            let lang = await ModuleDAOServer.getInstance().selectOne(LangVO.API_TYPE_ID, " where code_lang='fr';");
+            let lang = await ModuleDAOServer.getInstance().selectOne(LangVO.API_TYPE_ID, " where code_lang='fr-fr';");
             let trad: TranslationVO = await ModuleDAOServer.getInstance().selectOne(TranslationVO.API_TYPE_ID, ' where lang_id=$1 and text_id=$2;', [lang.id, code_trad.id]);
 
             trad.translated = 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.';

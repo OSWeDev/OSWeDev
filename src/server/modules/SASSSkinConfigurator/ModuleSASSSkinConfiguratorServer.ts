@@ -43,9 +43,9 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
                 reject(error);
-            } finally {
-                resolve(null);
+                return;
             }
+            resolve(null);
         });
     }
 

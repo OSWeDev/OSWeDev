@@ -66,7 +66,7 @@ export default class Dates {
                 return Math.floor(date_ys.setUTCFullYear(date_ys.getUTCFullYear() + nb) / 1000);
 
             default:
-                return Math.floor(null);
+                return Math.floor(nb + date);
         }
     }
 
@@ -101,7 +101,7 @@ export default class Dates {
                 return my.startOf('year').unix();
 
             default:
-                return null;
+                return date;
         }
     }
 
@@ -137,11 +137,11 @@ export default class Dates {
                 return my.endOf('year').unix();
 
             default:
-                return null;
+                return date;
         }
     }
 
-    public static format(date: number, formatstr: string, localized: boolean = false): string {
+    public static format(date: number, formatstr: string, localized: boolean = true): string {
         if (!date) {
             return null;
         }

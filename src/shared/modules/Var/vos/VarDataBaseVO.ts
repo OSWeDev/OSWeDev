@@ -52,13 +52,17 @@ export default class VarDataBaseVO implements IMatroid {
         res._type = varConf.var_data_vo_type;
         res.var_id = varConf.id;
 
+        if (!res.var_id) {
+            ConsoleHandler.getInstance().error("VarDataBaseVO.createNew var_name :: " + var_name);
+        }
+
         let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
         let param_i: number = 0;
         for (let i in fields) {
             let field = fields[i];
 
             if ((!fields_ordered_as_in_moduletable_definition[param_i]) || (fields_ordered_as_in_moduletable_definition[param_i].indexOf(null) >= 0)) {
-                ConsoleHandler.getInstance().warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
+                // ConsoleHandler.getInstance().warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                         res[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
@@ -192,6 +196,12 @@ export default class VarDataBaseVO implements IMatroid {
                 res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
         }
         res.var_id = varConf ? varConf.id : param_to_clone.var_id;
+
+        if (!res.var_id) {
+            ConsoleHandler.getInstance().error("VarDataBaseVO.cloneFieldsFromVarConf varConf :: " + JSON.stringify(varConf));
+            ConsoleHandler.getInstance().error("VarDataBaseVO.cloneFieldsFromVarConf param_to_clone:: " + JSON.stringify(param_to_clone));
+        }
+
         return res;
     }
 
@@ -220,7 +230,7 @@ export default class VarDataBaseVO implements IMatroid {
      */
     get index(): string {
 
-        if ((!this._index) || (this._index == 'X')) {
+        if ((!this._index) || (this._index.indexOf('X') == 0)) {
             let fields = MatroidController.getInstance().getMatroidFields(this._type);
 
             this._index = this.var_id ? this.var_id.toString() : 'X';

@@ -33,7 +33,7 @@ export default class Patch20191010CreateDefaultLangFRIfNone implements IGenerato
             if ((langs != null) && (langs.length > 0)) {
                 return;
             }
-            await this.createlang('fr');
+            await this.createlang('fr-fr');
         } catch (error) {
             console.error(error);
         }

@@ -6,7 +6,9 @@ import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/Das
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
@@ -15,10 +17,12 @@ import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardCompone
 import './DashboardBuilderComponent.scss';
 import DroppableVosComponent from './droppable_vos/DroppableVosComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
+import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
-import { ModuleDashboardPageAction } from './page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/DashboardPageStore';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
 import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
+import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -36,8 +40,24 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_id: number = null;
 
+    @ModuleDashboardPageGetter
+    private get_page_history: DashboardPageVO[];
+
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
+    @ModuleDashboardPageAction
+    private add_page_history: (page_history: DashboardPageVO) => void;
+    @ModuleDashboardPageAction
+    private set_page_history: (page_history: DashboardPageVO[]) => void;
+    @ModuleDashboardPageAction
+    private pop_page_history: (fk) => void;
+
+    @ModuleDashboardPageAction
+    private set_custom_filters: (custom_filters: string[]) => void;
+
+    @ModuleDroppableVoFieldsAction
+    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     private dashboards: DashboardVO[] = [];
     private dashboard: DashboardVO = null;
@@ -58,6 +78,20 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
+
+        if (!this.selected_widget) {
+            this.set_selected_fields({});
+            return;
+        }
+
+        let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.selected_widget.widget_id].name;
+        let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
+        this.set_selected_fields(get_selected_fields ? get_selected_fields(page_widget) : {});
+    }
+
+    private async switch_hide_navigation(page: DashboardPageVO) {
+        page.hide_navigation = !page.hide_navigation;
+        await ModuleDAO.getInstance().insertOrUpdateVO(page);
     }
 
     @Watch("dashboard_id", { immediate: true })
@@ -95,6 +129,23 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         if (!this.pages) {
             await this.create_dashboard_page();
         }
+        let page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', this.pages.map((p) => p.id));
+        if (page_widgets && page_widgets.length) {
+            let custom_filters: { [name: string]: boolean } = {};
+            for (let i in page_widgets) {
+                let page_widget = page_widgets[i];
+                if (page_widget.json_options) {
+                    let options = JSON.parse(page_widget.json_options);
+                    if (options && options['custom_filter_name']) {
+                        custom_filters[options['custom_filter_name']] = true;
+                    }
+                }
+            }
+
+            if (custom_filters && ObjectHandler.getInstance().hasAtLeastOneAttribute(custom_filters)) {
+                this.set_custom_filters(Object.keys(custom_filters));
+            }
+        }
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
 
@@ -106,6 +157,21 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private select_page(page: DashboardPageVO) {
+        this.add_page_history(this.page);
+        this.page = page;
+    }
+
+    get has_navigation_history(): boolean {
+        return this.get_page_history && (this.get_page_history.length > 0);
+    }
+
+    private select_previous_page() {
+        this.page = this.get_page_history[this.get_page_history.length - 1];
+        this.pop_page_history(null);
+    }
+
+    private select_page_clear_navigation(page: DashboardPageVO) {
+        this.set_page_history([]);
         this.page = page;
     }
 
@@ -125,7 +191,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        this.pages = [page];
+        page.id = insertOrDeleteQueryResult.id;
+
+        this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = page;
     }
 
@@ -142,9 +211,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {
             await this.create_dashboard_page();
+        } else {
+            WeightHandler.getInstance().sortByWeight(this.pages);
+            this.page = this.pages[0];
         }
-        WeightHandler.getInstance().sortByWeight(this.pages);
-        this.page = this.pages[0];
     }
 
     get dashboard_name_code_text(): string {
@@ -258,6 +328,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 }
             ]
         });
+    }
+
+    @Watch('page')
+    private onchange_page() {
+        this.select_widget(null);
     }
 
     private async confirm_delete_page(page: DashboardPageVO) {

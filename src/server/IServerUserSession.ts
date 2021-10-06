@@ -8,6 +8,7 @@ export default interface IServerUserSession {
     creation_date_unix: number;
     last_load_date_unix: number;
     last_check_blocked_or_expired: number;
+    last_check_session_validity: number;
 
     // From Express.Session :
     cookie: any;

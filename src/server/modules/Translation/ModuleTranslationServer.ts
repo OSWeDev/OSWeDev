@@ -65,74 +65,74 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Traductions'
+            'fr-fr': 'Traductions'
         }, 'TranslationsImportDefaultFormatLabels.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Traductions'
+            'fr-fr': 'Traductions'
         }, 'menu.menuelements.admin.__i__import_translation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Traductions'
+            'fr-fr': 'Traductions'
         }, 'menu.menuelements.admin._i_import_translation.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Traduction'
+            'fr-fr': 'Traduction'
         }, 'fields.labels.ref.module_translation_translation.___LABEL____lang_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Traduction'
+            'fr-fr': 'Traduction'
         }, 'fields.labels.ref.module_translation_translation.___LABEL____text_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Utilisateur'
+            'fr-fr': 'Utilisateur'
         }, 'fields.labels.ref.user.___LABEL____lang_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Une erreur empêche la validation de la saisie'
+            'fr-fr': 'Une erreur empêche la validation de la saisie'
         }, 'field.validate_input.error.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec de mise à jour de la valeur du champs'
+            'fr-fr': 'Echec de mise à jour de la valeur du champs'
         }, 'field.auto_update_field_value.failed.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Une erreur serveur a eue lieu et vous empêche de modifier la valeur de ce champs. Essayez de modifier la valeur et de l\'enregistrer à nouveau et si le problème persiste, contactez votre équipe technique en indiquant le champs de saisie et le texte que vous souhaitez valider.'
+            'fr-fr': 'Une erreur serveur a eue lieu et vous empêche de modifier la valeur de ce champs. Essayez de modifier la valeur et de l\'enregistrer à nouveau et si le problème persiste, contactez votre équipe technique en indiquant le champs de saisie et le texte que vous souhaitez valider.'
         }, 'field.auto_update_field_value.server_error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification enregistrée'
+            'fr-fr': 'Modification enregistrée'
         }, 'field.auto_update_field_value.succes.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'NO'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'YES'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler'
+            'fr-fr': 'Annuler'
         }, 'admin.logout.cancel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Choisissez "Déconnexion"'
+            'fr-fr': 'Choisissez "Déconnexion"'
         }, 'admin.logout.content.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Déconnexion'
+            'fr-fr': 'Déconnexion'
         }, 'admin.logout.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Déconnexion'
+            'fr-fr': 'Déconnexion'
         }, 'admin.logout.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Import des traductions'
+            'fr-fr': 'Import des traductions'
         }, 'import.translations.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Codes textes'
+            'fr-fr': 'Codes textes'
         }, 'menu.menuelements.admin.TranslatableTextVOTranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Internationalisation'
+            'fr-fr': 'Internationalisation'
         }, 'menu.menuelements.admin.TranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Traductions'
+            'fr-fr': 'Traductions'
         }, 'menu.menuelements.admin.TranslationVOTranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Import des traductions'
+            'fr-fr': 'Import des traductions'
         }, 'menu.menuelements.admin.TranslationsImport.___LABEL___'));
 
 
@@ -140,390 +140,390 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'CRON'
+            'fr-fr': 'CRON'
         }, 'cron.component.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'CRON'
+            'fr-fr': 'CRON'
         }, 'cron.component.head.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lancer les tâches'
+            'fr-fr': 'Lancer les tâches'
         }, 'cron.run_cron.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajouter'
+            'fr-fr': 'Ajouter'
         }, 'crud.actions.create.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Exporter'
+            'fr-fr': 'Exporter'
         }, 'crud.actions.export.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Actualiser'
+            'fr-fr': 'Actualiser'
         }, 'crud.actions.refresh.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tout supprimer'
+            'fr-fr': 'Tout supprimer'
         }, 'crud.actions.delete_all.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer TOUTES les données ? Les filtrages sont ignorés'
+            'fr-fr': 'Supprimer TOUTES les données ? Les filtrages sont ignorés'
         }, 'crud.actions.delete_all.confirmation.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'ATTENTION'
+            'fr-fr': 'ATTENTION'
         }, 'crud.actions.delete_all.confirmation.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression en cours...'
+            'fr-fr': 'Suppression en cours...'
         }, 'crud.actions.delete_all.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajouter'
+            'fr-fr': 'Ajouter'
         }, 'crud.create.modal.add.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler'
+            'fr-fr': 'Annuler'
         }, 'crud.create.modal.cancel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Nouveau'
+            'fr-fr': 'Nouveau'
         }, 'crud.create.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajout : En cours...'
+            'fr-fr': 'Ajout : En cours...'
         }, 'crud.create.starting.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajout : OK'
+            'fr-fr': 'Ajout : OK'
         }, 'crud.create.success.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler'
+            'fr-fr': 'Annuler'
         }, 'crud.delete.modal.cancel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'crud.delete.modal.content.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec de sélection'
+            'fr-fr': 'Echec de sélection'
         }, 'crud.delete.modal.content.selection_failure.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'crud.delete.modal.content.warning.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'crud.delete.modal.delete.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supprimer'
+            'fr-fr': 'Supprimer'
         }, 'crud.delete.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression : En cours...'
+            'fr-fr': 'Suppression : En cours...'
         }, 'crud.delete.starting.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression : OK'
+            'fr-fr': 'Suppression : OK'
         }, 'crud.delete.success.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non'
+            'fr-fr': 'Non'
         }, 'crud.field.boolean.false.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Non renseigné'
+            'fr-fr': 'Non renseigné'
         }, 'crud.field.boolean.n_a.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Oui'
+            'fr-fr': 'Oui'
         }, 'crud.field.boolean.true.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Données - {datatable_title}'
+            'fr-fr': 'Données - {datatable_title}'
         }, 'crud.read.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler'
+            'fr-fr': 'Annuler'
         }, 'crud.update.modal.cancel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Edition : Echec de sélection'
+            'fr-fr': 'Edition : Echec de sélection'
         }, 'crud.update.modal.content.selection_failure.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrer'
+            'fr-fr': 'Enregistrer'
         }, 'crud.update.modal.save.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modifier'
+            'fr-fr': 'Modifier'
         }, 'crud.update.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification : En cours...'
+            'fr-fr': 'Modification : En cours...'
         }, 'crud.update.starting.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification : OK'
+            'fr-fr': 'Modification : OK'
         }, 'crud.update.success.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modification : KO'
+            'fr-fr': 'Modification : KO'
         }, 'crud.update.errors.update_failure.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Actions'
+            'fr-fr': 'Actions'
         }, 'datatable.actions_column.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Champ requis non renseigné'
+            'fr-fr': 'Champ requis non renseigné'
         }, 'crud.check_form.field_required.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Colonnes'
+            'fr-fr': 'Colonnes'
         }, 'datatable.columns.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Affichage des résultats ###from-## à ###to-## (sur un total de ###count-##)|###count-## résultats|A résultat'
+            'fr-fr': 'Affichage des résultats ###from-## à ###to-## (sur un total de ###count-##)|###count-## résultats|A résultat'
         }, 'datatable.count.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionner ###column-##'
+            'fr-fr': 'Sélectionner ###column-##'
         }, 'datatable.default_option.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtrer:'
+            'fr-fr': 'Filtrer:'
         }, 'datatable.filter.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Filtrer par ###column-##'
+            'fr-fr': 'Filtrer par ###column-##'
         }, 'datatable.filter_by.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Recherche'
+            'fr-fr': 'Recherche'
         }, 'datatable.filter_place_holder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Premier'
+            'fr-fr': 'Premier'
         }, 'datatable.first.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dernier'
+            'fr-fr': 'Dernier'
         }, 'datatable.last.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Résultats:'
+            'fr-fr': 'Résultats:'
         }, 'datatable.limit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Chargement...'
+            'fr-fr': 'Chargement...'
         }, 'datatable.loading.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Aucun résultat'
+            'fr-fr': 'Aucun résultat'
         }, 'datatable.no_results.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Page:'
+            'fr-fr': 'Page:'
         }, 'datatable.page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictCancelUpload'
+            'fr-fr': 'dictCancelUpload'
         }, 'dropzone.dictCancelUpload.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictCancelUploadConfirmation'
+            'fr-fr': 'dictCancelUploadConfirmation'
         }, 'dropzone.dictCancelUploadConfirmation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictDefaultMessage'
+            'fr-fr': 'dictDefaultMessage'
         }, 'dropzone.dictDefaultMessage.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictFallbackMessage'
+            'fr-fr': 'dictFallbackMessage'
         }, 'dropzone.dictFallbackMessage.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictFallbackText'
+            'fr-fr': 'dictFallbackText'
         }, 'dropzone.dictFallbackText.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictFileSizeUnits'
+            'fr-fr': 'dictFileSizeUnits'
         }, 'dropzone.dictFileSizeUnits.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictFileTooBig'
+            'fr-fr': 'dictFileTooBig'
         }, 'dropzone.dictFileTooBig.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictInvalidFileType'
+            'fr-fr': 'dictInvalidFileType'
         }, 'dropzone.dictInvalidFileType.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictMaxFilesExceeded'
+            'fr-fr': 'dictMaxFilesExceeded'
         }, 'dropzone.dictMaxFilesExceeded.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictRemoveFile'
+            'fr-fr': 'dictRemoveFile'
         }, 'dropzone.dictRemoveFile.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictRemoveFileConfirmation'
+            'fr-fr': 'dictRemoveFileConfirmation'
         }, 'dropzone.dictRemoveFileConfirmation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictResponseError'
+            'fr-fr': 'dictResponseError'
         }, 'dropzone.dictResponseError.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'dictUploadCanceled'
+            'fr-fr': 'dictUploadCanceled'
         }, 'dropzone.dictUploadCanceled.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Aucun historique'
+            'fr-fr': 'Aucun historique'
         }, 'import.modal.no_hisotoric.___LABEL___'));
 
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'CRON'
+            'fr-fr': 'CRON'
         }, 'menu.menuelements.admin.CronAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Exécution'
+            'fr-fr': 'Exécution'
         }, 'menu.menuelements.admin.CronRun.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Planification'
+            'fr-fr': 'Planification'
         }, 'menu.menuelements.admin.CronWorkerPlanification.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Administration des fichiers'
+            'fr-fr': 'Administration des fichiers'
         }, 'menu.menuelements.admin.FileAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Fichier'
+            'fr-fr': 'Fichier'
         }, 'menu.menuelements.admin.FileVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Langues'
+            'fr-fr': 'Langues'
         }, 'menu.menuelements.admin.LangVOTranslationAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modules'
+            'fr-fr': 'Modules'
         }, 'menu.menuelements.admin.ModuleVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modules'
+            'fr-fr': 'Modules'
         }, 'menu.menuelements.admin.ModulesAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Role policy'
+            'fr-fr': 'Role policy'
         }, 'menu.menuelements.admin.RolePolicyVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Rôle'
+            'fr-fr': 'Rôle'
         }, 'menu.menuelements.admin.RoleVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Configuration des Vars'
+            'fr-fr': 'Configuration des Vars'
         }, 'menu.menuelements.admin.SimpleVarConfVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Utilisateurs'
+            'fr-fr': 'Utilisateurs'
         }, 'menu.menuelements.admin.UserVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Variables'
+            'fr-fr': 'Variables'
         }, 'menu.menuelements.admin.VarAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Access policy'
+            'fr-fr': 'Access policy'
         }, 'menu.menuelements.admin.module_access_policy.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Module Format dates/nombres'
+            'fr-fr': 'Module Format dates/nombres'
         }, 'menu.menuelements.admin.module_format_dates_nombres.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Module Mailer'
+            'fr-fr': 'Module Mailer'
         }, 'menu.menuelements.admin.module_mailer.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Module SASS'
+            'fr-fr': 'Module SASS'
         }, 'menu.menuelements.admin.module_sass_resource_planning_skin_configurator.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Fermer'
+            'fr-fr': 'Fermer'
         }, 'on_page_translation.close_button_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Autres langues'
+            'fr-fr': 'Autres langues'
         }, 'on_page_translation.hide_other_langs.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Importer les traductions'
+            'fr-fr': 'Importer les traductions'
         }, 'on_page_translation.import_translations.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ouvrir'
+            'fr-fr': 'Ouvrir'
         }, 'on_page_translation.open_button_title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Autres langues'
+            'fr-fr': 'Autres langues'
         }, 'on_page_translation.show_other_langs.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Surcharger'
+            'fr-fr': 'Surcharger'
         }, 'translations_import_params.overwrite.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Manuel utilisateur'
+            'fr-fr': 'Manuel utilisateur'
         }, 'client.learning.book.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'http://www.wedev.fr/'
+            'fr-fr': 'http://www.wedev.fr/'
         }, 'client.learning.link.manual.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'http://www.wedev.fr/'
+            'fr-fr': 'http://www.wedev.fr/'
         }, 'client.learning.link.youtube.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tutoriel'
+            'fr-fr': 'Tutoriel'
         }, 'client.learning.youtube.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Déconnexion'
+            'fr-fr': 'Déconnexion'
         }, 'client.logout.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Wedev'
+            'fr-fr': 'Wedev'
         }, 'client.main-title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Admin'
+            'fr-fr': 'Admin'
         }, 'client.menu-gauche.admin'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Menu principal'
+            'fr-fr': 'Menu principal'
         }, 'client.menu-gauche.navigationPrincipale'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Janvier'
+            'fr-fr': 'Janvier'
         }, 'label.month.janvier.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Février'
+            'fr-fr': 'Février'
         }, 'label.month.fevrier.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mars'
+            'fr-fr': 'Mars'
         }, 'label.month.mars.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Avril'
+            'fr-fr': 'Avril'
         }, 'label.month.avril.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mai'
+            'fr-fr': 'Mai'
         }, 'label.month.mai.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Juin'
+            'fr-fr': 'Juin'
         }, 'label.month.juin.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Juillet'
+            'fr-fr': 'Juillet'
         }, 'label.month.juillet.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Août'
+            'fr-fr': 'Août'
         }, 'label.month.aout.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Septembre'
+            'fr-fr': 'Septembre'
         }, 'label.month.septembre.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Octobre'
+            'fr-fr': 'Octobre'
         }, 'label.month.octobre.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Novembre'
+            'fr-fr': 'Novembre'
         }, 'label.month.novembre.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Décembre'
+            'fr-fr': 'Décembre'
         }, 'label.month.decembre.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dimanche'
+            'fr-fr': 'Dimanche'
         }, 'label.day.dimanche.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lundi'
+            'fr-fr': 'Lundi'
         }, 'label.day.lundi.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mardi'
+            'fr-fr': 'Mardi'
         }, 'label.day.mardi.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Mercredi'
+            'fr-fr': 'Mercredi'
         }, 'label.day.mercredi.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Jeudi'
+            'fr-fr': 'Jeudi'
         }, 'label.day.jeudi.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Vendredi'
+            'fr-fr': 'Vendredi'
         }, 'label.day.vendredi.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Samedi'
+            'fr-fr': 'Samedi'
         }, 'label.day.samedi.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'tous'
+            'fr-fr': 'tous'
         }, 'select_all.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'aucun'
+            'fr-fr': 'aucun'
         }, 'select_none.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionner'
+            'fr-fr': 'Sélectionner'
         }, 'multiselect.selectLabel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionner'
+            'fr-fr': 'Sélectionner'
         }, 'multiselect.selectGroupLabel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Sélectionné'
+            'fr-fr': 'Sélectionné'
         }, 'multiselect.selectedLabel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dé-sélectionner'
+            'fr-fr': 'Dé-sélectionner'
         }, 'multiselect.deselectLabel.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Dé-sélectionner'
+            'fr-fr': 'Dé-sélectionner'
         }, 'multiselect.deselectGroupLabel.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Début'
+            'fr-fr': 'Début'
         }, 'num_range_input.debut.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Fin'
+            'fr-fr': 'Fin'
         }, 'num_range_input.fin.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valeur Simple'
+            'fr-fr': 'Valeur Simple'
         }, 'num_range_input.is_single.on.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tranche de valeurs'
+            'fr-fr': 'Tranche de valeurs'
         }, 'num_range_input.is_single.off.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Accès au choix de la langue'
+            'fr-fr': 'Accès au choix de la langue'
         }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_1.___LABEL___'));
     }
 
@@ -534,7 +534,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleTranslation.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Traductions'
+            'fr-fr': 'Traductions'
         }));
         this.policy_group = group;
 
@@ -543,7 +543,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         bo_translations_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_translations_access.translatable_name = ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS;
         bo_translations_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_translations_access, new DefaultTranslation({
-            fr: 'Administration des traductions'
+            'fr-fr': 'Administration des traductions'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         // let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -556,7 +556,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         bo_others_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_others_access.translatable_name = ModuleTranslation.POLICY_BO_OTHERS_ACCESS;
         bo_others_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access, new DefaultTranslation({
-            fr: 'Administration des langues et codes de traduction'
+            'fr-fr': 'Administration des langues et codes de traduction'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         // admin_access_dependency = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -574,7 +574,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         on_page_translation_module_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         on_page_translation_module_access.translatable_name = ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS;
         on_page_translation_module_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access, new DefaultTranslation({
-            fr: 'Module de traduction sur page'
+            'fr-fr': 'Module de traduction sur page'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         access_dependency = new PolicyDependencyVO();
         access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -587,7 +587,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         LANG_SELECTOR_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         LANG_SELECTOR_ACCESS.translatable_name = ModuleTranslation.POLICY_LANG_SELECTOR_ACCESS;
         LANG_SELECTOR_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_ACCESS, new DefaultTranslation({
-            fr: 'Outil - Choix de la langue'
+            'fr-fr': 'Outil - Choix de la langue'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
@@ -639,7 +639,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         LANG_SELECTOR_PER_LANG_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         LANG_SELECTOR_PER_LANG_ACCESS.translatable_name = ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id);
         LANG_SELECTOR_PER_LANG_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_PER_LANG_ACCESS, new DefaultTranslation({
-            fr: 'Outil - Peut choisir la langue : ' + lang.code_lang
+            'fr-fr': 'Outil - Peut choisir la langue : ' + lang.code_lang
         }), await ModulesManagerServer.getInstance().getModuleVOByName(ModuleTranslationServer.getInstance().name));
     }
 

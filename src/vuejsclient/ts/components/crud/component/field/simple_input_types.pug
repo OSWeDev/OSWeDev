@@ -144,7 +144,7 @@
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="input_elt_id")
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="input_elt_id" :option="option_ts_range")
     template(v-else-if="field_type == 'timestamp'")
         Timestampinputcomponent(
             ref="input_elt"

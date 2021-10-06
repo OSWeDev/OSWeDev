@@ -104,19 +104,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let group_overall: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group_overall.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL;
         group_overall = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_overall, new DefaultTranslation({
-            fr: '!!! Accès à toutes les tables'
+            'fr-fr': '!!! Accès à toutes les tables'
         }));
 
         let group_datas: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group_datas.translatable_name = ModuleDAO.POLICY_GROUP_DATAS;
         group_datas = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_datas, new DefaultTranslation({
-            fr: 'Données'
+            'fr-fr': 'Données'
         }));
 
         let group_modules_conf: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group_modules_conf.translatable_name = ModuleDAO.POLICY_GROUP_MODULES_CONF;
         group_modules_conf = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_modules_conf, new DefaultTranslation({
-            fr: 'Paramètres des modules'
+            'fr-fr': 'Paramètres des modules'
         }));
 
         // On déclare un droit permettant de faire appel à la fonction query du module dao server
@@ -125,7 +125,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
         query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
-            fr: 'Utiliser la fonction QUERY'
+            'fr-fr': 'Utiliser la fonction QUERY'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         // On déclare un droit global d'accès qui déclenche tous les autres
@@ -134,7 +134,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         global_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS + "." + "___GLOBAL_ACCESS___";
         global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, new DefaultTranslation({
-            fr: 'Outrepasser les droits d\'accès'
+            'fr-fr': 'Outrepasser les droits d\'accès'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         // On doit déclarer les access policies de tous les VO
@@ -291,48 +291,48 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_delete_trigger_hook);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Modifier'
+            'fr-fr': 'Modifier'
         }, 'editable_page_switch.edit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Consulter'
+            'fr-fr': 'Consulter'
         }, 'editable_page_switch.read.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Annuler les modifications en cours ?'
+            'fr-fr': 'Annuler les modifications en cours ?'
         }, 'crud.inline_input_mode_semaphore.confirm.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Des modifications sont en cours'
+            'fr-fr': 'Des modifications sont en cours'
         }, 'crud.inline_input_mode_semaphore.confirm.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Demande refusée : Le système est en lecture seule'
+            'fr-fr': 'Demande refusée : Le système est en lecture seule'
         }, 'dao.global_update_blocker.actif'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Suppression impossible, consulter les logs du serveur'
+            'fr-fr': 'Suppression impossible, consulter les logs du serveur'
         }, 'dao.truncate.error'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrement...'
+            'fr-fr': 'Enregistrement...'
         }, 'EditablePageController.save.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur lors de l\'enregistrement'
+            'fr-fr': 'Erreur lors de l\'enregistrement'
         }, 'EditablePageController.save.error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Enregistrement terminé'
+            'fr-fr': 'Enregistrement terminé'
         }, 'EditablePageController.save.success.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Afficher / masquer les {ranges_length} elts...'
+            'fr-fr': 'Afficher / masquer les {ranges_length} elts...'
         }, 'ranges.limited.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Toutes les dates'
+            'fr-fr': 'Toutes les dates'
         }, 'tsrange.max_range.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Toutes les heures'
+            'fr-fr': 'Toutes les heures'
         }, 'hourrange.max_range.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tous/Toutes'
+            'fr-fr': 'Tous/Toutes'
         }, 'numrange.max_range.___LABEL___'));
     }
 
@@ -668,7 +668,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!ranges) || (!ranges.length)) {
-                ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                ConsoleHandler.getInstance().error('getWhereClauseForFilterByMatroidIntersection :: Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                 return null;
             }
 
@@ -1140,6 +1140,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             default:
                 return null;
         }
@@ -1322,6 +1323,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let results: InsertOrDeleteQueryResult[] = null;
+            let resolved = false;
 
             if (sqls.length > 0) {
                 results = await ModuleServiceBase.getInstance().db.tx(async (t) => {
@@ -1339,6 +1341,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }).catch((reason) => {
                     ConsoleHandler.getInstance().error('insertOrUpdateVOs :' + reason);
                     resolve(null);
+                    resolved = true;
                 });
             }
 
@@ -1365,7 +1368,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            resolve(InsertOrDeleteQueryResults);
+            if (!resolved) {
+                resolve(InsertOrDeleteQueryResults);
+            }
         });
     }
 
@@ -1573,20 +1578,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  c'est pas le cas du tout en l'état puisqu'au mieux on peut restaurer ceux visible sur ce niveau de deps, mais leurs
                 //  deps sont définitivement perdues...
                 let deps_to_delete: IDistantVOBase[] = [];
+                let DEBUG_deps_types_to_delete: string = null;
+
                 for (let dep_i in deps) {
                     let dep = deps[dep_i];
 
                     if (!dep.is_cascade) {
                         continue;
                     }
+                    let depVO = await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id);
                     deps_to_delete.push(await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id));
+                    if (!DEBUG_deps_types_to_delete) {
+                        DEBUG_deps_types_to_delete = depVO._type;
+                    } else {
+                        DEBUG_deps_types_to_delete += ', ' + depVO._type;
+                    }
                 }
 
                 if (deps_to_delete && deps_to_delete.length) {
                     let dep_ires: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(deps_to_delete);
 
                     if ((!dep_ires) || (dep_ires.length != deps_to_delete.length)) {
-                        ConsoleHandler.getInstance().error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION:');
+                        ConsoleHandler.getInstance().error('FAILED DELETE DEPS :' + vo._type + ':' + vo.id + ':ABORT DELETION: DEPS_TYPES:' + DEBUG_deps_types_to_delete);
                         continue;
                     }
                 }
@@ -2552,7 +2565,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!ranges) || (!ranges.length)) {
-                ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + moduleTable.vo_type + ':' + matroid_fields[i].field_id + ':');
+                ConsoleHandler.getInstance().error('get_matroid_fields_ranges_by_datatable_field_id :: Matroid field vide ou inexistant:' + moduleTable.vo_type + ':' + matroid_fields[i].field_id + ':');
                 return null;
             }
 
@@ -2781,7 +2794,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
 
                     if ((!ranges) || (!ranges.length)) {
-                        ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                        ConsoleHandler.getInstance().error('getVosByExactMatroid :: Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                         return null;
                     }
 
@@ -2980,6 +2993,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+
             default:
                 throw new Error('Not implemented');
         }
@@ -3060,6 +3075,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             default:
                 res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numrange[])";
                 break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not Implemented');
         }
 
         return res;
@@ -3087,6 +3105,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 return true;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -3158,6 +3177,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             default:
                 res += ranges_query + " = " + table_name + '.' + field.field_id;
                 break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
         }
 
         return res;
@@ -3309,6 +3331,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     '  where t1.a <@ ' + ranges_query +
                     '  ) = array_length(' + table_name + '.' + field.field_id + ',1) ';
                 break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
         }
 
         return res;
@@ -3393,6 +3418,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return '\'' + (range.min_inclusiv ? "[" : "(") + range.min.toString() + "," + range.max.toString() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
 
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
                 // TODO
                 break;
         }
@@ -3458,6 +3485,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return segmented_value.toString();
 
             case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
                 // TODO
                 break;
         }

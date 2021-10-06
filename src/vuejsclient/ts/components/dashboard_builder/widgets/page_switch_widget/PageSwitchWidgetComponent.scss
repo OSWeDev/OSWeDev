@@ -1,0 +1,14 @@
+.page_switch_widget_component {
+
+    .page_label {
+        text-align: center;
+        overflow: hidden;
+        cursor: pointer;
+        // transition: all ease-in-out 0.4s;
+
+        &:hover {
+            text-decoration: underline;
+            font-weight: bold;
+        }
+    }
+}

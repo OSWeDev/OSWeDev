@@ -1,7 +1,7 @@
 
 export default class DefaultTranslation {
 
-    public static DEFAULT_LANG_DEFAULT_TRANSLATION: string = "fr";
+    public static DEFAULT_LANG_DEFAULT_TRANSLATION: string = 'fr-fr';
     public static DEFAULT_LABEL_EXTENSION: string = ".___LABEL___";
 
     /**

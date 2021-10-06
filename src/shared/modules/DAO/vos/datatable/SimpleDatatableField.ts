@@ -17,6 +17,7 @@ import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
+import RangeHandler from '../../../../tools/RangeHandler';
 import DatatableField from './DatatableField';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
@@ -177,8 +178,54 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     return res_numranges;
 
-                case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
+                    let res_tsrange: string[] = [];
+
+                    let none: boolean = true;
+
+                    let min_period: number = RangeHandler.getInstance().getSegmentedMin(field_value, null, 0, moduleTableField.return_min_value);
+                    if (min_period) {
+                        res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(min_period));
+                        none = false;
+                    } else {
+                        res_tsrange.push('');
+                    }
+
+                    let max_period: number = RangeHandler.getInstance().getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
+
+                    if (max_period) {
+                        res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(max_period));
+                        none = false;
+                    } else {
+                        res_tsrange.push('');
+                    }
+
+                    return none ? '∞' : res_tsrange.join(' - ');
+
+                case ModuleTableField.FIELD_TYPE_numrange:
+                    let res_numrange: string[] = [];
+
+                    let none_number: boolean = true;
+
+                    let min_number: number = RangeHandler.getInstance().getSegmentedMin(field_value, null, 0, moduleTableField.return_min_value);
+                    if (min_number) {
+                        res_numrange.push(min_number.toFixed(0));
+                        none_number = false;
+                    } else {
+                        res_numrange.push('');
+                    }
+
+                    let max_number: number = RangeHandler.getInstance().getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
+
+                    if (max_number) {
+                        res_numrange.push(max_number.toFixed(0));
+                        none_number = false;
+                    } else {
+                        res_numrange.push('');
+                    }
+
+                    return none_number ? '∞' : res_numrange.join(' - ');
+
                 case ModuleTableField.FIELD_TYPE_int_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
@@ -279,6 +326,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                 case ModuleTableField.FIELD_TYPE_tstz:
+                case ModuleTableField.FIELD_TYPE_tsrange:
                     return field_value;
 
                 default:

@@ -56,7 +56,8 @@ export default abstract class ModuleCheckListBase extends Module {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
-            label_field
+            label_field,
+            new ModuleTableField('limit_affichage', ModuleTableField.FIELD_TYPE_int, 'Nb. limite affichage', false),
         );
 
         let datatable = new ModuleTable(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");

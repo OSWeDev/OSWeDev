@@ -44,6 +44,14 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Prop({ default: null })
     private vo: IDistantVOBase;
 
+    /**
+     * Une string de la forme composant_partieconcernee_option
+     * Ex: 'tsrange_date_noneditable'
+     * Ajouté à la base pour désactiver la partie date et ne permettre de modifier que les heures / minutes
+     */
+    @Prop({ default: null })
+    private option: string;
+
     private tsrange_start: Date = null;
     private tsrange_end: Date = null;
     private tsrange_start_time: string = null;
@@ -99,15 +107,27 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: number = RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
+        let min: number = RangeHandler.getInstance().is_left_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
+        let max: number = RangeHandler.getInstance().is_right_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
 
-        this.tsrange_start = new Date(min * 1000);
-        this.tsrange_end = new Date(max * 1000);
+        if (min) {
+            this.tsrange_start = new Date(min * 1000);
+            if (this.tsrange_start) {
+                this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time) : null;
+            }
+        } else {
+            this.tsrange_start = null;
+            this.tsrange_start_time = null;
+        }
 
-        if (this.tsrange_start) {
-            this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time) : null;
-            this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time) : null;
+        if (max) {
+            this.tsrange_end = new Date(max * 1000);
+            if (this.tsrange_end) {
+                this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time) : null;
+            }
+        } else {
+            this.tsrange_end = null;
+            this.tsrange_end_time = null;
         }
     }
 
@@ -116,7 +136,11 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.segmentation_type_);
+        this.new_value = RangeHandler.getInstance().createNew(
+            TSRange.RANGE_TYPE,
+            this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
+            this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
+            true, true, this.segmentation_type_);
         this.$emit('input', this.new_value);
 
         if (!!this.vo) {
@@ -201,5 +225,22 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
 
         return Dates.startOf(moment(this.tsrange_end).utc(true).unix(), this.segmentation_type_);
+    }
+
+    /**
+     * Fonction liée au param option
+     * Vérifie qu'il correspond à la partie date d'un tsrange
+     * Si oui, renvoie le comportement à adopter (string moins tsrange_date_ ; ex : 'tsrange_date_noneditable' -> 'noneditable')
+     * Sinon, renvoie null
+     */
+    get date_option(): string {
+        if (!this.option) {
+            return null;
+        }
+        let option_arr: string[] = this.option.split('_');
+        if (option_arr.length < 3 || option_arr[0] !== 'tsrange' || option_arr[1] !== 'date') {
+            return null;
+        }
+        return option_arr[2];
     }
 }

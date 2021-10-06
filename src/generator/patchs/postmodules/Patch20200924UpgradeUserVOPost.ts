@@ -44,15 +44,15 @@ export default class Patch20200924UpgradeUserVOPost implements IGeneratorWorker 
         let trad: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(code);
         if (!trad) {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-                fr: text
+                'fr-fr': text
             }, code));
         } else {
-            let fr = await ModuleTranslation.getInstance().getLang('fr');
+            let fr = await ModuleTranslation.getInstance().getLang('fr-fr');
             if (fr) {
                 let trads_fr: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [fr.id], 'text_id', [trad.id]);
                 if ((!trads_fr) || (!trads_fr.length)) {
                     DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-                        fr: text
+                        'fr-fr': text
                     }, code));
                 } else {
                     trads_fr[0].translated = text;

@@ -5,6 +5,9 @@ import { getStoreAccessors } from "vuex-typescript";
 import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import IStoreModule from "../../../store/IStoreModule";
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
+import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
+import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
+import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -12,6 +15,13 @@ export interface IDashboardPageState {
     page_widgets: DashboardPageWidgetVO[];
 
     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
+    Crudupdatemodalcomponent: CRUDUpdateModalComponent;
+    Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
+    page_history: DashboardPageVO[];
+
+    custom_filters: string[];
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -39,11 +49,31 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.state = {
             page_widgets: [],
-            active_field_filters: {}
+            active_field_filters: {},
+            Crudupdatemodalcomponent: null,
+            Crudcreatemodalcomponent: null,
+            page_history: [],
+            custom_filters: []
         };
 
 
         this.getters = {
+            get_custom_filters(state: IDashboardPageState): string[] {
+                return state.custom_filters;
+            },
+
+            get_page_history(state: IDashboardPageState): DashboardPageVO[] {
+                return state.page_history;
+            },
+
+            get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
+                return state.Crudupdatemodalcomponent;
+            },
+
+            get_Crudcreatemodalcomponent(state: IDashboardPageState): CRUDCreateModalComponent {
+                return state.Crudcreatemodalcomponent;
+            },
+
             get_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
                 return state.page_widgets;
             },
@@ -56,6 +86,31 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.mutations = {
+
+            set_custom_filters(state: IDashboardPageState, custom_filters: string[]) {
+                state.custom_filters = custom_filters;
+            },
+
+            set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
+                state.page_history = page_history;
+            },
+
+            add_page_history(state: IDashboardPageState, page_history: DashboardPageVO) {
+                state.page_history.push(page_history);
+            },
+
+            pop_page_history(state: IDashboardPageState, fk) {
+                state.page_history.pop();
+            },
+
+            set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
+                state.Crudupdatemodalcomponent = Crudupdatemodalcomponent;
+            },
+
+            set_Crudcreatemodalcomponent(state: IDashboardPageState, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
+                state.Crudcreatemodalcomponent = Crudcreatemodalcomponent;
+            },
+
             set_active_field_filters(state: IDashboardPageState, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
                 state.active_field_filters = active_field_filters;
             },
@@ -129,6 +184,26 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.actions = {
 
+            set_custom_filters(context: DashboardPageContext, custom_filters: string[]) {
+                commit_set_custom_filters(context, custom_filters);
+            },
+            set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
+                commit_set_page_history(context, page_history);
+            },
+            add_page_history(context: DashboardPageContext, page_history: DashboardPageVO) {
+                commit_add_page_history(context, page_history);
+            },
+            pop_page_history(context: DashboardPageContext, fk) {
+                commit_pop_page_history(context, null);
+            },
+            set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
+                commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
+            },
+
+            set_Crudcreatemodalcomponent(context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
+                commit_set_Crudcreatemodalcomponent(context, Crudcreatemodalcomponent);
+            },
+
             set_active_field_filters(context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
                 commit_set_active_field_filters(context, active_field_filters);
             },
@@ -169,3 +244,9 @@ export const commit_delete_page_widget = commit(DashboardPageStoreInstance.mutat
 export const commit_set_active_field_filters = commit(DashboardPageStoreInstance.mutations.set_active_field_filters);
 export const commit_set_active_field_filter = commit(DashboardPageStoreInstance.mutations.set_active_field_filter);
 export const commit_remove_active_field_filter = commit(DashboardPageStoreInstance.mutations.remove_active_field_filter);
+export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
+export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
+export const commit_set_page_history = commit(DashboardPageStoreInstance.mutations.set_page_history);
+export const commit_add_page_history = commit(DashboardPageStoreInstance.mutations.add_page_history);
+export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);
+export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);

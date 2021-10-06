@@ -1,5 +1,7 @@
 .vo_field_widget_ref {
 
+    padding: .2em 0em;
+
     .remove_field_ref {
         display: inline-block;
         padding: 0.2em;
@@ -8,5 +10,10 @@
         border-radius: 2px;
         cursor: pointer;
         margin-top: 1px;
+        margin-left: 6px;
+    }
+
+    .field_label {
+        display: inline-block;
     }
 }

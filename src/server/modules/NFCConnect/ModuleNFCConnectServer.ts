@@ -38,7 +38,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleNFCConnect.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'NFCConnect'
+            'fr-fr': 'NFCConnect'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -46,7 +46,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleNFCConnect.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration NFCConnect'
+            'fr-fr': 'Administration NFCConnect'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -59,103 +59,103 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         POLICY_FO_ACCESS.translatable_name = ModuleNFCConnect.POLICY_FO_ACCESS;
         POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
-            fr: 'Accès front - NFCConnect'
+            'fr-fr': 'Accès front - NFCConnect'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Erreur à la lecture du Tag NFC. Réessayer.'
+            'fr-fr': 'Erreur à la lecture du Tag NFC. Réessayer.'
         }, 'NFCHandler.readingerror.readingerror.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Le numéro de série du Tag NFC est illisible. Réessayer.'
+            'fr-fr': 'Le numéro de série du Tag NFC est illisible. Réessayer.'
         }, 'NFCHandler.readingerror.serialNumber.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Le tag NFC est inconnu, connectez-vous d\'abord à votre compte pour le lier.'
+            'fr-fr': 'Le tag NFC est inconnu, connectez-vous d\'abord à votre compte pour le lier.'
         }, 'NFCHandler.readinginfo.tag_not_registered.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Voulez-vous changer de compte connecté ?'
+            'fr-fr': 'Voulez-vous changer de compte connecté ?'
         }, 'NFCHandler.switchconfirmation.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion par Tag NFC à un autre compte'
+            'fr-fr': 'Connexion par Tag NFC à un autre compte'
         }, 'NFCHandler.switchconfirmation.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Connexion en cours...'
+            'fr-fr': 'Connexion en cours...'
         }, 'NFCHandler.switchconfirmation.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tag déjà lié au compte'
+            'fr-fr': 'Tag déjà lié au compte'
         }, 'NFCHandler.tag_already_added.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Voulez-vous lier ce Tag NFC à votre compte ?'
+            'fr-fr': 'Voulez-vous lier ce Tag NFC à votre compte ?'
         }, 'NFCHandler.addconfirmation.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lier le Tag à votre compte'
+            'fr-fr': 'Lier le Tag à votre compte'
         }, 'NFCHandler.addconfirmation.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ajout du Tag NFC en cours...'
+            'fr-fr': 'Ajout du Tag NFC en cours...'
         }, 'NFCHandler.addconfirmation.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec lors de l\'ajout du Tag. Réessayer.'
+            'fr-fr': 'Echec lors de l\'ajout du Tag. Réessayer.'
         }, 'NFCHandler.addconfirmation.failed_add_tag.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec lors de l\'ajout du Tag. Réessayer.'
+            'fr-fr': 'Echec lors de l\'ajout du Tag. Réessayer.'
         }, 'NFCHandler.addconfirmation.failed_add_tag_user.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Le Tag NFC est lié à votre compte. Vous pouvez l\'utiliser pour vous connecter.'
+            'fr-fr': 'Le Tag NFC est lié à votre compte. Vous pouvez l\'utiliser pour vous connecter.'
         }, 'NFCHandler.addconfirmation.ended.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'NFC activé, passer le Tag pour continuer'
+            'fr-fr': 'NFC activé, passer le Tag pour continuer'
         }, 'login.nfcconnect.on.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lecture NFC impossible'
+            'fr-fr': 'Lecture NFC impossible'
         }, 'login.nfcconnect.off.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Activer NFC Connect'
+            'fr-fr': 'Activer NFC Connect'
         }, 'login.nfcconnect.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'NFC Connect activé'
+            'fr-fr': 'NFC Connect activé'
         }, 'login.nfcconnected.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Actualiser'
+            'fr-fr': 'Actualiser'
         }, 'nfcconnect_user_tag_list.update_list.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'NFC'
+            'fr-fr': 'NFC'
         }, 'nfcconnect_user_tag_list.nfc_header.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Ecrire le lien de connexion sur le Tag NFC ?'
+            'fr-fr': 'Ecrire le lien de connexion sur le Tag NFC ?'
         }, 'NFCHandler.writeurlconfirmation.body.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Lien de connexion automatique'
+            'fr-fr': 'Lien de connexion automatique'
         }, 'NFCHandler.writeurlconfirmation.title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Passer le Tag NFC pour le mettre à jour...'
+            'fr-fr': 'Passer le Tag NFC pour le mettre à jour...'
         }, 'NFCHandler.writeurlconfirmation.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Echec ecriture du Tag NFC.'
+            'fr-fr': 'Echec ecriture du Tag NFC.'
         }, 'NFCHandler.writeurlconfirmation.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tag mis à jour'
+            'fr-fr': 'Tag mis à jour'
         }, 'NFCHandler.writeurlconfirmation.ended.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'NFC'
+            'fr-fr': 'NFC'
         }, 'menu.menuelements.admin.NFCConnectAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'NFC Tags'
+            'fr-fr': 'NFC Tags'
         }, 'menu.menuelements.admin.nfc_tag.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'NFC Tags User'
+            'fr-fr': 'NFC Tags User'
         }, 'menu.menuelements.admin.nfc_tag_user.___LABEL___'));
     }
 

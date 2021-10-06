@@ -65,43 +65,43 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(SupervisionBGThread.getInstance());
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supervision'
+            'fr-fr': 'Supervision'
         }, 'menu.menuelements.admin.SupervisionAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Supervision'
+            'fr-fr': 'Supervision'
         }, 'menu.menuelements.admin.SupervisionDashboard.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'ERROR'
+            'fr-fr': 'ERROR'
         }, 'supervision.STATE_ERROR'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'ERROR - READ'
+            'fr-fr': 'ERROR - READ'
         }, 'supervision.STATE_ERROR_READ'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'OK'
+            'fr-fr': 'OK'
         }, 'supervision.STATE_OK'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'PAUSED'
+            'fr-fr': 'PAUSED'
         }, 'supervision.STATE_PAUSED'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'UNKNOWN'
+            'fr-fr': 'UNKNOWN'
         }, 'supervision.STATE_UNKOWN'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'WARN'
+            'fr-fr': 'WARN'
         }, 'supervision.STATE_WARN'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'WARN - READ'
+            'fr-fr': 'WARN - READ'
         }, 'supervision.STATE_WARN_READ'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Tout'
+            'fr-fr': 'Tout'
         }, 'supervision.dashboard.all.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Catégories'
+            'fr-fr': 'Catégories'
         }, 'supervision.dashboard.category.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Catégories'
+            'fr-fr': 'Catégories'
         }, 'menu.menuelements.admin.SupervisedCategoryVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Types de sonde'
+            'fr-fr': 'Types de sonde'
         }, 'supervision.dashboard.types_de_sonde.___LABEL___'));
 
 
@@ -124,7 +124,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSupervision.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'Supervision'
+            'fr-fr': 'Supervision'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -132,7 +132,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleSupervision.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration de la Supervision'
+            'fr-fr': 'Administration de la Supervision'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;

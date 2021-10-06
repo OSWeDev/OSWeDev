@@ -62,5 +62,14 @@
         template(v-else-if="field.type == 'FILE'")
             Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")
 
+        template(v-else-if="field.type == 'VAR'")
+            Dbvardatatablefieldcomponent(
+                :var_id="field.var_id"
+                :filter_type="field.filter_type"
+                :filter_additional_params="field.filter_additional_params"
+                :dashboard_id="field.dashboard_id"
+                :row_value="vo"
+                :columns="columns")
+
         template(v-else)
             span {{ field_value }}

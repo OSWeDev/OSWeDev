@@ -25,19 +25,19 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'SendInBlue'
+            'fr-fr': 'SendInBlue'
         }, 'menu.menuelements.admin.SendInBlueAdminVueModule.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Paramètres'
+            'fr-fr': 'Paramètres'
         }, 'menu.menuelements.admin.SendInBlueVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'API'
+            'fr-fr': 'API'
         }, 'sendinblue.account.api'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'PARTNER'
+            'fr-fr': 'PARTNER'
         }, 'sendinblue.account.partner'));
 
 
@@ -51,7 +51,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleSendInBlue.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'SendInBlue'
+            'fr-fr': 'SendInBlue'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -59,7 +59,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = ModuleSendInBlue.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration de SendInBlue'
+            'fr-fr': 'Administration de SendInBlue'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 }

@@ -12,6 +12,7 @@ import * as fs from 'fs';
 
 import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
+import { performance } from 'perf_hooks';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
@@ -192,7 +193,7 @@ export default abstract class ServerBase {
         //     },
         // }
         // /*, function() {
-        //   i18nextMiddleware.addRoute(i18next, '/:lng/key-to-translate', ['fr', 'de', 'es'], app, 'get',
+        //   i18nextMiddleware.addRoute(i18next, '/:lng/key-to-translate', ['fr-FR', 'de', 'es'], app, 'get',
         //     function(req, res) {
         //       // endpoint function
         //     })
@@ -269,7 +270,7 @@ export default abstract class ServerBase {
 
         this.app.use(createLocaleMiddleware({
             priority: ["accept-language", "default"],
-            default: "fr_FR"
+            default: this.envParam.DEFAULT_LOCALE
         }));
 
         // Chargement des WebPack Client et Admin
@@ -544,13 +545,25 @@ export default abstract class ServerBase {
                     session.returning = true;
                     session.creation_date_unix = Dates.now();
                 } else {
+
                     // old session - on check qu'on doit pas invalider
-                    if (!this.check_session_validity(session)) {
-                        await PushDataServerController.getInstance().unregisterSession(session);
-                        session.destroy(() => {
-                            ServerBase.getInstance().redirect_login_or_home(req, res);
-                        });
-                        return;
+                    if ((!session.last_check_session_validity) ||
+                        (Dates.now() >= session.last_check_session_validity + 10)) {
+
+                        session.last_check_session_validity = Dates.now();
+
+                        if (!this.check_session_validity(session)) {
+                            await StackContext.getInstance().runPromise(
+                                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                                async () => {
+
+                                    await PushDataServerController.getInstance().unregisterSession(session);
+                                    session.destroy(() => {
+                                        ServerBase.getInstance().redirect_login_or_home(req, res);
+                                    });
+                                });
+                            return;
+                        }
                     }
                 }
             }
@@ -558,15 +571,22 @@ export default abstract class ServerBase {
             if (session && session.uid) {
 
                 if ((!session.last_check_blocked_or_expired) ||
-                    (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) >= session.last_check_blocked_or_expired)) {
+                    (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                     // On doit vérifier que le compte est ni bloqué ni expiré
                     let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                     if ((!user) || user.blocked || user.invalidated) {
-                        await PushDataServerController.getInstance().unregisterSession(session);
-                        session.destroy(() => {
-                            ServerBase.getInstance().redirect_login_or_home(req, res);
-                        });
+
+                        await StackContext.getInstance().runPromise(
+                            ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                            async () => {
+
+                                await PushDataServerController.getInstance().unregisterSession(session);
+                                session.destroy(() => {
+                                    ServerBase.getInstance().redirect_login_or_home(req, res);
+                                });
+                            });
+
                         return;
                     }
                     session.last_check_blocked_or_expired = Dates.now();
@@ -731,10 +751,16 @@ export default abstract class ServerBase {
                 // On doit vérifier que le compte est ni bloqué ni expiré
                 let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                 if (user && (user.blocked || user.invalidated)) {
-                    await PushDataServerController.getInstance().unregisterSession(session);
-                    session.destroy(() => {
-                        ServerBase.getInstance().redirect_login_or_home(req, res);
-                    });
+
+                    await StackContext.getInstance().runPromise(
+                        ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                        async () => {
+
+                            await PushDataServerController.getInstance().unregisterSession(session);
+                            session.destroy(() => {
+                                ServerBase.getInstance().redirect_login_or_home(req, res);
+                            });
+                        });
                     return;
                 }
                 session.last_check_blocked_or_expired = Dates.now();
@@ -773,10 +799,12 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
-            await StackContext.getInstance().runPromise(
+            let err = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
+
+            res.redirect('/');
         });
 
         this.app.use('/js', express.static('client/js'));

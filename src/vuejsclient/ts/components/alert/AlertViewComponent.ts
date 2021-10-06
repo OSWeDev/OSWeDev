@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueComponentBase from '../VueComponentBase';
 import './AlertViewComponent.scss';
 
@@ -70,6 +71,6 @@ export default class AlertViewComponent extends VueComponentBase {
             return null;
         }
 
-        return Dates.format(this.alert.creation_date, "DD/MM/YYYY HH:mm:ss");
+        return Dates.format(this.alert.creation_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
     }
 }

@@ -61,6 +61,9 @@ import Patch20210727VarsCacheMSToSEC from './patchs/postmodules/Patch20210727Var
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210804Changebddvarsindexes from './patchs/postmodules/Patch20210804Changebddvarsindexes';
 import Patch20210726ChangeUserDateType from './patchs/premodules/Patch20210726ChangeUserDateType';
+import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
+import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
+import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
 
 export default abstract class GeneratorBase {
 
@@ -103,6 +106,8 @@ export default abstract class GeneratorBase {
             Patch20210727RenameColumnVarCacheConf.getInstance(),
             Patch20210803ChangeDIHDateType.getInstance(),
             Patch20210726ChangeUserDateType.getInstance(),
+            Patch20210914ClearDashboardWidgets.getInstance(),
+            Patch20211004ChangeLang.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -134,7 +139,8 @@ export default abstract class GeneratorBase {
             Patch20210615ChangeRecoverySMS.getInstance(),
             Patch20210715ChangeMenuTranslations.getInstance(),
             Patch20210727VarsCacheMSToSEC.getInstance(),
-            Patch20210804Changebddvarsindexes.getInstance()
+            Patch20210804Changebddvarsindexes.getInstance(),
+            Patch20210916SetParamPushData.getInstance(),
         ];
     }
 

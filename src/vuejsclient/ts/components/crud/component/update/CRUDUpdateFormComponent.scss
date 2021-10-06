@@ -1,0 +1,60 @@
+.crud_update_form {
+
+    padding: 2em;
+
+    .crud_update_form_header {
+
+        .title {
+
+            font-size: 1.5em;
+            margin-bottom: 1em;
+            border-bottom: solid 2px #DDD;
+        }
+    }
+
+    .crud_update_form_footer {
+        text-align: right;
+    }
+
+    .form-group {
+
+        .btn-group {
+            margin-left: 1em;
+        }
+
+        label.vue-js-switch{
+            margin-left: 1em;
+        }
+
+        .vue-js-switch .v-switch-label.v-left {
+            left: 20px;
+        }
+
+        input[type=checkbox] {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        input[type=checkbox].v-switch-input{
+            display: none;
+        }
+
+        .v-switch-core {
+            margin-left: 1em;
+        }
+
+        label {
+            font-weight: bold;
+
+            i.fa.fa-asterisk.mandatory {
+                color: red;
+                font-size: 0.4rem;
+                vertical-align: top;
+                margin-left: 1px;
+            }
+        }
+    }
+}

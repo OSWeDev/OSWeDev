@@ -1,0 +1,82 @@
+.table_pagination {
+
+    margin-top: .5em;
+    margin-bottom: .5em;
+
+    .pagination_resumee {
+        background-color: white;
+        border-radius: 20em;
+        padding: .2em;
+        text-align: center;
+    }
+
+    .pagination_slider {
+        padding-top: .2em;
+
+        .vue-slider-rail,
+        .vue-slider.vue-slider-ltr {
+            cursor: pointer;
+        }
+        
+        .custom-dot {
+            margin-top: -50%;
+            width: 300%;
+            height: 200%;
+            background-color: dodgerblue;
+            transition: all .3s;
+            cursor: pointer;
+            text-align: center;
+            color: #EEE;
+            padding-top: .3em;
+            border-radius: 10%;
+        }
+        .custom-dot:hover {
+            border-radius: 25%;
+        }
+    }
+
+    .pagination_form {
+        
+        text-align: right;
+
+        form {
+            display: inline-block;
+        }
+    }
+
+    .pagination_arrow {
+
+        display: inline-block;
+        background-color: dodgerblue;
+        border-radius: 100%;
+        margin: 0em 0.5em;
+        color: whitesmoke;
+        cursor: pointer;
+
+        &.go_back {
+            padding: .2em .3em .2em .1em;
+        }
+
+        &.go_next {
+            padding: .2em .1em .2em .3em;
+        }
+    }
+
+    .pagination_input {
+        display: inline-block;
+        border-radius: 20em;
+        text-align: center;
+        border: none;
+        padding: .2em;
+    }
+
+    .pagination_submit {
+        display: inline-block;
+        background-color: dodgerblue;
+        border-radius: 100%;
+        margin: 0em 0.5em;
+        color: whitesmoke;
+        padding: .2em .1em .2em .3em;
+        cursor: pointer;
+    }
+}

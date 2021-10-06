@@ -1,0 +1,29 @@
+.field_value_filter_boolean_widget_component
+    template(v-if='vo_field_ref')
+        .vo_field_ref_label {{ vo_field_ref_label }}
+
+        .vo_field_boolean_filter
+            .boolean_filter_type
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="true"
+                    :close-on-select="false"
+                    v-model="boolean_filter_types"
+                    :options="filter_type_options"
+                    :custom-label="filter_type_label"
+
+                    :placeholder="placeholder"
+
+                    :show-labels="false"
+                    :searchable="false"
+                    :internal-search="false"
+                    :hide-selected="true"
+
+                    :key="'boolean_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id" 
+                    
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )

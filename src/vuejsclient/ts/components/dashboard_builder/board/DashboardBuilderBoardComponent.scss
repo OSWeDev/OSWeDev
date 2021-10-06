@@ -7,6 +7,11 @@
 
     .grid_item_wrapper {
 
+        &.widget_name__datatable .vue-grid-item,
+        &.widget_name__valuetable .vue-grid-item {
+            overflow: auto;
+        }
+
         .vue-grid-item {
             padding: 1em;
         }
@@ -14,7 +19,7 @@
         &.selected {
          
             .vue-grid-item {
-                z-index: 10000;
+                z-index: 1;
                 box-shadow: 1px 1px 1px #888;
             }
         } 

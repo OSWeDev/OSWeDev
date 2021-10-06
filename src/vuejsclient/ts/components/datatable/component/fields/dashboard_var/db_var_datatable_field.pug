@@ -1,0 +1,8 @@
+.db_var_datatable_field
+    .var_data
+        template(v-if='!!var_param')
+            var-data(
+                :var_param="var_param"
+                :filter='var_filter'
+                :filter_additional_params='var_filter_additional_params'
+            )

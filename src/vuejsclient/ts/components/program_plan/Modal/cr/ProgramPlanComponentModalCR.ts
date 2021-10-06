@@ -21,6 +21,7 @@ import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
+let debounce = require('lodash/debounce');
 
 @Component({
     template: require('./ProgramPlanComponentModalCR.pug'),
@@ -108,6 +109,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     get custom_cr_update_component() {
         return this.program_plan_controller.customCRUpdateComponent;
     }
+
+    private debounced_update_cr_action = debounce(this.update_cr_action, 1000);
 
     get target(): IPlanTarget {
         if ((!this.selected_rdv) || (!this.selected_rdv.target_id)) {
@@ -300,6 +303,11 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
         let self = this;
 
+        if (!this.program_plan_controller.show_confirmation_create_cr) {
+            await this.create_cr_action(cr);
+            return;
+        }
+
         self.snotify.confirm(self.label('programplan.create_cr.confirmation.body'), self.label('programplan.create_cr.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
@@ -310,27 +318,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.create_cr.start'));
 
-                        try {
-
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                                throw new Error('Erreur serveur');
-                            }
-                            cr.id = insertOrDeleteQueryResult.id;
-                            self.setCrById(cr);
-
-                            // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
-                            self.updateRdv(rdv);
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                            self.snotify.error(self.label('programplan.create_cr.error'));
-                            return;
-                        }
-                        self.snotify.success(self.label('programplan.create_cr.ok'));
+                        await this.create_cr_action(cr);
                     },
                     bold: false
                 },
@@ -344,16 +333,64 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         });
     }
 
+    private async create_cr_action(cr: IPlanRDVCR) {
+        this.$snotify.async(this.label('programplan.create_cr.start'), () => new Promise(async (resolve, reject) => {
+            try {
+
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
+                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                    throw new Error('Erreur serveur');
+                }
+                cr.id = insertOrDeleteQueryResult.id;
+
+                this.setCrById(cr);
+                // TODO passer par une synchro via les notifs de dao ...
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+                let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
+                this.updateRdv(rdv);
+            } catch (error) {
+                ConsoleHandler.getInstance().error(error);
+                reject({
+                    title: this.label('programplan.create_cr.error'),
+                    body: '',
+                    config: {
+                        timeout: 2000,
+                    }
+                });
+                return;
+            }
+
+            resolve({
+                title: this.label('programplan.create_cr.ok'),
+                body: '',
+                config: {
+                    timeout: 2000,
+                }
+            });
+        }));
+
+    }
+
     /**
      * Called when updating a CR. Confirmation, and if confirmed, update.
      * @param cr
      */
-    private async update_cr(cr: IPlanRDVCR) {
+    private async update_cr(cr: IPlanRDVCR, autosave: boolean = false) {
         if ((!this.selected_rdv) || (!cr)) {
             return;
         }
 
         let self = this;
+
+        if (autosave) {
+            await this.debounced_update_cr_action(cr, autosave);
+            return;
+        }
+
+        if (!this.program_plan_controller.show_confirmation_update_cr) {
+            await this.update_cr_action(cr, autosave);
+            return;
+        }
 
         self.snotify.confirm(self.label('programplan.update_cr.confirmation.body'), self.label('programplan.update_cr.confirmation.title'), {
             timeout: 10000,
@@ -365,27 +402,8 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.update_cr.start'));
 
-                        try {
-
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != cr.id)) {
-                                throw new Error('Erreur serveur');
-                            }
-                            self.updateCr(cr);
-
-                            // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
-                            self.updateRdv(rdv);
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                            self.snotify.error(self.label('programplan.update_cr.error'));
-                            return;
-                        }
-                        self.snotify.success(self.label('programplan.update_cr.ok'));
-                        self.edited_cr = null;
+                        await this.update_cr_action(cr, autosave);
                     },
                     bold: false
                 },
@@ -399,11 +417,53 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         });
     }
 
+    private async update_cr_action(cr: IPlanRDVCR, autosave: boolean) {
+        this.$snotify.async(this.label('programplan.update_cr.start'), () => new Promise(async (resolve, reject) => {
+            try {
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cr);
+                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != cr.id)) {
+                    throw new Error('Erreur serveur');
+                }
+                this.updateCr(cr);
+
+                // TODO passer par une synchro via les notifs de dao ...
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+                let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
+                this.updateRdv(rdv);
+
+                if (!autosave) {
+                    this.edited_cr = null;
+                }
+            } catch (error) {
+                ConsoleHandler.getInstance().error(error);
+
+                reject({
+                    title: this.label('programplan.update_cr.error'),
+                    body: '',
+                    config: {
+                        timeout: 2000,
+                    }
+                });
+
+                return;
+            }
+
+            resolve({
+                title: this.label('programplan.update_cr.ok'),
+                body: '',
+                config: {
+                    timeout: 2000,
+                }
+            });
+        }));
+    }
+
     /**
      * Called when cancelling edition of a cr. Just close the modal
      * @param cr
      */
     private async cancel_edition(cr: IPlanRDVCR) {
+        await this.update_cr_action(cr, false);
 
         this.snotify.info(this.label('programplan.update_cr.cancel'));
         this.edited_cr = null;

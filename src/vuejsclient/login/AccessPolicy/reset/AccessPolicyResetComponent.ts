@@ -67,10 +67,10 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     private async mounted() {
         this.load_logo_url();
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
-        if (!!logged_id) {
-            window.location = this.redirect_to as any;
-        }
+        // let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        // if (!!logged_id) {
+        //     window.location = this.redirect_to as any;
+        // }
 
         this.has_sms_activation =
             await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION) &&

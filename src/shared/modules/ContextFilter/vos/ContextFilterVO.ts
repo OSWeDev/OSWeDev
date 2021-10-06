@@ -6,6 +6,8 @@ import TSRange from "../../DataRender/vos/TSRange";
 export default class ContextFilterVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_filter";
 
+    public static CUSTOM_FILTERS_TYPE: string = "__custom_filters__";
+
     public static TYPE_LABELS: string[] = [
         'context_filter.type.FILTER_NOT',
         'context_filter.type.FILTER_AND',
@@ -34,6 +36,7 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.DATE_EQUALS',
         'context_filter.type.DATE_INCLUDES',
         'context_filter.type.DATE_IS_INCLUDED_IN',
+
         'context_filter.type.TEXT_EQUALS_ALL',
         'context_filter.type.TEXT_EQUALS_ANY',
         'context_filter.type.TEXT_INCLUDES_ALL',
@@ -42,6 +45,21 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.TEXT_STARTSWITH_ANY',
         'context_filter.type.TEXT_ENDSWITH_ALL',
         'context_filter.type.TEXT_ENDSWITH_ANY',
+
+        'context_filter.type.TYPE_DATE_DOW',
+        'context_filter.type.TYPE_DATE_DOM',
+        'context_filter.type.TYPE_DATE_WEEK',
+        'context_filter.type.TYPE_DATE_MONTH',
+        'context_filter.type.TYPE_DATE_YEAR',
+
+        'context_filter.type.NUMERIC_INF_ANY',
+        'context_filter.type.NUMERIC_INF_ALL',
+        'context_filter.type.NUMERIC_INFEQ_ANY',
+        'context_filter.type.NUMERIC_INFEQ_ALL',
+        'context_filter.type.NUMERIC_SUP_ANY',
+        'context_filter.type.NUMERIC_SUP_ALL',
+        'context_filter.type.NUMERIC_SUPEQ_ANY',
+        'context_filter.type.NUMERIC_SUPEQ_ALL',
     ];
 
     /**
@@ -154,6 +172,31 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_TEXT_ENDSWITH_ALL: number = 33;
     public static TYPE_TEXT_ENDSWITH_ANY: number = 34;
 
+    public static TYPE_TEXT_EQUALS_NONE: number = 35;
+    public static TYPE_TEXT_INCLUDES_NONE: number = 36;
+    public static TYPE_TEXT_STARTSWITH_NONE: number = 37;
+    public static TYPE_TEXT_ENDSWITH_NONE: number = 38;
+
+    /**
+     * Dates special filters
+     */
+    public static TYPE_DATE_DOW: number = 39;
+    public static TYPE_DATE_DOM: number = 40;
+    public static TYPE_DATE_WEEK: number = 41;
+    public static TYPE_DATE_MONTH: number = 42;
+    public static TYPE_DATE_YEAR: number = 43;
+
+    /**
+     * Numeric > >= < <=
+     */
+    public static TYPE_NUMERIC_INF_ANY: number = 44;
+    public static TYPE_NUMERIC_INF_ALL: number = 45;
+    public static TYPE_NUMERIC_INFEQ_ANY: number = 46;
+    public static TYPE_NUMERIC_INFEQ_ALL: number = 47;
+    public static TYPE_NUMERIC_SUP_ANY: number = 48;
+    public static TYPE_NUMERIC_SUP_ALL: number = 49;
+    public static TYPE_NUMERIC_SUPEQ_ANY: number = 50;
+    public static TYPE_NUMERIC_SUPEQ_ALL: number = 51;
 
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;
@@ -170,6 +213,9 @@ export default class ContextFilterVO implements IDistantVOBase {
     public param_numranges: NumRange[];
     public param_hourranges: HourRange[];
 
-    public left_hook_id: number;
-    public right_hook_id: number;
+    /**
+     * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
+     */
+    public left_hook: ContextFilterVO;
+    public right_hook: ContextFilterVO;
 }

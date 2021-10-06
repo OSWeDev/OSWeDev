@@ -1,30 +1,14 @@
 .field_value_filter_widget_component
-    template(v-if='vo_field_ref')
-        .vo_field_ref_label {{ vo_field_ref_label }}
-        .vo_field_ref_filter
-            multiselect(
-                :preselect-first="false"
-                :multiple="can_select_multiple"
-                :close-on-select="false"
-                v-model="tmp_filter_active_options"
-                :placeholder="placeholder"
-                :options="filter_visible_options"
-                label="label"
+    template(v-if='is_type_string')
+        Fieldvaluefilterstringwidgetcomponent(
+            :page_widget="page_widget"
+            :dashboard="dashboard"
+            :dashboard_page="dashboard_page"
+        )
 
-                :searchable="true"
-                :internal-search="false"
-                :hide-selected="true"
-
-                track-by="text_uid"
-                
-                :id="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                
-                :select-label='label("multiselect.selectLabel")'
-                :select-group-label='label("multiselect.selectGroupLabel")'
-                :selected-label='label("multiselect.selectedLabel")'
-                :deselect-label='label("multiselect.deselectLabel")'
-                :deselect-group-label='label("multiselect.deselectGroupLabel")'
-
-                @search-change="query_update_visible_options"
-            )
-                span(slot="noOptions") -
+    template(v-else-if='is_type_boolean')
+        Fieldvaluefilterbooleanwidgetcomponent(
+            :page_widget="page_widget"
+            :dashboard="dashboard"
+            :dashboard_page="dashboard_page"
+        )

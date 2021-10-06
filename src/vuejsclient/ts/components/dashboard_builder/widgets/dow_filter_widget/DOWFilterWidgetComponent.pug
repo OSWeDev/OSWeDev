@@ -1,0 +1,10 @@
+.dow_filter_widget_component
+    template(v-if='(is_vo_field_ref && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)')
+        template(v-if='is_vo_field_ref')
+            .vo_field_ref_label {{ vo_field_ref_label }}
+        template(v-else-id='!!custom_filter_name')
+            .custom_filter_name {{ custom_filter_name }}
+
+        .isodows
+            template(v-for='(isodow, i) in isodows')
+                .isodow(:class='{"selected": !!selected_dows[i]}' @click='switch_selection(i)') {{ isodow }}
