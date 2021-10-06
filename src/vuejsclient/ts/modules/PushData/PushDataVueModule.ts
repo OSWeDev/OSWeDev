@@ -3,6 +3,7 @@ import { SnotifyToast } from 'vue-snotify';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -436,12 +437,14 @@ export default class PushDataVueModule extends VueModuleBase {
                         switch (vo.marker) {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
 
+                                let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+
                                 let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
                                 VueAppBase.instance_.vueInstance.snotify.warning(content, {
                                     timeout: 3000
                                 });
                                 setTimeout(() => {
-                                    location.href = '/';
+                                    location.href = PARAM_TECH_DISCONNECT_URL;
                                 }, 3000);
                                 break;
 

@@ -101,19 +101,7 @@ export default class RangeHandler {
             return false;
         }
 
-        switch (range.range_type) {
-            case TSRange.RANGE_TYPE:
-                return range.min_inclusiv && (range.min == RangeHandler.MIN_TS) &&
-                    (!range.max_inclusiv) && (range.max == RangeHandler.MAX_TS);
-            case NumRange.RANGE_TYPE:
-                return range.min_inclusiv && (range.min == RangeHandler.MIN_INT) &&
-                    (!range.max_inclusiv) && (range.max == RangeHandler.MAX_INT);
-            case HourRange.RANGE_TYPE:
-                return range.min_inclusiv && (range.min == RangeHandler.MIN_HOUR) &&
-                    (!range.max_inclusiv) && (range.max == RangeHandler.MAX_HOUR);
-        }
-
-        return false;
+        return range.min_inclusiv && this.is_left_open(range) && (!range.max_inclusiv) && this.is_right_open(range);
     }
 
     public is_one_max_range(range: IRange): boolean {
@@ -122,18 +110,68 @@ export default class RangeHandler {
             return false;
         }
 
+        return this.is_left_open(range) || this.is_right_open(range);
+    }
+
+    public is_left_open(range: IRange): boolean {
+        if (!range) {
+            return false;
+        }
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
-                return (Dates.isSame(this.getSegmentedMin(range), RangeHandler.MIN_TS, TimeSegment.TYPE_DAY)) ||
-                    (Dates.isSame(this.getSegmentedMax(range), RangeHandler.MAX_TS, TimeSegment.TYPE_DAY));
+                let segmented_min: number = this.getSegmentedMin(range);
+                switch (range.segment_type) {
+                    case TimeSegment.TYPE_DAY:
+                        return segmented_min === -9223286400 || segmented_min === -9223372800; // min_inclusive = false || min_inclusive = true
+                    case TimeSegment.TYPE_WEEK:
+                        return segmented_min === -9222854400 || segmented_min === -9223459200;
+                    case TimeSegment.TYPE_MONTH:
+                        return segmented_min === -9222508800 || segmented_min === -9225100800;
+                    case TimeSegment.TYPE_YEAR:
+                        return segmented_min === -9214560000 || segmented_min === -9246096000;
+                    case TimeSegment.TYPE_HOUR:
+                        return segmented_min === -9223372800;
+                    case TimeSegment.TYPE_MINUTE:
+                        return segmented_min === -9223372800;
+                    case TimeSegment.TYPE_SECOND:
+                        return segmented_min === -9223372800;
+                }
             case NumRange.RANGE_TYPE:
-                return (this.getSegmentedMin(range) == RangeHandler.MIN_INT) ||
-                    (this.getSegmentedMax(range) == RangeHandler.MAX_INT);
+                return this.getSegmentedMin(range) == RangeHandler.MIN_INT;
             case HourRange.RANGE_TYPE:
-                return (this.getSegmentedMin(range) == RangeHandler.MIN_HOUR) ||
-                    (this.getSegmentedMax(range) == RangeHandler.MAX_HOUR);
+                return this.getSegmentedMin(range) == RangeHandler.MIN_HOUR;
         }
+        return false;
+    }
 
+    public is_right_open(range: IRange): boolean {
+        if (!range) {
+            return false;
+        }
+        switch (range.range_type) {
+            case TSRange.RANGE_TYPE:
+                let segmented_max: number = this.getSegmentedMax(range);
+                switch (range.segment_type) {
+                    case TimeSegment.TYPE_DAY:
+                        return segmented_max === 9223372800;
+                    case TimeSegment.TYPE_WEEK:
+                        return segmented_max === 9222854400 || segmented_max === 9223459200; // idem left_open
+                    case TimeSegment.TYPE_MONTH:
+                        return segmented_max === 9222336000 || segmented_max === 9224928000;
+                    case TimeSegment.TYPE_YEAR:
+                        return segmented_max === 9214560000 || segmented_max === 9246096000;
+                    case TimeSegment.TYPE_HOUR:
+                        return segmented_max === 9223372800;
+                    case TimeSegment.TYPE_MINUTE:
+                        return segmented_max === 9223372800;
+                    case TimeSegment.TYPE_SECOND:
+                        return segmented_max === 9223372800;
+                }
+            case NumRange.RANGE_TYPE:
+                return this.getSegmentedMax(range) == RangeHandler.MAX_INT;
+            case HourRange.RANGE_TYPE:
+                return this.getSegmentedMax(range) == RangeHandler.MAX_HOUR;
+        }
         return false;
     }
 
@@ -371,6 +409,12 @@ export default class RangeHandler {
                         continue;
                     }
 
+                    /**
+                     * Anciennement k <= j mais il y avait un pb dans certains cas précis où res contenait + de 10 ranges
+                     * Ainsi, si k était inférieur à j mais que la somme de ses chiffres était supérieure à celle des chiffre de j (ex k=2 et j=10),
+                     * k était considéré supérieur à j car les deux sont des strings et la comparaison s'effectue de façon linéaire (premier chiffre de k et de j etc)
+                     * Le résultat était faux et les vars chargeait indéfiniment
+                     */
                     if (parseInt(k.toString()) <= parseInt(j.toString())) {
                         continue;
                     }
@@ -1846,7 +1890,7 @@ export default class RangeHandler {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMin(range: IRange, segment_type: number = null, offset: number = 0): number {
+    public getSegmentedMin(range: IRange, segment_type: number = null, offset: number = 0, return_min_value: boolean = true): number {
 
         if (!range) {
             return null;
@@ -1886,6 +1930,10 @@ export default class RangeHandler {
                     NumSegmentHandler.getInstance().incNumSegment(range_min_num, segment_type, offset);
                 }
 
+                if (!return_min_value && this.is_left_open(range)) {
+                    return null;
+                }
+
                 return range_min_num.index;
 
             case HourRange.RANGE_TYPE:
@@ -1904,6 +1952,10 @@ export default class RangeHandler {
                     range_min_h.index = Dates.add(range_min_h.index, offset, segment_type);
                 }
 
+                if (!return_min_value && this.is_left_open(range)) {
+                    return null;
+                }
+
                 return range_min_h.index;
 
             case TSRange.RANGE_TYPE:
@@ -1920,6 +1972,11 @@ export default class RangeHandler {
 
                 if (!!offset) {
                     (range_min_ts.index) = Dates.add(range_min_ts.index, offset, segment_type);
+                }
+
+                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                if (!return_min_value && this.is_left_open(range)) {
+                    return null;
                 }
 
                 return range_min_ts.index;
@@ -1977,6 +2034,11 @@ export default class RangeHandler {
                     NumSegmentHandler.getInstance().incNumSegment(range_max_num, segment_type, offset);
                 }
 
+                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                if (!return_max_value && this.is_right_open(range)) {
+                    return null;
+                }
+
                 return range_max_num.index;
 
             case HourRange.RANGE_TYPE:
@@ -1998,6 +2060,11 @@ export default class RangeHandler {
 
                 if (!!offset) {
                     HourSegmentHandler.getInstance().incHourSegment(range_max_seg, segment_type, offset);
+                }
+
+                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                if (!return_max_value && this.is_right_open(range)) {
+                    return null;
                 }
 
                 return range_max_seg.index;
@@ -2025,7 +2092,7 @@ export default class RangeHandler {
                 }
 
                 // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
-                if (!return_max_value && this.is_one_max_range(range)) {
+                if (!return_max_value && this.is_right_open(range)) {
                     return null;
                 }
 

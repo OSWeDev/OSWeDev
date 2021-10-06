@@ -173,7 +173,7 @@ export default class ModuleVar extends Module {
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [var_data_index: string]: VarDataBaseVO }>(
-            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_getAggregatedVarDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic

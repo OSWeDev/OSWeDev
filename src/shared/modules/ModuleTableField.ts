@@ -131,6 +131,7 @@ export default class ModuleTableField<T> {
 
     public plain_obj_cstr: () => any = null;
 
+    public return_min_value: boolean = true;
     public return_max_value: boolean = true;
 
     /**
@@ -187,6 +188,11 @@ export default class ModuleTableField<T> {
 
     public set_return_max_value(return_max_value: boolean): ModuleTableField<T> {
         this.return_max_value = return_max_value;
+        return this;
+    }
+
+    public set_return_min_value(return_min_value: boolean): ModuleTableField<T> {
+        this.return_min_value = return_min_value;
         return this;
     }
 

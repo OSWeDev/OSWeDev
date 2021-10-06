@@ -16,6 +16,7 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
+import DAOQueryCacheController from '../DAO/DAOQueryCacheController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
@@ -301,6 +302,11 @@ export default class VarsDatasProxy {
                             }
                             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
                             if ((!res) || (!res.id)) {
+
+                                // TODO FIXME TO DELETE
+                                // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
+                                // On force la suppression du cache mais c'est sûrement gourmant...
+                                DAOQueryCacheController.getInstance().clear_cache(true);
 
                                 /**
                                  * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
