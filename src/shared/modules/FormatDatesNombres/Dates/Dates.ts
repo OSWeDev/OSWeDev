@@ -421,6 +421,27 @@ export default class Dates {
 
     /**
      * @param date date to get or set
+     * @param set_isoWeek if omitted the function return the current isoWeek in the week (1=monday, 7=sunday), else it sets it and return the updated time.
+     */
+    public static isoWeek(date?: number, set_isoWeek?: number): number {
+
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+
+        if (set_isoWeek == null) {
+            return moment.unix(date).utc().isoWeek();
+        }
+
+        if (isNaN(set_isoWeek)) {
+            return date;
+        }
+
+        return moment.unix(date).utc().isoWeek(set_isoWeek).unix();
+    }
+
+    /**
+     * @param date date to get or set
      * @param set_month if omitted the function return the current month in the year, else it sets it (0 to 11) and return the updated time.
      *  Bubbles on the year
      */
