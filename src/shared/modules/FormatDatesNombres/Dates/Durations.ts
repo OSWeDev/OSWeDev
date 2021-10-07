@@ -1,5 +1,6 @@
 
 import moment = require("moment");
+import ConsoleHandler from "../../../tools/ConsoleHandler";
 import HourSegment from "../../DataRender/vos/HourSegment";
 import Dates from "./Dates";
 
@@ -16,6 +17,18 @@ export default class Durations {
         }
 
         return this.add(0, nb, segmentation);
+    }
+
+    public static parse(date: string): number {
+        try {
+            if (!date) {
+                return null;
+            }
+            return moment.unix(moment.duration(date).asMilliseconds()).unix();
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
     }
 
     /**

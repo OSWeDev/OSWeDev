@@ -253,8 +253,23 @@ export default class Dates {
      * @param end
      * @returns true if the diff according to the segmentation is > 0 for start and < 0 for end
      */
-    public static isBetween(date: number, start: number, end: number): boolean {
-        return (this.diff(date, start) > 0) && (this.diff(date, end) < 0);
+    public static isBetween(date: number, start: number, end: number, left_inclusif: boolean = false, right_inclusif: boolean = false): boolean {
+        let diff_start: number = this.diff(date, start);
+        let diff_end: number = this.diff(date, end);
+
+        let diff_start_bool: boolean = diff_start > 0;
+
+        if (left_inclusif) {
+            diff_start_bool = diff_start >= 0;
+        }
+
+        let diff_end_bool: boolean = diff_end < 0;
+
+        if (right_inclusif) {
+            diff_end_bool = diff_end <= 0;
+        }
+
+        return (diff_start_bool) && (diff_end_bool);
     }
 
     /**
@@ -438,6 +453,27 @@ export default class Dates {
         }
 
         return moment.unix(date).utc().isoWeek(set_isoWeek).unix();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_dayOfYear if omitted the function return the current dayOfYear in the week (1=monday, 7=sunday), else it sets it and return the updated time.
+     */
+    public static dayOfYear(date?: number, set_dayOfYear?: number): number {
+
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+
+        if (set_dayOfYear == null) {
+            return moment.unix(date).utc().dayOfYear();
+        }
+
+        if (isNaN(set_dayOfYear)) {
+            return date;
+        }
+
+        return moment.unix(date).utc().dayOfYear(set_dayOfYear).unix();
     }
 
     /**
