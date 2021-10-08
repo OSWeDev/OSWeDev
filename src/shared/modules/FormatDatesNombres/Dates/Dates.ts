@@ -519,6 +519,26 @@ export default class Dates {
         return moment.unix(date).utc().year(set_year).unix();
     }
 
+    /**
+     * @returns the number of weeks in the given date's year, according to locale conception of week
+     */
+    public static weeksInYear(date: number): number {
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+        return moment.unix(date).utc().weeksInYear();
+    }
+
+    /**
+     * @returns the number of weeks in the given date's year, according to ISO weeks
+     */
+    public static isoWeeksInYear(date: number): number {
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+        return moment.unix(date).utc().isoWeeksInYear();
+    }
+
     private static p = (() => {
         try {
             return performance;
