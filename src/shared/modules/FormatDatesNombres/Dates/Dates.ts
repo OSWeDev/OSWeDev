@@ -253,9 +253,9 @@ export default class Dates {
      * @param end
      * @returns true if the diff according to the segmentation is > 0 for start and < 0 for end
      */
-    public static isBetween(date: number, start: number, end: number, left_inclusif: boolean = false, right_inclusif: boolean = false): boolean {
-        let diff_start: number = this.diff(date, start);
-        let diff_end: number = this.diff(date, end);
+    public static isBetween(date: number, start: number, end: number, segmentation: number = TimeSegment.TYPE_SECOND, left_inclusif: boolean = false, right_inclusif: boolean = false): boolean {
+        let diff_start: number = this.diff(date, start, segmentation);
+        let diff_end: number = this.diff(date, end, segmentation);
 
         let diff_start_bool: boolean = diff_start > 0;
 
