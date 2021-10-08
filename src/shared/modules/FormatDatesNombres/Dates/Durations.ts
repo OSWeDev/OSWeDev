@@ -19,12 +19,12 @@ export default class Durations {
         return this.add(0, nb, segmentation);
     }
 
-    public static parse(date: string): number {
+    public static parse(date: string | number, unit: moment.unitOfTime.DurationConstructor = null): number {
         try {
             if (!date) {
                 return null;
             }
-            return moment.unix(moment.duration(date).asMilliseconds()).unix();
+            return moment.unix(moment.duration(date, unit).asMilliseconds()).unix();
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
