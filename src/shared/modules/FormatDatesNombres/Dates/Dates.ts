@@ -1,8 +1,21 @@
 
 import * as moment from 'moment';
+import ConsoleHandler from '../../../tools/ConsoleHandler';
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 export default class Dates {
+
+    public static parse(date: string, format: string = null): number {
+        try {
+            if (!date) {
+                return null;
+            }
+            return moment(date, format).utc(true).unix();
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
+    }
 
     /**
      * @returns current timestamp in secs
@@ -240,8 +253,23 @@ export default class Dates {
      * @param end
      * @returns true if the diff according to the segmentation is > 0 for start and < 0 for end
      */
-    public static isBetween(date: number, start: number, end: number): boolean {
-        return (this.diff(date, start) > 0) && (this.diff(date, end) < 0);
+    public static isBetween(date: number, start: number, end: number, segmentation: number = TimeSegment.TYPE_SECOND, left_inclusif: boolean = false, right_inclusif: boolean = false): boolean {
+        let diff_start: number = this.diff(date, start, segmentation);
+        let diff_end: number = this.diff(date, end, segmentation);
+
+        let diff_start_bool: boolean = diff_start > 0;
+
+        if (left_inclusif) {
+            diff_start_bool = diff_start >= 0;
+        }
+
+        let diff_end_bool: boolean = diff_end < 0;
+
+        if (right_inclusif) {
+            diff_end_bool = diff_end <= 0;
+        }
+
+        return (diff_start_bool) && (diff_end_bool);
     }
 
     /**
@@ -408,6 +436,48 @@ export default class Dates {
 
     /**
      * @param date date to get or set
+     * @param set_isoWeek if omitted the function return the current isoWeek in the week (1=monday, 7=sunday), else it sets it and return the updated time.
+     */
+    public static isoWeek(date?: number, set_isoWeek?: number): number {
+
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+
+        if (set_isoWeek == null) {
+            return moment.unix(date).utc().isoWeek();
+        }
+
+        if (isNaN(set_isoWeek)) {
+            return date;
+        }
+
+        return moment.unix(date).utc().isoWeek(set_isoWeek).unix();
+    }
+
+    /**
+     * @param date date to get or set
+     * @param set_dayOfYear if omitted the function return the current dayOfYear in the week (1=monday, 7=sunday), else it sets it and return the updated time.
+     */
+    public static dayOfYear(date?: number, set_dayOfYear?: number): number {
+
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+
+        if (set_dayOfYear == null) {
+            return moment.unix(date).utc().dayOfYear();
+        }
+
+        if (isNaN(set_dayOfYear)) {
+            return date;
+        }
+
+        return moment.unix(date).utc().dayOfYear(set_dayOfYear).unix();
+    }
+
+    /**
+     * @param date date to get or set
      * @param set_month if omitted the function return the current month in the year, else it sets it (0 to 11) and return the updated time.
      *  Bubbles on the year
      */
@@ -447,6 +517,26 @@ export default class Dates {
         }
 
         return moment.unix(date).utc().year(set_year).unix();
+    }
+
+    /**
+     * @returns the number of weeks in the given date's year, according to locale conception of week
+     */
+    public static weeksInYear(date: number): number {
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+        return moment.unix(date).utc().weeksInYear();
+    }
+
+    /**
+     * @returns the number of weeks in the given date's year, according to ISO weeks
+     */
+    public static isoWeeksInYear(date: number): number {
+        if (isNaN(date) || date == null) {
+            date = Dates.now();
+        }
+        return moment.unix(date).utc().isoWeeksInYear();
     }
 
     private static p = (() => {
