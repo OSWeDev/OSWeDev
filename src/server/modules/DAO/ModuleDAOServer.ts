@@ -1093,6 +1093,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
             case ModuleTableField.FIELD_TYPE_prct:
@@ -2954,6 +2955,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -3032,6 +3034,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
@@ -3093,6 +3096,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -3143,6 +3147,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -3272,6 +3277,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -3377,6 +3383,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -3442,6 +3449,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:

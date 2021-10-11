@@ -249,6 +249,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -368,6 +369,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 break;
 
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
                 if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
                     return Math.floor(field_value);
@@ -768,8 +770,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                    let trans_ = e[field.field_id] ? this.default_get_api_version(e[field.field_id]) : null;
-                    res[new_id] = trans_ ? JSON.stringify(trans_) : null;
+                    if (e[field.field_id] && e[field.field_id]._type) {
+                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e[field.field_id]._type];
+                        let trans_ = (field_table && e[field.field_id]) ? field_table.default_get_api_version(e[field.field_id]) : null;
+                        res[new_id] = trans_ ? JSON.stringify(trans_) : null;
+                    } else {
+                        res[new_id] = null;
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -866,7 +873,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if ((!!trans_) && !!field.plain_obj_cstr) {
                         trans_ = Object.assign(field.plain_obj_cstr(), trans_);
                     }
-                    res[field.field_id] = trans_ ? this.default_from_api_version(trans_) : null;
+                    if (trans_ && trans_._type) {
+                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
+                        res[field.field_id] = trans_ ? field_table.default_from_api_version(trans_) : null;
+                    } else {
+                        res[field.field_id] = null;
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -927,8 +939,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                    let trans_ = e[field.field_id] ? this.default_get_bdd_version(e[field.field_id]) : null;
-                    res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
+                    if (e[field.field_id] && e[field.field_id]._type) {
+                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e[field.field_id]._type];
+
+                        let trans_ = e[field.field_id] ? field_table.default_get_bdd_version(e[field.field_id]) : null;
+                        res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
+                    } else {
+                        res[field.field_id] = null;
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_email:
@@ -978,6 +996,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                 case ModuleTableField.FIELD_TYPE_amount:
                 case ModuleTableField.FIELD_TYPE_file_ref:
                 case ModuleTableField.FIELD_TYPE_image_ref:
@@ -1051,7 +1070,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if ((!!trans_) && !!field.plain_obj_cstr) {
                         trans_ = Object.assign(field.plain_obj_cstr(), trans_);
                     }
-                    res[field.field_id] = trans_ ? this.defaultforceNumeric(trans_) : null;
+                    if (trans_ && trans_._type) {
+                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
+                        res[field.field_id] = trans_ ? field_table.defaultforceNumeric(trans_) : null;
+                    } else {
+                        res[field.field_id] = null;
+                    }
                     break;
 
                 default:

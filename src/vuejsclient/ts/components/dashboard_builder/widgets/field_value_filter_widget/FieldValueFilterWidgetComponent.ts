@@ -76,6 +76,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_numrange:

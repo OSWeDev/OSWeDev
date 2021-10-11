@@ -36,6 +36,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_int: string = 'number';
     public static FIELD_TYPE_geopoint: string = 'point';
     public static FIELD_TYPE_float: string = 'float';
+    public static FIELD_TYPE_decimal_full_precision: string = 'decimal_full_precision';
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_numrange: string = 'numrange';
@@ -450,6 +451,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                 return (db_type == "float8") || (db_type == "double precision") || (db_type == "numeric");
 
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                return (db_type == "numeric");
+
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_html_array:
                 return (db_type == "text[]") || (db_type == "ARRAY");
@@ -538,6 +542,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_float:
                 return "float8";
+
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                return "numeric";
 
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_ref:
@@ -665,6 +672,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_int_array:

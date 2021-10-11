@@ -472,9 +472,11 @@ export default abstract class VueAppBase {
             return null;
         }
 
+        let code_lang_separator = (code_lang.indexOf('-') > 0) ? '-' : '_';
+
         let exact = null;
         let start_exact = null;
-        let code_lang_start = (code_lang && (code_lang.indexOf('-') > 0)) ? code_lang.split('-')[0] : code_lang;
+        let code_lang_start = (code_lang && (code_lang.indexOf(code_lang_separator) > 0)) ? code_lang.split(code_lang_separator)[0] : code_lang;
         for (let i in this.appController.ALL_LANGS) {
             let lang = this.appController.ALL_LANGS[i];
 
@@ -483,7 +485,8 @@ export default abstract class VueAppBase {
                 break;
             }
 
-            let lang_start = (lang.code_lang && (lang.code_lang.indexOf('-') > 0)) ? lang.code_lang.split('-')[0] : lang.code_lang;
+            let lang_code_lang_separator = (lang.code_lang.indexOf('-') > 0) ? '-' : '_';
+            let lang_start = (lang.code_lang && (lang.code_lang.indexOf(lang_code_lang_separator) > 0)) ? lang.code_lang.split(lang_code_lang_separator)[0] : lang.code_lang;
             if (lang_start.toLowerCase() == code_lang_start.toLowerCase()) {
                 start_exact = lang;
             }

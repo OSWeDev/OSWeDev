@@ -427,6 +427,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -1051,6 +1052,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1058,7 +1060,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        if (active_field_filter.param_numeric) {
+                        if (active_field_filter.param_numeric != null) {
                             where_conditions.push(field_id + " <= " + active_field_filter.param_numeric);
                         } else {
                             throw new Error('Not Implemented');
@@ -1091,6 +1093,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1098,7 +1101,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        if (active_field_filter.param_numeric) {
+                        if (active_field_filter.param_numeric != null) {
                             where_conditions.push(field_id + " < " + active_field_filter.param_numeric);
                         } else {
                             throw new Error('Not Implemented');
@@ -1131,6 +1134,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1138,7 +1142,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        if (active_field_filter.param_numeric) {
+                        if (active_field_filter.param_numeric != null) {
                             where_conditions.push(field_id + " > " + active_field_filter.param_numeric);
                         } else {
                             throw new Error('Not Implemented');
@@ -1171,6 +1175,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1178,7 +1183,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        if (active_field_filter.param_numeric) {
+                        if (active_field_filter.param_numeric != null) {
                             where_conditions.push(field_id + " >= " + active_field_filter.param_numeric);
                         } else {
                             throw new Error('Not Implemented');
@@ -1210,6 +1215,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1217,7 +1223,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        if (active_field_filter.param_numeric) {
+                        if (active_field_filter.param_numeric != null) {
                             where_conditions.push(field_id + " = '" + active_field_filter.param_numeric + "'");
                         } else {
                             throw new Error('Not Implemented');
@@ -1249,6 +1255,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1292,6 +1299,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1340,6 +1348,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -1371,6 +1380,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
                     case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                     case ModuleTableField.FIELD_TYPE_foreign_key:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                     case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
