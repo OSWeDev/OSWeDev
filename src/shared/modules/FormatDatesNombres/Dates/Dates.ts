@@ -5,7 +5,7 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 export default class Dates {
 
-    public static parse(date: string, format: string = null): number {
+    public static parse(date: string | Date, format: string = null): number {
         try {
             if (!date) {
                 return null;
