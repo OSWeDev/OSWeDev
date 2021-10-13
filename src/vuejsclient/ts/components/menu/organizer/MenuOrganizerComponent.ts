@@ -1,6 +1,8 @@
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleMenu from '../../../../../shared/modules/Menu/ModuleMenu';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
@@ -206,6 +208,11 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         await this.reload_from_db();
     }
 
+    private async add_menu() {
+        await ModuleMenu.getInstance().add_menu(this.app_name);
+        await this.reload_from_db();
+    }
+
     private async reload_from_db() {
 
         if ((!this.get_initialized) && (!this.get_initializing)) {
@@ -328,6 +335,18 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
         let res: INestedItem[] = Object.values(updated_nested_items_by_ids);
         WeightHandler.getInstance().sortByWeight(res);
+        for (let i in res) {
+            let n = res[i];
+            if (n.children && n.children.length) {
+                WeightHandler.getInstance().sortByWeight(n.children);
+                for (let j in n.children) {
+                    let m = n.children[j];
+                    if (m.children && m.children.length) {
+                        WeightHandler.getInstance().sortByWeight(m.children);
+                    }
+                }
+            }
+        }
         this.nestable_items = res;
         this.has_modif = false;
     }

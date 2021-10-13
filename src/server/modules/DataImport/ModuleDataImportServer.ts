@@ -309,46 +309,46 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Télécharger' },
+            { 'fr-fr': 'Télécharger' },
             'file.download.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Upload : OK' },
+            { 'fr-fr': 'Upload : OK' },
             'file.upload.success'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Echec lors de l\'import voir les logs ' },
+            { 'fr-fr': 'Echec lors de l\'import voir les logs ' },
             'import.errors.failed_post_treatement_see_logs'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Format' },
+            { 'fr-fr': 'Format' },
             'import.format.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Import' },
+            { 'fr-fr': 'Import' },
             'import.import.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Télécharger le fichier importé' },
+            { 'fr-fr': 'Télécharger le fichier importé' },
             'import.modal.imported_file_link.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Nouvel import' },
+            { 'fr-fr': 'Nouvel import' },
             'import.modal.new_import.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Voir les logs' },
+            { 'fr-fr': 'Voir les logs' },
             'import.modal.see_logs.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Post-traitement' },
+            { 'fr-fr': 'Post-traitement' },
             'import.posttreat.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Formatté' },
+            { 'fr-fr': 'Formatté' },
             'import.success.formatted'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Importé' },
+            { 'fr-fr': 'Importé' },
             'import.success.imported'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Post-traité' },
+            { 'fr-fr': 'Post-traité' },
             'import.success.posttreated'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Upload en cours...' },
+            { 'fr-fr': 'Upload en cours...' },
             'import.upload_started.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Autovalidation' },
+            { 'fr-fr': 'Autovalidation' },
             'import.success.autovalidation'));
     }
 

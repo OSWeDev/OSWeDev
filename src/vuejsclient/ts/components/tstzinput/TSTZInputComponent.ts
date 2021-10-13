@@ -42,8 +42,16 @@ export default class TSTZInputComponent extends VueComponentBase {
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
-    private language = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
     private languages = lang;
+
+    get language(): string {
+
+        if (!!VueAppController.getInstance().data_user_lang) {
+            return VueAppController.getInstance().data_user_lang.code_lang ? VueAppController.getInstance().data_user_lang.code_lang.split('-')[0] : null;
+        }
+
+        return null;
+    }
 
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {

@@ -11,7 +11,7 @@ export default class UMsRangesDatasourceController extends DataSourceControllerM
             UMsRangesDatasourceController.instance = new UMsRangesDatasourceController(
                 'UMsRangesDatasourceController',
                 [AnimationUserModuleVO.API_TYPE_ID],
-                { fr: 'Lien User-Module animation' });
+                { 'fr-fr': 'Lien User-Module animation' });
         }
         return UMsRangesDatasourceController.instance;
     }

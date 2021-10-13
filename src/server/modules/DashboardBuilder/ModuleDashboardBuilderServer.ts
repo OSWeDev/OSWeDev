@@ -448,54 +448,54 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.confirm_delete.ko.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Contient' },
+            { 'fr-fr': 'Contient' },
             'adv_str_fltr.contient'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Ne contient pas' },
+            { 'fr-fr': 'Ne contient pas' },
             'adv_str_fltr.contient_pas'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Commence par' },
+            { 'fr-fr': 'Commence par' },
             'adv_str_fltr.commence'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Ne commence pas par' },
+            { 'fr-fr': 'Ne commence pas par' },
             'adv_str_fltr.commence_pas'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Est' },
+            { 'fr-fr': 'Est' },
             'adv_str_fltr.est'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'N\'est pas' },
+            { 'fr-fr': 'N\'est pas' },
             'adv_str_fltr.nest_pas'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Est vide' },
+            { 'fr-fr': 'Est vide' },
             'adv_str_fltr.est_vide'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'N\'est pas vide' },
+            { 'fr-fr': 'N\'est pas vide' },
             'adv_str_fltr.nest_pas_vide'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Est null' },
+            { 'fr-fr': 'Est null' },
             'adv_str_fltr.est_null'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'N\'est pas null' },
+            { 'fr-fr': 'N\'est pas null' },
             'adv_str_fltr.nest_pas_null'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Ajouter un filtre' },
+            { 'fr-fr': 'Ajouter un filtre' },
             'advanced_filters.add.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Valider le filtre' },
+            { 'fr-fr': 'Valider le filtre' },
             'advanced_filters.validate.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Choisir le type de liaison entre ce filtre et le suivant (ET ou OU)' },
+            { 'fr-fr': 'Choisir le type de liaison entre ce filtre et le suivant (ET ou OU)' },
             'advanced_filters.link_type.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Supprimer ce filtre' },
+            { 'fr-fr': 'Supprimer ce filtre' },
             'advanced_filters.delete.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'ET' },
+            { 'fr-fr': 'ET' },
             'adv_str_fltr.et'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'OU' },
+            { 'fr-fr': 'OU' },
             'adv_str_fltr.ou'));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

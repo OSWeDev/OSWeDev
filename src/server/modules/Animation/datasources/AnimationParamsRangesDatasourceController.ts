@@ -11,7 +11,7 @@ export default class AnimationParamsRangesDatasourceController extends DataSourc
             AnimationParamsRangesDatasourceController.instance = new AnimationParamsRangesDatasourceController(
                 'AnimationParamsRangesDatasourceController',
                 [AnimationParametersVO.API_TYPE_ID],
-                { fr: 'Paramètres animation' });
+                { 'fr-fr': 'Paramètres animation' });
         }
         return AnimationParamsRangesDatasourceController.instance;
     }

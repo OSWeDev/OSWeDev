@@ -62,50 +62,50 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
 
     public async configure() {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Ville' },
+            { 'fr-fr': 'Ville' },
             'anonym_conf.anonymizer.city'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Prénom' },
+            { 'fr-fr': 'Prénom' },
             'anonym_conf.anonymizer.firstname',
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Nom' },
+            { 'fr-fr': 'Nom' },
             'anonym_conf.anonymizer.lastname',
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Prénom Nom' },
+            { 'fr-fr': 'Prénom Nom' },
             'anonym_conf.anonymizer.fullname',
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Téléphone' },
+            { 'fr-fr': 'Téléphone' },
             'anonym_conf.anonymizer.phone',
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Email' },
+            { 'fr-fr': 'Email' },
             'anonym_conf.anonymizer.email',
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Code Postal' },
+            { 'fr-fr': 'Code Postal' },
             'anonym_conf.anonymizer.postal',
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Adresse' },
+            { 'fr-fr': 'Adresse' },
             'anonym_conf.anonymizer.address'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Anonymisation' },
+            { 'fr-fr': 'Anonymisation' },
             'menu.menuelements.anonym_field_conf.___LABEL___'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Anonymisation' },
+            { 'fr-fr': 'Anonymisation' },
             'menu.menuelements.admin.AnonymizationAdminVueModule.___LABEL___'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Modification impossible sur data anonymisée.' },
+            { 'fr-fr': 'Modification impossible sur data anonymisée.' },
             "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION
         ));
 

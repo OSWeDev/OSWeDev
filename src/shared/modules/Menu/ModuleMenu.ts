@@ -3,6 +3,8 @@ import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -18,6 +20,7 @@ export default class ModuleMenu extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleMenu.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_get_menu = "get_menu";
+    public static APINAME_add_menu = "add_menu";
 
     public static getInstance(): ModuleMenu {
         if (!ModuleMenu.instance) {
@@ -29,6 +32,7 @@ export default class ModuleMenu extends Module {
     private static instance: ModuleMenu = null;
 
     public get_menu: (app_name: string) => Promise<MenuElementVO[]> = APIControllerWrapper.sah(ModuleMenu.APINAME_get_menu);
+    public add_menu: (app_name: string) => Promise<void> = APIControllerWrapper.sah(ModuleMenu.APINAME_add_menu);
 
     private constructor() {
 
@@ -41,6 +45,12 @@ export default class ModuleMenu extends Module {
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, MenuElementVO[]>(
             null,
             ModuleMenu.APINAME_get_menu,
+            [MenuElementVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, MenuElementVO.API_TYPE_ID),
+            ModuleMenu.APINAME_add_menu,
             [MenuElementVO.API_TYPE_ID],
             StringParamVOStatic
         ));

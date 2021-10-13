@@ -11,7 +11,7 @@ export default class QRsRangesDatasourceController extends DataSourceControllerM
             QRsRangesDatasourceController.instance = new QRsRangesDatasourceController(
                 'QRsRangesDatasourceController',
                 [AnimationQRVO.API_TYPE_ID],
-                { fr: 'Question/Réponse' });
+                { 'fr-fr': 'Question/Réponse' });
         }
         return QRsRangesDatasourceController.instance;
     }

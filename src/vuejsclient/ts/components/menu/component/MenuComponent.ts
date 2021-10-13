@@ -1,4 +1,4 @@
-import { Component } from 'vue-property-decorator';
+import { Component, Prop } from 'vue-property-decorator';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../VueComponentBase';
@@ -15,8 +15,11 @@ export default class MenuComponent extends VueComponentBase {
     public static getInstance(): MenuComponent {
         return MenuComponent.instance;
     }
-
     private static instance: MenuComponent;
+
+    @Prop()
+    private app_name: string;
+
     private menuElements: MenuElementVO[] = null;
     private childrenElementsById: { [parent_id: number]: MenuElementVO[] } = {};
 

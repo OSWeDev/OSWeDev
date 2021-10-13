@@ -49,18 +49,18 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(MaintenanceBGThread.getInstance());
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Terminer la maintenance' },
+            { 'fr-fr': 'Terminer la maintenance' },
             'fields.labels.ref.module_maintenance_maintenance.__component__end_maintenance.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Terminer la maintenance' },
+            { 'fr-fr': 'Terminer la maintenance' },
             'endmaintenance_component.endmaintenance.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Maintenances' },
+            { 'fr-fr': 'Maintenances' },
             'menu.menuelements.admin.MaintenanceAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Maintenances' },
+            { 'fr-fr': 'Maintenances' },
             'menu.menuelements.admin.MaintenanceVO.___LABEL___'));
 
 

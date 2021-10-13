@@ -77,74 +77,74 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Documents' },
+            { 'fr-fr': 'Documents' },
             'fields.labels.ref.module_document_document.___LABEL____file_id'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Youtube' },
+            { 'fr-fr': 'Youtube' },
             'DOCUMENT.DOCUMENT_TYPE.YOUTUBE'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'PDF' },
+            { 'fr-fr': 'PDF' },
             'DOCUMENT.DOCUMENT_TYPE.PDF'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'PPT' },
+            { 'fr-fr': 'PPT' },
             'DOCUMENT.DOCUMENT_TYPE.PPT'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'XLS' },
+            { 'fr-fr': 'XLS' },
             'DOCUMENT.DOCUMENT_TYPE.XLS'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'DOC' },
+            { 'fr-fr': 'DOC' },
             'DOCUMENT.DOCUMENT_TYPE.DOC'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'AUTRE' },
+            { 'fr-fr': 'AUTRE' },
             'DOCUMENT.DOCUMENT_TYPE.OTHER'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'XS' },
+            { 'fr-fr': 'XS' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XS'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'S' },
+            { 'fr-fr': 'S' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.S'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'M' },
+            { 'fr-fr': 'M' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.M'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'L' },
+            { 'fr-fr': 'L' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.L'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'XL' },
+            { 'fr-fr': 'XL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XL'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'XXL' },
+            { 'fr-fr': 'XXL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XXL'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Documents' },
+            { 'fr-fr': 'Documents' },
             'menu.menuelements.admin.DocumentAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Feedbacks' },
+            { 'fr-fr': 'Feedbacks' },
             'menu.menuelements.admin.FeedbackAdminVueModule.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Documents' },
+            { 'fr-fr': 'Documents' },
             'menu.menuelements.admin.document.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Tags' },
+            { 'fr-fr': 'Tags' },
             'menu.menuelements.admin.dt.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Groupes de tags' },
+            { 'fr-fr': 'Groupes de tags' },
             'menu.menuelements.admin.dtg.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Feedbacks' },
+            { 'fr-fr': 'Feedbacks' },
             'menu.menuelements.admin.feedback.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: ' ' },
+            { 'fr-fr': ' ' },
             'tstz_input.placeholder.date_debut.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Documentation' },
+            { 'fr-fr': 'Documentation' },
             'document_handler.modal_title.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Tous' },
+            { 'fr-fr': 'Tous' },
             'document_handler.tags.tous.___LABEL___'));
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

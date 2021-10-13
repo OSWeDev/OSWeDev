@@ -17,7 +17,8 @@
 
     .selected_item_wrapper,
     .select_app_wrapper,
-    .update_cancel_menu_wrapper {
+    .update_cancel_menu_wrapper,
+    .add_menu_wrapper {
         padding: 1em;
         background: #F5F5F5;
         border-radius: 3px;
@@ -88,7 +89,7 @@
         max-width: 1280px;
     }
 
-    .save, .cancel {
+    .save, .cancel, .add {
 
         text-align: center;
         vertical-align: middle;
@@ -107,6 +108,10 @@
             vertical-align: middle;
             margin-right: 0.2em;
         }
+    }
+
+    .add {
+        background: green;
     }
 
     .save {

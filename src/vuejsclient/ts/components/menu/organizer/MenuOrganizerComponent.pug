@@ -38,6 +38,13 @@
 
         .col-md-4
 
+            .add_menu_wrapper
+                .row 
+                    .col-md-12
+                        .add(@click="add_menu")
+                            i.fa.fa-plus.fa-fw(aria-hidden="true")
+                            | {{ label('menu_organizer.add') }}
+
             template(v-if='selected_item && selected_item.id')
                 .selected_item_wrapper
                     .unselect(@click='unselect') 

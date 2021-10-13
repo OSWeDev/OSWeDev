@@ -191,7 +191,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
             vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_list,
-                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Lister les données de type "' + vo_translation + '"' }) : null,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Lister les données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
 
             await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
@@ -211,7 +211,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
             vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_read,
-                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Consulter les données de type "' + vo_translation + '"' }) : null,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Consulter les données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
 
             await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
@@ -234,7 +234,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
             vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_insert_or_update,
-                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
 
             await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
@@ -257,7 +257,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
             vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_delete,
-                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Supprimer des données de type "' + vo_translation + '"' }) : null,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Supprimer des données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
 
             await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(

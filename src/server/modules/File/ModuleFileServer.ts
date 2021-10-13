@@ -59,22 +59,22 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Fichiers' },
+            { 'fr-fr': 'Fichiers' },
             'menu.menuelements.admin.file.___LABEL___'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Impossible de déclarer un fichier sécurisé sans associer un droit d\'accès' },
+            { 'fr-fr': 'Impossible de déclarer un fichier sécurisé sans associer un droit d\'accès' },
             'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Le chemin d\'accès actuel du fichier semble invalide, il devrait commencer par [' + ModuleFile.FILES_ROOT + '] ou [' + ModuleFile.SECURED_FILES_ROOT + ']. Les fichiers temporaires ne peuvent pas être sécurisés.' },
+            { 'fr-fr': 'Le chemin d\'accès actuel du fichier semble invalide, il devrait commencer par [' + ModuleFile.FILES_ROOT + '] ou [' + ModuleFile.SECURED_FILES_ROOT + ']. Les fichiers temporaires ne peuvent pas être sécurisés.' },
             'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { fr: 'Supprimer' },
+            { 'fr-fr': 'Supprimer' },
             'file.trash.___LABEL___'
         ));
 

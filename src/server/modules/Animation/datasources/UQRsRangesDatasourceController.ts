@@ -16,7 +16,7 @@ export default class UQRsRangesDatasourceController extends DataSourceController
             UQRsRangesDatasourceController.instance = new UQRsRangesDatasourceController(
                 'UQRsRangesDatasourceController',
                 [AnimationUserQRVO.API_TYPE_ID],
-                { fr: 'Lien User-Question/Réponse' });
+                { 'fr-fr': 'Lien User-Question/Réponse' });
         }
         return UQRsRangesDatasourceController.instance;
     }

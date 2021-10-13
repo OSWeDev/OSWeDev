@@ -2,6 +2,8 @@ import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueM
 import SendInBlueServerController from './SendInBlueServerController';
 import SendInBlueAttachmentVO from '../../../shared/modules/SendInBlue/vos/SendInBlueAttachmentVO';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
@@ -108,6 +110,36 @@ export default class SendInBlueMailServerController {
 
         if (cc && cc.length > 0) {
             postParams.cc = cc;
+        }
+
+        /**
+         * On tente de charger des params supplémentaires sur ce template pour les cc et bcc :
+         *  ( plusieurs adresses possibles séparées par des ',' )
+         *  PARAM_NAME_TEMPLATE_CC_PREFIX + template_id
+         *  PARAM_NAME_TEMPLATE_BCC_PREFIX + template_id
+         */
+        let param_cc = await ModuleParams.getInstance().getParamValue(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
+        let param_bcc = await ModuleParams.getInstance().getParamValue(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
+        if (param_cc && param_cc.length) {
+            if (!postParams.cc) {
+                postParams.cc = [];
+            }
+            let ccs = param_cc.split(',');
+            for (let i in ccs) {
+                let cc_ = ccs[i];
+                postParams.cc.push(SendInBlueMailVO.createNew(cc_, cc_));
+            }
+        }
+
+        if (param_bcc && param_bcc.length) {
+            if (!postParams.bcc) {
+                postParams.bcc = [];
+            }
+            let bccs = param_bcc.split(',');
+            for (let i in bccs) {
+                let bcc_ = bccs[i];
+                postParams.bcc.push(SendInBlueMailVO.createNew(bcc_, bcc_));
+            }
         }
 
         if (attachments && attachments.length > 0) {
