@@ -461,7 +461,8 @@ export default abstract class ServerBase {
             cookie: {
                 // httpOnly: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
                 // secure: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
-                maxAge: Date.now() + (30 * 86400 * 1000),
+                maxAge: 30 * 86400 * 1000,
+
                 secure: false
             }
         });
