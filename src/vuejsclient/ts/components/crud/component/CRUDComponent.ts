@@ -976,6 +976,9 @@ export default class CRUDComponent extends VueComponentBase {
                 API_TYPE_ID: this.selectedVO._type,
                 id: this.selectedVO.id
             });
+            if (this.crud.postDelete) {
+                await this.crud.postDelete(this.selectedVO);
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.delete.errors.delete_failure') + ": " + error);
