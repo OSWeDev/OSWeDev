@@ -31,26 +31,10 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleMailer.getInstance().name);
+    }
 
-        let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
-        let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
-        if (user && (user != '') && pass && (pass != '')) {
-            this.transporter = new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
-                auth: {
-                    user: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER),
-                    pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
-                }
-            });
-        } else {
-            this.transporter = new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
-            });
-        }
+    public async late_configuration() {
+        this.reload_transporter();
     }
 
     public registerServerApiHandlers() {
@@ -93,10 +77,11 @@ export default class ModuleMailerServer extends ModuleServerBase {
                 mailtransport.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         ConsoleHandler.getInstance().error(error);
-                        resolve();
+                        resolve(error);
                     } else {
-                        ConsoleHandler.getInstance().log('Message sent: ' + info.messageId);
-                        resolve();
+                        var log: string = 'Message sent: ' + info.messageId;
+                        ConsoleHandler.getInstance().log(log);
+                        resolve(log);
                     }
                 });
             } catch (error) {
@@ -157,5 +142,27 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         let address_ = address as Address;
         return whitelisted_emails.indexOf(address_.address) >= 0;
+    }
+
+    private reload_transporter() {
+        let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
+        let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
+        if (user && (user != '') && pass && (pass != '')) {
+            this.transporter = new SMTPTransport({
+                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
+                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
+                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
+                auth: {
+                    user: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER),
+                    pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
+                }
+            });
+        } else {
+            this.transporter = new SMTPTransport({
+                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
+                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
+                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
+            });
+        }
     }
 }
