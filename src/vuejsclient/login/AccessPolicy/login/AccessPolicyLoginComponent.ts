@@ -1,13 +1,13 @@
-import { Component, Prop } from "vue-property-decorator";
-import './AccessPolicyLoginComponent.scss';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
-import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
-import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
-import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
-import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
+import { Component } from "vue-property-decorator";
 import AccessPolicyController from "../../../../shared/modules/AccessPolicy/AccessPolicyController";
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
+import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
+import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
+import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
+import VueComponentBase from '../../../ts/components/VueComponentBase';
+import './AccessPolicyLoginComponent.scss';
 
 @Component({
     template: require('./AccessPolicyLoginComponent.pug'),
@@ -78,18 +78,38 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     // On log si possible, si oui on redirige
     private async login() {
-        this.snotify.info(this.label('login.start'));
 
-        let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(this.email, this.password, this.redirect_to);
+        let self = this;
+        self.snotify.async(self.label('login.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-        if (!logged_id) {
-            this.snotify.error(this.label('login.failed'));
-            this.password = "";
-            this.message = this.label('login.failed.message');
-        }
-        /*else {
-            window.location = this.redirect_to as any;
-        }*/
+                let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(self.email, self.password, self.redirect_to);
+
+                if (!logged_id) {
+                    self.password = "";
+                    self.message = self.label('login.failed.message');
+                    reject({
+                        body: self.label('login.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    resolve({
+                        body: self.label('login.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     private async nfcconnect() {

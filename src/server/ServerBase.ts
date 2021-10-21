@@ -457,7 +457,11 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new FileStore(),
+            store: new FileStore({
+                ttl: 30 * 86400,
+                retries: 10,
+                reapAsync: true
+            }),
             cookie: {
                 // httpOnly: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
                 // secure: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
@@ -805,6 +809,7 @@ export default abstract class ServerBase {
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
 
+            await ThreadHandler.getInstance().sleep(1000);
             res.redirect('/');
         });
 

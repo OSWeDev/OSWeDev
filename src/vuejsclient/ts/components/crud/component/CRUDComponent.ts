@@ -603,96 +603,151 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async createVO() {
-        this.snotify.info(this.label('crud.create.starting'));
-        this.creating_vo = true;
-        let createdVO = null;
 
-        if ((!this.newVO) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
-            this.snotify.error(this.label('crud.create.errors.newvo_failure'));
-            this.creating_vo = false;
-            return;
-        }
+        let self = this;
+        self.snotify.async(self.label('crud.create.starting'), () =>
+            new Promise(async (resolve, reject) => {
 
-        if (!!this.newVO.id) {
-            this.newVO.id = null;
-        }
 
-        try {
+                self.creating_vo = true;
+                let createdVO = null;
 
-            if (!this.checkForm(this.newVO, this.crud.createDatatable)) {
-                this.snotify.error(this.label('crud.check_form.field_required'));
-                this.creating_vo = false;
-                return;
-            }
-
-            // On passe la traduction depuis IHM sur les champs
-            let apiokVo = this.IHMToData(this.newVO, this.crud.createDatatable, false);
-
-            // On utilise le trigger si il est présent sur le crud
-            if (this.crud.preCreate) {
-                let errorMsg = await this.crud.preCreate(apiokVo, this.newVO);
-                if (errorMsg) {
-                    this.snotify.error(this.label(errorMsg));
-                    this.updating_vo = false;
-                    //comme il a eut une erreur on abandonne la création
-                    this.creating_vo = false;
+                if ((!self.newVO) || (self.newVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
+                    self.creating_vo = false;
+                    reject({
+                        body: self.label('crud.create.errors.newvo_failure'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
                     return;
                 }
-            }
 
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
-            if ((!res) || (!res.id)) {
-                this.snotify.error(this.label('crud.create.errors.create_failure'));
-                this.creating_vo = false;
-                return;
-            }
+                if (!!self.newVO.id) {
+                    self.newVO.id = null;
+                }
 
-            let id = res.id ? res.id : null;
-            this.newVO.id = id;
+                try {
 
-            createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
-            if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
-                this.snotify.error(this.label('crud.create.errors.create_failure'));
-                this.creating_vo = false;
-                return;
-            }
+                    if (!self.checkForm(self.newVO, self.crud.createDatatable)) {
+                        self.creating_vo = false;
+                        reject({
+                            body: self.label('crud.check_form.field_required'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-            // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-            await this.updateManyToMany(this.newVO, this.crud.createDatatable, createdVO);
-            await this.updateOneToMany(this.newVO, this.crud.createDatatable, createdVO);
+                    // On passe la traduction depuis IHM sur les champs
+                    let apiokVo = self.IHMToData(self.newVO, self.crud.createDatatable, false);
 
-            this.storeData(createdVO);
+                    // On utilise le trigger si il est présent sur le crud
+                    if (self.crud.preCreate) {
+                        let errorMsg = await self.crud.preCreate(apiokVo, self.newVO);
+                        if (errorMsg) {
+                            self.snotify.error(self.label(errorMsg));
+                            self.updating_vo = false;
+                            //comme il a eut une erreur on abandonne la création
+                            self.creating_vo = false;
+                            return;
+                        }
+                    }
 
-            if (this.crud.postCreate) {
-                await this.crud.postCreate(createdVO);
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
-            this.creating_vo = false;
-            return;
-        }
+                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    if ((!res) || (!res.id)) {
+                        self.creating_vo = false;
+                        reject({
+                            body: self.label('crud.create.errors.create_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        this.snotify.success(this.label('crud.create.success'));
+                    let id = res.id ? res.id : null;
+                    self.newVO.id = id;
 
-        this.creating_vo = false;
+                    createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
+                        self.creating_vo = false;
+                        reject({
+                            body: self.label('crud.create.errors.create_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        if (this.embed) {
-            this.$emit(this.newVO._type + '_create', createdVO);
-            if (this.crud.reset_newvo_after_each_creation) {
-                this.prepareNewVO();
-            }
-            this.hideCrudModal(this.newVO._type, 'create');
-        } else {
-            this.$router.push(this.callback_route);
-            await this.callCallbackFunctionCreate();
-            if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
-                this.prepareNewVO();
-            }
-        }
+                    // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+                    await self.updateManyToMany(self.newVO, self.crud.createDatatable, createdVO);
+                    await self.updateOneToMany(self.newVO, self.crud.createDatatable, createdVO);
 
-        this.crud.createDatatable.refresh();
-        this.crud_createDatatable_key = this.crud.createDatatable.key;
+                    self.storeData(createdVO);
+
+                    if (self.crud.postCreate) {
+                        await self.crud.postCreate(createdVO);
+                    }
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    self.creating_vo = false;
+                    reject({
+                        body: self.label('crud.create.errors.create_failure') + ": " + error,
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+
+                self.creating_vo = false;
+
+                if (self.embed) {
+                    self.$emit(self.newVO._type + '_create', createdVO);
+                    if (self.crud.reset_newvo_after_each_creation) {
+                        self.prepareNewVO();
+                    }
+                    self.hideCrudModal(self.newVO._type, 'create');
+                } else {
+                    self.$router.push(self.callback_route);
+                    await self.callCallbackFunctionCreate();
+                    if (CRUDComponentManager.getInstance().cruds_by_api_type_id[self.crud.api_type_id].reset_newvo_after_each_creation) {
+                        self.prepareNewVO();
+                    }
+                }
+
+                self.crud.createDatatable.refresh();
+                self.crud_createDatatable_key = self.crud.createDatatable.key;
+
+                resolve({
+                    body: self.label('crud.create.success'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
 
@@ -869,128 +924,227 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async updateVO() {
-        this.snotify.info(this.label('crud.update.starting'));
-        this.updating_vo = true;
-        let updatedVO = null;
+        let self = this;
+        self.snotify.async(self.label('crud.update.starting'), () =>
+            new Promise(async (resolve, reject) => {
 
-        if ((!this.selectedVO) || (!this.editableVO) || (this.editableVO.id !== this.selectedVO.id) || (this.editableVO._type !== this.selectedVO._type)) {
-            this.snotify.error(this.label('crud.update.errors.selection_failure'));
-            this.updating_vo = false;
-            return;
-        }
+                self.updating_vo = true;
+                let updatedVO = null;
 
-        try {
-
-            if (!this.checkForm(this.editableVO, this.crud.updateDatatable)) {
-                this.snotify.error(this.label('crud.check_form.field_required'));
-                this.updating_vo = false;
-                return;
-            }
-
-            // On passe la traduction depuis IHM sur les champs
-            let apiokVo = this.IHMToData(this.editableVO, this.crud.updateDatatable, true);
-
-            // On utilise le trigger si il est présent sur le crud
-            if (this.crud.preUpdate) {
-                let errorMsg = await this.crud.preUpdate(apiokVo, this.editableVO);
-                if (errorMsg) {
-                    this.snotify.error(this.label(errorMsg));
-                    this.updating_vo = false;
+                if ((!self.selectedVO) || (!self.editableVO) || (self.editableVO.id !== self.selectedVO.id) || (self.editableVO._type !== self.selectedVO._type)) {
+                    self.updating_vo = false;
+                    reject({
+                        body: self.label('crud.update.errors.selection_failure'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
                     return;
                 }
-            }
 
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
-            let id = (res && res.id) ? parseInt(res.id.toString()) : null;
+                try {
 
-            if ((!res) || (!id) || (id != this.selectedVO.id)) {
-                this.snotify.error(this.label('crud.update.errors.update_failure'));
-                this.updating_vo = false;
-                return;
-            }
+                    if (!self.checkForm(self.editableVO, self.crud.updateDatatable)) {
+                        self.updating_vo = false;
+                        reject({
+                            body: self.label('crud.check_form.field_required'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-            updatedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
-            if ((!updatedVO) || (updatedVO.id !== this.selectedVO.id) || (updatedVO._type !== this.selectedVO._type)) {
-                this.snotify.error(this.label('crud.update.errors.update_failure'));
-                this.updating_vo = false;
-                return;
-            }
+                    // On passe la traduction depuis IHM sur les champs
+                    let apiokVo = self.IHMToData(self.editableVO, self.crud.updateDatatable, true);
 
-            // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-            await this.updateManyToMany(this.editableVO, this.crud.createDatatable, updatedVO);
-            await this.updateOneToMany(this.editableVO, this.crud.createDatatable, updatedVO);
+                    // On utilise le trigger si il est présent sur le crud
+                    if (self.crud.preUpdate) {
+                        let errorMsg = await self.crud.preUpdate(apiokVo, self.editableVO);
+                        if (errorMsg) {
+                            self.updating_vo = false;
+                            reject({
+                                body: self.label(errorMsg),
+                                config: {
+                                    timeout: 10000,
+                                    showProgressBar: true,
+                                    closeOnClick: false,
+                                    pauseOnHover: true,
+                                },
+                            });
+                            return;
+                        }
+                    }
 
-            this.updateData(updatedVO);
+                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    let id = (res && res.id) ? parseInt(res.id.toString()) : null;
 
-            if (this.crud.postUpdate) {
-                await this.crud.postUpdate(updatedVO);
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('crud.update.errors.update_failure') + ": " + error);
-            this.updating_vo = false;
-            return;
-        }
+                    if ((!res) || (!id) || (id != self.selectedVO.id)) {
+                        self.updating_vo = false;
+                        reject({
+                            body: self.label('crud.update.errors.update_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        this.snotify.success(this.label('crud.update.success'));
-        if (!this.embed) {
-            this.$router.push(this.callback_route);
-        }
-        this.updating_vo = false;
+                    updatedVO = await ModuleDAO.getInstance().getVoById<any>(self.selectedVO._type, self.selectedVO.id);
+                    if ((!updatedVO) || (updatedVO.id !== self.selectedVO.id) || (updatedVO._type !== self.selectedVO._type)) {
+                        self.updating_vo = false;
+                        reject({
+                            body: self.label('crud.update.errors.update_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        if (this.embed) {
-            this.$emit(this.newVO._type + '_update', updatedVO);
-            this.hideCrudModal(this.newVO._type, 'update');
-        } else {
-            await this.callCallbackFunctionUpdate();
-        }
+                    // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+                    await self.updateManyToMany(self.editableVO, self.crud.createDatatable, updatedVO);
+                    await self.updateOneToMany(self.editableVO, self.crud.createDatatable, updatedVO);
 
+                    self.updateData(updatedVO);
+
+                    if (self.crud.postUpdate) {
+                        await self.crud.postUpdate(updatedVO);
+                    }
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    self.updating_vo = false;
+                    reject({
+                        body: self.label('crud.update.errors.update_failure') + ": " + error,
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+
+                self.snotify.success(self.label(''));
+                if (!self.embed) {
+                    self.$router.push(self.callback_route);
+                }
+                self.updating_vo = false;
+
+                if (self.embed) {
+                    self.$emit(self.newVO._type + '_update', updatedVO);
+                    self.hideCrudModal(self.newVO._type, 'update');
+                } else {
+                    await self.callCallbackFunctionUpdate();
+                }
+
+                resolve({
+                    body: self.label('crud.update.success'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     private async deleteVO() {
-        this.snotify.info(this.label('crud.delete.starting'));
-        this.deleting_vo = true;
-        let deletedVO = null;
+        let self = this;
+        self.snotify.async(self.label('crud.delete.starting'), () =>
+            new Promise(async (resolve, reject) => {
 
-        if (!this.selectedVO) {
-            this.snotify.error(this.label('crud.delete.errors.selection_failure'));
-            this.deleting_vo = false;
-            return;
-        }
+                this.deleting_vo = true;
+                let deletedVO = null;
 
-        try {
+                if (!this.selectedVO) {
+                    this.deleting_vo = false;
+                    reject({
+                        body: self.label('crud.delete.errors.selection_failure'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
 
-            await ModuleDAO.getInstance().deleteVOs([this.selectedVO]);
+                try {
 
-            // On invalide le cache pour éviter de récupérer le même vo depuis le cache
-            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.selectedVO._type]);
+                    await ModuleDAO.getInstance().deleteVOs([this.selectedVO]);
 
-            deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
-            if (deletedVO && deletedVO.id) {
-                this.snotify.error(this.label('crud.delete.errors.delete_failure'));
+                    // On invalide le cache pour éviter de récupérer le même vo depuis le cache
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.selectedVO._type]);
+
+                    deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
+                    if (deletedVO && deletedVO.id) {
+                        this.deleting_vo = false;
+                        reject({
+                            body: self.label('crud.delete.errors.delete_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
+
+                    this.removeData({
+                        API_TYPE_ID: this.selectedVO._type,
+                        id: this.selectedVO.id
+                    });
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    this.deleting_vo = false;
+                    reject({
+                        body: self.label('crud.delete.errors.delete_failure') + ": " + error,
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+
+                if (this.embed) {
+                    this.$emit(this.newVO._type + '_delete', deletedVO);
+                    this.hideCrudModal(this.newVO._type, 'delete');
+                } else {
+                    this.$router.push(this.callback_route);
+                }
                 this.deleting_vo = false;
-                return;
-            }
-
-            this.removeData({
-                API_TYPE_ID: this.selectedVO._type,
-                id: this.selectedVO.id
-            });
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('crud.delete.errors.delete_failure') + ": " + error);
-            this.deleting_vo = false;
-            return;
-        }
-
-        this.snotify.success(this.label('crud.delete.success'));
-        if (this.embed) {
-            this.$emit(this.newVO._type + '_delete', deletedVO);
-            this.hideCrudModal(this.newVO._type, 'delete');
-        } else {
-            this.$router.push(this.callback_route);
-        }
-        this.deleting_vo = false;
+                resolve({
+                    body: self.label('crud.delete.success'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     private onChangeVO(vo: IDistantVOBase) {

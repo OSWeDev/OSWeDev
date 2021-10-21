@@ -130,45 +130,85 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     }
 
     private async recover() {
-        this.snotify.info(this.label('recover.start'));
+        let self = this;
+        self.snotify.async(self.label('recover.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-        let recovered = false;
-        if (this.is_simplified) {
-            recovered = await ModuleAccessPolicy.getInstance().beginRecoverUID(this.prop_user_id);
-        } else {
-            recovered = await ModuleAccessPolicy.getInstance().beginRecover(this.email);
-        }
+                let recovered = false;
+                if (self.is_simplified) {
+                    recovered = await ModuleAccessPolicy.getInstance().beginRecoverUID(self.prop_user_id);
+                } else {
+                    recovered = await ModuleAccessPolicy.getInstance().beginRecover(self.email);
+                }
 
-        if (recovered) {
-            this.snotify.success(this.label('recover.ok'));
+                if (recovered) {
+                    if (self.has_sms_activation) {
+                        self.message = self.label('login.recover.answercansms');
+                    } else {
+                        self.message = self.label('login.recover.answer');
+                    }
 
-            if (this.has_sms_activation) {
-                this.message = this.label('login.recover.answercansms');
-            } else {
-                this.message = this.label('login.recover.answer');
-            }
+                    resolve({
+                        body: self.label('recover.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
 
-        } else {
-            this.snotify.error(this.label('recover.failed'));
-        }
+                } else {
+                    reject({
+                        body: self.label('recover.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     private async recoversms() {
-        this.snotify.info(this.label('recover.start'));
+        let self = this;
+        self.snotify.async(self.label('recover.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-        let recovered = false;
-        if (this.is_simplified) {
-            recovered = await ModuleAccessPolicy.getInstance().beginRecoverSMSUID(this.prop_user_id);
-        } else {
-            recovered = await ModuleAccessPolicy.getInstance().beginRecoverSMS(this.email);
-        }
+                let recovered = false;
+                if (this.is_simplified) {
+                    recovered = await ModuleAccessPolicy.getInstance().beginRecoverSMSUID(this.prop_user_id);
+                } else {
+                    recovered = await ModuleAccessPolicy.getInstance().beginRecoverSMS(this.email);
+                }
 
-        if (recovered) {
-            this.snotify.success(this.label('recover.oksms'));
-            this.message = this.label('login.recover.answersms');
-        } else {
-            this.snotify.error(this.label('recover.failed'));
-        }
+                if (recovered) {
+                    this.message = this.label('login.recover.answersms');
+                    resolve({
+                        body: self.label('recover.oksms'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    reject({
+                        body: self.label('recover.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     // private async send_init_pwd() {

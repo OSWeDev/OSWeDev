@@ -58,20 +58,40 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
 
     // On log si possible, si oui on redirige
     private async signin() {
-        this.snotify.info(this.label('signin.start'));
 
-        let logged_id: number = null;
-        if (this.password == this.confirm_password && this.nom && this.email) {
-            logged_id = await ModuleAccessPolicy.getInstance().signinAndRedirect(this.nom, this.email, this.password, this.redirect_to);
-        }
-        if (!logged_id) {
-            this.snotify.error(this.label('signin.failed'));
-            this.password = "";
-            this.confirm_password = "";
-            this.message = this.label('signin.failed.message');
-        }
-        /*else {
-            window.location = this.redirect_to as any;
-        }*/
+        let self = this;
+        self.snotify.async(self.label('signin.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                let logged_id: number = null;
+                if (self.password == self.confirm_password && self.nom && self.email) {
+                    logged_id = await ModuleAccessPolicy.getInstance().signinAndRedirect(self.nom, self.email, self.password, self.redirect_to);
+                }
+                if (!logged_id) {
+                    self.password = "";
+                    self.confirm_password = "";
+                    self.message = self.label('signin.failed.message');
+                    reject({
+                        body: self.label('signin.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    resolve({
+                        body: self.label('login.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 }

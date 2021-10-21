@@ -421,6 +421,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Echec de la connexion'
         }, 'login.failed.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Connexion validée'
+        }, 'login.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Récupération du mot de passe'
         }, 'login.recover.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
