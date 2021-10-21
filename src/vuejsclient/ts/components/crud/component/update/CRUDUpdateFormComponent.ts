@@ -125,74 +125,137 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private async updateVO() {
-        this.snotify.info(this.label('crud.update.starting'));
-        this.updating_vo = true;
-        let updatedVO = null;
 
-        if ((!this.selected_vo) || (!this.editableVO) || (this.editableVO.id !== this.selected_vo.id) || (this.editableVO._type !== this.selected_vo._type)) {
-            this.snotify.error(this.label('crud.update.errors.selection_failure'));
-            this.updating_vo = false;
-            return;
-        }
+        let self = this;
+        self.snotify.async(self.label('crud.update.starting'), () =>
+            new Promise(async (resolve, reject) => {
 
-        try {
+                self.updating_vo = true;
+                let updatedVO = null;
 
-            if (!CRUDFormServices.getInstance().checkForm(this.editableVO, this.crud.updateDatatable, this.clear_alerts, this.register_alerts)) {
-                this.snotify.error(this.label('crud.check_form.field_required'));
-                this.updating_vo = false;
-                return;
-            }
-
-            // On passe la traduction depuis IHM sur les champs
-            let apiokVo = CRUDFormServices.getInstance().IHMToData(this.editableVO, this.crud.updateDatatable, true);
-
-            // On utilise le trigger si il est présent sur le crud
-            if (this.crud.preUpdate) {
-                let errorMsg = await this.crud.preUpdate(apiokVo, this.editableVO);
-                if (errorMsg) {
-                    this.snotify.error(this.label(errorMsg));
-                    this.updating_vo = false;
+                if ((!self.selected_vo) || (!self.editableVO) || (self.editableVO.id !== self.selected_vo.id) || (self.editableVO._type !== self.selected_vo._type)) {
+                    self.updating_vo = false;
+                    reject({
+                        body: self.label('crud.update.errors.selection_failure'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
                     return;
                 }
-            }
 
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
-            let id = (res && res.id) ? parseInt(res.id.toString()) : null;
+                try {
 
-            if ((!res) || (!id) || (id != this.selected_vo.id)) {
-                this.snotify.error(this.label('crud.update.errors.update_failure'));
-                this.updating_vo = false;
-                return;
-            }
+                    if (!CRUDFormServices.getInstance().checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
+                        self.updating_vo = false;
+                        reject({
+                            body: self.label('crud.check_form.field_required'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-            updatedVO = await ModuleDAO.getInstance().getVoById<any>(this.selected_vo._type, this.selected_vo.id);
-            if ((!updatedVO) || (updatedVO.id !== this.selected_vo.id) || (updatedVO._type !== this.selected_vo._type)) {
-                this.snotify.error(this.label('crud.update.errors.update_failure'));
-                this.updating_vo = false;
-                return;
-            }
+                    // On passe la traduction depuis IHM sur les champs
+                    let apiokVo = CRUDFormServices.getInstance().IHMToData(self.editableVO, self.crud.updateDatatable, true);
 
-            // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-            await CRUDFormServices.getInstance().updateManyToMany(this.editableVO, this.crud.createDatatable, updatedVO, this.removeData, this.storeData, this);
-            await CRUDFormServices.getInstance().updateOneToMany(this.editableVO, this.crud.createDatatable, updatedVO, this.getStoredDatas, this.updateData);
+                    // On utilise le trigger si il est présent sur le crud
+                    if (self.crud.preUpdate) {
+                        let errorMsg = await self.crud.preUpdate(apiokVo, self.editableVO);
+                        if (errorMsg) {
+                            self.updating_vo = false;
+                            reject({
+                                body: self.label(errorMsg),
+                                config: {
+                                    timeout: 10000,
+                                    showProgressBar: true,
+                                    closeOnClick: false,
+                                    pauseOnHover: true,
+                                },
+                            });
+                            return;
+                        }
+                    }
 
-            this.updateData(updatedVO);
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('crud.update.errors.update_failure') + ": " + error);
-            this.updating_vo = false;
-            return;
-        }
+                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    let id = (res && res.id) ? parseInt(res.id.toString()) : null;
 
-        this.snotify.success(this.label('crud.update.success'));
-        this.updating_vo = false;
+                    if ((!res) || (!id) || (id != self.selected_vo.id)) {
+                        self.updating_vo = false;
+                        reject({
+                            body: self.label('crud.update.errors.update_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        this.$emit(updatedVO._type + '_update', updatedVO);
-        await this.callCallbackFunctionUpdate();
+                    updatedVO = await ModuleDAO.getInstance().getVoById<any>(self.selected_vo._type, self.selected_vo.id);
+                    if ((!updatedVO) || (updatedVO.id !== self.selected_vo.id) || (updatedVO._type !== self.selected_vo._type)) {
+                        self.updating_vo = false;
+                        reject({
+                            body: self.label('crud.update.errors.update_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        if (this.close_on_submit) {
-            this.$emit('close');
-        }
+                    // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.getStoredDatas, self.updateData);
+
+                    self.updateData(updatedVO);
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    self.updating_vo = false;
+                    reject({
+                        body: self.label('crud.update.errors.update_failure') + ": " + error,
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+
+                self.updating_vo = false;
+
+                self.$emit(updatedVO._type + '_update', updatedVO);
+                await self.callCallbackFunctionUpdate();
+
+                if (self.close_on_submit) {
+                    self.$emit('close');
+                }
+
+                resolve({
+                    body: self.label('crud.update.success'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     private onChangeVO(vo: IDistantVOBase) {

@@ -147,88 +147,150 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     }
 
     private async createVO() {
-        this.snotify.info(this.label('crud.create.starting'));
-        this.creating_vo = true;
-        let createdVO = null;
+        let self = this;
+        self.snotify.async(self.label('crud.create.starting'), () =>
+            new Promise(async (resolve, reject) => {
 
-        if ((!this.newVO) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
-            this.snotify.error(this.label('crud.create.errors.newvo_failure'));
-            this.creating_vo = false;
-            return;
-        }
 
-        if (!!this.newVO.id) {
-            this.newVO.id = null;
-        }
+                self.creating_vo = true;
+                let createdVO = null;
 
-        try {
-
-            if (!CRUDFormServices.getInstance().checkForm(
-                this.newVO, this.crud.createDatatable, this.clear_alerts, this.register_alerts)) {
-                this.snotify.error(this.label('crud.check_form.field_required'));
-                this.creating_vo = false;
-                return;
-            }
-
-            // On passe la traduction depuis IHM sur les champs
-            let apiokVo = CRUDFormServices.getInstance().IHMToData(this.newVO, this.crud.createDatatable, false);
-
-            // On utilise le trigger si il est présent sur le crud
-            if (this.crud.preCreate) {
-                let errorMsg = await this.crud.preCreate(apiokVo, this.newVO);
-                if (errorMsg) {
-                    this.snotify.error(this.label(errorMsg));
-                    //comme il a eut une erreur on abandonne la création
-                    this.creating_vo = false;
+                if ((!self.newVO) || (self.newVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
+                    self.creating_vo = false;
+                    reject({
+                        body: self.label('crud.create.errors.newvo_failure'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
                     return;
                 }
-            }
 
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
-            if ((!res) || (!res.id)) {
-                this.snotify.error(this.label('crud.create.errors.create_failure'));
-                this.creating_vo = false;
-                return;
-            }
+                if (!!self.newVO.id) {
+                    self.newVO.id = null;
+                }
 
-            let id = res.id ? res.id : null;
-            this.newVO.id = id;
+                try {
 
-            createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
-            if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
-                this.snotify.error(this.label('crud.create.errors.create_failure'));
-                this.creating_vo = false;
-                return;
-            }
+                    if (!CRUDFormServices.getInstance().checkForm(
+                        self.newVO, self.crud.createDatatable, self.clear_alerts, self.register_alerts)) {
+                        self.creating_vo = false;
+                        reject({
+                            body: self.label('crud.check_form.field_required'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-            // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-            await CRUDFormServices.getInstance().updateManyToMany(this.newVO, this.crud.createDatatable, createdVO, this.removeData, this.storeData, this);
-            await CRUDFormServices.getInstance().updateOneToMany(this.newVO, this.crud.createDatatable, createdVO, this.getStoredDatas, this.updateData);
+                    // On passe la traduction depuis IHM sur les champs
+                    let apiokVo = CRUDFormServices.getInstance().IHMToData(self.newVO, self.crud.createDatatable, false);
 
-            this.storeData(createdVO);
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
-            this.creating_vo = false;
-            return;
-        }
+                    // On utilise le trigger si il est présent sur le crud
+                    if (self.crud.preCreate) {
+                        let errorMsg = await self.crud.preCreate(apiokVo, self.newVO);
+                        if (errorMsg) {
+                            //comme il a eut une erreur on abandonne la création
+                            self.creating_vo = false;
+                            reject({
+                                body: self.label(errorMsg),
+                                config: {
+                                    timeout: 10000,
+                                    showProgressBar: true,
+                                    closeOnClick: false,
+                                    pauseOnHover: true,
+                                },
+                            });
+                            return;
+                        }
+                    }
 
-        this.snotify.success(this.label('crud.create.success'));
+                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+                    if ((!res) || (!res.id)) {
+                        self.creating_vo = false;
+                        reject({
+                            body: self.label('crud.create.errors.create_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        this.creating_vo = false;
+                    let id = res.id ? res.id : null;
+                    self.newVO.id = id;
 
-        this.$emit(createdVO._type + '_create', createdVO);
-        await this.callCallbackFunctionCreate();
-        if (this.crud.reset_newvo_after_each_creation) {
-            this.prepareNewVO();
-        }
+                    createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
+                        self.creating_vo = false;
+                        reject({
+                            body: self.label('crud.create.errors.create_failure'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
 
-        if (this.close_on_submit) {
-            this.$emit('close');
-        } else {
-            this.crud.createDatatable.refresh();
-            this.crud_createDatatable_key = this.crud.createDatatable.key;
-        }
+                    // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+                    await CRUDFormServices.getInstance().updateManyToMany(self.newVO, self.crud.createDatatable, createdVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.getInstance().updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.getStoredDatas, self.updateData);
+
+                    self.storeData(createdVO);
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    self.creating_vo = false;
+                    reject({
+                        body: self.label('crud.create.errors.create_failure') + ": " + error,
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+
+                self.creating_vo = false;
+
+                self.$emit(createdVO._type + '_create', createdVO);
+                await self.callCallbackFunctionCreate();
+                if (self.crud.reset_newvo_after_each_creation) {
+                    self.prepareNewVO();
+                }
+
+                if (self.close_on_submit) {
+                    self.$emit('close');
+                } else {
+                    self.crud.createDatatable.refresh();
+                    self.crud_createDatatable_key = self.crud.createDatatable.key;
+                }
+
+                resolve({
+                    body: self.label('crud.create.success'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     private onChangeVO(vo: IDistantVOBase) {

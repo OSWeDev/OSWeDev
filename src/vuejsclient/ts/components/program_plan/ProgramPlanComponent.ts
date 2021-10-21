@@ -925,139 +925,169 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private async updateEvent(event: EventObjectInput, revertFunc, view: View) {
         // Il faut modifier le vo source, mettre à jour côté serveur et notifier en cas d'échec et annuler la modif (remettre la resource et les dates précédentes)
 
-        this.snotify.info(this.label('programplan.fc.update.start'));
-        if ((!event) || (!event.rdv_id) || (!this.getRdvsByIds[event.rdv_id])) {
-            this.snotify.error(this.label('programplan.fc.update.error'));
-            return;
-        }
-        let rdv: IPlanRDV = this.getRdvsByIds[event.rdv_id] as IPlanRDV;
+        let self = this;
+        let msg_error_code = 'programplan.fc.update.error';
+        self.snotify.async(self.label('programplan.fc.update.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-        let tmp_start: number = rdv.start_time;
-        let tmp_end: number = rdv.end_time;
-        let tmp_facilitator_id: number = rdv.facilitator_id;
-        let tmp_target_id: number = rdv.target_id;
+                if ((!event) || (!event.rdv_id) || (!this.getRdvsByIds[event.rdv_id])) {
+                    reject({
+                        body: self.label('programplan.fc.update.error'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+                let rdv: IPlanRDV = this.getRdvsByIds[event.rdv_id] as IPlanRDV;
 
-        let new_facilitator_id: number = null;
-        let new_target_id: number = null;
-        let new_start_time: number = moment(event.start).utc(true).unix();
-        let new_end_time: number = moment(event.end).utc(true).unix();
+                let tmp_start: number = rdv.start_time;
+                let tmp_end: number = rdv.end_time;
+                let tmp_facilitator_id: number = rdv.facilitator_id;
+                let tmp_target_id: number = rdv.target_id;
 
-        if (!!this.program_plan_shared_module.target_facilitator_type_id) {
-            let new_target_facilitator_id: number = parseInt(event.resourceId);
-            for (let i in this.get_targets_facilitators_by_ids) {
-                let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[i];
+                let new_facilitator_id: number = null;
+                let new_target_id: number = null;
+                let new_start_time: number = moment(event.start).utc(true).unix();
+                let new_end_time: number = moment(event.end).utc(true).unix();
 
-                if (target_facilitator.id != new_target_facilitator_id) {
-                    continue;
+                if (!!this.program_plan_shared_module.target_facilitator_type_id) {
+                    let new_target_facilitator_id: number = parseInt(event.resourceId);
+                    for (let i in this.get_targets_facilitators_by_ids) {
+                        let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[i];
+
+                        if (target_facilitator.id != new_target_facilitator_id) {
+                            continue;
+                        }
+
+                        new_facilitator_id = target_facilitator.facilitator_id;
+                        new_target_id = target_facilitator.target_id;
+                        break;
+                    }
+                } else {
+                    new_facilitator_id = parseInt(event.resourceId);
+                    new_target_id = tmp_target_id;
                 }
 
-                new_facilitator_id = target_facilitator.facilitator_id;
-                new_target_id = target_facilitator.target_id;
-                break;
-            }
-        } else {
-            new_facilitator_id = parseInt(event.resourceId);
-            new_target_id = tmp_target_id;
-        }
+                try {
 
-        try {
-
-            if (!this.can_edit_rdv(tmp_facilitator_id, new_facilitator_id)) {
-                this.snotify.error(this.label('programplan.fc.update.denied'));
-                throw new Error('Pas le droit');
-            }
-
-            if (!!this.program_plan_shared_module.target_facilitator_type_id) {
-                let task = this.get_tasks_by_ids[rdv.task_id];
-                if (!task) {
-                    throw new Error('Impossible de retrouver le type de tache');
-                }
-
-                let task_type = this.get_task_types_by_ids[task.task_type_id];
-                if (!task_type) {
-                    throw new Error('Impossible de retrouver le type de tache');
-                }
-
-                if (task_type.order_tasks_on_same_target) {
-
-                    if ((new_facilitator_id != tmp_facilitator_id) || (new_target_id != tmp_target_id)) {
-                        this.snotify.error(this.label('programplan.fc.update.denied_change_target'));
-                        throw new Error('Pas le droit de changer d\'établissement ou d\'animateur sur des RDVs à choix automatique.');
+                    if (!this.can_edit_rdv(tmp_facilitator_id, new_facilitator_id)) {
+                        msg_error_code = 'programplan.fc.update.denied';
+                        throw new Error('Pas le droit');
                     }
 
-                    // On check qu'on ne change pas l'ordre des RDVs sur la cible
-                    // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
-                    // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                    let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
-                        this.program_plan_shared_module.rdv_type_id,
-                        'target_id', [rdv.target_id]);
-
-                    for (let i in all_rdvs) {
-                        let all_rdv = all_rdvs[i];
-                        let all_rdv_task = this.get_tasks_by_ids[all_rdv.task_id];
-
-                        if (all_rdv.id == rdv.id) {
-                            continue;
+                    if (!!this.program_plan_shared_module.target_facilitator_type_id) {
+                        let task = this.get_tasks_by_ids[rdv.task_id];
+                        if (!task) {
+                            throw new Error('Impossible de retrouver le type de tache');
                         }
 
-                        if (!all_rdv_task) {
-                            continue;
+                        let task_type = this.get_task_types_by_ids[task.task_type_id];
+                        if (!task_type) {
+                            throw new Error('Impossible de retrouver le type de tache');
                         }
 
-                        if (all_rdv_task.task_type_id != task_type.id) {
-                            continue;
-                        }
+                        if (task_type.order_tasks_on_same_target) {
 
-                        let min_moment = tmp_start;
-                        let max_moment = new_start_time;
-                        if (tmp_start > new_start_time) {
+                            if ((new_facilitator_id != tmp_facilitator_id) || (new_target_id != tmp_target_id)) {
+                                msg_error_code = 'programplan.fc.update.denied_change_target';
+                                throw new Error('Pas le droit de changer d\'établissement ou d\'animateur sur des RDVs à choix automatique.');
+                            }
 
-                            min_moment = new_start_time;
-                            max_moment = tmp_start;
-                        }
+                            // On check qu'on ne change pas l'ordre des RDVs sur la cible
+                            // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
+                            // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
+                            let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
+                                this.program_plan_shared_module.rdv_type_id,
+                                'target_id', [rdv.target_id]);
 
-                        if (Dates.isBetween(all_rdv.start_time, min_moment, max_moment)) {
-                            this.snotify.error(this.label('programplan.fc.update.cannot_change_rdv_order'));
-                            throw new Error('Pas le droit de changer l\'ordre sur des RDVs à choix automatique.');
+                            for (let i in all_rdvs) {
+                                let all_rdv = all_rdvs[i];
+                                let all_rdv_task = this.get_tasks_by_ids[all_rdv.task_id];
+
+                                if (all_rdv.id == rdv.id) {
+                                    continue;
+                                }
+
+                                if (!all_rdv_task) {
+                                    continue;
+                                }
+
+                                if (all_rdv_task.task_type_id != task_type.id) {
+                                    continue;
+                                }
+
+                                let min_moment = tmp_start;
+                                let max_moment = new_start_time;
+                                if (tmp_start > new_start_time) {
+
+                                    min_moment = new_start_time;
+                                    max_moment = tmp_start;
+                                }
+
+                                if (Dates.isBetween(all_rdv.start_time, min_moment, max_moment)) {
+                                    msg_error_code = 'programplan.fc.update.cannot_change_rdv_order';
+                                    throw new Error('Pas le droit de changer l\'ordre sur des RDVs à choix automatique.');
+                                }
+                            }
                         }
                     }
+
+                    rdv.start_time = new_start_time;
+                    rdv.end_time = new_end_time;
+                    rdv.facilitator_id = new_facilitator_id;
+                    rdv.target_id = new_target_id;
+
+                    if (await this.program_plan_controller.component_hook_refuseChangeRDV(rdv, this.getStoredDatas, this.storeDatas, this.get_tasks_by_ids)) {
+                        throw new Error('Interdit');
+                    }
+
+                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+
+                    if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                        throw new Error('Erreur côté serveur');
+                    }
+
+                    rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
+
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+
+                    // On tente d'annuler le déplacement initial
+                    try {
+                        revertFunc();
+                        rdv.start_time = tmp_start;
+                        rdv.end_time = tmp_end;
+                        rdv.facilitator_id = tmp_facilitator_id;
+                    } catch (error) {
+                    }
+                    reject({
+                        body: self.label(msg_error_code),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
                 }
-            }
+                this.setRdvById(rdv);
 
-            rdv.start_time = new_start_time;
-            rdv.end_time = new_end_time;
-            rdv.facilitator_id = new_facilitator_id;
-            rdv.target_id = new_target_id;
-
-            if (await this.program_plan_controller.component_hook_refuseChangeRDV(rdv, this.getStoredDatas, this.storeDatas, this.get_tasks_by_ids)) {
-                throw new Error('Interdit');
-            }
-
-            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
-
-            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                throw new Error('Erreur côté serveur');
-            }
-
-            rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
-
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('programplan.fc.update.error'));
-
-            // On tente d'annuler le déplacement initial
-            try {
-                revertFunc();
-                rdv.start_time = tmp_start;
-                rdv.end_time = tmp_end;
-                rdv.facilitator_id = tmp_facilitator_id;
-            } catch (error) {
-            }
-            return;
-        }
-        this.setRdvById(rdv);
-
-        this.snotify.success(this.label('programplan.fc.update.ok'));
+                resolve({
+                    body: self.label('programplan.fc.update.ok'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     get fcConfig() {
@@ -1210,176 +1240,215 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * @param event
      */
     private async onFCEventReceive(event: EventObjectInput) {
-        this.snotify.info(this.label('programplan.fc.create.start'));
 
-        let rdv: IPlanRDV;
+        let self = this;
+        let errormsg = 'programplan.fc.create.error';
+        self.snotify.async(self.label('programplan.fc.create.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-        try {
-            rdv = this.program_plan_controller.getRDVNewInstance();
-            rdv.start_time = moment(event.start).utc(true).unix();
-            rdv.end_time = moment(event.end).utc(true).unix();
+                let rdv: IPlanRDV;
 
-            if (!!this.program_plan_shared_module.program_type_id) {
-                rdv.program_id = this.program_id;
-            }
+                try {
+                    rdv = self.program_plan_controller.getRDVNewInstance();
+                    rdv.start_time = moment(event.start).utc(true).unix();
+                    rdv.end_time = moment(event.end).utc(true).unix();
 
-            if (!!this.program_plan_shared_module.task_type_id) {
-
-                // Soit on est sur un task_id et on prend son id,
-                // soit on est sur un type de task et on doit définir la task_id a assigner
-                let target_facilitator = this.get_targets_facilitators_by_ids[parseInt(event.resourceId)];
-
-                if (!target_facilitator) {
-                    this.snotify.error(this.label('programplan.fc.create.error'));
-                    ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
-                    // this.setRdvById({ id: 0 } as any);
-                    this.reset_rdvs();
-                    return;
-                }
-
-                rdv.target_id = target_facilitator.target_id;
-                rdv.facilitator_id = target_facilitator.facilitator_id;
-
-                if (event._type == this.program_plan_shared_module.task_type_id) {
-                    rdv.task_id = event.task_id;
-                } else {
-                    // On doit choisir le RDV à poser
-                    // Dépend de l'historique des Tasks déjà posées sur cette target
-                    let task_type: IPlanTaskType = this.get_task_types_by_ids[event.task_type_id];
-
-                    if (!task_type.order_tasks_on_same_target) {
-                        // Pas normal...
-                        this.snotify.error(this.label('programplan.fc.create.error'));
-                        ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
-                        // this.setRdvById({ id: 0 } as any);
-                        this.reset_rdvs();
-                        return;
+                    if (!!self.program_plan_shared_module.program_type_id) {
+                        rdv.program_id = self.program_id;
                     }
 
-                    // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
-                    // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                    let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
-                        this.program_plan_shared_module.rdv_type_id,
-                        'target_id', [rdv.target_id]);
+                    if (!!self.program_plan_shared_module.task_type_id) {
 
-                    let max_weight: number = -1;
-                    let max_weight_task: IPlanTask = null;
-                    let nb_maxed_weight: number = 0;
+                        // Soit on est sur un task_id et on prend son id,
+                        // soit on est sur un type de task et on doit définir la task_id a assigner
+                        let target_facilitator = self.get_targets_facilitators_by_ids[parseInt(event.resourceId)];
 
-                    for (let i in all_rdvs) {
-                        let all_rdv = all_rdvs[i];
-                        let all_rdv_task = this.get_tasks_by_ids[all_rdv.task_id];
-
-                        if (!all_rdv_task) {
-                            continue;
-                        }
-
-                        if (all_rdv_task.task_type_id != task_type.id) {
-                            continue;
-                        }
-
-                        if (all_rdv.start_time > rdv.start_time) {
-                            this.snotify.error(this.label('programplan.fc.create.has_more_recent_task__denied'));
-                            // this.setRdvById({ id: 0 } as any);
-                            this.reset_rdvs();
+                        if (!target_facilitator) {
+                            ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                            // self.setRdvById({ id: 0 } as any);
+                            self.reset_rdvs();
+                            reject({
+                                body: self.label(errormsg),
+                                config: {
+                                    timeout: 10000,
+                                    showProgressBar: true,
+                                    closeOnClick: false,
+                                    pauseOnHover: true,
+                                },
+                            });
                             return;
                         }
 
-                        if (all_rdv_task.weight > max_weight) {
-                            max_weight = all_rdv_task.weight;
-                            max_weight_task = all_rdv_task;
-                            nb_maxed_weight = 0;
+                        rdv.target_id = target_facilitator.target_id;
+                        rdv.facilitator_id = target_facilitator.facilitator_id;
+
+                        if (event._type == self.program_plan_shared_module.task_type_id) {
+                            rdv.task_id = event.task_id;
+                        } else {
+                            // On doit choisir le RDV à poser
+                            // Dépend de l'historique des Tasks déjà posées sur cette target
+                            let task_type: IPlanTaskType = self.get_task_types_by_ids[event.task_type_id];
+
+                            if (!task_type.order_tasks_on_same_target) {
+                                // Pas normal...
+                                ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                                // self.setRdvById({ id: 0 } as any);
+                                self.reset_rdvs();
+                                reject({
+                                    body: self.label(errormsg),
+                                    config: {
+                                        timeout: 10000,
+                                        showProgressBar: true,
+                                        closeOnClick: false,
+                                        pauseOnHover: true,
+                                    },
+                                });
+                                return;
+                            }
+
+                            // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
+                            // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
+                            let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
+                                self.program_plan_shared_module.rdv_type_id,
+                                'target_id', [rdv.target_id]);
+
+                            let max_weight: number = -1;
+                            let max_weight_task: IPlanTask = null;
+                            let nb_maxed_weight: number = 0;
+
+                            for (let i in all_rdvs) {
+                                let all_rdv = all_rdvs[i];
+                                let all_rdv_task = self.get_tasks_by_ids[all_rdv.task_id];
+
+                                if (!all_rdv_task) {
+                                    continue;
+                                }
+
+                                if (all_rdv_task.task_type_id != task_type.id) {
+                                    continue;
+                                }
+
+                                if (all_rdv.start_time > rdv.start_time) {
+                                    errormsg = 'programplan.fc.create.has_more_recent_task__denied';
+                                    // self.setRdvById({ id: 0 } as any);
+                                    self.reset_rdvs();
+                                    return;
+                                }
+
+                                if (all_rdv_task.weight > max_weight) {
+                                    max_weight = all_rdv_task.weight;
+                                    max_weight_task = all_rdv_task;
+                                    nb_maxed_weight = 0;
+                                }
+                                nb_maxed_weight++;
+                            }
+
+                            // Il nous faut toutes les tâches possible dans ce type par poids
+                            let task_type_tasks: IPlanTask[] = [];
+                            for (let j in self.get_tasks_by_ids) {
+                                let task_ = self.get_tasks_by_ids[j];
+
+                                if (task_.task_type_id == task_type.id) {
+                                    task_type_tasks.push(task_);
+                                }
+                            }
+                            WeightHandler.getInstance().sortByWeight(task_type_tasks);
+
+                            if ((!task_type_tasks) || (!task_type_tasks.length)) {
+                                errormsg = 'programplan.fc.create.error';
+                                ConsoleHandler.getInstance().error("!task_type_tasks.length");
+                                // self.setRdvById({ id: 0 } as any);
+                                self.reset_rdvs();
+                                return;
+                            }
+
+                            let task: IPlanTask = null;
+                            if (max_weight < 0) {
+                                task = task_type_tasks[0];
+                            } else {
+
+                                if (max_weight_task.limit_on_same_target <= nb_maxed_weight) {
+                                    task = WeightHandler.getInstance().findNextHeavierItemByWeight(task_type_tasks, max_weight);
+                                }
+                            }
+
+                            if (!task) {
+                                errormsg = 'programplan.fc.create.no_task_left';
+                                ConsoleHandler.getInstance().error("!task");
+                                // self.setRdvById({ id: 0 } as any);
+                                self.reset_rdvs();
+                                return;
+                            }
+
+                            rdv.task_id = task.id;
                         }
-                        nb_maxed_weight++;
-                    }
-
-                    // Il nous faut toutes les tâches possible dans ce type par poids
-                    let task_type_tasks: IPlanTask[] = [];
-                    for (let j in this.get_tasks_by_ids) {
-                        let task_ = this.get_tasks_by_ids[j];
-
-                        if (task_.task_type_id == task_type.id) {
-                            task_type_tasks.push(task_);
-                        }
-                    }
-                    WeightHandler.getInstance().sortByWeight(task_type_tasks);
-
-                    if ((!task_type_tasks) || (!task_type_tasks.length)) {
-                        this.snotify.error(this.label('programplan.fc.create.error'));
-                        ConsoleHandler.getInstance().error("!task_type_tasks.length");
-                        // this.setRdvById({ id: 0 } as any);
-                        this.reset_rdvs();
-                        return;
-                    }
-
-                    let task: IPlanTask = null;
-                    if (max_weight < 0) {
-                        task = task_type_tasks[0];
                     } else {
-
-                        if (max_weight_task.limit_on_same_target <= nb_maxed_weight) {
-                            task = WeightHandler.getInstance().findNextHeavierItemByWeight(task_type_tasks, max_weight);
-                        }
+                        rdv.facilitator_id = parseInt(event.resourceId);
+                        rdv.target_id = event.target_id;
                     }
-
-                    if (!task) {
-                        this.snotify.error(this.label('programplan.fc.create.no_task_left'));
-                        ConsoleHandler.getInstance().error("!task");
-                        // this.setRdvById({ id: 0 } as any);
-                        this.reset_rdvs();
-                        return;
-                    }
-
-                    rdv.task_id = task.id;
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    // self.setRdvById({ id: 0 } as any);
+                    self.reset_rdvs();
+                    return;
                 }
-            } else {
-                rdv.facilitator_id = parseInt(event.resourceId);
-                rdv.target_id = event.target_id;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            // this.setRdvById({ id: 0 } as any);
-            this.reset_rdvs();
-            return;
-        }
 
-        if ((!event) || (!rdv)) {
-            this.snotify.error(this.label('programplan.fc.create.error'));
-            // this.setRdvById({ id: 0 } as any);
-            this.reset_rdvs();
-            return;
-        }
+                if ((!event) || (!rdv)) {
+                    errormsg = 'programplan.fc.create.error';
+                    // self.setRdvById({ id: 0 } as any);
+                    self.reset_rdvs();
+                    return;
+                }
 
-        try {
+                try {
 
-            if (!this.can_edit_rdv(rdv.facilitator_id)) {
-                this.snotify.error(this.label('programplan.fc.create.denied'));
-                throw new Error('Interdit');
-            }
+                    if (!self.can_edit_rdv(rdv.facilitator_id)) {
+                        errormsg = 'programplan.fc.create.denied';
+                        throw new Error('Interdit');
+                    }
 
-            if (await this.program_plan_controller.component_hook_refuseReceiveRDV(rdv, this.getStoredDatas, this.storeDatas, this.get_tasks_by_ids)) {
-                throw new Error('Interdit');
-            }
+                    if (await self.program_plan_controller.component_hook_refuseReceiveRDV(rdv, self.getStoredDatas, self.storeDatas, self.get_tasks_by_ids)) {
+                        throw new Error('Interdit');
+                    }
 
-            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
 
-            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                throw new Error('Erreur côté serveur');
-            }
+                    if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                        throw new Error('Erreur côté serveur');
+                    }
 
-            rdv.id = insertOrDeleteQueryResult.id;
-            rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
+                    rdv.id = insertOrDeleteQueryResult.id;
+                    rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, rdv.id);
 
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('programplan.fc.create.error'));
-            // this.setRdvById({ id: 0 } as any);
-            this.reset_rdvs();
-            return;
-        }
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    reject({
+                        body: self.label(errormsg),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
 
-        this.setRdvById(rdv);
-        this.snotify.success(this.label('programplan.fc.create.ok'));
+                    // self.setRdvById({ id: 0 } as any);
+                    self.reset_rdvs();
+                    return;
+                }
+
+                self.setRdvById(rdv);
+                resolve({
+                    body: self.label('programplan.fc.create.ok'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     private can_edit_rdv(facilitator_id: number, new_facilitator_id: number = null): boolean {
@@ -1517,42 +1586,66 @@ export default class ProgramPlanComponent extends VueComponentBase {
             if (!!toast) {
                 self.$snotify.remove(toast.id);
             }
-            self.snotify.info(self.label('programplan.delete.start'));
 
-            let toDeleteVos: IPlanRDVCR[] = [];
-            for (let i in self.getCrsByIds) {
-                let cr: IPlanRDVCR = self.getCrsByIds[i];
 
-                if (cr.rdv_id != self.selected_rdv.id) {
-                    continue;
-                }
+            self.snotify.async(self.label('programplan.delete.start'), () =>
+                new Promise(async (resolve, reject) => {
 
-                toDeleteVos.push(cr);
-                self.removeCr(cr.id);
-            }
 
-            try {
+                    let toDeleteVos: IPlanRDVCR[] = [];
+                    for (let i in self.getCrsByIds) {
+                        let cr: IPlanRDVCR = self.getCrsByIds[i];
 
-                if (toDeleteVos && toDeleteVos.length > 0) {
-                    let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
-                    if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != toDeleteVos.length)) {
-                        throw new Error('Erreur serveur');
+                        if (cr.rdv_id != self.selected_rdv.id) {
+                            continue;
+                        }
+
+                        toDeleteVos.push(cr);
+                        self.removeCr(cr.id);
                     }
-                }
-                let insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
-                if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1)) {
-                    throw new Error('Erreur serveur');
-                }
-            } catch (error) {
-                ConsoleHandler.getInstance().error(error);
-                self.snotify.error(self.label('programplan.delete.error'));
-                return;
-            }
-            self.removeRdv(self.selected_rdv.id);
-            self.set_refresh(true);
-            self.set_selected_rdv(null);
-            self.snotify.success(self.label('programplan.delete.ok'));
-            self.$router.push(self.route_path);
+
+                    try {
+
+                        if (toDeleteVos && toDeleteVos.length > 0) {
+                            let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
+                            if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != toDeleteVos.length)) {
+                                throw new Error('Erreur serveur');
+                            }
+                        }
+                        let insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
+                        if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1)) {
+                            throw new Error('Erreur serveur');
+                        }
+                    } catch (error) {
+                        ConsoleHandler.getInstance().error(error);
+                        reject({
+                            body: self.label('programplan.delete.error'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        return;
+                    }
+                    self.removeRdv(self.selected_rdv.id);
+                    self.set_refresh(true);
+                    self.set_selected_rdv(null);
+                    self.$router.push(self.route_path);
+
+                    resolve({
+                        body: self.label('programplan.delete.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+
+                })
+            );
         };
 
         if (!this.program_plan_controller.confirm_before_rdv_deletion) {

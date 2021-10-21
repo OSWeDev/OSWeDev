@@ -490,27 +490,48 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.delete_cr.start'));
 
-                        try {
 
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([cr]);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != cr.id)) {
-                                throw new Error('Erreur serveur');
-                            }
-                            self.removeCr(cr.id);
+                        self.snotify.async(self.label('programplan.delete_cr.start'), () =>
+                            new Promise(async (resolve, reject) => {
 
-                            // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
-                            self.updateRdv(rdv);
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                            self.snotify.error(self.label('programplan.delete_cr.error'));
-                            return;
-                        }
-                        self.snotify.success(self.label('programplan.delete_cr.ok'));
-                        self.edited_cr = null;
+                                try {
+
+                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([cr]);
+                                    if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != cr.id)) {
+                                        throw new Error('Erreur serveur');
+                                    }
+                                    self.removeCr(cr.id);
+
+                                    // TODO passer par une synchro via les notifs de dao ...
+                                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+                                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
+                                    self.updateRdv(rdv);
+                                } catch (error) {
+                                    ConsoleHandler.getInstance().error(error);
+                                    reject({
+                                        body: self.label('programplan.delete_cr.error'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                    return;
+                                }
+                                self.edited_cr = null;
+                                resolve({
+                                    body: self.label('programplan.delete_cr.ok'),
+                                    config: {
+                                        timeout: 10000,
+                                        showProgressBar: true,
+                                        closeOnClick: false,
+                                        pauseOnHover: true,
+                                    },
+                                });
+                            })
+                        );
                     },
                     bold: false
                 },

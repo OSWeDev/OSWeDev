@@ -1038,7 +1038,6 @@ export default class CRUDComponent extends VueComponentBase {
                     return;
                 }
 
-                self.snotify.success(self.label(''));
                 if (!self.embed) {
                     self.$router.push(self.callback_route);
                 }

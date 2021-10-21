@@ -188,25 +188,47 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return;
         }
 
-        this.snotify.info(this.label('programplan.rdv_modal.update_rdv.start'));
-        try {
+        let self = this;
+        self.snotify.async(self.label('programplan.rdv_modal.update_rdv.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-            this.selected_rdv.target_validation = this.rdv_confirmed;
-            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.selected_rdv);
-            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                throw new Error('Erreur serveur');
-            }
 
-            // TODO passer par une synchro via les notifs de dao ...
-            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, this.selected_rdv.id);
-            this.updateRdv(rdv);
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            this.snotify.error(this.label('programplan.rdv_modal.update_rdv.error'));
-            return;
-        }
-        this.snotify.success(this.label('programplan.rdv_modal.update_rdv.ok'));
+                try {
+
+                    self.selected_rdv.target_validation = self.rdv_confirmed;
+                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(self.selected_rdv);
+                    if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                        throw new Error('Erreur serveur');
+                    }
+
+                    // TODO passer par une synchro via les notifs de dao ...
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.program_plan_shared_module.rdv_type_id]);
+                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, self.selected_rdv.id);
+                    self.updateRdv(rdv);
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    reject({
+                        body: self.label('programplan.rdv_modal.update_rdv.error'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    return;
+                }
+                resolve({
+                    body: self.label('programplan.rdv_modal.update_rdv.ok'),
+                    config: {
+                        timeout: 10000,
+                        showProgressBar: true,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                    },
+                });
+            })
+        );
     }
 
     get target(): IPlanTarget {
@@ -409,27 +431,48 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.create_prep.start'));
 
-                        try {
+                        self.snotify.async(self.label('programplan.create_prep.start'), () =>
+                            new Promise(async (resolve, reject) => {
 
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                                throw new Error('Erreur serveur');
-                            }
-                            prep.id = insertOrDeleteQueryResult.id;
-                            self.setPrepById(prep);
 
-                            // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
-                            self.updateRdv(rdv);
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                            self.snotify.error(self.label('programplan.create_prep.error'));
-                            return;
-                        }
-                        self.snotify.success(self.label('programplan.create_prep.ok'));
+                                try {
+
+                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
+                                    if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                                        throw new Error('Erreur serveur');
+                                    }
+                                    prep.id = insertOrDeleteQueryResult.id;
+                                    self.setPrepById(prep);
+
+                                    // TODO passer par une synchro via les notifs de dao ...
+                                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.program_plan_shared_module.rdv_type_id]);
+                                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, prep.rdv_id);
+                                    self.updateRdv(rdv);
+                                } catch (error) {
+                                    ConsoleHandler.getInstance().error(error);
+                                    reject({
+                                        body: self.label('programplan.create_prep.error'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                    return;
+                                }
+                                resolve({
+                                    body: self.label('programplan.create_prep.ok'),
+                                    config: {
+                                        timeout: 10000,
+                                        showProgressBar: true,
+                                        closeOnClick: false,
+                                        pauseOnHover: true,
+                                    },
+                                });
+                            })
+                        );
                     },
                     bold: false
                 },
@@ -464,27 +507,50 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.update_prep.start'));
 
-                        try {
 
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
-                            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != prep.id)) {
-                                throw new Error('Erreur serveur');
-                            }
-                            self.updatePrep(prep);
 
-                            // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
-                            self.updateRdv(rdv);
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                            self.snotify.error(self.label('programplan.update_prep.error'));
-                            return;
-                        }
-                        self.snotify.success(self.label('programplan.update_prep.ok'));
-                        self.edited_prep = null;
+                        self.snotify.async(self.label('programplan.update_prep.start'), () =>
+                            new Promise(async (resolve, reject) => {
+
+
+                                try {
+
+                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(prep);
+                                    if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id) || (insertOrDeleteQueryResult.id != prep.id)) {
+                                        throw new Error('Erreur serveur');
+                                    }
+                                    self.updatePrep(prep);
+
+                                    // TODO passer par une synchro via les notifs de dao ...
+                                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+                                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
+                                    self.updateRdv(rdv);
+                                } catch (error) {
+                                    ConsoleHandler.getInstance().error(error);
+                                    reject({
+                                        body: self.label('programplan.update_prep.error'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                    return;
+                                }
+                                self.edited_prep = null;
+                                resolve({
+                                    body: self.label('programplan.update_prep.ok'),
+                                    config: {
+                                        timeout: 10000,
+                                        showProgressBar: true,
+                                        closeOnClick: false,
+                                        pauseOnHover: true,
+                                    },
+                                });
+                            })
+                        );
                     },
                     bold: false
                 },
@@ -529,22 +595,45 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.delete_prep.start'));
 
-                        try {
 
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([prep]);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != prep.id)) {
-                                throw new Error('Erreur serveur');
-                            }
-                            self.removePrep(prep.id);
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                            self.snotify.error(self.label('programplan.delete_prep.error'));
-                            return;
-                        }
-                        self.snotify.success(self.label('programplan.delete_prep.ok'));
-                        self.edited_prep = null;
+
+                        self.snotify.async(self.label('programplan.delete_prep.start'), () =>
+                            new Promise(async (resolve, reject) => {
+
+
+                                try {
+
+                                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([prep]);
+                                    if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (insertOrDeleteQueryResult[0].id != prep.id)) {
+                                        throw new Error('Erreur serveur');
+                                    }
+                                    self.removePrep(prep.id);
+                                } catch (error) {
+                                    ConsoleHandler.getInstance().error(error);
+                                    reject({
+                                        body: self.label('programplan.delete_prep.error'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                    return;
+                                }
+                                resolve({
+                                    body: self.label('programplan.delete_prep.ok'),
+                                    config: {
+                                        timeout: 10000,
+                                        showProgressBar: true,
+                                        closeOnClick: false,
+                                        pauseOnHover: true,
+                                    },
+                                });
+                                self.edited_prep = null;
+                            })
+                        );
                     },
                     bold: false
                 },
