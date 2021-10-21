@@ -180,7 +180,7 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter une date de type 31/01
-    public formatDate_MonthDay(dateToFormat: moment.Moment | string): string {
+    public formatDate_MonthDay(dateToFormat: moment.Moment | string | number): string {
         if (dateToFormat == null) {
             return null;
         }
