@@ -260,7 +260,7 @@ export default class CRUDComponentField extends VueComponentBase
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     // @Watch('field_select_options_enabled')
     @Watch('field', { immediate: true })
-    @Watch('vo')
+    @Watch('vo', { deep: true })
     @Watch('datatable')
     @Watch('default_field_data')
     @Watch('targetModuleTable_count')

@@ -63,6 +63,7 @@ include ../../../../../../views/mixins/box.pug
         multiselect(
           :preselect-first="false"
           :multiple="false"
+          autocomplete="off"
           v-model="tmp_filter_module_valide"
           :placeholder="label('animation.reporting.filtre.module_valide')"
           :options="filter_options"

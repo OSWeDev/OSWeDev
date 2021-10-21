@@ -25,6 +25,9 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop()
     private api_type_id: string;
 
+    @Prop({ default: 0 })
+    private max: number;
+
     @Prop({
         default: null
     })
@@ -47,6 +50,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         default: true
     })
     private store_module_is_namespaced: boolean;
+
+    @Prop({
+        default: true
+    })
+    private multiselect: boolean;
 
     @Prop({
         type: Array,

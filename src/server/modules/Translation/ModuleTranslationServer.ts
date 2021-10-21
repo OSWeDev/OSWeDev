@@ -507,6 +507,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Dé-sélectionner'
         }, 'multiselect.deselectGroupLabel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Le maximum de sélection est atteint ({max}). Retirez d\'abord la sélection actuelle pour choisir un autre élément.',
+            'en-us': 'Maximum of {max} options selected. First remove a selected option to select another.',
+            'en-en': 'Maximum of {max} options selected. First remove a selected option to select another.'
+        }, 'multiselect.maxElements.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Début'

@@ -252,7 +252,7 @@ export default abstract class VueAppBase {
         };
 
         /* Test suppression baseApiUrl var normalMode = baseApiUrl == '';
- 
+
         if (normalMode) {*/
         routerOptions['history'] = true;
         //}

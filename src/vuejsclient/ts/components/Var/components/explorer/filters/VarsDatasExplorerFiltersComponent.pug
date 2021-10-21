@@ -13,7 +13,8 @@
                     :custom-label="var_conf_label"
                     :searchable="true"
                     :internal-search="true"
-                    
+                    autocomplete="off"
+
                     track-by="id"
                     
                     id="multifilter_vars_datas_explorer_filters_vars_confs"
@@ -46,6 +47,7 @@
                                     v-model="fields_filters_list[field_id]"
                                     :placeholder="label('fields.labels.ref.'+fields[field_id].module_table.name+'.'+field_id)"
                                     :options="enum_initial_options[field_id]"
+                                    autocomplete="off"
 
                                     :custom-label="enum_field_label_handler(fields[field_id])"
                                     :searchable="true"

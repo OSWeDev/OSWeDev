@@ -315,6 +315,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'session_share.navigator_share_error.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec',
+            'en-us': 'Failed'
+        }, 'error.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Gestion des droits'
         }, 'access_policy.admin.filters.filters-title.___LABEL___'));
 

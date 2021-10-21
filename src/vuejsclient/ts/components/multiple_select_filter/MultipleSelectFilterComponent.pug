@@ -14,7 +14,8 @@
     multiselect(
         :preselect-first="false"
         :multiple="true"
-        :close-on-select="false"
+        :max="max?max:null"
+        :close-on-select="!multiselect"
         v-model="tmp_filter_active_options"
         :placeholder="placeholder"
         :options="filter_options"
@@ -28,6 +29,8 @@
         :id="'multifilter_' + api_type_id"
         :disabled="disabled",
         
+        autocomplete="off"
+
         :select-label='label("multiselect.selectLabel")'
         :select-group-label='label("multiselect.selectGroupLabel")'
         :selected-label='label("multiselect.selectedLabel")'
@@ -35,6 +38,7 @@
         :deselect-group-label='label("multiselect.deselectGroupLabel")'
     )
         span(slot="noOptions") -
+        slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
 
     template(v-if="!disabled")
         .text_cliquable(@click='select_all') {{ label('select_all') }}

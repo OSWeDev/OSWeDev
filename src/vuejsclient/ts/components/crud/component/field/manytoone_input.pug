@@ -30,6 +30,7 @@
         v-model="field_value",
         :custom-label="field.voIdToHumanReadable",
         :options="select_options",
+        autocomplete="off"
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",
         :id="field.datatable_field_uid",
