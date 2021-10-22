@@ -12,6 +12,11 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import IBGThread from './interfaces/IBGThread';
 import BGThreadServerController from './BGThreadServerController';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import ForkServerController from '../Fork/ForkServerController';
+import ModuleForkServer from '../Fork/ModuleForkServer';
+import ForkMessageController from '../Fork/ForkMessageController';
+import KillForkMessage from '../Fork/messages/KillForkMessage';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -80,6 +85,16 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         }
 
         BGThreadServerController.getInstance().registered_BGThreads[bgthread.name] = bgthread;
+
+        ManualTasksController.getInstance().registered_manual_tasks_by_name["KILL BGTHREAD : " + bgthread.name] =
+            async () => {
+                if (ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
+                    ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
+                    await ForkMessageController.getInstance().send(
+                        new KillForkMessage(bgthread.name),
+                        ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
+                }
+            };
 
         // On vérifie qu'on peut lancer des bgthreads
         if (!BGThreadServerController.getInstance().run_bgthreads) {

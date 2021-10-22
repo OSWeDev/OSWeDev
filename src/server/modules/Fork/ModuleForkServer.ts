@@ -1,11 +1,14 @@
 
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
+import CRUD from '../../../shared/modules/DAO/vos/CRUD';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleServerBase from '../ModuleServerBase';
+import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
 import ForkedTasksController from './ForkedTasksController';
 import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
@@ -13,6 +16,7 @@ import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
+import KillForkMessage from './messages/KillForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
@@ -34,6 +38,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     public async configure(): Promise<void> {
+        ForkMessageController.getInstance().register_message_handler(KillForkMessage.FORK_MESSAGE_TYPE, this.handle_kill_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(PingForkMessage.FORK_MESSAGE_TYPE, this.handle_ping_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(PingForkACKMessage.FORK_MESSAGE_TYPE, this.handle_pingack_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(AliveForkMessage.FORK_MESSAGE_TYPE, this.handle_alive_message.bind(this));
@@ -109,6 +114,18 @@ export default class ModuleForkServer extends ModuleServerBase {
     private async handle_pingack_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
         ForkServerController.getInstance().forks_availability[msg.message_content] = Dates.now();
         return true;
+    }
+
+    private async handle_kill_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in 30");
+        await ThreadHandler.getInstance().sleep(10000);
+        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in 20");
+        await ThreadHandler.getInstance().sleep(20000);
+        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in 10");
+        await ThreadHandler.getInstance().sleep(30000);
+        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL");
+        process.exit();
     }
 
     private async handle_ping_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
