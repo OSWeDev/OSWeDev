@@ -49,11 +49,6 @@ export default class VarDataBaseVO implements IMatroid {
         let varConf = VarsController.getInstance().var_conf_by_name[var_name];
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[varConf.var_data_vo_type];
 
-        if (!moduletable) {
-            ConsoleHandler.getInstance().error("VarDataBaseVO.createNew !moduletable for var_name:: " + var_name);
-            return null; // return null ok ?
-        }
-
         let res: T = moduletable.voConstructor();
         res._type = varConf.var_data_vo_type;
         res.var_id = varConf.id;
