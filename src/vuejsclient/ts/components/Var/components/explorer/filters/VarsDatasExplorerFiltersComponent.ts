@@ -271,7 +271,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                 }
             } else {
                 for (let field_id in fields_filters_is_valid) {
-                    if (!matroid_fields.find((matroid_field) => matroid_field.field_id == field_id)) {
+                    if (!matroid_fields || !matroid_fields.length || matroid_fields.find((matroid_field) => matroid_field.field_id == field_id)) {
                         fields_filters_is_valid[field_id] = false;
                     }
                 }
