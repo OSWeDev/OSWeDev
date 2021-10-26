@@ -7,6 +7,7 @@ import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/An
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
+import Dates from "../../../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 

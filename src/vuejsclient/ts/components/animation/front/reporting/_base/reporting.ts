@@ -17,6 +17,7 @@ import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../../../VueAppController';
@@ -276,8 +277,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         );
     }
 
-    private get_formatted_date(date: Moment): string {
-        return date ? date.format('DD/MM/YYYY HH:mm') : null;
+    private get_formatted_date(date: number): string {
+        return date ? Dates.format(date, 'DD/MM/YYYY HH:mm') : null;
     }
 
     private get_prct_reussite_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {

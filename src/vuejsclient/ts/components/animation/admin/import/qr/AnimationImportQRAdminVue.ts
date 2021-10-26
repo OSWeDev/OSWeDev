@@ -13,6 +13,7 @@ import AnimationQRVO from '../../../../../../../shared/modules/Animation/vos/Ani
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./AnimationImportQRAdminVue.pug'),
@@ -69,7 +70,7 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
         this.reinitStoreValues();
         this.setsegment_type(TimeSegment.TYPE_YEAR);
         this.setsegment_offset(1);
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_YEAR, -1));
+        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_YEAR, -1));
         this.setsegment_number(1);
 
 
