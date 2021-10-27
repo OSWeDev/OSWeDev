@@ -12,6 +12,7 @@ import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 
 @Component({
@@ -63,7 +64,7 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
         this.reinitStoreValues();
         this.setsegment_type(TimeSegment.TYPE_YEAR);
         this.setsegment_offset(1);
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_YEAR, -1));
+        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_YEAR, -1));
         this.setsegment_number(1);
 
         this.setExport();

@@ -24,7 +24,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
 
     public enabled_categories_by_key: { [key: string]: string[] } = {};
     public item_filter_conditions_by_key: { [key: string]: (supervised_item: ISupervisedItem) => boolean } = {};
-
+    public menuBranch: MenuElementVO = null;
 
     private constructor() {
 
@@ -40,17 +40,16 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let menuBranch: MenuElementVO =
-            await MenuController.getInstance().declare_menu_element(
-                MenuElementVO.create_new(
-                    ModuleSupervision.POLICY_BO_ACCESS,
-                    VueAppController.getInstance().app_name,
-                    "SupervisionAdminVueModule",
-                    "fa-tachometer",
-                    20,
-                    null
-                )
-            );
+        this.menuBranch = await MenuController.getInstance().declare_menu_element(
+            MenuElementVO.create_new(
+                ModuleSupervision.POLICY_BO_ACCESS,
+                VueAppController.getInstance().app_name,
+                "SupervisionAdminVueModule",
+                "fa-tachometer",
+                20,
+                null
+            )
+        );
 
         let registered_api_types = SupervisionController.getInstance().registered_controllers;
         for (let api_type in registered_api_types) {
@@ -71,7 +70,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
                     20,
                     null,
                     null,
-                    menuBranch.id
+                    this.menuBranch.id
                 ),
                 this.routes
             );
@@ -94,7 +93,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             10,
             main_route_name,
             true,
-            menuBranch.id
+            this.menuBranch.id
         );
         await MenuController.getInstance().declare_menu_element(menuPointer);
 
@@ -120,7 +119,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
                 20,
                 null,
                 null,
-                menuBranch.id
+                this.menuBranch.id
             ),
             this.routes
         );

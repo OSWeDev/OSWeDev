@@ -16,6 +16,7 @@ import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { namespace } from 'vuex-class/lib/bindings';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./AnimationImportModuleAdminVue.pug'),
@@ -72,7 +73,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
         this.reinitStoreValues();
         this.setsegment_type(TimeSegment.TYPE_YEAR);
         this.setsegment_offset(1);
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_YEAR, -1));
+        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_YEAR, -1));
         this.setsegment_number(1);
 
         this.setExport();
