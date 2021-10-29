@@ -410,6 +410,14 @@ export default class VueComponentBase extends Vue
         return dateToFormat;
     }
 
+    protected formatDate_Fullyear(dateToFormat) {
+        if (ModuleFormatDatesNombres.getInstance().actif) {
+            return ModuleFormatDatesNombres.getInstance().formatDate_Fullyear(
+                dateToFormat
+            );
+        }
+    }
+
     protected formatNumber_nodecimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
             return ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(

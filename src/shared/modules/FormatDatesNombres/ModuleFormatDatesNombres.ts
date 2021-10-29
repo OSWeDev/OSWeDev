@@ -5,12 +5,14 @@ import TypesHandler from '../../tools/TypesHandler';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 import moment = require('moment');
+import Dates from './Dates/Dates';
 
 export default class ModuleFormatDatesNombres extends Module {
 
     public static PARAM_NAME_date_format_month_date = 'date_format_month_date';
     public static PARAM_NAME_date_format_fullyear_month_date = 'date_format_fullyear_month_date';
     public static PARAM_NAME_date_format_fullyear_month_day_date = 'date_format_fullyear_month_day_date';
+    public static PARAM_NAME_date_format_fullyear = 'date_format_fullyear';
     public static PARAM_NAME_nombre_separateur_1000 = 'nombre_separateur_1000';
     public static PARAM_NAME_nombre_separateur_decimal = 'nombre_separateur_decimal';
 
@@ -35,6 +37,9 @@ export default class ModuleFormatDatesNombres extends Module {
     }
     public static get FORMAT_YYYYMMDD(): string {
         return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date);
+    }
+    public static get FORMAT_YYYY(): string {
+        return ModuleFormatDatesNombres.getInstance().getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear);
     }
 
     public static get FORMAT_YYYYMMDD_HHmmss_ms(): string {
@@ -230,6 +235,13 @@ export default class ModuleFormatDatesNombres extends Module {
         return momentToFormat.format(ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
     }
 
+    public formatDate_Fullyear(dateToFormat: number): string {
+        if (dateToFormat == null) {
+            return null;
+        }
+        return Dates.format(dateToFormat, ModuleFormatDatesNombres.FORMAT_YYYY);
+    }
+
     public getMomentFromFormatted_FullyearMonthDay(dateToFormat: string): moment.Moment {
         if (dateToFormat == null) {
             return null;
@@ -394,6 +406,7 @@ export default class ModuleFormatDatesNombres extends Module {
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01)', true, true, 'DD/MM'),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 01/2017)', true, true, 'MM/Y'),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01/2017)', true, true, 'DD/MM/Y'),
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 2017', true, true, 'YYYY'),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, ModuleTableField.FIELD_TYPE_string, 'Séparateur 10^3', false, true, ' '),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal, ModuleTableField.FIELD_TYPE_string, 'Séparateur décimal', true, true, ',')
         ];
