@@ -795,6 +795,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
              */
             if (session && !!session.impersonated_from) {
 
+                await ConsoleHandler.getInstance().log('unregisterSession:logout:impersonated_from');
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session = Object.assign(session, session.impersonated_from);
@@ -808,6 +809,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 });
             } else {
 
+                await ConsoleHandler.getInstance().log('unregisterSession:logout:uid:' + session.uid);
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session.uid = null;
@@ -1057,6 +1059,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 }
 
                 try {
+                    await ConsoleHandler.getInstance().log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
                     await PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
                     });
@@ -2007,6 +2010,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          */
         if (session && !!session.impersonated_from) {
 
+            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, false);
 
             session = Object.assign(session, session.impersonated_from);
@@ -2024,6 +2028,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
+            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, true);
             session.destroy((err) => {
                 if (err) {
@@ -2032,6 +2037,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             });
         } else {
 
+            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, true);
 
             session.uid = null;

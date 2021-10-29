@@ -558,6 +558,7 @@ export default abstract class ServerBase {
                         session.last_check_session_validity = Dates.now();
 
                         if (!this.check_session_validity(session)) {
+                            await ConsoleHandler.getInstance().warn('unregisterSession:!check_session_validity:UID:' + session.uid);
                             await StackContext.getInstance().runPromise(
                                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
                                 async () => {
@@ -582,6 +583,7 @@ export default abstract class ServerBase {
                     let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
                     if ((!user) || user.blocked || user.invalidated) {
 
+                        await ConsoleHandler.getInstance().warn('unregisterSession:last_check_blocked_or_expired:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
                         await StackContext.getInstance().runPromise(
                             ServerExpressController.getInstance().getStackContextFromReq(req, session),
                             async () => {
@@ -755,8 +757,9 @@ export default abstract class ServerBase {
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
                 let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
-                if (user && (user.blocked || user.invalidated)) {
+                if ((!user) || user.blocked || user.invalidated) {
 
+                    await ConsoleHandler.getInstance().warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
                     await StackContext.getInstance().runPromise(
                         ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => {
