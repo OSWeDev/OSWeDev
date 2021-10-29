@@ -21,36 +21,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     private static instance: ModuleMailerServer = null;
 
-    /**
-     * Local thread cache -----
-     */
-    private transporter: SMTPTransport;
-    /**
-     * ----- Local thread cache
-     */
-
     private constructor() {
         super(ModuleMailer.getInstance().name);
-
-        let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
-        let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
-        if (user && (user != '') && pass && (pass != '')) {
-            this.transporter = new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
-                auth: {
-                    user: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER),
-                    pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
-                }
-            });
-        } else {
-            this.transporter = new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
-            });
-        }
     }
 
     public registerServerApiHandlers() {
@@ -86,17 +58,18 @@ export default class ModuleMailerServer extends ModuleServerBase {
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
             try {
-                let mailtransport = nodemailer.createTransport(this.transporter);
+                let mailtransport = nodemailer.createTransport(this.get_transporter());
 
                 ConsoleHandler.getInstance().log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
                 mailtransport.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         ConsoleHandler.getInstance().error(error);
-                        resolve(null);
+                        resolve(error);
                     } else {
-                        ConsoleHandler.getInstance().log('Message sent: ' + info.messageId);
-                        resolve(info.messageId);
+                        var log: string = 'Message sent: ' + info.messageId;
+                        ConsoleHandler.getInstance().log(log);
+                        resolve(log);
                     }
                 });
             } catch (error) {
@@ -157,5 +130,27 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         let address_ = address as Address;
         return whitelisted_emails.indexOf(address_.address) >= 0;
+    }
+
+    private get_transporter() {
+        let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
+        let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
+        if (user && (user != '') && pass && (pass != '')) {
+            return new SMTPTransport({
+                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
+                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
+                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
+                auth: {
+                    user: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER),
+                    pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
+                }
+            });
+        }
+
+        return new SMTPTransport({
+            host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
+            port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
+            secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
+        });
     }
 }
