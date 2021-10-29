@@ -1,5 +1,8 @@
 
 
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -7,6 +10,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
@@ -23,6 +27,7 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import VarsComputeController from './VarsComputeController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
 
@@ -51,11 +56,19 @@ export default class VarsDatasProxy {
 
     private static instance: VarsDatasProxy = null;
 
+    public denied_slowvars: { [index: string]: SlowVarVO } = {};
+
     /**
      * Version liste pour prioriser les demandes
      */
     private vars_datas_buffer: VarDataBaseVO[] = [];
     private vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
+
+    /**
+     * Au boot on teste de dépiler des vars qui seraient en attente de test, sinon on suit le chemin classique
+     */
+    private can_load_vars_to_test: boolean = true;
+
 
     private semaphore_handle_buffer: boolean = false;
 
@@ -314,6 +327,7 @@ export default class VarsDatasProxy {
                                  */
                                 let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(handle_var._type, [handle_var], null);
 
+                                // DENIED ? si on arrive à le calculer même sur un glitch c'est au final une bonne info de le forcer en base non ?
                                 if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
                                     ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts < handle_var.value_ts)))) {
 
@@ -552,6 +566,17 @@ export default class VarsDatasProxy {
                 let nb_vars: number = 0;
 
                 /**
+                 * Si c'est suite à un redémarrage on check si on a des vars en attente de test en BDD
+                 *  Si c'est le cas on gère la première de ces vars, sinon on enlève le mode démarrage
+                 */
+                let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await VarsDatasProxy.getInstance().get_var_data_to_test() : null;
+                if (vardata_to_test) {
+                    res[vardata_to_test.index] = vardata_to_test;
+                    return res;
+                }
+                VarsDatasProxy.getInstance().can_load_vars_to_test = false;
+
+                /**
                  * On commence par collecter le max de datas depuis le buffer : Les conditions de sélection d'un var :
                  *  - est-ce que la data a une valeur undefined ? oui => sélectionnée
                  *  - est-ce que la data peut expirer et a expiré ? oui => sélectionnée
@@ -571,8 +596,7 @@ export default class VarsDatasProxy {
                         let estimated_ms_var = 0;
 
                         if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id]) {
-                            estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
-                                * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
+                            estimated_ms_var = VarsComputeController.getInstance().get_estimated_time(var_data);
                         } else {
                             // debug
                             ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data.index + ':');
@@ -643,6 +667,39 @@ export default class VarsDatasProxy {
             },
             this
         );
+    }
+
+    private async get_var_data_to_test(): Promise<VarDataBaseVO> {
+
+        let filter = new ContextFilterVO();
+        filter.field_id = 'type';
+        filter.vo_type = SlowVarVO.API_TYPE_ID;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.param_numeric = SlowVarVO.TYPE_NEEDS_TEST;
+
+        let sort_by = new SortByVO();
+        sort_by.field_id = 'computation_ts';
+        sort_by.sort_asc = false;
+        sort_by.vo_type = SlowVarVO.API_TYPE_ID;
+
+        /**
+         * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
+         */
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
+            SlowVarVO.API_TYPE_ID,
+            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
+            [SlowVarVO.API_TYPE_ID],
+            1,
+            0,
+            sort_by
+        );
+
+        if (items && items.length) {
+            let slow_var: SlowVarVO = items[0];
+            ConsoleHandler.getInstance().warn('SLOW PARAM TEST:' + JSON.stringify(slow_var));
+            await ModuleDAO.getInstance().deleteVOs([slow_var]);
+            return VarDataBaseVO.from_index(slow_var.name);
+        }
     }
 
     /**

@@ -18,6 +18,7 @@ import VOsTypesManager from '../VOsTypesManager';
 import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
+import SlowVarVO from './vos/SlowVarVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
@@ -113,6 +114,7 @@ export default class ModuleVar extends Module {
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
         this.initializeVarPerfVO();
+        this.initializeSlowVarVO();
 
         VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
         VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
@@ -310,6 +312,24 @@ export default class ModuleVar extends Module {
     public async hook_module_configure(): Promise<boolean> {
         await this.initializeasync();
         return true;
+    }
+
+    private initializeSlowVarVO() {
+
+        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Index du param');
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true);
+
+        let datatable_fields = [
+            labelField,
+            var_id,
+            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, SlowVarVO.TYPE_NEEDS_TEST).setEnumValues(SlowVarVO.TYPE_LABELS),
+            new ModuleTableField('estimated_calculation_time', ModuleTableField.FIELD_TYPE_int, 'Durée estimée', false),
+            new ModuleTableField('computation_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date du batch', true),
+        ];
+
+        let datatable = new ModuleTable(this, SlowVarVO.API_TYPE_ID, () => new SlowVarVO(), datatable_fields, labelField);
+        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        this.datatables.push(datatable);
     }
 
     private initializeVarConfVO() {

@@ -2,6 +2,7 @@
 import { performance } from 'perf_hooks';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
@@ -40,6 +41,11 @@ export default class VarsComputeController {
     private perf_uid: number = 0;
 
     protected constructor() {
+    }
+
+    public get_estimated_time(var_data: VarDataBaseVO): number {
+        return (MatroidController.getInstance().get_cardinal(var_data) / 1000)
+            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
     }
 
     /**

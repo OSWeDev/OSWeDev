@@ -14,6 +14,7 @@ import ForkedTasksController from '../../Fork/ForkedTasksController';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import VarsPerfsController from '../perf/VarsPerfsController';
+import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
@@ -44,6 +45,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
+
+    public is_computing: boolean = false;
+    public current_batch_id: number = 0;
+    public current_batch_params: { [index: string]: VarDataBaseVO } = null;
 
     /**
      * Marker à activer pour forcer l'exécution au plus vite du prochain calcul
@@ -264,9 +269,19 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
                         let perf_start = performance.now();
 
+                        /**
+                         * Avant de compute on lance le SlowVarKi
+                         */
+                        VarsdatasComputerBGThread.getInstance().current_batch_id++;
+                        VarsdatasComputerBGThread.getInstance().is_computing = true;
+                        VarsdatasComputerBGThread.getInstance().current_batch_params = vars_datas;
+                        await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
+
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
                         await VarsComputeController.getInstance().compute(vars_datas); // PERF OK
                         VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
+
+                        VarsdatasComputerBGThread.getInstance().is_computing = false;
 
                         let perf_end = performance.now();
 

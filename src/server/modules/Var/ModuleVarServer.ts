@@ -62,10 +62,8 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-
-
-
-
+import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -90,6 +88,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        await ModuleVarServer.getInstance().load_slowvars();
 
         let PML__VarsdatasComputerBGThread__do_calculation_run = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsdatasComputerBGThread__do_calculation_run);
 
@@ -198,6 +198,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Importée'
         }, 'var_data.value_type.import'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'A tester'
+        }, 'slow_var.type.needs_test'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Refusée'
+        }, 'slow_var.type.denied'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Datasources'
@@ -435,7 +442,10 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async prepare_bdd_index_for_c(vo: VarDataBaseVO) {
 
         // Si on est sur un import et sans date, on force une date
-        if ((vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!vo.value_ts)) {
+        if (
+            (
+                (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) || (vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED)
+            ) && (!vo.value_ts)) {
             vo.value_ts = Dates.now();
         }
         // vo['_bdd_only_index'] = vo._bdd_only_index;
@@ -445,7 +455,11 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async prepare_bdd_index_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>) {
 
         // Si on est sur un import et sans date, on force une date
-        if ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!vo_update_handler.post_update_vo.value_ts)) {
+        if (
+            (
+                (vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) ||
+                (vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED)
+            ) && (!vo_update_handler.post_update_vo.value_ts)) {
             vo_update_handler.post_update_vo.value_ts = Dates.now();
         }
         // vo_update_handler.post_update_vo['_bdd_only_index'] = vo_update_handler.post_update_vo._bdd_only_index;
@@ -481,8 +495,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
 
-            // Impossible d'invalider un import
-            bdd_vos = bdd_vos.filter((bdd_vo) => bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT);
+            // Impossible d'invalider un import ou un denied
+            bdd_vos = bdd_vos.filter((bdd_vo) => (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_DENIED));
 
             if (bdd_vos && bdd_vos.length) {
 
@@ -1278,5 +1292,29 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         return custom_filter.param_numranges;
+    }
+
+    private async load_slowvars() {
+        let filter = new ContextFilterVO();
+        filter.field_id = 'type';
+        filter.vo_type = SlowVarVO.API_TYPE_ID;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.param_numeric = SlowVarVO.TYPE_DENIED;
+
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
+            SlowVarVO.API_TYPE_ID,
+            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
+            [SlowVarVO.API_TYPE_ID],
+            0,
+            0,
+            null
+        );
+
+        VarsDatasProxy.getInstance().denied_slowvars = {};
+        for (let i in items) {
+            let item = items[i];
+
+            VarsDatasProxy.getInstance().denied_slowvars[item.name] = item;
+        }
     }
 }

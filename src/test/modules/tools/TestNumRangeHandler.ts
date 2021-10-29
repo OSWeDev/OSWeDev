@@ -597,6 +597,16 @@ describe('NumRangeHandler', () => {
         });
     });
 
+    it('test rangesFromIndex', () => {
+
+        let ranges = [
+            RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, 0, 1, true, false, NumSegment.TYPE_INT),
+            RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, 0, 2, true, false, NumSegment.TYPE_INT),
+            RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, 1, 5, true, false, NumSegment.TYPE_INT),
+            RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, -1, 1, true, false, NumSegment.TYPE_INT),
+        ];
+        expect(RangeHandler.getInstance().rangesFromIndex(RangeHandler.getInstance().getIndexRanges(ranges), NumRange.RANGE_TYPE, NumSegment.TYPE_INT)).to.deep.equal(ranges);
+    });
 
     it('test get_combinaisons', async () => {
         let res: NumRange[][] = [];

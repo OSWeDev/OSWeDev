@@ -99,6 +99,8 @@ export default class VarsServerController {
      * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
      *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
      *  dont il faut aussi indiquer ces var datas valides
+     * 
+     * Si denied ici on dit que c'est valid, mais il faut bien remonter l'info qu'on deny aussi la var qui dépend de ce truc
      */
     public has_valid_value(param: VarDataBaseVO): boolean {
 
@@ -106,7 +108,8 @@ export default class VarsServerController {
             return false;
         }
 
-        if (param.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) {
+        if ((param.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) ||
+            (param.value_type === VarDataBaseVO.VALUE_TYPE_DENIED)) {
             return true;
         }
 

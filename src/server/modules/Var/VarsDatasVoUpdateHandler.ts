@@ -190,7 +190,7 @@ export default class VarsDatasVoUpdateHandler {
         );
     }
 
-    private async update_param() {
+    public async update_param() {
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__update_param],
@@ -225,9 +225,9 @@ export default class VarsDatasVoUpdateHandler {
                     let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, Object.values(intersectors), null);
 
                     /**
-                     * Tout sauf les imports
+                     * Tout sauf les imports et les denied
                      */
-                    var_datas = var_datas.filter((vd: VarDataBaseVO) => vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT);
+                    var_datas = var_datas.filter((vd: VarDataBaseVO) => (vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (vd.value_type != VarDataBaseVO.VALUE_TYPE_DENIED));
 
                     if (var_datas && var_datas.length) {
                         var_datas.forEach((vd: VarDataBaseVO) => {

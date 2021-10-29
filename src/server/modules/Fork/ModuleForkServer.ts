@@ -20,6 +20,7 @@ import KillForkMessage from './messages/KillForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
+import ReloadAsapForkMessage from './messages/ReloadAsapForkMessage';
 import TaskResultForkMessage from './messages/TaskResultForkMessage';
 
 export default class ModuleForkServer extends ModuleServerBase {
@@ -38,6 +39,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     public async configure(): Promise<void> {
+        ForkMessageController.getInstance().register_message_handler(ReloadAsapForkMessage.FORK_MESSAGE_TYPE, this.prepare_reload_asap.bind(this));
         ForkMessageController.getInstance().register_message_handler(KillForkMessage.FORK_MESSAGE_TYPE, this.handle_kill_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(PingForkMessage.FORK_MESSAGE_TYPE, this.handle_ping_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(PingForkACKMessage.FORK_MESSAGE_TYPE, this.handle_pingack_message.bind(this));
@@ -46,6 +48,31 @@ export default class ModuleForkServer extends ModuleServerBase {
         ForkMessageController.getInstance().register_message_handler(MainProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocesstask_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_bgthreadprocesstask_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
+    }
+
+    public async kill_process(throttle: number = 10) {
+        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+
+        while (throttle > 0) {
+            ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in " + throttle);
+            await ThreadHandler.getInstance().sleep(1000);
+            throttle--;
+        }
+        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL");
+        process.exit();
+    }
+
+    /**
+     * Doit être appelé sur le main thread
+     */
+    private async prepare_reload_asap(msg: ReloadAsapForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+        if (!msg.message_content) {
+
+            return false;
+        }
+
+        ForkServerController.getInstance().forks_reload_asap[msg.message_content] = true;
+        return true;
     }
 
     /**
@@ -117,15 +144,11 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_kill_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
-        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in 30");
-        await ThreadHandler.getInstance().sleep(10000);
-        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in 20");
-        await ThreadHandler.getInstance().sleep(20000);
-        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in 10");
-        await ThreadHandler.getInstance().sleep(30000);
-        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL");
-        process.exit();
+
+        let throttle = msg ? msg.message_content : 10;
+
+        await ModuleForkServer.getInstance().kill_process(throttle);
+        return false;
     }
 
     private async handle_ping_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
