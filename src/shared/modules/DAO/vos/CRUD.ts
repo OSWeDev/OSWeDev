@@ -292,6 +292,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public postCreate: (dataVO: IDistantVOBase) => Promise<void>;
     public postUpdate: (dataVO: IDistantVOBase) => Promise<void>;
+    public postDelete: (dataVO: IDistantVOBase) => Promise<void>;
 
     public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
 
@@ -319,6 +320,7 @@ export default class CRUD<T extends IDistantVOBase> {
         this.preCreate = null;
         this.postCreate = null;
         this.postUpdate = null;
+        this.postDelete = null;
         this.api_type_id = this.readDatatable.API_TYPE_ID;
     }
 
@@ -371,6 +373,12 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public setPostUpdate(postUpdate: (dataVO: IDistantVOBase) => Promise<void>): CRUD<T> {
         this.postUpdate = postUpdate;
+
+        return this;
+    }
+
+    public setPostDelete(postDelete: (dataVO: IDistantVOBase) => Promise<void>): CRUD<T> {
+        this.postDelete = postDelete;
 
         return this;
     }
