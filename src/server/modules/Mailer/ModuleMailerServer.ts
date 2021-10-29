@@ -21,20 +21,8 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     private static instance: ModuleMailerServer = null;
 
-    /**
-     * Local thread cache -----
-     */
-    private transporter: SMTPTransport;
-    /**
-     * ----- Local thread cache
-     */
-
     private constructor() {
         super(ModuleMailer.getInstance().name);
-    }
-
-    public async late_configuration() {
-        this.reload_transporter();
     }
 
     public registerServerApiHandlers() {
@@ -70,7 +58,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
             try {
-                let mailtransport = nodemailer.createTransport(this.transporter);
+                let mailtransport = nodemailer.createTransport(this.get_transporter());
 
                 ConsoleHandler.getInstance().log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
@@ -144,11 +132,11 @@ export default class ModuleMailerServer extends ModuleServerBase {
         return whitelisted_emails.indexOf(address_.address) >= 0;
     }
 
-    private reload_transporter() {
+    private get_transporter() {
         let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
         let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);
         if (user && (user != '') && pass && (pass != '')) {
-            this.transporter = new SMTPTransport({
+            return new SMTPTransport({
                 host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
                 port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
                 secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE),
@@ -157,12 +145,12 @@ export default class ModuleMailerServer extends ModuleServerBase {
                     pass: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS),
                 }
             });
-        } else {
-            this.transporter = new SMTPTransport({
-                host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
-                port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
-                secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
-            });
         }
+
+        return new SMTPTransport({
+            host: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_HOST),
+            port: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_PORT),
+            secure: ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SECURE)
+        });
     }
 }
