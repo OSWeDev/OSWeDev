@@ -194,6 +194,13 @@ describe('Durations', () => {
         // expect(a).to.equal(b);
     });
 
+    it('parse', () => {
+        const durationStr = '2:26:38';
+        expect(Durations.as(Durations.parse(durationStr), HourSegment.TYPE_SECOND)).to.equal(moment.duration(durationStr).asSeconds());
+        const durationInt = 3600000;
+        expect(Durations.as(Durations.parse(durationInt), HourSegment.TYPE_SECOND)).to.equal(moment.duration(durationInt).asSeconds());
+    });
+
     it('add', () => {
         // Add 1
         let b = moment.unix(basicDate).utc().add(1, 'hour').unix();
