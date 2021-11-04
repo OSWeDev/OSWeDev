@@ -205,6 +205,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Refusée'
         }, 'slow_var.type.denied'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'En cours de test'
+        }, 'slow_var.type.tesing'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Datasources'
@@ -466,6 +469,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         return true;
     }
 
+    /**
+     * Demande MANUELLE d'invalidation
+     */
     public async invalidate_cache_exact(vos: VarDataBaseVO[]) {
 
         if ((!vos) || (!vos.length)) {
@@ -495,14 +501,21 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
 
-            // Impossible d'invalider un import ou un denied
-            bdd_vos = bdd_vos.filter((bdd_vo) => (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_DENIED));
+            // Impossible d'invalider un import mais on accepte de recalculer à la demande manuelle un denied
+            bdd_vos = bdd_vos.filter((bdd_vo) => (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT));
 
             if (bdd_vos && bdd_vos.length) {
 
                 for (let j in bdd_vos) {
                     let bdd_vo = bdd_vos[j];
                     bdd_vo.value_ts = null;
+                    if (bdd_vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+                        bdd_vo.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+                        let slowvar: SlowVarVO = await ModuleDAO.getInstance().getNamedVoByName<SlowVarVO>(SlowVarVO.API_TYPE_ID, bdd_vo.index);
+                        if (slowvar) {
+                            await ModuleDAO.getInstance().deleteVOs([slowvar]);
+                        }
+                    }
                 }
                 await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
                 await VarsDatasProxy.getInstance().append_var_datas(bdd_vos);

@@ -6,6 +6,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
@@ -37,6 +38,7 @@ export default class VarsServerController {
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
     private _varcontrollers_dag: DAG<VarCtrlDAGNode> = null;
+    private _varcontrollers_dag_depths: { [var_id: number]: number } = null;
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
     private _registered_vars: { [name: string]: VarConfVO } = {};
@@ -59,6 +61,7 @@ export default class VarsServerController {
 
     public clear_all_inits() {
         VarsServerController.getInstance()._varcontrollers_dag = null;
+        VarsServerController.getInstance()._varcontrollers_dag_depths = null;
         VarsServerController.getInstance()._registered_vars = {};
         VarsServerController.getInstance()._registered_vars_by_ids = {};
         VarsServerController.getInstance()._registered_vars_controller = {};
@@ -70,6 +73,51 @@ export default class VarsServerController {
 
     get varcontrollers_dag() {
         return this._varcontrollers_dag;
+    }
+
+    get varcontrollers_dag_depths() {
+        return this._varcontrollers_dag_depths;
+    }
+
+    public async init_varcontrollers_dag_depths() {
+
+        if ((!this._varcontrollers_dag_depths) && this.varcontrollers_dag) {
+            this._varcontrollers_dag_depths = {};
+
+            let needs_again = true;
+            while (needs_again) {
+                needs_again = false;
+
+                for (let i in VarsServerController.getInstance().varcontrollers_dag.nodes) {
+                    let node = VarsServerController.getInstance().varcontrollers_dag.nodes[i];
+
+                    let is_complete = true;
+                    let depth = 1;
+
+                    for (let j in node.outgoing_deps) {
+                        let dep = node.outgoing_deps[j];
+
+                        if ((dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id == node.var_controller.varConf.id) {
+                            continue;
+                        }
+
+                        if (!this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id]) {
+                            is_complete = false;
+                            needs_again = true;
+                            break;
+                        }
+                        depth = Math.max(depth, this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id] + 1);
+                    }
+
+                    if (!is_complete) {
+                        continue;
+                    }
+
+                    this._varcontrollers_dag_depths[node.var_controller.varConf.id] = depth;
+                }
+            }
+        }
+        return this._varcontrollers_dag_depths;
     }
 
     get registered_vars_controller_(): { [name: string]: VarServerControllerBase<any> } {
@@ -99,7 +147,7 @@ export default class VarsServerController {
      * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
      *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
      *  dont il faut aussi indiquer ces var datas valides
-     * 
+     *
      * Si denied ici on dit que c'est valid, mais il faut bien remonter l'info qu'on deny aussi la var qui dépend de ce truc
      */
     public has_valid_value(param: VarDataBaseVO): boolean {

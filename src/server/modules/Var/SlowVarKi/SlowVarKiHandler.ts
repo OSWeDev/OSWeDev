@@ -15,6 +15,9 @@ import ForkMessageController from '../../Fork/ForkMessageController';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarsTabsSubsController from '../VarsTabsSubsController';
 import VarsServerCallBackSubsController from '../VarsServerCallBackSubsController';
+import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 /**
  * Objectif :
@@ -40,6 +43,8 @@ export default class SlowVarKiHandler {
         return SlowVarKiHandler.instance;
     }
 
+    private actual_slow_var_test: SlowVarVO;
+
     protected constructor() {
     }
 
@@ -59,6 +64,92 @@ export default class SlowVarKiHandler {
         }, timeout_ms);
 
         // Tout est ok les calculs sont déjà terminés
+    }
+
+    public async handle_slow_var_ki_start(): Promise<VarDataBaseVO> {
+
+        /**
+         * 1 on check les testing qui pourrait être restés bloqués en base
+         * 2 on trouve le premier totest en attente
+         */
+        this.actual_slow_var_test = null;
+
+        await this.handle_stuck_slow_vars();
+        return await this.get_var_data_to_test();
+    }
+
+    public async handle_slow_var_ki_end(): Promise<void> {
+        if (this.actual_slow_var_test) {
+            await ModuleDAO.getInstance().deleteVOs([this.actual_slow_var_test]);
+        }
+    }
+
+    private async handle_stuck_slow_vars(): Promise<void> {
+
+        let filter = new ContextFilterVO();
+        filter.field_id = 'type';
+        filter.vo_type = SlowVarVO.API_TYPE_ID;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.param_numeric = SlowVarVO.TYPE_TESTING;
+
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
+            SlowVarVO.API_TYPE_ID,
+            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
+            [SlowVarVO.API_TYPE_ID],
+            0,
+            0,
+            null
+        );
+
+        if (items && items.length) {
+
+            for (let i in items) {
+                let slow_var: SlowVarVO = items[i];
+
+                ConsoleHandler.getInstance().warn('HANDLING STUCK SLOW VAR:' + JSON.stringify(slow_var));
+                await this.deny_slow_var(slow_var, VarDataBaseVO.from_index(slow_var.name), Dates.now());
+            }
+        }
+    }
+
+    private async get_var_data_to_test(): Promise<VarDataBaseVO> {
+
+        /**
+         * 1 on check les testing qui pourrait être restés bloqués en base
+         * 2 on trouve le premier totest en attente
+         */
+
+
+        let filter = new ContextFilterVO();
+        filter.field_id = 'type';
+        filter.vo_type = SlowVarVO.API_TYPE_ID;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.param_numeric = SlowVarVO.TYPE_NEEDS_TEST;
+
+        let sort_by = new SortByVO();
+        sort_by.field_id = 'computation_ts';
+        sort_by.sort_asc = false;
+        sort_by.vo_type = SlowVarVO.API_TYPE_ID;
+
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
+            SlowVarVO.API_TYPE_ID,
+            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
+            [SlowVarVO.API_TYPE_ID],
+            1,
+            0,
+            sort_by
+        );
+
+        if (items && items.length) {
+            let slow_var: SlowVarVO = items[0];
+            ConsoleHandler.getInstance().warn('SLOW PARAM TEST:' + JSON.stringify(slow_var));
+
+            slow_var.type = SlowVarVO.TYPE_TESTING;
+            await ModuleDAO.getInstance().insertOrUpdateVO(slow_var);
+
+            this.actual_slow_var_test = slow_var;
+            return VarDataBaseVO.from_index(slow_var.name);
+        }
     }
 
     /**
@@ -108,20 +199,29 @@ export default class SlowVarKiHandler {
             slowVar.name = computed_var.index;
             slowVar.computation_ts = computation_ts;
             slowVar.var_id = computed_var.var_id;
-            slowVar.type = is_single ? SlowVarVO.TYPE_DENIED : SlowVarVO.TYPE_NEEDS_TEST;
             slowVar.estimated_calculation_time = VarsComputeController.getInstance().get_estimated_time(computed_var);
-            await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
 
             // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
             if (is_single) {
-                computed_var.value = 0;
-                computed_var.value_ts = computation_ts;
-                computed_var.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
-                let res = await ModuleDAO.getInstance().insertOrUpdateVO(computed_var);
-                computed_var.id = res.id;
-                await VarsTabsSubsController.getInstance().notify_vardatas([computed_var]);
-                await VarsServerCallBackSubsController.getInstance().notify_vardatas([computed_var]);
+                await this.deny_slow_var(slowVar, computed_var, computation_ts);
+            } else {
+                slowVar.type = SlowVarVO.TYPE_NEEDS_TEST;
+                await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
             }
         }
+    }
+
+    private async deny_slow_var(slowVar: SlowVarVO, computed_var: VarDataBaseVO, computation_ts: number) {
+        slowVar.type = SlowVarVO.TYPE_DENIED;
+        await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
+
+        // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
+        computed_var.value = 0;
+        computed_var.value_ts = computation_ts;
+        computed_var.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+        let res = await ModuleDAO.getInstance().insertOrUpdateVO(computed_var);
+        computed_var.id = res.id;
+        await VarsTabsSubsController.getInstance().notify_vardatas([computed_var]);
+        await VarsServerCallBackSubsController.getInstance().notify_vardatas([computed_var]);
     }
 }

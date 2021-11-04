@@ -1,4 +1,3 @@
-import { templateSettings } from 'lodash';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';

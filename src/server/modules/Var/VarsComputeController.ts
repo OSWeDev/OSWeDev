@@ -179,6 +179,11 @@ export default class VarsComputeController {
                         "__computing_bg_thread.compute.create_tree.try_load_cache_complet",
                         node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_complet"
                     ], false);
+
+                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        return;
+                    }
                 }
 
                 /**
@@ -201,6 +206,11 @@ export default class VarsComputeController {
                         "__computing_bg_thread.compute.create_tree.load_imports_and_split_nodes",
                         node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.load_imports_and_split_nodes"
                     ], false);
+
+                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        return;
+                    }
                 }
 
                 /**
@@ -220,6 +230,11 @@ export default class VarsComputeController {
                         "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
                         node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
                     ], false);
+
+                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        return;
+                    }
                 }
 
                 VarsPerfsController.addPerfs(performance.now(), [
@@ -234,6 +249,21 @@ export default class VarsComputeController {
                     "__computing_bg_thread.compute.create_tree.ds_cache",
                     node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.ds_cache"
                 ], false);
+
+                /**
+                 * Si dans les deps on a un denied, on refuse le tout
+                 */
+                for (let i in deps) {
+                    let dep = deps[i];
+
+                    if (dep.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+                        node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+                        node.var_data.value = 0;
+                        node.var_data.value_ts = Dates.now();
+                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        return;
+                    }
+                }
 
                 if (deps) {
                     await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);

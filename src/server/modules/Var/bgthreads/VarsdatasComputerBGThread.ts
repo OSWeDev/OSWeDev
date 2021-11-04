@@ -281,6 +281,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         await VarsComputeController.getInstance().compute(vars_datas); // PERF OK
                         VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
 
+                        await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
+
                         VarsdatasComputerBGThread.getInstance().is_computing = false;
 
                         let perf_end = performance.now();
@@ -290,8 +292,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         }
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
-                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
-                                (perf_end - perf_start) + ' ms] computing');
                             // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                             //     ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
                             //         VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
@@ -308,7 +308,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             //     ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
                             //         VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total');
                             // }
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread perfs update asked');
                             await VarsPerfsController.update_perfs_in_bdd(); // PERF OK
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
+                                (perf_end - perf_start) + ' ms] computing');
                         }
 
                     } catch (error) {

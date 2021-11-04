@@ -3,6 +3,7 @@ import MatroidController from '../../../../shared/modules/Matroid/MatroidControl
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
@@ -82,6 +83,8 @@ export default class VarsPerfsController {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsPerfsController__update_perfs_in_bdd],
             async () => {
 
+                ConsoleHandler.getInstance().log('VarsPerfsController do_update_perfs_in_bdd start');
+
                 let mean_per_cardinal_1000_per_var_id: { [var_id: number]: number } = {};
 
                 /**
@@ -158,6 +161,7 @@ export default class VarsPerfsController {
                 }
 
 
+                ConsoleHandler.getInstance().log('VarsPerfsController do_update_perfs_in_bdd end');
                 VarsPerfsController.current_batch_perfs = {};
             },
             this

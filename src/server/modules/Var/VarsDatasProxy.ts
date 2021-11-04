@@ -27,6 +27,7 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
 import VarsComputeController from './VarsComputeController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
@@ -272,7 +273,7 @@ export default class VarsDatasProxy {
                         }
 
                         // Si on a pas de modif à gérer et que le dernier accès date, on nettoie
-                        if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && (wrapper.last_insert_or_update < Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE)))) {
+                        if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && (wrapper.last_insert_or_update < Dates.add(Dates.now(), -15, TimeSegment.TYPE_SECOND)))) {
                             // if (env.DEBUG_VARS) {
                             //     ConsoleHandler.getInstance().log(
                             //         'handle_buffer:pas de modif à gérer et que le dernier accès date:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
@@ -289,7 +290,7 @@ export default class VarsDatasProxy {
                             (!wrapper.needs_insert_or_update) &&
                             (!(
                                 (wrapper.nb_reads_since_last_insert_or_update >= 10) ||
-                                (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || (wrapper.last_insert_or_update < Dates.add(Dates.now(), -2, TimeSegment.TYPE_MINUTE))))))) {
+                                (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || (wrapper.last_insert_or_update < Dates.add(Dates.now(), -5, TimeSegment.TYPE_SECOND))))))) {
 
                             // if (env.DEBUG_VARS) {
                             //     ConsoleHandler.getInstance().log(
@@ -569,7 +570,7 @@ export default class VarsDatasProxy {
                  * Si c'est suite à un redémarrage on check si on a des vars en attente de test en BDD
                  *  Si c'est le cas on gère la première de ces vars, sinon on enlève le mode démarrage
                  */
-                let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await VarsDatasProxy.getInstance().get_var_data_to_test() : null;
+                let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await SlowVarKiHandler.getInstance().handle_slow_var_ki_start() : null;
                 if (vardata_to_test) {
                     res[vardata_to_test.index] = vardata_to_test;
                     return res;
@@ -581,6 +582,14 @@ export default class VarsDatasProxy {
                  *  - est-ce que la data a une valeur undefined ? oui => sélectionnée
                  *  - est-ce que la data peut expirer et a expiré ? oui => sélectionnée
                  */
+
+                /**
+                 * On commence par ordonner les vars par cardinal pour commencer par les plus petites, et aussi par celles qui sont en bas de l'arbre
+                 */
+                if (this.vars_datas_buffer && this.vars_datas_buffer.length) {
+                    this.order_vars_datas_buffer();
+                }
+
                 for (let i in this.vars_datas_buffer) {
 
                     // ajout cas spécifique isolement d'une var trop gourmande
@@ -669,39 +678,6 @@ export default class VarsDatasProxy {
         );
     }
 
-    private async get_var_data_to_test(): Promise<VarDataBaseVO> {
-
-        let filter = new ContextFilterVO();
-        filter.field_id = 'type';
-        filter.vo_type = SlowVarVO.API_TYPE_ID;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
-        filter.param_numeric = SlowVarVO.TYPE_NEEDS_TEST;
-
-        let sort_by = new SortByVO();
-        sort_by.field_id = 'computation_ts';
-        sort_by.sort_asc = false;
-        sort_by.vo_type = SlowVarVO.API_TYPE_ID;
-
-        /**
-         * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
-         */
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
-            SlowVarVO.API_TYPE_ID,
-            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
-            [SlowVarVO.API_TYPE_ID],
-            1,
-            0,
-            sort_by
-        );
-
-        if (items && items.length) {
-            let slow_var: SlowVarVO = items[0];
-            ConsoleHandler.getInstance().warn('SLOW PARAM TEST:' + JSON.stringify(slow_var));
-            await ModuleDAO.getInstance().deleteVOs([slow_var]);
-            return VarDataBaseVO.from_index(slow_var.name);
-        }
-    }
-
     /**
      * On récupère des packets max de 500 vars, et si besoin on en récupèrera d'autres pour remplir le temps limit
      * -- 02/21 Changement méthode on parcours l'arbre des var controller en commençant par le bas pour remonter depuis les DS vers les calculs
@@ -719,11 +695,17 @@ export default class VarsDatasProxy {
             async () => {
 
                 let vars_datas: { [index: string]: VarDataBaseVO } = {};
+                let already_tested: { [var_id: number]: boolean } = {};
 
                 for (let i in VarsServerController.getInstance().varcontrollers_dag.leafs) {
                     let leaf = VarsServerController.getInstance().varcontrollers_dag.leafs[i];
 
                     await DAGController.getInstance().visit_bottom_up_from_node(leaf, async (Ny: VarCtrlDAGNode) => {
+
+                        if (already_tested[Ny.var_controller.varConf.id]) {
+                            return;
+                        }
+                        already_tested[Ny.var_controller.varConf.id] = true;
 
                         let may_have_more_datas: boolean = true;
                         let limit: number = 500;
@@ -933,5 +915,33 @@ export default class VarsDatasProxy {
         if (var_data_wrapper.var_data.last_reads_ts.length > 20) {
             var_data_wrapper.var_data.last_reads_ts.shift();
         }
+    }
+
+    private order_vars_datas_buffer() {
+
+        let cardinaux: { [index: string]: number } = {};
+
+        for (let i in this.vars_datas_buffer) {
+            let var_ = this.vars_datas_buffer[i];
+            cardinaux[var_.index] = MatroidController.getInstance().get_cardinal(var_);
+        }
+
+        this.vars_datas_buffer.sort((a: VarDataBaseVO, b: VarDataBaseVO): number => {
+
+            // En priorité par hauteur dans l'arbre
+            if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
+                VarsServerController.getInstance().init_varcontrollers_dag_depths();
+            }
+
+            let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_id];
+            let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_id];
+
+            if (depth_a != depth_b) {
+                return depth_a - depth_b;
+            }
+
+            // Ensuite par cardinal
+            return cardinaux[a.index] - cardinaux[b.index];
+        });
     }
 }
