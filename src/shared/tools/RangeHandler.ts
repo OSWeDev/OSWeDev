@@ -971,6 +971,31 @@ export default class RangeHandler {
         return res;
     }
 
+    public rangesFromIndex(index: string, range_type: number, segmentation_type: number): IRange[] {
+        let ranges: IRange[] = [];
+
+        if ((!index) || (index.length < 2)) {
+            return null;
+        }
+
+        index = index.substr(2, index.length);
+        while (index && (index.length > 2)) {
+
+            /**
+             * structure par range : [a,b)
+             */
+            let sub_part = index.substr(0, index.indexOf(')'));
+            let parts = sub_part.split(',');
+            let a = parseInt(parts[0]);
+            let b = parseInt(parts[1]);
+            ranges.push(RangeHandler.getInstance().createNew(range_type, a, b, true, false, segmentation_type));
+
+            index = (sub_part.length + 3 < index.length) ? index.substr(sub_part.length + 3, index.length) : null;
+        }
+
+        return ranges;
+    }
+
     public getIndexRanges(ranges: IRange[], cut_max_range: boolean = false): string {
 
         if ((!ranges) || (!ranges.length)) {
@@ -1448,7 +1473,26 @@ export default class RangeHandler {
     }
 
 
+    public getRangeType(table_field: ModuleTableField<any>): number {
+        switch (table_field.field_type) {
+            case ModuleTableField.FIELD_TYPE_numrange:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                return NumRange.RANGE_TYPE;
 
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return TSRange.RANGE_TYPE;
+
+            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return HourRange.RANGE_TYPE;
+
+            default:
+                return null;
+        }
+    }
 
     public getMaxRange(table_field: ModuleTableField<any>): IRange {
         switch (table_field.field_type) {

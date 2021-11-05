@@ -14,6 +14,7 @@ import ForkedTasksController from '../../Fork/ForkedTasksController';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import VarsPerfsController from '../perf/VarsPerfsController';
+import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
@@ -44,6 +45,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
+
+    public is_computing: boolean = false;
+    public current_batch_id: number = 0;
+    public current_batch_params: { [index: string]: VarDataBaseVO } = null;
 
     /**
      * Marker à activer pour forcer l'exécution au plus vite du prochain calcul
@@ -264,9 +269,21 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
                         let perf_start = performance.now();
 
+                        /**
+                         * Avant de compute on lance le SlowVarKi
+                         */
+                        VarsdatasComputerBGThread.getInstance().current_batch_id++;
+                        VarsdatasComputerBGThread.getInstance().is_computing = true;
+                        VarsdatasComputerBGThread.getInstance().current_batch_params = vars_datas;
+                        await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
+
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
                         await VarsComputeController.getInstance().compute(vars_datas); // PERF OK
                         VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
+
+                        await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
+
+                        VarsdatasComputerBGThread.getInstance().is_computing = false;
 
                         let perf_end = performance.now();
 
@@ -275,8 +292,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         }
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
-                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
-                                (perf_end - perf_start) + ' ms] computing');
                             // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                             //     ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
                             //         VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
@@ -293,7 +308,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             //     ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
                             //         VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total');
                             // }
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread perfs update asked');
                             await VarsPerfsController.update_perfs_in_bdd(); // PERF OK
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
+                                (perf_end - perf_start) + ' ms] computing');
                         }
 
                     } catch (error) {

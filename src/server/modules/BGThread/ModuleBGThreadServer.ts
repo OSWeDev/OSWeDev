@@ -17,8 +17,11 @@ import ForkServerController from '../Fork/ForkServerController';
 import ModuleForkServer from '../Fork/ModuleForkServer';
 import ForkMessageController from '../Fork/ForkMessageController';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
+
+    public static PARAM_kill_throttle_s: string = 'ModuleBGThreadServer.PARAM_kill_throttle_s';
 
     public static TIMEOUT_COEF_LITTLE_BIT_SLOWER: number = 1.25;
     public static TIMEOUT_COEF_SLOWER: number = 2;
@@ -91,7 +94,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 if (ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType] &&
                     ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name]) {
                     await ForkMessageController.getInstance().send(
-                        new KillForkMessage(bgthread.name),
+                        new KillForkMessage(await ModuleParams.getInstance().getParamValueAsInt(ModuleBGThreadServer.PARAM_kill_throttle_s, 10)),
                         ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread.name].child_process);
                 }
             };

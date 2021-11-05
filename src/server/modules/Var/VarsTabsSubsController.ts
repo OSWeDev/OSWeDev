@@ -1,3 +1,4 @@
+import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ForkedTasksController from '../Fork/ForkedTasksController';

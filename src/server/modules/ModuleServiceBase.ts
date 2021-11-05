@@ -438,6 +438,7 @@ export default abstract class ModuleServiceBase {
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
             ModuleDataSource.getInstance(),
+            ModuleContextFilter.getInstance(),
             ModuleVar.getInstance(),
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
@@ -475,7 +476,6 @@ export default abstract class ModuleServiceBase {
             ModulePowershell.getInstance(),
             ModuleNFCConnect.getInstance(),
             ModuleDashboardBuilder.getInstance(),
-            ModuleContextFilter.getInstance(),
             ModuleMenu.getInstance()
         ];
     }
@@ -491,6 +491,7 @@ export default abstract class ModuleServiceBase {
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
             ModuleCronServer.getInstance(),
+            ModuleContextFilterServer.getInstance(),
             ModuleVarServer.getInstance(),
             ModulePushDataServer.getInstance(),
             ModuleMailerServer.getInstance(),
@@ -526,7 +527,6 @@ export default abstract class ModuleServiceBase {
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),
-            ModuleContextFilterServer.getInstance(),
             ModuleMenuServer.getInstance()
         ];
     }

@@ -75,6 +75,14 @@ export default class VarDescComponent extends VueComponentBase {
         return var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT;
     }
 
+    get var_data_value_is_denied() {
+        if (!this.var_data) {
+            return false;
+        }
+
+        return this.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED;
+    }
+
     get var_id(): number {
         if (!this.var_param) {
             return null;

@@ -2,6 +2,7 @@
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
+import TSRange from '../../DataRender/vos/TSRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
@@ -14,9 +15,35 @@ import VarConfVO from './VarConfVO';
  */
 export default class VarDataBaseVO implements IMatroid {
 
-    public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
+    public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed', 'var_data.value_type.denied'];
     public static VALUE_TYPE_IMPORT: number = 0;
     public static VALUE_TYPE_COMPUTED: number = 1;
+    public static VALUE_TYPE_DENIED: number = 2;
+
+    public static from_index(index: string): VarDataBaseVO {
+
+        let pieces: string[] = index.split('_');
+        let var_id: number = parseInt(pieces[0]);
+        let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
+        let res: VarDataBaseVO = VOsTypesManager.getInstance().moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
+
+        res.var_id = var_id;
+        let fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            let range_type = RangeHandler.getInstance().getRangeType(field);
+            // ATTENTION c'est pas évidemment que tous les segments dates soient identiques dans le principe
+            //  et sur les hourranges on a juste pas l'info par var, uniquement sur la déclaration du VO ...
+            res[field.field_id] = RangeHandler.getInstance().rangesFromIndex(
+                pieces[parseInt(i) + 1],
+                range_type,
+                (range_type == TSRange.RANGE_TYPE) ? var_conf.ts_ranges_segment_type : field.segmentation_type);
+        }
+
+        return res;
+    }
 
     public static are_same(a: VarDataBaseVO, b: VarDataBaseVO): boolean {
         if (a && !b) {
