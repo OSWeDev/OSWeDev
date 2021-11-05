@@ -722,7 +722,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             //     }
             // }
 
-            insertVos.push(vo);
+            if (!!vo) {
+                insertVos.push(vo);
+            }
         }
 
         return ModuleDAO.getInstance().insertOrUpdateVOs(insertVos);

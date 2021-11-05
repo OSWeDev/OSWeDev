@@ -1134,10 +1134,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On vérifie qu'on peut faire un insert ou update
-        if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type])) {
+        if ((!vos) || (!vos.length)) {
             return null;
         }
-        if (!this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
+
+        vos = vos.filter((vo) =>
+            (!!vo) && vo._type && VOsTypesManager.getInstance().moduleTables_by_voType[vo._type] &&
+            this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE));
+
+        if ((!vos) || (!vos.length)) {
             return null;
         }
 
