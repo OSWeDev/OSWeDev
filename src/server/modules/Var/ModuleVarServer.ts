@@ -224,6 +224,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'SlowVars'
+        }, 'menu.menuelements.admin.SlowVarVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'En cours de test'
+        }, 'slow_var.type.testing'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Matroids calculés'
         }, 'var.desc_mode.computed_datas_matroids.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

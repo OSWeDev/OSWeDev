@@ -62,7 +62,7 @@ export default class VarsDatasProxy {
     /**
      * Version liste pour prioriser les demandes
      */
-    private vars_datas_buffer: VarDataBaseVO[] = [];
+    private vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
     private vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     /**
@@ -179,7 +179,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                var_datas = await this.filter_var_datas_by_indexes(var_datas, false, false, false);
+                await this.filter_var_datas_by_indexes(var_datas, false, false, false);
             },
             this
         );
@@ -204,9 +204,9 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                var_datas = await this.filter_var_datas_by_indexes(var_datas, true, false, does_not_need_insert_or_update);
+                let filtered = await this.filter_var_datas_by_indexes(var_datas, true, false, does_not_need_insert_or_update);
 
-                if ((!var_datas) || (!var_datas.length)) {
+                if ((!filtered) || (!filtered.length)) {
                     return;
                 }
 
@@ -280,7 +280,7 @@ export default class VarsDatasProxy {
                             //         ":wrapper:needs_insert_or_update|" + wrapper.needs_insert_or_update + ":nb_reads_since_last_insert_or_update|" + wrapper.nb_reads_since_last_insert_or_update + ":last_insert_or_update|" + wrapper.last_insert_or_update
                             //     );
                             // }
-                            this.vars_datas_buffer.splice(this.vars_datas_buffer.findIndex((e) => e.index == index), 1);
+                            this.vars_datas_buffer.splice(this.vars_datas_buffer.findIndex((e) => e.var_data.index == index), 1);
                             delete this.vars_datas_buffer_wrapped_indexes[index];
                             continue;
                         }
@@ -351,7 +351,7 @@ export default class VarsDatasProxy {
                                         // Retrait du rechargement pour le moment car le dashboard peut générer facilement des index trop grands pour être indéxées
                                         // await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
 
-                                        self.vars_datas_buffer.splice(self.vars_datas_buffer.findIndex((e) => e.index == index), 1);
+                                        self.vars_datas_buffer.splice(self.vars_datas_buffer.findIndex((e) => e.var_data.index == index), 1);
                                         delete self.vars_datas_buffer_wrapped_indexes[index];
                                         return;
                                     } else {
@@ -598,17 +598,17 @@ export default class VarsDatasProxy {
                         return res;
                     }
 
-                    let var_data = this.vars_datas_buffer[i];
+                    let var_data_wrapper = this.vars_datas_buffer[i];
 
-                    if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                    if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
 
                         let estimated_ms_var = 0;
 
-                        if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id]) {
-                            estimated_ms_var = VarsComputeController.getInstance().get_estimated_time(var_data);
+                        if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id]) {
+                            estimated_ms_var = VarsComputeController.getInstance().get_estimated_time(var_data_wrapper.var_data);
                         } else {
                             // debug
-                            ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data.index + ':');
+                            ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_wrapper.var_data.index + ':');
                             try {
                                 ConsoleHandler.getInstance().warn(JSON.stringify(VarsServerController.getInstance().varcacheconf_by_var_ids));
                             } catch (error) {
@@ -621,8 +621,8 @@ export default class VarsDatasProxy {
                         //     continue;
                         // }
 
-                        nb_vars += res[var_data.index] ? 0 : 1;
-                        res[var_data.index] = var_data;
+                        nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
+                        res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
                         estimated_ms += estimated_ms_var;
                         continue;
                     }
@@ -802,7 +802,7 @@ export default class VarsDatasProxy {
      * On doit s'assurer par contre de pas rentrer en conflit avec un handle du buffer
      * @param var_datas
      */
-    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
+    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<Array<VarDataProxyWrapperVO<VarDataBaseVO>>> {
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes],
@@ -822,7 +822,7 @@ export default class VarsDatasProxy {
                 //     await ThreadHandler.getInstance().sleep(9);
                 // }
                 // this.semaphore_handle_buffer = true;
-                let res: VarDataBaseVO[] = [];
+                let res: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
 
                 // try {
 
@@ -855,7 +855,7 @@ export default class VarsDatasProxy {
                                 }
                                 wrapper.var_data = var_data;
                                 this.add_read_stat(wrapper);
-                                this.vars_datas_buffer[this.vars_datas_buffer.findIndex((e) => e.index == var_data.index)] = var_data;
+                                this.vars_datas_buffer[this.vars_datas_buffer.findIndex((e) => e.var_data.index == var_data.index)] = wrapper;
                                 // On push pas puisque c'était déjà en attente d'action
 
                                 // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
@@ -873,11 +873,12 @@ export default class VarsDatasProxy {
 
                     // TODO FIXME le thread principal doit pouvoir mettre à jour la liste des reads sur une var en bdd de temps à autre
                     //  attention impact invalidation peut-etre sur thread des vars ...
+                    // TODO FIXME pour moi ce test a pas de sens on devrait toujours être côté bgthread du computer, donc ...
                     if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
-                        this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, !just_been_loaded_from_db, 0);
+                        this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, prepend, !just_been_loaded_from_db, 0);
                         this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
+                        res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
                     }
-                    res.push(var_data);
 
                     // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
                     if (!VarsServerController.getInstance().has_valid_value(var_data)) {
@@ -922,26 +923,35 @@ export default class VarsDatasProxy {
         let cardinaux: { [index: string]: number } = {};
 
         for (let i in this.vars_datas_buffer) {
-            let var_ = this.vars_datas_buffer[i];
-            cardinaux[var_.index] = MatroidController.getInstance().get_cardinal(var_);
+            let var_wrapper = this.vars_datas_buffer[i];
+            cardinaux[var_wrapper.var_data.index] = MatroidController.getInstance().get_cardinal(var_wrapper.var_data);
         }
 
-        this.vars_datas_buffer.sort((a: VarDataBaseVO, b: VarDataBaseVO): number => {
+        this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
 
-            // En priorité par hauteur dans l'arbre
+            // En priorité les demandes client
+            if (a.is_client_var && !b.is_client_var) {
+                return -1;
+            }
+
+            if ((!a.is_client_var) && b.is_client_var) {
+                return 1;
+            }
+
+            // Ensuite par hauteur dans l'arbre
             if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
                 VarsServerController.getInstance().init_varcontrollers_dag_depths();
             }
 
-            let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_id];
-            let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_id];
+            let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_data.var_id];
+            let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_data.var_id];
 
             if (depth_a != depth_b) {
                 return depth_a - depth_b;
             }
 
-            // Ensuite par cardinal
-            return cardinaux[a.index] - cardinaux[b.index];
+            // Enfin par cardinal
+            return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
         });
     }
 }
