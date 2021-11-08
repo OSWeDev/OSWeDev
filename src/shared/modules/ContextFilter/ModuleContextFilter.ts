@@ -44,7 +44,7 @@ export default class ModuleContextFilter extends Module {
         limit: number,
         offset: number,
         sort_by: SortByVO,
-        res_field_aliases: string[]) => Promise<DataFilterOption[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_get_filtered_datatable_rows);
+        res_field_aliases: string[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_get_filtered_datatable_rows);
 
     public query_rows_count_from_active_filters: (
         api_type_ids: string[],

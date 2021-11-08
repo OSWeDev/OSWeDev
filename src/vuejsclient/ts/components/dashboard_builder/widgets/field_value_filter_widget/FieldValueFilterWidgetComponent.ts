@@ -9,6 +9,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import FieldValueFilterBooleanWidgetComponent from './boolean/FieldValueFilterBooleanWidgetComponent';
+import FieldValueFilterEnumWidgetComponent from './enum/FieldValueFilterEnumWidgetComponent';
 import './FieldValueFilterWidgetComponent.scss';
 import FieldValueFilterWidgetOptions from './options/FieldValueFilterWidgetOptions';
 import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStringWidgetComponent';
@@ -17,7 +18,8 @@ import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStri
     template: require('./FieldValueFilterWidgetComponent.pug'),
     components: {
         Fieldvaluefilterstringwidgetcomponent: FieldValueFilterStringWidgetComponent,
-        Fieldvaluefilterbooleanwidgetcomponent: FieldValueFilterBooleanWidgetComponent
+        Fieldvaluefilterbooleanwidgetcomponent: FieldValueFilterBooleanWidgetComponent,
+        Fieldvaluefilterenumwidgetcomponent: FieldValueFilterEnumWidgetComponent
     }
 })
 export default class FieldValueFilterWidgetComponent extends VueComponentBase {
@@ -41,6 +43,23 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_boolean:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    get is_type_enum(): boolean {
+
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
+            return false;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_enum:
                 return true;
 
             default:

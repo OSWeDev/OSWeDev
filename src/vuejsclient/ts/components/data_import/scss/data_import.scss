@@ -1,60 +1,112 @@
 @import 'skin-variables';
 
-body.page-Manage.dih .crud-wrapper {
-
-    .field[field_name="state"]:hover {
-        span {
-	        font-size: 13px;
-        }
-
-        span::before {
-	        display:none;
-        }
+body.page-Manage.dih .crud-wrapper .field[field_name="state"]:hover,
+.dashboard_builder_board .table_widget_component .field[field_name="state"]:hover,
+body.page-Manage.dih .crud-wrapper .field[field_name="status_of_last_reimport"]:hover,
+.dashboard_builder_board .table_widget_component .field[field_name="status_of_last_reimport"]:hover,
+body.page-Manage.dih .crud-wrapper .field[field_name="status_before_reimport"]:hover,
+.dashboard_builder_board .table_widget_component .field[field_name="status_before_reimport"]:hover {
+    span {
+        font-size: 13px;
     }
 
-    .field[field_name="state"]{
-        span {
-            font-size: 0;
-        	cursor:pointer;
-        }
+    span::before {
+        display:none;
+    }
+}
 
-        span::before {
-            font-size: 13px;
-            color: white;
-            padding: 4px;
-            border-radius: 3px;
-        }
+body.page-Manage.dih .crud-wrapper .field[field_name="state"],
+.dashboard_builder_board .table_widget_component .field[field_name="state"],
+body.page-Manage.dih .crud-wrapper .field[field_name="status_of_last_reimport"],
+.dashboard_builder_board .table_widget_component .field[field_name="status_of_last_reimport"],
+body.page-Manage.dih .crud-wrapper .field[field_name="status_before_reimport"],
+.dashboard_builder_board .table_widget_component .field[field_name="status_before_reimport"] {
+    span {
+        font-size: 0;
+        cursor:pointer;
+    }
 
-        span::before {
-            content: 'Import...';
-            background: royalblue;
-        }
+    span::before {
+        font-size: 13px;
+        color: white;
+        padding: 4px;
+        border-radius: 3px;
+    }
 
-        span.N_cessite_un_r_import::before {
-            content: 'Réimport';
-            background: $light_warning;
-        }
+    span.Formatt_::before,
+    span.Formattage___::before,
+    span.Import_::before,
+    span.Importation___::before,
+    span.En_cours_d_import___::before,
+    span.En_attente_de_r_-importation::before,
+    span.Post-traitement___::before,
+    span.Pr_t___importer::before,
+    span.Upload_::before
+    {
+        content: 'Import...';
+        background: royalblue;
+    }
 
-        span.Post-trait_::before {
-            content: 'OK';
-            background: $success_color;
-        }
+    span.N_cessite_un_r_import::before {
+        content: 'Réimport';
+        background: $light_warning;
+    }
 
-        span.Import_interdit::before,
-        span.Importation_interdite::before {
-            content: 'Interdit';
-            background: $danger_color;
-        }
+    span.Post-trait_::before {
+        content: 'OK';
+        background: $success_color;
+    }
 
-        span.Post-traitement__chou_::before,
-        span.Echec_lors_du_post-traitement::before {
-            content: 'Echec';
-            background: $danger_color;
-        }
+    span.Import_interdit::before,
+    span.Importation_interdite::before {
+        content: 'Interdit';
+        background: $danger_color;
+    }
 
-        span.Import__chou_::before {
-            content: 'Echec';
-            background: $danger_color;
-        }
+    span.Post-traitement__chou_::before,
+    span.Echec_lors_de_l_importation::before,
+    span.Echec_lors_du_post-traitement::before {
+        content: 'Echec';
+        background: $danger_color;
+    }
+
+    span.Import__chou_::before {
+        content: 'Echec';
+        background: $danger_color;
+    }
+}
+
+.dashboard_builder_board .table_widget_component .field[field_name="log_level"] {
+    span {
+        color: white;
+        padding: 4px;
+        border-radius: 3px;
+    }
+
+    span.DEBUG
+    {
+        background: #EEE;
+        color:#888;
+    }
+
+    span.INFO
+    {
+        background: royalblue;
+    }
+
+    span.ATTENTION {
+        background: $light_warning;
+    }
+
+    span.OK {
+        background: $success_color;
+    }
+
+    span.ERREUR {
+        background: $danger_color;
+    }
+    
+    span.CRITIQUE {
+        background: black;
     }
 }

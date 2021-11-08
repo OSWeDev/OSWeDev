@@ -419,11 +419,16 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             null
         );
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_enum:
+                res.numeric_value = ConversionHandler.forceNumber(db_res);
+                res.string_value = (res.numeric_value == null) ? null : field.enum_values[res.numeric_value];
+                res.label = res.string_value;
+                break;
+
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_float:

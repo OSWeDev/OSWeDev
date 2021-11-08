@@ -1,0 +1,14 @@
+@import '../../../../../../scss/base/skin.scss';
+
+.field_value_filter_enum_widget_component {
+
+    .vo_field_ref_label {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    .multiselect__content-wrapper {
+        z-index: 0;
+    }
+}

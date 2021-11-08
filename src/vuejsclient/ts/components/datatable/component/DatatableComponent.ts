@@ -36,6 +36,7 @@ import CustomFilterItem from './CustomFilterItem';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
+import DatatableRowController from './DatatableRowController';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -45,9 +46,6 @@ import FileDatatableFieldComponent from './fields/file/file_datatable_field';
     }
 })
 export default class DatatableComponent extends VueComponentBase {
-
-    private static ACTIONS_COLUMN_ID: string = "__actions_column__";
-    private static MULTISELECT_COLUMN_ID: string = "__multiselect_column__";
 
     private static ACTIONS_COLUMN_TRANSLATABLE_CODE: string = "datatable.actions_column" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
 
@@ -329,62 +327,13 @@ export default class DatatableComponent extends VueComponentBase {
         this.exportable_datatable_data = [];
 
         for (let i in (this.$refs.vclienttable as any).allFilteredData) {
-            let cloned_data = cloneDeep((this.$refs.vclienttable as any).allFilteredData[i]);
 
-            if (!!cloned_data[DatatableComponent.MULTISELECT_COLUMN_ID]) {
-                delete cloned_data[DatatableComponent.MULTISELECT_COLUMN_ID];
+            let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data((this.$refs.vclienttable as any).allFilteredData[i], this.datatable, this.exportable_datatable_columns);
+            if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
+                delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
             }
-            if (!!cloned_data[DatatableComponent.ACTIONS_COLUMN_ID]) {
-                delete cloned_data[DatatableComponent.ACTIONS_COLUMN_ID];
-            }
-
-            // On allège le vo en gardant que les colonne à exporter
-            for (let column in cloned_data) {
-
-                if (this.exportable_datatable_columns.indexOf(column) < 0) {
-                    cloned_data[column] = undefined;
-                }
-
-                /**
-                 * On doit aussi traduire les colonnes de type références multiples pour ne pas exporter un objet mais un texte
-                 */
-                let datatable_field = this.datatable.getFieldByDatatableFieldUID(column);
-                if (!datatable_field) {
-                    // Ex: id
-                    continue;
-                }
-
-                let field_as_simple = (datatable_field as SimpleDatatableField<any, any>);
-
-                // Si c'est un custom :
-                if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers && field_as_simple && field_as_simple.moduleTableField &&
-                    TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.moduleTableField.field_type] &&
-                    TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.moduleTableField.field_type].getIHMToExportString) {
-                    cloned_data[column] = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[
-                        field_as_simple.moduleTableField.field_type].getIHMToExportString(cloned_data, field_as_simple, this.datatable);
-                    continue;
-                }
-
-                switch (datatable_field.type) {
-                    case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                    case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-
-                        let values = cloned_data[column];
-                        let res = "";
-                        for (let valuei in values) {
-                            let value = values[valuei];
-
-                            if (!value) {
-                                continue;
-                            }
-
-                            res += ((res && res.length) ? ', ' : '') + value['label'];
-                        }
-                        cloned_data[column] = res;
-                        break;
-                    default:
-                        break;
-                }
+            if (!!cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
+                delete cloned_data[DatatableRowController.ACTIONS_COLUMN_ID];
             }
 
             this.exportable_datatable_data.push(cloned_data);
@@ -922,212 +871,23 @@ export default class DatatableComponent extends VueComponentBase {
         for (let j in baseDatas) {
             let baseData: IDistantVOBase = baseDatas[j];
 
-            if (!baseData) {
-                continue;
-            }
-
-            if (!!this.datatable.conditional_show) {
-                if (!this.datatable.conditional_show(baseData)) {
-                    continue;
-                }
-            }
-
-            let resData: IDistantVOBase = {
-                id: baseData.id,
-                _type: baseData._type
-            };
+            let resData: IDistantVOBase = DatatableRowController.getInstance().get_datatable_row_data(baseData, this.datatable, this.getStoredDatas, prepared_ref_fields_data_for_update);
 
             // Les colonnes de contrôle
             if (this.multiselectable) {
                 if (this.selected_datas && this.selected_datas[baseData.id]) {
-                    resData[DatatableComponent.MULTISELECT_COLUMN_ID] = true;
+                    resData[DatatableRowController.MULTISELECT_COLUMN_ID] = true;
                 } else {
-                    resData[DatatableComponent.MULTISELECT_COLUMN_ID] = false;
+                    resData[DatatableRowController.MULTISELECT_COLUMN_ID] = false;
                 }
             }
 
             // TODO en fait on peut vérifier suivant les droits en édition sur ce vo...
             if (this.vocus_button || this.update_button || this.delete_button) {
-                resData[DatatableComponent.ACTIONS_COLUMN_ID] = true;
+                resData[DatatableRowController.ACTIONS_COLUMN_ID] = true;
             }
 
-            for (let i in this.datatable.fields) {
-                let field: DatatableField<any, any> = this.datatable.fields[i];
 
-                try {
-
-                    switch (field.type) {
-
-                        case DatatableField.SIMPLE_FIELD_TYPE:
-                            let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;
-
-                            let value = field.dataToReadIHM(baseData[simpleField.moduleTableField.field_id], baseData);
-                            // Limite à 300 cars si c'est du html et strip html
-                            if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
-
-                                if (value) {
-                                    try {
-                                        value = value.replace(/&nbsp;/gi, ' ');
-                                        value = value.replace(/<\/div>/gi, '\n');
-                                        value = value.replace(/<\/span>/gi, '\n');
-                                        value = value.replace(/<\/ul>/gi, '\n');
-                                        value = value.replace(/<\/li>/gi, '\n');
-                                        value = value.replace(/<\/p>/gi, '\n');
-                                        value = value.replace(/<br>/gi, '\n');
-                                        value = value.replace(/<(?:.|\n)*?>/gm, '');
-                                        // value = $("<p>" + value + "</p>").text();
-                                    } catch (error) {
-                                        value = value;
-                                    }
-
-                                    if (value.length > 300) {
-                                        value = value.substring(0, 300) + '...';
-                                    }
-                                }
-                            }
-
-                            if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
-
-                                for (let vi in value) {
-                                    let v = value[vi];
-
-                                    try {
-
-                                        v = v.replace(/&nbsp;/gi, ' ');
-                                        v = v.replace(/<\/div>/gi, '\n');
-                                        v = v.replace(/<\/span>/gi, '\n');
-                                        v = v.replace(/<\/ul>/gi, '\n');
-                                        v = v.replace(/<\/li>/gi, '\n');
-                                        v = v.replace(/<\/p>/gi, '\n');
-                                        v = v.replace(/<br>/gi, '\n');
-                                        v = v.replace(/<(?:.|\n)*?>/gm, '');
-                                        // v = $("<p>" + v + "</p>").text();
-                                    } catch (error) {
-                                        v = v;
-                                    }
-
-                                    if (v.length > 300) {
-                                        v = v.substring(0, 300) + '...';
-                                    }
-
-                                    value[vi] = v;
-                                }
-                            }
-
-
-                            resData[field.datatable_field_uid] = value;
-                            break;
-
-                        case DatatableField.COMPUTED_FIELD_TYPE:
-                            resData[field.datatable_field_uid] = field.dataToReadIHM(null, baseData);
-                            break;
-
-                        case DatatableField.COMPONENT_FIELD_TYPE:
-                            resData[field.datatable_field_uid] = null;
-                            break;
-
-                        case DatatableField.FILE_FIELD_TYPE:
-                            resData[field.datatable_field_uid] = null;
-                            break;
-
-                        case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                            let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
-
-                            // On va chercher la valeur du champs depuis la valeur de la donnée liée
-                            if (this.getStoredDatas && this.getStoredDatas[manyToOneField.targetModuleTable.vo_type]) {
-                                let ref_data: IDistantVOBase = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type][baseData[manyToOneField.srcField.field_id]];
-                                resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                                resData[field.datatable_field_uid + "___id___"] = baseData[manyToOneField.srcField.field_id];
-                                resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
-                            }
-                            break;
-
-                        case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                            let oneToManyField: OneToManyReferenceDatatableField<any> = (field) as OneToManyReferenceDatatableField<any>;
-
-                            resData[field.datatable_field_uid] = [];
-
-                            // for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
-                            //     let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
-
-                            //     if ((!!targetVo) && (targetVo[oneToManyField.destField.field_id] == baseData.id)) {
-
-                            //         resData[field.datatable_field_uid].push({
-                            //             id: oneToManyTargetId,
-                            //             label: oneToManyField.dataToHumanReadable(targetVo)
-                            //         });
-                            //     }
-                            // }
-
-                            if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id])) {
-                                for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id]) {
-                                    resData[field.datatable_field_uid].push({
-                                        id: oneToManyTargetId,
-                                        label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id][oneToManyTargetId])
-                                    });
-                                }
-                            }
-                            break;
-
-                        case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                            let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
-
-                            resData[field.datatable_field_uid] = [];
-                            // let dest_ids: number[] = [];
-                            // let interTargetRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                            // let interSrcRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
-
-                            // for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
-                            //     let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
-
-                            //     if (intervo && (intervo[interSrcRefField.field_id] == baseData.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
-                            //         dest_ids.push(intervo[interTargetRefField.field_id]);
-                            //     }
-                            // }
-
-                            // for (let desti in dest_ids) {
-                            //     resData[field.datatable_field_uid].push({
-                            //         id: dest_ids[desti],
-                            //         label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
-                            //     });
-                            // }
-
-                            if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id])) {
-                                for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id]) {
-                                    resData[field.datatable_field_uid].push({
-                                        id: oneToManyTargetId,
-                                        label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id][oneToManyTargetId])
-                                    });
-                                }
-                            }
-
-                            break;
-
-                        case DatatableField.REF_RANGES_FIELD_TYPE:
-                            let refField: RefRangesReferenceDatatableField<any> = (field) as RefRangesReferenceDatatableField<any>;
-
-                            resData[field.datatable_field_uid] = [];
-
-                            if (this.getStoredDatas && this.getStoredDatas[refField.targetModuleTable.vo_type]) {
-
-                                RangeHandler.getInstance().foreach_ranges_sync(baseData[refField.srcField.field_id], (id: number) => {
-                                    let ref_data: IDistantVOBase = this.getStoredDatas[refField.targetModuleTable.vo_type][id];
-                                    resData[field.datatable_field_uid].push({
-                                        id: id,
-                                        label: refField.dataToHumanReadable(ref_data)
-                                    });
-                                });
-                            }
-                            break;
-
-                        default:
-                            break;
-                    }
-                } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
-                    resData[field.datatable_field_uid] = null;
-                }
-            }
             this.datatable_data.push(resData);
         }
         this.initializeFilters();
@@ -1158,11 +918,11 @@ export default class DatatableComponent extends VueComponentBase {
 
         // On ajoute les colonnes de contrôle
         if (this.multiselectable) {
-            res[DatatableComponent.MULTISELECT_COLUMN_ID] = null;
+            res[DatatableRowController.MULTISELECT_COLUMN_ID] = null;
         }
 
         if (this.vocus_button || this.update_button || this.delete_button) {
-            res[DatatableComponent.ACTIONS_COLUMN_ID] = this.t(DatatableComponent.ACTIONS_COLUMN_TRANSLATABLE_CODE);
+            res[DatatableRowController.ACTIONS_COLUMN_ID] = this.t(DatatableComponent.ACTIONS_COLUMN_TRANSLATABLE_CODE);
         }
 
         return res;
@@ -1173,10 +933,10 @@ export default class DatatableComponent extends VueComponentBase {
 
         // On ajoute les colonnes de contrôle
         if (this.multiselectable && !this.isModuleParamTable) {
-            res.push(DatatableComponent.MULTISELECT_COLUMN_ID);
+            res.push(DatatableRowController.MULTISELECT_COLUMN_ID);
         }
         if (this.vocus_button || this.update_button || this.delete_button) {
-            res.push(DatatableComponent.ACTIONS_COLUMN_ID);
+            res.push(DatatableRowController.ACTIONS_COLUMN_ID);
         }
 
         for (let i in this.datatable.fields) {

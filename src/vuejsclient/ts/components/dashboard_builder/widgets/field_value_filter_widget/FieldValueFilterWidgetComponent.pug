@@ -12,3 +12,10 @@
             :dashboard="dashboard"
             :dashboard_page="dashboard_page"
         )
+
+    template(v-else-if='is_type_enum')
+        Fieldvaluefilterenumwidgetcomponent(
+            :page_widget="page_widget"
+            :dashboard="dashboard"
+            :dashboard_page="dashboard_page"
+        )

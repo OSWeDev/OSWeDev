@@ -120,7 +120,7 @@ export default class NFCHandler {
 
                 // Pas un autre compte, mais tag existant : on est donc sur un tag assigné au compte, on propose pas de l'ajouter...
                 let own_tags = await ModuleNFCConnect.getInstance().get_own_tags();
-                if (own_tags.find((tag) => tag.name == serialNumber)) {
+                if (own_tags && own_tags.find((tag) => tag.name == serialNumber)) {
                     VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.tag_already_added'));
 
                     await self.write_url_to_tag_confirmation(serialNumber);

@@ -17,6 +17,7 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
@@ -25,6 +26,8 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import CRUDComponentManager from '../../../crud/CRUDComponentManager';
+import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import DatatableRowController from '../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -47,6 +50,9 @@ import './TableWidgetComponent.scss';
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {
+
+    @ModuleDAOGetter
+    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -388,7 +394,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             field_ids.push(field.module_table_field_id);
             res_field_aliases.push(field.datatable_field_uid);
         }
-        this.data_rows = await ModuleContextFilter.getInstance().get_filtered_datatable_rows(
+
+        let rows = await ModuleContextFilter.getInstance().get_filtered_datatable_rows(
             api_type_ids,
             field_ids,
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
@@ -397,6 +404,24 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.pagination_offset,
             sort_by,
             res_field_aliases);
+
+        let data_rows = [];
+        for (let i in rows) {
+            let row = rows[i];
+
+            let resData: IDistantVOBase = {
+                id: row.id,
+                _type: row._type
+            };
+            for (let j in this.fields) {
+                let field = this.fields[j];
+
+                DatatableRowController.getInstance().get_datatable_row_field_data(row, resData, field, this.getStoredDatas, null);
+            }
+            data_rows.push(resData);
+        }
+
+        this.data_rows = data_rows;
 
         this.pagination_count = await ModuleContextFilter.getInstance().query_rows_count_from_active_filters(
             api_type_ids,
@@ -410,6 +435,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     private async refresh() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_get_filtered_datatable_rows));
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_query_rows_count_from_active_filters));
+        await this.throttled_update_visible_options();
     }
 
     @Watch('widget_options', { immediate: true })
