@@ -1,4 +1,5 @@
 import { cloneDeep } from "lodash";
+import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import Datatable from "../../../../../shared/modules/DAO/vos/datatable/Datatable";
 import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/DatatableField";
 import ManyToManyReferenceDatatableField from "../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField";
@@ -286,6 +287,182 @@ export default class DatatableRowController {
                             });
                         });
                     }
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            resData[field.datatable_field_uid] = null;
+        }
+    }
+
+    public async get_datatable_row_field_data_async(
+        raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>,
+        prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } }): Promise<any> {
+
+        try {
+
+            switch (field.type) {
+
+                case DatatableField.SIMPLE_FIELD_TYPE:
+                    let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;
+
+                    let value = field.dataToReadIHM(raw_data[simpleField.moduleTableField.field_id], raw_data);
+                    // Limite à 300 cars si c'est du html et strip html
+                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+
+                        if (value) {
+                            try {
+                                value = value.replace(/&nbsp;/gi, ' ');
+                                value = value.replace(/<\/div>/gi, '\n');
+                                value = value.replace(/<\/span>/gi, '\n');
+                                value = value.replace(/<\/ul>/gi, '\n');
+                                value = value.replace(/<\/li>/gi, '\n');
+                                value = value.replace(/<\/p>/gi, '\n');
+                                value = value.replace(/<br>/gi, '\n');
+                                value = value.replace(/<(?:.|\n)*?>/gm, '');
+                                // value = $("<p>" + value + "</p>").text();
+                            } catch (error) {
+                                value = value;
+                            }
+
+                            if (value.length > 300) {
+                                value = value.substring(0, 300) + '...';
+                            }
+                        }
+                    }
+
+                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+
+                        for (let vi in value) {
+                            let v = value[vi];
+
+                            try {
+
+                                v = v.replace(/&nbsp;/gi, ' ');
+                                v = v.replace(/<\/div>/gi, '\n');
+                                v = v.replace(/<\/span>/gi, '\n');
+                                v = v.replace(/<\/ul>/gi, '\n');
+                                v = v.replace(/<\/li>/gi, '\n');
+                                v = v.replace(/<\/p>/gi, '\n');
+                                v = v.replace(/<br>/gi, '\n');
+                                v = v.replace(/<(?:.|\n)*?>/gm, '');
+                                // v = $("<p>" + v + "</p>").text();
+                            } catch (error) {
+                                v = v;
+                            }
+
+                            if (v.length > 300) {
+                                v = v.substring(0, 300) + '...';
+                            }
+
+                            value[vi] = v;
+                        }
+                    }
+
+
+                    resData[field.datatable_field_uid] = value;
+                    break;
+
+                case DatatableField.COMPUTED_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = field.dataToReadIHM(null, raw_data);
+                    break;
+
+                case DatatableField.COMPONENT_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = null;
+                    break;
+
+                case DatatableField.FILE_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = null;
+                    break;
+
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                    let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
+
+                    // On va chercher la valeur du champs depuis la valeur de la donnée liée
+                    if (!!raw_data[manyToOneField.srcField.field_id]) {
+                        let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToOneField.targetModuleTable.vo_type, raw_data[manyToOneField.srcField.field_id]);
+                        resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                        resData[field.datatable_field_uid + "___id___"] = raw_data[manyToOneField.srcField.field_id];
+                        resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
+                    }
+                    break;
+
+                case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                    let oneToManyField: OneToManyReferenceDatatableField<any> = (field) as OneToManyReferenceDatatableField<any>;
+
+                    resData[field.datatable_field_uid] = [];
+
+                    // for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
+                    //     let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
+
+                    //     if ((!!targetVo) && (targetVo[oneToManyField.destField.field_id] == raw_data.id)) {
+
+                    //         resData[field.datatable_field_uid].push({
+                    //             id: oneToManyTargetId,
+                    //             label: oneToManyField.dataToHumanReadable(targetVo)
+                    //         });
+                    //     }
+                    // }
+
+                    if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
+                        for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                            resData[field.datatable_field_uid].push({
+                                id: oneToManyTargetId,
+                                label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                            });
+                        }
+                    }
+                    break;
+
+                case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                    let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
+
+                    resData[field.datatable_field_uid] = [];
+                    // let dest_ids: number[] = [];
+                    // let interTargetRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
+                    // let interSrcRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
+
+                    // for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
+                    //     let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
+
+                    //     if (intervo && (intervo[interSrcRefField.field_id] == raw_data.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+                    //         dest_ids.push(intervo[interTargetRefField.field_id]);
+                    //     }
+                    // }
+
+                    // for (let desti in dest_ids) {
+                    //     resData[field.datatable_field_uid].push({
+                    //         id: dest_ids[desti],
+                    //         label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
+                    //     });
+                    // }
+
+                    if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
+                        for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                            resData[field.datatable_field_uid].push({
+                                id: oneToManyTargetId,
+                                label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                            });
+                        }
+                    }
+
+                    break;
+
+                case DatatableField.REF_RANGES_FIELD_TYPE:
+                    let refField: RefRangesReferenceDatatableField<any> = (field) as RefRangesReferenceDatatableField<any>;
+
+                    resData[field.datatable_field_uid] = [];
+
+                    await RangeHandler.getInstance().foreach_ranges_batch_await(raw_data[refField.srcField.field_id], async (id: number) => {
+                        let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(refField.targetModuleTable.vo_type, id);
+                        resData[field.datatable_field_uid].push({
+                            id: id,
+                            label: refField.dataToHumanReadable(ref_data)
+                        });
+                    });
                     break;
 
                 default:

@@ -70,32 +70,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            let dt_field: DatatableField<any, any> = null;
-            if (field.manyToOne_target_moduletable) {
-
-                let dt_fields: Array<DatatableField<any, any>> = [
-                    new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
-                ];
-                if (field.manyToOne_target_moduletable.default_label_field) {
-                    dt_fields = [
-                        new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id).setValidatInputFunc(field.validate_input)
-                    ];
-                }
-
-                if (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
-                    dt_field = new RefRangesReferenceDatatableField<any>(
-                        field.field_id,
-                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                        dt_fields).setValidatInputFunc(field.validate_input);
-                } else {
-                    dt_field = new ManyToOneReferenceDatatableField<any>(
-                        field.field_id,
-                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                        dt_fields).setValidatInputFunc(field.validate_input);
-                }
-            } else {
-                dt_field = new SimpleDatatableField(field.field_id).setValidatInputFunc(field.validate_input);
-            }
+            let dt_field: DatatableField<any, any> = this.get_dt_field(field);
 
             if ((!!dt_field) && field.hidden_print) {
                 dt_field.hide_print();
@@ -112,6 +87,37 @@ export default class CRUD<T extends IDistantVOBase> {
         CRUD.addOneToManyFields(crud, moduleTable);
 
         return crud;
+    }
+
+    public static get_dt_field(field: ModuleTableField<any>): DatatableField<any, any> {
+        let dt_field: DatatableField<any, any> = null;
+        if (field.manyToOne_target_moduletable) {
+
+            let dt_fields: Array<DatatableField<any, any>> = [
+                new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
+            ];
+            if (field.manyToOne_target_moduletable.default_label_field) {
+                dt_fields = [
+                    new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id).setValidatInputFunc(field.validate_input)
+                ];
+            }
+
+            if (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+                dt_field = new RefRangesReferenceDatatableField<any>(
+                    field.field_id,
+                    VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                    dt_fields).setValidatInputFunc(field.validate_input);
+            } else {
+                dt_field = new ManyToOneReferenceDatatableField<any>(
+                    field.field_id,
+                    VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                    dt_fields).setValidatInputFunc(field.validate_input);
+            }
+        } else {
+            dt_field = new SimpleDatatableField(field.field_id).setValidatInputFunc(field.validate_input);
+        }
+
+        return dt_field;
     }
 
     public static addManyToManyFields<T extends IDistantVOBase>(

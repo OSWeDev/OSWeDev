@@ -572,6 +572,12 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         return this.moduleTableField.enum_image_values ? this.moduleTableField.enum_image_values[id] : null;
     }
 
+    public set_translatable_title(translatable_title: string): SimpleDatatableField<T, U> {
+
+        this.translatable_title = translatable_title;
+        return this;
+    }
+
     public setModuleTable(moduleTable: ModuleTable<any>) {
         this.moduleTable = moduleTable;
 

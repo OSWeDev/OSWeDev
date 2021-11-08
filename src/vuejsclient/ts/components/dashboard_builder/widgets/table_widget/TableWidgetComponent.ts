@@ -6,10 +6,10 @@ import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDActionsDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableField';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableField';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -18,7 +18,6 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -26,7 +25,6 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import CRUDComponentManager from '../../../crud/CRUDComponentManager';
-import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import DatatableRowController from '../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
@@ -50,9 +48,6 @@ import './TableWidgetComponent.scss';
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {
-
-    @ModuleDAOGetter
-    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -291,18 +286,20 @@ export default class TableWidgetComponent extends VueComponentBase {
                     let field = moduleTable.get_field_by_id(column.field_id);
 
                     switch (field.field_type) {
-                        case ModuleTableField.FIELD_TYPE_file_ref:
-                        case ModuleTableField.FIELD_TYPE_foreign_key:
-                        case ModuleTableField.FIELD_TYPE_image_ref:
-                        case ModuleTableField.FIELD_TYPE_refrange_array:
-                        // TODO
+
                         // let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
                         // data_field.setModuleTable(moduleTable);
                         // res[column.id] = data_field;
                         // break;
                         default:
 
-                            let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
+                            let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
+
+                            // sur un simple on set le label
+                            if (data_field['set_translatable_title']) {
+                                data_field['set_translatable_title'](field.field_label.code_text);
+                            }
+
                             data_field.setModuleTable(moduleTable);
                             res[column.id] = data_field;
                             break;
@@ -406,6 +403,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             res_field_aliases);
 
         let data_rows = [];
+        let promises = [];
         for (let i in rows) {
             let row = rows[i];
 
@@ -416,10 +414,11 @@ export default class TableWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                DatatableRowController.getInstance().get_datatable_row_field_data(row, resData, field, this.getStoredDatas, null);
+                promises.push(DatatableRowController.getInstance().get_datatable_row_field_data_async(row, resData, field, null));
             }
             data_rows.push(resData);
         }
+        await Promise.all(promises);
 
         this.data_rows = data_rows;
 

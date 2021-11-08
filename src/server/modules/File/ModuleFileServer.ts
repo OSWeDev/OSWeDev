@@ -58,6 +58,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
     public async configure() {
 
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Fichier introuvable : {file_id}' },
+            'file_datatable_field.introuvable.___LABEL___'
+        ));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fichiers' },
             'menu.menuelements.admin.file.___LABEL___'
