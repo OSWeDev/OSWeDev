@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
+import ClientComponent from '../../commerce/client/ClientComponent';
 import VueComponentBase from '../../VueComponentBase';
 import UserCompteComponent from './compte/UserCompteComponent';
-import ClientComponent from '../../commerce/client/ClientComponent';
 
 @Component({
     template: require('./UserComponent.pug'),
