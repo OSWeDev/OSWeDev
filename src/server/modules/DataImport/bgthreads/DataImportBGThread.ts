@@ -103,6 +103,16 @@ export default class DataImportBGThread implements IBGThread {
             }
             ConsoleHandler.getInstance().log('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
 
+            if ([
+                ModuleDataImport.IMPORTATION_STATE_UPLOADED,
+                ModuleDataImport.IMPORTATION_STATE_FORMATTED,
+                ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
+                ModuleDataImport.IMPORTATION_STATE_IMPORTED,
+                ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
+            ].indexOf(dih.state) >= 0) {
+                return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+            }
+
             dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
                 DataImportBGThread.request, [
                 ModuleDataImport.IMPORTATION_STATE_UPLOADED,
