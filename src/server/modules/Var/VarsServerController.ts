@@ -88,32 +88,39 @@ export default class VarsServerController {
             while (needs_again) {
                 needs_again = false;
 
+                let did_something = false;
+                let last_not_full = null;
                 for (let i in VarsServerController.getInstance().varcontrollers_dag.nodes) {
                     let node = VarsServerController.getInstance().varcontrollers_dag.nodes[i];
 
-                    let is_complete = true;
-                    let depth = 1;
-
-                    for (let j in node.outgoing_deps) {
-                        let dep = node.outgoing_deps[j];
-
-                        if ((dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id == node.var_controller.varConf.id) {
-                            continue;
-                        }
-
-                        if (!this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id]) {
-                            is_complete = false;
-                            needs_again = true;
-                            break;
-                        }
-                        depth = Math.max(depth, this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id] + 1);
+                    if (!!this._varcontrollers_dag_depths[node.var_controller.varConf.id]) {
+                        continue;
                     }
 
-                    if (!is_complete) {
+                    let depth = this.get_max_depth(node, false);
+                    if (depth === null) {
+                        last_not_full = node;
+                        needs_again = true;
                         continue;
                     }
 
                     this._varcontrollers_dag_depths[node.var_controller.varConf.id] = depth;
+                    did_something = true;
+                }
+
+                if ((!did_something) && needs_again) {
+                    if (!last_not_full) {
+                        ConsoleHandler.getInstance().error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
+                        throw new Error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
+                    }
+
+                    let depth = this.get_max_depth(last_not_full, true);
+                    if (depth === null) {
+                        ConsoleHandler.getInstance().error('depth===null on !did_something in init_varcontrollers_dag_depths');
+                        throw new Error('depth===null on !did_something in init_varcontrollers_dag_depths');
+                    }
+
+                    this._varcontrollers_dag_depths[last_not_full.var_controller.varConf.id] = depth;
                 }
             }
         }
@@ -410,4 +417,28 @@ export default class VarsServerController {
         }
     }
 
+    private get_max_depth(node: VarCtrlDAGNode, ignore_incomplete: boolean) {
+        let is_complete = true;
+        let depth = 1;
+
+        for (let j in node.outgoing_deps) {
+            let dep = node.outgoing_deps[j];
+
+            if ((dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id == node.var_controller.varConf.id) {
+                continue;
+            }
+
+            if (!this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id]) {
+                is_complete = false;
+                break;
+            }
+            depth = Math.max(depth, this._varcontrollers_dag_depths[(dep.outgoing_node as VarCtrlDAGNode).var_controller.varConf.id] + 1);
+        }
+
+        if ((!is_complete) && (!ignore_incomplete)) {
+            return null;
+        }
+
+        return depth;
+    }
 }
