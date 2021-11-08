@@ -12,7 +12,7 @@ describe('Dates', () => {
 
     const basicDate = 1627903493; // 2-08-2021 11:24:53 GMT
     const edgeDate = 1583020799; // 29-02-2020 23:59:59 GMT
-    const reverseEdgeDate = 1583020800;  // 00-03-2020 00:00:00 GMT
+    const reverseEdgeDate = 1583020800;  // 01-03-2020 00:00:00 GMT
 
     it('now', () => {
         let b = moment().utc(false).unix();
