@@ -1193,7 +1193,7 @@ export default class RangeHandler {
             avant = null;
         }
 
-        if (this.isStartASameEndB(range_cutter, range_to_cut)) {
+        if (this.isStartASameEndB(range_cutter, range_to_cut, min_segment_type)) {
             // SC = ETC
             coupe.min = cloneDeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
@@ -1212,7 +1212,7 @@ export default class RangeHandler {
             apres = null;
         }
 
-        if (this.isStartASameEndB(range_to_cut, range_cutter)) {
+        if (this.isStartASameEndB(range_to_cut, range_cutter, min_segment_type)) {
             // STC = EC
             coupe.min = cloneDeep(range_to_cut.min);
             coupe.min_inclusiv = range_to_cut.min_inclusiv;
@@ -1895,20 +1895,7 @@ export default class RangeHandler {
             return null;
         }
 
-        if (segment_type == null) {
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = NumSegment.TYPE_INT;
-                    break;
-                case HourRange.RANGE_TYPE:
-                    segment_type = HourSegment.TYPE_MINUTE;
-                    break;
-                case TSRange.RANGE_TYPE:
-                    segment_type = TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         let min: number = this.getSegmentedMin(range, segment_type);
         let max: number = this.getSegmentedMax(range, segment_type);
@@ -1940,22 +1927,7 @@ export default class RangeHandler {
             return null;
         }
 
-        if (segment_type == null) {
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         switch (range.range_type) {
 
@@ -2038,22 +2010,7 @@ export default class RangeHandler {
             return null;
         }
 
-        if (segment_type == null) {
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         switch (range.range_type) {
 
@@ -2161,22 +2118,7 @@ export default class RangeHandler {
             return null;
         }
 
-        if (segment_type == null) {
-            switch (first_range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = first_range.segment_type != null ? first_range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = first_range.segment_type != null ? first_range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = first_range.segment_type != null ? first_range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? first_range.segment_type : segment_type;
 
         let res: number = null;
 
@@ -2220,23 +2162,7 @@ export default class RangeHandler {
             return null;
         }
 
-        if (segment_type == null) {
-            switch (first_range.range_type) {
-
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = first_range.segment_type != null ? first_range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = first_range.segment_type != null ? first_range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = first_range.segment_type != null ? first_range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? first_range.segment_type : segment_type;
 
         let res: number = null;
 
@@ -2297,22 +2223,7 @@ export default class RangeHandler {
             return;
         }
 
-        if (segment_type == null) {
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         let min: number = this.getSegmentedMin(range, segment_type);
         let max: number = this.getSegmentedMax(range, segment_type);
@@ -2370,22 +2281,7 @@ export default class RangeHandler {
             return;
         }
 
-        if (segment_type == null) {
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         let min: number = this.getSegmentedMin(range, segment_type);
         let max: number = this.getSegmentedMax(range, segment_type);
@@ -2447,22 +2343,7 @@ export default class RangeHandler {
             return;
         }
 
-        if (segment_type == null) {
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : NumSegment.TYPE_INT;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : HourSegment.TYPE_MINUTE;
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    segment_type = range.segment_type != null ? range.segment_type : TimeSegment.TYPE_DAY;
-                    break;
-            }
-        }
+        segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         let min: number = this.getSegmentedMin(range, segment_type);
         let max: number = this.getSegmentedMax(range, segment_type);

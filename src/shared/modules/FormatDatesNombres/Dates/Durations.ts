@@ -82,10 +82,10 @@ export default class Durations {
      * @param a left
      * @param b right
      * @param segmentation type of segmentation, based on HourSegment.TYPE_* - aplied to a and b before diff
-     * @param do_not_floor - defaults to false
+     * @param precise - defaults to false
      * @returns diff value between a and b
      */
-    public static diff(a: number, b: number, segmentation: number = HourSegment.TYPE_SECOND, do_not_floor: boolean = false): number {
+    public static diff(a: number, b: number, segmentation: number = HourSegment.TYPE_SECOND, precise: boolean = false): number {
 
         let coef = 0;
 
@@ -103,7 +103,7 @@ export default class Durations {
             case HourSegment.TYPE_MONTH:
                 let mma = moment.unix(a).utc();
                 let mmb = moment.unix(b).utc();
-                return mma.diff(mmb, 'month', do_not_floor);
+                return mma.diff(mmb, 'month', precise);
             case HourSegment.TYPE_WEEK:
                 coef = 604800;
                 break;
@@ -111,7 +111,7 @@ export default class Durations {
             case HourSegment.TYPE_YEAR:
                 let mya = moment.unix(a).utc();
                 let myb = moment.unix(b).utc();
-                return mya.diff(myb, 'year', do_not_floor);
+                return mya.diff(myb, 'year', precise);
             case HourSegment.TYPE_SECOND:
                 return a - b;
 
@@ -121,7 +121,7 @@ export default class Durations {
 
         let start_a = Dates.startOf(a, segmentation);
         let start_b = Dates.startOf(b, segmentation);
-        return do_not_floor ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
+        return precise ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
     }
 
     public static as(duration: number, segmentation: number): number {

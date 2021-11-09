@@ -154,10 +154,10 @@ export default class Dates {
      * @param a left
      * @param b right
      * @param segmentation type of segmentation, based on TimeSegment.TYPE_* - aplied to a and b before diff
-     * @param do_not_floor - defaults to false
+     * @param precise - defaults to false == do not floor
      * @returns diff value between a and b
      */
-    public static diff(a: number, b: number, segmentation: number = TimeSegment.TYPE_SECOND, do_not_floor: boolean = false): number {
+    public static diff(a: number, b: number, segmentation: number = TimeSegment.TYPE_SECOND, precise: boolean = false): number {
 
         let coef = 0;
 
@@ -175,7 +175,7 @@ export default class Dates {
             case TimeSegment.TYPE_MONTH:
                 let mma = moment.unix(a).utc();
                 let mmb = moment.unix(b).utc();
-                return mma.diff(mmb, 'month', do_not_floor);
+                return mma.diff(mmb, 'month', precise);
             case TimeSegment.TYPE_SECOND:
                 return a - b;
             case TimeSegment.TYPE_WEEK:
@@ -185,7 +185,7 @@ export default class Dates {
             case TimeSegment.TYPE_YEAR:
                 let mya = moment.unix(a).utc();
                 let myb = moment.unix(b).utc();
-                return mya.diff(myb, 'year', do_not_floor);
+                return mya.diff(myb, 'year', precise);
 
             default:
                 return null;
@@ -193,7 +193,7 @@ export default class Dates {
 
         let start_a = Dates.startOf(a, segmentation);
         let start_b = Dates.startOf(b, segmentation);
-        return do_not_floor ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
+        return precise ? ((start_a / coef) - (start_b / coef) + ((a - start_a) / coef) - ((b - start_b) / coef)) : Math.floor(a / coef) - Math.floor(b / coef);
     }
 
     /**
@@ -203,7 +203,7 @@ export default class Dates {
      * @returns true if the diff according to the segmentation is 0
      */
     public static isSame(a: number, b: number, segmentation: number): boolean {
-        return this.diff(a, b, segmentation) == 0;
+        return this.startOf(a, segmentation) == this.startOf(b, segmentation);
     }
 
     /**
@@ -213,7 +213,7 @@ export default class Dates {
      * @returns true if the diff according to the segmentation is < 0
      */
     public static isBefore(a: number, b: number, segmentation: number): boolean {
-        return this.diff(a, b, segmentation) < 0;
+        return this.startOf(a, segmentation) < this.startOf(b, segmentation);
     }
 
     /**
@@ -223,7 +223,7 @@ export default class Dates {
      * @returns true if the diff according to the segmentation is <= 0
      */
     public static isSameOrBefore(a: number, b: number, segmentation: number): boolean {
-        return this.diff(a, b, segmentation) <= 0;
+        return this.startOf(a, segmentation) <= this.startOf(b, segmentation);
     }
 
     /**
@@ -233,7 +233,7 @@ export default class Dates {
      * @returns true if the diff according to the segmentation is > 0
      */
     public static isAfter(a: number, b: number, segmentation: number): boolean {
-        return this.diff(a, b, segmentation) > 0;
+        return this.startOf(a, segmentation) > this.startOf(b, segmentation);
     }
 
     /**
@@ -243,7 +243,7 @@ export default class Dates {
      * @returns true if the diff according to the segmentation is >= 0
      */
     public static isSameOrAfter(a: number, b: number, segmentation: number): boolean {
-        return this.diff(a, b, segmentation) >= 0;
+        return this.startOf(a, segmentation) >= this.startOf(b, segmentation);
     }
 
     /**
@@ -254,22 +254,11 @@ export default class Dates {
      * @returns true if the diff according to the segmentation is > 0 for start and < 0 for end
      */
     public static isBetween(date: number, start: number, end: number, segmentation: number = TimeSegment.TYPE_SECOND, left_inclusif: boolean = false, right_inclusif: boolean = false): boolean {
-        let diff_start: number = this.diff(date, start, segmentation);
-        let diff_end: number = this.diff(date, end, segmentation);
+        start = this.startOf(start, segmentation);
+        end = this.endOf(end, segmentation);
 
-        let diff_start_bool: boolean = diff_start > 0;
-
-        if (left_inclusif) {
-            diff_start_bool = diff_start >= 0;
-        }
-
-        let diff_end_bool: boolean = diff_end < 0;
-
-        if (right_inclusif) {
-            diff_end_bool = diff_end <= 0;
-        }
-
-        return (diff_start_bool) && (diff_end_bool);
+        return (left_inclusif ? (date >= start) : (date > start)) &&
+            (right_inclusif ? (date <= end) : (date < end));
     }
 
     /**
