@@ -1,5 +1,6 @@
 
 import moment = require('moment');
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -14,6 +15,8 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import StackContext from '../../StackContext';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import TypesPathElt from './vos/TypesPathElt';
@@ -1947,6 +1950,11 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         return new_paths;
     }
 
+    /**
+     * ATTENTION : sécurité déclarative...
+     * access_right doit contenir le droit (exemple DAO_ACCESS_TYPE_READ) le plus élevé nécessité pour la requête qui sera construite avec cette fonction
+     * Par défaut on met donc la suppression puisque si l'on a accès à la suppression, on a accès à tout.
+     */
     private build_request_from_active_field_filters_(
         api_type_ids: string[],
         field_ids: string[],
@@ -1954,102 +1962,75 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         active_api_type_ids: string[],
         sort_by: SortByVO,
         res_field_aliases: string[],
+        access_type: string = ModuleDAO.DAO_ACCESS_TYPE_DELETE,
         is_delete: boolean = false
     ): string {
 
-        /**
-         * Par mesure de sécu on check que les éléments proposés existent en base
-         */
-        if ((!api_type_ids) ||
-            (api_type_ids.length <= 0) ||
-            ((field_ids && res_field_aliases) &&
-                ((res_field_aliases.length != field_ids.length) ||
-                    (api_type_ids.length != field_ids.length)))) {
-            return null;
-        }
+        try {
 
-        let aliases_n: number = 0;
-        let tables_aliases_by_type: { [vo_type: string]: string } = {};
+            /**
+             * Par mesure de sécu on check que les éléments proposés existent en base
+             */
+            if ((!api_type_ids) ||
+                (api_type_ids.length <= 0) ||
+                ((field_ids && res_field_aliases) &&
+                    ((res_field_aliases.length != field_ids.length) ||
+                        (api_type_ids.length != field_ids.length)))) {
+                return null;
+            }
 
-        let res: string = null;
-        let FROM: string = null;
+            if (!this.check_access_to_api_type_ids_field_ids(api_type_ids, field_ids, access_type)) {
+                return null;
+            }
 
-        /**
-         * On prend arbitrairement la première table comme FROM, on join vers elle par la suite.
-         */
-        let main_api_type_id = null;
-        let jointures: string[] = [];
-        let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+            let aliases_n: number = 0;
+            let tables_aliases_by_type: { [vo_type: string]: string } = {};
+
+            let res: string = null;
+            let FROM: string = null;
+
+            /**
+             * On prend arbitrairement la première table comme FROM, on join vers elle par la suite.
+             */
+            let main_api_type_id = null;
+            let jointures: string[] = [];
+            let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
 
-        /**
-         * On agrémente la liste des active_api_type_ids par les relations N/N dont les types liés sont actifs
-         */
-        let nn_tables = VOsTypesManager.getInstance().get_manyToManyModuleTables();
-        for (let i in nn_tables) {
-            let nn_table = nn_tables[i];
+            /**
+             * On agrémente la liste des active_api_type_ids par les relations N/N dont les types liés sont actifs
+             */
+            let nn_tables = VOsTypesManager.getInstance().get_manyToManyModuleTables();
+            for (let i in nn_tables) {
+                let nn_table = nn_tables[i];
 
-            let nnfields = nn_table.get_fields();
-            let has_inactive_relation = false;
-            for (let j in nnfields) {
-                let nnfield = nnfields[j];
+                let nnfields = nn_table.get_fields();
+                let has_inactive_relation = false;
+                for (let j in nnfields) {
+                    let nnfield = nnfields[j];
 
-                if (active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
-                    has_inactive_relation = true;
-                    break;
+                    if (active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
+                        has_inactive_relation = true;
+                        break;
+                    }
+                }
+
+                if (!has_inactive_relation) {
+                    active_api_type_ids.push(nn_table.vo_type);
                 }
             }
 
-            if (!has_inactive_relation) {
-                active_api_type_ids.push(nn_table.vo_type);
-            }
-        }
 
+            if (!field_ids) {
+                if (api_type_ids.length != 1) {
+                    ConsoleHandler.getInstance().error('build_request_from_active_field_filters:api_type_ids.length != 1:' + api_type_ids.join(','));
+                    return null;
+                }
 
-        if (!field_ids) {
-            if (api_type_ids.length != 1) {
-                ConsoleHandler.getInstance().error('build_request_from_active_field_filters:api_type_ids.length != 1:' + api_type_ids.join(','));
-                return null;
-            }
+                main_api_type_id = api_type_ids[0];
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[main_api_type_id];
 
-            main_api_type_id = api_type_ids[0];
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[main_api_type_id];
-
-            if (!moduletable) {
-                return null;
-            }
-
-            /**
-             * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
-             */
-            if (moduletable.is_segmented) {
-                throw new Error('Not implemented');
-            }
-
-            tables_aliases_by_type[main_api_type_id] = 't' + (aliases_n++);
-
-            if (!is_delete) {
-                res = "SELECT " + tables_aliases_by_type[main_api_type_id] + ".* ";
-                FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
-            } else {
-                res = "DELETE ";
-                FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
-            }
-        } else {
-
-            if (is_delete) {
-                throw new Error('Not implemented');
-            }
-
-            res = "SELECT DISTINCT ";
-            let first = true;
-
-            for (let i in api_type_ids) {
-                let api_type_id = api_type_ids[i];
-                let field_id = field_ids[i];
-
-                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-                if ((!moduletable) || ((!!field_id) && (field_id != 'id') && (!moduletable.get_field_by_id(field_id)))) {
+                if (!moduletable) {
                     return null;
                 }
 
@@ -2060,132 +2041,253 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                     throw new Error('Not implemented');
                 }
 
+                tables_aliases_by_type[main_api_type_id] = 't' + (aliases_n++);
 
-                let is_new_t = false;
-                if (!tables_aliases_by_type[api_type_id]) {
-                    tables_aliases_by_type[api_type_id] = 't' + (aliases_n++);
-                    is_new_t = true;
-                }
-
-                if (!first) {
-                    res += ', ';
-                }
-                first = false;
-
-                res += tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_aliases[i] + ' ';
-
-                if (!main_api_type_id) {
-                    main_api_type_id = api_type_id;
-
-                    FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
-                    joined_tables_by_vo_type[api_type_id] = moduletable;
+                if (!is_delete) {
+                    res = "SELECT " + tables_aliases_by_type[main_api_type_id] + ".* ";
+                    FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
                 } else {
-                    /**
-                     * Si on connait déjà, rien à faire
-                     */
-                    if (is_new_t) {
-                        /**
-                         * Par contre si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-                         */
-                        if (!joined_tables_by_vo_type[api_type_id]) {
+                    res = "DELETE ";
+                    FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
+                }
+            } else {
 
+                if (is_delete) {
+                    throw new Error('Not implemented');
+                }
+
+                res = "SELECT DISTINCT ";
+                let first = true;
+
+                for (let i in api_type_ids) {
+                    let api_type_id = api_type_ids[i];
+                    let field_id = field_ids[i];
+
+                    let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+                    if ((!moduletable) || ((!!field_id) && (field_id != 'id') && (!moduletable.get_field_by_id(field_id)))) {
+                        return null;
+                    }
+
+                    /**
+                     * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                     */
+                    if (moduletable.is_segmented) {
+                        throw new Error('Not implemented');
+                    }
+
+
+                    let is_new_t = false;
+                    if (!tables_aliases_by_type[api_type_id]) {
+                        tables_aliases_by_type[api_type_id] = 't' + (aliases_n++);
+                        is_new_t = true;
+                    }
+
+                    if (!first) {
+                        res += ', ';
+                    }
+                    first = false;
+
+                    res += tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_aliases[i] + ' ';
+
+                    if (!main_api_type_id) {
+                        main_api_type_id = api_type_id;
+
+                        FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+                        joined_tables_by_vo_type[api_type_id] = moduletable;
+                    } else {
+                        /**
+                         * Si on connait déjà, rien à faire
+                         */
+                        if (is_new_t) {
                             /**
-                             * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                             * Par contre si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
                              */
-                            let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id);
-                            if (!path) {
-                                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                                continue;
+                            if (!joined_tables_by_vo_type[api_type_id]) {
+
+                                /**
+                                 * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                                 */
+                                let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id);
+                                if (!path) {
+                                    // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                                    continue;
+                                }
+
+                                /**
+                                 * On doit checker le trajet complet
+                                 */
+                                if (!this.check_access_to_fields(path, access_type)) {
+                                    return null;
+                                }
+
+                                aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                                // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
                             }
-                            aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-                            // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
                         }
                     }
                 }
             }
-        }
 
-        res += FROM;
+            res += FROM;
 
-        /**
-         * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
-         */
-        let where_conditions: string[] = [];
+            /**
+             * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
+             */
+            let where_conditions: string[] = [];
 
-        for (let api_type_id_i in get_active_field_filters) {
-            let active_field_filters_by_fields = get_active_field_filters[api_type_id_i];
+            for (let api_type_id_i in get_active_field_filters) {
+                let active_field_filters_by_fields = get_active_field_filters[api_type_id_i];
 
-            for (let field_id_i in active_field_filters_by_fields) {
-                let active_field_filter: ContextFilterVO = active_field_filters_by_fields[field_id_i];
+                for (let field_id_i in active_field_filters_by_fields) {
+                    let active_field_filter: ContextFilterVO = active_field_filters_by_fields[field_id_i];
 
-                if (!active_field_filter) {
-                    continue;
-                }
-
-                if (active_field_filter.vo_type == main_api_type_id) {
-                    /**
-                     * On a pas besoin de jointure mais par contre on a besoin du filtre
-                     */
-                    this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
-                    continue;
-                }
-
-                if (!joined_tables_by_vo_type[api_type_id_i]) {
-
-                    /**
-                     * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-                     */
-                    let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
-                    if (!path) {
-                        // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                    if (!active_field_filter) {
                         continue;
                     }
-                    aliases_n = this.updates_jointures(jointures, main_api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-                    // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
-                }
 
-                this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                    if (active_field_filter.vo_type == main_api_type_id) {
+                        /**
+                         * On a pas besoin de jointure mais par contre on a besoin du filtre
+                         */
+                        this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                        continue;
+                    }
+
+                    if (!joined_tables_by_vo_type[api_type_id_i]) {
+
+                        /**
+                         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                         */
+                        let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
+                        if (!path) {
+                            // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                            continue;
+                        }
+                        aliases_n = this.updates_jointures(jointures, main_api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                        // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+                    }
+
+                    this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                }
+            }
+
+            if (jointures && jointures.length) {
+                /**
+                 * Il faut ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
+                 */
+                jointures.sort((jointurea: string, jointureb: string) => {
+                    // Si on cite un alias dans a qui est déclaré dans b, on doit être après b, sinon
+                    //  soit l'inverse soit osef
+                    let alias_a = jointurea.split(' ')[1];
+                    let alias_b = jointureb.split(' ')[1];
+
+                    let citation_1_a = jointurea.split(' ')[3].split('.')[0];
+                    let citation_2_a = jointurea.split(' ')[5].split('.')[0];
+
+                    let citation_1_b = jointureb.split(' ')[3].split('.')[0];
+                    let citation_2_b = jointureb.split(' ')[5].split('.')[0];
+
+                    if ((citation_1_a == alias_b) || (citation_2_a == alias_b)) {
+                        return 1;
+                    }
+
+                    if ((citation_1_b == alias_a) || (citation_2_b == alias_a)) {
+                        return -1;
+                    }
+
+                    return 0;
+                });
+                res += ' JOIN ' + jointures.join(' JOIN ');
+            }
+
+            if (where_conditions && where_conditions.length) {
+                res += ' WHERE (' + where_conditions.join(') AND (') + ')';
+            }
+
+            if (sort_by) {
+
+                res += ' ORDER BY ' + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+            }
+
+            return res;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+    }
+
+    private check_access_to_api_type_ids_field_ids(
+        api_type_ids: string[],
+        field_ids: string[],
+        access_type: string): boolean {
+
+        let uid: number = StackContext.getInstance().get('UID');
+        let roles;
+        if (!uid) {
+            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+        } else {
+            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+        }
+
+        for (let i in api_type_ids) {
+            let api_type_id = api_type_ids[i];
+            let field_id = field_ids ? field_ids[i] : null;
+
+            if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
+                return false;
             }
         }
 
-        if (jointures && jointures.length) {
-            /**
-             * Il faut ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
-             */
-            jointures.sort((jointurea: string, jointureb: string) => {
-                // Si on cite un alias dans a qui est déclaré dans b, on doit être après b, sinon
-                //  soit l'inverse soit osef
-                let alias_a = jointurea.split(' ')[1];
-                let alias_b = jointureb.split(' ')[1];
+        return true;
+    }
 
-                let citation_1_a = jointurea.split(' ')[3].split('.')[0];
-                let citation_2_a = jointurea.split(' ')[5].split('.')[0];
+    private check_access_to_fields(
+        fields: Array<ModuleTableField<any>>,
+        access_type: string): boolean {
 
-                let citation_1_b = jointureb.split(' ')[3].split('.')[0];
-                let citation_2_b = jointureb.split(' ')[5].split('.')[0];
-
-                if ((citation_1_a == alias_b) || (citation_2_a == alias_b)) {
-                    return 1;
-                }
-
-                if ((citation_1_b == alias_a) || (citation_2_b == alias_a)) {
-                    return -1;
-                }
-
-                return 0;
-            });
-            res += ' JOIN ' + jointures.join(' JOIN ');
+        let uid: number = StackContext.getInstance().get('UID');
+        let roles;
+        if (!uid) {
+            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+        } else {
+            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
         }
 
-        if (where_conditions && where_conditions.length) {
-            res += ' WHERE (' + where_conditions.join(') AND (') + ')';
+        for (let i in fields) {
+            let api_type_id = fields[i].module_table.vo_type;
+            let field_id = fields[i].field_id;
+
+            if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
+                return false;
+            }
         }
 
-        if (sort_by) {
+        return true;
+    }
 
-            res += ' ORDER BY ' + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+    private check_access_to_field(
+        api_type_id: string,
+        field_id: string,
+        access_type: string,
+        roles): boolean {
+
+        /**
+         * Si le field_id est le label du type ou id, on peut transformer un droit de type READ en LIST
+         */
+        let table = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let tmp_access_type = access_type;
+        if ((access_type == ModuleDAO.DAO_ACCESS_TYPE_READ) && ((field_id == 'id') || (table.default_label_field && table.default_label_field.field_id && (field_id == table.default_label_field.field_id)))) {
+            tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;
         }
 
-        return res;
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(
+            ModuleDAO.getInstance().getAccessPolicyName(tmp_access_type, api_type_id)
+        );
+
+        if (!AccessPolicyServerController.getInstance().checkAccessTo(target_policy, roles)) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -737,6 +737,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public checkAccessSync(policy_name: string): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
+            ConsoleHandler.getInstance().warn('checkAccessSync:!policy_name');
             return false;
         }
 
@@ -746,6 +747,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
         if (!target_policy) {
+            ConsoleHandler.getInstance().warn('checkAccessSync:!target_policy:' + policy_name + ':');
             return false;
         }
 
@@ -758,6 +760,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
+            ConsoleHandler.getInstance().warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
             return false;
         }
 

@@ -743,6 +743,9 @@ export default class AccessPolicyServerController {
         let res: { [role_id: number]: RoleVO } = {};
 
         if ((!logged_in) || (!all_roles)) {
+            if (!this.role_anonymous) {
+                return null;
+            }
             return {
                 [this.role_anonymous.id]: this.role_anonymous
             };
@@ -832,6 +835,7 @@ export default class AccessPolicyServerController {
         ignore_role_policy: RoleVO = null): boolean {
 
         if ((!target_policy) || (!user_roles) || (!all_roles)) {
+            ConsoleHandler.getInstance().warn('checkAccessTo:!target_policy');
             return false;
         }
 
@@ -934,6 +938,14 @@ export default class AccessPolicyServerController {
             }
         }
 
+        ConsoleHandler.getInstance().warn('checkAccessTo:refused:' +
+            'target_policy:' + JSON.stringify(target_policy) + ':' +
+            'user_roles:' + JSON.stringify(user_roles) + ':' +
+            'all_roles:' + JSON.stringify(all_roles) + ':' +
+            'role_policies:' + JSON.stringify(role_policies) + ':' +
+            'policies:' + JSON.stringify(policies) + ':' +
+            'policies_dependencies:' + JSON.stringify(policies_dependencies) + ':' +
+            'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':');
         return false;
     }
 
