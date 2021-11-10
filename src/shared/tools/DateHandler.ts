@@ -33,34 +33,34 @@ export default class DateHandler {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return Dates.format(date, DateHandler.DAY_FOR_INDEX_FORMAT);
+        return Dates.format(date, DateHandler.DAY_FOR_INDEX_FORMAT, false);
     }
 
     public formatDayForVO(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return Dates.format(date, 'YYYY-MM-DD');
+        return Dates.format(date, 'YYYY-MM-DD', false);
     }
 
     public formatMonthFromVO(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return Dates.format(date, 'YYYY-MM');
+        return Dates.format(date, 'YYYY-MM', false);
     }
 
     public formatDayForApi(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return Dates.format(date, 'YYYY-MM-DD');
+        return Dates.format(date, 'YYYY-MM-DD', false);
     }
 
     public formatDayForSQL(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;
         }
-        return Dates.format(date, 'YYYY-MM-DD');
+        return Dates.format(date, 'YYYY-MM-DD', false);
     }
 }
