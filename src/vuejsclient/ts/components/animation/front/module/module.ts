@@ -86,7 +86,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
         promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
-        promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
+        promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
         await Promise.all(promises);
 

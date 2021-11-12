@@ -7,6 +7,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import default_mail_html_template from './default_export_mail_html_template.html';
@@ -75,6 +76,10 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
             } else {
                 user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+                if (!user) {
+                    ConsoleHandler.getInstance().error('Failed loading user');
+                    return false;
+                }
             }
 
             let translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(

@@ -89,8 +89,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public async configure() {
 
-        await ModuleVarServer.getInstance().load_slowvars();
-
         let PML__VarsdatasComputerBGThread__do_calculation_run = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsdatasComputerBGThread__do_calculation_run);
 
         let PML__VarServerControllerBase__computeValue = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarServerControllerBase__computeValue);
@@ -384,6 +382,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] =
             VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache;
+
+        await ModuleVarServer.getInstance().load_slowvars();
     }
 
     /**

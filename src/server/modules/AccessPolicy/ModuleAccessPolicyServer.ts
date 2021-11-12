@@ -698,6 +698,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TEST_ACCESS, this.testAccess.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_CHECK_ACCESS, this.checkAccess.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ADMIN, this.isAdmin.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ROLE, this.isRole.bind(this));
@@ -734,10 +735,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
      * @param policy_name
      */
-    public checkAccessSync(policy_name: string): boolean {
+    public checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            ConsoleHandler.getInstance().warn('checkAccessSync:!policy_name');
+            ConsoleHandler.getInstance().error('checkAccessSync:!policy_name');
             return false;
         }
 
@@ -747,7 +748,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
         if (!target_policy) {
-            ConsoleHandler.getInstance().warn('checkAccessSync:!target_policy:' + policy_name + ':');
+            ConsoleHandler.getInstance().error('checkAccessSync:!target_policy:' + policy_name + ':');
             return false;
         }
 
@@ -756,7 +757,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // profil anonyme
             return AccessPolicyServerController.getInstance().checkAccessTo(
                 target_policy,
-                AccessPolicyServerController.getInstance().getUsersRoles(false, null));
+                AccessPolicyServerController.getInstance().getUsersRoles(false, null),
+                undefined, undefined, undefined, undefined, undefined, can_fail);
         }
 
         if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
@@ -766,7 +768,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         return AccessPolicyServerController.getInstance().checkAccessTo(
             target_policy,
-            AccessPolicyServerController.getInstance().getUsersRoles(true, uid));
+            AccessPolicyServerController.getInstance().getUsersRoles(true, uid),
+            undefined, undefined, undefined, undefined, undefined, can_fail);
     }
 
     public async logout() {
@@ -790,7 +793,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                     user_log.comment = 'Impersonated from user_id [' + uid + ']';
                 }
 
-                await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: false },
+                    async () => {
+                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                    });
             }
 
             /**
@@ -1133,7 +1140,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                });
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1381,6 +1392,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (this.debug_check_access) {
             ConsoleHandler.getInstance().log(msg);
         }
+    }
+
+    private async testAccess(policy_name: string): Promise<boolean> {
+
+        return this.checkAccessSync(policy_name, true);
     }
 
     private async checkAccess(policy_name: string): Promise<boolean> {
@@ -1672,7 +1688,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
                 // On await pas ici on se fiche du résultat
-                await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: false },
+                    async () => {
+                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                    });
 
                 await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1754,7 +1774,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             // On await pas ici on se fiche du résultat
-            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                });
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1821,7 +1845,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.uid + ']';
 
             // On await pas ici on se fiche du résultat
-            ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                });
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1930,7 +1958,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
-            old_user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user.id);
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    old_user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user.id);
+                });
         }
 
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(user, old_user);
@@ -2005,7 +2037,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user_log.comment = 'Impersonated from user_id [' + uid + ']';
             }
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                });
         }
 
         /**
@@ -2029,7 +2065,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                });
 
             await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, true);

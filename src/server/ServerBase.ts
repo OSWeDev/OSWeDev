@@ -580,7 +580,13 @@ export default abstract class ServerBase {
                     (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                     // On doit vérifier que le compte est ni bloqué ni expiré
-                    let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                    let user = null;
+                    await StackContext.getInstance().runPromise(
+                        { IS_CLIENT: false },
+                        async () => {
+                            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                        });
+
                     if ((!user) || user.blocked || user.invalidated) {
 
                         await ConsoleHandler.getInstance().warn('unregisterSession:last_check_blocked_or_expired:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -756,7 +762,12 @@ export default abstract class ServerBase {
                 let uid: number = session.uid;
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                let user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                let user = null;
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: false },
+                    async () => {
+                        user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                    });
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.getInstance().warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -794,8 +805,10 @@ export default abstract class ServerBase {
                 }
 
                 await StackContext.getInstance().runPromise(
-                    ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                    async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
+                    { IS_CLIENT: false },
+                    async () => {
+                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                    });
             }
 
             return res.json({ csrfToken: req.csrfToken() });

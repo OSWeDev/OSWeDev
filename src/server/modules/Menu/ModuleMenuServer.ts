@@ -208,7 +208,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
                 continue;
             }
 
-            if (ModuleAccessPolicy.getInstance().checkAccess(elt.access_policy_name)) {
+            if (ModuleAccessPolicy.getInstance().testAccess(elt.access_policy_name)) {
                 res.push(elt);
             }
         }

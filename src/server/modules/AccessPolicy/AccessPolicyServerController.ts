@@ -743,9 +743,6 @@ export default class AccessPolicyServerController {
         let res: { [role_id: number]: RoleVO } = {};
 
         if ((!logged_in) || (!all_roles)) {
-            if (!this.role_anonymous) {
-                return null;
-            }
             return {
                 [this.role_anonymous.id]: this.role_anonymous
             };
@@ -824,6 +821,7 @@ export default class AccessPolicyServerController {
      * @param policies Les droits
      * @param policies_dependencies Les dépendances
      * @param ignore_role_policy Pour le cas où on veut tester l'accès par héritage (important pour l'admin). Dans ce cas on a obligatoirement un seul role en param
+     * @param is_recur_test_call Pour les appels récurrents qui peuvent renvoyer false, mais être issu d'un appel global qui renverra true, ne pas logger le false
      */
     public checkAccessTo(
         target_policy: AccessPolicyVO,
@@ -832,10 +830,13 @@ export default class AccessPolicyServerController {
         role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = this.registered_roles_policies,
         policies: { [policy_id: number]: AccessPolicyVO } = this.registered_policies_by_ids,
         policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = this.registered_dependencies,
-        ignore_role_policy: RoleVO = null): boolean {
+        ignore_role_policy: RoleVO = null,
+        is_recur_test_call: boolean = false): boolean {
 
         if ((!target_policy) || (!user_roles) || (!all_roles)) {
-            ConsoleHandler.getInstance().warn('checkAccessTo:!target_policy');
+            if (!is_recur_test_call) {
+                ConsoleHandler.getInstance().warn('checkAccessTo:!target_policy');
+            }
             return false;
         }
 
@@ -890,7 +891,8 @@ export default class AccessPolicyServerController {
                 all_roles,
                 role_policies,
                 policies,
-                policies_dependencies)) {
+                policies_dependencies,
+                true)) {
 
                 continue;
             }
@@ -931,21 +933,23 @@ export default class AccessPolicyServerController {
                         continue;
                     }
 
-                    if (this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies)) {
+                    if (this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies, null, true)) {
                         return true;
                     }
                 }
             }
         }
 
-        ConsoleHandler.getInstance().warn('checkAccessTo:refused:' +
-            'target_policy:' + JSON.stringify(target_policy) + ':' +
-            'user_roles:' + JSON.stringify(user_roles) + ':' +
-            'all_roles:' + JSON.stringify(all_roles) + ':' +
-            'role_policies:' + JSON.stringify(role_policies) + ':' +
-            'policies:' + JSON.stringify(policies) + ':' +
-            'policies_dependencies:' + JSON.stringify(policies_dependencies) + ':' +
-            'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':');
+        if (!is_recur_test_call) {
+            ConsoleHandler.getInstance().warn('checkAccessTo:refused:' +
+                'target_policy:' + (target_policy ? target_policy.translatable_name : 'N/A') + ':' +
+                'user_roles:' + (user_roles ? Object.values(user_roles).map(function (role) { return role.translatable_name; }).join(',') : 'N/A') + ':' +
+                'all_roles:' + (all_roles ? 'LOADED' : 'N/A') + ':' +
+                'role_policies:' + (role_policies ? 'LOADED' : 'N/A') + ':' +
+                'policies:' + (policies ? 'LOADED' : 'N/A') + ':' +
+                'policies_dependencies:' + (policies_dependencies ? 'LOADED' : 'N/A') + ':' +
+                'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':');
+        }
         return false;
     }
 
@@ -955,7 +959,8 @@ export default class AccessPolicyServerController {
         all_roles: { [role_id: number]: RoleVO },
         role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } },
         policies: { [policy_id: number]: AccessPolicyVO },
-        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] }): boolean {
+        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] },
+        is_recur_test_call: boolean = false): boolean {
 
         if ((!policies_dependencies) || (!policies)) {
             return true;
@@ -964,7 +969,7 @@ export default class AccessPolicyServerController {
         for (let j in policies_dependencies[target_policy.id]) {
             let dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
 
-            if ((dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED) && (!this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies))) {
+            if ((dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED) && (!this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies, null, is_recur_test_call))) {
                 return false;
             }
         }

@@ -87,13 +87,13 @@ export default abstract class VueAppController {
 
         if (ModuleTranslation.getInstance().actif) {
             promises.push((async () => {
-                self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
+                self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().testAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
             })());
         }
 
         if (ModuleFeedback.getInstance().actif) {
             promises.push((async () => {
-                self.has_access_to_feedback = await ModuleAccessPolicy.getInstance().checkAccess(ModuleFeedback.POLICY_FO_ACCESS);
+                self.has_access_to_feedback = await ModuleAccessPolicy.getInstance().testAccess(ModuleFeedback.POLICY_FO_ACCESS);
             })());
         }
 

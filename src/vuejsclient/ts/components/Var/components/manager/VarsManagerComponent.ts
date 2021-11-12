@@ -75,7 +75,7 @@ export default class VarsManagerComponent extends VueComponentBase {
     private has_access_desc_mode: boolean = false;
 
     public async mounted() {
-        this.has_access_desc_mode = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_DESC_MODE_ACCESS);
+        this.has_access_desc_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleVar.POLICY_DESC_MODE_ACCESS);
     }
 
     private async switchDescMode() {

@@ -261,8 +261,8 @@ export default class CRUDComponent extends VueComponentBase {
             return;
         }
 
-        this.can_access_vocus = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS);
-        this.can_delete_all = await ModuleAccessPolicy.getInstance().checkAccess(this.crud.delete_all_access_right);
+        this.can_access_vocus = await ModuleAccessPolicy.getInstance().testAccess(ModuleVocus.POLICY_BO_ACCESS);
+        this.can_delete_all = await ModuleAccessPolicy.getInstance().testAccess(this.crud.delete_all_access_right);
 
         await Promise.all(this.loadDatasFromDatatable(this.crud.readDatatable));
         this.nextLoadingStep();

@@ -311,7 +311,7 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
-            ModuleAccessPolicy.getInstance().checkAccess(
+            ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
                     (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {

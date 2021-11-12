@@ -2221,6 +2221,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         field_ids: string[],
         access_type: string): boolean {
 
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            return true;
+        }
+
         let uid: number = StackContext.getInstance().get('UID');
         let roles;
         if (!uid) {
@@ -2244,6 +2248,10 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     private check_access_to_fields(
         fields: Array<ModuleTableField<any>>,
         access_type: string): boolean {
+
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            return true;
+        }
 
         let uid: number = StackContext.getInstance().get('UID');
         let roles;

@@ -8,6 +8,7 @@ import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersione
 import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
 import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
@@ -67,7 +68,11 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         if (!vo.version_author_id) {
             if (!robot_user) {
-                robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: false },
+                    async () => {
+                        robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+                    });
             }
 
             vo.version_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
@@ -77,7 +82,11 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         if (!vo.version_edit_author_id) {
             if (!robot_user) {
-                robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: false },
+                    async () => {
+                        robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+                    });
             }
 
             vo.version_edit_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
@@ -111,7 +120,12 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         if (!!uid) {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
-            let robot_user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+            let robot_user: UserVO = null;
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+                });
             vo_update_handler.post_update_vo.version_edit_author_id = robot_user ? robot_user.id : null;
         }
 
