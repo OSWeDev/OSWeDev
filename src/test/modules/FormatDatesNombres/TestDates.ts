@@ -20,343 +20,356 @@ describe('Dates', () => {
         expect(a - b).to.be.lessThan(2);
     });
 
-    it('add', () => {
-        // add 1
-        let b = moment.unix(basicDate).utc().add(1, 'day').unix();
-        let a = Dates.add(basicDate, 1, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc().add(1, 'day').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1, 'hour').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc().add(1, 'hour').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1, 'minute').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc().add(1, 'minute').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        /*  b = moment().utc().add(1, 'month').unix();
-         a = Dates.add(Dates.now(), 1, TimeSegment.TYPE_MONTH);
-         expect(a - b).to.be.lessThan(2); */
-        b = moment.unix(basicDate).utc().add(1, 'month').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        // Volontairement différent de MomentJs sur ce test, on se base sur les choix de Date pour le coup
-        // b = moment.unix(1580472000).utc().add(1, 'month').unix();  // 31-01-2020 12:00:00 GMT
-        // a = Dates.add(1580472000, 1, TimeSegment.TYPE_MONTH);
-        // expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc().add(1, 'month').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1, 'second').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc().add(1, 'second').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1, 'week').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1582372800).utc().add(1, 'week').unix();  // 22-02-2020 12:00:00 GMT
-        a = Dates.add(1582372800, 1, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc().add(1, 'week').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        /* b = moment().utc().add(1, 'year').unix();
-        a = Dates.add(Dates.now(), 1, TimeSegment.TYPE_YEAR);
-        expect(a - b).to.be.lessThan(2); */
-        b = moment.unix(basicDate).utc().add(1, 'year').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_YEAR);
-        expect(a).to.equal(b);
-
-        /**
-         * Cas particuliers, incohérents entre Date et momentjs, on utilise la version de Date
-         */
-        // b = moment.unix(edgeDate).utc().add(1, 'year').unix();
-        let date_ = new Date(edgeDate * 1000);
-        b = date_.setUTCFullYear(date_.getUTCFullYear() + 1) / 1000;
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_YEAR);
-        expect(a).to.equal(b);
-
-        // add 0
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_DAY)).to.equal(basicDate);
-
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_HOUR)).to.equal(basicDate);
-
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_MINUTE)).to.equal(basicDate);
-
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_MONTH)).to.equal(basicDate);
-
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_SECOND)).to.equal(basicDate);
-
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_WEEK)).to.equal(basicDate);
-
-        expect(Dates.add(basicDate, 0, TimeSegment.TYPE_YEAR)).to.equal(basicDate);
-
-        // remove 1
-        b = moment.unix(basicDate).utc().add(-1, 'day').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'day').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1, 'hour').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'hour').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1, 'minute').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'minute').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1, 'month').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'month').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1, 'second').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'second').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1, 'week').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1583582400).utc().add(-1, 'week').unix();  // 07-03-2020 12:00:00 GMT
-        a = Dates.add(1583582400, -1, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'week').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1, 'year').unix();
-        a = Dates.add(basicDate, -1, TimeSegment.TYPE_YEAR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(reverseEdgeDate).utc().add(-1, 'year').unix();
-        a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_YEAR);
-        expect(a).to.equal(b);
-
-        // add decimal numbers
-        // Volontairement différent de MomentJS => pourquoi on a le droit d'ajouter une demi heure mais pas une demi journée ... ?
-        // b = moment.unix(basicDate).utc().add(0.333, 'day').unix();
-        // a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_DAY);
-        // expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(0.333, 'hour').unix();
-        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-0.125, 'hour').unix();
-        a = Dates.add(basicDate, -0.125, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(0.333, 'minute').unix();
-        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(0.333, 'second').unix();
-        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        // Volontairement différent de MomentJS => pourquoi on a le droit d'ajouter une demi heure mais pas une demi-semaine ... ?
-        // b = moment.unix(basicDate).utc().add(0.333, 'week').unix();
-        // a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_WEEK);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(-0.5, 'week').unix();
-        // a = Dates.add(basicDate, -0.5, TimeSegment.TYPE_WEEK);
-        // expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(0.333, 'month').unix();
-        a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(0.333, 'year').unix();
-        // a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_YEAR);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(edgeDate).add(0.333, 'month').unix();
-        // a = Dates.add(edgeDate, 0.333, TimeSegment.TYPE_MONTH);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(reverseEdgeDate).add(-0.25, 'month').unix();
-        // a = Dates.add(reverseEdgeDate, -0.25, TimeSegment.TYPE_MONTH);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(1.333, 'day').unix();
-        // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_DAY);
-        // expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1.333, 'hour').unix();
-        a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(-1.125, 'hour').unix();
-        a = Dates.add(basicDate, -1.125, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1.333, 'minute').unix();
-        a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(1.333, 'second').unix();
-        a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(1.333, 'week').unix();
-        // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_WEEK);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(-1.5, 'week').unix();
-        // a = Dates.add(basicDate, -1.5, TimeSegment.TYPE_WEEK);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(1.333, 'month').unix();
-        // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_MONTH);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(basicDate).utc().add(1.333, 'year').unix();
-        // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_YEAR);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(edgeDate).add(1.333, 'month').unix();
-        // a = Dates.add(edgeDate, 1.333, TimeSegment.TYPE_MONTH);
-        // expect(a).to.equal(b);
-
-        // b = moment.unix(reverseEdgeDate).add(-1.25, 'month').unix();
-        // a = Dates.add(reverseEdgeDate, -1.25, TimeSegment.TYPE_MONTH);
-        // expect(a).to.equal(b);
-
-        // Tests changement d'heures (dernier dimanche de mars et dernier dimanche d'octobre)
-        b = moment.unix(1616864400).utc(false).add(2, 'day').unix();  // 27-03-2021 18:00:00 GMT
-        a = Dates.add(1616864400, 2, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1616864400).utc(false).add(15, 'hour').unix();  // 27-03-2021 18:00:00 GMT
-        a = Dates.add(1616864400, 15, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1519862400).utc(false).add(2, 'month').unix();  // 01-03-2018 00:00:00 GMT
-        a = Dates.add(1519862400, 2, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1603198800).utc(false).add(2, 'month').unix();  // 20-10-2020 13:00:00 GMT
-        a = Dates.add(1603198800, 2, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1604406897).utc(false).add(-1, 'month').unix();  // 03-11-2020 12:34:57 GMT
-        a = Dates.add(1604406897, -1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(1604406897).utc(false).add(-6, 'month').unix();  // 03-11-2020 12:34:57 GMT
-        b = moment.unix(b).utc(false).add(-6, 'month').unix();
-        a = Dates.add(1604406897, -6, TimeSegment.TYPE_MONTH);
-        a = Dates.add(a, -6, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        // Autres (enchaînement d'addition soustraction, overflow...)
-        b = moment.unix(basicDate).utc(false).add(1, 'month').unix();
-        b = moment.unix(b).utc(false).add(-1, 'month').unix();
-        a = Dates.add(basicDate, 1, TimeSegment.TYPE_MONTH);
-        a = Dates.add(a, -1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc(false).add(2, 'month').unix();
-        b = moment.unix(b).utc(false).add(-3, 'month').unix();
-        a = Dates.add(basicDate, 2, TimeSegment.TYPE_MONTH);
-        a = Dates.add(a, -3, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc(false).add(1, 'month').unix();
-        b = moment.unix(b).utc(false).add(-1, 'month').unix();
-        a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MONTH);
-        a = Dates.add(a, -1, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(edgeDate).utc(false).add(2, 'month').unix();
-        b = moment.unix(b).utc(false).add(-3, 'month').unix();
-        a = Dates.add(edgeDate, 2, TimeSegment.TYPE_MONTH);
-        a = Dates.add(a, -3, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(67, 'day').unix();
-        a = Dates.add(basicDate, 67, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(67, 'hour').unix();
-        a = Dates.add(basicDate, 67, TimeSegment.TYPE_HOUR);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(67, 'minute').unix();
-        a = Dates.add(basicDate, 67, TimeSegment.TYPE_MINUTE);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(3700, 'second').unix();
-        a = Dates.add(basicDate, 3700, TimeSegment.TYPE_SECOND);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(15, 'week').unix();
-        a = Dates.add(basicDate, 15, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(67, 'week').unix();
-        a = Dates.add(basicDate, 67, TimeSegment.TYPE_WEEK);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(13, 'month').unix();
-        a = Dates.add(basicDate, 13, TimeSegment.TYPE_MONTH);
-        expect(a).to.equal(b);
-
-        // add forbidden values
-        b = moment.unix(basicDate).utc().add(undefined, 'day').unix();
-        a = Dates.add(basicDate, undefined, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(null, 'day').unix();
-        a = Dates.add(basicDate, null, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
-
-        b = moment.unix(basicDate).utc().add(NaN, 'day').unix();
-        a = Dates.add(basicDate, NaN, TimeSegment.TYPE_DAY);
-        expect(a).to.equal(b);
+    describe('add', () => {
+
+        it('adds days', () => {
+            let b = moment.unix(basicDate).utc().add(1, 'day').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc().add(1, 'day').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_DAY)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'day').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'day').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            // Volontairement différent de MomentJS => pourquoi on a le droit d'ajouter une demi heure mais pas une demi journée ... ?
+            // b = moment.unix(basicDate).utc().add(0.333, 'day').unix();
+            // a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_DAY);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(1.333, 'day').unix();
+            // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_DAY);
+            // expect(a).to.equal(b);
+
+            b = moment.unix(1616864400).utc(false).add(2, 'day').unix();  // 27-03-2021 18:00:00 GMT
+            a = Dates.add(1616864400, 2, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(67, 'day').unix();
+            a = Dates.add(basicDate, 67, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            // add forbidden values
+            b = moment.unix(basicDate).utc().add(undefined, 'day').unix();
+            a = Dates.add(basicDate, undefined, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(null, 'day').unix();
+            a = Dates.add(basicDate, null, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(NaN, 'day').unix();
+            a = Dates.add(basicDate, NaN, TimeSegment.TYPE_DAY);
+            expect(a).to.equal(b);
+        });
+
+        it('adds hours', () => {
+            let b = moment.unix(basicDate).utc().add(1, 'hour').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc().add(1, 'hour').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_HOUR)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'hour').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'hour').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(0.333, 'hour').unix();
+            a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(-0.125, 'hour').unix();
+            a = Dates.add(basicDate, -0.125, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(1.333, 'hour').unix();
+            a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(-1.125, 'hour').unix();
+            a = Dates.add(basicDate, -1.125, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1616864400).utc(false).add(15, 'hour').unix();  // 27-03-2021 18:00:00 GMT
+            a = Dates.add(1616864400, 15, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(67, 'hour').unix();
+            a = Dates.add(basicDate, 67, TimeSegment.TYPE_HOUR);
+            expect(a).to.equal(b);
+        });
+
+
+        it('adds minutes', () => {
+            let b = moment.unix(basicDate).utc().add(1, 'minute').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc().add(1, 'minute').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_MINUTE)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'minute').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'minute').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(0.333, 'minute').unix();
+            a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(1.333, 'minute').unix();
+            a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(67, 'minute').unix();
+            a = Dates.add(basicDate, 67, TimeSegment.TYPE_MINUTE);
+            expect(a).to.equal(b);
+        });
+
+        it('adds seconds', () => {
+            let b = moment.unix(basicDate).utc().add(1, 'second').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc().add(1, 'second').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_SECOND)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'second').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'second').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(0.333, 'second').unix();
+            a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(1.333, 'second').unix();
+            a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(3700, 'second').unix();
+            a = Dates.add(basicDate, 3700, TimeSegment.TYPE_SECOND);
+            expect(a).to.equal(b);
+        });
+
+        it('adds weeks', () => {
+            let b = moment.unix(basicDate).utc().add(1, 'week').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1582372800).utc().add(1, 'week').unix();  // 22-02-2020 12:00:00 GMT
+            a = Dates.add(1582372800, 1, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc().add(1, 'week').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_WEEK)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'week').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1583582400).utc().add(-1, 'week').unix();  // 07-03-2020 12:00:00 GMT
+            a = Dates.add(1583582400, -1, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'week').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            // Volontairement différent de MomentJS => pourquoi on a le droit d'ajouter une demi heure mais pas une demi-semaine ... ?
+            // b = moment.unix(basicDate).utc().add(0.333, 'week').unix();
+            // a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_WEEK);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(-0.5, 'week').unix();
+            // a = Dates.add(basicDate, -0.5, TimeSegment.TYPE_WEEK);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(1.333, 'week').unix();
+            // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_WEEK);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(-1.5, 'week').unix();
+            // a = Dates.add(basicDate, -1.5, TimeSegment.TYPE_WEEK);
+            // expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(15, 'week').unix();
+            a = Dates.add(basicDate, 15, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(67, 'week').unix();
+            a = Dates.add(basicDate, 67, TimeSegment.TYPE_WEEK);
+            expect(a).to.equal(b);
+        });
+
+        it('adds months', () => {
+            /*  b = moment().utc().add(1, 'month').unix();
+             a = Dates.add(Dates.now(), 1, TimeSegment.TYPE_MONTH);
+             expect(a - b).to.be.lessThan(2); */
+            let b = moment.unix(basicDate).utc().add(1, 'month').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            // Volontairement différent de MomentJs sur ce test, on se base sur les choix de Date pour le coup
+            // b = moment.unix(1580472000).utc().add(1, 'month').unix();  // 31-01-2020 12:00:00 GMT
+            // a = Dates.add(1580472000, 1, TimeSegment.TYPE_MONTH);
+            // expect(a).to.equal(b);
+            b = moment.unix(edgeDate).utc().add(1, 'month').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_MONTH)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'month').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'month').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(0.333, 'month').unix();
+            a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            // b = moment.unix(edgeDate).add(0.333, 'month').unix();
+            // a = Dates.add(edgeDate, 0.333, TimeSegment.TYPE_MONTH);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(reverseEdgeDate).add(-0.25, 'month').unix();
+            // a = Dates.add(reverseEdgeDate, -0.25, TimeSegment.TYPE_MONTH);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(1.333, 'month').unix();
+            // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_MONTH);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(edgeDate).add(1.333, 'month').unix();
+            // a = Dates.add(edgeDate, 1.333, TimeSegment.TYPE_MONTH);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(reverseEdgeDate).add(-1.25, 'month').unix();
+            // a = Dates.add(reverseEdgeDate, -1.25, TimeSegment.TYPE_MONTH);
+            // expect(a).to.equal(b);
+
+            b = moment.unix(1519862400).utc(false).add(2, 'month').unix();  // 01-03-2018 00:00:00 GMT
+            a = Dates.add(1519862400, 2, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1603198800).utc(false).add(2, 'month').unix();  // 20-10-2020 13:00:00 GMT
+            a = Dates.add(1603198800, 2, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1604406897).utc(false).add(-1, 'month').unix();  // 03-11-2020 12:34:57 GMT
+            a = Dates.add(1604406897, -1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1604406897).utc(false).add(-6, 'month').unix();  // 03-11-2020 12:34:57 GMT
+            b = moment.unix(b).utc(false).add(-6, 'month').unix();
+            a = Dates.add(1604406897, -6, TimeSegment.TYPE_MONTH);
+            a = Dates.add(a, -6, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc(false).add(1, 'month').unix();
+            b = moment.unix(b).utc(false).add(-1, 'month').unix();
+            a = Dates.add(basicDate, 1, TimeSegment.TYPE_MONTH);
+            a = Dates.add(a, -1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc(false).add(2, 'month').unix();
+            b = moment.unix(b).utc(false).add(-3, 'month').unix();
+            a = Dates.add(basicDate, 2, TimeSegment.TYPE_MONTH);
+            a = Dates.add(a, -3, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc(false).add(1, 'month').unix();
+            b = moment.unix(b).utc(false).add(-1, 'month').unix();
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_MONTH);
+            a = Dates.add(a, -1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(edgeDate).utc(false).add(2, 'month').unix();
+            b = moment.unix(b).utc(false).add(-3, 'month').unix();
+            a = Dates.add(edgeDate, 2, TimeSegment.TYPE_MONTH);
+            a = Dates.add(a, -3, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(basicDate).utc().add(13, 'month').unix();
+            a = Dates.add(basicDate, 13, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+
+            b = moment.unix(1635724799).utc().add(-1, 'month').unix(); // 2021-10-31 23:59:59
+            a = Dates.add(1635724799, -1, TimeSegment.TYPE_MONTH);
+            expect(a).to.equal(b);
+        });
+
+        it('adds years', () => {
+            /* b = moment().utc().add(1, 'year').unix();
+            a = Dates.add(Dates.now(), 1, TimeSegment.TYPE_YEAR);
+            expect(a - b).to.be.lessThan(2); */
+            let b = moment.unix(basicDate).utc().add(1, 'year').unix();
+            let a = Dates.add(basicDate, 1, TimeSegment.TYPE_YEAR);
+            expect(a).to.equal(b);
+
+            /**
+             * Cas particuliers, incohérents entre Date et momentjs, on utilise la version de Date
+             */
+            // b = moment.unix(edgeDate).utc().add(1, 'year').unix();
+            let date_ = new Date(edgeDate * 1000);
+            b = date_.setUTCFullYear(date_.getUTCFullYear() + 1) / 1000;
+            a = Dates.add(edgeDate, 1, TimeSegment.TYPE_YEAR);
+            expect(a).to.equal(b);
+
+            expect(Dates.add(basicDate, 0, TimeSegment.TYPE_YEAR)).to.equal(basicDate);
+
+            b = moment.unix(basicDate).utc().add(-1, 'year').unix();
+            a = Dates.add(basicDate, -1, TimeSegment.TYPE_YEAR);
+            expect(a).to.equal(b);
+
+            b = moment.unix(reverseEdgeDate).utc().add(-1, 'year').unix();
+            a = Dates.add(reverseEdgeDate, -1, TimeSegment.TYPE_YEAR);
+            expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(0.333, 'year').unix();
+            // a = Dates.add(basicDate, 0.333, TimeSegment.TYPE_YEAR);
+            // expect(a).to.equal(b);
+
+            // b = moment.unix(basicDate).utc().add(1.333, 'year').unix();
+            // a = Dates.add(basicDate, 1.333, TimeSegment.TYPE_YEAR);
+            // expect(a).to.equal(b);
+        });
     });
 
     describe('startOf', () => {

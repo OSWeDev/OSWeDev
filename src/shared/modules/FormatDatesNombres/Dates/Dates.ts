@@ -54,8 +54,7 @@ export default class Dates {
                 /**
                  * Je vois pas comment éviter de passer par un moment à ce stade ou un Date
                  */
-                let date_ms = new Date(date * 1000);
-                return Math.floor(date_ms.setUTCMonth(date_ms.getUTCMonth() + nb) / 1000);
+                return moment.unix(date).utc().add(nb, 'month').unix();
             case TimeSegment.TYPE_SECOND:
                 return Math.floor(nb + date);
             case TimeSegment.TYPE_WEEK:
