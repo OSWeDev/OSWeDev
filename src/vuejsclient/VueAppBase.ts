@@ -98,6 +98,9 @@ export default abstract class VueAppBase {
         for (let i in ModulesManager.getInstance().modules_by_name) {
             let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
 
+            /**
+             * FIXME : peut-etre séparer les policies_tocheck et des policies_totest pour identifier les policies qui manqueraient de façon anormale
+             */
             if (module_ && module_.policies_needed && module_.policies_needed.length) {
                 promises.push((async () => {
 
@@ -106,7 +109,7 @@ export default abstract class VueAppBase {
                     for (let j in module_.policies_needed) {
                         let policy_name = module_.policies_needed[j];
                         local_promises.push((async () => {
-                            module_.policies_loaded[policy_name] = await ModuleAccessPolicy.getInstance().checkAccess(policy_name);
+                            module_.policies_loaded[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
                         })());
                     }
                     await Promise.all(local_promises);

@@ -1846,6 +1846,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On vérifie qu'on peut faire a minima un listage
         if (!this.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS)) {
+            ConsoleHandler.getInstance().warn('getVoById:checkAccessSync:!DAO_ACCESS_TYPE_LIST_LABELS');
             return null;
         }
 

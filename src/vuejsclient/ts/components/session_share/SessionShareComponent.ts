@@ -23,7 +23,7 @@ export default class SessionShareComponent extends VueComponentBase {
 
     private async mounted() {
 
-        this.has_access_to_session_share = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS);
+        this.has_access_to_session_share = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS);
         if (!this.has_access_to_session_share) {
             return;
         }

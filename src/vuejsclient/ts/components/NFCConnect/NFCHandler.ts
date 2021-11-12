@@ -29,7 +29,7 @@ export default class NFCHandler {
                 return true;
             }
 
-            this.has_access_to_nfc = await ModuleAccessPolicy.getInstance().checkAccess(ModuleNFCConnect.POLICY_FO_ACCESS);
+            this.has_access_to_nfc = await ModuleAccessPolicy.getInstance().testAccess(ModuleNFCConnect.POLICY_FO_ACCESS);
 
             let NDEFReader = window['NDEFReader'];
 

@@ -17,6 +17,7 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { hourFilter, percentFilter } from '../../../../shared/tools/Filters';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
+import StackContext from '../../../StackContext';
 import ExportHandlerBase from '../../DataExport/ExportHandlerBase';
 import IExportableDatas from '../../DataExport/interfaces/IExportableDatas';
 import VarsServerCallBackSubsController from '../../Var/VarsServerCallBackSubsController';
@@ -63,7 +64,12 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             return null;
         }
 
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+        let user: UserVO = null;
+        await StackContext.getInstance().runPromise(
+            { IS_CLIENT: false },
+            async () => {
+                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+            });
         let import_params: AnimationReportingParamVO = APIControllerWrapper.getInstance().try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
         let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID));
@@ -287,7 +293,12 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
     }
 
     private async get_column_labels(exhi: ExportHistoricVO): Promise<{ [field_name: string]: string }> {
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+        let user: UserVO = null;
+        await StackContext.getInstance().runPromise(
+            { IS_CLIENT: false },
+            async () => {
+                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+            });
 
         if (!user) {
             return null;

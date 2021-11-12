@@ -29,6 +29,8 @@ export default class ModuleDataImport extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_BO_FULL_MENU_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_FULL_MENU_ACCESS';
 
+    public static PARAM_CAN_RETRY_FAILED: string = ModuleDataImport.MODULE_NAME + '.CAN_RETRY_FAILED';
+
     public static IMPORT_SCHEMA: string = 'imports';
 
     public static APINAME_reimportdih: string = 'reimportdih';
