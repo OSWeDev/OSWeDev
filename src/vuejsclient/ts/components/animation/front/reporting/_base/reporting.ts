@@ -278,7 +278,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
     }
 
     private get_formatted_date(date: number): string {
-        return date ? Dates.format(date, 'DD/MM/YYYY HH:mm') : null;
+        return date ? Dates.format(date, 'DD/MM/YYYY HH:mm', false) : null;
     }
 
     private get_prct_reussite_param(aum: AnimationUserModuleVO): ThemeModuleDataRangesVO {
