@@ -803,7 +803,8 @@ export default class AccessPolicyServerController {
                     this.registered_roles_policies,
                     this.registered_policies_by_ids,
                     this.registered_dependencies,
-                    ignore_role ? role : null);
+                    ignore_role ? role : null,
+                    true);
             }
         }
 
