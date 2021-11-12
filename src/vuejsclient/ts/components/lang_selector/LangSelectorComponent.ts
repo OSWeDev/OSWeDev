@@ -49,7 +49,7 @@ export default class LangSelectorComponent extends VueComponentBase {
             let lang: LangVO = langs_[i];
 
             promises.push((async () => {
-                if (ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id))) {
+                if (ModuleAccessPolicy.getInstance().testAccess(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id))) {
                     self.langs_by_ids[lang.id] = lang;
                 }
             })());

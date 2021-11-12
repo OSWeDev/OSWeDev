@@ -59,6 +59,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_impersonateLogin = "impersonateLogin";
     public static APINAME_change_lang = "change_lang";
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
+    public static APINAME_TEST_ACCESS = "ACCESS_TEST_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
     public static APINAME_IS_ROLE = "IS_ROLE";
     public static APINAME_GET_MY_ROLES = "GET_MY_ROLES";
@@ -131,6 +132,12 @@ export default class ModuleAccessPolicy extends Module {
      * @param policy_name Le titre de la policy, qui doit être unique sur tous les groupes de toutes façons
      */
     public checkAccess: (policy_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_CHECK_ACCESS);
+    /**
+     * WARN : Uniquement à usage côté client, côté serveur pour les performances préférer l'appel directement à checkAccessSync sur le module server
+     * Permet de tester un accès sans générer de log d'erreur en cas de refus
+     * @param policy_name Le titre de la policy, qui doit être unique sur tous les groupes de toutes façons
+     */
+    public testAccess: (policy_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_TEST_ACCESS);
     public beginRecover: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER);
     public beginRecoverSMS: (email: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS);
     public beginRecoverUID: (uid: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID);
@@ -153,6 +160,13 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
+            [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+            null,
+            ModuleAccessPolicy.APINAME_TEST_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));

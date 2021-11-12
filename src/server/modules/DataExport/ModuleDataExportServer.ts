@@ -19,6 +19,7 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
@@ -272,11 +273,16 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // On log l'export
         if (!!user_log_id) {
-            await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                api_type_id,
-                Dates.now(),
-                user_log_id
-            ));
+
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
+                        api_type_id,
+                        Dates.now(),
+                        user_log_id
+                    ));
+                });
         }
 
         return filepath;
@@ -392,11 +398,15 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // On log l'export
         if (!!user_log_id) {
-            await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                api_type_id,
-                Dates.now(),
-                user_log_id
-            ));
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
+                        api_type_id,
+                        Dates.now(),
+                        user_log_id
+                    ));
+                });
         }
 
         return filepath;

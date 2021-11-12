@@ -280,19 +280,19 @@ export default class ProgramPlanComponent extends VueComponentBase {
             let promises: Array<Promise<any>> = [];
 
             promises.push((async () => {
-                self.set_can_edit_any(await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_EDIT));
+                self.set_can_edit_any(await ModuleAccessPolicy.getInstance().testAccess(this.program_plan_shared_module.POLICY_FO_EDIT));
             })());
             promises.push((async () => {
-                self.set_can_see_fc(await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_SEE_FC));
+                self.set_can_see_fc(await ModuleAccessPolicy.getInstance().testAccess(this.program_plan_shared_module.POLICY_FO_SEE_FC));
             })());
             promises.push((async () => {
-                self.set_can_edit_all(await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_EDIT_ALL_RDVS));
+                self.set_can_edit_all(await ModuleAccessPolicy.getInstance().testAccess(this.program_plan_shared_module.POLICY_FO_EDIT_ALL_RDVS));
             })());
             promises.push((async () => {
-                self.set_can_edit_own_team(await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_EDIT_OWN_TEAM_RDVS));
+                self.set_can_edit_own_team(await ModuleAccessPolicy.getInstance().testAccess(this.program_plan_shared_module.POLICY_FO_EDIT_OWN_TEAM_RDVS));
             })());
             promises.push((async () => {
-                self.set_can_edit_self(await ModuleAccessPolicy.getInstance().checkAccess(this.program_plan_shared_module.POLICY_FO_EDIT_OWN_RDVS));
+                self.set_can_edit_self(await ModuleAccessPolicy.getInstance().testAccess(this.program_plan_shared_module.POLICY_FO_EDIT_OWN_RDVS));
             })());
             promises.push((async () => {
                 await self.reloadAsyncData();

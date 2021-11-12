@@ -155,25 +155,25 @@ export default class TableWidgetComponent extends VueComponentBase {
                 this.can_open_vocus_right = false;
                 return;
             }
-            this.can_delete_all_right = await ModuleAccessPolicy.getInstance().checkAccess(crud.delete_all_access_right);
+            this.can_delete_all_right = await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
         }
 
         if (this.can_open_vocus_right == null) {
-            this.can_open_vocus_right = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS);
+            this.can_open_vocus_right = await ModuleAccessPolicy.getInstance().testAccess(ModuleVocus.POLICY_BO_ACCESS);
         }
 
         if (this.can_delete_right == null) {
-            this.can_delete_right = await ModuleAccessPolicy.getInstance().checkAccess(
+            this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
         }
 
         if (this.can_update_right == null) {
-            this.can_update_right = await ModuleAccessPolicy.getInstance().checkAccess(
+            this.can_update_right = await ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
 
         if (this.can_create_right == null) {
-            this.can_create_right = await ModuleAccessPolicy.getInstance().checkAccess(
+            this.can_create_right = await ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.crud_activated_api_type));
         }
     }

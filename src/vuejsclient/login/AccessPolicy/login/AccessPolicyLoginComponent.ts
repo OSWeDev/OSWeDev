@@ -50,7 +50,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         )());
 
         promises.push((async () =>
-            this.signin_allowed = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS)
+            this.signin_allowed = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS)
         )());
 
         promises.push((async () =>

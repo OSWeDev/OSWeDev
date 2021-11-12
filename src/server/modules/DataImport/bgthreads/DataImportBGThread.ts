@@ -89,7 +89,10 @@ export default class DataImportBGThread implements IBGThread {
                  *  - no import references this one in reimport_of_dih_id
                  *  - last_up_date is older than 5 mninutes
                  */
-                dih = await this.try_getting_failed_retryable_import();
+                let can_retry = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDataImport.PARAM_CAN_RETRY_FAILED, false);
+                if (can_retry) {
+                    dih = await this.try_getting_failed_retryable_import();
+                }
             }
 
             if (!dih) {

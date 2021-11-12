@@ -88,7 +88,7 @@ export default class CMSPageComponent extends VueComponentBase {
             }
         })());
         promises.push((async () => {
-            self.has_access_to_cms_fo_admin = await ModuleAccessPolicy.getInstance().checkAccess(ModuleCMS.POLICY_BO_ACCESS);
+            self.has_access_to_cms_fo_admin = await ModuleAccessPolicy.getInstance().testAccess(ModuleCMS.POLICY_BO_ACCESS);
         })());
 
         await Promise.all(promises);

@@ -40,7 +40,7 @@ export default class MenuController {
         if (!this.menus_by_name[elt.name]) {
 
             // Si c'est pas défini dans le menu, on check qu'on a le droit de l'ajouter
-            if (elt.access_policy_name && !await ModuleAccessPolicy.getInstance().checkAccess(elt.access_policy_name)) {
+            if (elt.access_policy_name && !await ModuleAccessPolicy.getInstance().testAccess(elt.access_policy_name)) {
                 ConsoleHandler.getInstance().warn("Menu refusé car accès refusé:" + elt);
                 return;
             }

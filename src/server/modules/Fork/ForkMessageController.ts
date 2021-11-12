@@ -158,8 +158,6 @@ export default class ForkMessageController {
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
                 }
             }
-        } else {
-            ConsoleHandler.getInstance().log('ok');
         }
     }
 }

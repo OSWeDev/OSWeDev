@@ -84,16 +84,16 @@ export default class ModuleParams extends Module {
         return (res != null) ? parseInt(res) : default_if_undefined;
     }
 
-    public async getParamValueAsBoolean(param_name: string): Promise<boolean> {
+    public async getParamValueAsBoolean(param_name: string, default_if_undefined: boolean = false): Promise<boolean> {
         let res = await this.getParamValueAsInt(param_name);
 
-        return res ? true : false;
+        return (res != null) ? (res != 0) : default_if_undefined;
     }
 
-    public async getParamValueAsFloat(param_name: string): Promise<number> {
+    public async getParamValueAsFloat(param_name: string, default_if_undefined: number = null): Promise<number> {
         let res = await this.getParamValue(param_name);
 
-        return (res != null) ? parseFloat(res) : null;
+        return (res != null) ? parseFloat(res) : default_if_undefined;
     }
 
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {
