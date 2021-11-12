@@ -5,12 +5,12 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 
 export default class Dates {
 
-    public static parse(date: string | Date, format: string = null): number {
+    public static parse(date: string | Date, format: string = null, localized_src: boolean = true): number {
         try {
             if (!date) {
                 return null;
             }
-            return moment(date, format).utc(true).unix();
+            return moment(date, format).utc(localized_src).unix();
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
