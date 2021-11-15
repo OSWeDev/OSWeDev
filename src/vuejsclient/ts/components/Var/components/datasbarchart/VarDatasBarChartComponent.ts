@@ -22,6 +22,9 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     @ModuleVarGetter
     private isDescMode: boolean;
 
+    @Prop({ default: false })
+    private throttle: boolean;
+
     @Prop({ default: null })
     private labels: string[];
 
@@ -36,9 +39,16 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
     private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false });
+    private debounced_var_datas_updater = debounce(this.var_datas_updater.bind(this), 500);
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
-        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
+        [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery((() => {
+            if (this.throttle) {
+                this.throttled_var_datas_updater();
+            } else {
+                this.debounced_var_datas_updater();
+            }
+        }).bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
 
     private var_datas_updater() {
@@ -188,7 +198,9 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             return null;
         }
 
-        this.debounced_render_chart_js();
+        if (this.rendered) {
+            this.debounced_render_chart_js();
+        }
 
         return {
             labels: this.labels,
@@ -276,6 +288,10 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 dataset['type'] = var_dataset_descriptor.type;
             }
 
+            if (!!var_dataset_descriptor.dataset_options_overrides) {
+                dataset = Object.assign(dataset, var_dataset_descriptor.dataset_options_overrides);
+            }
+
             res.push(dataset);
         }
 
@@ -288,7 +304,6 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             // Issu de Bar
             this.$data._chart.destroy();
         }
-        this.rendered = true;
 
         try {
 
@@ -297,6 +312,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 this.chartData,
                 this.chartOptions
             );
+            this.rendered = true;
         } catch (error) {
             ConsoleHandler.getInstance().warn('PB:render Bar Chart probablement trop tôt:' + error);
             this.rendered = false;

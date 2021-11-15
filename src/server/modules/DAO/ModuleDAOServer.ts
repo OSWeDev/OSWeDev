@@ -3197,7 +3197,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private get_range_check_simple_field_type_valeur(field: ModuleTableField<any>, filter_field_type: string, range: IRange, table_name: string): string {
-        if (RangeHandler.getInstance().getCardinal(range) == 1) {
+        if ((field.segmentation_type == range.segment_type) && (RangeHandler.getInstance().getCardinal(range) == 1)) {
             return table_name + '.' + field.field_id + ' = ' + this.get_range_segment_value_to_bdd(field, filter_field_type, RangeHandler.getInstance().getSegmentedMin(range)) + ' ';
         } else {
             let segmented_min = RangeHandler.getInstance().getSegmentedMin(range);

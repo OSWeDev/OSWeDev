@@ -7,6 +7,7 @@ export default class VarsBarDataSetDescriptor extends VarDataSetDescriptor {
     public bg_color: string = null;
     public type: string = null;
     public var_value_filter: (param: VarDataBaseVO, value: number) => boolean = null;
+    public dataset_options_overrides: any = null;
 
     public constructor(
         public var_name: string,
@@ -21,6 +22,11 @@ export default class VarsBarDataSetDescriptor extends VarDataSetDescriptor {
     }
     public set_var_value_filter(var_value_filter: (param: VarDataBaseVO, value: number) => boolean): VarsBarDataSetDescriptor {
         this.var_value_filter = var_value_filter;
+        return this;
+    }
+
+    public set_dataset_options_overrides(dataset_options_overrides: any): VarsBarDataSetDescriptor {
+        this.dataset_options_overrides = dataset_options_overrides;
         return this;
     }
 
