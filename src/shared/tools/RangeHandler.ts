@@ -29,14 +29,14 @@ export default class RangeHandler {
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807
      *  /1000 par sécurité doute sur les conversions, anyway peu de chance que ça impact anything
      */
-    public static MIN_TS: number = -9223372036;
-    public static MAX_TS: number = 9223372036;
+    public static MIN_TS: number = -9151488000;
+    public static MAX_TS: number = 8993721599;
 
     /**
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd appliqué aux duration (théotiquement -9223372036854775808 to 9223372036854775807
      */
-    public static MIN_HOUR: number = -9223372036;
-    public static MAX_HOUR: number = 9223372036;
+    public static MIN_HOUR: number = -9151488000;
+    public static MAX_HOUR: number = 8993721599;
 
     public static getInstance(): RangeHandler {
         if (!RangeHandler.instance) {
@@ -120,22 +120,8 @@ export default class RangeHandler {
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
                 let segmented_min: number = this.getSegmentedMin(range);
-                switch (range.segment_type) {
-                    case TimeSegment.TYPE_DAY:
-                        return segmented_min === -9223286400 || segmented_min === -9223372800; // min_inclusive = false || min_inclusive = true
-                    case TimeSegment.TYPE_WEEK:
-                        return segmented_min === -9222854400 || segmented_min === -9223459200;
-                    case TimeSegment.TYPE_MONTH:
-                        return segmented_min === -9222508800 || segmented_min === -9225100800;
-                    case TimeSegment.TYPE_YEAR:
-                        return segmented_min === -9214560000 || segmented_min === -9246096000;
-                    case TimeSegment.TYPE_HOUR:
-                        return segmented_min === -9223372800;
-                    case TimeSegment.TYPE_MINUTE:
-                        return segmented_min === -9223372800;
-                    case TimeSegment.TYPE_SECOND:
-                        return segmented_min === -9223372800;
-                }
+                return segmented_min === RangeHandler.MIN_TS
+                    || segmented_min === Dates.add(RangeHandler.MIN_TS, 1, range.segment_type);
             case NumRange.RANGE_TYPE:
                 return this.getSegmentedMin(range) == RangeHandler.MIN_INT;
             case HourRange.RANGE_TYPE:
@@ -151,22 +137,8 @@ export default class RangeHandler {
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
                 let segmented_max: number = this.getSegmentedMax(range);
-                switch (range.segment_type) {
-                    case TimeSegment.TYPE_DAY:
-                        return segmented_max === 9223372800;
-                    case TimeSegment.TYPE_WEEK:
-                        return segmented_max === 9222854400 || segmented_max === 9223459200; // idem left_open
-                    case TimeSegment.TYPE_MONTH:
-                        return segmented_max === 9222336000 || segmented_max === 9224928000;
-                    case TimeSegment.TYPE_YEAR:
-                        return segmented_max === 9214560000 || segmented_max === 9246096000;
-                    case TimeSegment.TYPE_HOUR:
-                        return segmented_max === 9223372800;
-                    case TimeSegment.TYPE_MINUTE:
-                        return segmented_max === 9223372800;
-                    case TimeSegment.TYPE_SECOND:
-                        return segmented_max === 9223372800;
-                }
+                return segmented_max === Dates.startOf(RangeHandler.MAX_TS, range.segment_type)
+                    || segmented_max === Dates.startOf(Dates.add(RangeHandler.MAX_TS, -1, range.segment_type), range.segment_type);
             case NumRange.RANGE_TYPE:
                 return this.getSegmentedMax(range) == RangeHandler.MAX_INT;
             case HourRange.RANGE_TYPE:
