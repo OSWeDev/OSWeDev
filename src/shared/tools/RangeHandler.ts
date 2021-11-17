@@ -29,14 +29,14 @@ export default class RangeHandler {
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807
      *  /1000 par sécurité doute sur les conversions, anyway peu de chance que ça impact anything
      */
-    public static MIN_TS: number = -9223372036;
-    public static MAX_TS: number = 9223372036;
+    public static MIN_TS: number = -9151488000;
+    public static MAX_TS: number = 8993721599;
 
     /**
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd appliqué aux duration (théotiquement -9223372036854775808 to 9223372036854775807
      */
-    public static MIN_HOUR: number = -9223372036;
-    public static MAX_HOUR: number = 9223372036;
+    public static MIN_HOUR: number = -9151488000;
+    public static MAX_HOUR: number = 8993721599;
 
     public static getInstance(): RangeHandler {
         if (!RangeHandler.instance) {
@@ -52,6 +52,36 @@ export default class RangeHandler {
     private static instance: RangeHandler = null;
 
     private constructor() { }
+
+    /**
+     * TODO FIXME TU
+     */
+    public get_left_open_min_value(range_type: number): number {
+        switch (range_type) {
+            case TSRange.RANGE_TYPE:
+                return RangeHandler.MIN_TS;
+            case NumRange.RANGE_TYPE:
+                return RangeHandler.MIN_INT;
+            case HourRange.RANGE_TYPE:
+                return RangeHandler.MIN_HOUR;
+        }
+        return null;
+    }
+
+    /**
+     * TODO FIXME TU
+     */
+    public get_right_open_max_value(range_type: number): number {
+        switch (range_type) {
+            case TSRange.RANGE_TYPE:
+                return RangeHandler.MAX_TS;
+            case NumRange.RANGE_TYPE:
+                return RangeHandler.MAX_INT;
+            case HourRange.RANGE_TYPE:
+                return RangeHandler.MAX_HOUR;
+        }
+        return null;
+    }
 
     public get_ids_ranges_from_list(ids: number[]): NumRange[] {
 
@@ -998,35 +1028,7 @@ export default class RangeHandler {
 
     public getIndexRanges(ranges: IRange[], cut_max_range: boolean = false): string {
 
-        if ((!ranges) || (!ranges.length)) {
-            return null;
-        }
-
-        let res: string = "[";
-
-        // Si on est sur un maxrange et qu'on veut le cut, on fait un traitement particulier pour gagner du temps
-        if (cut_max_range && RangeHandler.getInstance().getCardinalFromArray(ranges) > 1000) {
-            res += '0';
-        } else {
-            this.sort_ranges(ranges);
-
-            for (let i in ranges) {
-                let range = ranges[i];
-
-                let range_index = this.getIndex(range);
-
-                if (!range_index) {
-                    return null;
-                }
-
-                res += (res == '[' ? '' : ',');
-                res += range_index;
-            }
-        }
-
-        res += ']';
-
-        return res;
+        return Matroidindex
     }
 
     /**
@@ -2456,7 +2458,7 @@ export default class RangeHandler {
     }
 
     public createNew<T, U extends IRange>(range_type: number, start: number, end: number, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
-        if ((start == null) || (typeof start == 'undefined') || (end == null) || (typeof end == 'undefined')) {
+        if ((start == null) || (end == null)) {
             return null;
         }
 

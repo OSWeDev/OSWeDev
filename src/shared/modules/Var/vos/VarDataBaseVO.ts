@@ -1,5 +1,6 @@
 
 import ConsoleHandler from '../../../tools/ConsoleHandler';
+import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
 import TSRange from '../../DataRender/vos/TSRange';
@@ -22,27 +23,7 @@ export default class VarDataBaseVO implements IMatroid {
 
     public static from_index(index: string): VarDataBaseVO {
 
-        let pieces: string[] = index.split('_');
-        let var_id: number = parseInt(pieces[0]);
-        let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
-        let res: VarDataBaseVO = VOsTypesManager.getInstance().moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
-
-        res.var_id = var_id;
-        let fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
-
-        for (let i in fields) {
-            let field = fields[i];
-
-            let range_type = RangeHandler.getInstance().getRangeType(field);
-            // ATTENTION c'est pas évidemment que tous les segments dates soient identiques dans le principe
-            //  et sur les hourranges on a juste pas l'info par var, uniquement sur la déclaration du VO ...
-            res[field.field_id] = RangeHandler.getInstance().rangesFromIndex(
-                pieces[parseInt(i) + 1],
-                range_type,
-                (range_type == TSRange.RANGE_TYPE) ? var_conf.ts_ranges_segment_type : field.segmentation_type);
-        }
-
-        return res;
+        return MatroidIndexHandler.getInstance().from_normalized_vardata(index);
     }
 
     public static are_same(a: VarDataBaseVO, b: VarDataBaseVO): boolean {
@@ -257,16 +238,8 @@ export default class VarDataBaseVO implements IMatroid {
      */
     get index(): string {
 
-        if ((!this._index) || (this._index.indexOf('X') == 0)) {
-            let fields = MatroidController.getInstance().getMatroidFields(this._type);
-
-            this._index = this.var_id ? this.var_id.toString() : 'X';
-            for (let i in fields) {
-                let field = fields[i];
-
-                this._index += '_';
-                this._index += RangeHandler.getInstance().getIndexRanges(this[field.field_id]);
-            }
+        if (!this._index) {
+            this._index = MatroidIndexHandler.getInstance().get_normalized_vardata(this);
         }
 
         return this._index;
