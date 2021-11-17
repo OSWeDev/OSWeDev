@@ -26,19 +26,19 @@ export default class TSRangeComponent extends VueComponentBase {
         switch (this.range.segment_type) {
 
             case TimeSegment.TYPE_SECOND:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss, false);
             case TimeSegment.TYPE_MINUTE:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmm);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmm, false);
             case TimeSegment.TYPE_HOUR:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HH);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HH, false);
             case TimeSegment.TYPE_DAY:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_WEEK:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_MONTH:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMM);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMM, false);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_YEAR:
                 return Dates.year(RangeHandler.getInstance().getSegmentedMin(this.range)).toString();
 
@@ -55,19 +55,19 @@ export default class TSRangeComponent extends VueComponentBase {
         switch (this.range.segment_type) {
 
             case TimeSegment.TYPE_SECOND:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss, false);
             case TimeSegment.TYPE_MINUTE:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmm);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmm, false);
             case TimeSegment.TYPE_HOUR:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HH);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HH, false);
             case TimeSegment.TYPE_DAY:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_WEEK:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_MONTH:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMM);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMM, false);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD);
+                return Dates.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_YYYYMMDD, false);
             case TimeSegment.TYPE_YEAR:
                 return Dates.year(RangeHandler.getInstance().getSegmentedMax(this.range)).toString();
 
