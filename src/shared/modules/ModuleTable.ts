@@ -1024,13 +1024,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
                     //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, field.segmentation_type);
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
                     break;
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_day:

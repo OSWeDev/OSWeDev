@@ -15,7 +15,7 @@ export default class TSRange implements IRange {
      * @param max_inclusiv defaults to true
      */
     public static createNew(min: number, max: number, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
-        if ((!min) || (!max) || (min && max && (min > max))) {
+        if ((min == null) || (max == null) || (min && max && (min > max))) {
             return null;
         }
 

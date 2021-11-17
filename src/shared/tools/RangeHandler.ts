@@ -1714,7 +1714,7 @@ export default class RangeHandler {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public translate_from_bdd<U extends NumRange>(range_type: number, ranges: string[]): U[] {
+    public translate_from_bdd<U extends NumRange>(range_type: number, ranges: string[], segment_type: number): U[] {
 
         let res: U[] = [];
         try {
@@ -1741,13 +1741,13 @@ export default class RangeHandler {
                 //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
                 switch (range_type) {
                     case NumRange.RANGE_TYPE:
-                        res.push(this.parseRangeBDD(range_type, range, NumSegment.TYPE_INT));
+                        res.push(this.parseRangeBDD(range_type, range, segment_type == null ? NumSegment.TYPE_INT : segment_type));
                         break;
                     case TSRange.RANGE_TYPE:
-                        res.push(this.parseRangeBDD(range_type, range, TimeSegment.TYPE_SECOND));
+                        res.push(this.parseRangeBDD(range_type, range, segment_type == null ? TimeSegment.TYPE_SECOND : segment_type));
                         break;
                     case HourRange.RANGE_TYPE:
-                        res.push(this.parseRangeBDD(range_type, range, HourSegment.TYPE_SECOND));
+                        res.push(this.parseRangeBDD(range_type, range, segment_type == null ? HourSegment.TYPE_SECOND : segment_type));
                         break;
                 }
             }
