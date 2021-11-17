@@ -609,7 +609,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     public async delete_all_cache() {
 
-        for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
+        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
             let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
             await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');

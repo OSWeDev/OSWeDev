@@ -171,7 +171,7 @@ export default class MatroidIndexHandler {
         for (let i in fields) {
             let field = fields[i];
 
-            res += '|' + this.get_normalized_ranges(this[field.field_id]);
+            res += '|' + this.get_normalized_ranges(vardata[field.field_id]);
         }
         return res;
     }

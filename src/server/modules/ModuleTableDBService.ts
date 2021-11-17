@@ -511,7 +511,7 @@ export default class ModuleTableDBService {
                     continue;
                 }
 
-                let table_col_ndx = table_cols_by_name[field.field_id];
+                let table_col_ndx = table_cols_by_name[index];
 
                 if (table_col_ndx.data_type != 'text') {
                     console.error('-');

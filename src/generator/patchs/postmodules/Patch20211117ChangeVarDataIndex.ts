@@ -33,7 +33,7 @@ export default class Patch20211117ChangeVarDataIndex implements IGeneratorWorker
         /**
          * Pour tous les types de vars
          */
-        for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
+        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
             let vos = await ModuleDAO.getInstance().getVos(api_type_id);
             await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
