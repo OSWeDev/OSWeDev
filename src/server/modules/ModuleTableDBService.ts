@@ -345,12 +345,22 @@ export default class ModuleTableDBService {
 
         for (let i in table_cols_by_name) {
 
+            let index = i.toLowerCase();
             // On ignore les ids qui sont jamais dans nos descripteurs logiciel
-            if (i.toLowerCase() == 'id') {
+            if (index == 'id') {
                 continue;
             }
 
-            if (!fields_by_field_id[i.toLowerCase()]) {
+            if (!fields_by_field_id[index]) {
+
+                // Cas des ranges : champs _ndx en base, on retrouve pas le field à ce niveau
+                if (index.endsWith('_ndx')) {
+                    let test_index = index.substr(0, index.length - 4);
+                    if (!!fields_by_field_id[test_index]) {
+                        continue;
+                    }
+                }
+
                 console.error('-');
                 console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
                 console.error('ACTION: Suppression automatique...');
@@ -398,6 +408,35 @@ export default class ModuleTableDBService {
                     console.error(error);
                 }
                 console.error('---');
+            }
+
+            /**
+             * Cas des ranges
+             */
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                let index = field.field_id.toLowerCase() + '_ndx';
+                if (!table_cols_by_name[index]) {
+                    console.error('-');
+                    console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + index + ':table:' + full_name + ':');
+                    console.error('ACTION: Création automatique...');
+
+                    try {
+                        let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
+                        await this.db.none(pgSQL);
+                        console.error('ACTION: OK');
+                    } catch (error) {
+                        console.error(error);
+                    }
+                    console.error('---');
+                }
             }
         }
     }
@@ -455,6 +494,31 @@ export default class ModuleTableDBService {
                 console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':field:' + field.field_id + ':table:' + full_name + ':');
                 console.error('ACTION: Aucune. Résoudre manuellement');
                 console.error('---');
+            }
+
+            // Cas des ranges on check l'index
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                let index = field.field_id.toLowerCase() + '_ndx';
+                if (!table_cols_by_name[index]) {
+                    continue;
+                }
+
+                let table_col_ndx = table_cols_by_name[field.field_id];
+
+                if (table_col_ndx.data_type != 'text') {
+                    console.error('-');
+                    console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col_ndx.data_type + ':moduleTableField:text:field:' + index + ':table:' + full_name + ':');
+                    console.error('ACTION: Aucune. Résoudre manuellement');
+                    console.error('---');
+                }
             }
         }
     }

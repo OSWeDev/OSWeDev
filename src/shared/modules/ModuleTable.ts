@@ -1,12 +1,12 @@
 import cloneDeep = require('lodash/cloneDeep');
 import * as moment from 'moment';
-
-
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
 import GeoPointHandler from '../tools/GeoPointHandler';
+import MatroidIndexHandler from '../tools/MatroidIndexHandler';
 import RangeHandler from '../tools/RangeHandler';
+import IRange from './DataRender/interfaces/IRange';
 import HourRange from './DataRender/vos/HourRange';
 import HourSegment from './DataRender/vos/HourSegment';
 import NumRange from './DataRender/vos/NumRange';
@@ -21,6 +21,7 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -924,12 +925,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    res[field.field_id + '_ndx'] = MatroidIndexHandler.getInstance().get_normalized_ranges(res[field.field_id] as IRange[]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
+                    res[field.field_id + '_ndx'] = MatroidIndexHandler.getInstance().get_normalized_range(res[field.field_id] as IRange);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
@@ -1017,20 +1020,68 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    let field_index_n = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    }
                     break;
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    let field_index_t = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
+                    }
+                    break;
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    let field_index_h = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
+                    }
+                    break;
+
+
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
-                    //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    let field_index_ns = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ns, NumRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    }
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    let field_index_ts = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ts, TSRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    }
                     break;
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    let field_index_hs = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_hs, HourRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_day:
@@ -1043,14 +1094,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (!((field_value === null) || (typeof field_value === 'undefined'))) {
                         res[field.field_id] = field_value.map((ts: string) => ConversionHandler.forceNumber(ts));
                     }
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:

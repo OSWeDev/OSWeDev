@@ -604,6 +604,18 @@ export default class ModuleVarServer extends ModuleServerBase {
         await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
     }
 
+    /**
+     * On vide le cache des vars, pas les imports
+     */
+    public async delete_all_cache() {
+
+        for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
+            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+            await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+        }
+    }
+
     public async delete_cache_intersection(vos: VarDataBaseVO[]) {
 
         if ((!vos) || (!vos.length)) {

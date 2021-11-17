@@ -1714,8 +1714,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             const setters = [];
-            for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field: ModuleTableField<any> = fields[i];
 
                 if (typeof vo[field.field_id] == "undefined") {
                     if (!field.has_default || typeof field.field_default == 'undefined') {
@@ -1726,6 +1727,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 setters.push(field.field_id + ' = ${' + field.field_id + '}');
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    setters.push(field.field_id + '_ndx = ${' + field.field_id + '_ndx}');
+                }
             }
 
             let full_name = null;

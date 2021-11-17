@@ -14,6 +14,7 @@ import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
 import ModuleTableField from '../modules/ModuleTableField';
 import ConsoleHandler from './ConsoleHandler';
 import HourSegmentHandler from './HourSegmentHandler';
+import MatroidIndexHandler from './MatroidIndexHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 
@@ -920,20 +921,7 @@ export default class RangeHandler {
     }
 
     public getIndex(range: IRange): string {
-
-        if ((!range) || (!this.isValid(range))) {
-            return null;
-        }
-
-        let res: string = "";
-
-        res += (range.min_inclusiv ? '[' : '(');
-        res += this.getFormattedMinForAPI(range);
-        res += ',';
-        res += this.getFormattedMaxForAPI(range);
-        res += (range.max_inclusiv ? ']' : ')');
-
-        return res;
+        return MatroidIndexHandler.getInstance().get_normalized_range(range);
     }
 
     public humanize(range: IRange): string {
@@ -973,34 +961,12 @@ export default class RangeHandler {
         return res;
     }
 
-    public rangesFromIndex(index: string, range_type: number, segmentation_type: number): IRange[] {
-        let ranges: IRange[] = [];
-
-        if ((!index) || (index.length < 2)) {
-            return null;
-        }
-
-        index = index.substr(2, index.length);
-        while (index && (index.length > 2)) {
-
-            /**
-             * structure par range : [a,b)
-             */
-            let sub_part = index.substr(0, index.indexOf(')'));
-            let parts = sub_part.split(',');
-            let a = parseInt(parts[0]);
-            let b = parseInt(parts[1]);
-            ranges.push(RangeHandler.getInstance().createNew(range_type, a, b, true, false, segmentation_type));
-
-            index = (sub_part.length + 3 < index.length) ? index.substr(sub_part.length + 3, index.length) : null;
-        }
-
-        return ranges;
+    public rangesFromIndex(index: string, range_type: number): IRange[] {
+        return MatroidIndexHandler.getInstance().from_normalized_ranges(index, range_type);
     }
 
-    public getIndexRanges(ranges: IRange[], cut_max_range: boolean = false): string {
-
-        return Matroidindex
+    public getIndexRanges(ranges: IRange[]): string {
+        return MatroidIndexHandler.getInstance().get_normalized_ranges(ranges);
     }
 
     /**
@@ -1052,22 +1018,6 @@ export default class RangeHandler {
         res += ']';
 
         return res;
-    }
-
-    public getFormattedMinForAPI(range: IRange): string {
-        if (!range) {
-            return null;
-        }
-
-        return range.min.toString();
-    }
-
-    public getFormattedMaxForAPI(range: IRange): string {
-        if (!range) {
-            return null;
-        }
-
-        return range.max.toString();
     }
 
     public getCardinalFromArray(ranges: IRange[], segment_type?: number): number {
@@ -1545,117 +1495,29 @@ export default class RangeHandler {
         }
     }
 
-    /**
-     * TODO TU ASAP FIXME VARS
-     * On passe par une version text pour simplifier
-     */
-    public translate_to_api(ranges: NumRange[]): string[] {
-        let res: string[] = null;
-
-        for (let i in ranges) {
-            let range = ranges[i];
-
-            if (res == null) {
-                res = [];
-            }
-
-            res.push(this.translate_range_to_api(range));
-        }
-
-        return res;
+    public translate_to_api(ranges: NumRange[]): string {
+        return this.getIndexRanges(ranges);
     }
 
-    /**
-     * TODO TU ASAP FIXME VARS
-     * On passe par une version text pour simplifier
-     */
     public translate_range_to_api(range: NumRange): string {
-        if (!range) {
-            return '';
-        }
-
-        let elt = '';
-        elt += range.segment_type;
-        elt += range.min_inclusiv ? '[' : '(';
-        elt += range.min;
-        elt += ',';
-        elt += range.max;
-
-        elt += range.max_inclusiv ? ']' : ')';
-
-        return elt;
+        return this.getIndex(range);
     }
 
-    /**
-     * TODO TU ASAP FIXME VARS
-     */
-    public translate_from_api<U extends NumRange>(range_type: number, ranges: string[]): U[] {
-
-        let res: U[] = [];
-        try {
-
-            for (let i in ranges) {
-                let range = ranges[i];
-
-                let parsedRange: U = this.parseRangeAPI(range_type, range);
-                if (!parsedRange) {
-                    ConsoleHandler.getInstance().error('ERROR de parsing de range translate_from_api:' + range_type + ':' + range + ':');
-                    return null;
-                }
-                res.push(parsedRange);
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-
-        if ((!res) || (!res.length)) {
-            return null;
-        }
-        this.sort_ranges(res);
-        return res;
+    public translate_from_api<U extends NumRange>(range_type: number, ranges: string): U[] {
+        return MatroidIndexHandler.getInstance().from_normalized_ranges(ranges, range_type) as U[];
     }
 
-    /**
-     * TODO TU ASAP FIXME VARS
-     */
     public translate_to_bdd(ranges: IRange[]): any {
+
         let res = null;
 
         if (!ranges) {
             return res;
         }
 
-        // res = 'ARRAY[';
         res = '{';
         for (let i in ranges) {
             let range = ranges[i];
-
-            // if (res != 'ARRAY[') {
-            //     res += ',';
-            // }
-
-            // res += '\'';
-            // res += this.translate_range_to_bdd(range);
-            // res += '\'';
-            // switch (range.range_type) {
-            //     case NumRange.RANGE_TYPE:
-            //     case TSRange.RANGE_TYPE:
-            //         break;
-            //     case HourRange.RANGE_TYPE:
-            //         res += '::int8range';
-            //         break;
-            // }
-            // let e;
-            // switch (range.range_type) {
-            //     case NumRange.RANGE_TYPE:
-            //     case TSRange.RANGE_TYPE:
-            //         e = this.translate_range_to_bdd(range);
-            //         break;
-            //     case HourRange.RANGE_TYPE:
-            //         e = '\'' + this.translate_range_to_bdd(range) + '\'' + '::int8range';
-            //         break;
-            // }
-            // res.push(e);
 
             if (res != '{') {
                 res += ',';
@@ -1665,13 +1527,13 @@ export default class RangeHandler {
             res += this.translate_range_to_bdd(range);
             res += '"';
         }
-        // res += ']';
         res += '}';
 
         return res;
     }
 
     public translate_range_to_bdd(range: IRange): string {
+
         if (!range) {
             return '';
         }
@@ -1683,181 +1545,6 @@ export default class RangeHandler {
         res += range.max_inclusiv ? ']' : ')';
 
         return res;
-    }
-
-    /**
-     * TODO TU ASAP FIXME VARS
-     */
-    public translate_from_bdd<U extends NumRange>(range_type: number, ranges: string[], segment_type: number): U[] {
-
-        let res: U[] = [];
-        try {
-
-            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis
-            // TODO FIXME comprendre la source du pb
-            if (!ranges) {
-                return null;
-            }
-
-            if (!Array.isArray(ranges)) {
-                let tmp_ranges = ((ranges as string).replace(/[{}"]/, '')).split(',');
-                ranges = [];
-                for (let i = 0; i < (tmp_ranges.length / 2); i++) {
-
-                    ranges.push(tmp_ranges[i * 2] + ',' + tmp_ranges[(i * 2) + 1]);
-                }
-            }
-
-            for (let i in ranges) {
-                let range = ranges[i];
-
-                // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
-                //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
-                switch (range_type) {
-                    case NumRange.RANGE_TYPE:
-                        res.push(this.parseRangeBDD(range_type, range, segment_type == null ? NumSegment.TYPE_INT : segment_type));
-                        break;
-                    case TSRange.RANGE_TYPE:
-                        res.push(this.parseRangeBDD(range_type, range, segment_type == null ? TimeSegment.TYPE_SECOND : segment_type));
-                        break;
-                    case HourRange.RANGE_TYPE:
-                        res.push(this.parseRangeBDD(range_type, range, segment_type == null ? HourSegment.TYPE_SECOND : segment_type));
-                        break;
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-
-        if ((!res) || (!res.length)) {
-            return null;
-        }
-        this.sort_ranges(res);
-        return res;
-    }
-
-    /**
-     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
-     * @param rangeLiteral
-     */
-    public parseRangeBDD<T, U extends IRange>(range_type: number, rangeLiteral: string, segment_type: number): U {
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
-
-        if (!matches) {
-            return null;
-        }
-
-        try {
-
-            switch (range_type) {
-
-                case HourRange.RANGE_TYPE:
-
-                    let lowerHourRange = this.parseRangeSegment(matches[2], matches[3]);
-                    let upperHourRange = this.parseRangeSegment(matches[4], matches[5]);
-
-                    return this.createNew(
-                        range_type,
-                        parseFloat(lowerHourRange),
-                        parseFloat(upperHourRange),
-                        matches[1] == '[',
-                        matches[6] == ']',
-                        segment_type) as any as U;
-
-                case NumRange.RANGE_TYPE:
-
-                    let lowerNumRange = this.parseRangeSegment(matches[2], matches[3]);
-                    let upperNumRange = this.parseRangeSegment(matches[4], matches[5]);
-
-                    return this.createNew(
-                        range_type,
-                        parseFloat(lowerNumRange),
-                        parseFloat(upperNumRange),
-                        matches[1] == '[',
-                        matches[6] == ']',
-                        segment_type) as any as U;
-
-                case TSRange.RANGE_TYPE:
-                    var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
-
-                    if (!matches) {
-                        return null;
-                    }
-
-                    let lowerTSRange = parseInt(matches[2]);
-                    let upperTSRange = parseInt(matches[4]);
-                    return this.createNew(
-                        range_type,
-                        lowerTSRange,
-                        upperTSRange,
-                        matches[1] == '[',
-                        matches[6] == ']',
-                        segment_type) as any as U;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-        return null;
-    }
-
-    /**
-     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
-     * @param rangeLiteral
-     */
-    public parseRangeAPI<T, U extends IRange>(range_type: number, rangeLiteral: string): U {
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_API);
-
-        if (!matches) {
-            return null;
-        }
-
-        try {
-            let segment_type = parseInt(matches[1].toString());
-
-            switch (range_type) {
-
-                case HourRange.RANGE_TYPE:
-
-                    let lowerHourRange = this.parseRangeSegment(matches[3], matches[4]);
-                    let upperHourRange = this.parseRangeSegment(matches[5], matches[6]);
-
-                    return this.createNew(
-                        range_type,
-                        parseFloat(lowerHourRange),
-                        parseFloat(upperHourRange),
-                        matches[2] == '[',
-                        matches[7] == ']',
-                        segment_type) as any as U;
-
-                case NumRange.RANGE_TYPE:
-
-                    let lowerNumRange = this.parseRangeSegment(matches[3], matches[4]);
-                    let upperNumRange = this.parseRangeSegment(matches[5], matches[6]);
-
-                    return this.createNew(
-                        range_type,
-                        parseFloat(lowerNumRange),
-                        parseFloat(upperNumRange),
-                        matches[2] == '[',
-                        matches[7] == ']',
-                        segment_type) as any as U;
-
-                case TSRange.RANGE_TYPE:
-
-                    let lowerTSRange = parseInt(matches[3]);
-                    let upperTSRange = parseInt(matches[5]);
-                    return this.createNew(
-                        range_type,
-                        lowerTSRange,
-                        upperTSRange,
-                        matches[2] == '[',
-                        matches[7] == ']',
-                        segment_type) as any as U;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-        return null;
     }
 
     /**
@@ -2483,6 +2170,181 @@ export default class RangeHandler {
         return min;
     }
 
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public translate_from_bdd<U extends NumRange>(range_type: number, ranges: string[], segmentation_type: number): U[] {
+
+        let res: U[] = [];
+        try {
+
+            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis
+            // TODO FIXME comprendre la source du pb
+            if (!ranges) {
+                return null;
+            }
+
+            if (!Array.isArray(ranges)) {
+                let tmp_ranges = ((ranges as string).replace(/[{}"]/, '')).split(',');
+                ranges = [];
+                for (let i = 0; i < (tmp_ranges.length / 2); i++) {
+
+                    ranges.push(tmp_ranges[i * 2] + ',' + tmp_ranges[(i * 2) + 1]);
+                }
+            }
+
+            for (let i in ranges) {
+                let range = ranges[i];
+
+                // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
+                //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
+                switch (range_type) {
+                    case NumRange.RANGE_TYPE:
+                        res.push(this.parseRangeBDD(range_type, range, segmentation_type));
+                        break;
+                    case TSRange.RANGE_TYPE:
+                        res.push(this.parseRangeBDD(range_type, range, segmentation_type));
+                        break;
+                    case HourRange.RANGE_TYPE:
+                        res.push(this.parseRangeBDD(range_type, range, segmentation_type));
+                        break;
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        if ((!res) || (!res.length)) {
+            return null;
+        }
+        this.sort_ranges(res);
+        return res;
+    }
+
+    /**
+     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
+     * @param rangeLiteral
+     */
+    public parseRangeBDD<T, U extends IRange>(range_type: number, rangeLiteral: string, segment_type: number): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
+
+        if (!matches) {
+            return null;
+        }
+
+        try {
+
+            switch (range_type) {
+
+                case HourRange.RANGE_TYPE:
+
+                    let lowerHourRange = this.parseRangeSegment(matches[2], matches[3]);
+                    let upperHourRange = this.parseRangeSegment(matches[4], matches[5]);
+
+                    return this.createNew(
+                        range_type,
+                        parseFloat(lowerHourRange),
+                        parseFloat(upperHourRange),
+                        matches[1] == '[',
+                        matches[6] == ']',
+                        segment_type) as any as U;
+
+                case NumRange.RANGE_TYPE:
+
+                    let lowerNumRange = this.parseRangeSegment(matches[2], matches[3]);
+                    let upperNumRange = this.parseRangeSegment(matches[4], matches[5]);
+
+                    return this.createNew(
+                        range_type,
+                        parseFloat(lowerNumRange),
+                        parseFloat(upperNumRange),
+                        matches[1] == '[',
+                        matches[6] == ']',
+                        segment_type) as any as U;
+
+                case TSRange.RANGE_TYPE:
+                    var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
+
+                    if (!matches) {
+                        return null;
+                    }
+
+                    let lowerTSRange = parseInt(matches[2]);
+                    let upperTSRange = parseInt(matches[4]);
+                    return this.createNew(
+                        range_type,
+                        lowerTSRange,
+                        upperTSRange,
+                        matches[1] == '[',
+                        matches[6] == ']',
+                        segment_type) as any as U;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
+    }
+
+    /**
+     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
+     * @param rangeLiteral
+     */
+    public parseRangeAPI<T, U extends IRange>(range_type: number, rangeLiteral: string): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_API);
+
+        if (!matches) {
+            return null;
+        }
+
+        try {
+            let segment_type = parseInt(matches[1].toString());
+
+            switch (range_type) {
+
+                case HourRange.RANGE_TYPE:
+
+                    let lowerHourRange = this.parseRangeSegment(matches[3], matches[4]);
+                    let upperHourRange = this.parseRangeSegment(matches[5], matches[6]);
+
+                    return this.createNew(
+                        range_type,
+                        parseFloat(lowerHourRange),
+                        parseFloat(upperHourRange),
+                        matches[2] == '[',
+                        matches[7] == ']',
+                        segment_type) as any as U;
+
+                case NumRange.RANGE_TYPE:
+
+                    let lowerNumRange = this.parseRangeSegment(matches[3], matches[4]);
+                    let upperNumRange = this.parseRangeSegment(matches[5], matches[6]);
+
+                    return this.createNew(
+                        range_type,
+                        parseFloat(lowerNumRange),
+                        parseFloat(upperNumRange),
+                        matches[2] == '[',
+                        matches[7] == ']',
+                        segment_type) as any as U;
+
+                case TSRange.RANGE_TYPE:
+
+                    let lowerTSRange = parseInt(matches[3]);
+                    let upperTSRange = parseInt(matches[5]);
+                    return this.createNew(
+                        range_type,
+                        lowerTSRange,
+                        upperTSRange,
+                        matches[2] == '[',
+                        matches[7] == ']',
+                        segment_type) as any as U;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return null;
+    }
+
     private is_elt_equals_elt(range_type: number, a: number, b: number): boolean {
 
         return a == b;
@@ -2589,6 +2451,7 @@ export default class RangeHandler {
         }
     }
 
+    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
     private parseRangeSegment(whole, quoted) {
         if (quoted) {
             return quoted.replace(/\\(.)/g, "$1");
