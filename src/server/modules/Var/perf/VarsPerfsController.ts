@@ -8,6 +8,7 @@ import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import VarsPerfMonServerController from '../VarsPerfMonServerController';
+import VarsServerController from '../VarsServerController';
 
 /**
  * Par convention on appel toujours __NAME ou [VAR_ID]__NAME les points de traking de perfs
@@ -156,7 +157,11 @@ export default class VarsPerfsController {
                         continue;
                     }
 
-                    var_cache_conf.calculation_cost_for_1000_card = mean_per_cardinal_1000_per_var_id[var_id_s];
+                    var_cache_conf.calculation_cost_for_1000_card =
+                        (!!var_cache_conf.calculation_cost_for_1000_card) ?
+                            (var_cache_conf.calculation_cost_for_1000_card * 9 + mean_per_cardinal_1000_per_var_id[var_id_s]) / 10 :
+                            mean_per_cardinal_1000_per_var_id[var_id_s];
+                    VarsServerController.getInstance().varcacheconf_by_var_ids[var_cache_conf.var_id].calculation_cost_for_1000_card = var_cache_conf.calculation_cost_for_1000_card;
                     await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
                 }
 
