@@ -8,5 +8,5 @@
         .years
             template(v-if='(!years) || !years.length')
                 .no_year {{ label('year_filter_widget_component.no_year') }}
-            template(v-for='(year, i) in years')
-                .year(:class='{"selected": !!selected_years[i]}' @click='switch_selection(i)') {{ year }}
+            template(v-for='year in years')
+                .year(:class='{"selected": !!selected_years[year]}' @click='switch_selection(year)') {{ year }}

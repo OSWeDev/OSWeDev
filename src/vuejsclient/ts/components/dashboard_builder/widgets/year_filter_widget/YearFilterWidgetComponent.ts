@@ -14,6 +14,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './YearFilterWidgetComponent.scss';
 import YearFilterWidgetOptions from './options/YearFilterWidgetOptions';
+import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
@@ -28,6 +29,9 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
+    @ModuleTranslatableTextGetter
+    private get_flat_locale_translations: { [code_text: string]: string };
+
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
@@ -41,6 +45,14 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     private switch_selection(i: string) {
         this.selected_years[i] = !this.selected_years[i];
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
     }
 
     @Watch('selected_years', { deep: true })
@@ -64,7 +76,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             if (!this.selected_years[i]) {
                 continue;
             }
-            years_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()) + 1, NumSegment.TYPE_INT));
+            years_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
         }
         years_ranges = RangeHandler.getInstance().getRangesUnion(years_ranges);
 
@@ -239,7 +251,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         let selected_years = {};
 
         let years = this.years;
-        if ((!years) || (!years.length)) {
+        if ((!!years) && (!!years.length)) {
             for (let i in years) {
                 let year = years[i];
                 if (this.selected_years[year]) {

@@ -864,23 +864,23 @@ describe('TSRangeHandler', () => {
         ]);
     });
 
-    it('test getFormattedMaxForAPI', () => {
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, zero, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-    });
+    // it('test getFormattedMaxForAPI', () => {
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, zero, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    // });
 
-    it('test getFormattedMinForAPI', () => {
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_deux);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
-    });
+    // it('test getFormattedMinForAPI', () => {
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_deux);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
+    // });
 
     it('test getCardinalFromArray', () => {
 

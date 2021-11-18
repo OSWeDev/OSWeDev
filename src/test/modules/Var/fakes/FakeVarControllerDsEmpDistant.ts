@@ -26,7 +26,7 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
     protected static instance: FakeVarControllerDsEmpDistant = null;
 
     protected constructor() {
-        super(new VarConfVO('FakeVarControllerDsEmpDistant', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 2), {}, {}, {}, {});
+        super(new VarConfVO('FakeVarControllerDsEmpDistant', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, null, 2), {}, {}, {}, {});
 
         this.optimization__has_no_imports = true;
     }

@@ -10,6 +10,7 @@ import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './DOWFilterWidgetComponent.scss';
@@ -20,6 +21,9 @@ import DOWFilterWidgetOptions from './options/DOWFilterWidgetOptions';
     components: {}
 })
 export default class DOWFilterWidgetComponent extends VueComponentBase {
+
+    @ModuleTranslatableTextGetter
+    private get_flat_locale_translations: { [code_text: string]: string };
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -61,6 +65,14 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
 
     private switch_selection(i: string) {
         this.selected_dows[i] = !this.selected_dows[i];
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
     }
 
     @Watch('selected_dows', { deep: true })

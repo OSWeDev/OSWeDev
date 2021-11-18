@@ -30,7 +30,7 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
 
     protected constructor() {
         super(
-            new VarConfVO('FakeVarControllerCyclA', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 10),
+            new VarConfVO('FakeVarControllerCyclA', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, null, 10),
             {}, {}, {}, {}
         );
 
