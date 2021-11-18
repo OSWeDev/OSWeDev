@@ -50,6 +50,31 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.loading_failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 15 années)'
+        }, 'year_filter_widget_component.no_year.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre de données ou de valeurs'
+        }, 'year_filter_widget_component.is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Données'
+        }, 'year_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeurs'
+        }, 'year_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champs'
+        }, 'year_filter_widget_component.vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom du filtre personnalisé'
+        }, 'year_filter_widget_component.custom_filter_name.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année minimale'
+        }, 'year_filter_widget_component.min_year.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année maximale'
+        }, 'year_filter_widget_component.max_year.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélectionner un Dashboard...'
         }, 'dashboard_builder.select_dashboard.___LABEL___'));
 

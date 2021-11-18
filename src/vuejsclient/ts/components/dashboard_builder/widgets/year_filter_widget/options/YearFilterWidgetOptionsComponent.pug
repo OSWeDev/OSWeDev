@@ -1,0 +1,39 @@
+.year_filter_widget_component
+    .is_vo_field_ref 
+        .input_label {{ label('year_filter_widget_component.is_vo_field_ref') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_is_vo_field_ref" 
+                :value="is_vo_field_ref" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('year_filter_widget_component.is_vo_field_ref.data'), unchecked: label('year_filter_widget_component.is_vo_field_ref.value')}")
+    .field_ref(v-if='is_vo_field_ref')
+        .input_label {{ label('year_filter_widget_component.vo_field_ref') }}
+        .input_wrapper
+            Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
+    .custom_filter_name(v-else)
+        .input_label {{ label('year_filter_widget_component.custom_filter_name') }}
+        .input_wrapper
+            input(
+                type="text"
+                v-model="custom_filter_name"
+            )
+        .existing_custom_filters_list(v-if='has_existing_other_custom_filters')
+            template(v-for='custom_filter in other_custom_filters')
+                .custom_filter(@click='change_custom_filter(custom_filter)') {{ custom_filter }}
+
+    .min_year
+        .input_label {{ label('year_filter_widget_component.min_year') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="min_year"
+            )
+    .max_year
+        .input_label {{ label('year_filter_widget_component.max_year') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="max_year"
+            )

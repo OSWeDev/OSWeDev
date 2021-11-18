@@ -1,0 +1,12 @@
+.year_filter_widget_component
+    template(v-if='(is_vo_field_ref && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)')
+        template(v-if='is_vo_field_ref')
+            .vo_field_ref_label {{ vo_field_ref_label }}
+        template(v-else-id='!!custom_filter_name')
+            .custom_filter_name {{ custom_filter_name }}
+
+        .years
+            template(v-if='(!years) || !years.length')
+                .no_year {{ label('year_filter_widget_component.no_year') }}
+            template(v-for='(year, i) in years')
+                .year(:class='{"selected": !!selected_years[i]}' @click='switch_selection(i)') {{ year }}

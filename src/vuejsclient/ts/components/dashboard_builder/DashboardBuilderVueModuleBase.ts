@@ -9,6 +9,7 @@ import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/o
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import YearFilterWidgetOptions from './widgets/year_filter_widget/options/YearFilterWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -61,6 +62,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_FieldValueFilter();
 
         await this.initializeWidget_DOWFilter();
+        await this.initializeWidget_YearFilter();
 
         await this.initializeWidget_Var();
 
@@ -144,6 +146,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Dowfilterwidgetcomponent', () => import(/* webpackChunkName: "DOWFilterWidgetComponent" */ './widgets/dow_filter_widget/DOWFilterWidgetComponent'));
         Vue.component('Dowfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "DOWFilterWidgetOptionsComponent" */ './widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
         Vue.component('Dowfilterwidgeticoncomponent', () => import(/* webpackChunkName: "DOWFilterWidgetIconComponent" */ './widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_YearFilter() {
+        let YearFilter = new DashboardWidgetVO();
+
+        YearFilter.default_height = 9;
+        YearFilter.default_width = 36;
+        YearFilter.name = 'yearfilter';
+        YearFilter.widget_component = 'Yearfilterwidgetcomponent';
+        YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
+        YearFilter.weight = 3;
+        YearFilter.default_background = '#f5f5f5';
+        YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, null, null), YearFilterWidgetOptions.get_selected_fields);
+
+        Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
+        Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
+        Vue.component('Yearfilterwidgeticoncomponent', () => import(/* webpackChunkName: "YearFilterWidgetIconComponent" */ './widgets/year_filter_widget/icon/YearFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {

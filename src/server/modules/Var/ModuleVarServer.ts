@@ -198,6 +198,19 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'var_data.value_type.import'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'TOUT supprimer ? Même les imports ?'
+        }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'ATTENTION'
+        }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Suppression en cours...'
+        }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Suppression terminée'
+        }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.ok.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'A tester'
         }, 'slow_var.type.needs_test'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

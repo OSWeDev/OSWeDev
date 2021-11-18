@@ -9,4 +9,13 @@
     table th {
         padding: 0em 1em;
     }
+
+    .is_limited_by_number {
+        text-align: center;
+        max-width: 50em;
+        margin: auto;
+        background: #EEE;
+        padding: 2em;
+        border-radius: 6px;
+    }
 }

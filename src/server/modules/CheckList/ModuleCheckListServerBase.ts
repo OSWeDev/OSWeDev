@@ -27,6 +27,13 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         }, 'checklist.no_elts.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'L\'affichage est actuellement bloqué car le nombre d\'éléments à afficher dépasse la limite fixée à 15. Au delà de cette limite, les calculs peuvent prendre plusieurs minutes. Vous pouvez désactiver ce filtrage en cliquant sur le bouton ci-dessous.'
+        }, 'checklist.is_limited_by_number.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Désactiver le filtrage'
+        }, 'checklist.toggle_limit_by_number.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrer'
         }, 'checklist.filter_text.___LABEL___'));
 

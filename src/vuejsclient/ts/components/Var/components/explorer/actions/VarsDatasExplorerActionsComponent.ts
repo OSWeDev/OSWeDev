@@ -193,10 +193,45 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
             return;
         }
 
-        this.busy = true;
+        let self = this;
+        self.snotify.confirm(self.label('vars_datas_explorer_actions.delete_cache_and_import_intersection.body'), self.label('vars_datas_explorer_actions.delete_cache_and_import_intersection.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.async(self.label('vars_datas_explorer_actions.delete_cache_and_import_intersection.start'), () =>
+                            new Promise(async (resolve, reject) => {
 
-        await ModuleVar.getInstance().delete_cache_and_imports_intersection(this.get_filter_params);
+                                self.busy = true;
+                                await ModuleVar.getInstance().delete_cache_and_imports_intersection(self.get_filter_params);
+                                self.busy = false;
 
-        this.busy = false;
+                                resolve({
+                                    body: self.label('vars_datas_explorer_actions.delete_cache_and_import_intersection.ok'),
+                                    config: {
+                                        timeout: 10000,
+                                        showProgressBar: true,
+                                        closeOnClick: false,
+                                        pauseOnHover: true,
+                                    },
+                                });
+                            })
+                        );
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
     }
 }

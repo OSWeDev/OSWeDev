@@ -1,5 +1,4 @@
 import IRange from "../modules/DataRender/interfaces/IRange";
-import IMatroid from "../modules/Matroid/interfaces/IMatroid";
 import MatroidController from "../modules/Matroid/MatroidController";
 import VarsController from "../modules/Var/VarsController";
 import VarDataBaseVO from "../modules/Var/vos/VarDataBaseVO";
@@ -80,7 +79,7 @@ export default class MatroidIndexHandler {
         return minus ? -res : res;
     }
 
-    public get_normalized_range(range: IRange): string {
+    public get_normalized_range(range: IRange, is_matroid_index: boolean = false): string {
 
         if (!range) {
             return null;
@@ -89,6 +88,7 @@ export default class MatroidIndexHandler {
         let res: string = '';
 
         // Toujours 1 caractère max
+        // Inutile sur un index de matroid puisqu'on le retrouve sur le var_id
         res += this.base_10_num_to_base_76_txt(range.segment_type);
 
         if (RangeHandler.getInstance().getCardinal(range) == 1) {
@@ -102,17 +102,17 @@ export default class MatroidIndexHandler {
         return res;
     }
 
-    public from_normalized_range(index: string, range_type: number): IRange {
+    public from_normalized_range(index: string, range_type: number, is_matroid_index: boolean = false, matroid_segmentations: { [field_id: string]: number } = null, field_id: string = null): IRange {
 
         if (index == null) {
             return null;
         }
 
         // Toujours 1 caractère max
-        let segment_type = this.FROM_BASE_76_CARS[index[0]];
+        let segment_type = is_matroid_index ? matroid_segmentations[field_id] : this.FROM_BASE_76_CARS[index[0]];
 
         let separator_position = index.indexOf('&');
-        let min_max = index.substring(1, index.length);
+        let min_max = is_matroid_index ? index : index.substring(1, index.length);
 
         if (separator_position > 0) {
             let splitted_min_max = min_max.split('&');
@@ -125,24 +125,25 @@ export default class MatroidIndexHandler {
         }
     }
 
-    public get_normalized_ranges(ranges: IRange[]): string {
+    public get_normalized_ranges(ranges: IRange[], is_matroid_index: boolean = false): string {
 
         if (!ranges) {
             return null;
         }
 
         // On fait une union sur la dimension
-        ranges = RangeHandler.getInstance().getRangesUnion(ranges);
+        // Si on est sur un matroid index on a déjà fait l'union
+        ranges = is_matroid_index ? ranges : RangeHandler.getInstance().getRangesUnion(ranges);
 
         let res: string = '';
 
         ranges.forEach((range) => {
-            res += (res.length > 0 ? '$' : '') + this.get_normalized_range(range);
+            res += (res.length > 0 ? '$' : '') + this.get_normalized_range(range, is_matroid_index);
         });
         return res;
     }
 
-    public from_normalized_ranges(index: string, range_type: number): IRange[] {
+    public from_normalized_ranges(index: string, range_type: number, is_matroid_index: boolean = false, matroid_segmentations: { [field_id: string]: number } = null, field_id: string = null): IRange[] {
 
         if (index == null) {
             return null;
@@ -152,7 +153,7 @@ export default class MatroidIndexHandler {
         let splitted_index = index.split('$');
 
         splitted_index.forEach((e) => {
-            ranges.push(this.from_normalized_range(e, range_type));
+            ranges.push(this.from_normalized_range(e, range_type, is_matroid_index, matroid_segmentations, field_id));
         });
 
         return ranges;
@@ -166,12 +167,13 @@ export default class MatroidIndexHandler {
 
         let res: string = this.base_10_num_to_base_76_txt(vardata.var_id);
 
+        this.normalize_vardata_fields(vardata);
         let fields = MatroidController.getInstance().getMatroidFields(vardata._type);
 
         for (let i in fields) {
             let field = fields[i];
 
-            res += '|' + this.get_normalized_ranges(vardata[field.field_id]);
+            res += '|' + this.get_normalized_ranges(vardata[field.field_id], true);
         }
         return res;
     }
@@ -190,12 +192,24 @@ export default class MatroidIndexHandler {
         res.var_id = var_id;
         let fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
 
+        let matroid_segmentations = VarDataBaseVO.get_varconf_segmentations(var_conf);
+
         let i = 0;
         while (i < fields.length) {
             let field = fields[i];
-            res[field.field_id] = this.from_normalized_ranges(pieces[i + 1], RangeHandler.getInstance().getRangeType(field));
+            res[field.field_id] = this.from_normalized_ranges(pieces[i + 1], RangeHandler.getInstance().getRangeType(field), true, matroid_segmentations, field.field_id);
             i++;
         }
         return res;
+    }
+
+    public normalize_vardata_fields(vardata: VarDataBaseVO) {
+        if (!vardata) {
+            return null;
+        }
+
+        let var_conf = VarsController.getInstance().var_conf_by_id[vardata.var_id];
+        let field_segmentations: { [field_id: string]: number } = VarDataBaseVO.get_varconf_segmentations(var_conf);
+        VarDataBaseVO.adapt_param_to_varconf_segmentations(vardata, field_segmentations);
     }
 }

@@ -184,8 +184,9 @@ export default class RangeHandler {
      * sinon on change le segment_type et on adapte le range. On renvoie l'union des ranges modifiés
      * @param ranges
      * @param target_segment_type
+     * @param strict force exacte segmentation_type in result, not just minimum type
      */
-    public get_ranges_according_to_segment_type(ranges: IRange[], target_segment_type: number): IRange[] {
+    public get_ranges_according_to_segment_type(ranges: IRange[], target_segment_type: number, strict: boolean = false): IRange[] {
 
         let has_changed: boolean = false;
         let res: IRange[] = [];
@@ -209,7 +210,8 @@ export default class RangeHandler {
                     comparison = HourSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
                     break;
             }
-            if (comparison >= 0) {
+
+            if ((strict && !comparison) || ((!strict) && (comparison >= 0))) {
                 res.push(range);
                 continue;
             }
@@ -2170,6 +2172,25 @@ export default class RangeHandler {
         return min;
     }
 
+    public get_smallest_segment_type_for_range_type(range_type: number): number {
+
+        if (range_type == null) {
+            return null;
+        }
+
+        switch (range_type) {
+            case NumRange.RANGE_TYPE:
+                return NumSegment.TYPE_INT;
+
+            case HourRange.RANGE_TYPE:
+                return HourSegment.TYPE_SECOND;
+
+            case TSRange.RANGE_TYPE:
+                return TimeSegment.TYPE_SECOND;
+        }
+        return null;
+    }
+
     /**
      * TODO TU ASAP FIXME VARS
      */
@@ -2451,7 +2472,9 @@ export default class RangeHandler {
         }
     }
 
-    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+    /**
+     * @deprecated TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+     */
     private parseRangeSegment(whole, quoted) {
         if (quoted) {
             return quoted.replace(/\\(.)/g, "$1");

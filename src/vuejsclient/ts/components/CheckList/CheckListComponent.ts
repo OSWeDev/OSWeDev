@@ -68,6 +68,8 @@ export default class CheckListComponent extends VueComponentBase {
 
     private filter_text: string = null;
 
+    private show_anyway: boolean = false;
+
     // private checkpointsdeps: { [check_point_id: number]: number[] } = {};
     // private checklistitemcheckpoints: { [checklistitem_id: number]: { [checkpoint_id: number]: boolean } } = {};
 
@@ -129,6 +131,8 @@ export default class CheckListComponent extends VueComponentBase {
 
     get ordered_checklistitems() {
         let res: ICheckListItem[] = [];
+
+        this.show_anyway = false;
 
         if (!this.checklistitems) {
             return [];

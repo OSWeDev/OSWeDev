@@ -3,7 +3,6 @@ import ConsoleHandler from '../../../tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
-import TSRange from '../../DataRender/vos/TSRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
@@ -90,12 +89,58 @@ export default class VarDataBaseVO implements IMatroid {
             param_i++;
         }
 
+        let field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
+
         /**
          * Si on change le type se segmentation on adapte aussi le param
          */
-        if (varConf && (varConf.ts_ranges_segment_type != null)) {
-            res[varConf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
-                res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
+        this.adapt_param_to_varconf_segmentations(res, field_segmentations);
+        return res;
+    }
+
+    /**
+     * Si on change le type se segmentation on adapte le param
+     */
+    public static adapt_param_to_varconf_segmentations<T extends VarDataBaseVO>(vardata: T, field_segmentations: { [field_id: string]: number }) {
+        for (let field_id in field_segmentations) {
+            let segmentation_cible = field_segmentations[field_id];
+            let ranges = vardata[field_id];
+
+            if (ranges && (segmentation_cible != null)) {
+                vardata[field_id] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
+                    ranges, field_segmentations[field_id], true);
+            }
+        }
+    }
+
+    public static get_varconf_segmentations(varConf: VarConfVO): { [field_id: string]: number } {
+        let res: { [field_id: string]: number } = {};
+        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
+
+        if (varConf) {
+            if (varConf.segment_types) {
+                for (let i in fields) {
+                    let field = fields[i];
+                    let segmentation_cible = varConf.segment_types[field.field_id];
+                    segmentation_cible = (segmentation_cible == null) ?
+                        segmentation_cible :
+                        RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
+                    res[field.field_id] = segmentation_cible;
+                }
+            } else {
+                /**
+                 * @deprecated delete this as soon as varConf.ts_ranges_segment_type is removed
+                 */
+                for (let i in fields) {
+                    let field = fields[i];
+                    let segmentation_cible =
+                        ((varConf.ts_ranges_segment_type != null) && (field.field_id == varConf.ts_ranges_field_name)) ?
+                            varConf.ts_ranges_segment_type :
+                            RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
+
+                    res[field.field_id] = segmentation_cible;
+                }
+            }
         }
 
         return res;
@@ -199,10 +244,9 @@ export default class VarDataBaseVO implements IMatroid {
         /**
          * Si on change le type se segmentation on adapte aussi le param
          */
-        if (varConf && (varConf.ts_ranges_segment_type != null)) {
-            res[varConf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
-                res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
-        }
+        let field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
+        this.adapt_param_to_varconf_segmentations(res, field_segmentations);
+
         res.var_id = varConf ? varConf.id : param_to_clone.var_id;
 
         if (!res.var_id) {
@@ -239,6 +283,7 @@ export default class VarDataBaseVO implements IMatroid {
     get index(): string {
 
         if (!this._index) {
+            MatroidIndexHandler.getInstance().normalize_vardata_fields(this);
             this._index = MatroidIndexHandler.getInstance().get_normalized_vardata(this);
         }
 
