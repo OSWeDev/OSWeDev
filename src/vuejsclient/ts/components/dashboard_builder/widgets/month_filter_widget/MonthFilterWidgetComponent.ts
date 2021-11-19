@@ -12,16 +12,16 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import './YearFilterWidgetComponent.scss';
-import YearFilterWidgetOptions from './options/YearFilterWidgetOptions';
+import './MonthFilterWidgetComponent.scss';
+import MonthFilterWidgetOptions from './options/MonthFilterWidgetOptions';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
-    template: require('./YearFilterWidgetComponent.pug'),
+    template: require('./MonthFilterWidgetComponent.pug'),
     components: {}
 })
-export default class YearFilterWidgetComponent extends VueComponentBase {
+export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -42,10 +42,10 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private selected_years: { [year: number]: boolean } = {};
+    private selected_months: { [month: number]: boolean } = {};
 
     private switch_selection(i: string) {
-        this.selected_years[i] = !this.selected_years[i];
+        this.selected_months[i] = !this.selected_months[i];
     }
 
     get vo_field_ref_label(): string {
@@ -56,8 +56,8 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
     }
 
-    @Watch('selected_years', { deep: true })
-    private onchange_selected_years() {
+    @Watch('selected_months', { deep: true })
+    private onchange_selected_months() {
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         let root_context_filter: ContextFilterVO = null;
         if (this.is_vo_field_ref) {
@@ -72,27 +72,27 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
         }
 
-        let years_ranges: NumRange[] = [];
-        for (let i in this.selected_years) {
-            if (!this.selected_years[i]) {
+        let months_ranges: NumRange[] = [];
+        for (let i in this.selected_months) {
+            if (!this.selected_months[i]) {
                 continue;
             }
-            years_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
+            months_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
         }
-        years_ranges = RangeHandler.getInstance().getRangesUnion(years_ranges);
+        months_ranges = RangeHandler.getInstance().getRangesUnion(months_ranges);
 
         /**
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
         }
 
         /**
          * Si on a pas de contextfilter actuellement et qu'on a pas besoin d'en avoir, inutile de continuer
          */
-        if ((!context_filter) && ((!years_ranges) || (!years_ranges.length))) {
+        if ((!context_filter) && ((!months_ranges) || (!months_ranges.length))) {
             return;
         }
 
@@ -101,8 +101,8 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          */
         if (!context_filter) {
             context_filter = new ContextFilterVO();
-            context_filter.filter_type = ContextFilterVO.TYPE_DATE_YEAR;
-            context_filter.param_numranges = years_ranges;
+            context_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
+            context_filter.param_numranges = months_ranges;
 
             if (this.is_vo_field_ref) {
                 context_filter.vo_type = this.vo_field_ref.api_type_id;
@@ -129,7 +129,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
-        if ((!!context_filter) && ((!years_ranges) || (!years_ranges.length))) {
+        if ((!!context_filter) && ((!months_ranges) || (!months_ranges.length))) {
             let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
@@ -148,15 +148,15 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_numranges, years_ranges)) {
-                context_filter.param_numranges = years_ranges;
+            if (!RangeHandler.getInstance().are_same(context_filter.param_numranges, months_ranges)) {
+                context_filter.param_numranges = months_ranges;
             }
             return;
         }
     }
 
     @Watch("get_active_field_filters", { immediate: true })
-    private try_preload_selected_years() {
+    private try_preload_selected_months() {
 
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         let root_context_filter: ContextFilterVO = null;
@@ -177,30 +177,30 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
         }
 
         // si ya pas de root ou de context_filter, on a pas de filtre en cours
         if (!context_filter) {
-            for (let i in this.selected_years) {
-                if (!!this.selected_years[i]) {
-                    this.selected_years[i] = false;
+            for (let i in this.selected_months) {
+                if (!!this.selected_months[i]) {
+                    this.selected_months[i] = false;
                 }
             }
             return;
         }
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
-        let need_switch: { [year: number]: boolean } = Object.assign({}, this.selected_years);
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (isoyear: number) => {
+        let need_switch: { [month: number]: boolean } = Object.assign({}, this.selected_months);
+        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (isomonth: number) => {
 
-            if (!need_switch[isoyear - 1]) {
-                need_switch[isoyear - 1] = true;
+            if (!need_switch[isomonth - 1]) {
+                need_switch[isomonth - 1] = true;
             }
         });
 
         if (Object.values(need_switch).indexOf(true) >= 0) {
-            this.selected_years = need_switch;
+            this.selected_months = need_switch;
         }
     }
 
@@ -221,7 +221,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: YearFilterWidgetOptions = this.widget_options;
+        let options: MonthFilterWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
@@ -235,10 +235,10 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let options: YearFilterWidgetOptions = null;
+        let options: MonthFilterWidgetOptions = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptions;
+                options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptions;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -249,65 +249,66 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
-        let selected_years = {};
+        let selected_months = {};
 
-        let years = this.years;
-        if (years && (!!years.length)) {
-            for (let i in years) {
-                let year = years[i];
-                // if (this.selected_years[year]) {
-                //     selected_years[year] = true;
+        let months = this.months;
+        if (months && (!!months.length)) {
+            for (let i in months) {
+                let month = months[i];
+                // if (this.selected_months[month]) {
+                //     selected_months[month] = true;
                 //     continue;
                 // }
 
-                if (this.widget_options.auto_select_year) {
+                if (this.widget_options.auto_select_month) {
 
-                    if ((this.widget_options.auto_select_year_min == null) || (this.widget_options.auto_select_year_max == null)) {
+                    if ((this.widget_options.auto_select_month_min == null) || (this.widget_options.auto_select_month_max == null)) {
                         continue;
                     }
 
-                    if (this.widget_options.auto_select_year_relative_mode) {
-                        let current_year = Dates.year(Dates.now());
-                        let year_int = parseInt(year);
-                        if ((year_int >= (current_year + this.widget_options.auto_select_year_min)) &&
-                            (year_int <= (current_year + this.widget_options.auto_select_year_max))) {
-                            selected_years[year] = true;
+                    if (this.widget_options.auto_select_month_relative_mode) {
+                        let current_month = Dates.month(Dates.now()) + 1;
+                        let month_int = parseInt(month);
+                        if ((month_int >= (current_month + this.widget_options.auto_select_month_min)) &&
+                            (month_int <= (current_month + this.widget_options.auto_select_month_max))) {
+                            selected_months[month] = true;
                             continue;
                         }
                     } else {
-                        let year_int = parseInt(year);
-                        if ((year_int >= this.widget_options.auto_select_year_min) &&
-                            (year_int <= this.widget_options.auto_select_year_max)) {
-                            selected_years[year] = true;
+                        let month_int = parseInt(month);
+                        if ((month_int >= this.widget_options.auto_select_month_min) &&
+                            (month_int <= this.widget_options.auto_select_month_max)) {
+                            selected_months[month] = true;
                             continue;
                         }
                     }
                 }
 
-                selected_years[year] = false;
+                selected_months[month] = false;
             }
         }
-        this.selected_years = selected_years;
+        this.selected_months = selected_months;
     }
 
-    get years(): string[] {
+    get months(): string[] {
         let res: string[] = [];
 
-        if ((!this.widget_options) || (this.widget_options.min_year == null) || (this.widget_options.max_year == null)) {
+        if ((!this.widget_options) || (this.widget_options.min_month == null) || (this.widget_options.max_month == null)) {
             return [];
         }
 
-        if ((this.widget_options.max_year - this.widget_options.min_year) > 15) {
+        if ((this.widget_options.max_month - this.widget_options.min_month) > 12) {
             return [];
         }
 
-        if (this.widget_options.year_relative_mode) {
-            let current_year = Dates.year(Dates.now());
-            for (let i = current_year + this.widget_options.min_year; i <= current_year + this.widget_options.max_year; i++) {
+        if (this.widget_options.month_relative_mode) {
+
+            let current_month = Dates.month(Dates.now()) + 1;
+            for (let i = current_month + this.widget_options.min_month; i <= current_month + this.widget_options.max_month; i++) {
                 res.push(i.toString());
             }
         } else {
-            for (let i = this.widget_options.min_year; i <= this.widget_options.max_year; i++) {
+            for (let i = this.widget_options.min_month; i <= this.widget_options.max_month; i++) {
                 res.push(i.toString());
             }
         }

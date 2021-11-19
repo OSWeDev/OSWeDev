@@ -1,5 +1,23 @@
 .table_widget_component {
 
+    .is_busy {
+        display: block;
+        position: absolute;
+        top: -1em;
+        left: 0;
+        width: -webkit-fill-available;
+        height: -webkit-fill-available;
+        background: rgba(0,0,0,0.2);
+        text-align: center;
+        z-index: 1000;
+        padding-top: 9em;
+        cursor: wait;
+
+        i {
+            font-size: xx-large;
+        }
+    }
+
     .btn-group.d-print-none {
         text-align: right;
         float: right;
@@ -15,6 +33,7 @@
     }
 
     table {
+
         width: -webkit-fill-available;
         clear: both;
 

@@ -4,6 +4,10 @@ include ../../../../../views/mixins/loading.pug
     +loading()
         template(v-if='columns')
 
+            template(v-if='loaded_once && is_busy')
+                .is_busy 
+                    i.fa.fa-refresh.fa-spin(aria-hidden="true")
+
             template(v-if='!!crud_activated_api_type')
                 .btn-group.d-print-none
                     button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
@@ -19,7 +23,7 @@ include ../../../../../views/mixins/loading.pug
                         i.fa.fa-plus-circle.fa-lg.btn_icon
                         | {{ label('crud.actions.create') }}
 
-            .upper_pagination(v-if="pagination_count > 10")
+            .upper_pagination
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='pagination_pagesize'

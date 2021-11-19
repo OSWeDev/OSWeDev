@@ -1,4 +1,4 @@
-.year_filter_widget_component
+.year_filter_widget_component_options
     .is_vo_field_ref 
         .input_label {{ label('year_filter_widget_component.is_vo_field_ref') }}
         .input_wrapper
@@ -23,6 +23,16 @@
             template(v-for='custom_filter in other_custom_filters')
                 .custom_filter(@click='change_custom_filter(custom_filter)') {{ custom_filter }}
 
+    .year_relative_mode 
+        .input_label {{ label('year_filter_widget_component.year_relative_mode') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_year_relative_mode" 
+                :value="year_relative_mode" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('year_filter_widget_component.year_relative_mode.data'), unchecked: label('year_filter_widget_component.year_relative_mode.value')}")
+
     .min_year
         .input_label {{ label('year_filter_widget_component.min_year') }}
         .input_wrapper
@@ -36,4 +46,39 @@
             input(
                 type="number"
                 v-model="max_year"
+            )
+
+    .auto_select_year 
+        .input_label {{ label('year_filter_widget_component.auto_select_year') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_auto_select_year" 
+                :value="auto_select_year" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('year_filter_widget_component.auto_select_year.data'), unchecked: label('year_filter_widget_component.auto_select_year.value')}")
+
+    .auto_select_year_relative_mode 
+        .input_label {{ label('year_filter_widget_component.auto_select_year_relative_mode') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_auto_select_year_relative_mode" 
+                :value="auto_select_year_relative_mode" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('year_filter_widget_component.auto_select_year_relative_mode.data'), unchecked: label('year_filter_widget_component.auto_select_year_relative_mode.value')}")
+
+    .auto_select_year_min
+        .input_label {{ label('year_filter_widget_component.auto_select_year_min') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="auto_select_year_min"
+            )
+    .auto_select_year_max
+        .input_label {{ label('year_filter_widget_component.auto_select_year_max') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="auto_select_year_max"
             )

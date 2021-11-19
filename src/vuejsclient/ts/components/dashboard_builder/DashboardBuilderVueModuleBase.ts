@@ -6,6 +6,7 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
@@ -62,6 +63,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_FieldValueFilter();
 
         await this.initializeWidget_DOWFilter();
+        await this.initializeWidget_MonthFilter();
         await this.initializeWidget_YearFilter();
 
         await this.initializeWidget_Var();
@@ -148,6 +150,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Dowfilterwidgeticoncomponent', () => import(/* webpackChunkName: "DOWFilterWidgetIconComponent" */ './widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
     }
 
+    private async initializeWidget_MonthFilter() {
+        let MonthFilter = new DashboardWidgetVO();
+
+        MonthFilter.default_height = 9;
+        MonthFilter.default_width = 36;
+        MonthFilter.name = 'monthfilter';
+        MonthFilter.widget_component = 'Monthfilterwidgetcomponent';
+        MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
+        MonthFilter.weight = 2;
+        MonthFilter.default_background = '#f5f5f5';
+        MonthFilter.icon_component = 'Monthfilterwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null), MonthFilterWidgetOptions.get_selected_fields);
+
+        Vue.component('Monthfilterwidgetcomponent', () => import(/* webpackChunkName: "MonthFilterWidgetComponent" */ './widgets/month_filter_widget/MonthFilterWidgetComponent'));
+        Vue.component('Monthfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "MonthFilterWidgetOptionsComponent" */ './widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
+        Vue.component('Monthfilterwidgeticoncomponent', () => import(/* webpackChunkName: "MonthFilterWidgetIconComponent" */ './widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
+    }
+
     private async initializeWidget_YearFilter() {
         let YearFilter = new DashboardWidgetVO();
 
@@ -160,7 +181,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.default_background = '#f5f5f5';
         YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, null, null), YearFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null), YearFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));

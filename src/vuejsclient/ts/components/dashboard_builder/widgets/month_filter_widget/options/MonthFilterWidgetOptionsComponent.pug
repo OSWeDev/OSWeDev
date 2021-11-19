@@ -1,0 +1,84 @@
+.month_filter_widget_component_options
+    .is_vo_field_ref 
+        .input_label {{ label('month_filter_widget_component.is_vo_field_ref') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_is_vo_field_ref"
+                :value="is_vo_field_ref"
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('month_filter_widget_component.is_vo_field_ref.data'), unchecked: label('month_filter_widget_component.is_vo_field_ref.value')}")
+    .field_ref(v-if='is_vo_field_ref')
+        .input_label {{ label('month_filter_widget_component.vo_field_ref') }}
+        .input_wrapper
+            Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
+    .custom_filter_name(v-else)
+        .input_label {{ label('month_filter_widget_component.custom_filter_name') }}
+        .input_wrapper
+            input(
+                type="text"
+                v-model="custom_filter_name"
+            )
+        .existing_custom_filters_list(v-if='has_existing_other_custom_filters')
+            template(v-for='custom_filter in other_custom_filters')
+                .custom_filter(@click='change_custom_filter(custom_filter)') {{ custom_filter }}
+
+    .month_relative_mode 
+        .input_label {{ label('month_filter_widget_component.month_relative_mode') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_month_relative_mode" 
+                :value="month_relative_mode" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('month_filter_widget_component.month_relative_mode.data'), unchecked: label('month_filter_widget_component.month_relative_mode.value')}")
+
+    .min_month
+        .input_label {{ label('month_filter_widget_component.min_month') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="min_month"
+            )
+    .max_month
+        .input_label {{ label('month_filter_widget_component.max_month') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="max_month"
+            )
+
+    .auto_select_month 
+        .input_label {{ label('month_filter_widget_component.auto_select_month') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_auto_select_month" 
+                :value="auto_select_month" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('month_filter_widget_component.auto_select_month.data'), unchecked: label('month_filter_widget_component.auto_select_month.value')}")
+
+    .auto_select_month_relative_mode 
+        .input_label {{ label('month_filter_widget_component.auto_select_month_relative_mode') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_auto_select_month_relative_mode" 
+                :value="auto_select_month_relative_mode" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('month_filter_widget_component.auto_select_month_relative_mode.data'), unchecked: label('month_filter_widget_component.auto_select_month_relative_mode.value')}")
+
+    .auto_select_month_min
+        .input_label {{ label('month_filter_widget_component.auto_select_month_min') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="auto_select_month_min"
+            )
+    .auto_select_month_max
+        .input_label {{ label('month_filter_widget_component.auto_select_month_max') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model="auto_select_month_max"
+            )

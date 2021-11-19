@@ -1473,6 +1473,35 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_DATE_MONTH:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        let where_clause: string = '';
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+                            let months: number[] = [];
+
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
+                            if ((!months) || (!months.length)) {
+                                break;
+                            }
+
+                            where_clause = 'extract(month from to_timestamp(' + field.field_id + ')::date) in (' + months.join(',') + ')';
+                            where_conditions.push(where_clause);
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
             case ContextFilterVO.TYPE_FILTER_XOR:
             case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
@@ -1495,7 +1524,6 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
             case ContextFilterVO.TYPE_DATE_DOM:
             case ContextFilterVO.TYPE_DATE_WEEK:
-            case ContextFilterVO.TYPE_DATE_MONTH:
 
                 throw new Error('Not Implemented');
         }

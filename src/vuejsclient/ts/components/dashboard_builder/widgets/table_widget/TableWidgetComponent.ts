@@ -90,6 +90,9 @@ export default class TableWidgetComponent extends VueComponentBase {
     private can_update_right: boolean = null;
     private can_create_right: boolean = null;
 
+    private loaded_once: boolean = false;
+    private is_busy: boolean = false;
+
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
     }
@@ -319,36 +322,40 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
-        this.data_rows = [];
+        this.is_busy = true;
 
         await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {
 
-        this.startLoading();
+        this.is_busy = true;
 
         if (!this.widget_options) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
         if ((!this.widget_options.columns) || (!this.widget_options.columns.length)) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
         if (!this.fields) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
         if (!this.dashboard.api_type_ids) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
@@ -383,7 +390,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                 ConsoleHandler.getInstance().warn('get_filtered_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.moduleTable.vo_type);
                 this.data_rows = [];
-                this.stopLoading();
+                this.loaded_once = true;
+                this.is_busy = false;
                 return;
             }
 
@@ -428,7 +436,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids);
 
-        this.stopLoading();
+        this.loaded_once = true;
+        this.is_busy = false;
     }
 
     private async refresh() {

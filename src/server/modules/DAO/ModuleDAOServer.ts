@@ -2340,7 +2340,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let i in ranges) {
             let range = ranges[i];
 
-            if ((!range) || (!range.max) || (!range.min)) {
+            if ((!range) || (range.max == null) || (range.min == null)) {
                 continue;
             }
 
