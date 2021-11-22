@@ -130,6 +130,11 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     get ordered_checklistitems() {
+
+        if (!this.checklist_controller) {
+            return null;
+        }
+
         let res: ICheckListItem[] = [];
 
         this.show_anyway = false;
@@ -173,38 +178,6 @@ export default class CheckListComponent extends VueComponentBase {
 
                 return false;
             });
-
-            // for (let k in desc_checks) {
-            //     let desc_check = desc_checks[k];
-
-            //     let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[desc_check._type];
-
-            //     for (let i in this.ordered_checkpoints) {
-            //         let checkpoint = this.ordered_checkpoints[i];
-
-            //         let checkpoint_description = '<p><strong>' + this.label(checkpoint.name) + '</strong></p>';
-
-            //         let step_description = await this.checklist_controller.get_step_description(checkpoint, this.checklist_item);
-            //         if (step_description) {
-            //             checkpoint_description += step_description;
-            //         }
-
-            //         if (checkpoint.item_field_ids && checkpoint.item_field_ids.length) {
-
-            //             checkpoint_description += '<ul>';
-            //             for (let j in this.checkpoints_editable_fields[checkpoint.id]) {
-            //                 let field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
-            //                 let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
-
-            //                 checkpoint_description += this.get_field_text(field, table_field);
-            //             }
-            //             checkpoint_description += '</ul>';
-            //         }
-
-            //         res[checkpoint.id] = checkpoint_description;
-            //     }
-
-            // }
         }
 
         res.sort(this.checklist_controller.items_sorter);

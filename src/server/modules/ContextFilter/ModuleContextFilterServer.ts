@@ -46,6 +46,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_from_active_filters, this.query_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_rows_count_from_active_filters, this.query_rows_count_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos_from_active_filters, this.delete_vos_from_active_filters.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_count_from_active_filters, this.query_vos_count_from_active_filters.bind(this));
     }
 
     /**
@@ -110,6 +111,38 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         return res;
     }
+
+    /**
+     * Counts query results
+     * @param api_type_id
+     * @param get_active_field_filters
+     * @param active_api_type_ids
+     * @returns
+     */
+    public async query_vos_count_from_active_filters(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[]
+    ): Promise<number> {
+
+        let request: string = this.build_request_from_active_field_filters_count(
+            [api_type_id],
+            null,
+            get_active_field_filters,
+            active_api_type_ids,
+            null
+        );
+
+        if (!request) {
+            return null;
+        }
+
+        let query_res = await ModuleDAOServer.getInstance().query(request);
+        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
+        c = c ? parseInt(c.toString()) : 0;
+        return c;
+    }
+
 
     /**
      * Counts query results

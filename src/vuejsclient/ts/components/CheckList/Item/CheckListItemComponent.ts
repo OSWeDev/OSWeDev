@@ -22,7 +22,7 @@ export default class CheckListItemComponent extends VueComponentBase {
     @Prop({ default: null })
     private checklist_controller: CheckListControllerBase;
 
-    @Prop()
+    @Prop({ default: null })
     private global_route_path: string;
 
     @Prop({ default: null })
@@ -46,6 +46,11 @@ export default class CheckListItemComponent extends VueComponentBase {
         }
 
         if (step_id && !(this.checkpoints_editable_fields[step_id] && this.checkpoints_editable_fields[step_id].length)) {
+            return;
+        }
+
+        if (!this.global_route_path) {
+            this.$emit('openmodal', this.checklist_item.id, step_id);
             return;
         }
 

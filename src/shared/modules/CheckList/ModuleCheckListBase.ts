@@ -15,6 +15,8 @@ export default abstract class ModuleCheckListBase extends Module {
     get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
     get POLICY_FO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_ACCESS'; }
 
+    public checklist_name: string = null;
+
     protected constructor(
         name: string,
         reflexiveClassName: string,

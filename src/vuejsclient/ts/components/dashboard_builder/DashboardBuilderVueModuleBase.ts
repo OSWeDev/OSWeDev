@@ -3,6 +3,7 @@ import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
@@ -66,12 +67,33 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_MonthFilter();
         await this.initializeWidget_YearFilter();
 
+        await this.initializeWidget_Checklist();
+
         await this.initializeWidget_Var();
 
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 
         await this.initializeWidget_PageSwitch();
+    }
+
+    private async initializeWidget_Checklist() {
+        let Checklist = new DashboardWidgetVO();
+
+        Checklist.default_height = 18;
+        Checklist.default_width = 45;
+        Checklist.name = 'checklist';
+        Checklist.widget_component = 'Checklistwidgetcomponent';
+        Checklist.options_component = 'Checklistwidgetoptionscomponent';
+        Checklist.weight = 30;
+        Checklist.default_background = '#f5f5f5';
+        Checklist.icon_component = 'Checklistwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Checklist, () => new ChecklistWidgetOptions(null, 10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
+
+        Vue.component('Checklistwidgetcomponent', () => import(/* webpackChunkName: "ChecklistWidgetComponent" */ './widgets/checklist_widget/ChecklistWidgetComponent'));
+        Vue.component('Checklistwidgetoptionscomponent', () => import(/* webpackChunkName: "ChecklistWidgetOptionsComponent" */ './widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
+        Vue.component('Checklistwidgeticoncomponent', () => import(/* webpackChunkName: "ChecklistWidgetIconComponent" */ './widgets/checklist_widget/icon/ChecklistWidgetIconComponent'));
     }
 
     private async initializeWidget_DataTable() {

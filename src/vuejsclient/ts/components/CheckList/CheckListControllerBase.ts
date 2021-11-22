@@ -1,12 +1,12 @@
 import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
+import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
 import CheckPointVO from '../../../../shared/modules/CheckList/vos/CheckPointVO';
 import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
 import ModulesManager from '../../../../shared/modules/ModulesManager';
-import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 
 export default abstract class CheckListControllerBase {
 
@@ -28,8 +28,8 @@ export default abstract class CheckListControllerBase {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
-    get checklist_shared_module(): ModuleProgramPlanBase {
-        return this.shared_module as ModuleProgramPlanBase;
+    get checklist_shared_module(): ModuleCheckListBase {
+        return this.shared_module as ModuleCheckListBase;
     }
 
     /**
