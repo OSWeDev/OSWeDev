@@ -8,6 +8,7 @@ import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/Con
 import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
 import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
+import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -16,6 +17,7 @@ export interface IDashboardPageState {
 
     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
+    Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
@@ -50,6 +52,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
         this.state = {
             page_widgets: [],
             active_field_filters: {},
+            Checklistitemmodalcomponent: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             page_history: [],
@@ -64,6 +67,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_page_history(state: IDashboardPageState): DashboardPageVO[] {
                 return state.page_history;
+            },
+
+            get_Checklistitemmodalcomponent(state: IDashboardPageState): ChecklistItemModalComponent {
+                return state.Checklistitemmodalcomponent;
             },
 
             get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
@@ -101,6 +108,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             pop_page_history(state: IDashboardPageState, fk) {
                 state.page_history.pop();
+            },
+
+            set_Checklistitemmodalcomponent(state: IDashboardPageState, Checklistitemmodalcomponent: ChecklistItemModalComponent) {
+                state.Checklistitemmodalcomponent = Checklistitemmodalcomponent;
             },
 
             set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
@@ -199,6 +210,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
                 commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
             },
+            set_Checklistitemmodalcomponent(context: DashboardPageContext, Checklistitemmodalcomponent: ChecklistItemModalComponent) {
+                commit_set_Checklistitemmodalcomponent(context, Checklistitemmodalcomponent);
+            },
 
             set_Crudcreatemodalcomponent(context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
                 commit_set_Crudcreatemodalcomponent(context, Crudcreatemodalcomponent);
@@ -244,6 +258,7 @@ export const commit_delete_page_widget = commit(DashboardPageStoreInstance.mutat
 export const commit_set_active_field_filters = commit(DashboardPageStoreInstance.mutations.set_active_field_filters);
 export const commit_set_active_field_filter = commit(DashboardPageStoreInstance.mutations.set_active_field_filter);
 export const commit_remove_active_field_filter = commit(DashboardPageStoreInstance.mutations.remove_active_field_filter);
+export const commit_set_Checklistitemmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Checklistitemmodalcomponent);
 export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
 export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
 export const commit_set_page_history = commit(DashboardPageStoreInstance.mutations.set_page_history);

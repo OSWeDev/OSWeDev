@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -32,6 +33,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './ChecklistWidgetComponent.scss';
+import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 
 @Component({
@@ -39,17 +41,19 @@ import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Tablepaginationcomponent: TablePaginationComponent,
-        Checklistitemcomponent: CheckListItemComponent,
-        Checklistmodalcomponent: CheckListModalComponent
+        Checklistitemcomponent: CheckListItemComponent
     }
 })
 export default class ChecklistWidgetComponent extends VueComponentBase {
 
+    @ModuleDashboardPageGetter
+    private get_Checklistitemmodalcomponent: ChecklistItemModalComponent;
+
     @ModuleDAOGetter
-    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+    private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDAOAction
-    public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -66,11 +70,10 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 100, { leading: false });
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
-    private pagination_pagesize: number = 100;
 
     private can_delete_all_right: boolean = null;
     private can_delete_right: boolean = null;
@@ -97,6 +100,14 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     private item_id: number = null;
     private step_id: number = null;
+
+    get pagination_pagesize(): number {
+        if (!this.widget_options) {
+            return 100;
+        }
+
+        return this.widget_options.limit;
+    }
 
     get checklist_controller(): CheckListControllerBase {
         if (!this.checklist) {
@@ -157,7 +168,6 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('global_route_path')
     @Watch('modal_show')
     @Watch('checklist_controller')
     @Watch('item_id')
@@ -165,7 +175,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     @Watch('checklist_id')
     @Watch('checklist_shared_module')
     private watchers() {
-        this.update_visible_options();
+        this.throttled_update_visible_options();
     }
 
     private async onchangevo(vo: ICheckListItem) {
@@ -180,6 +190,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
+        await this.throttled_update_visible_options();
     }
 
     get ordered_checklistitems() {
@@ -235,7 +246,11 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        let self = this;
+
+        this.get_Checklistitemmodalcomponent.$on("onchangevo", this.onchangevo.bind(this));
+        this.get_Checklistitemmodalcomponent.$on("deleteSelectedItem", this.deleteSelectedItem.bind(this));
+        this.get_Checklistitemmodalcomponent.$on("update_visible_options", this.throttled_update_visible_options.bind(this));
+
         this.stopLoading();
 
         if ((!this.checklists) || (!this.checklists.length)) {
@@ -255,15 +270,16 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_controller.getCheckListItemNewInstance());
+        let e = this.checklist_controller.getCheckListItemNewInstance();
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
         if ((!res) || !res.id) {
             ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
-            this.update_visible_options();
+            this.throttled_update_visible_options();
             return;
         }
-        this.open_modal(res.id, null);
+        e.id = res.id;
 
-        this.update_visible_options();
+        this.openmodal(e, null);
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {
@@ -276,7 +292,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
             this.checklistitems = {};
         }
-        this.close_modal();
+        this.get_Checklistitemmodalcomponent.closemodal();
     }
 
     get can_refresh(): boolean {
@@ -383,6 +399,11 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         let promises = [];
 
         let checklistitems: { [id: number]: ICheckListItem } = {};
+        let filters = cloneDeep(this.get_active_field_filters);
+        if (!filters[self.checklist_shared_module.checklistitem_type_id]) {
+            filters[self.checklist_shared_module.checklistitem_type_id] = {};
+        }
+        filters = ContextFilterHandler.getInstance().clean_context_filters_for_request(filters);
 
         promises.push((async () => {
 
@@ -392,6 +413,21 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
             filter.param_numeric = self.checklist.id;
 
+            filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'] =
+                ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                    filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'],
+                    filter);
+
+            filter = new ContextFilterVO();
+            filter.field_id = 'archived';
+            filter.vo_type = self.checklist_shared_module.checklistitem_type_id;
+            filter.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
+
+            filters[self.checklist_shared_module.checklistitem_type_id]['archived'] =
+                ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                    filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
+                    filter);
+
             let sort_by = new SortByVO();
             sort_by.field_id = 'id';
             sort_by.sort_asc = false;
@@ -399,13 +435,12 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
             let items: ICheckListItem[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<ICheckListItem>(
                 self.checklist_shared_module.checklistitem_type_id,
-                { [self.checklist_shared_module.checklistitem_type_id]: { ['checklist_id']: filter } },
-                [self.checklist_shared_module.checklistitem_type_id],
-                this.widget_options.limit,
+                filters,
+                this.dashboard.api_type_ids,
+                this.pagination_pagesize,
                 this.pagination_offset,
                 sort_by
             );
-            items = items.filter((e) => !e.archived);
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 
@@ -428,7 +463,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         this.pagination_count = await ModuleContextFilter.getInstance().query_vos_count_from_active_filters(
             self.checklist_shared_module.checklistitem_type_id,
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
+            filters,
             this.dashboard.api_type_ids);
 
         this.loaded_once = true;
@@ -506,13 +541,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         });
     }
 
-    private open_modal(item_id: number, step_id: number) {
-        this.item_id = item_id;
-        this.step_id = step_id;
-        $('#checklist_item_modal').modal('show');
-    }
-
-    private close_modal() {
-        $('#checklist_item_modal').modal('hide');
+    private async openmodal(selected_checklist_item: ICheckListItem, selected_checkpoint: ICheckPoint) {
+        this.get_Checklistitemmodalcomponent.openmodal(this.checklist, selected_checklist_item, selected_checkpoint, this.ordered_checkpoints);
     }
 }

@@ -1,6 +1,6 @@
 tr.checklistitem
     td.item_name
-        .item_name_wrapper(@click='openmodal' v-tooltip.top='item_description')
+        .item_name_wrapper(@click='openmodal(null)' v-tooltip.left='item_description')
             .item_name {{ checklist_item.name }}
             .item_explaination {{ checklist_item.explaination }}
 
@@ -10,8 +10,8 @@ tr.checklistitem
     td.step(v-for='checkpoint in ordered_checkpoints')
         .step_wrapper(
             :class='{clickable:(state_steps[checkpoint.name] != STATE_DISABLED)&&(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length)}' 
-            @click='openmodal(checkpoint.name, checkpoint.id)' 
-            v-tooltip.top='checkpoint_descriptions[checkpoint.id]')
+            @click='openmodal(checkpoint)' 
+            v-tooltip.left='checkpoint_descriptions[checkpoint.id]')
             template(v-if='state_steps[checkpoint.name] == STATE_DISABLED')
                 i.text-muted.fa.fa-fw(
                     aria-hidden="true" 

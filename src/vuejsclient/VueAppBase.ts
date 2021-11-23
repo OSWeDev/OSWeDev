@@ -23,7 +23,6 @@ import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
-import ModuleDAO from "../shared/modules/DAO/ModuleDAO";
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
@@ -382,7 +381,7 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
-        Vue.use(VTooltip);
+        Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(VueFlags, {

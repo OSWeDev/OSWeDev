@@ -46,6 +46,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_from_active_filters, this.query_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_rows_count_from_active_filters, this.query_rows_count_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos_from_active_filters, this.delete_vos_from_active_filters.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos_from_active_filters, this.update_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_count_from_active_filters, this.query_vos_count_from_active_filters.bind(this));
     }
 
@@ -284,6 +285,52 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Updates each VO, resulting in triggers being called as expected
+     */
+    public async update_vos_from_active_filters(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        update_field_id: string,
+        new_api_translated_value: any
+    ): Promise<void> {
+
+        /**
+         * On se fixe des paquets de 100 vos à updater
+         * et on sort by id desc pour éviter que l'ordre change pendant le process - au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. pas très grave
+         */
+        let offset = 0;
+        let limit = 100;
+        let might_have_more: boolean = true;
+        let sortby: SortByVO = new SortByVO();
+        sortby.field_id = 'id';
+        sortby.sort_asc = false;
+        sortby.vo_type = api_type_id;
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let field = moduletable.get_field_by_id(update_field_id);
+
+        while (might_have_more) {
+
+            let vos = await this.query_vos_from_active_filters(api_type_id, get_active_field_filters, active_api_type_ids, limit, offset, sortby);
+
+            if ((!vos) || (!vos.length)) {
+                break;
+            }
+
+            vos.forEach((vo) => {
+                vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
+            });
+            await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+
+            might_have_more = (vos.length >= limit);
+            offset += limit;
+        }
+    }
+
+    /**
+     * WARNING : does not call triggers !!
+     */
     public async delete_vos_from_active_filters(
         api_type_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },

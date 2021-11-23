@@ -3,6 +3,7 @@ import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
@@ -69,12 +70,33 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await this.initializeWidget_Checklist();
 
+        await this.initializeWidget_BulkOps();
+
         await this.initializeWidget_Var();
 
         await this.initializeWidget_ValueTable();
         await this.initializeWidget_DataTable();
 
         await this.initializeWidget_PageSwitch();
+    }
+
+    private async initializeWidget_BulkOps() {
+        let BulkOps = new DashboardWidgetVO();
+
+        BulkOps.default_height = 18;
+        BulkOps.default_width = 45;
+        BulkOps.name = 'bulkops';
+        BulkOps.widget_component = 'Bulkopswidgetcomponent';
+        BulkOps.options_component = 'Bulkopswidgetoptionscomponent';
+        BulkOps.weight = 40;
+        BulkOps.default_background = '#f5f5f5';
+        BulkOps.icon_component = 'Bulkopswidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(BulkOps, () => new BulkOpsWidgetOptions(null, null, 10), BulkOpsWidgetOptions.get_selected_fields);
+
+        Vue.component('Bulkopswidgetcomponent', () => import(/* webpackChunkName: "BulkOpsWidgetComponent" */ './widgets/bulkops_widget/BulkOpsWidgetComponent'));
+        Vue.component('Bulkopswidgetoptionscomponent', () => import(/* webpackChunkName: "BulkOpsWidgetOptionsComponent" */ './widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
+        Vue.component('Bulkopswidgeticoncomponent', () => import(/* webpackChunkName: "BulkOpsWidgetIconComponent" */ './widgets/bulkops_widget/icon/BulkOpsWidgetIconComponent'));
     }
 
     private async initializeWidget_Checklist() {

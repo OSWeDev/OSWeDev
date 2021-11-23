@@ -150,6 +150,84 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'month_filter_widget_component.no_month.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Checklist'
+        }, 'checklist_widget_options_component.checklist_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélectionner une checklist'
+        }, 'checklist_widget_options_component.checklist_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Ajouter"'
+        }, 'checklist_widget_options_component.create_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.create_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.create_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Tout supprimer"'
+        }, 'checklist_widget_options_component.delete_all_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.delete_all_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.delete_all_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Exporter"'
+        }, 'checklist_widget_options_component.export_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.export_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.export_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Rafraîchir"'
+        }, 'checklist_widget_options_component.refresh_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.refresh_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.refresh_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher les éléments d\'une checklist'
+        }, 'dashboards.widgets.icons_tooltips.checklist.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Lancer la modification ?'
+        }, 'BulkOpsWidgetComponent.bulkops.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer'
+        }, 'BulkOpsWidgetComponent.bulkops.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier les données en masse'
+        }, 'bulkops.actions.confirm_bulkops.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champs'
+        }, 'bulkops_widget_component.field_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Choisir un champs'
+        }, 'bulkops_widget_component.field_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Opération'
+        }, 'bulkops_widget_component.operator.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeur'
+        }, 'bulkops_widget_component.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Type de données'
+        }, 'bulkops_widget_options_component.api_type_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Choisir un type de données'
+        }, 'bulkops_widget_options_component.api_type_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Réaliser des modifications en masse'
+        }, 'dashboards.widgets.icons_tooltips.bulkops.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Paramètres invalides (max 15 années)'
         }, 'year_filter_widget_component.no_year.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

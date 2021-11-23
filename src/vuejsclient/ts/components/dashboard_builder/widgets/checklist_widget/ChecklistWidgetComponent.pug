@@ -46,34 +46,16 @@ include ../../../../../views/mixins/loading.pug
                             :checklist_item='checklist_item' 
                             :checklist_controller='checklist_controller'
                             :ordered_checkpoints='ordered_checkpoints' 
-                            :global_route_path='global_route_path'
                             @openmodal='openmodal'
                             @onchangevo='onchangevo')
 
-            .lower_pagination 
-                Tablepaginationcomponent(
-                    :pagination_offset='pagination_offset'
-                    :pagination_pagesize='pagination_pagesize'
-                    :pagination_count='pagination_count'
-                    @change_offset='change_offset'
-                )
+        .row
+            .col-md-12
+                .lower_pagination 
+                    Tablepaginationcomponent(
+                        :pagination_offset='pagination_offset'
+                        :pagination_pagesize='pagination_pagesize'
+                        :pagination_count='pagination_count'
+                        @change_offset='change_offset'
+                    )
                 
-    #checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')
-        .modal-dialog.modal-lg(role='document')
-            .modal-content(v-if="selected_checklist_item")
-                .modal-header
-                    h4.modal-title {{ selected_checklist_item.name }}
-                    a.btn.close(@click="cancel") &times;
-                
-                .modal-body
-                    Checklistmodalcomponent(
-                        @onchangevo='onchangevo'
-                        :checklist_item='selected_checklist_item'
-                        :checkpoint='selected_checkpoint'
-                        :checklist_controller='checklist_controller'
-                        :ordered_checkpoints='ordered_checkpoints' 
-                        :key='selected_checklist_item.id')
-
-                .modal-footer
-                    button.btn.btn-danger(type='button', @click="deleteSelectedItem(selected_checklist_item)") {{ label('checklist.checklist_item_modal.delete') }}
-                    a.btn.close.btn-default(@click="cancel") {{ label('checklist.checklist_item_modal.close') }}

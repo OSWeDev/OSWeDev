@@ -243,7 +243,7 @@ export default class CheckListComponent extends VueComponentBase {
                 0,
                 sort_by
             );
-            items = items.filter((e) => !e.archived);
+            items = (items && items.length) ? items.filter((e) => !e.archived) : [];
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 
