@@ -21,6 +21,8 @@ export default class ModuleFormatDatesNombres extends Module {
     public static FORMAT_HHmm: string = 'HH:mm';
     public static FORMAT_HH: string = 'HH:';
 
+    public static TRANSLATION_date_format_fullyear_month_day = 'YYYY-MM-DD';
+
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ModuleFormatDatesNombres {
         if (!ModuleFormatDatesNombres.instance) {

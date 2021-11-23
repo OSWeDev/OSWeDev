@@ -244,7 +244,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             return Dates.year(field_value);
                         case TimeSegment.TYPE_DAY:
                         default:
-                            return Dates.format(this.getMomentDateFieldInclusif(field_value, moduleTableField, true), 'Y-MM-DD');
+                            return Dates.format(this.getMomentDateFieldInclusif(field_value, moduleTableField, true), LocaleManager.getInstance().t(ModuleFormatDatesNombres.TRANSLATION_date_format_fullyear_month_day));
                     }
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:

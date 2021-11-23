@@ -78,6 +78,7 @@ import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturation
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
+import ModuleFormatDatesNombresServer from './FormatDatesNombres/ModuleFormatDatesNombresServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
@@ -527,7 +528,8 @@ export default abstract class ModuleServiceBase {
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),
-            ModuleMenuServer.getInstance()
+            ModuleMenuServer.getInstance(),
+            ModuleFormatDatesNombresServer.getInstance()
         ];
     }
 
