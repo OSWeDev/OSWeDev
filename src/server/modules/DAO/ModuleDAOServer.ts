@@ -1153,60 +1153,77 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async filterByForeignKeys<T extends IDistantVOBase>(vos: T[]): Promise<T[]> {
         let res: T[] = [];
+        let promises = [];
 
         for (let i in vos) {
             let vo = vos[i];
 
-            let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-
-            if (!moduleTable) {
-                return null;
+            if (promises.length >= 10) {
+                await Promise.all(promises);
+                promises = [];
             }
+            
+            promises.push((async () => {
+                let refuse: boolean = await this.refuseVOByForeignKeys(vo);
 
-            let fields = moduleTable.get_fields();
-            let refuse: boolean = false;
-            for (let j in fields) {
-                let field = fields[j];
-
-                if ((!field.has_relation) || field.has_single_relation) {
-                    // géré par la bdd directement
-                    continue;
+                if (!refuse) {
+                    res.push(vo);
                 }
+            })());
+        }
 
-                if (!vo[field.field_id]) {
-                    // champs vide, inutile de checker
-                    continue;
-                }
-
-                refuse = true;
-                switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-
-                        if (!(vo[field.field_id] as any[]).length) {
-                            // champs vide, inutile de checker
-                            break;
-                        }
-
-                        let targets: IDistantVOBase[] = await this.getVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                        if (targets.length == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
-                            refuse = false;
-                        }
-                        break;
-                    default:
-                }
-
-                if (refuse) {
-                    break;
-                }
-            }
-
-            if (!refuse) {
-                res.push(vo);
-            }
+        if (promises.length >= 1) {
+            await Promise.all(promises);
         }
 
         return res;
+    }
+
+    private async refuseVOByForeignKeys<T extends IDistantVOBase>(vo: T): Promise<boolean> {
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        let fields = moduleTable.get_fields();
+        let refuse: boolean = false;
+        for (let j in fields) {
+            let field = fields[j];
+
+            if ((!field.has_relation) || field.has_single_relation) {
+                // géré par la bdd directement
+                continue;
+            }
+
+            if (!vo[field.field_id]) {
+                // champs vide, inutile de checker
+                continue;
+            }
+
+            refuse = true;
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+
+                    if (!(vo[field.field_id] as any[]).length) {
+                        // champs vide, inutile de checker
+                        break;
+                    }
+
+                    let targets: IDistantVOBase[] = await this.getVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
+                    if (targets.length == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                        refuse = false;
+                    }
+                    break;
+                default:
+            }
+
+            if (refuse) {
+                break;
+            }
+        }
+        return refuse;
     }
 
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {

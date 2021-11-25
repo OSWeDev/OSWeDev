@@ -13,6 +13,7 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -75,6 +76,32 @@ export default class PushDataServerController {
     /**
      * ----- Global application cache - Handled by Main process
      */
+
+    private throttled_notifyVarsDatasBySocket = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(async (stackable_args: any[]) => {
+        if (!stackable_args) {
+            return;
+        }
+
+        let params: { [socket_id: string]: VarDataValueResVO[] } = {};
+        stackable_args.forEach((stackable_arg: { socket_id: string, vos: VarDataValueResVO[] }) => {
+
+            if ((!stackable_arg.socket_id) || (!stackable_arg.vos) || (!stackable_arg.vos.length)) {
+                return;
+            }
+
+            if (!params[stackable_arg.socket_id]) {
+                params[stackable_arg.socket_id] = stackable_arg.vos;
+                return;
+            }
+            params[stackable_arg.socket_id] = params[stackable_arg.socket_id].concat(stackable_arg.vos);
+        });
+
+        let promises = [];
+        for (let socket_id in params) {
+            promises.push(PushDataServerController.getInstance().notifyVarsDatasBySocket_(socket_id, params[socket_id]));
+        }
+        await Promise.all(promises);
+    }, 500, { leading: false });
 
     private constructor() {
 
@@ -512,6 +539,11 @@ export default class PushDataServerController {
     }
 
     public async notifyVarsDatasBySocket(socket_id: string, vos: VarDataValueResVO[]) {
+
+        this.throttled_notifyVarsDatasBySocket([{ socket_id: socket_id, vos: vos }]);
+    }
+
+    public async notifyVarsDatasBySocket_(socket_id: string, vos: VarDataValueResVO[]) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, socket_id, vos)) {
             return;
