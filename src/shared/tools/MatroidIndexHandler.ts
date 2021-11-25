@@ -118,8 +118,8 @@ export default class MatroidIndexHandler {
             let splitted_min_max = min_max.split('&');
             return RangeHandler.getInstance().createNew(
                 range_type,
-                (splitted_min_max[0] && (splitted_min_max[0].length == 0)) ? RangeHandler.getInstance().get_left_open_min_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[0]),
-                (splitted_min_max[1] && (splitted_min_max[1].length == 0)) ? RangeHandler.getInstance().get_right_open_max_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[1]), true, false, segment_type);
+                (splitted_min_max[0] == '') ? RangeHandler.getInstance().get_left_open_min_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[0]),
+                (splitted_min_max[1] == '') ? RangeHandler.getInstance().get_right_open_max_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[1]), true, false, segment_type);
         } else {
             return RangeHandler.getInstance().create_single_elt_range(range_type, this.base_76_txt_to_base_10_num(min_max), segment_type);
         }

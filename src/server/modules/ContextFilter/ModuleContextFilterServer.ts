@@ -310,21 +310,23 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
         let field = moduletable.get_field_by_id(update_field_id);
 
-        while (might_have_more) {
+        if (!field.is_readonly) {
+            while (might_have_more) {
 
-            let vos = await this.query_vos_from_active_filters(api_type_id, get_active_field_filters, active_api_type_ids, limit, offset, sortby);
+                let vos = await this.query_vos_from_active_filters(api_type_id, get_active_field_filters, active_api_type_ids, limit, offset, sortby);
 
-            if ((!vos) || (!vos.length)) {
-                break;
+                if ((!vos) || (!vos.length)) {
+                    break;
+                }
+
+                vos.forEach((vo) => {
+                    vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
+                });
+                await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+
+                might_have_more = (vos.length >= limit);
+                offset += limit;
             }
-
-            vos.forEach((vo) => {
-                vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
-            });
-            await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
-
-            might_have_more = (vos.length >= limit);
-            offset += limit;
         }
     }
 

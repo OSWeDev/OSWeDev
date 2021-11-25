@@ -226,9 +226,9 @@ export default class RangeHandler {
             has_changed = true;
         }
 
-        if (!has_changed) {
-            return ranges;
-        }
+        // if (!has_changed) {
+        //     return ranges;
+        // }
         return this.getRangesUnion(res);
     }
 
@@ -348,43 +348,18 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: IRange[] = null;
-        let hasContiguousRanges: boolean = false;
-        for (let i in ranges) {
-            let range = ranges[i];
+        /**
+         * A - on ordonne par minimum
+         * B - pour i allant de 0 à ranges.length
+         *      - on check le dernier range ajouté dans res (B)
+         *          - si le min du ranges[i] (A) est <= au max de (B)
+         *              - alors B.max = A.max
+         *          - sinon on ajoute A au res et B = A
+         */
 
-            if (!range) {
-                continue;
-            }
-
-            if (!res) {
-                res = [this.cloneFrom(range)];
-                continue;
-            }
-
-            let got_contiguous: boolean = false;
-            for (let j in res) {
-                let resrange: IRange = res[j];
-
-                if (this.ranges_are_contiguous_or_intersect(resrange, range)) {
-                    res[j] = this.getMinSurroundingRange([resrange, range]);
-                    got_contiguous = true;
-                    break;
-                }
-            }
-
-            hasContiguousRanges = hasContiguousRanges || got_contiguous;
-            if (!got_contiguous) {
-                res.push(this.cloneFrom(range));
-            }
-        }
-
-        if (!res) {
-            return res;
-        }
-
-        // Il faut ordonner les ranges pour aller plus vite
-        res.sort((rangea: IRange, rangeb: IRange) => {
+        let cloned = ranges.filter((c) => !!c);
+        cloned = this.cloneArrayFrom(cloned);
+        cloned.sort((rangea: IRange, rangeb: IRange) => {
 
             if (!rangea) {
                 return null;
@@ -396,80 +371,37 @@ export default class RangeHandler {
             return (rangea.min) - (rangeb.min);
         });
 
-        while (hasContiguousRanges) {
-            hasContiguousRanges = false;
+        let res: IRange[] = [];
+        let i = 0;
+        let B: IRange = null;
+        let A: IRange = null;
 
-            let newres: IRange[] = [];
-            for (let j in res) {
-                let resrangej: IRange = res[j];
-
-                if (!resrangej) {
-                    continue;
-                }
-
-                for (let k in res) {
-                    let resrangek: IRange = res[k];
-
-                    if (!resrangek) {
-                        continue;
-                    }
-
-                    /**
-                     * Anciennement k <= j mais il y avait un pb dans certains cas précis où res contenait + de 10 ranges
-                     * Ainsi, si k était inférieur à j mais que la somme de ses chiffres était supérieure à celle des chiffre de j (ex k=2 et j=10),
-                     * k était considéré supérieur à j car les deux sont des strings et la comparaison s'effectue de façon linéaire (premier chiffre de k et de j etc)
-                     * Le résultat était faux et les vars chargeait indéfiniment
-                     */
-                    if (parseInt(k.toString()) <= parseInt(j.toString())) {
-                        continue;
-                    }
-
-                    if (this.ranges_are_contiguous_or_intersect(resrangej, resrangek)) {
-                        hasContiguousRanges = true;
-                        resrangej = this.getMinSurroundingRange([resrangej, resrangek]);
-                        res[k] = null;
-                    } else {
-
-                        /**
-                         * Comme on a ordonné les minimums, on sait que si le
-                         *  min de resrangek > max de resrangej on peut plus trouver de collisions dans les k++
-                         *  on sait par convention que resrangej.max_inclusiv = false; (d'ailleurs c'est une notion qu'on devrait
-                         *  supprimer du range c'est devenu inutile puisque conventionnellement min inclusive et max !inclusive)
-                         */
-                        if (resrangek.min > resrangej.max) {
-                            break;
-                        }
-                    }
-                }
-
-                newres.push(this.cloneFrom(resrangej));
+        while (i < cloned.length) {
+            A = cloned[i];
+            if (B && (A.min <= B.max)) {
+                B.max = Math.max(B.max, A.max);
+            } else {
+                res.push(A);
+                B = A;
             }
-
-            res = newres;
+            i++;
         }
-
-        return res;
+        return (res && res.length) ? res : null;
     }
 
     /**
+     * On a que des ranges normés, donc on optimise
      * @param range_a
      * @param range_b
      */
     public ranges_are_contiguous_or_intersect(range_a: IRange, range_b: IRange): boolean {
 
-        if ((!range_a) || (!range_b)) {
+        if ((!range_a) || (!range_b) || (range_a.range_type != range_b.range_type)) {
             return false;
         }
 
-        if (range_a.range_type != range_b.range_type) {
-            return false;
-        }
-
-        if (this.range_intersects_range(range_a, range_b)) {
-            return true;
-        }
-
-        return this.is_elt_equals_elt(range_a.range_type, range_b.min, range_a.max) || this.is_elt_equals_elt(range_a.range_type, range_b.max, range_a.min);
+        return (((range_a.min >= range_b.min) && (range_a.min <= range_b.max)) ||
+            ((range_a.max >= range_b.min) && (range_a.max <= range_b.max)));
     }
 
     /**

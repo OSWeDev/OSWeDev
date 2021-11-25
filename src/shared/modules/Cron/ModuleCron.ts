@@ -2,6 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -74,7 +75,7 @@ export default class ModuleCron extends Module {
         let datatable_fields = [
             label_field,
             new ModuleTableField('worker_uid', ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
-            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false),
+            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             new ModuleTableField('type_recurrence', ModuleTableField.FIELD_TYPE_int, 'type_recurrence', true),
             new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];

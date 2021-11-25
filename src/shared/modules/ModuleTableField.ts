@@ -92,6 +92,8 @@ export default class ModuleTableField<T> {
     public is_unique: boolean = false;
     public is_readonly: boolean = false;
 
+    public format_localized_time: boolean = true;
+
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
      * Sur daterange : idem si date fin du range
@@ -179,6 +181,11 @@ export default class ModuleTableField<T> {
 
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {
         this.validate_input = validate_input;
+        return this;
+    }
+
+    public set_format_localized_time(format_localized_time: boolean): ModuleTableField<T> {
+        this.format_localized_time = format_localized_time;
         return this;
     }
 

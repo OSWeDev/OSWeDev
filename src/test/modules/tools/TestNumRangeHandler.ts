@@ -605,7 +605,9 @@ describe('NumRangeHandler', () => {
             RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, 1, 5, true, false, NumSegment.TYPE_INT),
             RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, -1, 1, true, false, NumSegment.TYPE_INT),
         ];
-        expect(RangeHandler.getInstance().rangesFromIndex(RangeHandler.getInstance().getIndexRanges(ranges), NumRange.RANGE_TYPE)).to.deep.equal(ranges);
+        expect(RangeHandler.getInstance().rangesFromIndex(RangeHandler.getInstance().getIndexRanges(ranges), NumRange.RANGE_TYPE)).to.deep.equal(
+            [RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, -1, 5, true, false, NumSegment.TYPE_INT)]
+        );
     });
 
     it('test get_combinaisons', async () => {

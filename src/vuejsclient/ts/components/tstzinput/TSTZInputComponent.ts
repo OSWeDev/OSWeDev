@@ -3,6 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VueAppController from '../../../VueAppController';
@@ -71,7 +72,7 @@ export default class TSTZInputComponent extends VueComponentBase {
         this.date_value = new Date(this.value * 1000);
 
         if (this.value) {
-            this.time_value = this.value ? Dates.format(this.value, this.format_time) : null;
+            this.time_value = this.value ? Dates.format(this.value, this.format_time, this.format_localized_time) : null;
         }
     }
 
@@ -91,18 +92,42 @@ export default class TSTZInputComponent extends VueComponentBase {
             return null;
         }
 
-        if (this.segmentation_time) {
-            let date_time: number = this.date_value.getTime() / 1000;
-            let hours: string[] = (this.time_value) ? this.time_value.split(':') : null;
+        let date = null;
+        let format = 'DD/MM/YYYY HH:mm:ss';
 
-            if (hours && hours.length > 0) {
-                date_time = Dates.minutes(Dates.hours(date_time, parseInt(hours[0])), parseInt(hours[1]));
-            }
+        let hour_ts: number = null;
+        let hours: string[] = (this.time_value) ? this.time_value.split(':') : null;
 
-            return date_time;
+        if (hours && hours.length > 0) {
+            hour_ts = Dates.minutes(Dates.hours(0, parseInt(hours[0])), parseInt(hours[1]));
         }
 
-        return Dates.startOf(this.date_value.getTime() / 1000, this.segmentation_type);
+        switch (this.segmentation_type) {
+            case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                date = '01/01/' + Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_YEAR), 'YYYY', false) + ' 00:00:00';
+                break;
+            case TimeSegment.TYPE_MONTH:
+                date = '01/' + Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_MONTH), 'MM/YYYY', false) + ' 00:00:00';
+                break;
+            case TimeSegment.TYPE_WEEK:
+                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_WEEK), 'DD/MM/YYYY', false) + ' 00:00:00';
+                break;
+            case TimeSegment.TYPE_DAY:
+                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY), 'DD/MM/YYYY', false) + ' 00:00:00';
+                break;
+            case TimeSegment.TYPE_HOUR:
+                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:', false) + '00:00';
+                break;
+            case TimeSegment.TYPE_MINUTE:
+                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm', false) + ':00';
+                break;
+            case TimeSegment.TYPE_SECOND:
+                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm:ss', false);
+                break;
+        }
+
+        return Dates.parse(date, format, this.format_localized_time);
     }
 
     get segmentation_time(): boolean {
@@ -112,6 +137,14 @@ export default class TSTZInputComponent extends VueComponentBase {
     get segmentation_type(): number {
         if (this.field.type == 'Simple') {
             return (this.field as SimpleDatatableField<any, any>).moduleTableField.segmentation_type;
+        }
+
+        return null;
+    }
+
+    get format_localized_time(): boolean {
+        if (this.field.type == 'Simple') {
+            return (this.field as SimpleDatatableField<any, any>).moduleTableField.format_localized_time;
         }
 
         return null;

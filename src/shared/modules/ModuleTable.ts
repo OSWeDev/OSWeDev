@@ -564,12 +564,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
 
     public default_get_field_api_version(e: any, field: ModuleTableField<any>): any {
-        if (!field) {
-            return null;
-        }
-
-        if (field.is_readonly) {
-            return null;
+        if ((!field) || (field.is_readonly)) {
+            throw new Error('Should not ask for readonly fields');
         }
 
         /**
@@ -611,7 +607,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public default_field_from_api_version(e: any, field: ModuleTableField<any>): any {
         if ((!field) || field.is_readonly) {
-            return null;
+            throw new Error('Should no ask for readonly fields');
         }
 
         /**
@@ -843,6 +839,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
         for (let i in this.fields_) {
             let field = this.fields_[i];
 
+            if (field.is_readonly) {
+                continue;
+            }
+
             let new_id = fieldIdToAPIMap[field.field_id];
             res[new_id] = this.default_get_field_api_version(e[field.field_id], field);
 
@@ -881,6 +881,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         for (let i in this.fields_) {
             let field = this.fields_[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
 
             let old_id = fieldIdToAPIMap[field.field_id];
             res[field.field_id] = this.default_field_from_api_version(e[old_id], field);

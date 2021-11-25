@@ -237,7 +237,10 @@ export default class VarDataBaseVO implements IMatroid {
             return null;
         }
 
-        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf ? varConf.var_data_vo_type : param_to_clone._type, varConf ? clone_fields : true);
+        clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
+        varConf = varConf ? varConf : VarsController.getInstance().var_conf_by_id[param_to_clone.var_id];
+
+        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
         if (!res) {
             return null;
         }
@@ -276,6 +279,14 @@ export default class VarDataBaseVO implements IMatroid {
     private _index: string;
 
     public constructor() { }
+
+    /**
+     * Pour forcer le rebuild de l'index et avoir un truc propre (à appeler si on change le param après un create new ou un clone from)
+     */
+    public rebuild_index() {
+
+        this._index = null;
+    }
 
     /**
      * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite.

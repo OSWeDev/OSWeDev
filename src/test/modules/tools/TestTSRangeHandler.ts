@@ -2960,9 +2960,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().getIndex(null)).to.equal(null);
-        expect(RangeHandler.getInstance().getIndex(numRange1)).to.equal("[0,3)");
-        expect(RangeHandler.getInstance().getIndex(numRange2)).to.equal("[3,4)");
-        expect(RangeHandler.getInstance().getIndex(numRange3)).to.equal("[2,4)");
+        expect(RangeHandler.getInstance().getIndex(numRange1)).to.equal("00&3");
+        expect(RangeHandler.getInstance().getIndex(numRange2)).to.equal("03");
+        expect(RangeHandler.getInstance().getIndex(numRange3)).to.equal("02&4");
     });
 
     it('test humanize', () => {
@@ -2972,7 +2972,7 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().humanize(null)).to.equal(null);
-        expect(RangeHandler.getInstance().humanize(numRange1)).to.equal("[0,3)");
+        expect(RangeHandler.getInstance().humanize(numRange1)).to.equal('[0,3)');
         expect(RangeHandler.getInstance().humanize(numRange2)).to.equal("[3,4)");
         expect(RangeHandler.getInstance().humanize(numRange3)).to.equal("[2,4)");
     });
@@ -2984,9 +2984,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().getIndexRanges(null)).to.equal(null);
-        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)]");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[0,3),[3,4)]");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[2,4),[3,4)]");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("00&4");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("00&4");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("02&4");
     });
 
     it('test humanizeRanges', () => {

@@ -120,7 +120,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         }
 
         let fields = this.moduletable.get_fields();
-        fields.forEach((field) => res.push(field.field_id));
+        fields.forEach((field) => field.is_readonly ? null : res.push(field.field_id));
         return res;
     }
 
@@ -138,6 +138,11 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         for (let i in fields) {
             let field = fields[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
+
             res[field.field_id] = this.t(field.field_label.code_text);
         }
 
