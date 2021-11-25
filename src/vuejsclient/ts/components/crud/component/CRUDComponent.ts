@@ -652,11 +652,18 @@ export default class CRUDComponent extends VueComponentBase {
                     // On utilise le trigger si il est présent sur le crud
                     if (self.crud.preCreate) {
                         let errorMsg = await self.crud.preCreate(apiokVo, self.newVO);
+                        //comme il a eut une erreur on abandonne la création
                         if (errorMsg) {
-                            self.snotify.error(self.label(errorMsg));
-                            self.updating_vo = false;
-                            //comme il a eut une erreur on abandonne la création
                             self.creating_vo = false;
+                            reject({
+                                body: self.label(errorMsg),
+                                config: {
+                                    timeout: 10000,
+                                    showProgressBar: true,
+                                    closeOnClick: false,
+                                    pauseOnHover: true,
+                                },
+                            });
                             return;
                         }
                     }
