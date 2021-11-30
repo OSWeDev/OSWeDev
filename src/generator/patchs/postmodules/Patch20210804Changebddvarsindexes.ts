@@ -3,11 +3,7 @@
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import VarsServerController from '../../../server/modules/Var/VarsServerController';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import VarsController from '../../../shared/modules/Var/VarsController';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
@@ -33,10 +29,9 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
         /**
          * Pour tous les types de vars
          */
-        for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
+        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
             let table = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-            let table_full_name = table.full_name;
             let fields = table.get_fields();
 
             /**
@@ -52,8 +47,15 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
             }
 
             while (nb_runs > 0) {
+                let query = " update " + table.full_name + " a set _bdd_only_index=(" +
+                    " select (matches.parts[1] || to_char(to_number(matches.parts[2], '9999999999999')/1000, 'FM9999999999') || ',' || to_char(to_number(matches.parts[3], '9999999999999')/1000, 'FM9999999999') || matches.parts[4]) as new_index " +
+                    " from (" +
+                    "   select regexp_matches(_bdd_only_index, '^(?:(.*\\[\\[)(\\d{13}),(\\d{13})(\\)\\].*))+$', 'g') as parts " +
+                    "   from " + table.full_name + " as b where a.id = b.id) " +
+                    " as matches) " +
+                    " where _bdd_only_index ~* '^(?:(.*\\[\\[)(\\d{13}),(\\d{13})(\\)\\].*))+$'";
 
-                await ModuleDAOServer.getInstance().query("update ref.module_psa_crescendo_crescendo_day_dr a set _bdd_only_index=(select (matches.parts[1] || to_char(to_number(matches.parts[2], '9999999999999')/1000, 'FM9999999999') || ',' || to_char(to_number(matches.parts[3], '9999999999999')/1000, 'FM9999999999') || matches.parts[4]) as new_index from (select regexp_matches(_bdd_only_index, '^(?:(.*\[\[)(\d{13}),(\d{13})(\)\].*))+$', 'g') as parts from ref.module_psa_crescendo_crescendo_day_dr as b where a.id = b.id) as matches) where _bdd_only_index ~* '^(?:(.*\[\[)(\d{13}),(\d{13})(\)\].*))+$'");
+                await ModuleDAOServer.getInstance().query(query);
 
                 nb_runs--;
             }
