@@ -4,6 +4,10 @@ export default class VarCacheConfVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "var_cache_conf";
 
+    public static VALUE_CACHE_STRATEGY_LABELS: string[] = ['var_cache_conf.cache_strategy.estimated_time', 'var_cache_conf.cache_strategy.cardinal'];
+    public static VALUE_CACHE_STRATEGY_ESTIMATED_TIME: number = 0;
+    public static VALUE_CACHE_STRATEGY_CARDINAL: number = 1;
+
     public id: number;
     public _type: string = VarCacheConfVO.API_TYPE_ID;
 
@@ -16,9 +20,11 @@ export default class VarCacheConfVO implements IDistantVOBase {
      */
     public cache_timeout_secs: number;
 
+    public cache_startegy: number;
     public cache_seuil_a: number;
     public cache_seuil_b: number;
     public cache_seuil_c: number;
     public cache_seuil_c_element: number;
+    public cache_seuil_bdd: number;
     public calculation_cost_for_1000_card: number;
 }

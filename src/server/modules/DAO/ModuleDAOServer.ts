@@ -36,6 +36,7 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
+import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -1162,7 +1163,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 await Promise.all(promises);
                 promises = [];
             }
-            
+
             promises.push((async () => {
                 let refuse: boolean = await this.refuseVOByForeignKeys(vo);
 
@@ -1503,7 +1504,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
+            let bdd_version = moduleTable.get_bdd_version(vo);
+            let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
                 ConsoleHandler.getInstance().error('insertOrUpdateVO :' + reason);
                 failed = true;
             });
@@ -1796,6 +1798,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 tableFields.push(field.field_id);
                 placeHolders.push('${' + field.field_id + '}');
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    tableFields.push(field.field_id + '_ndx');
+                    placeHolders.push('${' + field.field_id + '_ndx}');
+                }
             }
 
             let full_name = null;
@@ -2840,40 +2858,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     where_clause += first ? "(" : ") AND (";
 
-                    let ranges_clause = "'{";
-                    for (let j in ranges) {
-                        let field_range: IRange = ranges[j];
+                    let ranges_clause = null;
 
-                        if (!RangeHandler.getInstance().isValid(field_range)) {
-                            ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                    switch (field.field_type) {
+
+                        case ModuleTableField.FIELD_TYPE_numrange_array:
+                        case ModuleTableField.FIELD_TYPE_refrange_array:
+                        case ModuleTableField.FIELD_TYPE_isoweekdays:
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(ranges) + "'";
+                            break;
+
+                        default:
+                            ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
                             return null;
-                        }
-
-                        first = false;
-                        first_matroid = false;
-
-                        ranges_clause += (ranges_clause == "'{") ? '' : ',';
-
-                        switch (field.field_type) {
-
-                            case ModuleTableField.FIELD_TYPE_numrange_array:
-                            case ModuleTableField.FIELD_TYPE_refrange_array:
-                            case ModuleTableField.FIELD_TYPE_isoweekdays:
-                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
-                                break;
-
-                            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
-                                break;
-
-                            default:
-                                ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
-                                return null;
-                        }
                     }
-                    ranges_clause += "}'";
 
-                    where_clause += ranges_clause + " = " + field.field_id;
+                    where_clause += ranges_clause + " = " + field.field_id + '_ndx';
                 }
                 if (first) {
                     return null;

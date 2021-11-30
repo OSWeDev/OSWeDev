@@ -122,7 +122,7 @@ export default class VarDataBaseVO implements IMatroid {
                 for (let i in fields) {
                     let field = fields[i];
                     let segmentation_cible = varConf.segment_types[field.field_id];
-                    segmentation_cible = (segmentation_cible == null) ?
+                    segmentation_cible = (segmentation_cible != null) ?
                         segmentation_cible :
                         RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
                     res[field.field_id] = segmentation_cible;
@@ -263,7 +263,7 @@ export default class VarDataBaseVO implements IMatroid {
     public _type: string;
     public id: number;
 
-    public var_id: number;
+    public _var_id: number;
 
     /**
      * La valeur calculée du noeud :
@@ -279,6 +279,11 @@ export default class VarDataBaseVO implements IMatroid {
     private _index: string;
 
     public constructor() { }
+
+    get var_id(): number { return this._var_id; }
+    set var_id(var_id: number) {
+        this.set_field('var_id', var_id);
+    }
 
     /**
      * Pour forcer le rebuild de l'index et avoir un truc propre (à appeler si on change le param après un create new ou un clone from)
@@ -335,5 +340,14 @@ export default class VarDataBaseVO implements IMatroid {
         }
 
         return true;
+    }
+
+    protected set_field(field_id: string, value: any) {
+        this['_' + field_id] = value;
+        if (field_id != 'var_id') {
+            if (Array.isArray(value)) {
+                this.rebuild_index();
+            }
+        }
     }
 }

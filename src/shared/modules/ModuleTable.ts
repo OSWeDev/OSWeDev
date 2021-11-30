@@ -594,6 +594,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e._type];
                     let trans_ = (field_table && e) ? field_table.default_get_api_version(e) : null;
                     return trans_ ? JSON.stringify(trans_) : null;
+                } else if (e) {
+                    return JSON.stringify(e);
                 } else {
                     return null;
                 }
@@ -652,7 +654,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
                     return trans_ ? field_table.default_from_api_version(trans_) : null;
                 } else {
-                    return null;
+                    return trans_;
                 }
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
@@ -942,6 +944,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                         let trans_ = e[field.field_id] ? field_table.default_get_bdd_version(e[field.field_id]) : null;
                         res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
+                    } else if (e[field.field_id]) {
+                        res[field.field_id] = JSON.stringify(e[field.field_id]);
                     } else {
                         res[field.field_id] = null;
                     }
@@ -1112,7 +1116,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
                         res[field.field_id] = trans_ ? field_table.defaultforceNumeric(trans_) : null;
                     } else {
-                        res[field.field_id] = null;
+                        res[field.field_id] = trans_;
                     }
                     break;
 

@@ -24,6 +24,8 @@ export default class ConfigurationService {
 
     public nodeInstall: boolean;
 
+    public nodeInstallFullSegments: boolean;
+
     /**
      * Just an helper for webpack conf
      */
@@ -38,6 +40,7 @@ export default class ConfigurationService {
     private constructor() {
         this.nodeEnv = process.env.NODE_ENV || 'DEV';
         this.nodeInstall = (process.env.NODE_INSTALL == 'true');
+        this.nodeInstallFullSegments = (process.env.NODE_INSTALL_FULL_SEGMENTS == 'true');
         ConfigurationService.instance = this;
     }
 

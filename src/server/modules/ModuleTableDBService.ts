@@ -1,10 +1,13 @@
+import { ResetPwdParamVOStatic } from '../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../shared/modules/ModuleTable';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../shared/tools/EnvHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
+import ConfigurationService from '../env/ConfigurationService';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ForkedTasksController from './Fork/ForkedTasksController';
 import TableColumnDescriptor from './TableColumnDescriptor';
@@ -136,28 +139,30 @@ export default class ModuleTableDBService {
             let common_id_seq_name = this.get_segmented_table_common_limited_seq_label(moduleTable);
             let max_id = 0;
 
+            /**
+             * On prend 1 table pour l'exemple et si on a pas de modif de format, on ignore les suivantes
+             *  sauf si on utilise un param spécifique lors de la compilation
+             */
+            let segment_test = null;
+            let has_changes = true;
+            if (!ConfigurationService.getInstance().nodeInstallFullSegments) {
+                segment_test = segments[0].min;
+
+                has_changes = await this.handle_check_segment(moduleTable, segment_test, common_id_seq_name, migration_todo);
+            }
+
             // Création / update des structures
-            await RangeHandler.getInstance().foreach_ranges_batch_await(segments, async (segmented_value) => {
+            if (has_changes) {
 
-                let table_name = moduleTable.get_segmented_name(segmented_value);
-                await self.do_check_or_update_moduletable(moduleTable, database_name, table_name, segmented_value);
+                await RangeHandler.getInstance().foreach_ranges_batch_await(segments, async (segmented_value) => {
 
-                if (!migration_todo) {
+                    if ((segment_test != null) && (segment_test == segmented_value)) {
+                        return;
+                    }
 
-                    // Si on est pas en migration, on doit quand même vérifier au cas où la présence de la séquence
-
-                    await this.db.query(
-                        'CREATE SEQUENCE IF NOT EXISTS ' + moduleTable.database + '.' + common_id_seq_name +
-                        '  INCREMENT 1' +
-                        '  MINVALUE 1' +
-                        '  MAXVALUE 9223372036854775807' +
-                        '  START 1' +
-                        '  CACHE 1;');
-
-                    // Si la séquence existe déjà, on doit pouvoir directement demander à changer le lien de séquence (pour le cas de création de nouvelle table)
-                    await this.db.query("ALTER TABLE " + database_name + "." + table_name + " ALTER COLUMN id SET DEFAULT nextval('" + moduleTable.database + "." + common_id_seq_name + "'::regclass);");
-                }
-            }, moduleTable.table_segmented_field_segment_type, null, null, 20);
+                    await this.handle_check_segment(moduleTable, segmented_value, common_id_seq_name, migration_todo);
+                }, moduleTable.table_segmented_field_segment_type, null, null, 20);
+            }
 
             if (migration_todo) {
 
@@ -213,15 +218,45 @@ export default class ModuleTableDBService {
         }
     }
 
-    private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number) {
+    private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
+        let res: boolean = false;
+
+        let table_name = moduleTable.get_segmented_name(segmented_value);
+        res = await this.do_check_or_update_moduletable(moduleTable, moduleTable.database, table_name, segmented_value);
+
+        if (!migration_todo) {
+            // Attention si une sequence manque on ne la créera sur toutes les tables que si on a demandé explicitement d'install full segments
+
+            // Si on est pas en migration, on doit quand même vérifier au cas où la présence de la séquence
+
+            await this.db.query(
+                'CREATE SEQUENCE IF NOT EXISTS ' + moduleTable.database + '.' + common_id_seq_name +
+                '  INCREMENT 1' +
+                '  MINVALUE 1' +
+                '  MAXVALUE 9223372036854775807' +
+                '  START 1' +
+                '  CACHE 1;');
+
+            // Si la séquence existe déjà, on doit pouvoir directement demander à changer le lien de séquence (pour le cas de création de nouvelle table)
+            await this.db.query("ALTER TABLE " + moduleTable.database + "." + table_name + " ALTER COLUMN id SET DEFAULT nextval('" + moduleTable.database + "." + common_id_seq_name + "'::regclass);");
+        }
+        return res;
+    }
+
+    /**
+     * @returns true if causes a change in the db structure
+     */
+    private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
         // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
         //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
 
         let table_cols_sql: string = 'select column_name, column_default, is_nullable, data_type from INFORMATION_SCHEMA.COLUMNS ' +
             'where table_schema = \'' + database_name + '\' and table_name = \'' + table_name + '\';';
         let table_cols: TableColumnDescriptor[] = await this.db.query(table_cols_sql);
+        let res: boolean = false;
 
         if ((!table_cols) || (!table_cols.length)) {
+            res = true;
             await this.create_new_datatable(moduleTable, database_name, table_name);
             await this.chec_indexes(moduleTable, database_name, table_name);
 
@@ -229,12 +264,16 @@ export default class ModuleTableDBService {
                 await ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
             }
         } else {
-            await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
-            await this.chec_indexes(moduleTable, database_name, table_name);
+            res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
+            res = res || await this.chec_indexes(moduleTable, database_name, table_name);
         }
+        return res;
     }
 
-    private async check_datatable_structure(moduleTable: ModuleTable<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]) {
+    /**
+     * @returns true if causes a change in the db structure
+     */
+    private async check_datatable_structure(moduleTable: ModuleTable<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
 
         let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
         for (let i in moduleTable.get_fields()) {
@@ -248,20 +287,31 @@ export default class ModuleTableDBService {
             table_cols_by_name[table_col.column_name] = table_col;
         }
 
-        await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        let res: boolean = false;
+        res = res || await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        res = res || await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        res = res || await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        res = res || await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        return res;
     }
 
+    /**
+     * @param moduleTable
+     * @param fields_by_field_id
+     * @param table_cols_by_name
+     * @param database_name
+     * @param table_name
+     * @returns true if causes a change in the db structure
+     */
     private async checkConstraintsOnForeignKey(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
-        table_name: string) {
+        table_name: string): Promise<boolean> {
 
         let full_name = database_name + '.' + table_name;
+        let res: boolean = false;
 
         for (let i in fields_by_field_id) {
             let field = fields_by_field_id[i];
@@ -299,6 +349,7 @@ export default class ModuleTableDBService {
                         try {
                             await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
                             ConsoleHandler.getInstance().warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
+                            res = true;
                         } catch (error) {
                         }
                     }
@@ -306,6 +357,7 @@ export default class ModuleTableDBService {
                 continue;
             }
 
+            // ATTENTION sur certaines modifs subtiles on peut avoir besoin de forcer l'update complet des tables segmentées, car on supprime toujours les contraintes avant de recréer donc c'est pas un motif de modif fiable...
             if (!!actual_constraint_names) {
                 for (let actual_constraint_names_i in actual_constraint_names) {
                     let actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
@@ -326,6 +378,8 @@ export default class ModuleTableDBService {
             } catch (error) {
             }
         }
+
+        return res;
     }
 
     /**
@@ -333,15 +387,17 @@ export default class ModuleTableDBService {
      * @param moduleTable
      * @param fields_by_field_id
      * @param table_cols_by_name
+     * @returns true if causes a change in the db structure
      */
     private async checkMissingInTS(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
-        table_name: string) {
+        table_name: string): Promise<boolean> {
 
         let full_name = database_name + '.' + table_name;
+        let res: boolean = false;
 
         for (let i in table_cols_by_name) {
 
@@ -368,6 +424,7 @@ export default class ModuleTableDBService {
                 try {
                     let pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP COLUMN ' + i + ';';
                     await this.db.none(pgSQL);
+                    res = true;
                     console.error('ACTION: OK');
                 } catch (error) {
                     console.error(error);
@@ -375,6 +432,7 @@ export default class ModuleTableDBService {
                 console.error('---');
             }
         }
+        return res;
     }
 
     /**
@@ -382,15 +440,17 @@ export default class ModuleTableDBService {
      * @param moduleTable
      * @param fields_by_field_id
      * @param table_cols_by_name
+     * @returns true if causes a change in the db structure
      */
     private async checkMissingInDB(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
-        table_name: string) {
+        table_name: string): Promise<boolean> {
 
         let full_name = database_name + '.' + table_name;
+        let res: boolean = false;
 
         for (let i in moduleTable.get_fields()) {
             let field = moduleTable.get_fields()[i];
@@ -403,6 +463,7 @@ export default class ModuleTableDBService {
                 try {
                     let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + field.getPGSqlFieldDescription() + ';';
                     await this.db.none(pgSQL);
+                    res = true;
                     console.error('ACTION: OK');
                 } catch (error) {
                     console.error(error);
@@ -431,6 +492,7 @@ export default class ModuleTableDBService {
                     try {
                         let pgSQL: string = 'ALTER TABLE ' + full_name + ' ADD COLUMN ' + index + ' text;';
                         await this.db.none(pgSQL);
+                        res = true;
                         console.error('ACTION: OK');
                     } catch (error) {
                         console.error(error);
@@ -439,6 +501,7 @@ export default class ModuleTableDBService {
                 }
             }
         }
+        return res;
     }
 
     /**
@@ -446,15 +509,17 @@ export default class ModuleTableDBService {
      * @param moduleTable
      * @param fields_by_field_id
      * @param table_cols_by_name
+     * @returns true if causes a change in the db structure
      */
     private async checkColumnsStrutInDB(
         moduleTable: ModuleTable<any>,
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
-        table_name: string) {
+        table_name: string): Promise<boolean> {
 
         let full_name = database_name + '.' + table_name;
+        let res: boolean = false;
 
         for (let i in moduleTable.get_fields()) {
             let field = moduleTable.get_fields()[i];
@@ -479,6 +544,7 @@ export default class ModuleTableDBService {
                 } else {
                     await this.db.query('ALTER TABLE ' + full_name + ' ALTER COLUMN ' + table_col.column_name + ' SET NOT NULL;');
                 }
+                res = true;
             }
 
             // // En même temps ça parait pas gravissime
@@ -521,10 +587,15 @@ export default class ModuleTableDBService {
                 }
             }
         }
+        return res;
     }
 
-    private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
+    /**
+     * @returns true if causes a change in the db structure
+     */
+    private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string): Promise<boolean> {
 
+        let res_: boolean = false;
         for (let i = 0; i < moduleTable.get_fields().length; i++) {
             let field = moduleTable.get_fields()[i];
 
@@ -540,7 +611,10 @@ export default class ModuleTableDBService {
 
             ConsoleHandler.getInstance().log('ADDING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
             await this.db.query(index_str);
+            res_ = true;
         }
+
+        return res_;
     }
 
     private async create_new_datatable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
