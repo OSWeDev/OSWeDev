@@ -4,6 +4,8 @@ import ForkedTasksController from "../Fork/ForkedTasksController";
 export default class DAOQueryCacheController {
 
     public static TASK_NAME_CLEAR: string = "DAOQueryCacheController.clear_cache";
+    public static TASK_NAME_UNBLOCK: string = "DAOQueryCacheController.unblock_cache";
+    public static TASK_NAME_BLOCK: string = "DAOQueryCacheController.block_cache";
 
     public static getInstance() {
         if (!DAOQueryCacheController.instance) {
@@ -27,6 +29,12 @@ export default class DAOQueryCacheController {
     private simple_query_cache: { [query: string]: any } = {};
 
     /**
+     * On ajoute un système de désactivation temporaire du cache pour permettre de faire des grosses modifs en base sans spammer des milliers de clear_cache
+     *  (typiquement sur un insertorupdatevoS on sait qu'on peut stopper le cache le temps de tout insérer)
+     */
+    private waiting_for_blocking_tasks: number = 1;
+
+    /**
      * Local thread cache -----
      */
 
@@ -34,6 +42,23 @@ export default class DAOQueryCacheController {
         ForkedTasksController.getInstance().register_task(
             DAOQueryCacheController.TASK_NAME_CLEAR,
             this.clear_cache.bind(this));
+        ForkedTasksController.getInstance().register_task(
+            DAOQueryCacheController.TASK_NAME_BLOCK,
+            this.block_cache.bind(this));
+        ForkedTasksController.getInstance().register_task(
+            DAOQueryCacheController.TASK_NAME_UNBLOCK,
+            this.unblock_cache.bind(this));
+    }
+
+    public block_cache(useless: boolean) {
+        DAOQueryCacheController.getInstance().waiting_for_blocking_tasks++;
+    }
+
+    public unblock_cache(useless: boolean) {
+        DAOQueryCacheController.getInstance().waiting_for_blocking_tasks--;
+        if (DAOQueryCacheController.getInstance().waiting_for_blocking_tasks < 0) {
+            DAOQueryCacheController.getInstance().waiting_for_blocking_tasks = 0;
+        }
     }
 
     /**
@@ -41,11 +66,15 @@ export default class DAOQueryCacheController {
      */
     public async invalidate_cache_from_query_or_return_result(query: string, values: any): Promise<any> {
 
+        if (this.waiting_for_blocking_tasks > 0) {
+            return undefined;
+        }
+
         if (!query) {
             return undefined;
         }
 
-        let trimed_lower = query.trim().toLowerCase();
+        let trimed_lower = query.trim();
 
         // Si c'est pas un select on vide le cache
         if (!trimed_lower.startsWith('select ')) {
@@ -69,6 +98,13 @@ export default class DAOQueryCacheController {
         return cloneDeep(this.simple_query_cache[trimed_lower]);
     }
 
+    public async broad_cast_clear_cache() {
+        if (this.waiting_for_blocking_tasks > 0) {
+            return;
+        }
+        await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
+    }
+
     public clear_cache(useless: boolean) {
         // ConsoleHandler.getInstance().log("CLEAR QUERY CACHE:");
         DAOQueryCacheController.getInstance().simple_query_cache = {};
@@ -79,11 +115,15 @@ export default class DAOQueryCacheController {
      */
     public save_cache_from_query_result(query: string, values: any, res: any) {
 
+        if (this.waiting_for_blocking_tasks > 0) {
+            return;
+        }
+
         if ((!query) || (!!values)) {
             return;
         }
 
-        let trimed_lower = query.trim().toLowerCase();
+        let trimed_lower = query.trim();
 
         // Si c'est pas un select on ignore
         if (!trimed_lower.startsWith('select ')) {

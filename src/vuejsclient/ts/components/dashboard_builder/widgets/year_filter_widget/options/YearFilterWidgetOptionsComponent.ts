@@ -51,7 +51,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
     private auto_select_year_max: string = null;
 
     private next_update_options: YearFilterWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false });
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     get has_existing_other_custom_filters(): boolean {
         if (!this.other_custom_filters) {

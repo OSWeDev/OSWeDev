@@ -7,6 +7,7 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -64,6 +65,7 @@ import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -82,6 +84,9 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private static instance: ModuleVarServer = null;
+
+    public update_varcacheconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.update_varcacheconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
     private constructor() {
         super(ModuleVar.getInstance().name);
@@ -408,8 +413,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_cd(vo: IDistantVOBase): Promise<void> {
 
         try {
-            await VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
-            VarsdatasComputerBGThread.getInstance().force_run_asap();
+            VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo]);
+            // VarsdatasComputerBGThread.getInstance().force_run_asap();
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -424,8 +429,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     public async invalidate_var_cache_from_vo_u(vo_update_handler: DAOUpdateVOHolder<IDistantVOBase>): Promise<void> {
 
         try {
-            await VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
-            VarsdatasComputerBGThread.getInstance().force_run_asap();
+            VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo_update_handler]);
+            // VarsdatasComputerBGThread.getInstance().force_run_asap();
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -436,7 +441,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
 
             // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-            await VarsTabsSubsController.getInstance().notify_vardatas([vo]);
+            await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([vo])]);
             await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
@@ -452,7 +457,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
 
             // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-            await VarsTabsSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+            await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
             await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
 
             // et mettre à jour la version potentiellement en cache actuellement
@@ -830,17 +835,20 @@ export default class ModuleVarServer extends ModuleServerBase {
         await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vo_update_handler.post_update_vo);
     }
 
-    private update_varcacheconf_from_cache(vcc: VarCacheConfVO) {
-        VarsServerController.getInstance().varcacheconf_by_var_ids[vcc.var_id] = vcc;
+    private update_varcacheconf_from_cache_throttled(vccs: VarCacheConfVO[]) {
+        for (let i in vccs) {
+            let vcc = vccs[i];
+            VarsServerController.getInstance().varcacheconf_by_var_ids[vcc.var_id] = vcc;
 
-        if (!VarsServerController.getInstance().getVarConfById(vcc.var_id)) {
-            return;
-        }
+            if (!VarsServerController.getInstance().getVarConfById(vcc.var_id)) {
+                continue;
+            }
 
-        if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
-            VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
+            if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
+                VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
+            }
+            VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id] = vcc;
         }
-        VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id] = vcc;
     }
 
     private delete_varcacheconf_from_cache(vcc: VarCacheConfVO) {

@@ -18,6 +18,7 @@ import VarsServerCallBackSubsController from '../VarsServerCallBackSubsControlle
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
+import NotifVardatasParam from '../notifs/NotifVardatasParam';
 
 /**
  * Objectif :
@@ -221,7 +222,7 @@ export default class SlowVarKiHandler {
         computed_var.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(computed_var);
         computed_var.id = res.id;
-        await VarsTabsSubsController.getInstance().notify_vardatas([computed_var]);
+        await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([computed_var])]);
         await VarsServerCallBackSubsController.getInstance().notify_vardatas([computed_var]);
     }
 }

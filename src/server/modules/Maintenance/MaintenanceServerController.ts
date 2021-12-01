@@ -27,7 +27,7 @@ export default class MaintenanceServerController {
     /**
      * Global application cache - Handled by Main process -----
      */
-    private planned_maintenance: MaintenanceVO = null;
+    public planned_maintenance: MaintenanceVO = null;
     /**
      * ----- Global application cache - Handled by Main process
      */

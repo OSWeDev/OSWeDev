@@ -60,7 +60,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private actual_query: string = null;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private filter_type_options: number[] = [
         AdvancedStringFilter.FILTER_TYPE_COMMENCE,

@@ -35,7 +35,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     private get_custom_filters: string[];
 
     private next_update_options: VarWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false });
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private tmp_selected_var_name: string = null;
     private custom_filter_names: { [field_id: string]: string } = {};

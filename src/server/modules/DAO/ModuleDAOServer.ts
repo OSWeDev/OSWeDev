@@ -75,7 +75,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     public global_update_blocker: boolean = false;
-    private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false });
+    private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -1371,7 +1371,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
                 // On vide le cache
-                await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
+                await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
 
                 for (let i in results) {
 
@@ -1650,7 +1650,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }).then(async (value: any) => {
 
             // On vide le cache
-            await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
+            await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];

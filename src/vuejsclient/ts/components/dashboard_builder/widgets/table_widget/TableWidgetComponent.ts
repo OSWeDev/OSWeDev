@@ -75,7 +75,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private selected_rows: any[] = [];
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;

@@ -7,12 +7,14 @@ import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
+import NotifVardatasParam from '../notifs/NotifVardatasParam';
 import VarsPerfsController from '../perf/VarsPerfsController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarsCacheController from '../VarsCacheController';
@@ -40,8 +42,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private static instance: VarsdatasComputerBGThread = null;
 
-    public current_timeout: number = 10;
-    public MAX_timeout: number = 10;
+    public current_timeout: number = 2;
+    public MAX_timeout: number = 2;
     public MIN_timeout: number = 1;
 
     public exec_in_dedicated_thread: boolean = true;
@@ -57,6 +59,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     /**
      * Par défaut, sans intervention extérieur, on a pas besoin de faire des calculs tellement souvent
      */
+
+    public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 1000, { leading: true, trailing: true });
+
     private timeout_calculation: number = 30;
     private last_calculation_unix: number = 0;
 
@@ -70,22 +75,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     get name(): string {
         return "VarsdatasComputerBGThread";
-    }
-
-    public async force_run_asap(): Promise<boolean> {
-
-        return new Promise(async (resolve, reject) => {
-
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                VarsdatasComputerBGThread.getInstance().name,
-                VarsdatasComputerBGThread.TASK_NAME_force_run_asap, resolve)) {
-                return;
-            }
-
-            this.run_asap = true;
-
-            resolve(true);
-        });
     }
 
     /**
@@ -243,7 +232,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         }
 
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);
-                        await VarsTabsSubsController.getInstance().notify_vardatas(vars_datas, true); // PERF OK
+                        await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam(Object.values(vars_datas), true)]); // PERF OK
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", false);
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
@@ -332,5 +321,21 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:OUT");
         }
+    }
+
+    private async force_run_asap_throttled(): Promise<boolean> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsdatasComputerBGThread.TASK_NAME_force_run_asap, resolve)) {
+                return;
+            }
+
+            this.run_asap = true;
+
+            resolve(true);
+        });
     }
 }

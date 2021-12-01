@@ -1,9 +1,11 @@
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
+import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class VarsTabsSubsController {
 
@@ -22,6 +24,9 @@ export default class VarsTabsSubsController {
     }
 
     private static instance: VarsTabsSubsController = null;
+
+    public notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.notify_vardatas_throttled.bind(this), 200, { leading: true, trailing: true });
 
     /**
      * Les client_tab_ids abonnés à chaque var_index
@@ -83,34 +88,38 @@ export default class VarsTabsSubsController {
      * @param var_datas Tableau ou map (sur index) des vars datas
      * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    public async notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, is_computing: boolean = false): Promise<boolean> {
+    public async notify_vardatas_throttled(params: NotifVardatasParam[]): Promise<boolean> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, var_datas, is_computing)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, params)) {
             return false;
         }
 
         let datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
-        for (let i in var_datas) {
-            let var_data = var_datas[i];
+        for (let parami in params) {
+            let param = params[parami];
 
-            // ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
+            for (let i in param.var_datas) {
+                let var_data = param.var_datas[i];
 
-            for (let user_id in this._tabs_subs[var_data.index]) {
+                // ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
 
-                /**
-                 * On doit demander tous les sockets actifs pour une tab
-                 */
-                for (let client_tab_id in this._tabs_subs[var_data.index][user_id]) {
+                for (let user_id in this._tabs_subs[var_data.index]) {
 
-                    let sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(user_id.toString()), client_tab_id);
+                    /**
+                     * On doit demander tous les sockets actifs pour une tab
+                     */
+                    for (let client_tab_id in this._tabs_subs[var_data.index][user_id]) {
 
-                    for (let j in sockets) {
-                        let socket: SocketWrapper = sockets[j];
+                        let sockets: SocketWrapper[] = PushDataServerController.getInstance().getUserSockets(parseInt(user_id.toString()), client_tab_id);
 
-                        if (!datas_by_socketid_for_notif[socket.socketId]) {
-                            datas_by_socketid_for_notif[socket.socketId] = [];
+                        for (let j in sockets) {
+                            let socket: SocketWrapper = sockets[j];
+
+                            if (!datas_by_socketid_for_notif[socket.socketId]) {
+                                datas_by_socketid_for_notif[socket.socketId] = [];
+                            }
+                            datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(param.is_computing));
                         }
-                        datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(is_computing));
                     }
                 }
             }

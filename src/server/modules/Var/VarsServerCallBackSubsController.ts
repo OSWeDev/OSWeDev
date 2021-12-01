@@ -1,5 +1,6 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -22,6 +23,9 @@ export default class VarsServerCallBackSubsController {
     }
 
     private static instance: VarsServerCallBackSubsController = null;
+
+    public notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
     /**
      * Les callbacks à appeler dès que possible
@@ -126,7 +130,7 @@ export default class VarsServerCallBackSubsController {
      *  A la différence d'un abonnement permanent, on supprime le callback suite à l'appel
      * @param var_datas Tableau ou map (sur index) des vars datas
      */
-    public async notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }): Promise<boolean> {
+    public async notify_vardatas_throttled(var_datas: VarDataBaseVO[]): Promise<boolean> {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
             return;
