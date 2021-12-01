@@ -36,13 +36,12 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
-    @Prop({ default: null })
-    private dashboard: DashboardVO;
-
-    @Prop({ default: null })
-    private dashboard_page: DashboardPageVO;
-
     private selected_years: { [year: number]: boolean } = {};
+
+    private auto_select_year: boolean = null;
+    private auto_select_year_relative_mode: boolean = null;
+    private auto_select_year_min: number = null;
+    private auto_select_year_max: number = null;
 
     private switch_selection(i: string) {
         this.selected_years[i] = !this.selected_years[i];
@@ -192,10 +191,10 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
         let need_switch: { [year: number]: boolean } = Object.assign({}, this.selected_years);
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (isoyear: number) => {
+        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (year: number) => {
 
-            if (!need_switch[isoyear - 1]) {
-                need_switch[isoyear - 1] = true;
+            if (!need_switch[year]) {
+                need_switch[year] = true;
             }
         });
 
@@ -249,6 +248,25 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
+
+        /**
+         * Si on change la conf de auto_select on veut réinit le filtre (on est en modif donc et on vient de changer la conf on veut voir l'impact)
+         *  sinon on veut surtout pas changer la sélection actuelle
+         */
+        if (
+            (this.auto_select_year == this.widget_options.auto_select_year) &&
+            (this.auto_select_year_relative_mode == this.widget_options.auto_select_year_relative_mode) &&
+            (this.auto_select_year_min == this.widget_options.auto_select_year_min) &&
+            (this.auto_select_year_max == this.widget_options.auto_select_year_max)
+        ) {
+            return;
+        }
+
+        this.auto_select_year = this.widget_options.auto_select_year;
+        this.auto_select_year_relative_mode = this.widget_options.auto_select_year_relative_mode;
+        this.auto_select_year_min = this.widget_options.auto_select_year_min;
+        this.auto_select_year_max = this.widget_options.auto_select_year_max;
+
         let selected_years = {};
 
         let years = this.years;

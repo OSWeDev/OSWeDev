@@ -192,10 +192,10 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
         let need_switch: { [month: number]: boolean } = Object.assign({}, this.selected_months);
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (isomonth: number) => {
+        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
 
-            if (!need_switch[isomonth - 1]) {
-                need_switch[isomonth - 1] = true;
+            if (!need_switch[month]) {
+                need_switch[month] = true;
             }
         });
 
