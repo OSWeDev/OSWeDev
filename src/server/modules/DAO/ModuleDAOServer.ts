@@ -1212,8 +1212,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
                     }
 
-                    let targets: IDistantVOBase[] = await this.getVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                    if (targets.length == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                    let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
+                    if (nb == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
                         refuse = false;
                     }
                     break;
@@ -2392,6 +2392,46 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On filtre suivant les droits d'accès
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+    }
+
+    private async countVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<number> {
+
+        if ((!ranges) || (!ranges.length)) {
+            return 0;
+        }
+
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!this.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return 0;
+        }
+
+        if (moduleTable.is_segmented) {
+            // TODO FIXME segmented moduletable
+            throw new Error('Not Implemented');
+        }
+
+        let where_clause: string = "";
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if ((!range) || (range.max == null) || (range.min == null)) {
+                continue;
+            }
+
+            where_clause += (where_clause == "") ? "" : " OR ";
+
+            where_clause += "id::numeric <@ '" + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + "'::numrange";
+        }
+
+        if (where_clause == "") {
+            return 0;
+        }
+
+        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(*) a FROM ' + moduleTable.full_name + ' t WHERE ' + where_clause + ";");
+        return (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : 0;
     }
 
     private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {

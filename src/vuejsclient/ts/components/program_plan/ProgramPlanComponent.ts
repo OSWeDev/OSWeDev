@@ -32,6 +32,7 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../VueAppController';
@@ -232,6 +233,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private calendar_date: string = DateHandler.getInstance().formatDayForIndex(Dates.now());
     private viewname: string = 'timelineWeek';
+
+    private reset_targets = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_targets_throttled.bind(this), 100, { leading: false, trailing: true });
 
     private fcSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
         moment(this.calendar_date).utc(true).unix(),
@@ -1939,7 +1942,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     @Watch('getTargetsByIds', { deep: true, immediate: true })
-    private reset_targets() {
+    private onchange_getTargetsByIds() {
+        this.reset_targets();
+    }
+
+    private reset_targets_throttled() {
         this.valid_targets = [];
         for (let i in this.getTargetsByIds) {
             let target: IPlanTarget = this.getTargetsByIds[i];
@@ -1949,6 +1956,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
             this.valid_targets.push(target);
         }
+    }
+
+    private filter_ready() {
+        this.reset_targets();
     }
 
     @Watch('getFacilitatorsByIds', { deep: true, immediate: true })

@@ -8,8 +8,8 @@ include ../../../../../views/mixins/loading.pug
                 .is_busy 
                     i.fa.fa-refresh.fa-spin(aria-hidden="true")
 
-            .row 
-                .col-md-4.field_id_selection 
+            .row.row_field
+                .col-md-5.field_id_selection 
                     .field_id
                         .input_label {{ label('bulkops_widget_component.field_id') }}
 
@@ -44,7 +44,7 @@ include ../../../../../views/mixins/loading.pug
                         .operator_select
                             .equal =
 
-                .col-md-4.value_selection 
+                .col-md-5.value_selection 
                     .value
                         .input_label {{ label('bulkops_widget_component.value') }}
 
@@ -65,7 +65,7 @@ include ../../../../../views/mixins/loading.pug
                                 )
 
             .row 
-                .col-md-4 
+                .col-md-5 
                     .table_wrapper
                         table.table-striped.table-hover
                             thead 
@@ -92,7 +92,7 @@ include ../../../../../views/mixins/loading.pug
                 .col-md-2.transform
                     .to {{ "=>" }}
 
-                .col-md-4 
+                .col-md-5 
                     .table_wrapper
                         table.table-striped.table-hover
                             thead 
@@ -116,8 +116,8 @@ include ../../../../../views/mixins/loading.pug
                             @change_offset='change_offset'
                         )
 
-            .row 
-                .col-md-12
+            .row.button_confirm_bulkops
+                .col-md-12.text-center
                     button.btn.btn-sm.btn-primary(@click='confirm_bulkops')
                         i.fa.fa-cogs.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('bulkops.actions.confirm_bulkops') }}

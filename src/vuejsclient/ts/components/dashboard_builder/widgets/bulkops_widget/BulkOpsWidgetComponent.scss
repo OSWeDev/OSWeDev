@@ -1,5 +1,15 @@
 .bulkops_widget_component {
 
+    .row_field {        
+        border-bottom: solid 0.3em #EEE;
+        padding-bottom: 1em;
+        margin-bottom: 1em;
+    }
+
+    .input_label {
+        font-size: 1.5em;
+    }
+
     .is_busy {
         display: block;
         position: absolute;
@@ -16,6 +26,21 @@
         i {
             font-size: xx-large;
         }
+    }
+
+    .operator_selection, .transform {
+        background: white;
+    }
+
+    .operator .input_label {
+        text-align: center;
+    }
+
+    .operator_select, .transform {
+        text-align: center;
+        font-size: 2em;
+        font-weight: bold;
+        color: #555;
     }
 
     .btn-group.d-print-none {
@@ -71,6 +96,17 @@
                     }
                 }
             }
+        }
+    }
+
+    .button_confirm_bulkops {
+
+        padding: 2em;
+        background: #CCC;
+        margin-top: 2em;
+
+        button {
+            padding: 1em 2em;
         }
     }
 }
