@@ -44,6 +44,11 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     private selected_months: { [month: number]: boolean } = {};
 
+    private auto_select_month: boolean = null;
+    private auto_select_month_relative_mode: boolean = null;
+    private auto_select_month_min: number = null;
+    private auto_select_month_max: number = null;
+
     private switch_selection(i: string) {
         this.selected_months[i] = !this.selected_months[i];
     }
@@ -191,16 +196,19 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         }
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
-        let need_switch: { [month: number]: boolean } = Object.assign({}, this.selected_months);
+        let new_value: { [month: number]: boolean } = {};
+        for (let i in this.months) {
+            new_value[this.months[i]] = false;
+        }
         RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
-
-            if (!need_switch[month]) {
-                need_switch[month] = true;
-            }
+            new_value[month] = true;
         });
 
-        if (Object.values(need_switch).indexOf(true) >= 0) {
-            this.selected_months = need_switch;
+        for (let i in new_value) {
+            if (new_value[i] != this.selected_months[i]) {
+                this.selected_months = new_value;
+                break;
+            }
         }
     }
 
@@ -249,6 +257,25 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
+
+        /**
+         * Si on change la conf de auto_select on veut réinit le filtre (on est en modif donc et on vient de changer la conf on veut voir l'impact)
+         *  sinon on veut surtout pas changer la sélection actuelle
+         */
+        if (
+            (this.auto_select_month == this.widget_options.auto_select_month) &&
+            (this.auto_select_month_relative_mode == this.widget_options.auto_select_month_relative_mode) &&
+            (this.auto_select_month_min == this.widget_options.auto_select_month_min) &&
+            (this.auto_select_month_max == this.widget_options.auto_select_month_max)
+        ) {
+            return;
+        }
+
+        this.auto_select_month = this.widget_options.auto_select_month;
+        this.auto_select_month_relative_mode = this.widget_options.auto_select_month_relative_mode;
+        this.auto_select_month_min = this.widget_options.auto_select_month_min;
+        this.auto_select_month_max = this.widget_options.auto_select_month_max;
+
         let selected_months = {};
 
         let months = this.months;

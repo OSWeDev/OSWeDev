@@ -190,16 +190,19 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         }
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
-        let need_switch: { [year: number]: boolean } = Object.assign({}, this.selected_years);
+        let new_value: { [year: number]: boolean } = {};
+        for (let i in this.years) {
+            new_value[this.years[i]] = false;
+        }
         RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (year: number) => {
-
-            if (!need_switch[year]) {
-                need_switch[year] = true;
-            }
+            new_value[year] = true;
         });
 
-        if (Object.values(need_switch).indexOf(true) >= 0) {
-            this.selected_years = need_switch;
+        for (let i in new_value) {
+            if (new_value[i] != this.selected_years[i]) {
+                this.selected_years = new_value;
+                break;
+            }
         }
     }
 

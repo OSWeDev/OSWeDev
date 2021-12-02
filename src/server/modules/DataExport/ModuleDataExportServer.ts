@@ -17,7 +17,6 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';

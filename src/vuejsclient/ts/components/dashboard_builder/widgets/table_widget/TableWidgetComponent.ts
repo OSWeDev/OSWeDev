@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import TableColumnDescriptor from '../../../../../../server/modules/TableColumnDescriptor';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -597,22 +598,14 @@ export default class TableWidgetComponent extends VueComponentBase {
     get exportable_datatable_columns(): string[] {
         let res: string[] = [];
 
-        for (let i in this.fields) {
-            let field: DatatableField<any, any> = this.fields[i];
+        for (let i in this.columns) {
+            let column: TableColumnDescVO = this.columns[i];
 
-            if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
-                continue;
-            }
-            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
+            if (column.type == TableColumnDescVO.TYPE_crud_actions) {
                 continue;
             }
 
-            // On peut refuser l'export d'une colonne
-            if (field.hiden_export) {
-                continue;
-            }
-
-            res.push(field.datatable_field_uid);
+            res.push(column.field_id);
         }
 
         return res;
