@@ -7,6 +7,7 @@ export default class VarComputeTimeLearnBaseVO implements IDistantVOBase {
     public id: number;
 
     public indexes: string[];
+    public human_readable_indexes: string[];
     public computation_duration: number;
     public computation_start_time: number;
 }

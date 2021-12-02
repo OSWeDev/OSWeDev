@@ -324,11 +324,12 @@ export default class ModuleVar extends Module {
 
         let datatable_fields = [
             new ModuleTableField('indexes', ModuleTableField.FIELD_TYPE_string_array, 'Indexs', true),
+            new ModuleTableField('human_readable_indexes', ModuleTableField.FIELD_TYPE_string_array, 'Indexs humanisés', true),
             new ModuleTableField('computation_duration', ModuleTableField.FIELD_TYPE_float, 'Durée (ms)', true),
-            new ModuleTableField('computation_start_time', ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+            new ModuleTableField('computation_start_time', ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
-        let datatable = new ModuleTable(this, VarComputeTimeLearnBaseVO.API_TYPE_ID, () => new VarComputeTimeLearnBaseVO(), datatable_fields, null);
+        let datatable = new ModuleTable(this, VarComputeTimeLearnBaseVO.API_TYPE_ID, () => new VarComputeTimeLearnBaseVO(), datatable_fields, null, "Base d\'apprentissage des Vars");
         this.datatables.push(datatable);
     }
 

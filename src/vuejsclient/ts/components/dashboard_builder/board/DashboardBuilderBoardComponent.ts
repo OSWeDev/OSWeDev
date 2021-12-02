@@ -136,6 +136,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         page_widget.w = widget.default_width;
         page_widget.h = widget.default_height;
 
+        let max_y = 0;
+        if (this.editable_dashboard_page.layout && this.editable_dashboard_page.layout.length) {
+            this.editable_dashboard_page.layout.forEach((item) => max_y = Math.max(max_y, item.y + item.h));
+        }
+        page_widget.x = 0;
+        page_widget.y = max_y;
+
         page_widget.background = widget.default_background;
 
         try {

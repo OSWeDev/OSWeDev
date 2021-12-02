@@ -16,7 +16,7 @@ include ../../../../../views/mixins/loading.pug
                     button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
                         i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('crud.actions.refresh') }}
-                    button.btn.btn-sm.btn-outline-dark(v-if='can_export && isExportableToXLSX' @click="export_to_xlsx")
+                    button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="do_export_to_xlsx")
                         i.fa.fa-download.fa-lg.btn_icon
                         | {{ label('crud.actions.export') }}
                     button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
@@ -26,7 +26,7 @@ include ../../../../../views/mixins/loading.pug
             .upper_pagination
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
-                    :pagination_pagesize='pagination_pagesize'
+                    :pagination_pagesize='limit'
                     :pagination_count='pagination_count'
                     @change_offset='change_offset'
                 )
@@ -78,7 +78,7 @@ include ../../../../../views/mixins/loading.pug
             .lower_pagination 
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
-                    :pagination_pagesize='pagination_pagesize'
+                    :pagination_pagesize='limit'
                     :pagination_count='pagination_count'
                     @change_offset='change_offset'
                 )

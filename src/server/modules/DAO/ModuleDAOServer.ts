@@ -8,6 +8,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -379,8 +380,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_BASE_URL, this.getBaseUrl.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
 
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
     }
 
     public checkAccessSync<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string): boolean {
@@ -717,6 +719,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return " (" + where_clause_params.join(" OR ") + ") ";
     }
 
+    /**
+     * Seul version de delete_all/truncate qui appel les triggers appli + base
+     */
+    public async delete_all_vos_triggers_ok(api_type_id: string) {
+
+        let vos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(api_type_id, null, [api_type_id], 1000, 0, null);
+        while (vos && vos.length) {
+            await this.deleteVOs(vos);
+            vos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(api_type_id, null, [api_type_id], 1000, 0, null);
+        }
+    }
+
+    /**
+     * Attention, on appel aucun triggers de l'appli en faisant ça...
+     */
     public async delete_all_vos(api_type_id: string) {
 
         let datatable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
@@ -746,7 +763,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await this.truncate(api_type_id);
     }
 
-
+    /**
+     * ATTENTION truncate ne fait pas du tout un delete * en base, c'est très différent, par exemple sur les triggers en base
+     */
     public async truncate(api_type_id: string, ranges: IRange[] = null) {
 
         if (this.global_update_blocker) {

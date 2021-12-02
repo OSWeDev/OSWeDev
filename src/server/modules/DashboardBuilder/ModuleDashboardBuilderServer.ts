@@ -595,6 +595,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_options_component.update_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Limite d\'affichage'
+        }, 'table_widget_options_component.limit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Bouton pour ajouter une ligne ?'
         }, 'table_widget_options_component.create_button.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

@@ -8,6 +8,7 @@ import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByV
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDActionsDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableField';
+import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
@@ -17,6 +18,9 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
+import ExportDataToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
@@ -79,7 +83,6 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
-    private pagination_pagesize: number = 100;
 
     private order_asc_on_id: number = null;
     private order_desc_on_id: number = null;
@@ -154,8 +157,8 @@ export default class TableWidgetComponent extends VueComponentBase {
         if (this.can_delete_all_right == null) {
             let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
             if (!crud) {
-                this.can_delete_all_right = false;
-                this.can_open_vocus_right = false;
+                this.can_delete_all_right = true;
+                this.can_open_vocus_right = true;
                 return;
             }
             this.can_delete_all_right = await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
@@ -405,7 +408,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             field_ids,
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids,
-            this.pagination_pagesize,
+            this.limit,
             this.pagination_offset,
             sort_by,
             res_field_aliases);
@@ -438,6 +441,14 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         this.loaded_once = true;
         this.is_busy = false;
+    }
+
+    get limit(): number {
+        if (!this.widget_options) {
+            return 100;
+        }
+
+        return (this.widget_options.limit == null) ? 100 : this.widget_options.limit;
     }
 
     private async refresh() {
@@ -540,7 +551,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().truncate(self.crud_activated_api_type);
+                        await ModuleDAO.getInstance().delete_all_vos_triggers_ok(self.crud_activated_api_type);
                         await self.throttled_update_visible_options();
                     },
                     bold: false
@@ -553,5 +564,112 @@ export default class TableWidgetComponent extends VueComponentBase {
                 }
             ]
         });
+    }
+
+
+
+
+
+
+    private get_export_params_for_xlsx(): ExportDataToXLSXParamVO {
+
+        let exportable_datatable_data = this.get_exportable_datatable_data();
+        return new ExportDataToXLSXParamVO(
+            "Export-" + Dates.now() + ".xlsx",
+            exportable_datatable_data,
+            this.exportable_datatable_columns,
+            this.datatable_columns_labels,
+            this.crud_activated_api_type,
+        );
+    }
+
+    get datatable_columns_labels(): any {
+        let res: any = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+            res[column.field_id] = this.t(column.translatable_name_code_text);
+        }
+
+        return res;
+    }
+
+    get exportable_datatable_columns(): string[] {
+        let res: string[] = [];
+
+        for (let i in this.fields) {
+            let field: DatatableField<any, any> = this.fields[i];
+
+            if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
+                continue;
+            }
+            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
+                continue;
+            }
+
+            // On peut refuser l'export d'une colonne
+            if (field.hiden_export) {
+                continue;
+            }
+
+            res.push(field.datatable_field_uid);
+        }
+
+        return res;
+    }
+
+    private get_exportable_datatable_data(): any[] {
+        let exportable_datatable_data = [];
+
+        for (let i in this.data_rows) {
+
+            let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data(this.data_rows[i], this.export_datatable, this.exportable_datatable_columns);
+            if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
+                delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
+            }
+            if (!!cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
+                delete cloned_data[DatatableRowController.ACTIONS_COLUMN_ID];
+            }
+
+            exportable_datatable_data.push(cloned_data);
+        }
+
+        return exportable_datatable_data;
+    }
+
+    get export_datatable(): Datatable<any> {
+        let res = new Datatable(this.crud_activated_api_type);
+
+        for (let i in this.fields) {
+            let field = this.fields[i];
+
+            if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
+                continue;
+            }
+
+            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
+                continue;
+            }
+
+            res.pushField(field);
+        }
+        return res;
+    }
+
+    private async do_export_to_xlsx() {
+        let param: ExportDataToXLSXParamVO = this.get_export_params_for_xlsx();
+
+        if (!!param) {
+
+            await ModuleDataExport.getInstance().exportDataToXLSX(
+                param.filename,
+                param.datas,
+                param.ordered_column_list,
+                param.column_labels,
+                param.api_type_id,
+                param.is_secured,
+                param.file_access_policy_name
+            );
+        }
     }
 }

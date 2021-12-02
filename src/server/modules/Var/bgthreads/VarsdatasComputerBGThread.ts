@@ -6,6 +6,7 @@ import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarComputeTimeLearnBaseVO from '../../../../shared/modules/Var/vos/VarComputeTimeLearnBaseVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import MatroidIndexHandler from '../../../../shared/tools/MatroidIndexHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../../env/ConfigurationService';
@@ -308,9 +309,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         }
 
                         let indexes: string[] = [];
+                        let human_readable_indexes: string[] = [];
                         for (let i in vars_datas) {
                             let vars_data = vars_datas[i];
                             indexes.push(vars_data.index);
+                            human_readable_indexes.push(MatroidIndexHandler.getInstance().get_human_readable_index(vars_data));
                         }
 
                         /**
@@ -359,9 +362,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                                 (perf_end - perf_start) + ' ms] computing');
                         }
 
-                        if (this.switch_add_computation_time_to_learning_base) {
+                        if (this.add_computation_time_to_learning_base) {
                             let stat = new VarComputeTimeLearnBaseVO();
                             stat.indexes = indexes;
+                            stat.human_readable_indexes = human_readable_indexes;
                             stat.computation_start_time = perf_tstz;
                             stat.computation_duration = perf_end - perf_start;
                             await ModuleDAO.getInstance().insertOrUpdateVO(stat);

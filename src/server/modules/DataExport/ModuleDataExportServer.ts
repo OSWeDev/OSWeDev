@@ -278,7 +278,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                        api_type_id,
+                        api_type_id ? api_type_id : 'N/A',
                         Dates.now(),
                         user_log_id
                     ));

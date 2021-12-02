@@ -159,6 +159,24 @@ export default class MatroidIndexHandler {
         return ranges;
     }
 
+    public get_human_readable_index(vardata: VarDataBaseVO): string {
+        if (!vardata) {
+            return null;
+        }
+
+        let res: string = vardata.var_id.toString();
+
+        this.normalize_vardata_fields(vardata);
+        let fields = MatroidController.getInstance().getMatroidFields(vardata._type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            res += '|' + RangeHandler.getInstance().humanizeRanges(vardata[field.field_id]);
+        }
+        return res;
+    }
+
     public get_normalized_vardata(vardata: VarDataBaseVO): string {
 
         if (!vardata) {
