@@ -1,27 +1,43 @@
 .table_pagination
-    template(v-if='(max_page > 1) && !!page')
+    template(v-if='!!page')
         .row
-            .col-md-3
-                .pagination_resumee {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
-            .col-md-6
-                .pagination_slider
-                    v-slider(
-                        v-model="new_page" :min="1" :max="max_page" tooltip="none"
-                        :disabled="(max_page <= 2)" @change="throttled_change_offset" 
-                        :process-style="{ backgroundColor: 'dodgerblue' }"
-                    )
-                        template(v-slot:dot="{ value }")
-                            .custom-dot {{ value }}
-            .col-md-3
-                .pagination_form
-                    .pagination_arrow.go_back(:class="{disabled : new_page<=1}" @click="goto_previous")
-                        i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
+            template(v-if='!compressed')
+                .col-md-3
+                    .pagination_resumee {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
+                template(v-if='max_page > 1')
+                    .col-md-6
+                        .pagination_slider
+                            v-slider(
+                                v-model="new_page" :min="1" :max="max_page" tooltip="none"
+                                :disabled="(max_page <= 2)" @change="throttled_change_offset" 
+                                :process-style="{ backgroundColor: 'dodgerblue' }"
+                            )
+                                template(v-slot:dot="{ value }")
+                                    .custom-dot {{ value }}
+                    .col-md-3
+                        .pagination_form
+                            .pagination_arrow.go_back(:class="{disabled : new_page<=1}" @click="goto_previous")
+                                i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
 
-                    form(v-on:submit.prevent="change_page_str")
-                        input.pagination_input(type="number" min="1" :max="max_page" v-model="new_page_str")
+                            form(v-on:submit.prevent="change_page_str")
+                                input.pagination_input(type="number" min="1" :max="max_page" v-model="new_page_str")
 
-                    .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
-                        i.fa.fa-chevron-right.fa-fw(aria-hidden="true")
-            
-                    .pagination_submit(:class="{disabled : new_page == page}" @click="throttled_change_offset")
-                        i.fa.fa-check.fa-fw.btn_icon(aria-hidden="true")
+                            .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
+                                i.fa.fa-chevron-right.fa-fw(aria-hidden="true")
+                    
+                            .pagination_submit(:class="{disabled : new_page == page}" @click="throttled_change_offset")
+                                i.fa.fa-check.fa-fw.btn_icon(aria-hidden="true")
+
+            template(v-else)
+                .col-md-6
+                    .pagination_resumee.compressed {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
+                template(v-if='max_page > 1')
+                    .col-md-6
+                        .pagination_slider.compressed
+                            v-slider(
+                                v-model="new_page" :min="1" :max="max_page" tooltip="none"
+                                :disabled="(max_page <= 2)" @change="throttled_change_offset" 
+                                :process-style="{ backgroundColor: 'dodgerblue' }"
+                            )
+                                template(v-slot:dot="{ value }")
+                                    .custom-dot {{ value }}

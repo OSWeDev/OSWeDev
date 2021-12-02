@@ -29,9 +29,23 @@ export default class ThemeModuleDataRangesVO extends VarDataBaseVO {
     public value_ts: number;
 
     public id: number;
-    public var_id: number;
 
-    public theme_id_ranges: NumRange[];
-    public module_id_ranges: NumRange[];
-    public user_id_ranges: NumRange[];
+    public _theme_id_ranges: NumRange[];
+    public _module_id_ranges: NumRange[];
+    public _user_id_ranges: NumRange[];
+
+    get theme_id_ranges(): NumRange[] { return this._theme_id_ranges; }
+    set theme_id_ranges(theme_id_ranges: NumRange[]) {
+        this.set_field('theme_id_ranges', theme_id_ranges);
+    }
+
+    get module_id_ranges(): NumRange[] { return this._module_id_ranges; }
+    set module_id_ranges(module_id_ranges: NumRange[]) {
+        this.set_field('module_id_ranges', module_id_ranges);
+    }
+
+    get user_id_ranges(): NumRange[] { return this._user_id_ranges; }
+    set user_id_ranges(user_id_ranges: NumRange[]) {
+        this.set_field('user_id_ranges', user_id_ranges);
+    }
 }

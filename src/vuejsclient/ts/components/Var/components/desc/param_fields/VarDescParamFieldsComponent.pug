@@ -1,8 +1,8 @@
 .var_desc_param_fields
     template(v-if='var_param')
-        template(v-if='var_data_has_tsranges && var_data_ts_ranges')
-            .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+var_data_ts_ranges_field_id) }}
-            Tsrangescomponent.var_data_ts_range(:ranges='var_data_ts_ranges')
+        //- template(v-if='var_data_has_tsranges && var_data_ts_ranges')
+        //-     .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+var_data_ts_ranges_field_id) }}
+        //-     Tsrangescomponent.var_data_ts_range(:ranges='var_data_ts_ranges')
 
         template(v-if='var_data_other_fields')
             template(v-for='field in var_data_other_fields')

@@ -6,7 +6,7 @@ include ../../../views/mixins/loading.pug
 
         .row(v-if="!!custom_filter_component")
             .col-md-12
-                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed")
+                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed" @filter_ready="filter_ready")
 
         .row(v-if="!!custom_overview_program_plan_component")
             .col-md-12

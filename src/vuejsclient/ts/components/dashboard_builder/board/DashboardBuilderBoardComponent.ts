@@ -12,6 +12,7 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction } from '../page/DashboardPageStore';
+import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
 import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
@@ -26,6 +27,7 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
+        Checklistitemmodalcomponent: ChecklistItemModalComponent
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
@@ -42,6 +44,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
     @ModuleDashboardPageAction
     private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
+    @ModuleDashboardPageAction
+    private set_Checklistitemmodalcomponent: (Checklistitemmodalcomponent: ChecklistItemModalComponent) => void;
 
     @ModuleDashboardPageAction
     private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
@@ -104,6 +109,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
+        this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
     }
@@ -129,6 +135,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         page_widget.w = widget.default_width;
         page_widget.h = widget.default_height;
+
+        let max_y = 0;
+        if (this.editable_dashboard_page.layout && this.editable_dashboard_page.layout.length) {
+            this.editable_dashboard_page.layout.forEach((item) => max_y = Math.max(max_y, item.y + item.h));
+        }
+        page_widget.x = 0;
+        page_widget.y = max_y;
 
         page_widget.background = widget.default_background;
 

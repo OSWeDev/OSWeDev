@@ -50,6 +50,209 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.loading_failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrer une date par année(s)'
+        }, 'dashboards.widgets.icons_tooltips.yearfilter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrer une date par mois'
+        }, 'dashboards.widgets.icons_tooltips.monthfilter.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Min/Max relatifs à l\'année actuelle'
+        }, 'year_filter_widget_component.year_relative_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'year_filter_widget_component.year_relative_mode.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'year_filter_widget_component.year_relative_mode.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-selection automatique'
+        }, 'year_filter_widget_component.auto_select_year.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'year_filter_widget_component.auto_select_year.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'year_filter_widget_component.auto_select_year.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à l\'année actuelle'
+        }, 'year_filter_widget_component.auto_select_year_relative_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'year_filter_widget_component.auto_select_year_relative_mode.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'year_filter_widget_component.auto_select_year_relative_mode.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection min'
+        }, 'year_filter_widget_component.auto_select_year_min.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection max'
+        }, 'year_filter_widget_component.auto_select_year_max.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre de données ou de valeurs'
+        }, 'month_filter_widget_component.is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Données'
+        }, 'month_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeurs'
+        }, 'month_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champs'
+        }, 'month_filter_widget_component.vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom du filtre personnalisé'
+        }, 'month_filter_widget_component.custom_filter_name.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Min/Max relatifs au mois actuel'
+        }, 'month_filter_widget_component.month_relative_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'month_filter_widget_component.month_relative_mode.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'month_filter_widget_component.month_relative_mode.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois minimum (Janvier=1,...)'
+        }, 'month_filter_widget_component.min_month.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois maximum (...,Décembre=12)'
+        }, 'month_filter_widget_component.max_month.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-selection automatique'
+        }, 'month_filter_widget_component.auto_select_month.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'month_filter_widget_component.auto_select_month.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'month_filter_widget_component.auto_select_month.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative au mois actuel'
+        }, 'month_filter_widget_component.auto_select_month_relative_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'month_filter_widget_component.auto_select_month_relative_mode.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'month_filter_widget_component.auto_select_month_relative_mode.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection min'
+        }, 'month_filter_widget_component.auto_select_month_min.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection max'
+        }, 'month_filter_widget_component.auto_select_month_max.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 12 mois)'
+        }, 'month_filter_widget_component.no_month.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Checklist'
+        }, 'checklist_widget_options_component.checklist_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Sélectionner une checklist'
+        }, 'checklist_widget_options_component.checklist_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Ajouter"'
+        }, 'checklist_widget_options_component.create_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.create_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.create_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Tout supprimer"'
+        }, 'checklist_widget_options_component.delete_all_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.delete_all_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.delete_all_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Exporter"'
+        }, 'checklist_widget_options_component.export_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.export_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.export_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton "Rafraîchir"'
+        }, 'checklist_widget_options_component.refresh_button.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'checklist_widget_options_component.refresh_button.hidden.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'checklist_widget_options_component.refresh_button.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher les éléments d\'une checklist'
+        }, 'dashboards.widgets.icons_tooltips.checklist.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Lancer la modification ?'
+        }, 'BulkOpsWidgetComponent.bulkops.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer'
+        }, 'BulkOpsWidgetComponent.bulkops.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifier les données en masse'
+        }, 'bulkops.actions.confirm_bulkops.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champs'
+        }, 'bulkops_widget_component.field_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Choisir un champs'
+        }, 'bulkops_widget_component.field_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Opération'
+        }, 'bulkops_widget_component.operator.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeur'
+        }, 'bulkops_widget_component.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Type de données'
+        }, 'bulkops_widget_options_component.api_type_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Choisir un type de données'
+        }, 'bulkops_widget_options_component.api_type_id_select.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Réaliser des modifications en masse'
+        }, 'dashboards.widgets.icons_tooltips.bulkops.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Paramètres invalides (max 15 années)'
+        }, 'year_filter_widget_component.no_year.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre de données ou de valeurs'
+        }, 'year_filter_widget_component.is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Données'
+        }, 'year_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeurs'
+        }, 'year_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champs'
+        }, 'year_filter_widget_component.vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom du filtre personnalisé'
+        }, 'year_filter_widget_component.custom_filter_name.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année minimale'
+        }, 'year_filter_widget_component.min_year.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année maximale'
+        }, 'year_filter_widget_component.max_year.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélectionner un Dashboard...'
         }, 'dashboard_builder.select_dashboard.___LABEL___'));
 
@@ -391,6 +594,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Non'
         }, 'table_widget_options_component.update_button.hidden.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Limite d\'affichage'
+        }, 'table_widget_options_component.limit.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Bouton pour ajouter une ligne ?'
         }, 'table_widget_options_component.create_button.___LABEL___'));

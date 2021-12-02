@@ -233,19 +233,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    switch (moduleTableField.segmentation_type) {
-                        case TimeSegment.TYPE_MONTH:
-                            return Dates.format(Dates.startOf(this.getMomentDateFieldInclusif(field_value, moduleTableField, true), TimeSegment.TYPE_MONTH), 'Y-MM-DD');
-                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return Dates.format(Dates.startOf(this.getMomentDateFieldInclusif(field_value, moduleTableField, true), TimeSegment.TYPE_DAY), 'Y-MM-DD');
-                        case TimeSegment.TYPE_WEEK:
-                            return Dates.format(Dates.startOf(this.getMomentDateFieldInclusif(field_value, moduleTableField, true), TimeSegment.TYPE_WEEK), 'Y-MM-DD');
-                        case TimeSegment.TYPE_YEAR:
-                            return Dates.year(field_value);
-                        case TimeSegment.TYPE_DAY:
-                        default:
-                            return Dates.format(this.getMomentDateFieldInclusif(field_value, moduleTableField, true), LocaleManager.getInstance().t(ModuleFormatDatesNombres.TRANSLATION_date_format_fullyear_month_day));
-                    }
+                    let date = this.getMomentDateFieldInclusif(field_value, moduleTableField, true);
+                    return Dates.format_segment(date, moduleTableField.segmentation_type, moduleTableField.format_localized_time);
 
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     let res_tstz_array = '';
@@ -257,19 +246,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             res_tstz_array += ', ';
                         }
 
-                        switch (moduleTableField.segmentation_type) {
-                            case TimeSegment.TYPE_MONTH:
-                                res_tstz_array += Dates.format(Dates.startOf(this.getMomentDateFieldInclusif(fv, moduleTableField, true), TimeSegment.TYPE_MONTH), 'Y-MM-DD');
-                            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                                res_tstz_array += Dates.format(Dates.startOf(this.getMomentDateFieldInclusif(fv, moduleTableField, true), TimeSegment.TYPE_DAY), 'Y-MM-DD');
-                            case TimeSegment.TYPE_WEEK:
-                                res_tstz_array += Dates.format(Dates.startOf(this.getMomentDateFieldInclusif(fv, moduleTableField, true), TimeSegment.TYPE_WEEK), 'Y-MM-DD');
-                            case TimeSegment.TYPE_YEAR:
-                                res_tstz_array += Dates.year(fv);
-                            case TimeSegment.TYPE_DAY:
-                            default:
-                                res_tstz_array += Dates.format(this.getMomentDateFieldInclusif(fv, moduleTableField, true), 'Y-MM-DD');
-                        }
+                        let date_fv = this.getMomentDateFieldInclusif(fv, moduleTableField, true);
+                        res_tstz_array += Dates.format_segment(date_fv, moduleTableField.segmentation_type, moduleTableField.format_localized_time);
                     }
                     return res_tstz_array;
 

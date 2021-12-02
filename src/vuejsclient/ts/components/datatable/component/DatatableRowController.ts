@@ -127,6 +127,10 @@ export default class DatatableRowController {
 
             switch (field.type) {
 
+                case DatatableField.CRUD_ACTIONS_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = raw_data[field.datatable_field_uid];
+                    break;
+
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;
 
@@ -305,6 +309,10 @@ export default class DatatableRowController {
         try {
 
             switch (field.type) {
+
+                case DatatableField.CRUD_ACTIONS_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = raw_data[field.datatable_field_uid];
+                    break;
 
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;

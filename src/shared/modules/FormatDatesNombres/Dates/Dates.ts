@@ -10,7 +10,7 @@ export default class Dates {
             if (!date) {
                 return null;
             }
-            return moment(date, format).utc(localized_src).unix();
+            return moment(date, format).utc(!localized_src).unix();
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -147,6 +147,28 @@ export default class Dates {
 
         let mm = localized ? moment.unix(date) : moment.unix(date).utc();
         return mm.format(formatstr);
+    }
+
+    public static format_segment(date: number, segment_type: number, localized: boolean = true): string {
+        switch (segment_type) {
+            case TimeSegment.TYPE_HOUR:
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_HOUR), 'Y-MM-DD HH:--', localized);
+            case TimeSegment.TYPE_MINUTE:
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MINUTE), 'Y-MM-DD HH:mm', localized);
+            case TimeSegment.TYPE_SECOND:
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_SECOND), 'Y-MM-DD HH:mm:ss', localized);
+            case TimeSegment.TYPE_MONTH:
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MONTH), 'Y-MM-DD', localized);
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_DAY), 'Y-MM-DD', localized);
+            case TimeSegment.TYPE_WEEK:
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_WEEK), 'Y-MM-DD', localized);
+            case TimeSegment.TYPE_YEAR:
+                return Dates.year(date).toString();
+            case TimeSegment.TYPE_DAY:
+            default:
+                return Dates.format(date, 'Y-MM-DD', localized);
+        }
     }
 
     /**

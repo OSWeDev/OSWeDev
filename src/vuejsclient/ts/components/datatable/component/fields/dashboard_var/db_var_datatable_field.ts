@@ -45,7 +45,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
-    private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 300, { leading: false });
+    private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 300, { leading: false, trailing: true });
 
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;

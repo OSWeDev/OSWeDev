@@ -1,0 +1,12 @@
+.month_filter_widget_component
+    template(v-if='(is_vo_field_ref && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)')
+        template(v-if='is_vo_field_ref')
+            .vo_field_ref_label {{ vo_field_ref_label }}
+        template(v-else-id='!!custom_filter_name')
+            .custom_filter_name {{ custom_filter_name }}
+
+        .months
+            template(v-if='(!months) || !months.length')
+                .no_month {{ label('month_filter_widget_component.no_month') }}
+            template(v-for='month in months')
+                .month(:class='{"selected": !!selected_months[month]}' @click='switch_selection(month)') {{ label(getMonthName((month-1)%12)) }}

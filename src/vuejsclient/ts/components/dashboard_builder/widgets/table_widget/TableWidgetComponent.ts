@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import TableColumnDescriptor from '../../../../../../server/modules/TableColumnDescriptor';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -8,6 +9,7 @@ import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByV
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDActionsDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableField';
+import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
@@ -17,6 +19,9 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
+import ExportDataToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
@@ -75,11 +80,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private selected_rows: any[] = [];
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
-    private pagination_pagesize: number = 100;
 
     private order_asc_on_id: number = null;
     private order_desc_on_id: number = null;
@@ -89,6 +93,9 @@ export default class TableWidgetComponent extends VueComponentBase {
     private can_delete_right: boolean = null;
     private can_update_right: boolean = null;
     private can_create_right: boolean = null;
+
+    private loaded_once: boolean = false;
+    private is_busy: boolean = false;
 
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -151,8 +158,8 @@ export default class TableWidgetComponent extends VueComponentBase {
         if (this.can_delete_all_right == null) {
             let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
             if (!crud) {
-                this.can_delete_all_right = false;
-                this.can_open_vocus_right = false;
+                this.can_delete_all_right = true;
+                this.can_open_vocus_right = true;
                 return;
             }
             this.can_delete_all_right = await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
@@ -319,36 +326,40 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
-        this.data_rows = [];
+        this.is_busy = true;
 
         await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {
 
-        this.startLoading();
+        this.is_busy = true;
 
         if (!this.widget_options) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
         if ((!this.widget_options.columns) || (!this.widget_options.columns.length)) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
         if (!this.fields) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
         if (!this.dashboard.api_type_ids) {
             this.data_rows = [];
-            this.stopLoading();
+            this.loaded_once = true;
+            this.is_busy = false;
             return;
         }
 
@@ -383,7 +394,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                 ConsoleHandler.getInstance().warn('get_filtered_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.moduleTable.vo_type);
                 this.data_rows = [];
-                this.stopLoading();
+                this.loaded_once = true;
+                this.is_busy = false;
                 return;
             }
 
@@ -397,7 +409,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             field_ids,
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids,
-            this.pagination_pagesize,
+            this.limit,
             this.pagination_offset,
             sort_by,
             res_field_aliases);
@@ -428,7 +440,16 @@ export default class TableWidgetComponent extends VueComponentBase {
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
             this.dashboard.api_type_ids);
 
-        this.stopLoading();
+        this.loaded_once = true;
+        this.is_busy = false;
+    }
+
+    get limit(): number {
+        if (!this.widget_options) {
+            return 100;
+        }
+
+        return (this.widget_options.limit == null) ? 100 : this.widget_options.limit;
     }
 
     private async refresh() {
@@ -531,7 +552,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
-                        await ModuleDAO.getInstance().truncate(self.crud_activated_api_type);
+                        await ModuleDAO.getInstance().delete_all_vos_triggers_ok(self.crud_activated_api_type);
                         await self.throttled_update_visible_options();
                     },
                     bold: false
@@ -544,5 +565,104 @@ export default class TableWidgetComponent extends VueComponentBase {
                 }
             ]
         });
+    }
+
+
+
+
+
+
+    private get_export_params_for_xlsx(): ExportDataToXLSXParamVO {
+
+        let exportable_datatable_data = this.get_exportable_datatable_data();
+        return new ExportDataToXLSXParamVO(
+            "Export-" + Dates.now() + ".xlsx",
+            exportable_datatable_data,
+            this.exportable_datatable_columns,
+            this.datatable_columns_labels,
+            this.crud_activated_api_type,
+        );
+    }
+
+    get datatable_columns_labels(): any {
+        let res: any = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+            res[column.field_id] = this.t(column.translatable_name_code_text);
+        }
+
+        return res;
+    }
+
+    get exportable_datatable_columns(): string[] {
+        let res: string[] = [];
+
+        for (let i in this.columns) {
+            let column: TableColumnDescVO = this.columns[i];
+
+            if (column.type == TableColumnDescVO.TYPE_crud_actions) {
+                continue;
+            }
+
+            res.push(column.field_id);
+        }
+
+        return res;
+    }
+
+    private get_exportable_datatable_data(): any[] {
+        let exportable_datatable_data = [];
+
+        for (let i in this.data_rows) {
+
+            let cloned_data = DatatableRowController.getInstance().get_exportable_datatable_row_data(this.data_rows[i], this.export_datatable, this.exportable_datatable_columns);
+            if (!!cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID]) {
+                delete cloned_data[DatatableRowController.MULTISELECT_COLUMN_ID];
+            }
+            if (!!cloned_data[DatatableRowController.ACTIONS_COLUMN_ID]) {
+                delete cloned_data[DatatableRowController.ACTIONS_COLUMN_ID];
+            }
+
+            exportable_datatable_data.push(cloned_data);
+        }
+
+        return exportable_datatable_data;
+    }
+
+    get export_datatable(): Datatable<any> {
+        let res = new Datatable(this.crud_activated_api_type);
+
+        for (let i in this.fields) {
+            let field = this.fields[i];
+
+            if (field.type == DatatableField.CRUD_ACTIONS_FIELD_TYPE) {
+                continue;
+            }
+
+            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
+                continue;
+            }
+
+            res.pushField(field);
+        }
+        return res;
+    }
+
+    private async do_export_to_xlsx() {
+        let param: ExportDataToXLSXParamVO = this.get_export_params_for_xlsx();
+
+        if (!!param) {
+
+            await ModuleDataExport.getInstance().exportDataToXLSX(
+                param.filename,
+                param.datas,
+                param.ordered_column_list,
+                param.column_labels,
+                param.api_type_id,
+                param.is_secured,
+                param.file_access_policy_name
+            );
+        }
     }
 }

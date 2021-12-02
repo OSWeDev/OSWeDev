@@ -21,8 +21,11 @@ export default class TablePaginationComponent extends VueComponentBase {
     @Prop()
     private pagination_pagesize: number;
 
-    private throttled_update_slider = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_slider.bind(this), 50, { leading: false });
-    private throttled_change_offset = ThrottleHelper.getInstance().declare_throttle_without_args(this.change_offset.bind(this), 1000, { leading: false });
+    @Prop({ default: false })
+    private compressed: boolean;
+
+    private throttled_update_slider = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_slider.bind(this), 50, { leading: false, trailing: true });
+    private throttled_change_offset = ThrottleHelper.getInstance().declare_throttle_without_args(this.change_offset.bind(this), 1000, { leading: false, trailing: true });
 
     private page: number = 0;
 

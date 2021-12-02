@@ -248,6 +248,15 @@ export default class VarsServerController {
         let daoVarConf: VarConfVO = await ModuleDAO.getInstance().getNamedVoByName<VarConfVO>(varConf._type, varConf.name);
 
         if (daoVarConf) {
+
+            /**
+             * Juste pour l'init des segment_types, si on voit en base null et dans le controller autre chose, on update la bdd sur ce champ
+             */
+            if ((!daoVarConf.segment_types) && (!!varConf.segment_types)) {
+                daoVarConf.segment_types = varConf.segment_types;
+                await ModuleDAO.getInstance().insertOrUpdateVO(daoVarConf);
+            }
+
             this.setVar(daoVarConf, controller);
             return daoVarConf;
         }

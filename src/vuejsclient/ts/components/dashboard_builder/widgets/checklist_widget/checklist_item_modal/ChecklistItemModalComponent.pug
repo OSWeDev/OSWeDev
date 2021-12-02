@@ -1,0 +1,20 @@
+.checklist_item_modal
+    #checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content(v-if="selected_checklist_item")
+                .modal-header
+                    h4.modal-title {{ selected_checklist_item.name }}
+                    a.btn.close(@click="closemodal") &times;
+                
+                .modal-body
+                    Checklistmodalcomponent(
+                        @onchangevo='onchangevo'
+                        :checklist_item='selected_checklist_item'
+                        :checkpoint='selected_checkpoint'
+                        :checklist_controller='checklist_controller'
+                        :ordered_checkpoints='ordered_checkpoints' 
+                        :key='selected_checklist_item.id')
+
+                .modal-footer
+                    button.btn.btn-danger(type='button', @click="deleteSelectedItem(selected_checklist_item)") {{ label('checklist.checklist_item_modal.delete') }}
+                    a.btn.close.btn-default(@click="closemodal") {{ label('checklist.checklist_item_modal.close') }}

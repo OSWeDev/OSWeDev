@@ -11,6 +11,7 @@ import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
@@ -45,6 +46,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_from_active_filters, this.query_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_rows_count_from_active_filters, this.query_rows_count_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos_from_active_filters, this.delete_vos_from_active_filters.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos_from_active_filters, this.update_vos_from_active_filters.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_count_from_active_filters, this.query_vos_count_from_active_filters.bind(this));
     }
 
     /**
@@ -109,6 +112,38 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         return res;
     }
+
+    /**
+     * Counts query results
+     * @param api_type_id
+     * @param get_active_field_filters
+     * @param active_api_type_ids
+     * @returns
+     */
+    public async query_vos_count_from_active_filters(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[]
+    ): Promise<number> {
+
+        let request: string = this.build_request_from_active_field_filters_count(
+            [api_type_id],
+            null,
+            get_active_field_filters,
+            active_api_type_ids,
+            null
+        );
+
+        if (!request) {
+            return null;
+        }
+
+        let query_res = await ModuleDAOServer.getInstance().query(request);
+        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
+        c = c ? parseInt(c.toString()) : 0;
+        return c;
+    }
+
 
     /**
      * Counts query results
@@ -250,6 +285,54 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Updates each VO, resulting in triggers being called as expected
+     */
+    public async update_vos_from_active_filters(
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        update_field_id: string,
+        new_api_translated_value: any
+    ): Promise<void> {
+
+        /**
+         * On se fixe des paquets de 100 vos à updater
+         * et on sort by id desc pour éviter que l'ordre change pendant le process - au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. pas très grave
+         */
+        let offset = 0;
+        let limit = 100;
+        let might_have_more: boolean = true;
+        let sortby: SortByVO = new SortByVO();
+        sortby.field_id = 'id';
+        sortby.sort_asc = false;
+        sortby.vo_type = api_type_id;
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let field = moduletable.get_field_by_id(update_field_id);
+
+        if (!field.is_readonly) {
+            while (might_have_more) {
+
+                let vos = await this.query_vos_from_active_filters(api_type_id, get_active_field_filters, active_api_type_ids, limit, offset, sortby);
+
+                if ((!vos) || (!vos.length)) {
+                    break;
+                }
+
+                vos.forEach((vo) => {
+                    vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
+                });
+                await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+
+                might_have_more = (vos.length >= limit);
+                offset += limit;
+            }
+        }
+    }
+
+    /**
+     * WARNING : does not call triggers !!
+     */
     public async delete_vos_from_active_filters(
         api_type_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
@@ -1414,6 +1497,93 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_DATE_DOW:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        let where_clause: string = '';
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+                            let dows: number[] = [];
+
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
+                            if ((!dows) || (!dows.length)) {
+                                break;
+                            }
+
+                            where_clause = 'extract(isodow from to_timestamp(' + field.field_id + ')::date) in (' + dows.join(',') + ')';
+                            where_conditions.push(where_clause);
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_DATE_YEAR:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        let where_clause: string = '';
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+                            let years: number[] = [];
+
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            if ((!years) || (!years.length)) {
+                                break;
+                            }
+
+                            where_clause = 'extract(year from to_timestamp(' + field.field_id + ')::date) in (' + years.join(',') + ')';
+                            where_conditions.push(where_clause);
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_DATE_MONTH:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        let where_clause: string = '';
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+                            let months: number[] = [];
+
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
+                            if ((!months) || (!months.length)) {
+                                break;
+                            }
+
+                            where_clause = 'extract(month from to_timestamp(' + field.field_id + ')::date) in (' + months.join(',') + ')';
+                            where_conditions.push(where_clause);
+                        }
+                        break;
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
             case ContextFilterVO.TYPE_FILTER_XOR:
             case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
@@ -1431,6 +1601,12 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ALL:
+
+
+
+            case ContextFilterVO.TYPE_DATE_DOM:
+            case ContextFilterVO.TYPE_DATE_WEEK:
+
                 throw new Error('Not Implemented');
         }
     }

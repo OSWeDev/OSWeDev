@@ -10,6 +10,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -197,7 +198,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.broadcasted_msg2 = true;
         maintenance.broadcasted_msg3 = false;
         maintenance.start_ts = Dates.now();
-        maintenance.end_ts = Dates.add(maintenance.start_ts, 1, TimeSegment.TYPE_HOUR);
+        maintenance.end_ts = Dates.add(maintenance.start_ts, 1, TimeSegment.TYPE_DAY);
         maintenance.maintenance_over = false;
 
         /**
@@ -207,7 +208,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
         setTimeout(VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache, readonly_maintenance_deadline);
 
-        ConsoleHandler.getInstance().error('Maintenance lancée');
+        ConsoleHandler.getInstance().error('Maintenance programmée dans 10 minutes');
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
     }
 

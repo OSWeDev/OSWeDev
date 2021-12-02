@@ -56,9 +56,12 @@ export default class VarsDatasVoUpdateHandler {
 
     public ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public last_call_handled_something: boolean = false;
+
+    public register_vo_cud = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.register_vo_cud_throttled.bind(this), 1000, { leading: true, trailing: true });
+
     private last_registration: number = null;
 
-    private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false });
+    private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false, trailing: true });
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
@@ -86,18 +89,6 @@ export default class VarsDatasVoUpdateHandler {
             }
             await ThreadHandler.getInstance().sleep(5000);
         }
-    }
-
-    public async register_vo_cud(vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase) {
-
-        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vo_cud)) {
-            return;
-        }
-
-        this.ordered_vos_cud.push(vo_cud);
-        this.last_registration = Dates.now();
-
-        this.throttled_update_param();
     }
 
     /**
@@ -236,6 +227,10 @@ export default class VarsDatasVoUpdateHandler {
 
                             // ConsoleHandler.getInstance().log(vd.index);
                         });
+                    }
+
+                    if ((!var_datas) || (!var_datas.length)) {
+                        continue;
                     }
 
                     /**
@@ -639,5 +634,17 @@ export default class VarsDatasVoUpdateHandler {
         } catch (error) {
             ConsoleHandler.getInstance().error('Impossible de recharger le ordered_vos_cud from params :' + jsoned + ':');
         }
+    }
+
+    private async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
+            return;
+        }
+
+        this.ordered_vos_cud = this.ordered_vos_cud.concat(vos_cud);
+        this.last_registration = Dates.now();
+
+        this.throttled_update_param();
     }
 }

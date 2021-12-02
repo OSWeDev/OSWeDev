@@ -110,6 +110,19 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         this.dashboard = await ModuleDAO.getInstance().getVoById<DashboardVO>(DashboardVO.API_TYPE_ID, this.dashboard_id);
+        await this.on_load_dashboard();
+
+        this.loading = false;
+    }
+
+    @Watch('dashboard')
+    private async onchange_dashboard() {
+        this.loading = true;
+        await this.on_load_dashboard();
+        this.loading = false;
+    }
+
+    private async on_load_dashboard() {
         if (!this.dashboard) {
             await this.init_dashboard();
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
@@ -148,8 +161,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
-
-        this.loading = false;
     }
 
     private added_widget_to_page(page_widget: DashboardPageWidgetVO) {

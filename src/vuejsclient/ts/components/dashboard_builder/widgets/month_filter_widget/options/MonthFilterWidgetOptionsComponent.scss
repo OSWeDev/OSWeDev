@@ -1,0 +1,22 @@
+.month_filter_widget_component_options {
+
+    >div {
+        margin-bottom: 0.5em;
+
+        .input_label {
+            font-size: small;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.3em;
+            border: solid 1px #BBB;
+            border-radius: 2px;
+
+            &.multiselect__input {
+                border:none;
+            }
+        }
+    }
+}

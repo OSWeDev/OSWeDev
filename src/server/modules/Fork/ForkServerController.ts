@@ -35,7 +35,7 @@ export default class ForkServerController {
     public forks_waiting_to_be_alive: number = 0;
     public forks_availability: { [uid: number]: number } = {};
     public forks_reload_asap: { [uid: number]: boolean } = {};
-    public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false });
+    public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false, trailing: true });
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private UID: number = 0;

@@ -1,0 +1,36 @@
+.bulkops_widget_options_component
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('bulkops_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")
+
+    .api_type_id
+        .input_label {{ label('bulkops_widget_options_component.api_type_id') }}
+
+        .api_type_id_select
+            .input_wrapper
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="api_type_id_selected"
+                    :placeholder="label('bulkops_widget_options_component.api_type_id_select')"
+                    :options="api_type_id_select_options"
+                    :custom-label="api_type_id_select_label"
+                    :allow-empty="true",
+                    autocomplete="off"
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    id="api_type_id_select"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+

@@ -9,7 +9,9 @@ import ModuleTableField from '../ModuleTableField';
 import ContextFilterVO from './vos/ContextFilterVO';
 import GetDatatableRowsCountFromContextFiltersParamVO, { GetDatatableRowsCountFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsCountFromContextFiltersParamVO';
 import GetDatatableRowsFromContextFiltersParamVO, { GetDatatableRowsFromContextFiltersParamVOStatic } from './vos/GetDatatableRowsFromContextFiltersParamVO';
+import GetDatatableVosCountFromContextFiltersParamVO, { GetDatatableVosCountFromContextFiltersParamVOStatic } from './vos/GetDatatableVosCountFromContextFiltersParamVO';
 import GetOptionsForDeleteVosByContextParamVO, { GetOptionsForDeleteVosByContextParamVOStatic } from './vos/GetOptionsForDeleteVosByContextParamVO';
+import GetOptionsForUpdateVosByContextParamVO, { GetOptionsForUpdateVosByContextParamVOStatic } from './vos/GetOptionsForUpdateVosByContextParamVO';
 import GetOptionsForVosByContextParamVO, { GetOptionsForVosByContextParamVOStatic } from './vos/GetOptionsForVosByContextParamVO';
 import GetOptionsFromContextFiltersParamVO, { GetOptionsFromContextFiltersParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
 import SortByVO from './vos/SortByVO';
@@ -26,6 +28,8 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_query_rows_count_from_active_filters: string = "query_rows_count_from_active_filters";
     public static APINAME_query_vos_from_active_filters: string = "query_vos_from_active_filters";
     public static APINAME_delete_vos_from_active_filters: string = "delete_vos_from_active_filters";
+    public static APINAME_update_vos_from_active_filters: string = "update_vos_from_active_filters";
+    public static APINAME_query_vos_count_from_active_filters: string = "query_vos_count_from_active_filters";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
@@ -53,6 +57,12 @@ export default class ModuleContextFilter extends Module {
         active_api_type_ids: string[]
     ) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_rows_count_from_active_filters);
 
+    public query_vos_count_from_active_filters: (
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[]
+    ) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_vos_count_from_active_filters);
+
     public query_vos_from_active_filters: <T extends IDistantVOBase>(
         api_type_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
@@ -67,6 +77,14 @@ export default class ModuleContextFilter extends Module {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[]
     ) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_delete_vos_from_active_filters);
+
+    public update_vos_from_active_filters: (
+        api_type_id: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        active_api_type_ids: string[],
+        update_field_id: string,
+        new_api_translated_value: any
+    ) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos_from_active_filters);
 
     public get_filter_visible_options: (
         api_type_id: string,
@@ -114,6 +132,13 @@ export default class ModuleContextFilter extends Module {
             GetDatatableRowsCountFromContextFiltersParamVOStatic
         ));
 
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetDatatableVosCountFromContextFiltersParamVO, any[]>(
+            null,
+            ModuleContextFilter.APINAME_query_vos_count_from_active_filters,
+            null,
+            GetDatatableVosCountFromContextFiltersParamVOStatic
+        ));
+
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetOptionsForVosByContextParamVO, IDistantVOBase[]>(
             null,
             ModuleContextFilter.APINAME_query_vos_from_active_filters,
@@ -128,6 +153,12 @@ export default class ModuleContextFilter extends Module {
             GetOptionsForDeleteVosByContextParamVOStatic
         ));
 
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetOptionsForUpdateVosByContextParamVO, void>(
+            null,
+            ModuleContextFilter.APINAME_update_vos_from_active_filters,
+            null,
+            GetOptionsForUpdateVosByContextParamVOStatic
+        ));
     }
 
     private init_SortByVO() {

@@ -22,7 +22,7 @@ export default class ThrottleHelper {
 
     public declare_throttle_without_args(
         func: () => any,
-        wait: number,
+        wait_ms: number,
         options?: ThrottleSettings) {
 
         let UID = this.UID++;
@@ -30,7 +30,7 @@ export default class ThrottleHelper {
         this.throttles[UID] = throttle(() => {
             self.throttles_semaphore[UID] = false;
             func();
-        }, wait, options);
+        }, wait_ms, options);
 
         return () => ThrottleHelper.getInstance().throttle_without_args(UID);
     }
@@ -38,7 +38,7 @@ export default class ThrottleHelper {
 
     public declare_throttle_with_mappable_args(
         func: (mappable_args: { [map_elt_id: string]: any }) => any,
-        wait: number,
+        wait_ms: number,
         options?: ThrottleSettings) {
 
         let UID = this.UID++;
@@ -49,14 +49,14 @@ export default class ThrottleHelper {
             self.throttles_mappable_args[UID] = {};
             self.throttles_semaphore[UID] = false;
             func(params);
-        }, wait, options);
+        }, wait_ms, options);
 
         return (mappable_args: { [map_elt_id: string]: any }) => ThrottleHelper.getInstance().throttle_with_mappable_args(UID, mappable_args);
     }
 
     public declare_throttle_with_stackable_args(
         func: (stackable_args: any[]) => any,
-        wait: number,
+        wait_ms: number,
         options?: ThrottleSettings) {
 
         let UID = this.UID++;
@@ -65,7 +65,7 @@ export default class ThrottleHelper {
             let params = this.throttles_stackable_args[UID];
             this.throttles_stackable_args[UID] = [];
             func(params);
-        }, wait, options);
+        }, wait_ms, options);
 
         return (stackable_args: any[]) => {
             ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stackable_args);
