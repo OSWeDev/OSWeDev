@@ -50,20 +50,18 @@ export default class VarsCacheController {
     /**
      * Cas Insert Cache en BDD
      */
-    public BDD_do_cache_param(node: VarDAGNode): boolean {
+    public BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>, is_requested_param: boolean): boolean {
 
-        /**
-         * Stratégie naïve :
-         *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
-         *  si sup à un seuil => cache, sinon pas de cache
-         */
+        // Si ça vient de la bdd, on le met à jour évidemment
+        if (!!var_data.id) {
+            return true;
+        }
 
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        // Si on veut insérer que des caches demandés explicitement par server ou client et pas tous les noeuds de l'arbre, on check ici
+        if (controller.var_cache_conf.cache_bdd_only_requested_params && !is_requested_param) {
+            return false;
+        }
 
-        return this.BDD_do_cache_param_data(node.var_data, controller);
-    }
-
-    public BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>): boolean {
         let card = MatroidController.getInstance().get_cardinal(var_data);
         return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_bdd);
     }

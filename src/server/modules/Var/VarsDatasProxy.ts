@@ -310,7 +310,7 @@ export default class VarsDatasProxy {
                             }
                         }
 
-                        if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller)) {
+                        if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
 
                             /**
                              * On fait des packs de 10 promises...
@@ -733,7 +733,6 @@ export default class VarsDatasProxy {
 
                 for (let i in this.vars_datas_buffer) {
 
-                    // ajout cas spécifique isolement d'une var trop gourmande
                     if ((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) {
                         ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
                         return res;
@@ -746,7 +745,7 @@ export default class VarsDatasProxy {
                         let estimated_ms_var = 0;
 
                         if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id]) {
-                            estimated_ms_var = VarsComputeController.getInstance().get_estimated_time(var_data_wrapper.var_data);
+                            estimated_ms_var = var_data_wrapper.estimated_ms;
                         } else {
                             // debug
                             ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_wrapper.var_data.index + ':');
@@ -757,14 +756,21 @@ export default class VarsDatasProxy {
                             }
                         }
 
-                        // // cas spécifique isolement d'une var trop gourmande
-                        // if ((estimated_ms_var > client_request_estimated_ms_limit) && (nb_vars > 0) && (nb_vars < client_request_min_nb_vars)) {
-                        //     continue;
-                        // }
+                        // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
+                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 100)) && (nb_vars > 0)) {
+                            continue;
+                        }
 
                         nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
                         res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
                         estimated_ms += estimated_ms_var;
+                        var_data_wrapper.is_requested = true;
+
+                        // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
+                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 100)) && (nb_vars == 1)) {
+                            break;
+                        }
+
                         continue;
                     }
                 }
@@ -901,8 +907,7 @@ export default class VarsDatasProxy {
                                 let estimated_ms_var = 0;
 
                                 if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id]) {
-                                    estimated_ms_var = (MatroidController.getInstance().get_cardinal(var_data_tmp) / 1000)
-                                        * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_tmp.var_id].calculation_cost_for_1000_card;
+                                    estimated_ms_var = VarsComputeController.getInstance().get_estimated_time(var_data_tmp);
                                 } else {
                                     // debug
                                     ConsoleHandler.getInstance().warn('get_vars_to_compute_from_bdd:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_tmp.index + ':');
@@ -914,19 +919,31 @@ export default class VarsDatasProxy {
                                     continue;
                                 }
 
+                                // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
+                                if ((estimated_ms_var > (params.bg_estimated_ms_limit * 100)) && (params.bg_nb_vars > 0)) {
+                                    continue;
+                                }
+
                                 params.bg_estimated_ms += estimated_ms_var;
                                 params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
                                 vars_datas[var_data_tmp.index] = var_data_tmp;
+
+                                // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
+                                if ((estimated_ms_var > (params.bg_estimated_ms_limit * 100)) && (params.bg_nb_vars == 1)) {
+                                    break;
+                                }
                             }
                         }
-                        if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                        if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
+                            (params.bg_estimated_ms > params.bg_estimated_ms_limit * 100)) {
                             return;
                         }
                     }, (node: VarDAGNode) => {
-                        return (params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars);
+                        return ((params.bg_estimated_ms <= params.bg_estimated_ms_limit * 100) && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars)));
                     });
 
-                    if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                    if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
+                        (params.bg_estimated_ms > params.bg_estimated_ms_limit * 100)) {
                         return vars_datas;
                     }
                 }
@@ -1063,38 +1080,9 @@ export default class VarsDatasProxy {
 
     private order_vars_datas_buffer() {
 
-        let cardinaux: { [index: string]: number } = {};
-
-        for (let i in this.vars_datas_buffer) {
-            let var_wrapper = this.vars_datas_buffer[i];
-            cardinaux[var_wrapper.var_data.index] = MatroidController.getInstance().get_cardinal(var_wrapper.var_data);
-        }
-
         this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
 
-            // En priorité les demandes client
-            if (a.is_client_var && !b.is_client_var) {
-                return -1;
-            }
-
-            if ((!a.is_client_var) && b.is_client_var) {
-                return 1;
-            }
-
-            // Ensuite par hauteur dans l'arbre
-            if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
-                VarsServerController.getInstance().init_varcontrollers_dag_depths();
-            }
-
-            let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_data.var_id];
-            let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_data.var_id];
-
-            if (depth_a != depth_b) {
-                return depth_a - depth_b;
-            }
-
-            // Enfin par cardinal
-            return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
+            return a.estimated_ms - b.estimated_ms;
         });
     }
 }

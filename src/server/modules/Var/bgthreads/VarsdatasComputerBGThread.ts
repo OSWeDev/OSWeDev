@@ -1,9 +1,9 @@
-import { throttle } from 'lodash';
-import moment = require('moment');
 import { performance } from 'perf_hooks';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import VarsController from '../../../../shared/modules/Var/VarsController';
+import VarComputeTimeLearnBaseVO from '../../../../shared/modules/Var/vos/VarComputeTimeLearnBaseVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -27,6 +27,8 @@ import VarsTabsSubsController from '../VarsTabsSubsController';
 export default class VarsdatasComputerBGThread implements IBGThread {
 
     public static TASK_NAME_force_run_asap: string = 'VarsdatasComputerBGThread.force_run_asap';
+    public static TASK_NAME_switch_force_1_by_1_computation: string = 'VarsdatasComputerBGThread.switch_force_1_by_1_computation';
+    public static TASK_NAME_switch_add_computation_time_to_learning_base: string = 'VarsdatasComputerBGThread.switch_add_computation_time_to_learning_base';
 
     public static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
     public static PARAM_NAME_bg_estimated_ms_limit: string = 'VarsdatasComputerBGThread.bg_estimated_ms_limit';
@@ -56,6 +58,16 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      * Marker à activer pour forcer l'exécution au plus vite du prochain calcul
      */
     public run_asap: boolean = true;
+
+    /**
+     * Activate to force computation of 1 var at a time
+     */
+    public force_1_by_1_computation: boolean = false;
+    /**
+     * Activate to save computation stats to the learning base
+     */
+    public add_computation_time_to_learning_base: boolean = false;
+
     /**
      * Par défaut, sans intervention extérieur, on a pas besoin de faire des calculs tellement souvent
      */
@@ -70,7 +82,39 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private partial_clean_next_ms: number = 0;
 
     private constructor() {
+        ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, this.switch_force_1_by_1_computation.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, this.switch_add_computation_time_to_learning_base.bind(this));
         ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_force_run_asap, this.force_run_asap.bind(this));
+    }
+
+    public async switch_force_1_by_1_computation(): Promise<boolean> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, resolve)) {
+                return;
+            }
+
+            this.force_1_by_1_computation = !this.force_1_by_1_computation;
+            resolve(true);
+        });
+    }
+
+    public async switch_add_computation_time_to_learning_base(): Promise<boolean> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, resolve)) {
+                return;
+            }
+
+            this.add_computation_time_to_learning_base = !this.add_computation_time_to_learning_base;
+            resolve(true);
+        });
     }
 
     get name(): string {
@@ -138,10 +182,17 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         let bg_min_nb_vars: number = 0;
                         let client_request_min_nb_vars: number = 0;
 
-                        promises.push((async () => client_request_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500))());
-                        promises.push((async () => bg_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000))());
-                        promises.push((async () => bg_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75))());
-                        promises.push((async () => client_request_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15))());
+                        if (!this.force_1_by_1_computation) {
+                            promises.push((async () => client_request_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500))());
+                            promises.push((async () => bg_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000))());
+                            promises.push((async () => bg_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75))());
+                            promises.push((async () => client_request_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15))());
+                        } else {
+                            client_request_estimated_ms_limit = 0;
+                            bg_estimated_ms_limit = 0;
+                            bg_min_nb_vars = 1;
+                            client_request_min_nb_vars = 1;
+                        }
 
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", true);
 
@@ -256,7 +307,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsComputeController.compute:IN");
                         }
 
-                        let perf_start = performance.now();
+                        let indexes: string[] = [];
+                        for (let i in vars_datas) {
+                            let vars_data = vars_datas[i];
+                            indexes.push(vars_data.index);
+                        }
 
                         /**
                          * Avant de compute on lance le SlowVarKi
@@ -266,15 +321,16 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         VarsdatasComputerBGThread.getInstance().current_batch_params = vars_datas;
                         await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
 
+                        let perf_tstz = Dates.now();
+                        let perf_start = performance.now();
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
                         await VarsComputeController.getInstance().compute(vars_datas); // PERF OK
                         VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
+                        let perf_end = performance.now();
 
                         await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
 
                         VarsdatasComputerBGThread.getInstance().is_computing = false;
-
-                        let perf_end = performance.now();
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsComputeController.compute:OUT");
@@ -301,6 +357,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             await VarsPerfsController.update_perfs_in_bdd(); // PERF OK
                             ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
                                 (perf_end - perf_start) + ' ms] computing');
+                        }
+
+                        if (this.switch_add_computation_time_to_learning_base) {
+                            let stat = new VarComputeTimeLearnBaseVO();
+                            stat.indexes = indexes;
+                            stat.computation_start_time = perf_tstz;
+                            stat.computation_duration = perf_end - perf_start;
+                            await ModuleDAO.getInstance().insertOrUpdateVO(stat);
                         }
 
                     } catch (error) {

@@ -20,6 +20,7 @@ import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from './vos/SlowVarVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
+import VarComputeTimeLearnBaseVO from './vos/VarComputeTimeLearnBaseVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
@@ -63,6 +64,8 @@ export default class ModuleVar extends Module {
     public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
 
     public static MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache = 'force_empty_vars_datas_vo_update_cache';
+    public static MANUAL_TASK_NAME_switch_force_1_by_1_computation = 'switch_force_1_by_1_computation';
+    public static MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base = 'switch_add_computation_time_to_learning_base';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -115,12 +118,15 @@ export default class ModuleVar extends Module {
         this.initializeVarDataValueResVO();
         this.initializeVarPerfVO();
         this.initializeSlowVarVO();
+        this.initializeVarComputeTimeLearnBaseVO();
 
         VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
         VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
         VarsPerfMonController.getInstance().initialize_MatroidBasePMLInfoVO(this);
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] = null;
+        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] = null;
     }
 
     public registerApis() {
@@ -314,6 +320,18 @@ export default class ModuleVar extends Module {
         return true;
     }
 
+    private initializeVarComputeTimeLearnBaseVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('indexes', ModuleTableField.FIELD_TYPE_string_array, 'Indexs', true),
+            new ModuleTableField('computation_duration', ModuleTableField.FIELD_TYPE_float, 'Durée (ms)', true),
+            new ModuleTableField('computation_start_time', ModuleTableField.FIELD_TYPE_tstz, 'Date', true),
+        ];
+
+        let datatable = new ModuleTable(this, VarComputeTimeLearnBaseVO.API_TYPE_ID, () => new VarComputeTimeLearnBaseVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
+
     private initializeSlowVarVO() {
 
         let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Index du param');
@@ -355,7 +373,10 @@ export default class ModuleVar extends Module {
             var_id,
 
             new ModuleTableField('cache_timeout_ms', ModuleTableField.FIELD_TYPE_int, 'Timeout invalidation', true, true, 0),
+
             new ModuleTableField('cache_startegy', ModuleTableField.FIELD_TYPE_enum, 'Stratégie de mise en cache', true, true, 0).setEnumValues(VarCacheConfVO.VALUE_CACHE_STRATEGY_LABELS),
+            new ModuleTableField('cache_bdd_only_requested_params', ModuleTableField.FIELD_TYPE_boolean, 'Cacher uniquement les params demandés', true, true, true),
+
             new ModuleTableField('cache_seuil_a', ModuleTableField.FIELD_TYPE_float, 'Seuil cache A', true, true, 1000),
             new ModuleTableField('cache_seuil_b', ModuleTableField.FIELD_TYPE_float, 'Seuil cache B', true, true, 1000),
             new ModuleTableField('cache_seuil_c', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C', true, true, 1000),
