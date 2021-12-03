@@ -1032,7 +1032,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_index_t = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
                     // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                     // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
-                    if (field_index_n != null) {
+                    if (field_index_t != null) {
                         res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
                     } else {
                         res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
@@ -1042,7 +1042,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_index_h = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
                     // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                     // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
-                    if (field_index_n != null) {
+                    if (field_index_h != null) {
                         res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
                     } else {
                         res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
@@ -1056,7 +1056,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_index_ns = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
                     // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                     // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
-                    if (field_index_n != null) {
+                    if (field_index_ns != null) {
                         res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ns, NumRange.RANGE_TYPE);
                     } else {
                         res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, field.segmentation_type);
@@ -1066,7 +1066,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_index_ts = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
                     // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                     // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
-                    if (field_index_n != null) {
+                    if (field_index_ts != null) {
                         res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ts, TSRange.RANGE_TYPE);
                     } else {
                         res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
@@ -1076,7 +1076,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     let field_index_hs = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
                     // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
                     // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
-                    if (field_index_n != null) {
+                    if (field_index_hs != null) {
                         res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_hs, HourRange.RANGE_TYPE);
                     } else {
                         res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
