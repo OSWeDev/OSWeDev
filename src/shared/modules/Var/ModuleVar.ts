@@ -335,7 +335,7 @@ export default class ModuleVar extends Module {
 
     private initializeSlowVarVO() {
 
-        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Index du param');
+        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Index du param').unique();
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true);
 
         let datatable_fields = [

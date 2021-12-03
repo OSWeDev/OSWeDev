@@ -89,7 +89,7 @@ export default class MatroidIndexHandler {
 
         // Toujours 1 caractère max
         // Inutile sur un index de matroid puisqu'on le retrouve sur le var_id
-        res += this.base_10_num_to_base_76_txt(range.segment_type);
+        res += is_matroid_index ? this.base_10_num_to_base_76_txt(range.segment_type) : '';
 
         if (RangeHandler.getInstance().getCardinal(range) == 1) {
             res += this.base_10_num_to_base_76_txt(range.min);
