@@ -1059,7 +1059,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (field_index_ns != null) {
                         res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ns, NumRange.RANGE_TYPE);
                     } else {
-                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, field.segmentation_type);
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                     }
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
