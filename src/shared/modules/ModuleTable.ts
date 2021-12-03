@@ -633,13 +633,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 return RangeHandler.getInstance().translate_from_api(HourRange.RANGE_TYPE, e);
 
             case ModuleTableField.FIELD_TYPE_numrange:
-                return RangeHandler.getInstance().parseRangeAPI(NumRange.RANGE_TYPE, e);
+                return MatroidIndexHandler.getInstance().from_normalized_range(e, NumRange.RANGE_TYPE);
 
             case ModuleTableField.FIELD_TYPE_hourrange:
-                return RangeHandler.getInstance().parseRangeAPI(HourRange.RANGE_TYPE, e);
+                return MatroidIndexHandler.getInstance().from_normalized_range(e, HourRange.RANGE_TYPE);
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return RangeHandler.getInstance().parseRangeAPI(TSRange.RANGE_TYPE, e);
+                return MatroidIndexHandler.getInstance().from_normalized_range(e, TSRange.RANGE_TYPE);
 
             case ModuleTableField.FIELD_TYPE_hour:
             case ModuleTableField.FIELD_TYPE_tstz:

@@ -2125,6 +2125,7 @@ export default class RangeHandler {
 
     /**
      * TODO TU ASAP FIXME VARS
+     * @deprecated
      */
     public translate_from_bdd<U extends NumRange>(range_type: number, ranges: string[], segmentation_type: number): U[] {
 
@@ -2177,6 +2178,7 @@ export default class RangeHandler {
     /**
      * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
      * @param rangeLiteral
+     * @deprecated
      */
     public parseRangeBDD<T, U extends IRange>(range_type: number, rangeLiteral: string, segment_type: number): U {
         var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
@@ -2230,66 +2232,6 @@ export default class RangeHandler {
                         upperTSRange,
                         matches[1] == '[',
                         matches[6] == ']',
-                        segment_type) as any as U;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-        return null;
-    }
-
-    /**
-     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
-     * @param rangeLiteral
-     */
-    public parseRangeAPI<T, U extends IRange>(range_type: number, rangeLiteral: string): U {
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_API);
-
-        if (!matches) {
-            return null;
-        }
-
-        try {
-            let segment_type = parseInt(matches[1].toString());
-
-            switch (range_type) {
-
-                case HourRange.RANGE_TYPE:
-
-                    let lowerHourRange = this.parseRangeSegment(matches[3], matches[4]);
-                    let upperHourRange = this.parseRangeSegment(matches[5], matches[6]);
-
-                    return this.createNew(
-                        range_type,
-                        parseFloat(lowerHourRange),
-                        parseFloat(upperHourRange),
-                        matches[2] == '[',
-                        matches[7] == ']',
-                        segment_type) as any as U;
-
-                case NumRange.RANGE_TYPE:
-
-                    let lowerNumRange = this.parseRangeSegment(matches[3], matches[4]);
-                    let upperNumRange = this.parseRangeSegment(matches[5], matches[6]);
-
-                    return this.createNew(
-                        range_type,
-                        parseFloat(lowerNumRange),
-                        parseFloat(upperNumRange),
-                        matches[2] == '[',
-                        matches[7] == ']',
-                        segment_type) as any as U;
-
-                case TSRange.RANGE_TYPE:
-
-                    let lowerTSRange = parseInt(matches[3]);
-                    let upperTSRange = parseInt(matches[5]);
-                    return this.createNew(
-                        range_type,
-                        lowerTSRange,
-                        upperTSRange,
-                        matches[2] == '[',
-                        matches[7] == ']',
                         segment_type) as any as U;
             }
         } catch (error) {
