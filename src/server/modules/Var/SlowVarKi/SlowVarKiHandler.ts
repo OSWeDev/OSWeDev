@@ -31,6 +31,7 @@ export default class SlowVarKiHandler {
     public static instance: SlowVarKiHandler = null;
 
     public static PARAM_timeout_ms: string = 'SlowVarKiHandler.timeout_ms';
+    public static PARAM_logout_ms: string = 'SlowVarKiHandler.logout_ms';
 
     /**
      * Multithreading notes :
@@ -56,6 +57,14 @@ export default class SlowVarKiHandler {
     public async computationBatchSupervisor(batch_id: number) {
 
         let timeout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_timeout_ms, 60000);
+        let logout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_timeout_ms, 30000);
+
+        setTimeout(async () => {
+            if (VarsdatasComputerBGThread.getInstance().is_computing && (VarsdatasComputerBGThread.getInstance().current_batch_id == batch_id)) {
+                // Le logout est trigger
+                await SlowVarKiHandler.getInstance().handleSlowVarLogoutBatch();
+            }
+        }, timeout_ms);
 
         setTimeout(async () => {
             if (VarsdatasComputerBGThread.getInstance().is_computing && (VarsdatasComputerBGThread.getInstance().current_batch_id == batch_id)) {
@@ -150,6 +159,23 @@ export default class SlowVarKiHandler {
 
             this.actual_slow_var_test = slow_var;
             return VarDataBaseVO.from_index(slow_var.name);
+        }
+    }
+
+    /**
+     * Logger les vars lentes
+     */
+    private async handleSlowVarLogoutBatch() {
+
+        let computed_vars: { [index: string]: VarDataBaseVO } = VarsdatasComputerBGThread.getInstance().current_batch_params;
+
+        if (!computed_vars) {
+            return;
+        }
+
+        for (let i in computed_vars) {
+            let computed_var = computed_vars[i];
+            ConsoleHandler.getInstance().warn('handleSlowVarLogoutBatch:' + computed_var.index);
         }
     }
 
