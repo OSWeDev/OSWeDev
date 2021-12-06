@@ -130,6 +130,15 @@ export default class PushDataServerController {
 
     }
 
+    public getSocketsBySession(session_id: string): { [socket_id: string]: SocketWrapper } {
+        if ((!this.registeredSockets_by_sessionid) ||
+            (!this.registeredSockets_by_sessionid[session_id])) {
+            return null;
+        }
+
+        return this.registeredSockets_by_sessionid[session_id];
+    }
+
     /**
      * WARN : Only on main thread (express).
      * @param session
@@ -142,8 +151,9 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.getInstance().assert_is_main_process();
+        let session_uid = ((session.uid == null) ? 0 : session.uid);
 
-        let wrapper = new SocketWrapper(session.uid, session.id, socket.id, socket);
+        let wrapper = new SocketWrapper(session_uid, session.id, socket.id, socket);
 
         // save in the socket in the session
         if (!this.registeredSockets_by_sessionid[session.id]) {
@@ -154,29 +164,29 @@ export default class PushDataServerController {
 
         // No user or session, don't save this socket in registeredSockets
         let client_tab_id = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] : null;
-        if ((!session) || (!session.id) || (!session.uid) || (!client_tab_id)) {
+        if ((!session) || (!session.id) || (!client_tab_id)) {
             return;
         }
 
-        if (!this.registeredSockets[session.uid]) {
-            this.registeredSockets[session.uid] = {};
+        if (!this.registeredSockets[session_uid]) {
+            this.registeredSockets[session_uid] = {};
         }
-        if (!this.registeredSockets[session.uid][client_tab_id]) {
-            this.registeredSockets[session.uid][client_tab_id] = {};
+        if (!this.registeredSockets[session_uid][client_tab_id]) {
+            this.registeredSockets[session_uid][client_tab_id] = {};
         }
-        if (!this.registeredSockets[session.uid][client_tab_id][session.id]) {
-            this.registeredSockets[session.uid][client_tab_id][session.id] = {};
+        if (!this.registeredSockets[session_uid][client_tab_id][session.id]) {
+            this.registeredSockets[session_uid][client_tab_id][session.id] = {};
         }
-        this.registeredSockets[session.uid][client_tab_id][session.id][socket.id] = wrapper;
+        this.registeredSockets[session_uid][client_tab_id][session.id][socket.id] = wrapper;
 
-        this.registereduid_by_socketid[socket.id] = session.uid;
+        this.registereduid_by_socketid[socket.id] = session_uid;
         this.registeredclient_tab_id_by_socketid[socket.id] = client_tab_id;
 
-        if (!this.registeredSessions[session.uid]) {
-            this.registeredSessions[session.uid] = {};
+        if (!this.registeredSessions[session_uid]) {
+            this.registeredSessions[session_uid] = {};
         }
-        if (!this.registeredSessions[session.uid][session.id]) {
-            this.registeredSessions[session.uid][session.id] = session;
+        if (!this.registeredSessions[session_uid][session.id]) {
+            this.registeredSessions[session_uid][session.id] = session;
         }
     }
 
@@ -192,6 +202,7 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.getInstance().assert_is_main_process();
+        let session_uid = ((session.uid == null) ? 0 : session.uid);
 
         try {
 
@@ -202,7 +213,7 @@ export default class PushDataServerController {
             let client_tab_id_ = StackContext.getInstance().get('client_tab_id') ? StackContext.getInstance().get('client_tab_id') : null;
 
             // No user or session, need to search for the socket by id
-            if ((!session) || (!session.id) || (!session.uid) || (!client_tab_id_)) {
+            if ((!session) || (!session.id) || (!client_tab_id_)) {
 
                 let found: boolean = false;
                 for (let uid in this.registeredSockets) {
@@ -226,7 +237,7 @@ export default class PushDataServerController {
                 return;
             }
 
-            delete this.registeredSockets[session.uid][client_tab_id_][session.id][socket.id];
+            delete this.registeredSockets[session_uid][client_tab_id_][session.id][socket.id];
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -239,17 +250,19 @@ export default class PushDataServerController {
     public registerSession(session: IServerUserSession) {
 
         // No user or session, don't save this socket
-        if ((!session) || (!session.id) || (!session.uid)) {
+        if ((!session) || (!session.id)) {
             return;
         }
 
+        let uid = ((session.uid == null) ? 0 : session.uid);
+
         ForkedTasksController.getInstance().assert_is_main_process();
 
-        if (!this.registeredSessions[session.uid]) {
-            this.registeredSessions[session.uid] = {};
+        if (!this.registeredSessions[uid]) {
+            this.registeredSessions[uid] = {};
         }
-        if (!this.registeredSessions[session.uid][session.id]) {
-            this.registeredSessions[session.uid][session.id] = session;
+        if (!this.registeredSessions[uid][session.id]) {
+            this.registeredSessions[uid][session.id] = session;
         }
     }
 
@@ -264,6 +277,7 @@ export default class PushDataServerController {
         }
 
         ForkedTasksController.getInstance().assert_is_main_process();
+        let uid = ((session.uid == null) ? 0 : session.uid);
 
         await this.notifyRedirectHomeAndDisconnect(session);
 
@@ -274,12 +288,12 @@ export default class PushDataServerController {
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
 
         // No user or session, don't save this socket
-        if ((!session) || (!session.id) || (!session.uid)) {
+        if ((!session) || (!session.id)) {
             return;
         }
 
-        if (this.registeredSessions[session.uid] && this.registeredSessions[session.uid][session.id]) {
-            delete this.registeredSessions[session.uid][session.id];
+        if (this.registeredSessions[uid] && this.registeredSessions[uid][session.id]) {
+            delete this.registeredSessions[uid][session.id];
         }
     }
 
@@ -289,17 +303,18 @@ export default class PushDataServerController {
      */
     public async unregisterUserSession(session: IServerUserSession) {
 
-        if ((!session) || (!session.uid)) {
+        if (!session) {
             return;
         }
 
         ForkedTasksController.getInstance().assert_is_main_process();
+        let uid = ((session.uid == null) ? 0 : session.uid);
 
         // this.notifySimpleERROR(session.uid, null, PushDataServerController.NOTIFY_SESSION_INVALIDATED, true);
         await this.notifyRedirectHomeAndDisconnect();
 
-        if (this.registeredSessions[session.uid] && this.registeredSessions[session.uid][session.id]) {
-            delete this.registeredSessions[session.uid][session.id];
+        if (this.registeredSessions[uid] && this.registeredSessions[uid][session.id]) {
+            delete this.registeredSessions[uid][session.id];
         }
     }
 
@@ -362,6 +377,7 @@ export default class PushDataServerController {
             return;
         }
 
+        user_id = ((user_id == null) ? 0 : user_id);
         let notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vo ? [vo] : null);
         if (!notification) {
             return;
@@ -529,6 +545,7 @@ export default class PushDataServerController {
             return;
         }
 
+        user_id = ((user_id == null) ? 0 : user_id);
         let notification: NotificationVO = this.getVarDataNotif(user_id, client_tab_id, null, vos);
         if (!notification) {
             return;
@@ -946,7 +963,7 @@ export default class PushDataServerController {
 
             let socketWrappers: SocketWrapper[] = null;
             if ((!notification.socket_ids) || (!notification.socket_ids.length)) {
-                if (!notification.user_id) {
+                if (notification.user_id == null) {
                     return;
                 }
                 socketWrappers = this.getUserSockets(notification.user_id, notification.client_tab_id);
@@ -999,7 +1016,7 @@ export default class PushDataServerController {
 
     private getVarDataNotif(user_id: number, client_tab_id: string, socket_id: string, vos: VarDataValueResVO[]): NotificationVO {
 
-        if ((!user_id) || (!vos) || (!vos.length)) {
+        if ((!vos) || (!vos.length)) {
             return null;
         }
 

@@ -48,6 +48,8 @@ export default class VarsTabsSubsController {
     public register_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
         ForkedTasksController.getInstance().assert_is_main_process();
 
+        user_id = ((user_id == null) ? 0 : user_id);
+
         for (let i in param_indexs) {
             let param_index = param_indexs[i];
 
@@ -71,6 +73,8 @@ export default class VarsTabsSubsController {
      */
     public unregister_sub(user_id: number, client_tab_id: string, param_indexs: string[]) {
         ForkedTasksController.getInstance().assert_is_main_process();
+
+        user_id = ((user_id == null) ? 0 : user_id);
 
         for (let i in param_indexs) {
             let param_index = param_indexs[i];
