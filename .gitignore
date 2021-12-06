@@ -2,6 +2,7 @@ dist
 src/client/locales
 node_modules
 coverage
+.history
 .nyc_output
 .vscode/settings.json
 test-reports.xml
