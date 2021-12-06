@@ -20,6 +20,9 @@ export default class VocusComponent extends VueComponentBase {
     @Prop({ default: null })
     public vo_type: string;
 
+    @Prop({ default: false })
+    public limit1000: number;
+
     private tmp_vo_id: number = null;
     private tmp_vo_type: string = null;
 
@@ -62,7 +65,7 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        let route = this.getVocusLink(this.tmp_vo_type, this.tmp_vo_id);
+        let route = this.getVocusLink(this.tmp_vo_type, ((this.tmp_vo_id && !isNaN(parseInt(this.tmp_vo_id.toString())) ? parseInt(this.tmp_vo_id.toString()) : null)));
 
         if (!!route) {
             this.$router.push(route);
@@ -86,7 +89,7 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        let route = this.getVocusLink(this.tmp_vo_type, this.tmp_vo_id);
+        let route = this.getVocusLink(this.tmp_vo_type, ((this.tmp_vo_id && !isNaN(parseInt(this.tmp_vo_id.toString())) ? parseInt(this.tmp_vo_id.toString()) : null)));
 
         if (!!route) {
             this.$router.push(route);

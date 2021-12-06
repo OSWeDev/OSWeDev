@@ -13,7 +13,7 @@
                         th.vocus_id {{ label('vocus.id') }}
                         th.vocus_label {{ label('vocus.label') }}
                         th.vocus_crud {{ label('vocus.crud') }}
-                        
+
                 tbody
                     tr.srcvo
                         td.vocus_type {{ vo._type }}
@@ -28,18 +28,19 @@
                                 router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(vo._type, vo.id)")
                                     i.fa.fa-trash
 
-                    tr.refvo(v-for='refvo in refvos' :class='{"is_cascade": refvo.is_cascade}')
-                        td.vocus_type {{ refvo.linked_type }}
-                        td.vocus_id {{ refvo.linked_id }}
-                        td.vocus_label {{ refvo.linked_label }}
-                        td.vocus_crud
-                            .btn-group.d-print-none
-                                router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(refvo.linked_type, refvo.linked_id)")
-                                    i.fa.fa-pencil
-                                router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(refvo.linked_type, refvo.linked_id)")
-                                    i.fa.fa-search
-                                router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(refvo.linked_type, refvo.linked_id)")
-                                    i.fa.fa-trash
+                    template(v-if="refvos")
+                        tr.refvo(v-for='refvo in refvos' :class='{"is_cascade": refvo.is_cascade}')
+                            td.vocus_type {{ refvo.linked_type }}
+                            td.vocus_id {{ refvo.linked_id }}
+                            td.vocus_label {{ refvo.linked_label }}
+                            td.vocus_crud
+                                .btn-group.d-print-none
+                                    router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(refvo.linked_type, refvo.linked_id)")
+                                        i.fa.fa-pencil
+                                    router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(refvo.linked_type, refvo.linked_id)")
+                                        i.fa.fa-search
+                                    router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(refvo.linked_type, refvo.linked_id)")
+                                        i.fa.fa-trash
     .row(v-if='limit1000')
         .col-md-12
             .limit1000 {{ label('vocus.limit1000') }}
