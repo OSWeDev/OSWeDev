@@ -1,0 +1,76 @@
+.checklist_widget_component {
+
+    .is_busy {
+        display: block;
+        position: absolute;
+        top: -1em;
+        left: 0;
+        width: -webkit-fill-available;
+        height: -webkit-fill-available;
+        background: rgba(0,0,0,0.2);
+        text-align: center;
+        z-index: 1000;
+        padding-top: 9em;
+        cursor: wait;
+
+        i {
+            font-size: xx-large;
+        }
+    }
+
+    .btn-group.d-print-none {
+        text-align: right;
+        float: right;
+        margin-top: -3px;
+        margin-bottom: .2em;
+
+        opacity: 0.5;
+        transition: opacity 300ms ease-in-out;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    table {
+
+        width: -webkit-fill-available;
+        clear: both;
+
+        thead {
+            th {
+                border: solid 1px #EEE;
+                padding: .2em;
+                background: white;
+                font-size: 1em;
+                font-weight: 700;
+                color: #555;
+                cursor: pointer;
+
+                .order_by {
+                    float: left;
+                }
+            }
+        }
+
+        tr {
+            td {
+                border: solid 1px #EEE;
+                padding: .2em;
+
+                &.type_0 {
+                    width: 0;
+                }
+
+                .btn-group.d-print-none {
+                    opacity: 0.5;
+                    transition: opacity 300ms ease-in-out;
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+    }
+}

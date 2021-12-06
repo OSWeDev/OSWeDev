@@ -32,6 +32,8 @@ export default class ModuleDAO extends Module {
     public static POLICY_GROUP_MODULES_CONF: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_MODULES_CONF';
 
     public static APINAME_truncate = "truncate";
+    public static APINAME_delete_all_vos_triggers_ok = "delete_all_vos_triggers_ok";
+
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
     public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
@@ -104,6 +106,7 @@ export default class ModuleDAO extends Module {
         });
 
     public truncate: (api_type_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleDAO.APINAME_truncate);
+    public delete_all_vos_triggers_ok: (api_type_id: string) => Promise<void> = APIControllerWrapper.sah(ModuleDAO.APINAME_delete_all_vos_triggers_ok);
     public getBaseUrl: () => Promise<string> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_BASE_URL);
     public deleteVOsByIds: (API_TYPE_ID: string, ids: number[]) => Promise<any[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
@@ -411,6 +414,12 @@ export default class ModuleDAO extends Module {
             StringParamVOStatic
         ));
 
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            ModuleDAO.APINAME_delete_all_vos_triggers_ok,
+            (param: StringParamVO) => [param.text],
+            StringParamVOStatic
+        ));
     }
 
     public initialize() {

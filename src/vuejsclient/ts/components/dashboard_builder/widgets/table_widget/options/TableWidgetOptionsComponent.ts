@@ -44,7 +44,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private next_update_options: TableWidgetOptions = null;
-    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false });
+    private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private crud_api_type_id_selected: string = null;
     private vocus_button: boolean = false;
@@ -54,6 +54,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private export_button: boolean = true;
     private update_button: boolean = true;
     private create_button: boolean = true;
+    private limit: string = '100';
 
     private editable_columns: TableColumnDescVO[] = null;
 
@@ -92,6 +93,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.refresh_button) {
                 this.refresh_button = true;
             }
+            this.limit = '100';
             return;
         }
 
@@ -119,6 +121,22 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.update_button != this.widget_options.update_button) {
             this.update_button = this.widget_options.update_button;
+        }
+        this.limit = (this.widget_options.limit == null) ? '100' : this.widget_options.limit.toString();
+    }
+
+    @Watch('limit')
+    private async onchange_limit() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        let limit = (this.limit == null) ? 100 : parseInt(this.limit);
+        if (this.widget_options.limit != limit) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.limit = limit;
+
+            await this.throttled_update_options();
         }
     }
 
@@ -200,7 +218,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, this.page_widget.id, false, 10, null, false, true, false, true, true, true, true);
+        return new TableWidgetOptions(null, this.page_widget.id, false, 100, null, false, true, false, true, true, true, true);
     }
 
     private async add_column(add_column: TableColumnDescVO) {

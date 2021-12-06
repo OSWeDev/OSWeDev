@@ -5,6 +5,7 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
+import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -15,6 +16,7 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import VarServerControllerBase from './VarServerControllerBase';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -46,6 +48,25 @@ export default class VarsCacheController {
     }
 
     /**
+     * Cas Insert Cache en BDD
+     */
+    public BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>, is_requested_param: boolean): boolean {
+
+        // Si ça vient de la bdd, on le met à jour évidemment
+        if (!!var_data.id) {
+            return true;
+        }
+
+        // Si on veut insérer que des caches demandés explicitement par server ou client et pas tous les noeuds de l'arbre, on check ici
+        if (controller.var_cache_conf.cache_bdd_only_requested_params && !is_requested_param) {
+            return false;
+        }
+
+        let card = MatroidController.getInstance().get_cardinal(var_data);
+        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_bdd);
+    }
+
+    /**
      * Cas A
      */
     public A_do_cache_param(node: VarDAGNode): boolean {
@@ -55,10 +76,11 @@ export default class VarsCacheController {
          *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
          *  si sup à un seuil => cache, sinon pas de cache
          */
+
         let card = MatroidController.getInstance().get_cardinal(node.var_data);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return (card * controller.var_cache_conf.calculation_cost_for_1000_card / 1000) >= controller.var_cache_conf.cache_seuil_a;
+        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_a);
     }
 
     /**
@@ -74,7 +96,7 @@ export default class VarsCacheController {
         let card = MatroidController.getInstance().get_cardinal(node.var_data);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return (card * controller.var_cache_conf.calculation_cost_for_1000_card / 1000) >= controller.var_cache_conf.cache_seuil_b;
+        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_b);
     }
 
     /**
@@ -90,7 +112,7 @@ export default class VarsCacheController {
         let card = MatroidController.getInstance().get_cardinal(node.var_data);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return (card * controller.var_cache_conf.calculation_cost_for_1000_card / 1000) >= controller.var_cache_conf.cache_seuil_c;
+        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_c);
     }
 
     /**
@@ -106,7 +128,7 @@ export default class VarsCacheController {
         let card = MatroidController.getInstance().get_cardinal(partial_cache);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return (card * controller.var_cache_conf.calculation_cost_for_1000_card / 1000) >= controller.var_cache_conf.cache_seuil_c_element;
+        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_c_element);
     }
 
     /**
@@ -228,5 +250,14 @@ export default class VarsCacheController {
             },
             this
         );
+    }
+
+    private do_cache(card: number, var_cache_conf: VarCacheConfVO, cache_seuil: number): boolean {
+        switch (var_cache_conf.cache_startegy) {
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CARDINAL:
+                return card >= cache_seuil;
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_ESTIMATED_TIME:
+                return (card * var_cache_conf.calculation_cost_for_1000_card / 1000) >= cache_seuil;
+        }
     }
 }

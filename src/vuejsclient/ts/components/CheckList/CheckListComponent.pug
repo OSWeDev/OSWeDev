@@ -13,7 +13,7 @@ include ../../../views/mixins/loading.pug
             .col-md-4
                 input(type='text' :placeholder='label("checklist.filter_text")' v-model="filter_text")
 
-        .row(v-if='has_checklistitems && ordered_checklistitems && ordered_checklistitems.length')
+        .row(v-if='has_checklistitems && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway)')
             .col-md-12
                 table.table-striped.table-hover
                     thead
@@ -29,6 +29,13 @@ include ../../../views/mixins/loading.pug
                             :ordered_checkpoints='ordered_checkpoints' 
                             :global_route_path='global_route_path'
                             @onchangevo='onchangevo')
+
+        .row(v-else-if='has_checklistitems && ordered_checklistitems && (ordered_checklistitems.length > 15)')
+            .col-md-12
+                .is_limited_by_number {{ label('checklist.is_limited_by_number', {limit: 15}) }}
+                    button.action-button(@click="()=>{show_anyway=true}")
+                        i.fa.fa-filter(aria-hidden="true")
+                        span {{ label('checklist.toggle_limit_by_number') }}
 
         .row(v-else)
             .col-md-12

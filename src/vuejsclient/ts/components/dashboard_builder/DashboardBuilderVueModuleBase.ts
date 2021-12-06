@@ -3,12 +3,16 @@ import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
+import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
+import YearFilterWidgetOptions from './widgets/year_filter_widget/options/YearFilterWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -61,6 +65,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_FieldValueFilter();
 
         await this.initializeWidget_DOWFilter();
+        await this.initializeWidget_MonthFilter();
+        await this.initializeWidget_YearFilter();
+
+        await this.initializeWidget_Checklist();
+
+        await this.initializeWidget_BulkOps();
 
         await this.initializeWidget_Var();
 
@@ -68,6 +78,44 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_DataTable();
 
         await this.initializeWidget_PageSwitch();
+    }
+
+    private async initializeWidget_BulkOps() {
+        let BulkOps = new DashboardWidgetVO();
+
+        BulkOps.default_height = 18;
+        BulkOps.default_width = 45;
+        BulkOps.name = 'bulkops';
+        BulkOps.widget_component = 'Bulkopswidgetcomponent';
+        BulkOps.options_component = 'Bulkopswidgetoptionscomponent';
+        BulkOps.weight = 40;
+        BulkOps.default_background = '#f5f5f5';
+        BulkOps.icon_component = 'Bulkopswidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(BulkOps, () => new BulkOpsWidgetOptions(null, null, 10), BulkOpsWidgetOptions.get_selected_fields);
+
+        Vue.component('Bulkopswidgetcomponent', () => import(/* webpackChunkName: "BulkOpsWidgetComponent" */ './widgets/bulkops_widget/BulkOpsWidgetComponent'));
+        Vue.component('Bulkopswidgetoptionscomponent', () => import(/* webpackChunkName: "BulkOpsWidgetOptionsComponent" */ './widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
+        Vue.component('Bulkopswidgeticoncomponent', () => import(/* webpackChunkName: "BulkOpsWidgetIconComponent" */ './widgets/bulkops_widget/icon/BulkOpsWidgetIconComponent'));
+    }
+
+    private async initializeWidget_Checklist() {
+        let Checklist = new DashboardWidgetVO();
+
+        Checklist.default_height = 18;
+        Checklist.default_width = 45;
+        Checklist.name = 'checklist';
+        Checklist.widget_component = 'Checklistwidgetcomponent';
+        Checklist.options_component = 'Checklistwidgetoptionscomponent';
+        Checklist.weight = 30;
+        Checklist.default_background = '#f5f5f5';
+        Checklist.icon_component = 'Checklistwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Checklist, () => new ChecklistWidgetOptions(null, 10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
+
+        Vue.component('Checklistwidgetcomponent', () => import(/* webpackChunkName: "ChecklistWidgetComponent" */ './widgets/checklist_widget/ChecklistWidgetComponent'));
+        Vue.component('Checklistwidgetoptionscomponent', () => import(/* webpackChunkName: "ChecklistWidgetOptionsComponent" */ './widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
+        Vue.component('Checklistwidgeticoncomponent', () => import(/* webpackChunkName: "ChecklistWidgetIconComponent" */ './widgets/checklist_widget/icon/ChecklistWidgetIconComponent'));
     }
 
     private async initializeWidget_DataTable() {
@@ -82,7 +130,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, true, 10, null, false, true, false, true, true, true, true), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, true, 100, null, false, true, false, true, true, true, true), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -101,7 +149,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, false, 10, null, false, false, false, false, false, true, true), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, false, 100, null, false, false, false, false, false, true, true), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -144,6 +192,44 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Dowfilterwidgetcomponent', () => import(/* webpackChunkName: "DOWFilterWidgetComponent" */ './widgets/dow_filter_widget/DOWFilterWidgetComponent'));
         Vue.component('Dowfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "DOWFilterWidgetOptionsComponent" */ './widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
         Vue.component('Dowfilterwidgeticoncomponent', () => import(/* webpackChunkName: "DOWFilterWidgetIconComponent" */ './widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_MonthFilter() {
+        let MonthFilter = new DashboardWidgetVO();
+
+        MonthFilter.default_height = 9;
+        MonthFilter.default_width = 36;
+        MonthFilter.name = 'monthfilter';
+        MonthFilter.widget_component = 'Monthfilterwidgetcomponent';
+        MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
+        MonthFilter.weight = 2;
+        MonthFilter.default_background = '#f5f5f5';
+        MonthFilter.icon_component = 'Monthfilterwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null), MonthFilterWidgetOptions.get_selected_fields);
+
+        Vue.component('Monthfilterwidgetcomponent', () => import(/* webpackChunkName: "MonthFilterWidgetComponent" */ './widgets/month_filter_widget/MonthFilterWidgetComponent'));
+        Vue.component('Monthfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "MonthFilterWidgetOptionsComponent" */ './widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
+        Vue.component('Monthfilterwidgeticoncomponent', () => import(/* webpackChunkName: "MonthFilterWidgetIconComponent" */ './widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_YearFilter() {
+        let YearFilter = new DashboardWidgetVO();
+
+        YearFilter.default_height = 9;
+        YearFilter.default_width = 36;
+        YearFilter.name = 'yearfilter';
+        YearFilter.widget_component = 'Yearfilterwidgetcomponent';
+        YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
+        YearFilter.weight = 3;
+        YearFilter.default_background = '#f5f5f5';
+        YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null), YearFilterWidgetOptions.get_selected_fields);
+
+        Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
+        Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
+        Vue.component('Yearfilterwidgeticoncomponent', () => import(/* webpackChunkName: "YearFilterWidgetIconComponent" */ './widgets/year_filter_widget/icon/YearFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {

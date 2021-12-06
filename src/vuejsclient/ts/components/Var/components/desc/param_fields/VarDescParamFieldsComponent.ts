@@ -45,42 +45,55 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
             return null;
         }
 
-        let res: Array<ModuleTableField<any>> = [];
+        return MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        // let res: Array<ModuleTableField<any>> = [];
 
-        let matroid_bases: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(this.var_param._type);
-        if (!matroid_bases) {
-            return null;
-        }
+        // let matroid_bases: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(this.var_param._type);
+        // if (!matroid_bases) {
+        //     return null;
+        // }
 
-        for (let i in matroid_bases) {
-            let matroid_base = matroid_bases[i];
-            if (this.var_data_has_tsranges && (matroid_base.field_id == VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_field_name)) {
-                continue;
-            }
-            res.push(matroid_base);
-        }
+        // for (let i in matroid_bases) {
+        //     let matroid_base = matroid_bases[i];
+        //     if (this.var_data_has_tsranges && (matroid_base.field_id == VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_field_name)) {
+        //         continue;
+        //     }
+        //     res.push(matroid_base);
+        // }
 
-        return res;
+        // return res;
     }
 
+    /**
+     * @deprecated
+     */
     get var_data_has_tsranges(): boolean {
-        if (!this.var_param) {
-            return false;
-        }
-        return VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_segment_type != null;
+        return false;
+        // if (!this.var_param) {
+        //     return false;
+        // }
+        // return VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_segment_type != null;
     }
 
+    /**
+     * @deprecated
+     */
     get var_data_ts_ranges_field_id(): string {
-        if (!this.var_data_has_tsranges) {
-            return null;
-        }
-        return VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_field_name;
+        return null;
+        // if (!this.var_data_has_tsranges) {
+        //     return null;
+        // }
+        // return VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_field_name;
     }
 
+    /**
+     * @deprecated
+     */
     get var_data_ts_ranges(): TSRange[] {
-        if (!this.var_data_has_tsranges) {
-            return null;
-        }
-        return this.var_param[VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_field_name];
+        return null;
+        // if (!this.var_data_has_tsranges) {
+        //     return null;
+        // }
+        // return this.var_param[VarsController.getInstance().var_conf_by_id[this.var_param.var_id].ts_ranges_field_name];
     }
 }

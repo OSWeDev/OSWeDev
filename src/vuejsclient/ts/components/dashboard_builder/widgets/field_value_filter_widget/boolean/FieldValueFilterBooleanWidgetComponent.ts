@@ -41,7 +41,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private boolean_filter_types: number[] = [];
 

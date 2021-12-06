@@ -1,0 +1,35 @@
+.checklist_item_modal {
+
+    @media (min-width: 576px) {
+        .modal-lg, .modal-xl {
+            max-width: 600px;
+            width: 600px;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .modal-lg, .modal-xl {
+            max-width: 900px;
+            width: 900px;
+        }
+    }
+
+    .modal-title {
+        font-size: large;
+    }
+
+    .inline_input_mode {
+        .bool_field_inline_readonly_value {
+            display: inline-block !important;
+            width: 20em !important;
+            text-align: left !important;
+            padding-left: 1em !important;
+        }
+    }
+
+    .form-checks {
+        width: 20em;
+        padding-left: 1em;
+        vertical-align: top;
+    }
+}

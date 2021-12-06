@@ -1,0 +1,123 @@
+include ../../../../../views/mixins/loading.pug
+
+.bulkops_widget_component
+    +loading()
+        template(v-if='has_access')
+
+            template(v-if='loaded_once && is_busy')
+                .is_busy 
+                    i.fa.fa-refresh.fa-spin(aria-hidden="true")
+
+            .row.row_field
+                .col-md-5.field_id_selection 
+                    .field_id
+                        .input_label {{ label('bulkops_widget_component.field_id') }}
+
+                        .field_id_select
+                            .input_wrapper
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="false"
+                                    v-model="field_id_selected"
+                                    :placeholder="label('bulkops_widget_component.field_id_select')"
+                                    :options="field_id_select_options"
+                                    :custom-label="field_id_select_label"
+                                    :allow-empty="true",
+                                    autocomplete="off"
+
+                                    :searchable="true"
+                                    :internal-search="true"
+
+                                    id="bulkops_field_id_select"
+
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    )
+
+                .col-md-2.operator_selection 
+                    .operator
+                        .input_label {{ label('bulkops_widget_component.operator') }}
+
+                        .operator_select
+                            .equal =
+
+                .col-md-5.value_selection 
+                    .value
+                        .input_label {{ label('bulkops_widget_component.value') }}
+
+                        .value_input(v-if='!!(editable_item && editable_field)')
+                            .input_wrapper
+                                Crudcomponentfield(
+                                    @onchangevo='onchangevo'
+                                    :field="editable_field"
+                                    :vo="editable_item"
+                                    :auto_update_field_value='false'
+                                    :inline_input_mode='true'
+                                    :inline_input_hide_label='true'
+                                    :inline_input_read_value="editable_item[field_id_selected]"
+                                    :key='editable_item.id + "_" + field_id_selected'
+                                    :inline_input_show_clear='false'
+                                    :inline_input_mode_semaphore='false'
+                                    :show_insert_or_update_target='false'
+                                )
+
+            .row 
+                .col-md-5 
+                    .table_wrapper
+                        table.table-striped.table-hover
+                            thead 
+                                th.table_header(v-for='column in columns')
+                                    Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
+                            tbody
+                                tr.table_row(v-for='row in data_rows')
+                                    td.table_col(v-for='column in columns')
+                                        Datatablecomponentfield(
+                                            :field="fields[column.id]"
+                                            :vo="row"
+                                            :columns="columns"
+                                        )
+
+                    .lower_pagination 
+                        Tablepaginationcomponent(
+                            :pagination_offset='pagination_offset'
+                            :pagination_pagesize='pagination_pagesize'
+                            :pagination_count='pagination_count'
+                            :compressed='true'
+                            @change_offset='change_offset'
+                        )
+
+                .col-md-2.transform
+                    .to {{ "=>" }}
+
+                .col-md-5 
+                    .table_wrapper
+                        table.table-striped.table-hover
+                            thead 
+                                th.table_header(v-for='column in columns')
+                                    Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
+                            tbody
+                                tr.table_row(v-for='row in data_rows_after')
+                                    td.table_col(v-for='column in columns')
+                                        Datatablecomponentfield(
+                                            :field="fields[column.id]"
+                                            :vo="row"
+                                            :columns="columns"
+                                        )
+
+                    .lower_pagination 
+                        Tablepaginationcomponent(
+                            :pagination_offset='pagination_offset'
+                            :pagination_pagesize='pagination_pagesize'
+                            :pagination_count='pagination_count'
+                            :compressed='true'
+                            @change_offset='change_offset'
+                        )
+
+            .row.button_confirm_bulkops
+                .col-md-12.text-center
+                    button.btn.btn-sm.btn-primary(@click='confirm_bulkops')
+                        i.fa.fa-cogs.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('bulkops.actions.confirm_bulkops') }}

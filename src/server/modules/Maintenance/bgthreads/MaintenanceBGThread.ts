@@ -43,7 +43,9 @@ export default class MaintenanceBGThread implements IBGThread {
             //  et on informe si c'est pas fait les utilisateurs
             let maintenance: MaintenanceVO = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
 
-            await MaintenanceServerController.getInstance().set_planned_maintenance_vo(maintenance);
+            if (MaintenanceServerController.getInstance().planned_maintenance != maintenance) {
+                await MaintenanceServerController.getInstance().set_planned_maintenance_vo(maintenance);
+            }
 
             if (!maintenance) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
@@ -57,7 +59,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance.broadcasted_msg1) {
 
-                if (Dates.add(maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
+                if (Dates.now() >= Dates.add(maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE)) {
                     await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_INFO, ModuleMaintenance.MSG1_code_text);
                     maintenance.broadcasted_msg1 = true;
                     changed = true;
@@ -66,7 +68,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance.broadcasted_msg2) {
 
-                if (Dates.add(maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
+                if (Dates.now() >= Dates.add(maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE)) {
                     await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_WARN, ModuleMaintenance.MSG2_code_text);
                     maintenance.broadcasted_msg2 = true;
                     changed = true;
@@ -75,11 +77,15 @@ export default class MaintenanceBGThread implements IBGThread {
 
             if (!maintenance.broadcasted_msg3) {
 
-                if (Dates.add(maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
+                if (Dates.now() >= Dates.add(maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE)) {
                     await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_ERROR, ModuleMaintenance.MSG3_code_text);
                     maintenance.broadcasted_msg3 = true;
                     changed = true;
                 }
+            }
+
+            if (Dates.now() > maintenance.end_ts) {
+                await ModuleMaintenance.getInstance().end_planned_maintenance();
             }
 
             if (changed) {

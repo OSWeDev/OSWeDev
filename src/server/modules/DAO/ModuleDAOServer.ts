@@ -8,6 +8,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -36,6 +37,7 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
+import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -74,7 +76,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     public global_update_blocker: boolean = false;
-    private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false });
+    private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -378,8 +380,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_BASE_URL, this.getBaseUrl.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
 
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_delete_all_vos_triggers_ok, this.delete_all_vos_triggers_ok.bind(this));
     }
 
     public checkAccessSync<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string): boolean {
@@ -716,6 +719,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return " (" + where_clause_params.join(" OR ") + ") ";
     }
 
+    /**
+     * Seul version de delete_all/truncate qui appel les triggers appli + base
+     */
+    public async delete_all_vos_triggers_ok(api_type_id: string) {
+
+        let vos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(api_type_id, null, [api_type_id], 1000, 0, null);
+        while (vos && vos.length) {
+            await this.deleteVOs(vos);
+            vos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(api_type_id, null, [api_type_id], 1000, 0, null);
+        }
+    }
+
+    /**
+     * Attention, on appel aucun triggers de l'appli en faisant ça...
+     */
     public async delete_all_vos(api_type_id: string) {
 
         let datatable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
@@ -745,7 +763,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await this.truncate(api_type_id);
     }
 
-
+    /**
+     * ATTENTION truncate ne fait pas du tout un delete * en base, c'est très différent, par exemple sur les triggers en base
+     */
     public async truncate(api_type_id: string, ranges: IRange[] = null) {
 
         if (this.global_update_blocker) {
@@ -1153,60 +1173,77 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async filterByForeignKeys<T extends IDistantVOBase>(vos: T[]): Promise<T[]> {
         let res: T[] = [];
+        let promises = [];
 
         for (let i in vos) {
             let vo = vos[i];
 
-            let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-
-            if (!moduleTable) {
-                return null;
+            if (promises.length >= 10) {
+                await Promise.all(promises);
+                promises = [];
             }
 
-            let fields = moduleTable.get_fields();
-            let refuse: boolean = false;
-            for (let j in fields) {
-                let field = fields[j];
+            promises.push((async () => {
+                let refuse: boolean = await this.refuseVOByForeignKeys(vo);
 
-                if ((!field.has_relation) || field.has_single_relation) {
-                    // géré par la bdd directement
-                    continue;
+                if (!refuse) {
+                    res.push(vo);
                 }
+            })());
+        }
 
-                if (!vo[field.field_id]) {
-                    // champs vide, inutile de checker
-                    continue;
-                }
-
-                refuse = true;
-                switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-
-                        if (!(vo[field.field_id] as any[]).length) {
-                            // champs vide, inutile de checker
-                            break;
-                        }
-
-                        let targets: IDistantVOBase[] = await this.getVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                        if (targets.length == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
-                            refuse = false;
-                        }
-                        break;
-                    default:
-                }
-
-                if (refuse) {
-                    break;
-                }
-            }
-
-            if (!refuse) {
-                res.push(vo);
-            }
+        if (promises.length >= 1) {
+            await Promise.all(promises);
         }
 
         return res;
+    }
+
+    private async refuseVOByForeignKeys<T extends IDistantVOBase>(vo: T): Promise<boolean> {
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        let fields = moduleTable.get_fields();
+        let refuse: boolean = false;
+        for (let j in fields) {
+            let field = fields[j];
+
+            if ((!field.has_relation) || field.has_single_relation) {
+                // géré par la bdd directement
+                continue;
+            }
+
+            if (!vo[field.field_id]) {
+                // champs vide, inutile de checker
+                continue;
+            }
+
+            refuse = true;
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+
+                    if (!(vo[field.field_id] as any[]).length) {
+                        // champs vide, inutile de checker
+                        break;
+                    }
+
+                    let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
+                    if (nb == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                        refuse = false;
+                    }
+                    break;
+                default:
+            }
+
+            if (refuse) {
+                break;
+            }
+        }
+        return refuse;
     }
 
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
@@ -1353,7 +1390,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
                 // On vide le cache
-                await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
+                await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
 
                 for (let i in results) {
 
@@ -1486,7 +1523,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
+            let bdd_version = moduleTable.get_bdd_version(vo);
+            let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
                 ConsoleHandler.getInstance().error('insertOrUpdateVO :' + reason);
                 failed = true;
             });
@@ -1631,7 +1669,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }).then(async (value: any) => {
 
             // On vide le cache
-            await ForkedTasksController.getInstance().broadexec(DAOQueryCacheController.TASK_NAME_CLEAR, true);
+            await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];
@@ -1714,8 +1752,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             const setters = [];
-            for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field: ModuleTableField<any> = fields[i];
 
                 if (typeof vo[field.field_id] == "undefined") {
                     if (!field.has_default || typeof field.field_default == 'undefined') {
@@ -1726,6 +1765,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 setters.push(field.field_id + ' = ${' + field.field_id + '}');
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    setters.push(field.field_id + '_ndx = ${' + field.field_id + '_ndx}');
+                }
             }
 
             let full_name = null;
@@ -1763,6 +1817,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 tableFields.push(field.field_id);
                 placeHolders.push('${' + field.field_id + '}');
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    tableFields.push(field.field_id + '_ndx');
+                    placeHolders.push('${' + field.field_id + '_ndx}');
+                }
             }
 
             let full_name = null;
@@ -2324,7 +2394,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let i in ranges) {
             let range = ranges[i];
 
-            if ((!range) || (!range.max) || (!range.min)) {
+            if ((!range) || (range.max == null) || (range.min == null)) {
                 continue;
             }
 
@@ -2341,6 +2411,46 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On filtre suivant les droits d'accès
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+    }
+
+    private async countVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<number> {
+
+        if ((!ranges) || (!ranges.length)) {
+            return 0;
+        }
+
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!this.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return 0;
+        }
+
+        if (moduleTable.is_segmented) {
+            // TODO FIXME segmented moduletable
+            throw new Error('Not Implemented');
+        }
+
+        let where_clause: string = "";
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if ((!range) || (range.max == null) || (range.min == null)) {
+                continue;
+            }
+
+            where_clause += (where_clause == "") ? "" : " OR ";
+
+            where_clause += "id::numeric <@ '" + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + "'::numrange";
+        }
+
+        if (where_clause == "") {
+            return 0;
+        }
+
+        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(*) a FROM ' + moduleTable.full_name + ' t WHERE ' + where_clause + ";");
+        return (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : 0;
     }
 
     private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {
@@ -2807,40 +2917,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     where_clause += first ? "(" : ") AND (";
 
-                    let ranges_clause = "'{";
-                    for (let j in ranges) {
-                        let field_range: IRange = ranges[j];
+                    let ranges_clause = null;
 
-                        if (!RangeHandler.getInstance().isValid(field_range)) {
-                            ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                    switch (field.field_type) {
+
+                        case ModuleTableField.FIELD_TYPE_numrange_array:
+                        case ModuleTableField.FIELD_TYPE_refrange_array:
+                        case ModuleTableField.FIELD_TYPE_isoweekdays:
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(ranges) + "'";
+                            break;
+
+                        default:
+                            ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
                             return null;
-                        }
-
-                        first = false;
-                        first_matroid = false;
-
-                        ranges_clause += (ranges_clause == "'{") ? '' : ',';
-
-                        switch (field.field_type) {
-
-                            case ModuleTableField.FIELD_TYPE_numrange_array:
-                            case ModuleTableField.FIELD_TYPE_refrange_array:
-                            case ModuleTableField.FIELD_TYPE_isoweekdays:
-                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
-                                break;
-
-                            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
-                                break;
-
-                            default:
-                                ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
-                                return null;
-                        }
                     }
-                    ranges_clause += "}'";
 
-                    where_clause += ranges_clause + " = " + field.field_id;
+                    where_clause += ranges_clause + " = " + field.field_id + '_ndx';
                 }
                 if (first) {
                     return null;

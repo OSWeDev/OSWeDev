@@ -1,0 +1,76 @@
+.checklist_widget_options_component
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('checklist_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")
+
+    .checklist_id
+        .input_label {{ label('checklist_widget_options_component.checklist_id') }}
+
+        .checklist_id_select
+            .input_wrapper
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="checklist_selected"
+                    :placeholder="label('checklist_widget_options_component.checklist_id_select')"
+                    :options="checklist_select_options"
+                    :custom-label="checklist_select_label"
+                    :allow-empty="true",
+                    autocomplete="off"
+                    track-by="id"
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    id="checklist_id_select"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
+    .create_button(v-if='widget_options && widget_options.checklist_id')
+        .input_label {{ label('checklist_widget_options_component.create_button') }}
+        
+        toggle-button(
+            @change="switch_create_button" 
+            :value="create_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('checklist_widget_options_component.create_button.visible'), unchecked: label('checklist_widget_options_component.create_button.hidden')}")
+
+    .delete_all_button(v-if='widget_options && widget_options.checklist_id')
+        .input_label {{ label('checklist_widget_options_component.delete_all_button') }}
+        
+        toggle-button(
+            @change="switch_delete_all_button" 
+            :value="delete_all_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('checklist_widget_options_component.delete_all_button.visible'), unchecked: label('checklist_widget_options_component.delete_all_button.hidden')}")
+
+    .refresh_button(v-if='widget_options && widget_options.checklist_id')
+        .input_label {{ label('checklist_widget_options_component.refresh_button') }}
+        
+        toggle-button(
+            @change="switch_refresh_button" 
+            :value="refresh_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('checklist_widget_options_component.refresh_button.visible'), unchecked: label('checklist_widget_options_component.refresh_button.hidden')}")
+
+    .export_button(v-if='widget_options && widget_options.checklist_id')
+        .input_label {{ label('checklist_widget_options_component.export_button') }}
+        
+        toggle-button(
+            @change="switch_export_button" 
+            :value="export_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('checklist_widget_options_component.export_button.visible'), unchecked: label('checklist_widget_options_component.export_button.hidden')}")

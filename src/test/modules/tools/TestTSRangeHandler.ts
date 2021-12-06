@@ -864,23 +864,23 @@ describe('TSRangeHandler', () => {
         ]);
     });
 
-    it('test getFormattedMaxForAPI', () => {
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, zero, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-    });
+    // it('test getFormattedMaxForAPI', () => {
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, zero, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    // });
 
-    it('test getFormattedMinForAPI', () => {
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_deux);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
-    });
+    // it('test getFormattedMinForAPI', () => {
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal('' + un);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_deux);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal('' + zero);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
+    //     expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal('' + moins_un);
+    // });
 
     it('test getCardinalFromArray', () => {
 
@@ -2960,9 +2960,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().getIndex(null)).to.equal(null);
-        expect(RangeHandler.getInstance().getIndex(numRange1)).to.equal("[0,3)");
-        expect(RangeHandler.getInstance().getIndex(numRange2)).to.equal("[3,4)");
-        expect(RangeHandler.getInstance().getIndex(numRange3)).to.equal("[2,4)");
+        expect(RangeHandler.getInstance().getIndex(numRange1)).to.equal("00&3");
+        expect(RangeHandler.getInstance().getIndex(numRange2)).to.equal("03");
+        expect(RangeHandler.getInstance().getIndex(numRange3)).to.equal("02&4");
     });
 
     it('test humanize', () => {
@@ -2972,7 +2972,7 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().humanize(null)).to.equal(null);
-        expect(RangeHandler.getInstance().humanize(numRange1)).to.equal("[0,3)");
+        expect(RangeHandler.getInstance().humanize(numRange1)).to.equal('[0,3)');
         expect(RangeHandler.getInstance().humanize(numRange2)).to.equal("[3,4)");
         expect(RangeHandler.getInstance().humanize(numRange3)).to.equal("[2,4)");
     });
@@ -2984,9 +2984,9 @@ describe('TSRangeHandler', () => {
         let numRange3 = NumRange.createNew(2, 3, true, true, NumSegment.TYPE_INT);
 
         expect(RangeHandler.getInstance().getIndexRanges(null)).to.equal(null);
-        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("[[0,3),[2,4)]");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("[[0,3),[3,4)]");
-        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("[[2,4),[3,4)]");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange1, numRange3])).to.equal("00&4");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange1])).to.equal("00&4");
+        expect(RangeHandler.getInstance().getIndexRanges([numRange2, numRange3])).to.equal("02&4");
     });
 
     it('test humanizeRanges', () => {

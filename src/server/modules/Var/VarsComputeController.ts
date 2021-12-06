@@ -12,6 +12,7 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
+import NotifVardatasParam from './notifs/NotifVardatasParam';
 import VarsPerfsController from './perf/VarsPerfsController';
 import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -385,7 +386,7 @@ export default class VarsComputeController {
                 let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
                 await controller.computeValue(node);
 
-                await VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
+                await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data])]);
                 await VarsServerCallBackSubsController.getInstance().notify_vardatas([node.var_data]);
                 node.has_compute_node_perf = true;
 
@@ -542,7 +543,7 @@ export default class VarsComputeController {
 
                     if (!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
 
-                        await VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
+                        await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([dep_node.var_data], true)]);
                         deps_promises.push(this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache));
                         // await this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache);
                     }

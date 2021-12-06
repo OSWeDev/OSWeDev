@@ -1,0 +1,61 @@
+include ../../../../../views/mixins/loading.pug
+
+.checklist_widget_component
+    +loading()
+
+        template(v-if='loaded_once')
+            template(v-if='loaded_once && is_busy')
+                .is_busy 
+                    i.fa.fa-refresh.fa-spin(aria-hidden="true")
+
+            template(v-if='!!checklist')
+                .btn-group.d-print-none
+                    button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                        i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.delete_all') }}
+                    button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                        i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.refresh') }}
+                    button.btn.btn-sm.btn-outline-dark(v-if='can_export && isExportableToXLSX' @click="export_to_xlsx")
+                        i.fa.fa-download.fa-lg.btn_icon
+                        | {{ label('crud.actions.export') }}
+                    button.btn.btn-sm.btn-success(v-if='can_create' @click="createNew")
+                        i.fa.fa-plus-circle.fa-lg.btn_icon
+                        | {{ label('crud.actions.create') }}
+
+            .upper_pagination
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_pagesize='pagination_pagesize'
+                    :pagination_count='pagination_count'
+                    @change_offset='change_offset'
+                )
+
+
+        .row
+            .col-md-12
+                table.table-striped.table-hover
+                    thead
+                        tr
+                            th
+                            th(v-for='label in infos_cols_labels') {{ t(label) }}
+                            th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
+                            th  {{ label('checklist.archive') }}
+                    tbody
+                        tr(v-for='checklist_item in ordered_checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
+                            :checklist_item='checklist_item' 
+                            :checklist_controller='checklist_controller'
+                            :ordered_checkpoints='ordered_checkpoints' 
+                            @openmodal='openmodal'
+                            @onchangevo='onchangevo')
+
+        .row
+            .col-md-12
+                .lower_pagination 
+                    Tablepaginationcomponent(
+                        :pagination_offset='pagination_offset'
+                        :pagination_pagesize='pagination_pagesize'
+                        :pagination_count='pagination_count'
+                        @change_offset='change_offset'
+                    )
+                

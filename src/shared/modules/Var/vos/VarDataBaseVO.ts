@@ -1,8 +1,8 @@
 
 import ConsoleHandler from '../../../tools/ConsoleHandler';
+import MatroidIndexHandler from '../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
-import TSRange from '../../DataRender/vos/TSRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
@@ -22,27 +22,7 @@ export default class VarDataBaseVO implements IMatroid {
 
     public static from_index(index: string): VarDataBaseVO {
 
-        let pieces: string[] = index.split('_');
-        let var_id: number = parseInt(pieces[0]);
-        let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
-        let res: VarDataBaseVO = VOsTypesManager.getInstance().moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
-
-        res.var_id = var_id;
-        let fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
-
-        for (let i in fields) {
-            let field = fields[i];
-
-            let range_type = RangeHandler.getInstance().getRangeType(field);
-            // ATTENTION c'est pas évidemment que tous les segments dates soient identiques dans le principe
-            //  et sur les hourranges on a juste pas l'info par var, uniquement sur la déclaration du VO ...
-            res[field.field_id] = RangeHandler.getInstance().rangesFromIndex(
-                pieces[parseInt(i) + 1],
-                range_type,
-                (range_type == TSRange.RANGE_TYPE) ? var_conf.ts_ranges_segment_type : field.segmentation_type);
-        }
-
-        return res;
+        return MatroidIndexHandler.getInstance().from_normalized_vardata(index);
     }
 
     public static are_same(a: VarDataBaseVO, b: VarDataBaseVO): boolean {
@@ -109,12 +89,58 @@ export default class VarDataBaseVO implements IMatroid {
             param_i++;
         }
 
+        let field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
+
         /**
          * Si on change le type se segmentation on adapte aussi le param
          */
-        if (varConf && (varConf.ts_ranges_segment_type != null)) {
-            res[varConf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
-                res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
+        this.adapt_param_to_varconf_segmentations(res, field_segmentations);
+        return res;
+    }
+
+    /**
+     * Si on change le type se segmentation on adapte le param
+     */
+    public static adapt_param_to_varconf_segmentations<T extends VarDataBaseVO>(vardata: T, field_segmentations: { [field_id: string]: number }) {
+        for (let field_id in field_segmentations) {
+            let segmentation_cible = field_segmentations[field_id];
+            let ranges = vardata[field_id];
+
+            if (ranges && (segmentation_cible != null)) {
+                vardata[field_id] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
+                    ranges, field_segmentations[field_id], true);
+            }
+        }
+    }
+
+    public static get_varconf_segmentations(varConf: VarConfVO): { [field_id: string]: number } {
+        let res: { [field_id: string]: number } = {};
+        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
+
+        if (varConf) {
+            if (varConf.segment_types) {
+                for (let i in fields) {
+                    let field = fields[i];
+                    let segmentation_cible = varConf.segment_types[field.field_id];
+                    segmentation_cible = (segmentation_cible != null) ?
+                        segmentation_cible :
+                        RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
+                    res[field.field_id] = segmentation_cible;
+                }
+            } else {
+                /**
+                 * @deprecated delete this as soon as varConf.ts_ranges_segment_type is removed
+                 */
+                for (let i in fields) {
+                    let field = fields[i];
+                    let segmentation_cible =
+                        ((varConf.ts_ranges_segment_type != null) && (field.field_id == varConf.ts_ranges_field_name)) ?
+                            varConf.ts_ranges_segment_type :
+                            RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
+
+                    res[field.field_id] = segmentation_cible;
+                }
+            }
         }
 
         return res;
@@ -211,17 +237,19 @@ export default class VarDataBaseVO implements IMatroid {
             return null;
         }
 
-        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf ? varConf.var_data_vo_type : param_to_clone._type, varConf ? clone_fields : true);
+        clone_fields = varConf ? clone_fields : true; // FIXME : ancienne version, mais pourquoi on voudrait forcer à cloner spécifiquement quand on garde le var_id ?
+        varConf = varConf ? varConf : VarsController.getInstance().var_conf_by_id[param_to_clone.var_id];
+
+        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf.var_data_vo_type, clone_fields);
         if (!res) {
             return null;
         }
         /**
          * Si on change le type se segmentation on adapte aussi le param
          */
-        if (varConf && (varConf.ts_ranges_segment_type != null)) {
-            res[varConf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
-                res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
-        }
+        let field_segmentations: { [field_id: string]: number } = this.get_varconf_segmentations(varConf);
+        this.adapt_param_to_varconf_segmentations(res, field_segmentations);
+
         res.var_id = varConf ? varConf.id : param_to_clone.var_id;
 
         if (!res.var_id) {
@@ -235,7 +263,7 @@ export default class VarDataBaseVO implements IMatroid {
     public _type: string;
     public id: number;
 
-    public var_id: number;
+    public _var_id: number;
 
     /**
      * La valeur calculée du noeud :
@@ -252,21 +280,27 @@ export default class VarDataBaseVO implements IMatroid {
 
     public constructor() { }
 
+    get var_id(): number { return this._var_id; }
+    set var_id(var_id: number) {
+        this.set_field('var_id', var_id);
+    }
+
+    /**
+     * Pour forcer le rebuild de l'index et avoir un truc propre (à appeler si on change le param après un create new ou un clone from)
+     */
+    public rebuild_index() {
+
+        this._index = null;
+    }
+
     /**
      * Attention : L'index est initialisé au premier appel au getter, et immuable par la suite.
      */
     get index(): string {
 
-        if ((!this._index) || (this._index.indexOf('X') == 0)) {
-            let fields = MatroidController.getInstance().getMatroidFields(this._type);
-
-            this._index = this.var_id ? this.var_id.toString() : 'X';
-            for (let i in fields) {
-                let field = fields[i];
-
-                this._index += '_';
-                this._index += RangeHandler.getInstance().getIndexRanges(this[field.field_id]);
-            }
+        if (!this._index) {
+            MatroidIndexHandler.getInstance().normalize_vardata_fields(this);
+            this._index = MatroidIndexHandler.getInstance().get_normalized_vardata(this);
         }
 
         return this._index;
@@ -306,5 +340,14 @@ export default class VarDataBaseVO implements IMatroid {
         }
 
         return true;
+    }
+
+    protected set_field(field_id: string, value: any) {
+        this['_' + field_id] = value;
+        if (field_id != 'var_id') {
+            if (Array.isArray(value)) {
+                this.rebuild_index();
+            }
+        }
     }
 }

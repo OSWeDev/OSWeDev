@@ -76,7 +76,7 @@ export default class VarsPerfsController {
         await VarsPerfsController.throttled_update_param();
     }
 
-    private static throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(VarsPerfsController.do_update_perfs_in_bdd, 30000, { leading: false });
+    private static throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(VarsPerfsController.do_update_perfs_in_bdd, 30000, { leading: false, trailing: true });
 
     private static async do_update_perfs_in_bdd() {
 

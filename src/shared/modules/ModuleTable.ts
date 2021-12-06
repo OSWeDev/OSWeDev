@@ -1,12 +1,12 @@
 import cloneDeep = require('lodash/cloneDeep');
 import * as moment from 'moment';
-
-
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
 import GeoPointHandler from '../tools/GeoPointHandler';
+import MatroidIndexHandler from '../tools/MatroidIndexHandler';
 import RangeHandler from '../tools/RangeHandler';
+import IRange from './DataRender/interfaces/IRange';
 import HourRange from './DataRender/vos/HourRange';
 import HourSegment from './DataRender/vos/HourSegment';
 import NumRange from './DataRender/vos/NumRange';
@@ -21,6 +21,7 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -561,6 +562,113 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.prefix = table_name_prefix;
     }
 
+
+    public default_get_field_api_version(e: any, field: ModuleTableField<any>): any {
+        if ((!field) || (field.is_readonly)) {
+            throw new Error('Should not ask for readonly fields');
+        }
+
+        /**
+         * Si le champ possible un custom_to_api
+         */
+        if (!!field.custom_translate_to_api) {
+            return field.custom_translate_to_api(e);
+        }
+
+        switch (field.field_type) {
+
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                return RangeHandler.getInstance().translate_to_api(e);
+
+            case ModuleTableField.FIELD_TYPE_numrange:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                return RangeHandler.getInstance().translate_range_to_api(e);
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                if (e && e._type) {
+                    let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e._type];
+                    let trans_ = (field_table && e) ? field_table.default_get_api_version(e) : null;
+                    return trans_ ? JSON.stringify(trans_) : null;
+                } else if (e) {
+                    return JSON.stringify(e);
+                } else {
+                    return null;
+                }
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableField.FIELD_TYPE_tstz:
+            default:
+                return e;
+        }
+    }
+
+    public default_field_from_api_version(e: any, field: ModuleTableField<any>): any {
+        if ((!field) || field.is_readonly) {
+            throw new Error('Should no ask for readonly fields');
+        }
+
+        /**
+         * Si le champ possible un custom_from_api
+         */
+        if (!!field.custom_translate_from_api) {
+            return field.custom_translate_from_api(e);
+        }
+
+        switch (field.field_type) {
+
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+                return RangeHandler.getInstance().translate_from_api(NumRange.RANGE_TYPE, e);
+
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                return RangeHandler.getInstance().translate_from_api(TSRange.RANGE_TYPE, e);
+
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return RangeHandler.getInstance().translate_from_api(HourRange.RANGE_TYPE, e);
+
+            case ModuleTableField.FIELD_TYPE_numrange:
+                return MatroidIndexHandler.getInstance().from_normalized_range(e, NumRange.RANGE_TYPE);
+
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                return MatroidIndexHandler.getInstance().from_normalized_range(e, HourRange.RANGE_TYPE);
+
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return MatroidIndexHandler.getInstance().from_normalized_range(e, TSRange.RANGE_TYPE);
+
+            case ModuleTableField.FIELD_TYPE_hour:
+            case ModuleTableField.FIELD_TYPE_tstz:
+                return ConversionHandler.forceNumber(e);
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                let trans_ = e ? JSON.parse(e) : null;
+                if ((!!trans_) && !!field.plain_obj_cstr) {
+                    trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                }
+                if (trans_ && trans_._type) {
+                    let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
+                    return trans_ ? field_table.default_from_api_version(trans_) : null;
+                } else {
+                    return trans_;
+                }
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                if ((e === null) || (typeof e === 'undefined')) {
+                    return e;
+                } else {
+                    return (e as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
+                }
+
+            default:
+                return e;
+        }
+    }
+
     public set_bdd_ref(
         database_name: string,
         table_name: string,
@@ -738,52 +846,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             let new_id = fieldIdToAPIMap[field.field_id];
-
-            /**
-             * Si le champ possible un custom_to_api
-             */
-            if (!!field.custom_translate_to_api) {
-                res[new_id] = field.custom_translate_to_api(e[field.field_id]);
-                /**
-                 * Compatibilité MSGPACK : il traduit les undefind en null
-                 */
-                if (typeof res[new_id] === 'undefined') {
-                    delete res[new_id];
-                }
-                continue;
-            }
-
-            switch (field.field_type) {
-
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_numrange:
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                    res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                    if (e[field.field_id] && e[field.field_id]._type) {
-                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e[field.field_id]._type];
-                        let trans_ = (field_table && e[field.field_id]) ? field_table.default_get_api_version(e[field.field_id]) : null;
-                        res[new_id] = trans_ ? JSON.stringify(trans_) : null;
-                    } else {
-                        res[new_id] = null;
-                    }
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                case ModuleTableField.FIELD_TYPE_tstz:
-                default:
-                    res[new_id] = e[field.field_id];
-            }
+            res[new_id] = this.default_get_field_api_version(e[field.field_id], field);
 
             /**
              * Compatibilité MSGPACK : il traduit les undefind en null
@@ -826,72 +889,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             let old_id = fieldIdToAPIMap[field.field_id];
-
-            /**
-             * Si le champ possible un custom_from_api
-             */
-            if (!!field.custom_translate_from_api) {
-                res[field.field_id] = field.custom_translate_from_api(e[old_id]);
-                continue;
-            }
-
-            switch (field.field_type) {
-
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_api(NumRange.RANGE_TYPE, e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_api(TSRange.RANGE_TYPE, e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_api(HourRange.RANGE_TYPE, e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_numrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeAPI(NumRange.RANGE_TYPE, e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeAPI(HourRange.RANGE_TYPE, e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeAPI(TSRange.RANGE_TYPE, e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_hour:
-                case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = ConversionHandler.forceNumber(e[old_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                    let trans_ = e[old_id] ? JSON.parse(e[old_id]) : null;
-                    if ((!!trans_) && !!field.plain_obj_cstr) {
-                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
-                    }
-                    if (trans_ && trans_._type) {
-                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
-                        res[field.field_id] = trans_ ? field_table.default_from_api_version(trans_) : null;
-                    } else {
-                        res[field.field_id] = null;
-                    }
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                    if ((e[old_id] === null) || (typeof e[old_id] === 'undefined')) {
-                        res[field.field_id] = e[old_id];
-                    } else {
-                        res[field.field_id] = (e[old_id] as string[]).map((ts: string) => ConversionHandler.forceNumber(ts));
-                    }
-                    break;
-
-                default:
-                    res[field.field_id] = e[old_id];
-            }
+            res[field.field_id] = this.default_field_from_api_version(e[old_id], field);
         }
 
         return res;
@@ -923,12 +921,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    res[field.field_id + '_ndx'] = MatroidIndexHandler.getInstance().get_normalized_ranges(res[field.field_id] as IRange[]);
                     res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_hourrange:
+                    res[field.field_id + '_ndx'] = MatroidIndexHandler.getInstance().get_normalized_range(res[field.field_id] as IRange);
                     res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
                     break;
 
@@ -944,6 +944,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                         let trans_ = e[field.field_id] ? field_table.default_get_bdd_version(e[field.field_id]) : null;
                         res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
+                    } else if (e[field.field_id]) {
+                        res[field.field_id] = JSON.stringify(e[field.field_id]);
                     } else {
                         res[field.field_id] = null;
                     }
@@ -1017,20 +1019,68 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    let field_index_n = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
+                    if (field_index_n != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    }
                     break;
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    let field_index_t = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
+                    if (field_index_t != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
+                    }
+                    break;
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    let field_index_h = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_h != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
+                    }
+                    break;
+
+
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
-                    // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
-                    //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    let field_index_ns = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_ns != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ns, NumRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    }
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    let field_index_ts = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_ts != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ts, TSRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    }
                     break;
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    let field_index_hs = e[field.field_id.toLowerCase() + '_ndx'] ? e[field.field_id.toLowerCase() + '_ndx'] : e[field.field_id + '_ndx'];
+                    // TODO FIXME DELETE RETROCOMPATIBILITE TEMPORAIRE
+                    // KEEP res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
+                    if (field_index_hs != null) {
+                        res[field.field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_hs, HourRange.RANGE_TYPE);
+                    } else {
+                        res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_day:
@@ -1043,14 +1093,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (!((field_value === null) || (typeof field_value === 'undefined'))) {
                         res[field.field_id] = field_value.map((ts: string) => ConversionHandler.forceNumber(ts));
                     }
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
@@ -1074,7 +1116,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
                         res[field.field_id] = trans_ ? field_table.defaultforceNumeric(trans_) : null;
                     } else {
-                        res[field.field_id] = null;
+                        res[field.field_id] = trans_;
                     }
                     break;
 

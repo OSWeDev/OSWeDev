@@ -5,6 +5,7 @@ import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/Data
 import DataFilterOption from '../../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ArrayHandler from '../../../../shared/tools/ArrayHandler';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -139,6 +140,17 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     @Watch('tmp_filter_active_options')
     public onchange_tmp_filter_active_options() {
+
+        /**
+         * On check avant le commit si il y a une modification de la sélection
+         */
+        let old_value = this.filter_active_options;
+        let new_value = this.tmp_filter_active_options;
+
+        if (ArrayHandler.is_same(old_value, new_value)) {
+            return;
+        }
+
         if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
             this.$store.commit(this.internal_store_filter_commit_uid, this.tmp_filter_active_options);
         } else {
