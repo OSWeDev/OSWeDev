@@ -8,6 +8,7 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleDataImportServer from '../ModuleDataImportServer';
+import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -30,10 +31,13 @@ export default class DataImportBGThread implements IBGThread {
 
     private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by start_date asc limit 1;';
     private static importing_dih_id_param_name: string = 'DataImportBGThread.importing_dih_id';
+    private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
+
+    private waiting_for_empty_vars_vos_cud: boolean = false;
 
     private constructor() {
     }
@@ -45,6 +49,23 @@ export default class DataImportBGThread implements IBGThread {
     public async work(): Promise<number> {
 
         try {
+
+            /**
+             * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
+             */
+            let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true);
+            if (wait_for_empty_vars_vos_cud) {
+                if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
+                    ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
+                    this.waiting_for_empty_vars_vos_cud = true;
+                    return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
+                }
+
+                if (this.waiting_for_empty_vars_vos_cud) {
+                    this.waiting_for_empty_vars_vos_cud = false;
+                    ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud OK');
+                }
+            }
 
 
             // Objectif, on prend l'import en attente le plus ancien, et on l'importe tout simplement.

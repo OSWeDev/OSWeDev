@@ -76,7 +76,7 @@ export default class VarsComputeController {
                 let dag: DAG<VarDAGNode> = await this.create_tree(vars_datas, ds_cache);
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", false);
 
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OK...');
+                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OK... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
                 /**
                  * On a l'arbre. On charge les données qui restent à charger
