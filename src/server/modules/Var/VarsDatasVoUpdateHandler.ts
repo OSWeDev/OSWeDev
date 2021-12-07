@@ -38,6 +38,7 @@ export default class VarsDatasVoUpdateHandler {
 
     public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
 
+    public static TASK_NAME_has_vos_cud: string = 'VarsDatasVoUpdateHandler.has_vos_cud';
     public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
 
     /**
@@ -65,6 +66,7 @@ export default class VarsDatasVoUpdateHandler {
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, this.has_vos_cud.bind(this));
     }
 
     /**
@@ -179,6 +181,19 @@ export default class VarsDatasVoUpdateHandler {
             },
             this
         );
+    }
+
+    public async has_vos_cud(): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, resolve)) {
+                return;
+            }
+
+            resolve(this.ordered_vos_cud && (this.ordered_vos_cud.length > 0));
+        });
     }
 
     public async update_param() {
