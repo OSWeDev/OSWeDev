@@ -17,14 +17,14 @@ include ../../../../views/mixins/loading.pug
                     template(v-if="segment_states && segment && segment_states[segment.index]")
                         .col-sm.border-top.rounded-top.border-dark.data_import_segment_overview(v-if='segment_states[segment.index] == state_unavail' :class='{"is_not_selected_segment": is_selected_segment[segment.index] != true}')
 
-                            .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
+                            .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.index) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
-                        .col-sm.border-top.rounded-top.data_import_segment_overview(v-else, 
+                        .col-sm.border-top.rounded-top.data_import_segment_overview(v-else,
                             :class='{"is_not_selected_segment": is_selected_segment[segment.index] != true, "border-success": segment_states[segment.index] == state_ok, "border-danger": segment_states[segment.index] == state_ko, "border-secondary": segment_states[segment.index] == state_none, "border-warning": segment_states[segment.index] == state_warn, "border-primary": segment_states[segment.index] == state_info}')
 
-                            .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
+                            .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.index) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
@@ -53,12 +53,15 @@ include ../../../../views/mixins/loading.pug
                     .row
                         .col-sm.multiple_segments_input_file
                             fileinput(key="fileinput_multiple" :muted="true" :options="dropzoneOptions_multiple" @uploaded="uploadedFile(null, ...arguments)")
-        
+
         #import_modal.modal.fade
             .modal-dialog
                 .modal-content
                     .modal-header(v-if="selected_segment")
-                        h4.modal-title {{ selected_segment.dateIndex }}
+                        h4.modal-title
+                            span(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(selected_segment.index) }}
+                            span(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(selected_segment.dateIndex) }}
+                            span(v-if='getsegment_type == segment_type_day') {{ formatDate_FullyearMonthDay(selected_segment.dateIndex) }}
                         button.btn.close(@click="closeModal()") &times;
                     .modal-body(v-if="selected_segment")
                         include ../base/DataImportModal.pug
