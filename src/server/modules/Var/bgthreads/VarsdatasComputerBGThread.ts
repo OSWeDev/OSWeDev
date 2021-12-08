@@ -92,7 +92,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         return new Promise(async (resolve, reject) => {
 
+            let thrower = (error) => {
+                //TODO fixme do something to inform user
+                ConsoleHandler.getInstance().error('failed switch_force_1_by_1_computation' + error);
+                resolve(true);
+            };
+
             if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, resolve)) {
                 return;
@@ -107,7 +114,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         return new Promise(async (resolve, reject) => {
 
+            let thrower = (error) => {
+                //TODO fixme do something to inform user
+                ConsoleHandler.getInstance().error('failed switch_add_computation_time_to_learning_base' + error);
+                resolve(true);
+            };
+
             if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, resolve)) {
                 return;
@@ -395,7 +409,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         return new Promise(async (resolve, reject) => {
 
+            let thrower = (error) => {
+                //TODO fixme do something to inform user
+                ConsoleHandler.getInstance().error('failed force_run_asap_throttled' + error);
+                resolve(true);
+            };
+
             if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsdatasComputerBGThread.TASK_NAME_force_run_asap, resolve)) {
                 return;

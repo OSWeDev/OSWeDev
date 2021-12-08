@@ -34,6 +34,8 @@ export default class ModuleForkServer extends ModuleServerBase {
 
     private static instance: ModuleForkServer = null;
 
+    public is_killing: boolean = false;
+
     private constructor() {
         super(ModuleFork.getInstance().name);
     }
@@ -51,6 +53,7 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     public async kill_process(throttle: number = 10) {
+        this.is_killing = true;
         VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
 
         while (throttle > 0) {
@@ -85,6 +88,14 @@ export default class ModuleForkServer extends ModuleServerBase {
             return false;
         }
 
+        if (msg.throw_error) {
+            ConsoleHandler.getInstance().error('handle_taskresult_message:' + msg.throw_error + ':' +
+                msg.callback_id + ':' + msg.message_type + ':' + JSON.stringify(msg.message_content));
+            if (!!ForkedTasksController.getInstance().registered_task_result_throwers[msg.callback_id]) {
+                ForkedTasksController.getInstance().registered_task_result_throwers[msg.callback_id](msg.throw_error);
+            }
+            return true;
+        }
         ForkedTasksController.getInstance().registered_task_result_resolvers[msg.callback_id](msg.message_content);
         return true;
     }
@@ -122,6 +133,19 @@ export default class ModuleForkServer extends ModuleServerBase {
             (!ForkedTasksController.getInstance().process_registered_tasks[msg.message_content]) ||
             (!BGThreadServerController.getInstance().valid_bgthreads_names[msg.bgthread])) {
             return false;
+        }
+
+        /**
+         * Si un kill est en cours on throw une erreur ici pour répondre à la demande le plus vite possible
+         */
+        if (this.is_killing) {
+            ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
+            if (msg.callback_id) {
+                ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
+            } else {
+                throw new Error('KILLING TASK HANDLER');
+            }
+            return true;
         }
 
         let res;

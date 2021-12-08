@@ -310,6 +310,15 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
         let field = moduletable.get_field_by_id(update_field_id);
 
+        // Si le champs modifié impact un filtrage, on doit pas faire évoluer l'offset
+        let change_offset = true;
+        for (let field_id in get_active_field_filters[api_type_id]) {
+            if (field_id == update_field_id) {
+                change_offset = false;
+                break;
+            }
+        }
+
         if (!field.is_readonly) {
             while (might_have_more) {
 
@@ -325,7 +334,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
 
                 might_have_more = (vos.length >= limit);
-                offset += limit;
+                offset += change_offset ? limit : 0;
             }
         }
     }

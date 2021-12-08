@@ -804,7 +804,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve)) {
+                reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve)) {
                 return;
             }
 

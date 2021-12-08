@@ -113,9 +113,6 @@ export default class TSTZInputComponent extends VueComponentBase {
             case TimeSegment.TYPE_WEEK:
                 date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_WEEK), 'DD/MM/YYYY', false) + ' 00:00:00';
                 break;
-            case TimeSegment.TYPE_DAY:
-                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY), 'DD/MM/YYYY', false) + ' 00:00:00';
-                break;
             case TimeSegment.TYPE_HOUR:
                 date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:', false) + '00:00';
                 break;
@@ -124,6 +121,10 @@ export default class TSTZInputComponent extends VueComponentBase {
                 break;
             case TimeSegment.TYPE_SECOND:
                 date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY) + hour_ts, 'DD/MM/YYYY HH:mm:ss', false);
+                break;
+            default:
+            case TimeSegment.TYPE_DAY:
+                date = Dates.format(Dates.startOf(this.date_value.getTime() / 1000, TimeSegment.TYPE_DAY), 'DD/MM/YYYY', false) + ' 00:00:00';
                 break;
         }
 

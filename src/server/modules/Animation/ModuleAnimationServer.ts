@@ -26,6 +26,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -347,13 +348,18 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             // insertion en base pour pouvouvoir faire le calcul de la reussite apres qui demande une end_date sur les usermodules
             await ModuleDAO.getInstance().insertOrUpdateVO(res);
 
-            let data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
-                VarDayPrctReussiteAnimationController.getInstance().varConf.name,
-                true,
-                theme_id_ranges,
-                [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
-                [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
-            ));
+            let data = null;
+            try {
+                data = await VarsServerCallBackSubsController.getInstance().get_var_data(ThemeModuleDataRangesVO.createNew(
+                    VarDayPrctReussiteAnimationController.getInstance().varConf.name,
+                    true,
+                    theme_id_ranges,
+                    [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
+                    [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
+                ));
+            } catch (error) {
+                ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
+            }
             res.prct_reussite = (data && data.value) ? data.value : 0;
         }
 

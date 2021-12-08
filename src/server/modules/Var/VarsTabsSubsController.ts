@@ -154,7 +154,7 @@ export default class VarsTabsSubsController {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                VarsTabsSubsController.TASK_NAME_filter_by_subs, resolve, var_datas)) {
+                reject, VarsTabsSubsController.TASK_NAME_filter_by_subs, resolve, var_datas)) {
                 return;
             }
 

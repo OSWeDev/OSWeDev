@@ -488,7 +488,7 @@ export default class PushDataServerController {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
+                reject, PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
                 return;
             }
 

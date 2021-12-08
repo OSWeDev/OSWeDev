@@ -187,6 +187,7 @@ export default class VarsDatasVoUpdateHandler {
         return new Promise(async (resolve, reject) => {
 
             if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, resolve)) {
                 return;
@@ -251,7 +252,12 @@ export default class VarsDatasVoUpdateHandler {
                     /**
                      * On priorise les abonnements actuels
                      */
-                    let registered_var_datas: VarDataBaseVO[] = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                    let registered_var_datas: VarDataBaseVO[] = [];
+                    try {
+                        registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                    } catch (error) {
+                        ConsoleHandler.getInstance().error('find_invalid_datas_and_push_for_update:filter_by_subs:' + error + ':FIXME do we need to handle this ?');
+                    }
                     let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas, registered_var_datas);
 
                     await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);

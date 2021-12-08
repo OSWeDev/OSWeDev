@@ -9,5 +9,5 @@ export default class TaskResultForkMessage implements IForkMessage {
     /**
      * @param callback_id permet de récupérer le résultat de l'éxécution via un message retour
      */
-    public constructor(public message_content: any, public callback_id: string) { }
+    public constructor(public message_content: any, public callback_id: string, public throw_error: string = null) { }
 }

@@ -20,6 +20,7 @@ export default class ForkedTasksController {
      * Local thread cache -----
      */
     public registered_task_result_resolvers: { [result_task_uid: number]: (result: any) => any } = {};
+    public registered_task_result_throwers: { [result_task_uid: number]: (result: any) => any } = {};
     private registered_tasks: { [task_uid: string]: (...task_params) => Promise<boolean> } = {};
 
     private result_task_prefix_thread_uid: number = process.pid;
@@ -71,11 +72,12 @@ export default class ForkedTasksController {
      * @param task_params
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
-    public async exec_self_on_main_process_and_return_value(task_uid: string, resolver, ...task_params): Promise<boolean> {
+    public async exec_self_on_main_process_and_return_value(thrower, task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!ForkServerController.getInstance().is_main_process) {
 
             let result_task_uid = this.get_result_task_uid();
             this.registered_task_result_resolvers[result_task_uid] = resolver;
+            this.registered_task_result_throwers[result_task_uid] = thrower;
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
             await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
@@ -118,11 +120,12 @@ export default class ForkedTasksController {
      * @param task_params
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
-    public exec_self_on_bgthread_and_return_value(bgthread: string, task_uid: string, resolver, ...task_params): boolean {
+    public exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): boolean {
         if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
 
             let result_task_uid = this.get_result_task_uid();
             this.registered_task_result_resolvers[result_task_uid] = resolver;
+            this.registered_task_result_throwers[result_task_uid] = thrower;
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
             ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid));

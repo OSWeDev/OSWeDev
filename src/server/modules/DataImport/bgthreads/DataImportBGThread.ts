@@ -54,19 +54,24 @@ export default class DataImportBGThread implements IBGThread {
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
              */
             let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true);
-            if (wait_for_empty_vars_vos_cud) {
-                if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
-                    ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
-                    this.waiting_for_empty_vars_vos_cud = true;
-                    return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
-                }
+            try {
+                if (wait_for_empty_vars_vos_cud) {
+                    if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
+                        ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
+                        this.waiting_for_empty_vars_vos_cud = true;
+                        return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
+                    }
 
-                if (this.waiting_for_empty_vars_vos_cud) {
-                    this.waiting_for_empty_vars_vos_cud = false;
-                    ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud OK');
+                    if (this.waiting_for_empty_vars_vos_cud) {
+                        this.waiting_for_empty_vars_vos_cud = false;
+                        ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud OK');
+                    }
                 }
+            } catch (error) {
+                ConsoleHandler.getInstance().error('DataImportBGThread:wait_for_empty_vars_vos_cud varbgthread did not answer. waiting for it to get back up');
+                this.waiting_for_empty_vars_vos_cud = true;
+                return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
-
 
             // Objectif, on prend l'import en attente le plus ancien, et on l'importe tout simplement.
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.

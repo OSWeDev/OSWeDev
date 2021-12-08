@@ -92,7 +92,7 @@ export default class ModuleTableField<T> {
     public is_unique: boolean = false;
     public is_readonly: boolean = false;
 
-    public format_localized_time: boolean = true;
+    public format_localized_time: boolean = false;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)

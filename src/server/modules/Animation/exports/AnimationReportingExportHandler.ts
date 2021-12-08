@@ -206,12 +206,24 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.utilisateur = user_id_ranges ? user_id_ranges.length.toString() : null;
         res.debut = null;
         res.fin = this.filterValue('fin', percent_module_finished);
-        let data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+        let data = null;
+        try {
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+        } catch (error) {
+            ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
+        }
+
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
         res.feedback = null;
         res.commentaire = null;
         res.support = null;
-        data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+
+        try {
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+        } catch (error) {
+            ConsoleHandler.getInstance().error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
+        }
+
         res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
 
         return res;
@@ -251,12 +263,25 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.utilisateur = all_user_by_ids[aum.user_id] ? all_user_by_ids[aum.user_id].name : null;
         res.debut = aum.start_date ? Dates.format(aum.start_date, 'DD/MM/YYYY HH:mm') : null;
         res.fin = aum.end_date ? Dates.format(aum.end_date, 'DD/MM/YYYY HH:mm') : null;
-        let data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges));
+
+        let data = null;
+        try {
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges));
+        } catch (error) {
+            ConsoleHandler.getInstance().error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
+        }
+
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
         res.feedback = (aum.like_vote != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.LIKE_VOTE_LABELS[aum.like_vote], user.lang_id) : null;
         res.commentaire = aum.commentaire;
         res.support = (aum.support != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.SUPPORT_LABELS[aum.support], user.lang_id) : null;
-        data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges));
+
+        try {
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges));
+        } catch (error) {
+            ConsoleHandler.getInstance().error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
+        }
+
         res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
 
         return res;

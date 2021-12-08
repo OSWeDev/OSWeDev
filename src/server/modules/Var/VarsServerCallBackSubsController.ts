@@ -54,7 +54,7 @@ export default class VarsServerCallBackSubsController {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve, params)) {
+                reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve, params)) {
                 return;
             }
 
@@ -106,7 +106,7 @@ export default class VarsServerCallBackSubsController {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                VarsServerCallBackSubsController.TASK_NAME_get_var_data, resolve, param)) {
+                reject, VarsServerCallBackSubsController.TASK_NAME_get_var_data, resolve, param)) {
                 return;
             }
 
