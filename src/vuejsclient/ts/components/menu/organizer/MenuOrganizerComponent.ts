@@ -73,6 +73,11 @@ export default class MenuOrganizerComponent extends VueComponentBase {
         this.advanced_selected_item_mode = !this.advanced_selected_item_mode;
     }
 
+    private switch_target_is_routename() {
+        this.selected_item.target_is_routename = !this.selected_item.target_is_routename;
+        this.has_modif_selected = true;
+    }
+
     get selected_item_translatable_title() {
         return this.selected_item ? this.selected_item.translatable_title : null;
     }

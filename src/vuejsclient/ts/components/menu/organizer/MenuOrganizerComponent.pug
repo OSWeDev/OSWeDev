@@ -9,7 +9,7 @@
     //-     class-prop="class"
     //- )
     //-     template(slot-scope="{ item }")
-        
+
     //-         //- Handler
     //-         VueNestableHandle(:item="item")
     //-             i.fa.fa-bars
@@ -17,11 +17,11 @@
     //-         //- Content
     //-         span Item :: {{ item.text }}
 
-    .row 
+    .row
         .col-md-8
             .app_name_title {{ label('menu_organizer.app_name_title', { app_name : app_name }) }}
             Vuenestable(
-                v-model="nestable_items" 
+                v-model="nestable_items"
                 @change="changed_menu"
                 key-prop="id"
                 :max-depth="3"
@@ -31,7 +31,7 @@
 
                     Vuenestablehandle(:item="item")
                         i.fa.fa-bars.fa-fw(aria-hidden="true")
-                    
+
                     .item_content(:class='{ has_focus : (selected_item && (selected_item.id == item.id)) , hidden: item.hidden }' @click='select_menu(item)')
                         .menu_name {{ item.text }}
                         .menu_target(v-if="item.target") {{ item.target }}
@@ -39,7 +39,7 @@
         .col-md-4
 
             .add_menu_wrapper
-                .row 
+                .row
                     .col-md-12
                         .add(@click="add_menu")
                             i.fa.fa-plus.fa-fw(aria-hidden="true")
@@ -47,74 +47,74 @@
 
             template(v-if='selected_item && selected_item.id')
                 .selected_item_wrapper
-                    .unselect(@click='unselect') 
+                    .unselect(@click='unselect')
                         i.fa.fa-times.fa-fw(aria-hidden="true")
 
                     .row
-                        .col-md-12 
+                        .col-md-12
                             .label {{ label('menu_organizer.selected_item.label') }}
                             Inlinetranslatabletext(:code_text="selected_item_translatable_title" :is_editable="true")
 
                     .row
-                        .col-md-12 
+                        .col-md-12
                             .explaination {{ label('menu_organizer.selected_item.explaination') }}
-                    
+
                     .row
-                        .col-md-12 
+                        .col-md-12
                             .label {{ label('menu_organizer.hidden.label') }}
                             toggle-button(
-                                @change="switch_selected_hidden" 
-                                :value="selected_item.hidden" 
+                                @change="switch_selected_hidden"
+                                :value="selected_item.hidden"
                                 :sync="true"
                                 :width="60"
                                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
                     .row
-                        .col-md-12 
+                        .col-md-12
                             .label {{ label('menu_organizer.advanced_selected_item_mode.label') }}
                             toggle-button(
                                 @change="switch_advanced_selected_item_mode"
-                                :value="advanced_selected_item_mode" 
+                                :value="advanced_selected_item_mode"
                                 :sync="true"
                                 :width="60"
                                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
                     template(v-if='advanced_selected_item_mode')
                         .row
-                            .col-md-12 
+                            .col-md-12
                                 .label {{ label('menu_organizer.fa_class.label') }}
                                 input(type='text' v-model='selected_item.fa_class' @input='changed_selected')
                         .row
-                            .col-md-12 
+                            .col-md-12
                                 .label {{ label('menu_organizer.target.label') }}
                                 input(type='text' v-model='selected_item.target' @input='changed_selected')
 
                         .row
-                            .col-md-12 
+                            .col-md-12
                                 .label {{ label('menu_organizer.target_is_routename.label') }}
                                 toggle-button(
-                                    @change="changed_selected" 
-                                    :value="selected_item.target_is_routename" 
+                                    @change="switch_target_is_routename"
+                                    :value="selected_item.target_is_routename"
                                     :sync="true"
                                     :width="60"
                                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
                         .row
-                            .col-md-12 
+                            .col-md-12
                                 .label {{ label('menu_organizer.target_route_params.label') }}
                                 input(type='text' v-model='selected_item.target_route_params' @input='changed_selected')
                         .row
-                            .col-md-12 
+                            .col-md-12
                                 .label {{ label('menu_organizer.access_policy_name.label') }}
                                 input(type='text' v-model='selected_item.access_policy_name' @input='changed_selected')
-                    
+
                     template(v-if='has_modif_selected')
-                        .row 
+                        .row
                             .col-md-12
                                 .save(@click="update_selected")
                                     i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.save_selected') }}
-                        .row 
+                        .row
                             .col-md-12
                                 .cancel(@click="reload_selected")
                                     i.fa.fa-refresh.fa-fw(aria-hidden="true")
@@ -123,21 +123,21 @@
             template(v-if='(!selected_item) && app_names && !!app_names.length')
                 .select_app_wrapper
                     .row
-                        .col-md-12 
+                        .col-md-12
                             .select_app_name
                                 .label {{ label('menu_organizer.select_app_name') }}
-                                .input_wrapper 
+                                .input_wrapper
                                     select(v-model='app_name')
                                         option(v-for='app_name_ in app_names') {{ app_name_ }}
 
             template(v-if='has_modif')
                 .update_cancel_menu_wrapper
-                    .row 
+                    .row
                         .col-md-12
                             .save(@click="update_db_menu")
                                 i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.save') }}
-                    .row 
+                    .row
                         .col-md-12
                             .cancel(@click="reload_from_db")
                                 i.fa.fa-refresh.fa-fw(aria-hidden="true")
