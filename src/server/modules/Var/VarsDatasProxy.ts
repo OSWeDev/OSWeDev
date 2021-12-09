@@ -44,6 +44,7 @@ export default class VarsDatasProxy {
     public static TASK_NAME_prepend_var_datas = 'VarsDatasProxy.prepend_var_datas';
     public static TASK_NAME_append_var_datas = 'VarsDatasProxy.append_var_datas';
     public static TASK_NAME_update_existing_buffered_older_datas = 'VarsDatasProxy.update_existing_buffered_older_datas';
+    public static TASK_NAME_has_cached_vars_waiting_for_compute = 'VarsDatasProxy.has_cached_vars_waiting_for_compute';
 
     /**
      * Multithreading notes :
@@ -79,6 +80,30 @@ export default class VarsDatasProxy {
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_prepend_var_datas, this.prepend_var_datas.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_append_var_datas, this.append_var_datas.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, this.update_existing_buffered_older_datas.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_has_cached_vars_waiting_for_compute, this.has_cached_vars_waiting_for_compute.bind(this));
+    }
+
+    public has_cached_vars_waiting_for_compute(): Promise<boolean> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsDatasProxy.TASK_NAME_has_cached_vars_waiting_for_compute, resolve)) {
+                return;
+            }
+
+            for (let i in this.vars_datas_buffer) {
+                let var_data_wrapper = this.vars_datas_buffer[i];
+
+                if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
+                    resolve(true);
+                    return;
+                }
+            }
+            resolve(false);
+        });
     }
 
     public has_cached_index(index: string) {
@@ -733,7 +758,8 @@ export default class VarsDatasProxy {
 
                 for (let i in this.vars_datas_buffer) {
 
-                    if ((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) {
+                    if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
+                        (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
                         ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
                         return res;
                     }
@@ -756,20 +782,20 @@ export default class VarsDatasProxy {
                             }
                         }
 
-                        // // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
-                        // if ((estimated_ms_var > (client_request_estimated_ms_limit * 100)) && (nb_vars > 0)) {
-                        //     continue;
-                        // }
+                        // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
+                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
+                            continue;
+                        }
 
                         nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
                         res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
                         estimated_ms += estimated_ms_var;
                         var_data_wrapper.is_requested = true;
 
-                        // // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
-                        // if ((estimated_ms_var > (client_request_estimated_ms_limit * 100)) && (nb_vars == 1)) {
-                        //     break;
-                        // }
+                        // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
+                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
+                            break;
+                        }
 
                         continue;
                     }
@@ -861,7 +887,9 @@ export default class VarsDatasProxy {
                         let start_time = Dates.now();
                         let real_start_time = start_time;
 
-                        while (may_have_more_datas && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars))) {
+                        while (may_have_more_datas &&
+                            (((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars)) &&
+                                (params.bg_estimated_ms < params.bg_estimated_ms_limit * 10000))) {
 
                             let actual_time = Dates.now();
 
@@ -893,7 +921,8 @@ export default class VarsDatasProxy {
                             may_have_more_datas = (vars_datas_tmp && (vars_datas_tmp.length == limit));
 
                             for (let vars_datas_tmp_i in vars_datas_tmp) {
-                                if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                                if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
+                                    (params.bg_estimated_ms > params.bg_estimated_ms_limit * 10000)) {
                                     return;
                                 }
 
@@ -919,40 +948,40 @@ export default class VarsDatasProxy {
                                     continue;
                                 }
 
-                                // // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
-                                // if ((estimated_ms_var > (params.bg_estimated_ms_limit * 100)) && (params.bg_nb_vars > 0)) {
-                                //     continue;
-                                // }
+                                // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
+                                if ((estimated_ms_var > (params.bg_estimated_ms_limit * 10000)) && (params.bg_nb_vars > 0)) {
+                                    continue;
+                                }
 
                                 params.bg_estimated_ms += estimated_ms_var;
                                 params.bg_nb_vars += vars_datas[var_data_tmp.index] ? 0 : 1;
                                 vars_datas[var_data_tmp.index] = var_data_tmp;
 
-                                // // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
-                                // if ((estimated_ms_var > (params.bg_estimated_ms_limit * 100)) && (params.bg_nb_vars == 1)) {
-                                //     break;
-                                // }
+                                // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
+                                if ((estimated_ms_var > (params.bg_estimated_ms_limit * 10000)) && (params.bg_nb_vars == 1)) {
+                                    return;
+                                }
                             }
                         }
-                        // if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
-                        //     (params.bg_estimated_ms > params.bg_estimated_ms_limit * 100)) {
-                        //     return;
-                        // }
-                        if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                        if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
+                            (params.bg_estimated_ms > params.bg_estimated_ms_limit * 10000)) {
                             return;
                         }
+                        // if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                        //     return;
+                        // }
                     }, (node: VarDAGNode) => {
-                        // return ((params.bg_estimated_ms <= params.bg_estimated_ms_limit * 100) && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars)));
-                        return ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars));
+                        return ((params.bg_estimated_ms <= params.bg_estimated_ms_limit * 10000) && ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars)));
+                        // return ((params.bg_estimated_ms < params.bg_estimated_ms_limit) || (params.bg_nb_vars < params.bg_min_nb_vars));
                     });
 
-                    // if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
-                    //     (params.bg_estimated_ms > params.bg_estimated_ms_limit * 100)) {
-                    //     return vars_datas;
-                    // }
-                    if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
-                        return;
+                    if (((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) ||
+                        (params.bg_estimated_ms > params.bg_estimated_ms_limit * 10000)) {
+                        return vars_datas;
                     }
+                    // if ((params.bg_estimated_ms >= params.bg_estimated_ms_limit) && (params.bg_nb_vars >= params.bg_min_nb_vars)) {
+                    //     return;
+                    // }
                 }
                 return vars_datas;
             },
@@ -1105,6 +1134,11 @@ export default class VarsDatasProxy {
                 return 1;
             }
 
+            // Ensuite par cardinal
+            if (cardinaux[a.var_data.index] != cardinaux[b.var_data.index]) {
+                return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
+            }
+
             // Ensuite par hauteur dans l'arbre
             if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
                 VarsServerController.getInstance().init_varcontrollers_dag_depths();
@@ -1117,8 +1151,23 @@ export default class VarsDatasProxy {
                 return depth_a - depth_b;
             }
 
-            // Enfin par cardinal
-            return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
+            // Enfin par index juste pour éviter des égalités
+            return (a.var_data.index < b.var_data.index) ? -1 : 1;
+
+            // // Ensuite par hauteur dans l'arbre
+            // if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
+            //     VarsServerController.getInstance().init_varcontrollers_dag_depths();
+            // }
+
+            // let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_data.var_id];
+            // let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_data.var_id];
+
+            // if (depth_a != depth_b) {
+            //     return depth_a - depth_b;
+            // }
+
+            // // Enfin par cardinal
+            // return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
         });
     }
 

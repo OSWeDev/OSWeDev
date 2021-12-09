@@ -37,6 +37,7 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 export default class VarsDatasVoUpdateHandler {
 
     public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+    public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
     public static TASK_NAME_has_vos_cud: string = 'VarsDatasVoUpdateHandler.has_vos_cud';
     public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
@@ -251,6 +252,7 @@ export default class VarsDatasVoUpdateHandler {
 
                     /**
                      * On priorise les abonnements actuels
+                     *  MODIF test : on ajoute un param pour proposer de supprimer plutôt les params qui ne sont pas actuellement observés et on recalcul ceux qui sont actuellement suivis
                      */
                     let registered_var_datas: VarDataBaseVO[] = [];
                     try {
@@ -260,8 +262,22 @@ export default class VarsDatasVoUpdateHandler {
                     }
                     let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas, registered_var_datas);
 
-                    await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);
-                    await VarsDatasProxy.getInstance().append_var_datas(unregistered_var_datas);
+                    let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
+
+                    if (registered_var_datas && registered_var_datas.length) {
+                        await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);
+                        ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
+                    }
+
+                    if (unregistered_var_datas && unregistered_var_datas.length) {
+                        if (delete_instead_of_invalidating_unregistered_var_datas) {
+                            await ModuleDAO.getInstance().deleteVOs(unregistered_var_datas);
+                            ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                        } else {
+                            await VarsDatasProxy.getInstance().append_var_datas(unregistered_var_datas);
+                            ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                        }
+                    }
                 }
             },
             this

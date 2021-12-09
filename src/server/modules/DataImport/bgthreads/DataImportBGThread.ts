@@ -15,6 +15,7 @@ import ModuleContextFilter from '../../../../shared/modules/ContextFilter/Module
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import VarsDatasProxy from '../../Var/VarsDatasProxy';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -32,12 +33,14 @@ export default class DataImportBGThread implements IBGThread {
     private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by start_date asc limit 1;';
     private static importing_dih_id_param_name: string = 'DataImportBGThread.importing_dih_id';
     private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
+    private static wait_for_empty_cache_vars_waiting_for_compute_param_name: string = 'DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute';
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
     private waiting_for_empty_vars_vos_cud: boolean = false;
+    private waiting_for_empty_cache_vars_waiting_for_compute: boolean = false;
 
     private constructor() {
     }
@@ -196,6 +199,30 @@ export default class DataImportBGThread implements IBGThread {
                 return true;
 
             case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
+
+                /**
+                 * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
+                 */
+                let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true);
+                try {
+                    if (wait_for_empty_cache_vars_waiting_for_compute) {
+                        if (await VarsDatasProxy.getInstance().has_cached_vars_waiting_for_compute()) {
+                            ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
+                            this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                            return false;
+                        }
+
+                        if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
+                            this.waiting_for_empty_cache_vars_waiting_for_compute = false;
+                            ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
+                        }
+                    }
+                } catch (error) {
+                    ConsoleHandler.getInstance().error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
+                    this.waiting_for_empty_cache_vars_waiting_for_compute = true;
+                    return false;
+                }
+
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
                 await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric);
