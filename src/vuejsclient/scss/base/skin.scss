@@ -1,7 +1,7 @@
 @import 'skin-variables';
 
-.display_inline_block{
-    display: inline-block;
+.display_inline_block {
+  display: inline-block;
 }
 
 .tooltip.vue-tooltip-theme {
@@ -229,12 +229,19 @@ i.fa.fa-spin:before {
       }
     }
   }
+
   &.disabled {
     background-color: #eeeeee;
     cursor: not-allowed;
   }
+
   &.hide {
-      display: none;
+    display: none;
+  }
+
+  .vdp-datepicker__clear-button {
+    position: absolute;
+    right: 10px;
   }
 }
 
@@ -320,6 +327,5 @@ i.fa.fa-spin:before {
 }
 
 .page-login {
-    overflow: hidden;
+  overflow: hidden;
 }
-

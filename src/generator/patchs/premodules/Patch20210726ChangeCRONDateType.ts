@@ -35,7 +35,7 @@ export default class Patch20210726ChangeCRONDateType implements IGeneratorWorker
 
     private async change_type_column_date_to_tstz(db: IDatabase<any>, table_full_name: string, column_name: string) {
         await db.none("alter table " + table_full_name + " add column " + column_name + "__tmp__ bigint;");
-        await db.none("update " + table_full_name + " set " + column_name + "__tmp__ = extract(epoch from " + column_name + ":: date);");
+        await db.none("update " + table_full_name + " set " + column_name + "__tmp__ = extract(epoch from " + column_name + "::timestamp without time zone);");
         await db.none("alter table " + table_full_name + " drop column " + column_name + ";");
         await db.none("alter table " + table_full_name + " rename column " + column_name + "__tmp__ to " + column_name + ";");
     }
