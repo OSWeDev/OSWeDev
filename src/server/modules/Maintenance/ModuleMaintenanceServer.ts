@@ -68,8 +68,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'Une opération de maintenance est prévue dans moins de 2H.',
-                de: 'Eine Wartung ist in weniger als 2 Stunden geplant.',
-                es: 'Se planea una operación de mantenimiento en menos de 2H.'
+                'de-de': 'Eine Wartung ist in weniger als 2 Stunden geplant.',
+                'es-es': 'Se planea una operación de mantenimiento en menos de 2H.'
             },
             ModuleMaintenance.MSG1_code_text
         ));
@@ -77,8 +77,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'Une opération de maintenance est imminente. Enregistrez votre travail.',
-                de: 'Ein Wartungsvorgang steht unmittelbar bevor. Speichern Sie Ihre Arbeit.',
-                es: 'Una operación de mantenimiento es inminente. Salva tu trabajo.'
+                'de-de': 'Ein Wartungsvorgang steht unmittelbar bevor. Speichern Sie Ihre Arbeit.',
+                'es-es': 'Una operación de mantenimiento es inminente. Salva tu trabajo.'
             },
             ModuleMaintenance.MSG2_code_text
         ));
@@ -86,8 +86,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'Une opération de maintenance est en cours, votre travail ne sera pas enregistré.',
-                de: 'Ein Wartungsvorgang wird ausgeführt, Ihre Arbeit wird nicht gespeichert.',
-                es: 'Una operación de mantenimiento está en progreso, su trabajo no se guardará.'
+                'de-de': 'Ein Wartungsvorgang wird ausgeführt, Ihre Arbeit wird nicht gespeichert.',
+                'es-es': 'Una operación de mantenimiento está en progreso, su trabajo no se guardará.'
             },
             ModuleMaintenance.MSG3_code_text
         ));
@@ -95,16 +95,16 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'L\'opération de maintenance est terminée',
-                de: 'Der Wartungsvorgang ist abgeschlossen',
-                es: 'La operación de mantenimiento está completa.'
+                'de-de': 'Der Wartungsvorgang ist abgeschlossen',
+                'es-es': 'La operación de mantenimiento está completa.'
             },
             ModuleMaintenance.MSG4_code_text
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Maintenance',
-            de: 'Wartung',
-            es: 'Mantenimiento'
+            'de-de': 'Wartung',
+            'es-es': 'Mantenimiento'
         }, 'menu.menuelements.admin.module_maintenance.___LABEL___'));
 
 

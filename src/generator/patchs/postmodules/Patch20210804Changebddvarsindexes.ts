@@ -2,6 +2,7 @@
 
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
+import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
 import VarsServerController from '../../../server/modules/Var/VarsServerController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
@@ -25,6 +26,11 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
+
+        /**
+         * On commence par vider le cache des vars - pas des imports
+         */
+        await ModuleVarServer.getInstance().delete_all_cache();
 
         /**
          * Pour tous les types de vars
