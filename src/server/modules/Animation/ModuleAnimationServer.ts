@@ -653,12 +653,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Désactiver mode édition' }, 'animation.inline_input_mode.on.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Total' }, 'animation.reporting.total.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', en: 'Import/Export Theme', es: 'Importar/Exportar Tema' }, 'menu.menuelements.importThemeAnimation.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'menu.menuelements.importModuleAnimation.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'menu.menuelements.importQRAnimation.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', en: 'Import/Export Theme', es: 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', en: 'Import/Export Module', es: 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', en: 'Import/Export Q&A', es: 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'menu.menuelements.importThemeAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'menu.menuelements.importModuleAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'menu.menuelements.importQRAnimation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Theme', 'en-us': 'Import/Export Theme', 'es-es': 'Importar/Exportar Tema' }, 'anim_import_theme_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export Module', 'en-us': 'Import/Export Module', 'es-es': 'Importar/Exportar Módulo' }, 'anim_import_module_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Import/Export QR', 'en-us': 'Import/Export Q&A', 'es-es': 'Importar/Exportar Q&A' }, 'anim_import_qr_import.___LABEL___'));
 
     }
 
