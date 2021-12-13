@@ -646,7 +646,7 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
-    public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
+    public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastLoggedSimple, msg_type, code_text, auto_read_if_connected)) {
             return;
@@ -665,13 +665,13 @@ export default class PushDataServerController {
             }
 
             promises.push((async () => {
-                await this.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected);
+                await this.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
         await Promise.all(promises);
     }
 
-    public async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
+    public async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastAllSimple, msg_type, code_text, auto_read_if_connected)) {
             return;
@@ -683,15 +683,15 @@ export default class PushDataServerController {
             let user = users[i];
 
             promises.push((async () => {
-                await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected);
+                await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
         await Promise.all(promises);
     }
 
-    public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
+    public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleSimple, role_name, msg_type, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_broadcastRoleSimple, role_name, msg_type, code_text, auto_read_if_connected, simple_notif_json_params)) {
             return;
         }
 
@@ -725,7 +725,7 @@ export default class PushDataServerController {
                 let user = users[i];
 
                 promises.push((async () => {
-                    await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected);
+                    await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
                 })());
             }
         } catch (error) {
@@ -789,7 +789,7 @@ export default class PushDataServerController {
     }
 
 
-    public async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS) {
+    public async notifySession(code_text: string, notif_type: number = NotificationVO.SIMPLE_SUCCESS, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySession, code_text, notif_type)) {
             return;
@@ -799,50 +799,50 @@ export default class PushDataServerController {
             let session: IServerUserSession = StackContext.getInstance().get('SESSION');
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
-                    null, null, notif_type, code_text, true);
+                    null, null, notif_type, code_text, true, simple_notif_json_params);
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
     }
 
-    public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
+    public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected, simple_notif_json_params);
     }
 
-    public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
+    public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected, simple_notif_json_params);
     }
 
-    public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
+    public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected, simple_notif_json_params);
     }
 
-    public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false) {
+    public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params);
     }
 
-    public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string): Promise<string> {
+    public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string, simple_notif_json_params: string = null): Promise<string> {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyPrompt, user_id, client_tab_id, code_text)) {
             return null;
@@ -860,6 +860,7 @@ export default class PushDataServerController {
             let still_waiting: boolean = true;
 
             notification.simple_notif_label = code_text;
+            notification.simple_notif_json_params = simple_notif_json_params;
             notification.simple_notif_type = null;
             notification.notification_type = NotificationVO.TYPE_NOTIF_PROMPT;
             notification.read = false;
@@ -904,7 +905,8 @@ export default class PushDataServerController {
         redirect_route: string,
         notif_route_params_name: string[],
         notif_route_params_values: string[],
-        auto_read_if_connected: boolean
+        auto_read_if_connected: boolean,
+        simple_notif_json_params: string = null
     ) {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
@@ -915,6 +917,7 @@ export default class PushDataServerController {
 
         notification.simple_notif_label = code_text;
         notification.notif_route = redirect_route;
+        notification.simple_notif_json_params = simple_notif_json_params;
         notification.simple_notif_type = msg_type;
         notification.notification_type = NotificationVO.TYPE_NOTIF_REDIRECT;
         notification.read = false;
@@ -928,7 +931,10 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
-    private async notifySimple(socket_ids: string[], user_id: number, client_tab_id: string, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
+    private async notifySimple(
+        socket_ids: string[], user_id: number, client_tab_id: string,
+        msg_type: number, code_text: string, auto_read_if_connected: boolean,
+        simple_notif_json_params: string = null) {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
@@ -937,6 +943,7 @@ export default class PushDataServerController {
         let notification: NotificationVO = new NotificationVO();
 
         notification.simple_notif_label = code_text;
+        notification.simple_notif_json_params = simple_notif_json_params;
         notification.simple_notif_type = msg_type;
         notification.notification_type = NotificationVO.TYPE_NOTIF_SIMPLE;
         notification.read = false;

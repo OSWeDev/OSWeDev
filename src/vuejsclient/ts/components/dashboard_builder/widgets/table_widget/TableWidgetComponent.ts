@@ -189,12 +189,12 @@ export default class TableWidgetComponent extends VueComponentBase {
         let update_vo = await ModuleDAO.getInstance().getVoById(type, id);
 
         if (update_vo && update_vo.id) {
-            this.get_Crudupdatemodalcomponent.open_modal(update_vo);
+            this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.update_visible_options.bind(this));
         }
     }
 
     private async open_create() {
-        this.get_Crudcreatemodalcomponent.open_modal(this.crud_activated_api_type);
+        this.get_Crudcreatemodalcomponent.open_modal(this.crud_activated_api_type, this.update_visible_options.bind(this));
     }
 
     get vocus_button(): boolean {
