@@ -1642,7 +1642,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
              * Soit on est sur un manyToOne soit sur un oneToMany.
              *  On teste d'abord le oneToMany potentiel
              */
-            if ((!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type]) && (field.manyToOne_target_moduletable.vo_type != targeted_type)) {
+            if ((!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type]) /*&& (field.manyToOne_target_moduletable.vo_type != targeted_type)*/) {
 
                 // On est a priori sur un oneToMany qui nécessite un join
                 joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type] = field.manyToOne_target_moduletable;
@@ -2292,7 +2292,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                                 /**
                                  * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
                                  */
-                                let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id);
+                                let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(joined_tables_by_vo_type), api_type_id);
                                 if (!path) {
                                     // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                                     continue;

@@ -342,6 +342,42 @@ export default class VarDataRefComponent extends VueComponentBase {
         return (this.show_import_aggregated && this.aggregated_var_param) ? true : false;
     }
 
+    get var_data_value_tooltip() {
+
+        if ((this.var_data == null) || (this.var_data_value == null)) {
+            return null;
+        }
+
+        let res = this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
+
+        let formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+
+        let value: any = this.var_data_value;
+
+        if (this.filter) {
+            let params = [value];
+
+            if (!!this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params);
+            }
+
+            value = this.filter.apply(null, params);
+        }
+
+        res += this.label('VarDataRefComponent.var_data_value_tooltip', {
+            value: value,
+            formatted_date: formatted_date,
+        });
+
+        if (!!this.var_data_value_import_tooltip) {
+            res += this.var_data_value_import_tooltip;
+        }
+
+        res += this.label('VarDataRefComponent.var_data_value_tooltip_suffix');
+
+        return res;
+    }
+
     get var_data_value_import_tooltip() {
 
         if (!this.var_data_value_is_imported && !this.is_show_import_aggregated) {

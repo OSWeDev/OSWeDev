@@ -213,7 +213,9 @@ export default class PushDataVueModule extends VueModuleBase {
         for (let i in notifications) {
             let notification = notifications[i];
 
-            let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+            let content = notification.simple_notif_json_params ?
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, notification.simple_notif_json_params) :
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             VueAppBase.instance_.vueInstance.snotify.prompt(content, {
                 timeout: 60000,
                 buttons: [
@@ -247,7 +249,9 @@ export default class PushDataVueModule extends VueModuleBase {
         for (let i in notifications) {
             let notification = notifications[i];
 
-            let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+            let content = notification.simple_notif_json_params ?
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, notification.simple_notif_json_params) :
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
                 case NotificationVO.SIMPLE_SUCCESS:
                     VueAppBase.instance_.vueInstance.snotify.success(content);
@@ -276,7 +280,9 @@ export default class PushDataVueModule extends VueModuleBase {
         for (let i in notifications) {
             let notification = notifications[i];
 
-            let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+            let content = notification.simple_notif_json_params ?
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label, notification.simple_notif_json_params) :
+                LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
             switch (notification.simple_notif_type) {
                 case NotificationVO.SIMPLE_SUCCESS:
                     VueAppBase.instance_.vueInstance.snotify.success(content);
