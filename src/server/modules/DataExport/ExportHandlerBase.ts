@@ -52,27 +52,9 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
     /**
      * Par défaut on utilise le compte utilisateur fourni pour définir la langue, et on envoi par mail avec un template simple
-     *  et un lien de téléchargement du fichier.
+     *  et un lien de téléchargement du fichier si le fichier existe
      */
     public async send(exhi: ExportHistoricVO): Promise<boolean> {
-        let default_export_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
-        return await this.sendmail(exhi, default_export_mail_subject, default_mail_html_template);
-    }
-
-    /**
-     * Par défaut on utilise le compte utilisateur fourni pour définir la langue, et on envoi par mail avec un template simple
-     *  et un lien de téléchargement du fichier.
-     */
-    public async send_error(exhi: ExportHistoricVO): Promise<boolean> {
-        let default_export_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT_ERROR);
-        return await this.sendmail(exhi, default_export_mail_subject, default_mail_html_template_error);
-    }
-
-    /**
-     * Par défaut on utilise le compte utilisateur fourni pour définir la langue, et on envoi par mail avec un template simple
-     *  et un lien de téléchargement du fichier.
-     */
-    public async sendmail(exhi: ExportHistoricVO, subject: TranslatableTextVO, content: string): Promise<boolean> {
 
         try {
 
@@ -82,12 +64,6 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             }
 
             let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
-
-            if (!exhi.exported_file_id) {
-                return false;
-            }
-
-            let exported_file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, exhi.exported_file_id);
 
             let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
             let user: UserVO = null;
@@ -101,16 +77,33 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 }
             }
 
+            let subject: TranslatableTextVO;
+            let content: string;
+            let mail_param: {} = {};
+
+            if (!!exhi.exported_file_id) {
+                let exported_file: FileVO = !!exhi.exported_file_id ? await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, exhi.exported_file_id) : null;
+                subject = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
+                content = default_mail_html_template;
+
+                mail_param = {
+                    EXPORT_TYPE_ID: exhi.export_type_id,
+                    FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
+                };
+
+            } else {
+                subject = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT_ERROR);
+                content = default_mail_html_template_error;
+
+                mail_param = {
+                    EXPORT_TYPE_ID: exhi.export_type_id
+                };
+            }
+
             let translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(
-                (await ModuleTranslation.getInstance().getTranslation(user.lang_id, subject.id)).translated,
-                user.lang_id, {
-                EXPORT_TYPE_ID: exhi.export_type_id,
-                FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
-            });
-            let prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(content, user.lang_id, {
-                EXPORT_TYPE_ID: exhi.export_type_id,
-                FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
-            });
+                (await ModuleTranslation.getInstance().getTranslation(user.lang_id, subject.id)).translated, user.lang_id, mail_param);
+
+            let prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(content, user.lang_id, mail_param);
 
             await ModuleMailerServer.getInstance().sendMail({
                 to: user.email,
