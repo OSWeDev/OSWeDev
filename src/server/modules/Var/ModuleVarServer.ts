@@ -236,8 +236,20 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Valeur brute importée ou saisie manuellement le {formatted_date} : {value}'
+            'fr-fr': '<b>Variable</b><hr><ul>'
+        }, 'VarDataRefComponent.var_data_value_tooltip_prefix.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '<li>Dernière mise à jour le <b>{formatted_date}</b><br><i>{value}</i></li>'
+        }, 'VarDataRefComponent.var_data_value_tooltip.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '<li>Import ou saisie le <b>{formatted_date}</b><br><i>{value}</i></li>'
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '</ul>'
+        }, 'VarDataRefComponent.var_data_value_tooltip_suffix.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SlowVars'
