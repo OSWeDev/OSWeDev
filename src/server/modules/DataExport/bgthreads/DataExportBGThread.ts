@@ -94,6 +94,11 @@ export default class DataExportBGThread implements IBGThread {
 
             let datas: IExportableDatas = await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].prepare_datas(exhi);
 
+            if (!datas || !datas.datas) {
+                await DataExportServerController.getInstance().export_handlers[exhi.export_type_id].send_error(exhi);
+                throw new Error('Echec lors de l\'export :no datas:' + exhi.id + ':' + exhi.export_type_id + ':export_to_uid:' + exhi.export_to_uid + ':export_params_stringified:' + exhi.export_params_stringified + ':');
+            }
+
             exhi.prepare_date = Dates.now();
             await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 

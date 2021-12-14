@@ -14,10 +14,12 @@ import default_mail_html_template from './default_export_mail_html_template.html
 import IExportableDatas from './interfaces/IExportableDatas';
 import IExportHandler from './interfaces/IExportHandler';
 import ModuleDataExportServer from './ModuleDataExportServer';
+import default_mail_html_template_error from './default_export_mail_html_template_error.html';
 
 export default abstract class ExportHandlerBase implements IExportHandler {
 
     public static CODE_TEXT_MAIL_SUBJECT_DEFAULT: string = 'export.default_mail.subject';
+    public static CODE_TEXT_MAIL_SUBJECT_DEFAULT_ERROR: string = 'export.default_mail_error.subject';
 
     protected constructor() { }
 
@@ -53,6 +55,24 @@ export default abstract class ExportHandlerBase implements IExportHandler {
      *  et un lien de téléchargement du fichier.
      */
     public async send(exhi: ExportHistoricVO): Promise<boolean> {
+        let default_export_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
+        return await this.sendmail(exhi, default_export_mail_subject, default_mail_html_template);
+    }
+
+    /**
+     * Par défaut on utilise le compte utilisateur fourni pour définir la langue, et on envoi par mail avec un template simple
+     *  et un lien de téléchargement du fichier.
+     */
+    public async send_error(exhi: ExportHistoricVO): Promise<boolean> {
+        let default_export_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT_ERROR);
+        return await this.sendmail(exhi, default_export_mail_subject, default_mail_html_template_error);
+    }
+
+    /**
+     * Par défaut on utilise le compte utilisateur fourni pour définir la langue, et on envoi par mail avec un template simple
+     *  et un lien de téléchargement du fichier.
+     */
+    public async sendmail(exhi: ExportHistoricVO, subject: TranslatableTextVO, content: string): Promise<boolean> {
 
         try {
 
@@ -68,7 +88,6 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             }
 
             let exported_file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, exhi.exported_file_id);
-            let default_export_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
 
             let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
             let user: UserVO = null;
@@ -83,12 +102,12 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             }
 
             let translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(
-                (await ModuleTranslation.getInstance().getTranslation(user.lang_id, default_export_mail_subject.id)).translated,
+                (await ModuleTranslation.getInstance().getTranslation(user.lang_id, subject.id)).translated,
                 user.lang_id, {
                 EXPORT_TYPE_ID: exhi.export_type_id,
                 FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
             });
-            let prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(default_mail_html_template, user.lang_id, {
+            let prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(content, user.lang_id, {
                 EXPORT_TYPE_ID: exhi.export_type_id,
                 FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
             });

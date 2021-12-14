@@ -5,4 +5,5 @@ export default interface IExportHandler {
     prepare_datas: (exhi: ExportHistoricVO) => Promise<IExportableDatas>;
     export: (exhi: ExportHistoricVO, datas: IExportableDatas) => Promise<boolean>;
     send: (exhi: ExportHistoricVO) => Promise<boolean>;
+    send_error: (exhi: ExportHistoricVO) => Promise<boolean>;
 }
