@@ -21,6 +21,8 @@ export default class DailyReportCronWorker implements ICronWorker {
     public static SENDINBLUE_TOMAIL_PARAM_NAME: string = 'DailyReportCronWorker.SENDINBLUE_TOMAIL';
     public static SENDINBLUE_TONAME_PARAM_NAME: string = 'DailyReportCronWorker.SENDINBLUE_TONAME';
 
+    public static MAILCATEGORY_DailyReportCronWorker = 'MAILCATEGORY.DailyReportCronWorker';
+
     public static getInstance() {
         if (!DailyReportCronWorker.instance) {
             DailyReportCronWorker.instance = new DailyReportCronWorker();
@@ -142,6 +144,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
             // Using SendInBlue
             await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                DailyReportCronWorker.MAILCATEGORY_DailyReportCronWorker,
                 SendInBlueMailVO.createNew(SEND_IN_BLUE_TONAME, SEND_IN_BLUE_TOMAIL),
                 SEND_IN_BLUE_TEMPLATE_ID,
                 ['PasswordInitialisation'],

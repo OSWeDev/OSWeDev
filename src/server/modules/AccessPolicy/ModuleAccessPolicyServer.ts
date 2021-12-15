@@ -1987,9 +1987,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async send_session_share_email(url: string, email: string) {
+    private async send_session_share_email(mail_category: string, url: string, email: string) {
         let SEND_IN_BLUE_TEMPLATE_ID = await ModuleParams.getInstance().getParamValueAsInt(ModuleAccessPolicy.PARAM_NAME_SESSION_SHARE_SEND_IN_BLUE_MAIL_ID);
         await SendInBlueMailServerController.getInstance().sendWithTemplate(
+            mail_category,
             SendInBlueMailVO.createNew(email, email),
             SEND_IN_BLUE_TEMPLATE_ID,
             ['session_share'],

@@ -172,6 +172,9 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         let crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
 
 
+        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
+        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);
+
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));

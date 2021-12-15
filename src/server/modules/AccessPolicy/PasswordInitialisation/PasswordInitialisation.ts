@@ -23,6 +23,8 @@ export default class PasswordInitialisation {
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.PasswordInitialisation';
     public static CODE_TEXT_SMS_initpwd: string = 'sms.pwd.initpwd';
 
+    public static MAILCATEGORY_PasswordInitialisation = 'MAILCATEGORY.PasswordInitialisation';
+
     public static getInstance() {
         if (!PasswordInitialisation.instance) {
             PasswordInitialisation.instance = new PasswordInitialisation();
@@ -80,6 +82,7 @@ export default class PasswordInitialisation {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    PasswordInitialisation.MAILCATEGORY_PasswordInitialisation,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     SEND_IN_BLUE_TEMPLATE_ID,
                     ['PasswordInitialisation'],

@@ -18,6 +18,8 @@ export default class FeedbackConfirmationMail {
     public static CODE_TEXT_MAIL_SUBJECT_FeedbackConfirmationMail: string = 'mails.feedback.confirmation.subject';
     public static PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.FeedbackConfirmationMail';
 
+    public static MAILCATEGORY_FeedbackConfirmationMail = 'MAILCATEGORY.FeedbackConfirmationMail';
+
     public static getInstance() {
         if (!FeedbackConfirmationMail.instance) {
             FeedbackConfirmationMail.instance = new FeedbackConfirmationMail();
@@ -53,6 +55,7 @@ export default class FeedbackConfirmationMail {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    FeedbackConfirmationMail.MAILCATEGORY_FeedbackConfirmationMail,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID,
                     ['FeedbackConfirmationMail'],

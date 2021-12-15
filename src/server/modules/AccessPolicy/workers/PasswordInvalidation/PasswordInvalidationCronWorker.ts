@@ -25,6 +25,10 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
     public static PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.REMIND2';
     public static PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.INVALIDATE';
 
+    public static MAILCATEGORY_PasswordInvalidation_RMD1 = 'MAILCATEGORY.PasswordInvalidation_RMD1';
+    public static MAILCATEGORY_PasswordInvalidation_RMD2 = 'MAILCATEGORY.PasswordInvalidation_RMD2';
+    public static MAILCATEGORY_PasswordInvalidation_INVALIDATE = 'MAILCATEGORY.PasswordInvalidation_INVALIDATE';
+
     public static getInstance() {
         if (!PasswordInvalidationCronWorker.instance) {
             PasswordInvalidationCronWorker.instance = new PasswordInvalidationCronWorker();
@@ -75,6 +79,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    PasswordInvalidationCronWorker.MAILCATEGORY_PasswordInvalidation_RMD1,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     REMIND1_SEND_IN_BLUE_TEMPLATE_ID,
                     ['REMIND1'],
@@ -117,6 +122,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    PasswordInvalidationCronWorker.MAILCATEGORY_PasswordInvalidation_RMD2,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     REMIND2_SEND_IN_BLUE_TEMPLATE_ID,
                     ['REMIND2'],
@@ -161,6 +167,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    PasswordInvalidationCronWorker.MAILCATEGORY_PasswordInvalidation_INVALIDATE,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID,
                     ['INVALIDATE'],
