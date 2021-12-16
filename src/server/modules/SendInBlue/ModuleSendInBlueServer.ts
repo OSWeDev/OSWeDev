@@ -112,6 +112,8 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     }
 
     private async sendinblue_event_webhook(event: SendInBlueMailEventVO) {
+        ConsoleHandler.getInstance().log('sendinblue_event_webhook:log param:' + JSON.stringify(event));
+
         if ((!event) || (!event.messageId)) {
             ConsoleHandler.getInstance().error('sendinblue_event_webhook:bad param:' + JSON.stringify(event));
             return;
@@ -124,7 +126,9 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         );
 
         if ((!mails) || (!mails.length)) {
-            ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+            // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
+            //  on log pas systématiquement quand on trouve pas le mail, c'est souvent normal
+            // ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
             return;
         }
 

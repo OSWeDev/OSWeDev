@@ -4,10 +4,8 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailCategoryVO from '../../../../shared/modules/Mailer/vos/MailCategoryVO';
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
-import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
-import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../VueComponentBase';
 import './MailStatsEventsComponent.scss';
 

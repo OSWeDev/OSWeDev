@@ -75,6 +75,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public show_import_aggregated: boolean;
 
+    @Prop({ default: false })
+    public show_tooltip: boolean;
+
     private entered_once: boolean = false;
 
     private var_data: VarDataValueResVO = null;
@@ -343,6 +346,10 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     get var_data_value_tooltip() {
+
+        if (!this.show_tooltip) {
+            return null;
+        }
 
         if ((this.var_data == null) || (this.var_data_value == null)) {
             return null;

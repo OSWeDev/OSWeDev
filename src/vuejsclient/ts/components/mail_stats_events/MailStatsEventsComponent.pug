@@ -1,7 +1,8 @@
 .mail_stats_events
-    template(v-if='is_loading')
-        .bubble_wrapper.loading
-            i.fa.fa-refresh.fa-spin(aria-hidden="true")
-    template(v-else)
-        .bubble_wrapper.loaded(v-tooltip.right='tooltip' :class='{[last_event_class]:true}' @click='sendinblue_refresh_mail_events')
-            i.fa(:class='{[fa_icon]:true}' aria-hidden="true")
+    template(v-if='category')
+        template(v-if='is_loading')
+            .bubble_wrapper.loading
+                i.fa.fa-refresh.fa-spin(aria-hidden="true")
+        template(v-else)
+            .bubble_wrapper.loaded(v-tooltip.right='tooltip' :class='{[last_event_class]:true}' @click='sendinblue_refresh_mail_events')
+                i.fa(:class='{[fa_icon]:true}' aria-hidden="true")
