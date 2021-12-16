@@ -41,11 +41,19 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     break;
                 case APIDefinition.API_TYPE_POST:
                     ConsoleHandler.getInstance().log("AJOUT API POST :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
-                    app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    if (api.csrf_protection) {
+                        app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    } else {
+                        app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    }
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
                     ConsoleHandler.getInstance().log("AJOUT API POST FOR GET :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
-                    app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    if (api.csrf_protection) {
+                        app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    } else {
+                        app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    }
                     break;
             }
         }

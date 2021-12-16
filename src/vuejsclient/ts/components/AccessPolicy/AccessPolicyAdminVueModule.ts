@@ -171,10 +171,6 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     protected async getUserCRUD(): Promise<CRUD<UserVO>> {
         let crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
 
-
-        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
-        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);
-
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));
@@ -216,6 +212,9 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+
+        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
+        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);
 
         crud.reset_newvo_after_each_creation = true;
         crud.hook_prepare_new_vo_for_creation = async (vo: IDistantVOBase) => {

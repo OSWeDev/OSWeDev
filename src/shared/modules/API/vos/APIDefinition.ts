@@ -17,6 +17,11 @@ export default abstract class APIDefinition<T, U> {
     public SERVER_HANDLER: (...params) => Promise<U> = null;
 
     /**
+     * ATTENTION permet de désactiver la protection CSRF sur une API, par exemple pour le webhook de sendinblue
+     */
+    public csrf_protection: boolean = true;
+
+    /**
      * @param access_policy_name Par défaut utiliser null pour indiquer pas de vérification, cas typique des apis de récupération des vos dont les droits
      *  sont gérés dans le dao directement => ce droit n'est checké QUE pour un appel d'api issu du client, pour protéger les apis des appels externes
      *  Côté serveur les vérifications se font toujours dans la fonction. ça peut être redondant du coup, mais ça évite de surcharger le serveur
@@ -33,5 +38,10 @@ export default abstract class APIDefinition<T, U> {
         public API_TYPES_IDS_involved: (string[]) | ((value: IAPIParamTranslator<T> | T) => string[]),
         public param_translator: IAPIParamTranslatorStatic<T> = null,
         public api_return_type: number = 0) {
+    }
+
+    public disable_csrf_protection(): APIDefinition<T, U> {
+        this.csrf_protection = false;
+        return this;
     }
 }

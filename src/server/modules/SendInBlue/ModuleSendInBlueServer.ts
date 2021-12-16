@@ -12,6 +12,7 @@ import SendInBlueMailEventVO from '../../../shared/modules/SendInBlue/vos/SendIn
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -114,34 +115,43 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     private async sendinblue_event_webhook(event: SendInBlueMailEventVO) {
         ConsoleHandler.getInstance().log('sendinblue_event_webhook:log param:' + JSON.stringify(event));
 
+        event.date = event['ts_event'];
+        event.messageId = event.messageId ? event.messageId : event["message-id"];
+
         if ((!event) || (!event.messageId)) {
             ConsoleHandler.getInstance().error('sendinblue_event_webhook:bad param:' + JSON.stringify(event));
             return;
         }
 
-        let mails: MailVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<MailVO>(MailVO.API_TYPE_ID,
-            null, null,
-            "message_id", [event.messageId],
-            "email", [event.email]
-        );
+        // Contexte serveur pour la suite
+        await StackContext.getInstance().runPromise(
+            { IS_CLIENT: false },
+            async () => {
 
-        if ((!mails) || (!mails.length)) {
-            // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
-            //  on log pas systématiquement quand on trouve pas le mail, c'est souvent normal
-            // ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
-            return;
-        }
+                let mails: MailVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<MailVO>(MailVO.API_TYPE_ID,
+                    null, null,
+                    "message_id", [event.messageId],
+                    "email", [event.email]
+                );
 
-        let mail = mails[0];
+                if ((!mails) || (!mails.length)) {
+                    // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
+                    //  on log pas systématiquement quand on trouve pas le mail, c'est souvent normal
+                    // ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+                    return;
+                }
 
-        if (!mail) {
-            ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
-            return;
-        }
+                let mail = mails[0];
 
-        let bdd_events = await ModuleDAO.getInstance().getVosByRefFieldIds<MailEventVO>(MailEventVO.API_TYPE_ID, 'mail_id', [mail.id]);
+                if (!mail) {
+                    ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+                    return;
+                }
 
-        await this.update_mail_event(mail, event, bdd_events);
+                let bdd_events = await ModuleDAO.getInstance().getVosByRefFieldIds<MailEventVO>(MailEventVO.API_TYPE_ID, 'mail_id', [mail.id]);
+
+                await this.update_mail_event(mail, event, bdd_events);
+            });
     }
 
     private async update_mail_event(mail: MailVO, event: SendInBlueMailEventVO, bdd_events: MailEventVO[]) {
