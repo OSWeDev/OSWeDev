@@ -154,9 +154,9 @@ export default class RangeHandler {
                 return segmented_min === RangeHandler.MIN_TS
                     || segmented_min === Dates.add(RangeHandler.MIN_TS, 1, range.segment_type);
             case NumRange.RANGE_TYPE:
-                return this.getSegmentedMin(range) == RangeHandler.MIN_INT;
+                return range.min == RangeHandler.MIN_INT;
             case HourRange.RANGE_TYPE:
-                return this.getSegmentedMin(range) == RangeHandler.MIN_HOUR;
+                return range.min == RangeHandler.MIN_HOUR;
         }
         return false;
     }
@@ -171,9 +171,9 @@ export default class RangeHandler {
                 return segmented_max === Dates.startOf(RangeHandler.MAX_TS, range.segment_type)
                     || segmented_max === Dates.startOf(Dates.add(RangeHandler.MAX_TS, -1, range.segment_type), range.segment_type);
             case NumRange.RANGE_TYPE:
-                return this.getSegmentedMax(range) == RangeHandler.MAX_INT;
+                return range.max == RangeHandler.MAX_INT;
             case HourRange.RANGE_TYPE:
-                return this.getSegmentedMax(range) == RangeHandler.MAX_HOUR;
+                return range.max == RangeHandler.MAX_HOUR;
         }
         return false;
     }

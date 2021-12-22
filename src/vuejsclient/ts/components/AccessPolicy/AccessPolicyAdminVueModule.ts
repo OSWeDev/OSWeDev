@@ -22,6 +22,7 @@ import CRUDComponentManager from '../crud/CRUDComponentManager';
 import MenuController from '../menu/MenuController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
+import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -43,6 +44,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
             ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS,
             ModuleAccessPolicy.POLICY_SENDINITPWD,
+            ModuleAccessPolicy.POLICY_SENDRECAPTURE,
             ModuleAccessPolicy.POLICY_IMPERSONATE
         ];
     }
@@ -188,6 +190,13 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new ComponentDatatableField(
                 'sendinitpwd',
                 SendInitPwdComponent,
+                'id'
+            ));
+        }
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDRECAPTURE]) {
+            crud.readDatatable.pushField(new ComponentDatatableField(
+                'sendrecapture',
+                SendRecaptureComponent,
                 'id'
             ));
         }

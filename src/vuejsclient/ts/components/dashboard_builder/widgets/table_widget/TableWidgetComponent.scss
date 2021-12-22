@@ -1,5 +1,9 @@
 .table_widget_component {
 
+    &.widget_component {
+        padding: 0em;
+    }
+    
     .is_busy {
         display: block;
         position: absolute;
@@ -34,6 +38,7 @@
 
     table {
 
+        position: relative;
         width: -webkit-fill-available;
         clear: both;
 
@@ -46,6 +51,11 @@
                 font-weight: 700;
                 color: #555;
                 cursor: pointer;
+
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                border-top: none;
 
                 .order_by {
                     float: left;

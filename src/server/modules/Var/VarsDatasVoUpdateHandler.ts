@@ -2,9 +2,12 @@
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -12,6 +15,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
@@ -212,8 +216,74 @@ export default class VarsDatasVoUpdateHandler {
         );
     }
 
+    private filter_varsdatas_cache_by_matroids_intersection(
+        api_type_id: string,
+        matroids: IMatroid[],
+        fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+
+        let res: VarDataBaseVO[] = [];
+
+        for (let i in matroids) {
+            res = res.concat(this.filter_varsdatas_cache_by_matroid_intersection(api_type_id, matroids[i], fields_ids_mapper));
+        }
+
+        return res;
+    }
+
+    private filter_varsdatas_cache_by_matroid_intersection(
+        api_type_id: string,
+        matroid: IMatroid,
+        fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+
+        let res: VarDataBaseVO[] = [];
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        for (let i in VarsDatasProxy.getInstance().vars_datas_buffer) {
+            let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer[i];
+
+            if (wrapper.var_data._type != api_type_id) {
+                continue;
+            }
+
+            if (!!(matroid as VarDataBaseVO).var_id) {
+
+                if (wrapper.var_data.var_id != (matroid as VarDataBaseVO).var_id) {
+                    continue;
+                }
+            }
+
+            let isok = true;
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+
+                let ranges: IRange[] = matroid[matroid_field.field_id];
+                let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+
+                if (!RangeHandler.getInstance().any_range_intersects_any_range(
+                    wrapper.var_data[field.field_id],
+                    ranges)) {
+                    isok = false;
+                    break;
+                }
+            }
+            if (!isok) {
+                continue;
+            }
+
+            res.push(wrapper.var_data);
+        }
+
+        return res;
+    }
+
     /**
-     * Recherche en BDD par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
+     * Recherche en BDD et en cache par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
      * @param intersectors_by_var_id
      */
     private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
@@ -229,8 +299,9 @@ export default class VarsDatasVoUpdateHandler {
                     }
 
                     let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
-
-                    let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, Object.values(intersectors), null);
+                    let list = Object.values(intersectors);
+                    let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
+                    var_datas = var_datas.concat(this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null));
 
                     /**
                      * Tout sauf les imports et les denied
@@ -265,11 +336,15 @@ export default class VarsDatasVoUpdateHandler {
                     let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
 
                     if (registered_var_datas && registered_var_datas.length) {
+                        registered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
+                            'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index));
                         await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);
-                        ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
+                        ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
                     }
 
                     if (unregistered_var_datas && unregistered_var_datas.length) {
+                        unregistered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
+                            'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index));
                         if (delete_instead_of_invalidating_unregistered_var_datas) {
                             await ModuleDAO.getInstance().deleteVOs(unregistered_var_datas);
                             ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
@@ -683,5 +758,6 @@ export default class VarsDatasVoUpdateHandler {
         this.last_registration = Dates.now();
 
         this.throttled_update_param();
+        VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
 }

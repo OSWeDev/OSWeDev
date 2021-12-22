@@ -65,7 +65,7 @@ export default class VarsDatasProxy {
     /**
      * Version liste pour prioriser les demandes
      */
-    private vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
+    public vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
     private vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     /**

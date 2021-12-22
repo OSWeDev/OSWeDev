@@ -1,22 +1,17 @@
 import { Component, Watch } from 'vue-property-decorator';
-import VarServerControllerBase from '../../../../../../../server/modules/Var/VarServerControllerBase';
 import IRange from '../../../../../../../shared/modules/DataRender/interfaces/IRange';
 import HourSegment from '../../../../../../../shared/modules/DataRender/vos/HourSegment';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
-import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import NumRangeComponentController from '../../../../ranges/numrange/NumRangeComponentController';
 import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleVarGetter } from '../../../store/VarStore';
 import { ModuleVarsDatasExplorerVuexAction } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerFiltersComponent.scss';
 

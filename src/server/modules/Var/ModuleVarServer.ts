@@ -248,6 +248,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Index + Entrée'
+        }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '</ul>'
         }, 'VarDataRefComponent.var_data_value_tooltip_suffix.___LABEL___'));
 
@@ -430,7 +434,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo]);
-            // VarsdatasComputerBGThread.getInstance().force_run_asap();
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -446,7 +449,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo_update_handler]);
-            // VarsdatasComputerBGThread.getInstance().force_run_asap();
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }

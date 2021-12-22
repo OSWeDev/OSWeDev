@@ -103,11 +103,6 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     private actual_query: string = null;
 
-    private mounted() {
-        // TODO A tester
-        this.$refs.multiselectRef['$refs'].search.setAttribute("autocomplete", "off");
-    }
-
     get filter_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
 
@@ -351,5 +346,10 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         }
 
         this.tmp_filter_active_options = res;
+    }
+
+    private mounted() {
+        // TODO A tester
+        this.$refs.multiselectRef['$refs'].search.setAttribute("autocomplete", "off");
     }
 }

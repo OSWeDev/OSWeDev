@@ -50,6 +50,7 @@ import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import UserRecapture from './UserRecapture/UserRecapture';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -139,6 +140,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
         POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
             'fr-fr': 'Envoi Mail init PWD'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_SENDRECAPTURE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_SENDRECAPTURE.group_id = group.id;
+        POLICY_SENDRECAPTURE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_SENDRECAPTURE.translatable_name = ModuleAccessPolicy.POLICY_SENDRECAPTURE;
+        POLICY_SENDRECAPTURE = await this.registerPolicy(POLICY_SENDRECAPTURE, new DefaultTranslation({
+            'fr-fr': 'Envoi Mail relance'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -563,6 +572,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.initpwd'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '%%ENV%%APP_TITLE%%: Pour réactiver votre compte Crescendo+, c\'est ici : %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        }, 'sms.pwd.recapture'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -631,6 +643,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SMS d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.oksms.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mail de relance'
+        }, 'fields.labels.ref.user.__component__sendrecapture.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Relance compte inactif'
+        }, 'MAILCATEGORY.UserRecapture.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mail de relance envoyé'
+        }, 'sendrecapture.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'SMS de relance envoyé'
+        }, 'sendrecapture.oksms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail init mdp'
@@ -718,6 +744,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_sendrecapture, this.sendrecapture.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwdsms, this.begininitpwdsms.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
@@ -831,6 +858,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 });
             }
         });
+    }
+
+    public async sendrecapture(text: string): Promise<void> {
+        if (!text) {
+            return;
+        }
+
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDRECAPTURE)) {
+            return;
+        }
+
+        await UserRecapture.getInstance().beginrecapture(text);
     }
 
     public async begininitpwd(text: string): Promise<void> {
