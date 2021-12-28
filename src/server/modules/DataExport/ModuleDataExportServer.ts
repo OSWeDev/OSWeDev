@@ -56,8 +56,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             'fr-fr': 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
         }, 'export.default_mail.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Cliquez sur le lien ci-dessous pour télcharger le fichier exporté.'
+            'fr-fr': "Echec de l\'export du fichier : %%VAR%%EXPORT_TYPE_ID%%"
+        }, 'export.default_mail_error.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cliquez sur le lien ci-dessous pour télécharger le fichier exporté.'
         }, 'export.default_mail.html'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Veuillez refaire votre demande d'export et nous excuser pour la gène occasionnée. Si le probleme persiste n'hésitez pas à nous en alerter"
+        }, 'export.default_mail_error.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Télécharger'
         }, 'export.default_mail.download'));
