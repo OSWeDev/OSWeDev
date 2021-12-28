@@ -8,6 +8,7 @@ import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGControll
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -322,6 +323,8 @@ export default class VarsComputeController {
             async () => {
 
                 let promises = [];
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+
                 for (let i in dag.nodes) {
                     let node = dag.nodes[i];
 
@@ -335,7 +338,7 @@ export default class VarsComputeController {
                     let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
                     // TODO FIXME promises.length
-                    if (promises.length >= 50) {
+                    if (promises.length >= max) {
                         await Promise.all(promises);
                         promises = [];
                     }

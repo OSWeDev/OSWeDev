@@ -31,12 +31,6 @@ export default class ModuleTableDBService {
 
         await this.create_or_update_datatable(moduleTable);
 
-        // On appelle le hook de fin d'installation
-        if (moduleTable.hook_datatable_install) {
-
-            return await moduleTable.hook_datatable_install(moduleTable);
-        }
-
         return true;
     }
 

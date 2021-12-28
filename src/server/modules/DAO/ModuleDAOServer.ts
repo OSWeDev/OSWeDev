@@ -1175,10 +1175,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let res: T[] = [];
         let promises = [];
 
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 10));
+
         for (let i in vos) {
             let vo = vos[i];
 
-            if (promises.length >= 10) {
+            if (promises.length >= max) {
                 await Promise.all(promises);
                 promises = [];
             }

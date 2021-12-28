@@ -48,6 +48,8 @@ export default class DataSourcesController {
             async () => {
 
                 let promises = [];
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+
                 for (let i in dss) {
                     let ds = dss[i];
 
@@ -56,7 +58,7 @@ export default class DataSourcesController {
                     }
 
                     // TODO FIXME promises.length
-                    if (promises.length >= 50) {
+                    if (promises.length >= max) {
                         await Promise.all(promises);
                         promises = [];
                     }

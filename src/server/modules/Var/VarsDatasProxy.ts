@@ -282,6 +282,7 @@ export default class VarsDatasProxy {
                     let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
                     let self = this;
                     let promises = [];
+                    let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
 
                     for (let i in indexes) {
                         let index = indexes[i];
@@ -338,9 +339,9 @@ export default class VarsDatasProxy {
                         if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
 
                             /**
-                             * On fait des packs de 10 promises...
+                             * On fait des packs de promises...
                              */
-                            if (promises.length >= 50) {
+                            if (promises.length >= max) {
                                 await Promise.all(promises);
                                 promises = [];
                             }
