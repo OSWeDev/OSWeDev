@@ -23,6 +23,8 @@ export default class MenuComponent extends VueComponentBase {
     private menuElements: MenuElementVO[] = null;
     private childrenElementsById: { [parent_id: number]: MenuElementVO[] } = {};
 
+    private access_by_name: { [policy_name: string]: boolean } = {};
+
     public constructor() {
         super();
         MenuComponent.instance = this;
@@ -36,5 +38,6 @@ export default class MenuComponent extends VueComponentBase {
     private callback_reload_menus() {
         this.menuElements = MenuController.getInstance().menus_by_parent_id ? MenuController.getInstance().menus_by_parent_id[0] : null;
         this.childrenElementsById = MenuController.getInstance().menus_by_parent_id;
+        this.access_by_name = MenuController.getInstance().access_by_name;
     }
 }

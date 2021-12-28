@@ -21,10 +21,31 @@ export default class MenuController {
     public menus_by_name: { [name: string]: MenuElementVO } = {};
     public menus_by_ids: { [id: number]: MenuElementVO } = {};
 
+    public access_by_name: { [policy_name: string]: boolean } = {};
+
     public callback_reload_menus = null;
 
     public async reload_from_db() {
         this.reload(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
+
+        this.access_by_name = {};
+        for (let i in this.menus_by_ids) {
+            let menu = this.menus_by_ids[i];
+
+            if (!menu.access_policy_name) {
+                continue;
+            }
+            this.access_by_name[menu.access_policy_name] = null;
+        }
+
+        let promises = [];
+        for (let policy_name in this.access_by_name) {
+
+            promises.push((async () => {
+                this.access_by_name[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
+            })());
+        }
+        await Promise.all(promises);
     }
 
     /**
