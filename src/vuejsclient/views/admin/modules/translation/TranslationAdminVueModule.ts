@@ -76,7 +76,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             LangVO.API_TYPE_ID,
             this.getLangCRUD(),
             MenuElementVO.create_new(
-                ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+                ModuleTranslation.POLICY_BO_OTHERS_ACCESS,
                 VueAppController.getInstance().app_name,
                 "LangVOTranslationAdminVueModule",
                 "fa-language",
@@ -91,7 +91,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             TranslatableTextVO.API_TYPE_ID,
             null,
             MenuElementVO.create_new(
-                ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS,
+                ModuleTranslation.POLICY_BO_OTHERS_ACCESS,
                 VueAppController.getInstance().app_name,
                 "TranslatableTextVOTranslationAdminVueModule",
                 "fa-language",

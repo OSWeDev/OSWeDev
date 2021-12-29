@@ -20,7 +20,7 @@
                                 | {{t(menuElement.translatable_title)}}
                         ul.sidenav-second-level.collapse(v-if='childrenElementsById[menuElement.id] && (childrenElementsById[menuElement.id].length > 0)', :id="menuElement.name")
                             li(v-for='child in childrenElementsById[menuElement.id]')
-                                template(v-if='!child.hidden')
+                                template(v-if='!child.hidden && (!child.access_policy_name || access_by_name[child.access_policy_name])')
                                     template(v-if='(!childrenElementsById[child.id]) || (childrenElementsById[child.id].length <= 0)')
                                         template(v-if='child.target && child.target_is_routename')
                                             router-link(:to="{ name: child.target, params: child.target_route_params ? JSON.parse(child.target_route_params) : undefined }")
@@ -37,7 +37,7 @@
                                                 | {{t(child.translatable_title)}}
                                         ul.sidenav-third-level.collapse(v-if='childrenElementsById[child.id] && (childrenElementsById[child.id].length > 0)', :id="child.name")
                                             li(v-for='child2 in childrenElementsById[child.id]')
-                                                template(v-if='!child2.hidden')
+                                                template(v-if='!child2.hidden && (!child2.access_policy_name || access_by_name[child2.access_policy_name])')
                                                     template(v-if='(!childrenElementsById[child2.id]) || (childrenElementsById[child2.id].length <= 0)')
                                                         template(v-if="child2.target && child2.target_is_routename")
                                                             router-link(:to="{ name: child2.target, params: child2.target_route_params ? JSON.parse(child2.target_route_params) : undefined }")
