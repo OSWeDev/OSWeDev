@@ -1,0 +1,77 @@
+.mail_stats_events {
+
+    .bubble_wrapper {
+
+        padding: 0.2em;
+        border-radius: 20px;
+        background: lightgrey;
+        color: white;
+        width: 1.9em;
+        text-align: center;
+
+        &.bloque {
+            background: darkred;
+        }
+
+        &.clic {
+            background: green;
+        }
+
+        &.delivre {
+            background: green;
+        }
+
+        &.desinscrit {
+            background: darkgoldenrod;
+        }
+
+        &.differe {
+            background: darkgoldenrod;
+        }
+
+        &.email_invalide {
+            background: darkred;
+        }
+
+        &.envoye {
+            background: blue;
+        }
+
+        &.error {
+            background: darkred;
+        }
+
+        &.hard_bounce {
+            background: darkred;
+        }
+
+        &.initie {
+            background: blue;
+        }
+
+        &.ouverture {
+            background: green;
+        }
+
+        &.plainte {
+            background: mediumpurple;
+        }
+
+        &.soft_bounce {
+            background: darkgoldenrod;
+        }
+
+
+        &.loading {
+            cursor: wait;
+        }
+
+        &.loaded{
+            cursor: pointer;
+        }
+
+        i{
+            vertical-align: middle;
+        }
+    }
+}

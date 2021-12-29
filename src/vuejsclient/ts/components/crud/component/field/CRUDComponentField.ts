@@ -705,7 +705,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+        let manyToOne: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
 
         // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
 
@@ -713,6 +713,9 @@ export default class CRUDComponentField extends VueComponentBase
         if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
             options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+        }
+        if (!!manyToOne.filterOptionsForUpdateOrCreateOnManyToOne) {
+            options = manyToOne.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
         }
 
         //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
@@ -726,6 +729,7 @@ export default class CRUDComponentField extends VueComponentBase
             if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
                 if ((!this.select_options_enabled) || (this.select_options_enabled.indexOf(option.id) >= 0)) {
+
                     newOptions.push(option.id);
                 }
             }

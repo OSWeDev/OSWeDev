@@ -1,8 +1,14 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import NumberParamVO, { NumberParamVOStatic } from '../API/vos/apis/NumberParamVO';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import MailEventVO from '../Mailer/vos/MailEventVO';
+import MailVO from '../Mailer/vos/MailVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
+import SendInBlueMailEventVO from './vos/SendInBlueMailEventVO';
 import SendInBlueVO from './vos/SendInBlueVO';
 
 export default class ModuleSendInBlue extends Module {
@@ -24,6 +30,9 @@ export default class ModuleSendInBlue extends Module {
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSendInBlue.MODULE_NAME + '.BO_ACCESS';
 
+    public static APINAME_sendinblue_event_webhook: string = 'sendinblue_event_webhook';
+    public static APINAME_sendinblue_refresh_mail_events: string = 'sendinblue_refresh_mail_events';
+
     public static getInstance(): ModuleSendInBlue {
         if (!ModuleSendInBlue.instance) {
             ModuleSendInBlue.instance = new ModuleSendInBlue();
@@ -33,9 +42,33 @@ export default class ModuleSendInBlue extends Module {
 
     private static instance: ModuleSendInBlue = null;
 
+    public sendinblue_event_webhook: (
+        event: SendInBlueMailEventVO
+    ) => Promise<any> = APIControllerWrapper.sah(ModuleSendInBlue.APINAME_sendinblue_event_webhook);
+
+    public sendinblue_refresh_mail_events: (
+        mail_id: number
+    ) => Promise<any> = APIControllerWrapper.sah(ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events);
+
     private constructor() {
 
         super("sendinblue", ModuleSendInBlue.MODULE_NAME);
+    }
+
+    public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SendInBlueMailEventVO, any>(
+            null,
+            ModuleSendInBlue.APINAME_sendinblue_event_webhook,
+            [SendInBlueMailEventVO.API_TYPE_ID, MailEventVO.API_TYPE_ID, MailVO.API_TYPE_ID]
+        ).disable_csrf_protection());
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, any>(
+            null,
+            ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events,
+            [MailEventVO.API_TYPE_ID, MailVO.API_TYPE_ID],
+            NumberParamVOStatic
+        ));
     }
 
     public async initialize(): Promise<void> {

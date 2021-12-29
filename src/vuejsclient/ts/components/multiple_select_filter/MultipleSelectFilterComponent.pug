@@ -41,7 +41,7 @@
         span(slot="noOptions") -
         slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
 
-    template(v-if="!disabled")
+    template(v-if="(!disabled) && (!max)")
         .text_cliquable(@click='select_all') {{ label('select_all') }}
         .inter_text -
         .text_cliquable(@click='select_none') {{ label('select_none') }}

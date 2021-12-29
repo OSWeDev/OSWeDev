@@ -14,30 +14,29 @@ import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../../SendInBlue/sms/SendInBlueSmsServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
-import initpwd_mail_html_template from './initpwd_mail_html_template.html';
 
 
-export default class PasswordInitialisation {
+export default class UserRecapture {
 
-    public static CODE_TEXT_MAIL_SUBJECT_initpwd: string = 'mails.pwd.initpwd.subject';
-    public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.PasswordInitialisation';
-    public static CODE_TEXT_SMS_initpwd: string = 'sms.pwd.initpwd';
+    public static CODE_TEXT_MAIL_SUBJECT_recapture: string = 'mails.pwd.recapture.subject';
+    public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.UserRecapture';
+    public static CODE_TEXT_SMS_recapture: string = 'sms.pwd.recapture';
 
-    public static MAILCATEGORY_PasswordInitialisation = 'MAILCATEGORY.PasswordInitialisation';
+    public static MAILCATEGORY_UserRecapture = 'MAILCATEGORY.UserRecapture';
 
     public static getInstance() {
-        if (!PasswordInitialisation.instance) {
-            PasswordInitialisation.instance = new PasswordInitialisation();
+        if (!UserRecapture.instance) {
+            UserRecapture.instance = new UserRecapture();
         }
-        return PasswordInitialisation.instance;
+        return UserRecapture.instance;
     }
 
-    private static instance: PasswordInitialisation = null;
+    private static instance: UserRecapture = null;
 
     private constructor() {
     }
 
-    public async begininitpwd(email: string): Promise<boolean> {
+    public async beginrecapture(email: string): Promise<boolean> {
 
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
@@ -49,10 +48,10 @@ export default class PasswordInitialisation {
             return false;
         }
 
-        return await this.begininitpwd_user(user);
+        return await this.beginrecapture_user(user);
     }
 
-    public async begininitpwd_uid(uid: number): Promise<boolean> {
+    public async beginrecapture_uid(uid: number): Promise<boolean> {
 
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
@@ -64,17 +63,17 @@ export default class PasswordInitialisation {
             return false;
         }
 
-        return await this.begininitpwd_user(user);
+        return await this.beginrecapture_user(user);
     }
 
-    public async begininitpwd_user(user: UserVO): Promise<boolean> {
+    public async beginrecapture_user(user: UserVO): Promise<boolean> {
 
         // On doit se comporter comme un server à ce stade
         await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
             let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
@@ -82,35 +81,21 @@ export default class PasswordInitialisation {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
-                    PasswordInitialisation.MAILCATEGORY_PasswordInitialisation,
+                    UserRecapture.MAILCATEGORY_UserRecapture,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     SEND_IN_BLUE_TEMPLATE_ID,
-                    ['PasswordInitialisation'],
+                    ['UserRecapture'],
                     {
                         EMAIL: user.email,
                         UID: user.id.toString(),
                         CODE_CHALLENGE: user.recovery_challenge
                     });
-            } else {
-
-                // Using APP
-                let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInitialisation.CODE_TEXT_MAIL_SUBJECT_initpwd);
-                let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
-                await ModuleMailerServer.getInstance().sendMail({
-                    to: user.email,
-                    subject: translated_mail_subject.translated,
-                    html: await ModuleMailerServer.getInstance().prepareHTML(initpwd_mail_html_template, user.lang_id, {
-                        EMAIL: user.email,
-                        UID: user.id.toString(),
-                        CODE_CHALLENGE: user.recovery_challenge
-                    })
-                });
             }
         });
         return true;
     }
 
-    public async beginRecoverySMS(email: string): Promise<boolean> {
+    public async beginRecaptureSMS(email: string): Promise<boolean> {
 
         if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
             return;
@@ -135,7 +120,7 @@ export default class PasswordInitialisation {
         phone = phone.replace(' ', '');
 
         let lang = await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
-        let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(PasswordInitialisation.CODE_TEXT_SMS_initpwd);
+        let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(UserRecapture.CODE_TEXT_SMS_recapture);
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
         // On doit se comporter comme un server à ce stade
@@ -151,7 +136,7 @@ export default class PasswordInitialisation {
                     UID: user.id.toString(),
                     CODE_CHALLENGE: user.recovery_challenge
                 }),
-                'PasswordRecovery');
+                'UserRecapture');
         });
     }
 }

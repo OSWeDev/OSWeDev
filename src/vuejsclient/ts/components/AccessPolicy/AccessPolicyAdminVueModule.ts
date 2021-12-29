@@ -22,6 +22,7 @@ import CRUDComponentManager from '../crud/CRUDComponentManager';
 import MenuController from '../menu/MenuController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
+import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -43,6 +44,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS,
             ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS,
             ModuleAccessPolicy.POLICY_SENDINITPWD,
+            ModuleAccessPolicy.POLICY_SENDRECAPTURE,
             ModuleAccessPolicy.POLICY_IMPERSONATE
         ];
     }
@@ -171,7 +173,6 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     protected async getUserCRUD(): Promise<CRUD<UserVO>> {
         let crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
 
-
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));
@@ -189,6 +190,13 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new ComponentDatatableField(
                 'sendinitpwd',
                 SendInitPwdComponent,
+                'id'
+            ));
+        }
+        if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDRECAPTURE]) {
+            crud.readDatatable.pushField(new ComponentDatatableField(
+                'sendrecapture',
+                SendRecaptureComponent,
                 'id'
             ));
         }
@@ -213,6 +221,9 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+
+        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
+        crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);
 
         crud.reset_newvo_after_each_creation = true;
         crud.hook_prepare_new_vo_for_creation = async (vo: IDistantVOBase) => {

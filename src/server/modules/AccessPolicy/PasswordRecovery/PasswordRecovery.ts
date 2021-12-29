@@ -25,6 +25,8 @@ export default class PasswordRecovery {
     public static CODE_TEXT_SMS_RECOVERY: string = 'mails.pwd.recovery.sms';
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.PasswordRecovery';
 
+    public static MAILCATEGORY_PasswordRecovery = 'MAILCATEGORY.PasswordRecovery';
+
     public static getInstance() {
         if (!PasswordRecovery.instance) {
             PasswordRecovery.instance = new PasswordRecovery();
@@ -73,6 +75,7 @@ export default class PasswordRecovery {
 
                 // Using SendInBlue
                 await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    PasswordRecovery.MAILCATEGORY_PasswordRecovery,
                     SendInBlueMailVO.createNew(user.name, user.email),
                     SEND_IN_BLUE_TEMPLATE_ID,
                     ['PasswordRecovery'],

@@ -310,6 +310,10 @@ export default abstract class ModuleServiceBase {
         }
     }
 
+    /**
+     * FIXME : pour le moment on est obligé de tout faire dans l'ordre, impossible de paraléliser à ce niveau
+     *  puisque les rôles typiquement créés d'un côté peuvent être utilisés de l'autre ...
+     */
     public async configure_server_modules(app: Express) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];

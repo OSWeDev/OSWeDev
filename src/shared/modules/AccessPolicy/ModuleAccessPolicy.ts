@@ -43,6 +43,7 @@ export default class ModuleAccessPolicy extends Module {
 
     public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
     public static POLICY_SENDINITPWD: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDINITPWD";
+    public static POLICY_SENDRECAPTURE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDRECAPTURE";
 
     public static POLICY_FO_SIGNIN_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_SIGNIN_ACCESS";
 
@@ -86,6 +87,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_logout = "logout";
     public static APINAME_delete_session = "delete_session";
     public static APINAME_get_my_sid = "get_my_sid";
+    public static APINAME_sendrecapture = "sendrecapture";
 
     public static APINAME_send_session_share_email = "send_session_share_email";
     public static APINAME_send_session_share_sms = "send_session_share_sms";
@@ -109,6 +111,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private static instance: ModuleAccessPolicy = null;
 
+    public sendrecapture: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_sendrecapture);
     public begininitpwd: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd);
     public begininitpwdsms: (email: string) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwdsms);
     public begininitpwd_uid: (uid: number) => Promise<void> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_begininitpwd_uid);
@@ -256,6 +259,13 @@ export default class ModuleAccessPolicy extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwdsms,
+            [UserVO.API_TYPE_ID],
+            StringParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            null,
+            ModuleAccessPolicy.APINAME_sendrecapture,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));

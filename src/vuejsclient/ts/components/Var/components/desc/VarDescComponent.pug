@@ -8,7 +8,7 @@
             p.var_controller_desc.card-text(v-if='var_description && (var_description.length > 1)') {{ var_description }}
 
             .var_data_label {{ label('var_desc.var_data_label') }}
-                var-data(:var_param='var_param')
+                var-data(:var_param='var_param' :show_tooltip='true')
                 i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data')
                 i.update_var_data.fa.fa-sitemap(aria-hidden="true" @click='update_var_data_and_parents')
                 i.update_var_data.fa.fa-filter(aria-hidden="true" @click='filter_on_this_param')

@@ -2,9 +2,12 @@
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -12,6 +15,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
@@ -63,6 +67,11 @@ export default class VarsDatasVoUpdateHandler {
 
     private last_registration: number = null;
 
+    /**
+     * le JSON ne devrait être utilisé que au lancement de l'appli, mais systématiquement par contre au lancement, le reste du temps c'est l'appli qui fait référence pour les voscud
+     */
+    private has_retrieved_vos_cud: boolean = false;
+
     private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false, trailing: true });
 
     protected constructor() {
@@ -105,13 +114,25 @@ export default class VarsDatasVoUpdateHandler {
             async () => {
 
                 this.last_call_handled_something = false;
-                if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
 
+                if (!this.has_retrieved_vos_cud) {
                     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
                         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
-                    return false; // je vois pas pourquoi .... this.last_registration && Dates.now() .add(-500, 'ms').isBefore(this.last_registration);
+                    this.has_retrieved_vos_cud = true;
                 }
+
+                if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+                    return false;
+                }
+
+                // if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+
+                //     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
+                //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+
+                //     return false; // je vois pas pourquoi .... this.last_registration && Dates.now() .add(-500, 'ms').isBefore(this.last_registration);
+                // }
 
                 this.last_call_handled_something = true;
 
@@ -212,8 +233,74 @@ export default class VarsDatasVoUpdateHandler {
         );
     }
 
+    private filter_varsdatas_cache_by_matroids_intersection(
+        api_type_id: string,
+        matroids: IMatroid[],
+        fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+
+        let res: VarDataBaseVO[] = [];
+
+        for (let i in matroids) {
+            res = res.concat(this.filter_varsdatas_cache_by_matroid_intersection(api_type_id, matroids[i], fields_ids_mapper));
+        }
+
+        return res;
+    }
+
+    private filter_varsdatas_cache_by_matroid_intersection(
+        api_type_id: string,
+        matroid: IMatroid,
+        fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+
+        let res: VarDataBaseVO[] = [];
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        for (let i in VarsDatasProxy.getInstance().vars_datas_buffer) {
+            let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer[i];
+
+            if (wrapper.var_data._type != api_type_id) {
+                continue;
+            }
+
+            if (!!(matroid as VarDataBaseVO).var_id) {
+
+                if (wrapper.var_data.var_id != (matroid as VarDataBaseVO).var_id) {
+                    continue;
+                }
+            }
+
+            let isok = true;
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+
+                let ranges: IRange[] = matroid[matroid_field.field_id];
+                let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+
+                if (!RangeHandler.getInstance().any_range_intersects_any_range(
+                    wrapper.var_data[field.field_id],
+                    ranges)) {
+                    isok = false;
+                    break;
+                }
+            }
+            if (!isok) {
+                continue;
+            }
+
+            res.push(wrapper.var_data);
+        }
+
+        return res;
+    }
+
     /**
-     * Recherche en BDD par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
+     * Recherche en BDD et en cache par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
      * @param intersectors_by_var_id
      */
     private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
@@ -229,8 +316,9 @@ export default class VarsDatasVoUpdateHandler {
                     }
 
                     let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
-
-                    let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, Object.values(intersectors), null);
+                    let list = Object.values(intersectors);
+                    let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
+                    var_datas = var_datas.concat(this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null));
 
                     /**
                      * Tout sauf les imports et les denied
@@ -253,10 +341,19 @@ export default class VarsDatasVoUpdateHandler {
                     /**
                      * On priorise les abonnements actuels
                      *  MODIF test : on ajoute un param pour proposer de supprimer plutôt les params qui ne sont pas actuellement observés et on recalcul ceux qui sont actuellement suivis
+                     *  DEBUG : en l'état on supprime en BDD potentiellement sans recalculer la version en cache, qui va pas etre recalculée mais insérée en base quand même derrière...
+                     *      on devrait plutôt recalculer tous les params qui sont présents en cache
                      */
                     let registered_var_datas: VarDataBaseVO[] = [];
                     try {
-                        registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                        // registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                        for (let i in var_datas) {
+                            let var_data = var_datas[i];
+
+                            if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_data.index]) {
+                                registered_var_datas.push(var_data);
+                            }
+                        }
                     } catch (error) {
                         ConsoleHandler.getInstance().error('find_invalid_datas_and_push_for_update:filter_by_subs:' + error + ':FIXME do we need to handle this ?');
                     }
@@ -265,11 +362,15 @@ export default class VarsDatasVoUpdateHandler {
                     let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
 
                     if (registered_var_datas && registered_var_datas.length) {
+                        registered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
+                            'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index));
                         await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);
-                        ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
+                        ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
                     }
 
                     if (unregistered_var_datas && unregistered_var_datas.length) {
+                        unregistered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
+                            'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index));
                         if (delete_instead_of_invalidating_unregistered_var_datas) {
                             await ModuleDAO.getInstance().deleteVOs(unregistered_var_datas);
                             ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
@@ -652,6 +753,7 @@ export default class VarsDatasVoUpdateHandler {
     private set_ordered_vos_cud_from_JSON(jsoned: string): void {
 
         try {
+
             let res: any[] = JSON.parse(jsoned);
 
             for (let i in res) {
@@ -683,5 +785,6 @@ export default class VarsDatasVoUpdateHandler {
         this.last_registration = Dates.now();
 
         this.throttled_update_param();
+        VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
 }

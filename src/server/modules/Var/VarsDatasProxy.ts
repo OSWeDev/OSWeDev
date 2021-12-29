@@ -65,8 +65,8 @@ export default class VarsDatasProxy {
     /**
      * Version liste pour prioriser les demandes
      */
-    private vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
-    private vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
+    public vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
+    public vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     /**
      * Au boot on teste de dépiler des vars qui seraient en attente de test, sinon on suit le chemin classique
@@ -236,9 +236,6 @@ export default class VarsDatasProxy {
                 if ((!filtered) || (!filtered.length)) {
                     return;
                 }
-
-                // On lance le calcul quand on prepend ici ça veut dire qu'on attend une réponse rapide
-                VarsdatasComputerBGThread.getInstance().force_run_asap();
             },
             this
         );
@@ -282,6 +279,7 @@ export default class VarsDatasProxy {
                     let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
                     let self = this;
                     let promises = [];
+                    let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
 
                     for (let i in indexes) {
                         let index = indexes[i];
@@ -338,9 +336,9 @@ export default class VarsDatasProxy {
                         if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
 
                             /**
-                             * On fait des packs de 10 promises...
+                             * On fait des packs de promises...
                              */
-                            if (promises.length >= 50) {
+                            if (promises.length >= max) {
                                 await Promise.all(promises);
                                 promises = [];
                             }

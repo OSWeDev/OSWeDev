@@ -4,15 +4,24 @@ import SendInBlueAttachmentVO from '../../../shared/modules/SendInBlue/vos/SendI
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
-import EnvHandler from '../../../shared/tools/EnvHandler';
+import MailVO from '../../../shared/modules/Mailer/vos/MailVO';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import StackContext from '../../StackContext';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MailEventVO from '../../../shared/modules/Mailer/vos/MailEventVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
 
 export default class SendInBlueMailServerController {
+
+    public static PATH_EMAIL: string = 'smtp/email';
+    public static PATH_STATS_EVENTS: string = 'smtp/statistics/events';
 
     public static getInstance(): SendInBlueMailServerController {
         if (!SendInBlueMailServerController.instance) {
@@ -23,9 +32,7 @@ export default class SendInBlueMailServerController {
 
     private static instance: SendInBlueMailServerController = null;
 
-    private static PATH_EMAIL: string = 'smtp/email';
-
-    public async send(to: SendInBlueMailVO, subject: string, textContent: string, htmlContent: string, tags: string[] = null, templateId: number = null, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+    public async send(mail_category: string, to: SendInBlueMailVO, subject: string, textContent: string, htmlContent: string, tags: string[] = null, templateId: number = null, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
@@ -76,13 +83,19 @@ export default class SendInBlueMailServerController {
         );
 
         if (!res || !res.messageId) {
+            ConsoleHandler.getInstance().error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
             return false;
         }
+
+        /**
+         * On stocke le mail en base
+         */
+        await this.insert_new_mail(to.email, res.messageId, mail_category);
 
         return true;
     }
 
-    public async sendWithTemplate(to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: any } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+    public async sendWithTemplate(mail_category: string, to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: any } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
@@ -163,10 +176,71 @@ export default class SendInBlueMailServerController {
         );
 
         if (!res || !res.messageId) {
+            ConsoleHandler.getInstance().error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
             return false;
         }
 
+        /**
+         * On stocke le mail en base
+         */
+        await this.insert_new_mail(to.email, res.messageId, mail_category);
+
         return true;
+    }
+
+    private async insert_new_mail(to_mail: string, message_id: string, mail_category: string) {
+
+        if ((!mail_category) || (!message_id) || (!to_mail)) {
+            ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:Failed:paramètres invalides:' + mail_category + ':' + message_id + ':' + to_mail + ':');
+            return;
+        }
+
+        let category = await ModuleDAO.getInstance().getNamedVoByName<MailCategoryVO>(MailCategoryVO.API_TYPE_ID, mail_category);
+
+        if (!category) {
+            category = new MailCategoryVO();
+            category.name = mail_category;
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(category);
+            if (!res || !res.id) {
+                ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
+                return;
+            }
+            category.id = res.id;
+        }
+
+        let mail = new MailVO();
+        mail.category_id = category.id;
+        mail.email = to_mail;
+        mail.last_state = MailEventVO.EVENT_Initie;
+        mail.last_up_date = Dates.now();
+        mail.message_id = message_id;
+        mail.send_date = mail.last_up_date;
+        mail.sent_by_id = StackContext.getInstance().get('UID');
+        mail.sent_to_id = await this.get_uid_if_exists(to_mail);
+        let res = await ModuleDAO.getInstance().insertOrUpdateVO(mail);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:failed inserting new mail:' + JSON.stringify(mail) + ':');
+            return;
+        }
+
+        // et on insère le premier event qui est interne
+        let first_event = new MailEventVO();
+        first_event.event = MailEventVO.EVENT_Initie;
+        first_event.event_date = Dates.now();
+        first_event.mail_id = mail.id;
+        await ModuleDAO.getInstance().insertOrUpdateVO(first_event);
+    }
+
+    private async get_uid_if_exists(email: string) {
+        return await StackContext.getInstance().runPromise(
+            { IS_CLIENT: false },
+            async () => {
+                let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [email]);
+                if (!!user) {
+                    return user.id;
+                }
+                return null;
+            });
     }
 
     private add_default_params(params: any) {

@@ -101,6 +101,16 @@ export default class ModuleDBService {
         // 	Par exemple une table dédiée au stockage des infos du module, ... les params sont gérés directement par la définition des champs (this.params_fields)
 
         await this.create_params_table(module);
+        await this.add_module_to_modules_table(module);
+
+        // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
+        // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
+        // à creuser
+        if (module.actif) {
+            await this.create_datas_tables(module);
+        }
+
+        await this.module_install_end(module);
 
         // Si il y a un problème pendant cette étape, on renvoie autre chose que true pour l'indiquer
         return true;
@@ -141,15 +151,10 @@ export default class ModuleDBService {
                 await this.db.query('INSERT INTO admin.module_' + module.name + ' DEFAULT VALUES;');
 
                 await this.loadParams(module);
-
-                await this.add_module_to_modules_table(module);
                 return true;
             }
 
             await this.readParams(module, rows[0]);
-            await this.add_module_to_modules_table(module);
-        } else {
-            await this.add_module_to_modules_table(module);
         }
     }
 
@@ -158,13 +163,6 @@ export default class ModuleDBService {
 
         await this.load_or_create_module_is_actif(module);
 
-        // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
-        // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
-        // à creuser
-        if (module.actif) {
-            await this.create_datas_tables(module);
-        }
-
         return true;
     }
 
@@ -172,11 +170,15 @@ export default class ModuleDBService {
     private async create_datas_tables(module: Module) {
         // console.log(module.name + " - install - ETAPE 4");
 
+        /**
+         * FIXME : on peut pas faire ça en fait
+         */
         // let promises = [];
+        // let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
         for (let i in module.datatables) {
             let datatable = module.datatables[i];
 
-            // if (promises && (promises.length >= 10)) {
+            // if (promises && (promises.length >= max)) {
             //     await Promise.all(promises);
             //     promises = [];
             // }
@@ -188,7 +190,15 @@ export default class ModuleDBService {
         //     await Promise.all(promises);
         // }
 
-        await this.module_install_end(module);
+        // On appelle le hook de fin d'installation
+        for (let i in module.datatables) {
+            let datatable = module.datatables[i];
+
+            if (datatable.hook_datatable_install) {
+
+                return await datatable.hook_datatable_install(datatable);
+            }
+        }
     }
 
     // ETAPE 5 de l'installation

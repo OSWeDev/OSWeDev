@@ -5,15 +5,15 @@ import ModuleParams from '../../../../../../shared/modules/Params/ModuleParams';
 import ModuleSendInBlue from '../../../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import MailStatsEventsComponent from '../../../mail_stats_events/MailStatsEventsComponent';
-import "./SendInitPwdComponent.scss";
+import "./SendRecaptureComponent.scss";
 
 @Component({
-    template: require('./SendInitPwdComponent.pug'),
+    template: require('./SendRecaptureComponent.pug'),
     components: {
         Mailstatseventscomponent: MailStatsEventsComponent
     }
 })
-export default class SendInitPwdComponent extends VueComponentBase {
+export default class SendRecaptureComponent extends VueComponentBase {
 
     @Prop()
     private vo: UserVO;
@@ -25,20 +25,20 @@ export default class SendInitPwdComponent extends VueComponentBase {
     }
 
     get category_name() {
-        return this.vo ? 'MAILCATEGORY.PasswordInitialisation' : null;
+        return this.vo ? 'MAILCATEGORY.UserRecapture' : null;
     }
 
     get email_to() {
         return this.vo ? this.vo.email : null;
     }
 
-    private async sendinitpwd() {
+    private async sendrecapture() {
         if (!this.vo) {
             return;
         }
 
-        await ModuleAccessPolicy.getInstance().begininitpwd(this.vo.email);
-        this.snotify.success(this.label('sendinitpwd.ok'));
+        await ModuleAccessPolicy.getInstance().sendrecapture(this.vo.email);
+        this.snotify.success(this.label('sendrecapture.ok'));
         let self = this;
         setTimeout(() => {
             if (self.$refs['mailstatsevents'] && self.$refs['mailstatsevents']['sendinblue_refresh_mail_events']) {
@@ -47,12 +47,12 @@ export default class SendInitPwdComponent extends VueComponentBase {
         }, 1000);
     }
 
-    private async sendinitpwdsms() {
-        if (!this.vo) {
-            return;
-        }
+    // private async sendrecapturesms() {
+    //     if (!this.vo) {
+    //         return;
+    //     }
 
-        await ModuleAccessPolicy.getInstance().begininitpwdsms(this.vo.email);
-        this.snotify.success(this.label('sendinitpwd.oksms'));
-    }
+    //     await ModuleAccessPolicy.getInstance().beginrecapturesms(this.vo.email);
+    //     this.snotify.success(this.label('sendrecapture.oksms'));
+    // }
 }

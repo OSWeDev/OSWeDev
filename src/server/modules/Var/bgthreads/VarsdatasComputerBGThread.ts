@@ -145,7 +145,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public async work(): Promise<number> {
 
         /**
-         * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attent le timeout
+         * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
          */
         if (this.semaphore) {
             this.last_calculation_unix = Dates.now();
@@ -341,6 +341,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         let perf_tstz = Dates.now();
                         let perf_start = performance.now();
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
+
+                        Object.values(vars_datas).forEach((v) => ConsoleHandler.getInstance().log(
+                            '__computing_bg_thread:INDEXES:' + v.index));
+
                         await VarsComputeController.getInstance().compute(vars_datas); // PERF OK
                         VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
                         let perf_end = performance.now();
