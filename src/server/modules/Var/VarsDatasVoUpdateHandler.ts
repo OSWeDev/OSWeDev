@@ -67,6 +67,11 @@ export default class VarsDatasVoUpdateHandler {
 
     private last_registration: number = null;
 
+    /**
+     * le JSON ne devrait être utilisé que au lancement de l'appli, mais systématiquement par contre au lancement, le reste du temps c'est l'appli qui fait référence pour les voscud
+     */
+    private has_retrieved_vos_cud: boolean = false;
+
     private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false, trailing: true });
 
     protected constructor() {
@@ -109,13 +114,25 @@ export default class VarsDatasVoUpdateHandler {
             async () => {
 
                 this.last_call_handled_something = false;
-                if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
 
+                if (!this.has_retrieved_vos_cud) {
                     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
                         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
-                    return false; // je vois pas pourquoi .... this.last_registration && Dates.now() .add(-500, 'ms').isBefore(this.last_registration);
+                    this.has_retrieved_vos_cud = true;
                 }
+
+                if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+                    return false;
+                }
+
+                // if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+
+                //     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
+                //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
+
+                //     return false; // je vois pas pourquoi .... this.last_registration && Dates.now() .add(-500, 'ms').isBefore(this.last_registration);
+                // }
 
                 this.last_call_handled_something = true;
 
@@ -324,10 +341,19 @@ export default class VarsDatasVoUpdateHandler {
                     /**
                      * On priorise les abonnements actuels
                      *  MODIF test : on ajoute un param pour proposer de supprimer plutôt les params qui ne sont pas actuellement observés et on recalcul ceux qui sont actuellement suivis
+                     *  DEBUG : en l'état on supprime en BDD potentiellement sans recalculer la version en cache, qui va pas etre recalculée mais insérée en base quand même derrière...
+                     *      on devrait plutôt recalculer tous les params qui sont présents en cache
                      */
                     let registered_var_datas: VarDataBaseVO[] = [];
                     try {
-                        registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                        // registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                        for (let i in var_datas) {
+                            let var_data = var_datas[i];
+
+                            if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_data.index]) {
+                                registered_var_datas.push(var_data);
+                            }
+                        }
                     } catch (error) {
                         ConsoleHandler.getInstance().error('find_invalid_datas_and_push_for_update:filter_by_subs:' + error + ':FIXME do we need to handle this ?');
                     }
@@ -727,6 +753,7 @@ export default class VarsDatasVoUpdateHandler {
     private set_ordered_vos_cud_from_JSON(jsoned: string): void {
 
         try {
+
             let res: any[] = JSON.parse(jsoned);
 
             for (let i in res) {

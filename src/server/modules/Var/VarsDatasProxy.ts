@@ -66,7 +66,7 @@ export default class VarsDatasProxy {
      * Version liste pour prioriser les demandes
      */
     public vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
-    private vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
+    public vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     /**
      * Au boot on teste de dépiler des vars qui seraient en attente de test, sinon on suit le chemin classique
@@ -236,9 +236,6 @@ export default class VarsDatasProxy {
                 if ((!filtered) || (!filtered.length)) {
                     return;
                 }
-
-                // On lance le calcul quand on prepend ici ça veut dire qu'on attend une réponse rapide
-                VarsdatasComputerBGThread.getInstance().force_run_asap();
             },
             this
         );
