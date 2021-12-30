@@ -45,6 +45,7 @@ export default class VarsDatasVoUpdateHandler {
 
     public static TASK_NAME_has_vos_cud: string = 'VarsDatasVoUpdateHandler.has_vos_cud';
     public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
+    public static TASK_NAME_filter_varsdatas_cache_by_matroids_intersection: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection';
 
     /**
      * Multithreading notes :
@@ -233,20 +234,42 @@ export default class VarsDatasVoUpdateHandler {
         );
     }
 
+    /**
+     * Se lance sur le thread des vars
+     */
     private filter_varsdatas_cache_by_matroids_intersection(
         api_type_id: string,
         matroids: IMatroid[],
-        fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+        fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<VarDataBaseVO[]> {
 
-        let res: VarDataBaseVO[] = [];
+        return new Promise(async (resolve, reject) => {
 
-        for (let i in matroids) {
-            res = res.concat(this.filter_varsdatas_cache_by_matroid_intersection(api_type_id, matroids[i], fields_ids_mapper));
-        }
+            let thrower = (error) => {
+                //TODO fixme do something to inform user
+                ConsoleHandler.getInstance().error('failed filter_varsdatas_cache_by_matroids_intersection' + error);
+                resolve([]);
+            };
 
-        return res;
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                thrower,
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, resolve)) {
+                return;
+            }
+
+            let res: VarDataBaseVO[] = [];
+
+            for (let i in matroids) {
+                res = res.concat(this.filter_varsdatas_cache_by_matroid_intersection(api_type_id, matroids[i], fields_ids_mapper));
+            }
+
+            resolve(res);
+        });
     }
 
+    /**
+     * Doit être lancé depuis le thread des vars
+     */
     private filter_varsdatas_cache_by_matroid_intersection(
         api_type_id: string,
         matroid: IMatroid,
@@ -318,7 +341,18 @@ export default class VarsDatasVoUpdateHandler {
                     let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
                     let list = Object.values(intersectors);
                     let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
-                    var_datas = var_datas.concat(this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null));
+
+                    let registered_var_datas: VarDataBaseVO[] = [];
+                    registered_var_datas = await this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null);
+                    // Si on retrouve les mêmes qu'en bdd on ignore, on est déjà en train de les invalider
+                    for (let i in registered_var_datas) {
+                        let registered_var_data = registered_var_datas[i];
+
+                        if (var_datas.find((v) => v.index == registered_var_data.index)) {
+                            continue;
+                        }
+                        var_datas.push(registered_var_data);
+                    }
 
                     /**
                      * Tout sauf les imports et les denied
@@ -338,25 +372,24 @@ export default class VarsDatasVoUpdateHandler {
                         continue;
                     }
 
-                    /**
-                     * On priorise les abonnements actuels
-                     *  MODIF test : on ajoute un param pour proposer de supprimer plutôt les params qui ne sont pas actuellement observés et on recalcul ceux qui sont actuellement suivis
-                     *  DEBUG : en l'état on supprime en BDD potentiellement sans recalculer la version en cache, qui va pas etre recalculée mais insérée en base quand même derrière...
-                     *      on devrait plutôt recalculer tous les params qui sont présents en cache
-                     */
-                    let registered_var_datas: VarDataBaseVO[] = [];
-                    try {
-                        // registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
-                        for (let i in var_datas) {
-                            let var_data = var_datas[i];
+                    // /**
+                    //  * On priorise les abonnements actuels
+                    //  *  MODIF test : on ajoute un param pour proposer de supprimer plutôt les params qui ne sont pas actuellement observés et on recalcul ceux qui sont actuellement suivis
+                    //  *  DEBUG : en l'état on supprime en BDD potentiellement sans recalculer la version en cache, qui va pas etre recalculée mais insérée en base quand même derrière...
+                    //  *      on devrait plutôt recalculer tous les params qui sont présents en cache
+                    //  */
+                    // try {
+                    //     // registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                    //     for (let i in var_datas) {
+                    //         let var_data = var_datas[i];
 
-                            if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_data.index]) {
-                                registered_var_datas.push(var_data);
-                            }
-                        }
-                    } catch (error) {
-                        ConsoleHandler.getInstance().error('find_invalid_datas_and_push_for_update:filter_by_subs:' + error + ':FIXME do we need to handle this ?');
-                    }
+                    //         if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_data.index]) {
+                    //             registered_var_datas.push(var_data);
+                    //         }
+                    //     }
+                    // } catch (error) {
+                    //     ConsoleHandler.getInstance().error('find_invalid_datas_and_push_for_update:filter_by_subs:' + error + ':FIXME do we need to handle this ?');
+                    // }
                     let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas, registered_var_datas);
 
                     let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
