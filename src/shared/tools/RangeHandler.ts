@@ -151,6 +151,7 @@ export default class RangeHandler {
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
                 let segmented_min: number = this.getSegmentedMin(range);
+                // min_inclusive or not
                 return segmented_min === RangeHandler.MIN_TS
                     || segmented_min === Dates.add(RangeHandler.MIN_TS, 1, range.segment_type);
             case NumRange.RANGE_TYPE:
@@ -168,6 +169,7 @@ export default class RangeHandler {
         switch (range.range_type) {
             case TSRange.RANGE_TYPE:
                 let segmented_max: number = this.getSegmentedMax(range);
+                // max_inclusive or not
                 return segmented_max === Dates.startOf(RangeHandler.MAX_TS, range.segment_type)
                     || segmented_max === Dates.startOf(Dates.add(RangeHandler.MAX_TS, -1, range.segment_type), range.segment_type);
             case NumRange.RANGE_TYPE:
