@@ -297,9 +297,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsTabsSubsController.notify_vardatas:IN");
                         }
 
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);
-                        await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam(Object.values(vars_datas), true)]); // PERF OK
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", false);
+                        // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);
+                        // await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam(Object.values(vars_datas), true)]); // PERF OK
+                        // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", false);
 
                         if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsTabsSubsController.notify_vardatas:OUT");

@@ -54,6 +54,8 @@ export default class VarDAGNode extends DAGNodeBase {
     public already_tried_loading_data_and_deploy: boolean = false;
     public already_tried_load_cache_complet: boolean = false;
 
+    public already_sent_result_to_subs: boolean = false;
+
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
