@@ -286,6 +286,15 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Indicateurs - Réalisé'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
+        // ------------------------
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Performance'
+        }, 'fields.labels.ref.module_var_var_perf.___LABEL____var_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Variable lente'
+        }, 'fields.labels.ref.module_var_slow_var.___LABEL____var_id'));
+        // ------------------------
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Var conf cache'
         }, 'menu.menuelements.admin.VarCacheConfVO.___LABEL___'));

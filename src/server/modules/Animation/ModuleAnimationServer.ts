@@ -624,6 +624,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Message' }, 'fields.labels.ref.module_animation_anim_message_module.message.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Min' }, 'fields.labels.ref.module_animation_anim_message_module.min.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____module_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Questions' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____question_file_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Réponses' }, 'fields.labels.ref.module_animation_anim_qr.___LABEL____reponse_file_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Parametres' }, 'menu.menuelements.admin.AnimationParametersVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Télécharger le document' }, 'animation.documents.download.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Documentations' }, 'animation.documents.titre.___LABEL___'));
