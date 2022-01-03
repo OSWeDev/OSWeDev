@@ -78,6 +78,7 @@ export default class VarsDatasVoUpdateHandler {
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, this.has_vos_cud.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, this.filter_varsdatas_cache_by_matroids_intersection.bind(this));
     }
 
     /**
@@ -342,8 +343,19 @@ export default class VarsDatasVoUpdateHandler {
                     let list = Object.values(intersectors);
                     let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
 
+                    /**
+                     * On ajoute les vars subs (front et back) et les vars en cache
+                     */
                     let registered_var_datas: VarDataBaseVO[] = [];
-                    registered_var_datas = await this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null);
+
+                    // pour les vars subs en front,
+                    //  soit on est en bdd(donc on vient de la trouver et on peut filtrer sur celles chargées de la bdd)
+                    //  soit on est en cache et on les trouve en dessous
+                    registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+                    let cached = await this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null);
+                    registered_var_datas = (registered_var_datas && registered_var_datas.length) ?
+                        ((cached && cached.length) ? registered_var_datas.concat(cached) : registered_var_datas) : cached;
+
                     // Si on retrouve les mêmes qu'en bdd on ignore, on est déjà en train de les invalider
                     for (let i in registered_var_datas) {
                         let registered_var_data = registered_var_datas[i];

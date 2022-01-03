@@ -41,7 +41,9 @@ export default class VarsImportsHandler {
      * @param vars_datas
      * @param ds_cache
      */
-    public async load_imports_and_split_nodes(node: VarDAGNode, vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }, FOR_TU_imports: VarDataBaseVO[] = null) {
+    public async load_imports_and_split_nodes(
+        node: VarDAGNode,
+        FOR_TU_imports: VarDataBaseVO[] = null) {
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsImportsHandler__load_imports_and_split_nodes],
@@ -54,7 +56,7 @@ export default class VarsImportsHandler {
                 }
 
                 let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-                await this.split_nodes(node, vars_datas, ds_cache, imports, controller.optimization__has_only_atomic_imports);
+                await this.split_nodes(node, imports, controller.optimization__has_only_atomic_imports);
             },
             this
         );
@@ -63,15 +65,11 @@ export default class VarsImportsHandler {
     /**
      * Méthode qui fait le découpage du noeud depuis une liste d'imports ou de caches
      * @param node
-     * @param vars_datas
-     * @param ds_cache
      * @param imports import ou cache
      * @param optimization__has_only_atomic_imports
      */
     public async split_nodes(
         node: VarDAGNode,
-        vars_datas: { [index: string]: VarDataBaseVO },
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } },
         imports: VarDataBaseVO[],
         optimization__has_only_atomic_imports: boolean) {
 
