@@ -720,7 +720,7 @@ export default class VarsComputeController {
                     // On sélectionne les vars à déployer
                     let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
 
-                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + vars_to_deploy.length + ' vars');
+                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + Object.keys(vars_to_deploy).length + ' vars');
 
                     // on notifie du calcul en cours
                     let vars_to_deploy_filtered_by_tab_subs = await VarsTabsSubsController.getInstance().filter_by_subs(Object.values(vars_to_deploy));

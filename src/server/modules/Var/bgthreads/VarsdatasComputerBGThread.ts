@@ -191,6 +191,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 async () => {
                     try {
 
+                        ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:Starting...");
+
                         let promises = [];
                         let client_request_estimated_ms_limit: number = 0;
                         let bg_estimated_ms_limit: number = 0;
