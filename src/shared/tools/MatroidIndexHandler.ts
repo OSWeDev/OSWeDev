@@ -127,7 +127,7 @@ export default class MatroidIndexHandler {
 
     public get_normalized_ranges(ranges: IRange[], is_matroid_index: boolean = false): string {
 
-        if (!ranges) {
+        if (!ranges || !ranges.length) {
             return null;
         }
 
