@@ -5,6 +5,7 @@ import VarDataSetDescriptor from './VarDataSetDescriptor';
 export default class VarsBarDataSetDescriptor extends VarDataSetDescriptor {
 
     public bg_color: string = null;
+    public border_color: string = null;
     public type: string = null;
     public var_value_filter: (param: VarDataBaseVO, value: number) => boolean = null;
     public dataset_options_overrides: any = null;
@@ -32,6 +33,11 @@ export default class VarsBarDataSetDescriptor extends VarDataSetDescriptor {
 
     public set_bg_color(bg_color: string): VarsBarDataSetDescriptor {
         this.bg_color = bg_color;
+        return this;
+    }
+
+    public set_border_color(border_color: string): VarsBarDataSetDescriptor {
+        this.border_color = border_color;
         return this;
     }
 
