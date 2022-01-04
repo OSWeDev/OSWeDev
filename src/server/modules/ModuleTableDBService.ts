@@ -259,7 +259,10 @@ export default class ModuleTableDBService {
             }
         } else {
             res = await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
-            res = res || await this.chec_indexes(moduleTable, database_name, table_name);
+
+            if (await this.chec_indexes(moduleTable, database_name, table_name)) {
+                res = true;
+            }
         }
         return res;
     }
@@ -282,10 +285,16 @@ export default class ModuleTableDBService {
         }
 
         let res: boolean = false;
-        res = res || await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        res = res || await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        res = res || await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
-        res = res || await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        res = await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        if (await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name)) {
+            res = true;
+        }
+        if (await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name)) {
+            res = true;
+        }
+        if (await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name)) {
+            res = true;
+        }
         return res;
     }
 
