@@ -719,6 +719,57 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return " (" + where_clause_params.join(" OR ") + ") ";
     }
 
+    public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
+
+        let res: InsertOrDeleteQueryResult[] = [];
+        let promises = [];
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                let delete_res = await this.deleteVOs([vo]);
+                if (delete_res && delete_res.length == 1) {
+                    res.push(delete_res[0]);
+                }
+            })());
+        }
+
+        if (!!promises.length) {
+            await Promise.all(promises);
+        }
+
+        return res;
+    }
+
+    public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
+
+        let res: InsertOrDeleteQueryResult[] = [];
+        let promises = [];
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                res.push(await this.insertOrUpdateVO(vo));
+            })());
+        }
+
+        if (!!promises.length) {
+            await Promise.all(promises);
+        }
+
+        return res;
+    }
+
     /**
      * Seul version de delete_all/truncate qui appel les triggers appli + base
      */

@@ -60,4 +60,10 @@ export default class DataImportFormatVO implements IDistantVOBase {
      * Taille idéale d'une segmentation pour cet import (ni trop petit pour les perfs, ni trop grand pour la survie et disponibilité du serveur)
      */
     public batch_size: number;
+
+    /**
+     * Indique si l'on peut faire des insertions en parralèle ou si il faut faire une à une
+     * Par défaut on considère qu'on peut (puisque les triggers sont rarement sur cette partie)
+     */
+    public use_multiple_connections: boolean;
 }

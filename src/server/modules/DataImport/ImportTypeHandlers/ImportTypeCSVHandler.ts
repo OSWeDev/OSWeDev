@@ -1,6 +1,7 @@
 
 
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
@@ -310,10 +311,20 @@ export default class ImportTypeCSVHandler {
                         if (batch_datas && (batch_datas.length >= dataImportFormat.batch_size)) {
                             let self = this;
                             self.pause();
-                            ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
-                                batch_datas = [];
-                                self.resume();
-                            });
+
+                            if (dataImportFormat.use_multiple_connections) {
+                                ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                                    batch_datas,
+                                    /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000).then(() => {
+                                        batch_datas = [];
+                                        self.resume();
+                                    });
+                            } else {
+                                ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
+                                    batch_datas = [];
+                                    self.resume();
+                                });
+                            }
                         }
                     }
 
@@ -321,10 +332,20 @@ export default class ImportTypeCSVHandler {
                 }).on('end', async function () {
 
                     if (batch_datas && batch_datas.length) {
-                        ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
-                            resolve(!closed);
-                            batch_datas = [];
-                        });
+
+                        if (dataImportFormat.use_multiple_connections) {
+                            ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
+                                batch_datas,
+                                    /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000).then(() => {
+                                    resolve(!closed);
+                                    batch_datas = [];
+                                });
+                        } else {
+                            ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
+                                resolve(!closed);
+                                batch_datas = [];
+                            });
+                        }
                     } else {
                         resolve(!closed);
                     }

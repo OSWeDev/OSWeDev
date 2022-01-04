@@ -1,9 +1,8 @@
 
 
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
-import DateHandler from '../../../../shared/tools/DateHandler';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
@@ -38,10 +37,6 @@ export default class ImportLogger {
         log.message = (format ? format.import_uid + '::' : '') + message;
         log.api_type_id = historique.api_type_id;
 
-        let promises: Array<Promise<any>> = [];
-        promises.push((async () => {
-            await ModuleDAO.getInstance().insertOrUpdateVOs([log]);
-        })());
-        await Promise.all(promises);
+        await ModuleDAO.getInstance().insertOrUpdateVO(log);
     }
 }

@@ -205,8 +205,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             promises.push((async () => bg_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75))());
                             promises.push((async () => client_request_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15))());
                         } else {
-                            client_request_estimated_ms_limit = 0;
-                            bg_estimated_ms_limit = 0;
+                            client_request_estimated_ms_limit = 0.001;
+                            bg_estimated_ms_limit = 0.001;
                             bg_min_nb_vars = 1;
                             client_request_min_nb_vars = 1;
                         }

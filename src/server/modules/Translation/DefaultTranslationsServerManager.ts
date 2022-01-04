@@ -54,6 +54,7 @@ export default class DefaultTranslationsServerManager {
     private async cleanTranslationCodes() {
         let codes: TranslatableTextVO[] = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
         let codes_to_deletes: TranslatableTextVO[] = [];
+        ConsoleHandler.getInstance().log('cleanTranslationCodes:IN:');
 
         for (let i in codes) {
             let code_a: TranslatableTextVO = codes[i];
@@ -75,9 +76,9 @@ export default class DefaultTranslationsServerManager {
         }
 
         if (codes_to_deletes.length > 0) {
-
             await ModuleDAO.getInstance().deleteVOs(codes_to_deletes);
         }
+        ConsoleHandler.getInstance().log('cleanTranslationCodes:OUT:');
     }
 
     private async saveDefaultTranslation(default_translation: DefaultTranslation) {

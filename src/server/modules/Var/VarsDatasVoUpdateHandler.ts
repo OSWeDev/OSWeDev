@@ -417,7 +417,8 @@ export default class VarsDatasVoUpdateHandler {
                         unregistered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
                             'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index));
                         if (delete_instead_of_invalidating_unregistered_var_datas) {
-                            await ModuleDAO.getInstance().deleteVOs(unregistered_var_datas);
+                            // On fait les suppressions en parallèle
+                            await ModuleDAOServer.getInstance().deleteVOsMulticonnections(unregistered_var_datas);
                             ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
                         } else {
                             await VarsDatasProxy.getInstance().append_var_datas(unregistered_var_datas);
