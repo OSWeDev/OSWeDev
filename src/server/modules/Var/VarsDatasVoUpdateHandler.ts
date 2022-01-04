@@ -360,6 +360,11 @@ export default class VarsDatasVoUpdateHandler {
                     for (let i in registered_var_datas) {
                         let registered_var_data = registered_var_datas[i];
 
+                        // Je sais pas pkoi mais on est obligé de le faire ici même si on push dans le var_datas les objets
+                        //  (pour moi par ref) et qu'on supprime la value et le value_ts dedans...
+                        delete registered_var_data.value;
+                        registered_var_data.value_ts = null;
+
                         if (var_datas.find((v) => v.index == registered_var_data.index)) {
                             continue;
                         }
