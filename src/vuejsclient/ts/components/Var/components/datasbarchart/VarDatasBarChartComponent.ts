@@ -291,6 +291,10 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 dataset['backgroundColor'] = var_dataset_descriptor.bg_color;
             }
 
+            if (!!var_dataset_descriptor.border_color) {
+                dataset['borderColor'] = var_dataset_descriptor.border_color;
+            }
+
             if (!!var_dataset_descriptor.type) {
                 dataset['type'] = var_dataset_descriptor.type;
             }
