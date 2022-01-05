@@ -201,6 +201,9 @@ export default abstract class ModuleServiceBase {
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
         this.db_ = db;
 
+        db.$pool.options.max = ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL;
+        db.$pool.options.idleTimeoutMillis = 120000;
+
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
         this.registered_modules = [].concat(this.registered_base_modules, this.registered_child_modules);

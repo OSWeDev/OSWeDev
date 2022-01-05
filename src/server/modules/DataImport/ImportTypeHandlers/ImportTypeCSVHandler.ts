@@ -314,8 +314,9 @@ export default class ImportTypeCSVHandler {
 
                             if (dataImportFormat.use_multiple_connections) {
                                 ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                                    batch_datas,
-                                    /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000).then(() => {
+                                    batch_datas)
+                                    // /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000)
+                                    .then(() => {
                                         batch_datas = [];
                                         self.resume();
                                     });
@@ -335,8 +336,9 @@ export default class ImportTypeCSVHandler {
 
                         if (dataImportFormat.use_multiple_connections) {
                             ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                                batch_datas,
-                                    /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000).then(() => {
+                                batch_datas)
+                                // /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000)
+                                .then(() => {
                                     resolve(!closed);
                                     batch_datas = [];
                                 });

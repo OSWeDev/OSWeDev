@@ -134,9 +134,13 @@ export default abstract class ServerBase {
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         let pgp: pg_promise.IMain = pg_promise({});
-        this.db = pgp(this.connectionString);
+        this.db = pgp({
+            connectionString: this.connectionString,
+            max: this.envParam.MAX_POOL,
+        });
 
-        this.db.$pool.options.max = this.envParam.MAX_POOL;
+        this.db.$pool.options.max = ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL;
+        this.db.$pool.options.idleTimeoutMillis = 120000;
 
         let GM = this.modulesService;
         await GM.register_all_modules(this.db);

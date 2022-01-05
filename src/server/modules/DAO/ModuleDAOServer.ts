@@ -75,6 +75,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private static instance: ModuleDAOServer = null;
 
+    public check_foreign_keys: boolean = true;
+
     public global_update_blocker: boolean = false;
     private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
@@ -721,6 +723,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
+
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
         for (let i in vos) {
@@ -747,6 +751,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
+
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -1338,9 +1344,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         vos = tmp_vos;
 
-        vos = await this.filterByForeignKeys(vos);
-        if ((!vos) || (!vos.length)) {
-            return null;
+        if (this.check_foreign_keys) {
+            vos = await this.filterByForeignKeys(vos);
+            if ((!vos) || (!vos.length)) {
+                return null;
+            }
         }
 
         let self = this;
@@ -1497,10 +1505,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         vo = tmp_vo;
 
-        let vos = await this.filterByForeignKeys([vo]);
+        let vos = [vo];
 
-        if ((!vos) || (vos.length != 1)) {
-            return null;
+        if (this.check_foreign_keys) {
+            vos = await this.filterByForeignKeys([vo]);
+
+            if ((!vos) || (vos.length != 1)) {
+                return null;
+            }
         }
 
         let self = this;

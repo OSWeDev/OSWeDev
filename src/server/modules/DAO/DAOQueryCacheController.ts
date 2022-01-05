@@ -16,6 +16,8 @@ export default class DAOQueryCacheController {
 
     private static instance: DAOQueryCacheController = null;
 
+    public activate_cache: boolean = true;
+
     /**
      * Local thread cache -----
      */
@@ -66,6 +68,10 @@ export default class DAOQueryCacheController {
      */
     public async invalidate_cache_from_query_or_return_result(query: string, values: any): Promise<any> {
 
+        if (!this.activate_cache) {
+            return undefined;
+        }
+
         if (this.waiting_for_blocking_tasks > 0) {
             return undefined;
         }
@@ -99,6 +105,11 @@ export default class DAOQueryCacheController {
     }
 
     public async broad_cast_clear_cache() {
+
+        if (!this.activate_cache) {
+            return;
+        }
+
         if (this.waiting_for_blocking_tasks > 0) {
             return;
         }
@@ -106,6 +117,11 @@ export default class DAOQueryCacheController {
     }
 
     public clear_cache(useless: boolean) {
+
+        if (!this.activate_cache) {
+            return;
+        }
+
         // ConsoleHandler.getInstance().log("CLEAR QUERY CACHE:");
         DAOQueryCacheController.getInstance().simple_query_cache = {};
     }
@@ -114,6 +130,10 @@ export default class DAOQueryCacheController {
      * Avant l'envoie en base on tente d'utiliser le cache
      */
     public save_cache_from_query_result(query: string, values: any, res: any) {
+
+        if (!this.activate_cache) {
+            return;
+        }
 
         if (this.waiting_for_blocking_tasks > 0) {
             return;
