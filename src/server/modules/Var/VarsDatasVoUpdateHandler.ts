@@ -360,6 +360,10 @@ export default class VarsDatasVoUpdateHandler {
                     for (let i in registered_var_datas) {
                         let registered_var_data = registered_var_datas[i];
 
+                        if ((registered_var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) || (registered_var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED)) {
+                            continue;
+                        }
+
                         // Je sais pas pkoi mais on est obligé de le faire ici même si on push dans le var_datas les objets
                         //  (pour moi par ref) et qu'on supprime la value et le value_ts dedans...
                         delete registered_var_data.value;
