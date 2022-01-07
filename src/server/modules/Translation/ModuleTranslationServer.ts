@@ -528,8 +528,23 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Accès au choix de la langue'
+            'fr-fr': 'Accès au choix de la langue (1)'
         }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_1.___LABEL___'));
+
+        //   --------------------
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Accès au choix de la langue (2)'
+        }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_2.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Accès au choix de la langue (3)'
+        }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_3.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Accès au choix de la langue (4)'
+        }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_4.___LABEL___'));
+
+        // --------------------
+
     }
 
     /**
