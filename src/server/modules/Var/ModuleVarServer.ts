@@ -286,19 +286,15 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Indicateurs - Réalisé'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
-        // ------------------------
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Performance'
         }, 'fields.labels.ref.module_var_var_perf.___LABEL____var_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable lente'
         }, 'fields.labels.ref.module_var_slow_var.___LABEL____var_id'));
-        // ------------------------
-
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Var conf cache'
         }, 'menu.menuelements.admin.VarCacheConfVO.___LABEL___'));
-
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nombre de deps'
         }, 'var.desc_mode.dependencies_number.___LABEL___'));
@@ -314,16 +310,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Taille de l\'arbre'
         }, 'var_desc_registrations.vardag_size.___LABEL___'));
-
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Données importées/aggrégées'
         }, 'var_desc.aggregated_var_datas.___LABEL___'));
-
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
         }, 'force_empty_vars_datas_vo_update_cache.done'));
-
-
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Import ?'
         }, 'var_desc.var_data_is_import.___LABEL___'));

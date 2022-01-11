@@ -525,11 +525,6 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tranche de valeurs'
         }, 'num_range_input.is_single.off.___LABEL___'));
-
-
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Accès au choix de la langue'
-        }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_1.___LABEL___'));
     }
 
     /**

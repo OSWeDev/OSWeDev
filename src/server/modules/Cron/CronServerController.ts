@@ -106,7 +106,7 @@ export default class CronServerController {
                     continue;
                 }
 
-                if (plannedWorker.date_heure_planifiee && (plannedWorker.date_heure_planifiee < Dates.now())) {
+                if (plannedWorker.date_heure_planifiee && (plannedWorker.date_heure_planifiee <= Dates.now())) {
                     await this.executeWorker(plannedWorker.worker_uid);
                     await this.nextRecurrence(plannedWorker);
                 }

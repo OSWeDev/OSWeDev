@@ -1,10 +1,8 @@
 import * as $ from 'jquery';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isArray } from 'lodash';
 import debounce from 'lodash/debounce';
 import { Moment } from 'moment';
 import * as  moment from 'moment';
-
-
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -12,7 +10,6 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
-import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -37,6 +34,7 @@ import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 import DatatableRowController from './DatatableRowController';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -422,8 +420,8 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_tstz:
                         if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
                             res.push(field);
-                            break;
                         }
+                        break;
 
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_float:
@@ -887,9 +885,9 @@ export default class DatatableComponent extends VueComponentBase {
                 resData[DatatableRowController.ACTIONS_COLUMN_ID] = true;
             }
 
-
             this.datatable_data.push(resData);
         }
+
         this.initializeFilters();
     }
 
@@ -1297,44 +1295,118 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private getCustomSortingNumberColumn(number_field: DatatableField<any, any>) {
+        let self = this;
         return function (ascending) {
             return function (a, b) {
-                let dataA: number = (a[number_field.datatable_field_uid] != null) ? parseFloat(a[number_field.datatable_field_uid]) : null;
-                let dataB: number = (b[number_field.datatable_field_uid] != null) ? parseFloat(b[number_field.datatable_field_uid]) : null;
+                // let dataA: number = (a[number_field.datatable_field_uid] != null) ? parseFloat(a[number_field.datatable_field_uid]) : null;
+                // let dataB: number = (b[number_field.datatable_field_uid] != null) ? parseFloat(b[number_field.datatable_field_uid]) : null;
+                let dataA: number = null;
+                let dataB: number = null;
 
-                if ((dataA == null) && (dataB != null)) {
-                    return 1;
-                }
+                if (!!self.getStoredDatas[self.datatable.API_TYPE_ID]) {
+                    dataA = !!self.getStoredDatas[self.datatable.API_TYPE_ID][a.id] ?
+                        self.getStoredDatas[self.datatable.API_TYPE_ID][a.id][number_field.module_table_field_id] : null;
 
-                if ((dataB == null) && (dataA != null)) {
-                    return -1;
+                    dataB = !!self.getStoredDatas[self.datatable.API_TYPE_ID][b.id] ?
+                        self.getStoredDatas[self.datatable.API_TYPE_ID][b.id][number_field.module_table_field_id] : null;
                 }
-
-                if (dataA == dataB) {
-                    return 0;
-                }
-
-                if (dataA > dataB) {
-                    return ascending ? 1 : -1;
-                }
-                return ascending ? -1 : 1;
+                return self.sortingNumber(ascending, dataA, dataB);
             };
         };
     }
 
+    private sortingNumber(ascending: boolean, a: number, b: number): number {
+        if ((a == null) && (b != null)) {
+            return 1;
+        }
+
+        if ((b == null) && (a != null)) {
+            return -1;
+        }
+
+        if (a == b) {
+            return 0;
+        }
+
+        if (a > b) {
+            return ascending ? 1 : -1;
+        }
+        return ascending ? -1 : 1;
+    }
+
     private getCustomSortingDateColumn(date_field: DatatableField<any, any>) {
+        let self = this;
         return function (ascending) {
             return function (a, b) {
-                let dateA: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(a[date_field.datatable_field_uid]);
-                let dateB: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(b[date_field.datatable_field_uid]);
+                let raw_data_a = null;
+                let raw_data_b = null;
 
-                if (ascending) {
-                    return dateA.diff(dateB);
+                if (!!self.getStoredDatas[self.datatable.API_TYPE_ID]) {
+                    raw_data_a = !!self.getStoredDatas[self.datatable.API_TYPE_ID][a.id] ?
+                        self.getStoredDatas[self.datatable.API_TYPE_ID][a.id][date_field.module_table_field_id] : null;
+
+                    raw_data_b = !!self.getStoredDatas[self.datatable.API_TYPE_ID][b.id] ?
+                        self.getStoredDatas[self.datatable.API_TYPE_ID][b.id][date_field.module_table_field_id] : null;
                 }
 
-                return -dateA.diff(dateB);
+                let data_a: number = self.convertRawDateToTs(raw_data_a);
+                let data_b: number = self.convertRawDateToTs(raw_data_b);
+
+                return self.sortingNumber(ascending, data_a, data_b);
+                // let dateA: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(a[date_field.datatable_field_uid]);
+                // let dateB: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(b[date_field.datatable_field_uid]);
+
+                // if (ascending) {
+                //     return dateA.diff(dateB);
+                // }
+
+                // return -dateA.diff(dateB);
             };
         };
+    }
+
+    private convertRawDateToTs(raw_data: any): number {
+
+        if (!raw_data) {
+            return null;
+        }
+
+        // si c'est un tableau
+        if (Array.isArray(raw_data) && !!raw_data[0]) {
+            if (!raw_data[0].min) {
+                // si le premier item n'a pas de min c'est un tableau de date alors on parse les dates et on get la plus petite
+                let res: number = null;
+                for (let item of raw_data) {
+                    let current = Dates.parse(item);
+                    if ((current !== null) && (res === null) || (current < res)) {
+                        res = current;
+                    }
+                }
+                return res;
+
+            } else {
+                // si le premier item a un min de type number c'est que c'est un tableau de range alors on get le min du range
+                if (typeof raw_data[0].min === 'number') {
+                    return RangeHandler.getInstance().getSegmentedMin_from_ranges(raw_data as TSRange[]);
+                }
+            }
+            // cas non identifié
+            return null;
+        }
+
+        if (!!raw_data.min) {
+            if (typeof raw_data.min === 'number') {
+                return raw_data.min;
+            } else {
+                return Dates.parse(raw_data.min);
+            }
+        }
+
+        if (typeof raw_data === 'number') {
+            return raw_data;
+        } else {
+            return Dates.parse(raw_data);
+        }
     }
 
     @Watch("selected_datas", { deep: true })
