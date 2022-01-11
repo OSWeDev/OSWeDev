@@ -75,7 +75,7 @@ export default class ModuleCron extends Module {
         let datatable_fields = [
             label_field,
             new ModuleTableField('worker_uid', ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
-            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
+            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_tstz, 'date_heure_planifiee', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(true),
             new ModuleTableField('type_recurrence', ModuleTableField.FIELD_TYPE_int, 'type_recurrence', true),
             new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
