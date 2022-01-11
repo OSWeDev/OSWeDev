@@ -147,6 +147,7 @@ export default class ForkMessageController {
                     ForkServerController.getInstance().forks_reload_asap[msg_wrapper.forked_target.uid] = false;
                     ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread le plus vite possible.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
+                    ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
                     return;
                 }
@@ -155,6 +156,7 @@ export default class ForkMessageController {
                     (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) > ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
                     ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
+                    ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
                 }
             }

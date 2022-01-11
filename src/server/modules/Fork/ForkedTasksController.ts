@@ -4,6 +4,9 @@ import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
+import ModuleForkServer from './ModuleForkServer';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
 
 export default class ForkedTasksController {
 
@@ -127,8 +130,37 @@ export default class ForkedTasksController {
             this.registered_task_result_resolvers[result_task_uid] = resolver;
             this.registered_task_result_throwers[result_task_uid] = thrower;
 
+            // Si on est sur le thread principal, on doit checker qu'on peut envoyer le message au bgthread (donc qu'il a démarré) et le faire,
+            //  sinon on throw directement
+            if (ForkServerController.getInstance().is_main_process) {
+
+                if ((!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
+                    (!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread])) {
+                    delete this.registered_task_result_resolvers[result_task_uid];
+                    ConsoleHandler.getInstance().error("Unable to find target for this message :" + bgthread + ':' + JSON.stringify(task_params));
+                    thrower("Unable to find target for this message :" + bgthread + ':' + JSON.stringify(task_params));
+                    return false;
+                }
+
+                let fork = ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
+
+                if (!ForkServerController.getInstance().forks_alive[fork.uid]) {
+                    ConsoleHandler.getInstance().warn("Target not ALIVE for this message :" + bgthread + ':' + JSON.stringify(task_params));
+                    thrower("Target not ALIVE for this message :" + bgthread + ':' + JSON.stringify(task_params));
+                    return false;
+                }
+
+                ForkMessageController.getInstance().send(
+                    new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
+                    fork.child_process,
+                    fork);
+
+                return false;
+            }
+
+            // Si on est sur un bgthread (et donc pas le bon à ce stade) on envoie une demande au thread principal d'envoie de message au bgthread
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid));
+            ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid));
             return false;
         }
         return true;
@@ -155,4 +187,6 @@ export default class ForkedTasksController {
 
     //     ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
     // }
+
+
 }

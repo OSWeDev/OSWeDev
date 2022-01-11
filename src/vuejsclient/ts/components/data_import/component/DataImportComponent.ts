@@ -1093,7 +1093,8 @@ export default class DataImportComponent extends DataImportComponentBase {
             },
             accept: (file, done) => {
 
-                this.checkUnfinishedImportsAndReplacement(null, done);
+                this.checkReplaceExistingImport(null, done);
+                // this.checkUnfinishedImportsAndReplacement(null, done);
             },
         };
     }
@@ -1121,7 +1122,8 @@ export default class DataImportComponent extends DataImportComponentBase {
                     },
                     accept: (file, done) => {
 
-                        this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
+                        this.checkReplaceExistingImport(segment_date_index, done);
+                        // this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
                     },
                 };
             })(segment.index);
@@ -1129,50 +1131,50 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
-    private async checkUnfinishedImportsAndReplacement(segment_date_index: number, done) {
-        let self = this;
+    // private async checkUnfinishedImportsAndReplacement(segment_date_index: number, done) {
+    //     let self = this;
 
-        if (self.unfinished_imports && (self.unfinished_imports.length > 0)) {
-            self.snotify.confirm(self.label('import.cancel_unfinished_imports.body'), self.label('import.cancel_unfinished_imports.title'), {
-                timeout: 10000,
-                showProgressBar: true,
-                closeOnClick: false,
-                pauseOnHover: true,
-                buttons: [
-                    {
-                        text: self.t('YES'),
-                        action: async (toast) => {
-                            self.$snotify.remove(toast.id);
-                            self.snotify.info(self.label('import.cancel_unfinished_imports.cancelling'));
+    //     if (self.unfinished_imports && (self.unfinished_imports.length > 0)) {
+    //         self.snotify.confirm(self.label('import.cancel_unfinished_imports.body'), self.label('import.cancel_unfinished_imports.title'), {
+    //             timeout: 10000,
+    //             showProgressBar: true,
+    //             closeOnClick: false,
+    //             pauseOnHover: true,
+    //             buttons: [
+    //                 {
+    //                     text: self.t('YES'),
+    //                     action: async (toast) => {
+    //                         self.$snotify.remove(toast.id);
+    //                         self.snotify.info(self.label('import.cancel_unfinished_imports.cancelling'));
 
-                            let unfinished_imports = self.unfinished_imports;
-                            for (let i in unfinished_imports) {
-                                unfinished_imports[i].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-                            }
-                            await ModuleDAO.getInstance().insertOrUpdateVOs(unfinished_imports);
+    //                         let unfinished_imports = self.unfinished_imports;
+    //                         for (let i in unfinished_imports) {
+    //                             unfinished_imports[i].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+    //                         }
+    //                         await ModuleDAO.getInstance().insertOrUpdateVOs(unfinished_imports);
 
-                            for (let i in unfinished_imports) {
-                                this.updateData(unfinished_imports[i]);
-                            }
+    //                         for (let i in unfinished_imports) {
+    //                             this.updateData(unfinished_imports[i]);
+    //                         }
 
-                            this.checkReplaceExistingImport(segment_date_index, done);
-                        },
-                        bold: false
-                    },
-                    {
-                        text: self.t('NO'),
-                        action: (toast) => {
-                            self.$snotify.remove(toast.id);
-                            done(self.label('import.new_historic_confirmation.cancelled'));
-                        }
-                    }
-                ]
-            });
-        } else {
+    //                         this.checkReplaceExistingImport(segment_date_index, done);
+    //                     },
+    //                     bold: false
+    //                 },
+    //                 {
+    //                     text: self.t('NO'),
+    //                     action: (toast) => {
+    //                         self.$snotify.remove(toast.id);
+    //                         done(self.label('import.new_historic_confirmation.cancelled'));
+    //                     }
+    //                 }
+    //             ]
+    //         });
+    //     } else {
 
-            this.checkReplaceExistingImport(segment_date_index, done);
-        }
-    }
+    //         this.checkReplaceExistingImport(segment_date_index, done);
+    //     }
+    // }
 
     get has_imports_on_selected_segments(): boolean {
         let segment: TimeSegment = this.lower_selected_segment;
