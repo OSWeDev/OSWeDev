@@ -721,7 +721,18 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         while (had_datas) {
 
-            let validated_imported_datas: IImportedData[] = await this.get_batch_mode_batch_datas(raw_api_type_id, importHistoric, format, offset, batch_size, ModuleDataImport.IMPORTATION_STATE_IMPORTED);
+            /**
+             * Si le module de posttraitement propose un hook pour remplacer le chargement par batch par défaut, on l'utilise
+             */
+            let postTreatementModuleVO: ModuleVO = await ModuleDAO.getInstance().getVoById<ModuleVO>(ModuleVO.API_TYPE_ID, format.post_exec_module_id);
+            let postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
+
+            let validated_imported_datas: IImportedData[] = null;
+            if (postTraitementModule.hook_get_batch_mode_batch_datas) {
+                validated_imported_datas = await postTraitementModule.hook_get_batch_mode_batch_datas(raw_api_type_id, importHistoric, format, offset, batch_size, ModuleDataImport.IMPORTATION_STATE_IMPORTED);
+            } else {
+                validated_imported_datas = await this.get_batch_mode_batch_datas(raw_api_type_id, importHistoric, format, offset, batch_size, ModuleDataImport.IMPORTATION_STATE_IMPORTED);
+            }
 
             had_datas = validated_imported_datas && (validated_imported_datas.length > 0);
             if (!had_datas) {

@@ -10,6 +10,8 @@ export default abstract class DataImportModuleBase<ImportedData extends IImporte
 
     public static DataImportRoleName: string = "DataImportRoleName";
 
+    public hook_get_batch_mode_batch_datas: (raw_api_type_id: string, importHistoric: DataImportHistoricVO, format: DataImportFormatVO, offset: number, batch_size: number, importation_state: number) => Promise<IImportedData[]> = null;
+
     protected constructor(public name: string) {
         super(name);
         this.name = name;

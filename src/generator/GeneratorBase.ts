@@ -63,6 +63,7 @@ import Patch20210804Changebddvarsindexes from './patchs/postmodules/Patch2021080
 import Patch20210726ChangeUserDateType from './patchs/premodules/Patch20210726ChangeUserDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
+import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
 import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
 import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117ChangeVarDataIndex';
 import Patch20211203ClearVarCaches from './patchs/postmodules/Patch20211203ClearVarCaches';
@@ -111,6 +112,7 @@ export default abstract class GeneratorBase {
             Patch20210726ChangeUserDateType.getInstance(),
             Patch20210914ClearDashboardWidgets.getInstance(),
             Patch20211004ChangeLang.getInstance(),
+            Patch20220111LocalizeCRONDate.getInstance(),
         ];
 
         this.post_modules_workers = [

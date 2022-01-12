@@ -1,6 +1,7 @@
 
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
+import JSONTransport = require('nodemailer/lib/json-transport');
 import CRUD from '../../../shared/modules/DAO/vos/CRUD';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -17,6 +18,7 @@ import AliveForkMessage from './messages/AliveForkMessage';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 import KillForkMessage from './messages/KillForkMessage';
+import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import PingForkACKMessage from './messages/PingForkACKMessage';
 import PingForkMessage from './messages/PingForkMessage';
@@ -48,6 +50,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         ForkMessageController.getInstance().register_message_handler(AliveForkMessage.FORK_MESSAGE_TYPE, this.handle_alive_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(BroadcastWrapperForkMessage.FORK_MESSAGE_TYPE, this.handle_broadcast_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(MainProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocesstask_message.bind(this));
+        ForkMessageController.getInstance().register_message_handler(MainProcessForwardToBGThreadForkMessage.FORK_MESSAGE_TYPE, this.handle_mainprocessforwardtobgtask_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(BGThreadProcessTaskForkMessage.FORK_MESSAGE_TYPE, this.handle_bgthreadprocesstask_message.bind(this));
         ForkMessageController.getInstance().register_message_handler(TaskResultForkMessage.FORK_MESSAGE_TYPE, this.handle_taskresult_message.bind(this));
     }
@@ -125,6 +128,46 @@ export default class ModuleForkServer extends ModuleServerBase {
         return true;
     }
 
+    private async handle_mainprocessforwardtobgtask_message(msg: BGThreadProcessTaskForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+        /**
+         * Là on est sur le main thread, on a reçu une demande d'un bg thread à forwarder vers un autre
+         *  On check si on est en plein kill
+         *  Sinon on envoie la demande au bgthread en param et quand on a le résultat on renvoie au bgthread qui avait posé la question initialement
+         */
+        /**
+         * Si un kill est en cours on throw une erreur ici pour répondre à la demande le plus vite possible
+         */
+        if (this.is_killing) {
+            ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
+            if (msg.callback_id) {
+                await ForkMessageController.getInstance().send(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
+            } else {
+                throw new Error('KILLING TASK HANDLER');
+            }
+            return true;
+        }
+
+        return new Promise((resolve, reject) => {
+
+            let thrower = async (error) => {
+                if (msg.callback_id) {
+                    await ForkMessageController.getInstance().send(new TaskResultForkMessage(null, msg.callback_id, error), sendHandle as ChildProcess);
+                } else {
+                    ConsoleHandler.getInstance().error('Failed message:' + error + ':' + JSON.stringify(msg));
+                }
+                reject();
+            };
+
+            let resolver = async (res) => {
+                if (msg.callback_id) {
+                    await ForkMessageController.getInstance().send(new TaskResultForkMessage(res, msg.callback_id), sendHandle as ChildProcess);
+                }
+                resolve(res);
+            };
+            ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver);
+        });
+    }
+
     /**
      * Si on est sur le bon thread on lance l'action
      */
@@ -181,6 +224,8 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_alive_message(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
+        ForkServerController.getInstance().forks_alive[msg.message_content] = true;
+
         ForkServerController.getInstance().forks_waiting_to_be_alive--;
         if (ForkServerController.getInstance().forks_waiting_to_be_alive <= 0) {
             ForkServerController.getInstance().forks_are_initialized = true;

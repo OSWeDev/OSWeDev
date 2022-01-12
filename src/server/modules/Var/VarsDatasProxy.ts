@@ -90,7 +90,8 @@ export default class VarsDatasProxy {
             if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
-                VarsDatasProxy.TASK_NAME_has_cached_vars_waiting_for_compute, resolve)) {
+                VarsDatasProxy.TASK_NAME_has_cached_vars_waiting_for_compute,
+                resolve)) {
                 return;
             }
 
