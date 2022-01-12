@@ -181,13 +181,38 @@ export default class DatatableComponent extends VueComponentBase {
                             continue;
 
                         case ModuleTableField.FIELD_TYPE_tstz:
-                            if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
-                                if (j == 'FILTER__' + field.datatable_field_uid) {
+                            switch (simpleField.moduleTableField.segmentation_type) {
+                                case TimeSegment.TYPE_YEAR:
+                                    if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
+                                        if (j == 'FILTER__' + field.datatable_field_uid) {
 
-                                    this.preload_custom_filters.push(field.datatable_field_uid);
+                                            this.preload_custom_filters.push(field.datatable_field_uid);
 
-                                    this.custom_filters_values[field.datatable_field_uid] = this.$route.query[j];
-                                }
+                                            this.custom_filters_values[field.datatable_field_uid] = this.$route.query[j];
+                                        }
+                                    }
+                                    break;
+
+                                default:
+                                    if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
+
+                                        this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                        if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                            this.custom_filters_values[field.datatable_field_uid] = {};
+                                        }
+                                        this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true).unix());
+                                    }
+                                    if (j == 'FILTER__' + field.datatable_field_uid + '__END') {
+
+                                        this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                        if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                            this.custom_filters_values[field.datatable_field_uid] = {};
+                                        }
+                                        this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true).unix());
+                                    }
+                                    break;
                             }
                             continue;
 
@@ -256,6 +281,7 @@ export default class DatatableComponent extends VueComponentBase {
                         case ModuleTableField.FIELD_TYPE_day:
                         case ModuleTableField.FIELD_TYPE_month:
                         case ModuleTableField.FIELD_TYPE_tsrange:
+                        case ModuleTableField.FIELD_TYPE_tstz:
                             if (!!this.embed_filter[field.datatable_field_uid].start) {
 
                                 this.preload_custom_filters.push(field.datatable_field_uid);
