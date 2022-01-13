@@ -197,16 +197,13 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     private onchange_var_datas() {
         if (this.all_data_loaded) {
             this.$emit('all_data_loaded', this.var_datas);
+            this.debounced_render_chart_js();
         }
     }
 
     get chartData() {
         if (!this.all_data_loaded) {
             return null;
-        }
-
-        if (this.rendered) {
-            this.debounced_render_chart_js();
         }
 
         return {
