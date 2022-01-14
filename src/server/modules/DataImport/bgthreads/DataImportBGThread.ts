@@ -16,6 +16,7 @@ import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/Contex
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
+import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -36,7 +37,7 @@ export default class DataImportBGThread implements IBGThread {
     private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
     private static wait_for_empty_cache_vars_waiting_for_compute_param_name: string = 'DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute';
 
-    public current_timeout: number = 20000;
+    public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
@@ -187,6 +188,69 @@ export default class DataImportBGThread implements IBGThread {
         if (!(importHistoric && importHistoric.id)) {
             return false;
         }
+
+        return importHistoric.use_fast_track ?
+            await this.handleImportHistoricProgressionFastTrack(importHistoric) :
+            await this.handleImportHistoricProgressionClassic(importHistoric);
+    }
+
+    /**
+     * L'idée du fast track, c'est d'éviter de passer par la bdd sauf dans le post process et pour mettre à jour le statut final
+     */
+    private async handleImportHistoricProgressionFastTrack(importHistoric: DataImportHistoricVO): Promise<boolean> {
+
+        ConsoleHandler.getInstance().log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] state:' + importHistoric.state + ':IN');
+
+        if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_UPLOADED) {
+            return false;
+        }
+
+        // case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
+        importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTING;
+        // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
+        let fasttrack_datas: IImportedData[] = await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
+
+        if ((!fasttrack_datas) || (!fasttrack_datas.length) || (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_FORMATTED)) {
+            importHistoric.use_fast_track = false;
+            await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            return false;
+        }
+
+        // case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
+        // await ModuleDataImportServer.getInstance().logAndUpdateHistoric(importHistoric, null, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, 'Autovalidation', "import.success.autovalidation", DataImportLogVO.LOG_LEVEL_SUCCESS);
+
+        // if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT) {
+        //     return false;
+        // }
+
+        // case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
+        importHistoric.state = ModuleDataImport.IMPORTATION_STATE_IMPORTING;
+        // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
+        await ModuleDataImportServer.getInstance().importDatas(importHistoric, fasttrack_datas);
+
+        if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_IMPORTED) {
+            importHistoric.use_fast_track = false;
+            await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            return false;
+        }
+
+        // case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
+        importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATING;
+        // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
+        await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric, fasttrack_datas);
+
+        if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_POSTTREATED) {
+            importHistoric.use_fast_track = false;
+            await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            return false;
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+
+        return true;
+    }
+
+    private async handleImportHistoricProgressionClassic(importHistoric: DataImportHistoricVO): Promise<boolean> {
 
         // Call the workers async to give the hand back to the client, but change the state right now since we're ready to launch the trigger
         // The updates will be pushed later on, no need to wait

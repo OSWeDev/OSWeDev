@@ -699,7 +699,7 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    tmp.forEach((e) => intersectors[e.index] = e);
+                    tmp.forEach((e) => e ? intersectors[e.index] = e : null);
                     // })());
                 }
 
@@ -717,7 +717,7 @@ export default class VarsDatasVoUpdateHandler {
                         // return;
                         continue;
                     }
-                    tmp.forEach((e) => intersectors[e.index] = e);
+                    tmp.forEach((e) => e ? intersectors[e.index] = e : null);
                     // })());
                 }
 

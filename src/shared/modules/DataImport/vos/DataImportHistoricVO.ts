@@ -58,4 +58,15 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     public status_of_last_reimport: number;
 
     public reimport_of_dih_id: number;
+
+    /**
+     * Indique un import qu'on ne veut pas mettre entier en BDD (dans la database import ou dans la table import)
+     *  (donc sur lequel on aura pas de logs d'imports à part le DIH et DIL, mais pas l'info par ligne des refus par exemple)
+     *  et qui soit REJOUABLE à l'infini, c'est à dire que si on reboot le serveur pendant l'import, ça ne doit avoir aucun impact
+     *  par ce que le statut de l'import n'est pas modifié pendant l'import (tout simplement par ce qu'on ne peut pas reprendre
+     *  un import en milieu de process, tout se passant en mémoire)
+     *  On a aussi tout le contenu du fichier en mémoire, donc on doit utiliser ce système uniquement sur des imports de taille
+     *  relativement faible
+     */
+    public use_fast_track: boolean;
 }

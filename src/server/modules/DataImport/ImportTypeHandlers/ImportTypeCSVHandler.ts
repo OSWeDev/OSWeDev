@@ -46,7 +46,7 @@ export default class ImportTypeCSVHandler {
 
         return new Promise(async (resolve, reject) => {
             let inputStream = await ImportTypeCSVHandler.getInstance().loadFile(historic, dataImportFormat, async (err) => {
-                if (!muted) {
+                if ((!muted) && !historic.use_fast_track) {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
@@ -54,7 +54,7 @@ export default class ImportTypeCSVHandler {
             }, muted);
 
             if (!inputStream) {
-                if (!muted) {
+                if ((!muted) && !historic.use_fast_track) {
                     await ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
@@ -122,7 +122,7 @@ export default class ImportTypeCSVHandler {
                                             if (found) {
 
                                                 if (dataImportColumn.column_index != null) {
-                                                    if (!muted) {
+                                                    if ((!muted) && (!historic.use_fast_track)) {
                                                         await ImportLogger.getInstance().log(historic, dataImportFormat, 'Ce titre de colonne existe en double :' + dataImportColumn.title + '.', DataImportLogVO.LOG_LEVEL_WARN);
                                                     }
                                                     break;
@@ -145,7 +145,9 @@ export default class ImportTypeCSVHandler {
 
                                     // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
                                     //  donc on doit remonter l'info des colonnes obligatoires que l'on ne trouve pas
-                                    await ImportLogger.getInstance().log(historic, dataImportFormat, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
+                                    if (!historic.use_fast_track) {
+                                        await ImportLogger.getInstance().log(historic, dataImportFormat, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
+                                    }
 
                                     misses_mandatory_columns = true;
                                     break;

@@ -46,9 +46,10 @@ export default class CRUD<T extends IDistantVOBase> {
         let readDatatable: Datatable<T> = new Datatable(API_TYPE_ID);
         let crud: CRUD<T> = new CRUD(readDatatable);
         let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+        let fields = moduleTable.get_fields();
 
-        for (let i in moduleTable.get_fields()) {
-            let field: ModuleTableField<any> = moduleTable.get_fields()[i];
+        for (let i in fields) {
+            let field: ModuleTableField<any> = fields[i];
 
             // On ignore les 2 fields de service
             if (field.field_id == "id") {
