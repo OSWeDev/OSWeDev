@@ -329,6 +329,7 @@ export default class ModuleDataImport extends Module {
             }), false),
             new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
             new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
+            new ModuleTableField('use_fast_track', ModuleTableField.FIELD_TYPE_boolean, 'Fast Track', true, true, false),
         ];
         let datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(datatable_desc);
