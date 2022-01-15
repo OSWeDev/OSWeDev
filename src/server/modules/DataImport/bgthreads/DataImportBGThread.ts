@@ -195,6 +195,15 @@ export default class DataImportBGThread implements IBGThread {
     }
 
     /**
+     * Sur une erreur de fasttrack on remet en importation sans fastttrack pour avoir le détail des erreurs
+     */
+    private async handlefasttrackerror(importHistoric: DataImportHistoricVO) {
+        importHistoric.use_fast_track = false;
+        importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
+        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+    }
+
+    /**
      * L'idée du fast track, c'est d'éviter de passer par la bdd sauf dans le post process et pour mettre à jour le statut final
      */
     private async handleImportHistoricProgressionFastTrack(importHistoric: DataImportHistoricVO): Promise<boolean> {
@@ -211,8 +220,7 @@ export default class DataImportBGThread implements IBGThread {
         let fasttrack_datas: IImportedData[] = await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
 
         if ((!fasttrack_datas) || (!fasttrack_datas.length) || (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_FORMATTED)) {
-            importHistoric.use_fast_track = false;
-            await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            await this.handlefasttrackerror(importHistoric);
             return false;
         }
 
@@ -229,8 +237,7 @@ export default class DataImportBGThread implements IBGThread {
         await ModuleDataImportServer.getInstance().importDatas(importHistoric, fasttrack_datas);
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_IMPORTED) {
-            importHistoric.use_fast_track = false;
-            await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            await this.handlefasttrackerror(importHistoric);
             return false;
         }
 
@@ -240,8 +247,7 @@ export default class DataImportBGThread implements IBGThread {
         await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric, fasttrack_datas);
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_POSTTREATED) {
-            importHistoric.use_fast_track = false;
-            await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            await this.handlefasttrackerror(importHistoric);
             return false;
         }
 
