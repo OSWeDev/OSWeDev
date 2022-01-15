@@ -708,7 +708,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         if ((!importHistoric.use_fast_track) && format.batch_import) {
             postTreated = await this.posttreatDatas_batch_mode(importHistoric, format);
         } else {
-            postTreated = await this.posttreatDatas_classic(importHistoric, format);
+            postTreated = await this.posttreatDatas_classic(importHistoric, format, posttreatDatas);
         }
 
         if (!postTreated) {
