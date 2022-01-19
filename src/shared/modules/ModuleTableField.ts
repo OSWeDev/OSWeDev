@@ -16,7 +16,7 @@ export default class ModuleTableField<T> {
     public static VALIDATION_CODE_TEXT_need_number: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_number";
     public static VALIDATION_CODE_TEXT_need_lowercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_lowercase";
     public static VALIDATION_CODE_TEXT_need_uppercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_uppercase";
-    public static VALIDATION_CODE_TEXT_need_h: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_h";
+    public static VALIDATION_CODE_TEXT_need_h: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_h" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     public static VALIDATION_CODE_TEXT_format_unix_timestamp_invalid: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "format_unix_timestamp_invalid";
 
 
