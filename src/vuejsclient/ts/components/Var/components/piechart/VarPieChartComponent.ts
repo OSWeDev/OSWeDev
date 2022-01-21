@@ -1,5 +1,6 @@
 import debounce from 'lodash/debounce';
 import { Pie } from 'vue-chartjs';
+import 'chartjs-plugin-labels';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';

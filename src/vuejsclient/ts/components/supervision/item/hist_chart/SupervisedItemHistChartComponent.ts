@@ -1,15 +1,13 @@
 import { debounce } from 'lodash';
-
 import { Line } from 'vue-chartjs';
+import 'chartjs-plugin-labels';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemGraphSegmentation from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import TimeSegmentHandler from '../../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../VueComponentBase';
-
 
 @Component({
     extends: Line
