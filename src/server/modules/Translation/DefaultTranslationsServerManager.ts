@@ -28,17 +28,18 @@ export default class DefaultTranslationsServerManager {
 
         let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let registered_default_translations = this.clean_registered_default_translations();
 
-        for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
+        for (let i in registered_default_translations) {
 
             if (promises.length >= max) {
                 await Promise.all(promises);
                 promises = [];
             }
 
-            promises.push(this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]));
+            promises.push(this.saveDefaultTranslation(registered_default_translations[i]));
 
-            // await this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]);
+            // await this.saveDefaultTranslation(registered_default_translations[i]);
         }
 
         if (promises && promises.length) {
@@ -139,5 +140,16 @@ export default class DefaultTranslationsServerManager {
                 return;
             }
         }
+    }
+
+    private clean_registered_default_translations(): { [code_text: string]: DefaultTranslation } {
+        let res: { [code_text: string]: DefaultTranslation } = {};
+
+        for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
+            let registered_default_translation = DefaultTranslationManager.getInstance().registered_default_translations[i];
+
+            res[registered_default_translation.code_text] = registered_default_translation;
+        }
+        return res;
     }
 }
