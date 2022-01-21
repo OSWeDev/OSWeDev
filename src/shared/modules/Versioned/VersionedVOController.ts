@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import IVOController from '../../interfaces/IVOController';
 import ModuleTable from '../../modules/ModuleTable';
 import UserVO from '../AccessPolicy/vos/UserVO';
@@ -84,7 +85,10 @@ export default class VersionedVOController implements IVOController {
             for (let i in moduleTable.get_fields()) {
                 let vofield = moduleTable.get_fields()[i];
 
-                let cloned_field = new ModuleTableField<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default);
+                let cloned_field = new ModuleTableField<any>(
+                    vofield.field_id, vofield.field_type,
+                    vofield.field_label ? cloneDeep(vofield.field_label) : null,
+                    vofield.field_required, vofield.has_default, vofield.field_default);
                 cloned_field.enum_values = vofield.enum_values;
                 cloned_field.is_inclusive_data = vofield.is_inclusive_data;
                 cloned_field.is_inclusive_ihm = vofield.is_inclusive_ihm;
