@@ -33,7 +33,15 @@ export default class ChartJsPieComponent extends VueComponentBase {
     }
 
     private rerender() {
-        this['renderChart'](this.chartData, this.options);
+        let options = Object.assign(
+            {
+                plugins: {
+                    labels: false,
+                }
+            },
+            this.options
+        );
+        this['renderChart'](this.chartData, options);
     }
 
     get chartData() {

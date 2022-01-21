@@ -215,26 +215,31 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
     get chartOptions() {
         let self = this;
-        return Object.assign({
-            // responsive: true,
-            // maintainAspectRatio: true,
-            onClick: (point, event) => {
-                if (!self.isDescMode) {
-                    return;
-                }
-
-                self.$modal.show(
-                    VarDatasRefsParamSelectComponent,
-                    { var_params: this.get_all_datas(this.var_dataset_descriptors) },
-                    {
-                        width: 465,
-                        height: 'auto',
-                        scrollable: true
+        return Object.assign(
+            {
+                // responsive: true,
+                // maintainAspectRatio: true,
+                plugins: {
+                    labels: false,
+                },
+                onClick: (point, event) => {
+                    if (!self.isDescMode) {
+                        return;
                     }
-                );
-            }
-        },
-            this.options);
+
+                    self.$modal.show(
+                        VarDatasRefsParamSelectComponent,
+                        { var_params: this.get_all_datas(this.var_dataset_descriptors) },
+                        {
+                            width: 465,
+                            height: 'auto',
+                            scrollable: true
+                        }
+                    );
+                }
+            },
+            this.options
+        );
     }
 
     get datasets(): any[] {

@@ -186,26 +186,31 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get chartOptions() {
         let self = this;
-        return Object.assign({
-            options: {
-            },
-            onClick: (point, event) => {
-                if (!self.isDescMode) {
-                    return;
-                }
-
-                self.$modal.show(
-                    VarDatasRefsParamSelectComponent,
-                    { var_params: this.var_params },
-                    {
-                        width: 465,
-                        height: 'auto',
-                        scrollable: true
+        return Object.assign(
+            {
+                options: {
+                },
+                plugins: {
+                    labels: false,
+                },
+                onClick: (point, event) => {
+                    if (!self.isDescMode) {
+                        return;
                     }
-                );
-            }
-        },
-            this.options);
+
+                    self.$modal.show(
+                        VarDatasRefsParamSelectComponent,
+                        { var_params: this.var_params },
+                        {
+                            width: 465,
+                            height: 'auto',
+                            scrollable: true
+                        }
+                    );
+                }
+            },
+            this.options
+        );
     }
 
     get datasets(): any[] {

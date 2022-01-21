@@ -66,7 +66,14 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     }
 
     get chartOptions() {
-        return Object.assign({}, this.options ? this.options : {});
+        return Object.assign(
+            {
+                plugins: {
+                    labels: false,
+                }
+            },
+            this.options ? this.options : {}
+        );
     }
 
     private get_filtered_value(last_value: number) {
