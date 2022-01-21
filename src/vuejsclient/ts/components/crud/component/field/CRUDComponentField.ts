@@ -161,6 +161,10 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: null })
     private option: string;
 
+    // Permet de définir si on veut que le champ fasse des propositions
+    @Prop({ default: true })
+    private autocomplete_input: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private select_options: number[] = [];
