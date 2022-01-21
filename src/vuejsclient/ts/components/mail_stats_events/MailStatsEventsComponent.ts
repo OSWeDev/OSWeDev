@@ -6,6 +6,7 @@ import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
+import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../VueComponentBase';
 import './MailStatsEventsComponent.scss';
 
@@ -21,6 +22,9 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     @Prop({ default: null })
     private email_to: string;
 
+    @Prop({ default: false })
+    private auto_update: boolean;
+
     private category: MailCategoryVO = null;
     private mails: MailVO[] = null;
     private events_by_mail: { [mail_id: number]: MailEventVO[] } = null;
@@ -34,8 +38,10 @@ export default class MailStatsEventsComponent extends VueComponentBase {
     private force_reload: boolean = true;
 
     private throttled_update_datas = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_datas.bind(this), 200, { leading: false, trailing: true });
+    private throttled_auto_update = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_update_datas.bind(this), 30000, { leading: false, trailing: true });
 
     @Watch('category_name', { immediate: true })
+    @Watch('email_to')
     private onchange_category_name() {
         this.throttled_update_datas();
     }
@@ -84,6 +90,9 @@ export default class MailStatsEventsComponent extends VueComponentBase {
             let mails_recus: { [mail_id: number]: boolean } = {};
             let mails_ouverts: { [mail_id: number]: boolean } = {};
             let mails_clique: { [mail_id: number]: boolean } = {};
+
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([MailEventVO.API_TYPE_ID]);
+
             for (let i in this.mails) {
                 let mail = this.mails[i];
 
@@ -121,6 +130,10 @@ export default class MailStatsEventsComponent extends VueComponentBase {
         }
 
         this.is_loading = false;
+
+        if (this.auto_update) {
+            this.throttled_auto_update();
+        }
     }
 
     get last_event_class() {
