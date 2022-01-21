@@ -49,6 +49,8 @@ export default class DataImportAdminVueModule extends VueModuleBase {
             return;
         }
 
+        await this.reload_menu_branch();
+
         this.menuBranch =
             await MenuController.getInstance().declare_menu_element(
                 MenuElementVO.create_new(
@@ -182,5 +184,27 @@ export default class DataImportAdminVueModule extends VueModuleBase {
                 ),
                 this.routes);
         }
+    }
+
+    public async get_menu_branch(): Promise<MenuElementVO> {
+        return this.reload_menu_branch();
+    }
+
+    private async reload_menu_branch(): Promise<MenuElementVO> {
+        if (!this.menuBranch) {
+            this.menuBranch =
+                await MenuController.getInstance().declare_menu_element(
+                    MenuElementVO.create_new(
+                        ModuleDataImport.POLICY_LOGS_ACCESS,
+                        VueAppController.getInstance().app_name,
+                        "DataImportAdminVueModule",
+                        "fa-upload",
+                        20,
+                        null
+                    )
+                );
+        }
+
+        return this.menuBranch;
     }
 }

@@ -738,6 +738,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -767,6 +768,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];

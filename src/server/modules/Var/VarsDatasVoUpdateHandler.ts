@@ -419,7 +419,8 @@ export default class VarsDatasVoUpdateHandler {
                         registered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
                             'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index));
                         // On supprime quand même en bdd ces vars sinon on rechargera la version de la bdd à moment donné
-                        let bdd_vars_registered = registered_var_datas.filter((v) => !!v.id);
+                        let bdd_vars_registered = registered_var_datas.filter((v) => (!!v.id) &&
+                            (v.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (v.value_type != VarDataBaseVO.VALUE_TYPE_DENIED));
                         if (bdd_vars_registered && bdd_vars_registered.length) {
                             await ModuleDAOServer.getInstance().deleteVOsMulticonnections(bdd_vars_registered);
                             ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:DELETED ' + bdd_vars_registered.length + ' vars from BDD cache.');

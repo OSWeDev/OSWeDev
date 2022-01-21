@@ -1,5 +1,6 @@
 import debounce from 'lodash/debounce';
 import { Bar } from 'vue-chartjs';
+import 'chartjs-plugin-labels';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarsBarDataSetDescriptor';
 import MainAggregateOperatorsHandlers from '../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
