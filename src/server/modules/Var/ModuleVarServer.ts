@@ -3,16 +3,21 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -20,17 +25,18 @@ import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
+import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -51,6 +57,7 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
+import NotifVardatasParam from './notifs/NotifVardatasParam';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -60,12 +67,6 @@ import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
-import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
-import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import NotifVardatasParam from './notifs/NotifVardatasParam';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -912,6 +913,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
+        /**
+         * On commence par refuser les params mal construits (champs null)
+         */
+        params = this.filter_null_fields_params(params);
+
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
 
@@ -971,6 +977,42 @@ export default class ModuleVarServer extends ModuleServerBase {
         // if (vars_to_notif && vars_to_notif.length) {
         //     await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
         // }
+    }
+
+    private filter_null_fields_params(params: VarDataBaseVO[]): VarDataBaseVO[] {
+        let res: VarDataBaseVO[] = [];
+
+        for (let i in params) {
+            let param = params[i];
+
+            if (!param) {
+                continue;
+            }
+
+            let matroid_fields = MatroidController.getInstance().getMatroidFields(param._type);
+            if (!matroid_fields) {
+                continue;
+            }
+
+            let filter = false;
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+
+                if ((!param[matroid_field.field_id]) || !(param[matroid_field.field_id] as IRange[]).length) {
+                    filter = true;
+                    ConsoleHandler.getInstance().error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
+                    break;
+                }
+            }
+
+            if (filter) {
+                continue;
+            }
+
+            res.push(param);
+        }
+
+        return res;
     }
 
     /**
