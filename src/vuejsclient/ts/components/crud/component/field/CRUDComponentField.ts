@@ -534,6 +534,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
         for (let i in datatable.fields) {
             let field_datatable: DatatableField<any, any> = datatable.fields[i];
+
             if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
@@ -545,10 +546,14 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
+                if (!manyToOneField.select_options_enabled) {
+                    continue;
+                }
+
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if (!manyToOneField.select_options_enabled || manyToOneField.select_options_enabled.indexOf(option.id) >= 0) {
+                    if (manyToOneField.select_options_enabled.indexOf(option.id) >= 0) {
                         newOptions.push(option);
                     }
                 }
@@ -569,10 +574,14 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
+                if (!refrangesField.select_options_enabled) {
+                    continue;
+                }
+
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if (!refrangesField.select_options_enabled || refrangesField.select_options_enabled.indexOf(option.id) >= 0) {
+                    if (refrangesField.select_options_enabled.indexOf(option.id) >= 0) {
                         newOptions.push(option);
                     }
                 }
