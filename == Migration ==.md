@@ -33,3 +33,8 @@ If you use Font Awesome PRO : (https://fontawesome.com/v6.0/docs/web/setup/packa
     Then add 
         fontawesome-pro@next
     package to your project's package.json
+
+    And install globally the auth token for OsWedev installation (DON'T put your authtoken on a public git like OsWedev) :
+        npm config set "@fortawesome:registry" https://npm.fontawesome.com/
+        npm config set "//npm.fontawesome.com/:_authToken" XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+

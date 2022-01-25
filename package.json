@@ -210,8 +210,8 @@
         "webpack-bundle-analyzer": "3.6.1",
         "webpack-cli": "3.3.11",
         "webpack-mild-compile": "3.3.1",
-
-        "fontawesome-pro": "next"
+        
+        "@fortawesome/fontawesome-pro": "next"
     },
     "_dependencies": {
         "pg-promise": "10.11.0"
