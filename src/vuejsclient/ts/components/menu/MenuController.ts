@@ -17,25 +17,29 @@ export default class MenuController {
 
     public menus_by_app_names: { [app_name: string]: MenuElementVO[] } = {};
 
-    public menus_by_parent_id: { [parent_id: number]: MenuElementVO[] } = {};
-    public menus_by_name: { [name: string]: MenuElementVO } = {};
-    public menus_by_ids: { [id: number]: MenuElementVO } = {};
+    public menus_by_parent_id: { [app_name: string]: { [parent_id: number]: MenuElementVO[] } } = {};
+    public menus_by_name: { [app_name: string]: { [name: string]: MenuElementVO } } = {};
+    public menus_by_ids: { [app_name: string]: { [id: number]: MenuElementVO } } = {};
 
     public access_by_name: { [policy_name: string]: boolean } = {};
 
-    public callback_reload_menus = null;
+    public callback_reload_menus: { [app_name: string]: any } = {};
 
     public async reload_from_db() {
         this.reload(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
 
         this.access_by_name = {};
-        for (let i in this.menus_by_ids) {
-            let menu = this.menus_by_ids[i];
+        for (let app_name in this.menus_by_ids) {
+            let app_menus = this.menus_by_ids[app_name];
 
-            if (!menu.access_policy_name) {
-                continue;
+            for (let i in app_menus) {
+                let menu = app_menus[i];
+
+                if (!menu.access_policy_name) {
+                    continue;
+                }
+                this.access_by_name[menu.access_policy_name] = null;
             }
-            this.access_by_name[menu.access_policy_name] = null;
         }
 
         let promises = [];
@@ -58,7 +62,19 @@ export default class MenuController {
             return;
         }
 
-        if (!this.menus_by_name[elt.name]) {
+        if (!this.menus_by_name[elt.app_name]) {
+            this.menus_by_name[elt.app_name] = {};
+        }
+
+        if (!this.menus_by_ids[elt.app_name]) {
+            this.menus_by_ids[elt.app_name] = {};
+        }
+
+        if (!this.menus_by_app_names[elt.app_name]) {
+            this.menus_by_app_names[elt.app_name] = [];
+        }
+
+        if (!this.menus_by_name[elt.app_name][elt.name]) {
 
             // Si c'est pas défini dans le menu, on check qu'on a le droit de l'ajouter
             if (elt.access_policy_name && !await ModuleAccessPolicy.getInstance().testAccess(elt.access_policy_name)) {
@@ -70,7 +86,7 @@ export default class MenuController {
             let parent_menu = elt;
             while (parent_menu && !!parent_menu.menu_parent_id) {
                 let parent_id = parent_menu.menu_parent_id;
-                parent_menu = this.menus_by_ids[parent_id];
+                parent_menu = this.menus_by_ids[elt.app_name][parent_id];
             }
 
             if (!parent_menu) {
@@ -85,23 +101,23 @@ export default class MenuController {
             }
             elt.id = res.id;
 
-            this.menus_by_name[elt.name] = elt;
-            this.menus_by_ids[elt.id] = elt;
+            this.menus_by_name[elt.app_name][elt.name] = elt;
+            this.menus_by_ids[elt.app_name][elt.id] = elt;
 
-            if (!this.menus_by_parent_id[elt.menu_parent_id]) {
-                this.menus_by_parent_id[elt.menu_parent_id] = [];
+            if (!this.menus_by_parent_id[elt.app_name][elt.menu_parent_id]) {
+                this.menus_by_parent_id[elt.app_name][elt.menu_parent_id] = [];
             }
-            this.menus_by_parent_id[elt.menu_parent_id].push(elt);
+            this.menus_by_parent_id[elt.app_name][elt.menu_parent_id].push(elt);
 
-            if (!this.menus_by_app_names[elt.app_name]) {
-                this.menus_by_app_names[elt.app_name] = [];
+            if (!this.menus_by_app_names[elt.app_name][elt.app_name]) {
+                this.menus_by_app_names[elt.app_name][elt.app_name] = [];
             }
-            this.menus_by_app_names[elt.app_name].push(elt);
+            this.menus_by_app_names[elt.app_name][elt.app_name].push(elt);
 
-            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[elt.menu_parent_id]);
+            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[elt.app_name][elt.menu_parent_id]);
         }
 
-        return this.menus_by_name[elt.name] ? this.menus_by_name[elt.name] : elt;
+        return this.menus_by_name[elt.app_name][elt.name] ? this.menus_by_name[elt.app_name][elt.name] : elt;
     }
 
     private reload(menus: MenuElementVO[]) {
@@ -113,8 +129,12 @@ export default class MenuController {
 
         this.init(menus);
 
-        if (this.callback_reload_menus) {
-            this.callback_reload_menus();
+        for (let i in this.callback_reload_menus) {
+            let callback = this.callback_reload_menus[i];
+
+            if (callback) {
+                callback();
+            }
         }
     }
 
@@ -123,14 +143,26 @@ export default class MenuController {
         for (let i in menus) {
             let menu = menus[i];
 
-            let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
-            if (!this.menus_by_parent_id[parent_id]) {
-                this.menus_by_parent_id[parent_id] = [];
+            if (!this.menus_by_name[menu.app_name]) {
+                this.menus_by_name[menu.app_name] = {};
             }
-            this.menus_by_parent_id[parent_id].push(menu);
 
-            this.menus_by_name[menu.name] = menu;
-            this.menus_by_ids[menu.id] = menu;
+            if (!this.menus_by_ids[menu.app_name]) {
+                this.menus_by_ids[menu.app_name] = {};
+            }
+
+            if (!this.menus_by_app_names[menu.app_name]) {
+                this.menus_by_app_names[menu.app_name] = [];
+            }
+
+            let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
+            if (!this.menus_by_parent_id[menu.app_name][parent_id]) {
+                this.menus_by_parent_id[menu.app_name][parent_id] = [];
+            }
+            this.menus_by_parent_id[menu.app_name][parent_id].push(menu);
+
+            this.menus_by_name[menu.app_name][menu.name] = menu;
+            this.menus_by_ids[menu.app_name][menu.id] = menu;
 
             if (!this.menus_by_app_names[menu.app_name]) {
                 this.menus_by_app_names[menu.app_name] = [];
@@ -139,7 +171,13 @@ export default class MenuController {
         }
 
         for (let i in this.menus_by_parent_id) {
-            WeightHandler.getInstance().sortByWeight(this.menus_by_parent_id[i]);
+
+            let menu_parents = this.menus_by_parent_id[i];
+            for (let j in menu_parents) {
+                let menu_parent = menu_parents[j];
+
+                WeightHandler.getInstance().sortByWeight(menu_parent);
+            }
         }
     }
 }

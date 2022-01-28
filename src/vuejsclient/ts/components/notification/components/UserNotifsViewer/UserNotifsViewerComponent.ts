@@ -26,7 +26,7 @@ export default class UserNotifsViewerComponent extends VueComponentBase {
     @ModuleNotificationAction
     public read_notification: (notification: NotificationVO) => void;
 
-    private async delete_all() {
+    private async read_all() {
 
         this.set_notif_viewer_opened(false);
         for (let i in this.get_notifications_by_ids) {

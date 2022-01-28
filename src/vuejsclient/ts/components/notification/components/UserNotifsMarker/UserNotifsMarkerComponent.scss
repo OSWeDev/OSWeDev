@@ -1,6 +1,6 @@
 .UserNotifsMarkerComponent {
 
-    .user_notif_wrapper .marker {
+    .marker {
 
         position: relative;
         float: right;
@@ -11,18 +11,6 @@
         font-size: xx-small;
         color: white;
         margin-right: -1px;
-    }
-
-    .UserNotifsViewerComponent{
-        display: block;
-        position: fixed;
-        top: 5em;
-        right: 1em;
-        background: #EEE;
-        padding: 2em;
-        border-radius: 2px;
-        box-shadow: 2px 2px 10px -3px #000;
-        z-index: 100;
     }
 }
 

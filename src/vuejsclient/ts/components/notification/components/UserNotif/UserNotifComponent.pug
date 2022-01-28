@@ -1,16 +1,14 @@
-.UserNotifComponent
+.UserNotifComponent.dropdown-item.notify-item(@click='redirect_notification()') 
 
-    .type_icon_wrapper(@click='redirect_notification()') 
+    .type_icon_wrapper
         template(v-if='is_error')
-            i.fa.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
+            i.fa.fa-exclamation-triangle.fa-fw.bg-danger.text-white(aria-hidden="true")
         template(v-if='is_warn')
-            i.fa.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
+            i.fa.fa-exclamation-triangle.fa-fw.bg-warning.text-dark(aria-hidden="true")        
         template(v-if='is_info')
-            i.fa.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
+            i.fa.fa-exclamation-circle.fa-fw.bg-info.text-white(aria-hidden="true")
         template(v-if='is_success')
-            i.fa.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
+            i.fa.fa-check-circle.fa-fw.bg-success.text-white(aria-hidden="true")
 
-    .notif_date(@click='redirect_notification()')  {{ date_notification }}
-    .notif_content(@click='redirect_notification()')  {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
-
-    .notif_mark_as_read(@click='read_notification(notification)') {{ label('UserNotifComponent.mark_as_read') }}
+    p.notify-details {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
+        small.text-muted  {{ date_notification }}
