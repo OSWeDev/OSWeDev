@@ -20,8 +20,14 @@ export default class AlertComponent extends VueComponentBase {
     @Prop({ default: 16 })
     private offset: number;
 
-    @Prop({ default: 'bottom-center' })
-    private tooltip_placement: string;
+    @Prop({ default: 'bottom' })
+    private tooltip_direction: string;
+
+    @Prop({ default: 'center' })
+    private tooltip_align: string;
+
+    @Prop({ default: true })
+    private toggle_visible_on_click: boolean;
 
     @Prop({ default: null })
     private path: string;
@@ -34,6 +40,10 @@ export default class AlertComponent extends VueComponentBase {
 
     @Prop({ default: true })
     private show_popover: boolean;
+
+    get tooltip_visibility(): string {
+        return this.toggle_visible_on_click ? 'focus' : 'hover';
+    }
 
     get alerts(): Alert[] {
         if ((!this.path) || (!this.get_alerts)) {

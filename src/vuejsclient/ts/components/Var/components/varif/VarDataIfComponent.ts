@@ -45,6 +45,9 @@ export default class VarDataIfComponent extends VueComponentBase {
     }
 
     private destroyed() {
+        if (!this.var_param) {
+            return;
+        }
 
         VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
     }
