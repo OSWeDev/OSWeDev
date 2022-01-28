@@ -86,7 +86,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             return;
         }
 
-        await Promise.all(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.updateDatatable, this.api_types_involved, this.storeDatas));
+        /**
+         * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
+         */
+        await Promise.all(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.updateDatatable, this.api_types_involved, this.storeDatas, true));
 
         this.isLoading = false;
     }

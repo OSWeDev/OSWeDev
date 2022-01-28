@@ -189,7 +189,7 @@ export default class DataImportBGThread implements IBGThread {
             return false;
         }
 
-        return importHistoric.use_fast_track ?
+        return ((importHistoric.use_fast_track) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) ?
             await this.handleImportHistoricProgressionFastTrack(importHistoric) :
             await this.handleImportHistoricProgressionClassic(importHistoric);
     }
@@ -328,6 +328,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
                 new_importHistoric.user_id = importHistoric.user_id;
                 new_importHistoric.reimport_of_dih_id = importHistoric.id;
+                new_importHistoric.use_fast_track = importHistoric.use_fast_track;
 
                 let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
 

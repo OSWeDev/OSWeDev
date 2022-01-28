@@ -114,7 +114,7 @@ export default class MatroidIndexHandler {
         let separator_position = index.indexOf('&');
         let min_max = is_matroid_index ? index : index.substring(1, index.length);
 
-        if (separator_position > 0) {
+        if (separator_position >= 0) {
             let splitted_min_max = min_max.split('&');
             return RangeHandler.getInstance().createNew(
                 range_type,

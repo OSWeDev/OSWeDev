@@ -5,7 +5,6 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
-import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import PageSwitchWidgetOptions from './options/PageSwitchWidgetOptions';
 import './PageSwitchWidgetComponent.scss';
@@ -17,9 +16,6 @@ import './PageSwitchWidgetComponent.scss';
     }
 })
 export default class PageSwitchWidgetComponent extends VueComponentBase {
-
-    @ModuleTranslatableTextGetter
-    private get_flat_locale_translations: { [code_text: string]: string };
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;

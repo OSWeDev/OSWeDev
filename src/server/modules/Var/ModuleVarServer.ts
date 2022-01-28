@@ -998,7 +998,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];
 
-                if ((!param[matroid_field.field_id]) || !(param[matroid_field.field_id] as IRange[]).length) {
+                if ((!param[matroid_field.field_id]) || (!(param[matroid_field.field_id] as IRange[]).length) ||
+                    ((param[matroid_field.field_id] as IRange[]).indexOf(null) >= 0)) {
                     filter = true;
                     ConsoleHandler.getInstance().error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
                     break;

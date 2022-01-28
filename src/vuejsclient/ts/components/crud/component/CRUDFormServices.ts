@@ -35,11 +35,12 @@ export default class CRUDFormServices {
     public loadDatasFromDatatable(
         datatable: Datatable<IDistantVOBase>,
         api_types_involved: string[],
-        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
+        only_fields: boolean = false
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
 
-        if (api_types_involved.indexOf(datatable.API_TYPE_ID) < 0) {
+        if ((!only_fields) && (api_types_involved.indexOf(datatable.API_TYPE_ID) < 0)) {
             api_types_involved.push(datatable.API_TYPE_ID);
 
             res.push(

@@ -85,8 +85,8 @@ export default class ModuleForkServer extends ModuleServerBase {
      * On cherche le callback à appeler dans le controller et on envoi le résultat
      */
     private async handle_taskresult_message(msg: TaskResultForkMessage, sendHandle: NodeJS.Process | ChildProcess): Promise<boolean> {
-        if ((!msg.callback_id) || (!ForkedTasksController.getInstance().registered_task_result_resolvers) ||
-            (!ForkedTasksController.getInstance().registered_task_result_resolvers[msg.callback_id])) {
+        if ((!msg.callback_id) || (!ForkedTasksController.getInstance().registered_task_result_wrappers) ||
+            (!ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id])) {
 
             return false;
         }
@@ -94,12 +94,18 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (msg.throw_error) {
             ConsoleHandler.getInstance().error('handle_taskresult_message:' + msg.throw_error + ':' +
                 msg.callback_id + ':' + msg.message_type + ':' + JSON.stringify(msg.message_content));
-            if (!!ForkedTasksController.getInstance().registered_task_result_throwers[msg.callback_id]) {
-                ForkedTasksController.getInstance().registered_task_result_throwers[msg.callback_id](msg.throw_error);
+            if (!!ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id]) {
+
+                let thrower = ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id].thrower;
+                thrower(msg.throw_error);
+                delete ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id];
             }
             return true;
         }
-        ForkedTasksController.getInstance().registered_task_result_resolvers[msg.callback_id](msg.message_content);
+
+        let resolver = ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id].resolver;
+        resolver(msg.message_content);
+        delete ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id];
         return true;
     }
 

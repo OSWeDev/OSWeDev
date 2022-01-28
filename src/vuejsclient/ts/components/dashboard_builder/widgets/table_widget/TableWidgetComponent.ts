@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import TableColumnDescriptor from '../../../../../../server/modules/TableColumnDescriptor';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -29,6 +30,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import ClientAPIController from '../../../../modules/API/ClientAPIController';
 import CRUDComponentManager from '../../../crud/CRUDComponentManager';
 import DatatableRowController from '../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
@@ -186,6 +188,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     }
 
     private async open_update(type: string, id: number) {
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([type]);
         let update_vo = await ModuleDAO.getInstance().getVoById(type, id);
 
         if (update_vo && update_vo.id) {

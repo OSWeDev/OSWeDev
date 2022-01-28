@@ -41,7 +41,8 @@ body.page-Manage.dih .crud-wrapper .field[field_name="status_before_reimport"],
     span.En_attente_de_r_-importation::before,
     span.Post-traitement___::before,
     span.Pr_t___importer::before,
-    span.Upload_::before
+    span.Upload_::before,
+    span.En_cours_de_post-traitement::before
     {
         content: 'Import...';
         background: royalblue;

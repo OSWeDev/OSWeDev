@@ -151,7 +151,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
             updateData(state: IDAOState, vo: IDistantVOBase) {
 
 
-                if ((!vo) || (!vo._type)) {
+                if ((!vo) || (!vo._type) || (!state.storedDatasArray[vo._type])) {
                     return;
                 }
 

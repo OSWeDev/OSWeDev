@@ -135,6 +135,10 @@ export default class RangeHandler {
         return range.min_inclusiv && this.is_left_open(range) && (!range.max_inclusiv) && this.is_right_open(range);
     }
 
+    /**
+     * @param range le range à tester
+     * @returns is_left_open(range) || is_right_open(range)
+     */
     public is_one_max_range(range: IRange): boolean {
 
         if (!range) {
@@ -1820,6 +1824,14 @@ export default class RangeHandler {
             return;
         }
 
+        /**
+         * Ajout contrôle range ouvert
+         */
+        if (this.is_one_max_range(range)) {
+            ConsoleHandler.getInstance().error('foreach_sync on open range:' + this.getIndex(range));
+            return;
+        }
+
         segment_type = (segment_type == null) ? range.segment_type : segment_type;
 
         let min: number = this.getSegmentedMin(range, segment_type);
@@ -1875,6 +1887,14 @@ export default class RangeHandler {
 
     public async foreach(range: IRange, callback: (value: number) => Promise<void> | void, segment_type: number = null, min_inclusiv: number = null, max_inclusiv: number = null) {
         if (!range) {
+            return;
+        }
+
+        /**
+         * Ajout contrôle range ouvert
+         */
+        if (this.is_one_max_range(range)) {
+            ConsoleHandler.getInstance().error('foreach on open range:' + this.getIndex(range));
             return;
         }
 
@@ -1937,6 +1957,14 @@ export default class RangeHandler {
 
     public async foreach_batch_await(range: IRange, callback: (value: number) => Promise<void> | void, segment_type: number = null, min_inclusiv: number = null, max_inclusiv: number = null) {
         if (!range) {
+            return;
+        }
+
+        /**
+         * Ajout contrôle range ouvert
+         */
+        if (this.is_one_max_range(range)) {
+            ConsoleHandler.getInstance().error('foreach_batch_await on open range:' + this.getIndex(range));
             return;
         }
 

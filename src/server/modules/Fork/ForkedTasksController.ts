@@ -7,6 +7,8 @@ import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMe
 import ModuleForkServer from './ModuleForkServer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwardToBGThreadForkMessage';
+import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ForkedTasksController {
 
@@ -22,8 +24,7 @@ export default class ForkedTasksController {
     /**
      * Local thread cache -----
      */
-    public registered_task_result_resolvers: { [result_task_uid: number]: (result: any) => any } = {};
-    public registered_task_result_throwers: { [result_task_uid: number]: (result: any) => any } = {};
+    public registered_task_result_wrappers: { [result_task_uid: number]: ForkMessageCallbackWrapper } = {};
     private registered_tasks: { [task_uid: string]: (...task_params) => Promise<boolean> } = {};
 
     private result_task_prefix_thread_uid: number = process.pid;
@@ -32,7 +33,9 @@ export default class ForkedTasksController {
      * ----- Local thread cache
      */
 
-    private constructor() { }
+    private constructor() {
+        this.handle_fork_message_callback_timeout();
+    }
 
     get process_registered_tasks(): { [task_uid: string]: (...task_params) => Promise<boolean> } {
         return this.registered_tasks;
@@ -79,8 +82,10 @@ export default class ForkedTasksController {
         if (!ForkServerController.getInstance().is_main_process) {
 
             let result_task_uid = this.get_result_task_uid();
-            this.registered_task_result_resolvers[result_task_uid] = resolver;
-            this.registered_task_result_throwers[result_task_uid] = thrower;
+            this.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
+                resolver,
+                thrower
+            );
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
             await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
@@ -127,8 +132,10 @@ export default class ForkedTasksController {
         if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
 
             let result_task_uid = this.get_result_task_uid();
-            this.registered_task_result_resolvers[result_task_uid] = resolver;
-            this.registered_task_result_throwers[result_task_uid] = thrower;
+            this.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
+                resolver,
+                thrower
+            );
 
             // Si on est sur le thread principal, on doit checker qu'on peut envoyer le message au bgthread (donc qu'il a démarré) et le faire,
             //  sinon on throw directement
@@ -136,7 +143,7 @@ export default class ForkedTasksController {
 
                 if ((!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
                     (!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread])) {
-                    delete this.registered_task_result_resolvers[result_task_uid];
+                    delete this.registered_task_result_wrappers[result_task_uid];
                     ConsoleHandler.getInstance().error("Unable to find target for this message :" + bgthread + ':' + JSON.stringify(task_params));
                     thrower("Unable to find target for this message :" + bgthread + ':' + JSON.stringify(task_params));
                     return false;
@@ -188,5 +195,29 @@ export default class ForkedTasksController {
     //     ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
     // }
 
+    /**
+     * Méthode qui gère de nettoyer les appels en attente d'autres threads en fonction du timeout
+     * assigné à chaque demande
+     */
+    private async handle_fork_message_callback_timeout() {
 
+        let to_delete = [];
+        for (let i in this.registered_task_result_wrappers) {
+            let wrapper = this.registered_task_result_wrappers[i];
+
+            if ((wrapper.creation_time + wrapper.timeout) < Dates.now()) {
+                to_delete.push(i);
+            }
+        }
+
+        for (let i in to_delete) {
+            let callback_id = to_delete[i];
+            let wrapper = ForkedTasksController.getInstance().registered_task_result_wrappers[callback_id];
+            let thrower = wrapper.thrower;
+            thrower('MSG has timedout:' + wrapper.timeout + ' secs');
+            delete this.registered_task_result_wrappers[callback_id];
+        }
+
+        setTimeout(this.handle_fork_message_callback_timeout.bind(this), 10000);
+    }
 }
