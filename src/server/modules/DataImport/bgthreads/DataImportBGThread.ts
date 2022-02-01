@@ -31,8 +31,8 @@ export default class DataImportBGThread implements IBGThread {
 
     // private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
 
-    private static request_all_reimports: string = ' where state = $1 order by start_date asc;';
-    private static request: string = ' where state in ($1, $3, $4) or (state = $2 and autovalidate = true) order by start_date asc limit 1;';
+    private static request_all_reimports: string = ' where state = $1 order by start_date asc, id asc;';
+    private static request: string = ' where state in ($1, $3, $4) or (state = $2 and autovalidate = true) order by start_date asc, id asc limit 1;';
     private static importing_dih_id_param_name: string = 'DataImportBGThread.importing_dih_id';
     private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
     private static wait_for_empty_cache_vars_waiting_for_compute_param_name: string = 'DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute';
