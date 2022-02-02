@@ -406,6 +406,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'client.my_account.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Support'
+        }, 'client.support.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion'
         }, 'login.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

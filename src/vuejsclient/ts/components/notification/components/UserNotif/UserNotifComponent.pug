@@ -1,14 +1,15 @@
-.UserNotifComponent.dropdown-item.notify-item(@click='redirect_notification()') 
+.UserNotifComponent(@click='redirect_notification()') 
 
-    .type_icon_wrapper
-        template(v-if='is_error')
-            i.fa.fa-exclamation-triangle.fa-fw.bg-danger.text-white(aria-hidden="true")
-        template(v-if='is_warn')
-            i.fa.fa-exclamation-triangle.fa-fw.bg-warning.text-dark(aria-hidden="true")        
-        template(v-if='is_info')
-            i.fa.fa-exclamation-circle.fa-fw.bg-info.text-white(aria-hidden="true")
-        template(v-if='is_success')
-            i.fa.fa-check-circle.fa-fw.bg-success.text-white(aria-hidden="true")
+    strong(:class='text_class_name') {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
+    small.text-muted  {{ date_notification }}
+    //- .col-10.mb-1.small {{ description }}
 
-    p.notify-details {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
-        small.text-muted  {{ date_notification }}
+    //- .type_icon_wrapper
+    //-     template(v-if='is_error')
+    //-         i.fa.fa-exclamation-triangle.fa-fw.bg-danger.text-white(aria-hidden="true")
+    //-     template(v-if='is_warn')
+    //-         i.fa.fa-exclamation-triangle.fa-fw.bg-warning.text-dark(aria-hidden="true")        
+    //-     template(v-if='is_info')
+    //-         i.fa.fa-exclamation-circle.fa-fw.bg-info.text-white(aria-hidden="true")
+    //-     template(v-if='is_success')
+    //-         i.fa.fa-check-circle.fa-fw.bg-success.text-white(aria-hidden="true")

@@ -104,6 +104,10 @@ export default class MenuController {
             this.menus_by_name[elt.app_name][elt.name] = elt;
             this.menus_by_ids[elt.app_name][elt.id] = elt;
 
+            if (!this.menus_by_parent_id[elt.app_name]) {
+                this.menus_by_parent_id[elt.app_name] = {};
+            }
+
             if (!this.menus_by_parent_id[elt.app_name][elt.menu_parent_id]) {
                 this.menus_by_parent_id[elt.app_name][elt.menu_parent_id] = [];
             }
@@ -156,6 +160,11 @@ export default class MenuController {
             }
 
             let parent_id = menu.menu_parent_id ? menu.menu_parent_id : 0;
+
+            if (!this.menus_by_parent_id[menu.app_name]) {
+                this.menus_by_parent_id[menu.app_name] = {};
+            }
+
             if (!this.menus_by_parent_id[menu.app_name][parent_id]) {
                 this.menus_by_parent_id[menu.app_name][parent_id] = [];
             }

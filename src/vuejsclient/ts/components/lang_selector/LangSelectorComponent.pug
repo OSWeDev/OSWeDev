@@ -1,7 +1,7 @@
 .lang_selector
     template(v-if='!hide')
         label.lang_selector_label(for="lang_selector_list") {{ label('lang_selector.label') }}
-        multiselect.lang_selector_list.pull-right(
+        multiselect.lang_selector_list(
             :preselect-first="false"
             :multiple="false"
             v-model="tmp_user_lang"

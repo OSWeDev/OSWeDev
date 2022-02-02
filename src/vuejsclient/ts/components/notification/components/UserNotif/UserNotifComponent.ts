@@ -44,6 +44,21 @@ export default class UserNotifComponent extends VueComponentBase {
         this.$router.push(location);
     }
 
+    get text_class_name() {
+        if (this.is_error) {
+            return 'text-danger';
+        }
+        if (this.is_warn) {
+            return 'text-warning';
+        }
+        if (this.is_info) {
+            return 'text-info';
+        }
+        if (this.is_success) {
+            return 'text-success';
+        }
+    }
+
     get date_notification(): string {
         if (!this.notification) {
             return null;

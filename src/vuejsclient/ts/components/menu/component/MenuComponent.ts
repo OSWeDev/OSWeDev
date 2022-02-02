@@ -19,6 +19,12 @@ export default class MenuComponent extends VueComponentBase {
     @Prop({ default: true })
     private is_sidebar: boolean;
 
+    // /**
+    //  * Permet d'indiquer qu'on veut ajouter les classes de la navbar
+    //  */
+    // @Prop({ default: false })
+    // private is_navbar: boolean;
+
     private menuElements: MenuElementVO[] = null;
     private childrenElementsById: { [parent_id: number]: MenuElementVO[] } = {};
 

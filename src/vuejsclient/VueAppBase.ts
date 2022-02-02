@@ -43,6 +43,9 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fad } from '@fortawesome/pro-duotone-svg-icons';
 require('moment-json-parser').overrideDefault();
 
 
@@ -381,6 +384,8 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
+        library.add(fad);
+
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);
         Vue.use(VueRouter);
@@ -397,6 +402,7 @@ export default abstract class VueAppBase {
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
         Vue.use(VModal);
+        Vue.component('font-awesome-icon', FontAwesomeIcon);
         Vue.component('Vuequilleditor', async () => (await import(/* webpackChunkName: "quillEditor" */  'vue-quill-editor')).quillEditor);
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);

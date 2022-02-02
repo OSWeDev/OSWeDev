@@ -15,11 +15,11 @@
                                 i.fa.fa-fw(:class="menuElement.fa_class")
                                 span.nav-link-text {{t(menuElement.translatable_title)}}
                     template(v-else)
-                        a.nav-link.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+menuElement.name", data-parent='#mainmenu', :id="'mainmenu_'+menuElement.name")
+                        a.nav-link.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+menuElement.name", data-bs-target='#mainmenu', :id="'mainmenu_'+menuElement.name")
                             i.fa.fa-fw(:class="menuElement.fa_class")
                             span.nav-link-text
                                 | {{t(menuElement.translatable_title)}}
-                        ul.sidenav-second-level.collapse(v-if='childrenElementsById[menuElement.id] && (childrenElementsById[menuElement.id].length > 0)', :id="menuElement.name")
+                        ul.nav-second-level.collapse(v-if='childrenElementsById[menuElement.id] && (childrenElementsById[menuElement.id].length > 0)', :id="menuElement.name")
                             li(v-for='child in childrenElementsById[menuElement.id]')
                                 template(v-if='!child.hidden && (!child.access_policy_name || access_by_name[child.access_policy_name])')
                                     template(v-if='(!childrenElementsById[child.id]) || (childrenElementsById[child.id].length <= 0)')
@@ -32,7 +32,7 @@
                                                 i.fa.fa-fw(:class="child.fa_class")
                                                 span.nav-link-text {{t(child.translatable_title)}}
                                     template(v-else)
-                                        a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child.name", :data-parent="'#mainmenu_'+menuElement.name", :id="'mainmenu_2_'+child.name")
+                                        a.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+child.name", :data-bs-target="'#mainmenu_'+menuElement.name", :id="'mainmenu_2_'+child.name")
                                             i.fa.fa-fw(:class="child.fa_class")
                                             span.nav-link-text
                                                 | {{t(child.translatable_title)}}
@@ -49,7 +49,7 @@
                                                                 i.fa.fa-fw(:class="child2.fa_class")
                                                                 span.nav-link-text {{t(child2.translatable_title)}}
                                                     template(v-else)
-                                                        a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child2.name")
+                                                        a.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+child2.name")
                                                             i.fa.fa-fw(:class="child2.fa_class")
                                                             span.nav-link-text
                                                                 | {{t(child2.translatable_title)}}
