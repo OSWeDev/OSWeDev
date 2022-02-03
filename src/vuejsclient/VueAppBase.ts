@@ -18,6 +18,7 @@ import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';
 import Snotify from 'vue-snotify';
+import "vue-snotify/styles/material.scss";
 import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
@@ -45,7 +46,7 @@ import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { fad } from '@fortawesome/pro-duotone-svg-icons';
+import { fal } from '@fortawesome/pro-light-svg-icons';
 require('moment-json-parser').overrideDefault();
 
 
@@ -384,7 +385,7 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
-        library.add(fad);
+        library.add(fal);
 
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);

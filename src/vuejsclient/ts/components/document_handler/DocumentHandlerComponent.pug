@@ -1,6 +1,6 @@
 .document_handler.hide_from_screenshot
     .document_handler_switcher(@click='switch_hidden')
-        i.fa.fa-book.fa-fw(aria-hidden="true")
+        font-awesome-icon(icon="fa-light fa-book fa-fw" @onclick="window.print()")
 
     #document_handler_modal.modal.fade.in(ref="document_handler_modal", tabindex='-1', role='dialog')
         .modal-dialog.modal-lg(role='document')

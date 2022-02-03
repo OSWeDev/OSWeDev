@@ -1,0 +1,21 @@
+.dashboard_template 
+    Navbarcomponent(:app_name='app_name')
+        template(slot='navbar-brand')
+            slot(name='navbar-brand')
+
+    .container-fluid
+        .row
+            nav.col-md-3.col-lg-2.d-md-block.bg-light.sidebar.collapse(:app_name='app_name' id='sidebarCollapse')
+                Sidebarmenucomponent
+            main.col-md-9.ms-sm-auto.col-lg-10.px-md-4
+                router-view(:user="user")
+
+    Navbarbottomcomponent(:app_name='app_name')
+        template(slot='navbarbottom-brand')
+            slot(name='navbarbottom-brand')
+
+    Varsmanagercomponent
+    vue-snotify
+    Onpagetranslation(v-if="has_access_to_onpage_translation").hidden-print
+    Feedbackhandlercomponent.hidden-print
+    Documenthandlermodalcomponent

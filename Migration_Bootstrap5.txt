@@ -1,6 +1,7 @@
 == Ajouter dans ClientApp et AdminApp
 
 AppVuexStoreManager.getInstance().registerModule(FeedbackStore.getInstance());
+AppVuexStoreManager.getInstance().registerModule(LangSelectorStore.getInstance());
 
 == Des packages à installer
 

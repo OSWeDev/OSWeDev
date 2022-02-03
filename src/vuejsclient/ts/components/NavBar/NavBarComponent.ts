@@ -1,25 +1,29 @@
 import Component from 'vue-class-component';
 import VueComponentBase from '../VueComponentBase';
-import './NavBar.scss';
+import './NavBarComponent.scss';
 import { Prop } from 'vue-property-decorator';
-import MenuComponent from '../menu/component/MenuComponent';
+import NavBarMenuComponent from '../menu/NavBarMenu/NavBarMenuComponent';
 import LangSelectorComponent from '../lang_selector/LangSelectorComponent';
 import UserNotifsMarkerComponent from '../notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
 import NavBarUserComponent from '../NavBarUser/NavBarUserComponent';
 import VueAppController from '../../../VueAppController';
 import DocumentHandlerButtonComponent from '../document_handler/button/DocumentHandlerButtonComponent';
+import { ModuleLangSelectorGetter } from '../lang_selector/store/LangSelectorStore';
 
 @Component({
-    template: require('./NavBar.pug'),
+    template: require('./NavBarComponent.pug'),
     components: {
-        Menucomponent: MenuComponent,
+        Navbarmenucomponent: NavBarMenuComponent,
         Langselectorcomponent: LangSelectorComponent,
         Usernotifsmarkercomponent: UserNotifsMarkerComponent,
         Navbarusercomponent: NavBarUserComponent,
         Documenthandlerbuttoncomponent: DocumentHandlerButtonComponent
     }
 })
-export default class NavBar extends VueComponentBase {
+export default class NavBarComponent extends VueComponentBase {
+
+    @ModuleLangSelectorGetter
+    private get_hide_lang_selector: boolean;
 
     @Prop()
     private app_name: string;
@@ -29,6 +33,12 @@ export default class NavBar extends VueComponentBase {
 
     @Prop({ default: "navbar-light" })
     private navbar_style: string;
+
+    /**
+     * Permet de switcher entre le menu dans la navbar ou dans la sidebar
+     */
+    @Prop({ default: true })
+    private use_sidebarmenu: boolean;
 
     @Prop({ default: true })
     private is_fixed: boolean;

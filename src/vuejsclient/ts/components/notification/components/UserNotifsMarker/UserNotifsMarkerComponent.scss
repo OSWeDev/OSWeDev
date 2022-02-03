@@ -1,6 +1,9 @@
 .UserNotifsMarkerComponent {
 
-    .marker {
+    .dropdown-menu {
+
+        max-height: 17em;
+        overflow-y: auto;
     }
 }
 

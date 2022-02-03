@@ -1,5 +1,5 @@
 .lang_selector
-    template(v-if='!hide')
+    template(v-if='!get_hide_lang_selector')
         label.lang_selector_label(for="lang_selector_list") {{ label('lang_selector.label') }}
         multiselect.lang_selector_list(
             :preselect-first="false"

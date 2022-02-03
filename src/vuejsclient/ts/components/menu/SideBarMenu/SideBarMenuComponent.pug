@@ -1,6 +1,7 @@
-.menucomponent
+.sidebarmenucomponent.position-sticky
 
-    ul(:class='ul_lvl1_classes')
+    ul.nav.flex-column
+
         template(v-for="menuElement in menuElements")
             template(v-if='app_name && (!menuElement.hidden) && (menuElement.app_name.toLowerCase() == app_name.toLowerCase()) && ((!menuElement.access_policy_name) || access_by_name[menuElement.access_policy_name])')
                 li.nav-item(:title='t(menuElement.translatable_title)')
@@ -8,15 +9,15 @@
                     template(v-if='(!childrenElementsById[menuElement.id]) || (childrenElementsById[menuElement.id].length <= 0)')
                         template(v-if='menuElement.target && menuElement.target_is_routename')
                             router-link.nav-link(:to="{ name: menuElement.target, params: menuElement.target_route_params ? JSON.parse(menuElement.target_route_params) : undefined }")
-                                i.fa.fa-fw(:class="menuElement.fa_class")
+                                font-awesome-icon(:icon="'fa-light ' + menuElement.fa_class")
                                 span.nav-link-text {{t(menuElement.translatable_title)}}
                         template(v-else-if='menuElement.target && !menuElement.target_is_routename')
                             a.nav-link(:href='menuElement.target')
-                                i.fa.fa-fw(:class="menuElement.fa_class")
+                                font-awesome-icon(:icon="'fa-light ' + menuElement.fa_class")
                                 span.nav-link-text {{t(menuElement.translatable_title)}}
                     template(v-else)
-                        a.nav-link.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+menuElement.name", data-bs-target='#mainmenu', :id="'mainmenu_'+menuElement.name")
-                            i.fa.fa-fw(:class="menuElement.fa_class")
+                        a.nav-link.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+menuElement.name", :data-bs-target='menuElement.name', :id="'sidebarmenu_'+menuElement.name")
+                            font-awesome-icon(:icon="'fa-light ' + menuElement.fa_class")
                             span.nav-link-text
                                 | {{t(menuElement.translatable_title)}}
                         ul.nav-second-level.collapse(v-if='childrenElementsById[menuElement.id] && (childrenElementsById[menuElement.id].length > 0)', :id="menuElement.name")
@@ -25,15 +26,15 @@
                                     template(v-if='(!childrenElementsById[child.id]) || (childrenElementsById[child.id].length <= 0)')
                                         template(v-if='child.target && child.target_is_routename')
                                             router-link(:to="{ name: child.target, params: child.target_route_params ? JSON.parse(child.target_route_params) : undefined }")
-                                                i.fa.fa-fw(:class="child.fa_class")
+                                                font-awesome-icon(:icon="'fa-light ' + child.fa_class")
                                                 span.nav-link-text {{t(child.translatable_title)}}
                                         template(v-else-if="child.target && !child.target_is_routename")
                                             a(:href='child.target')
-                                                i.fa.fa-fw(:class="child.fa_class")
+                                                font-awesome-icon(:icon="'fa-light ' + child.fa_class")
                                                 span.nav-link-text {{t(child.translatable_title)}}
                                     template(v-else)
-                                        a.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+child.name", :data-bs-target="'#mainmenu_'+menuElement.name", :id="'mainmenu_2_'+child.name")
-                                            i.fa.fa-fw(:class="child.fa_class")
+                                        a.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+child.name", :data-bs-target="child.name", :id="'sidebarmenu_2_'+child.name")
+                                            font-awesome-icon(:icon="'fa-light ' + child.fa_class")
                                             span.nav-link-text
                                                 | {{t(child.translatable_title)}}
                                         ul.sidenav-third-level.collapse(v-if='childrenElementsById[child.id] && (childrenElementsById[child.id].length > 0)', :id="child.name")
@@ -42,18 +43,14 @@
                                                     template(v-if='(!childrenElementsById[child2.id]) || (childrenElementsById[child2.id].length <= 0)')
                                                         template(v-if="child2.target && child2.target_is_routename")
                                                             router-link(:to="{ name: child2.target, params: child2.target_route_params ? JSON.parse(child2.target_route_params) : undefined }")
-                                                                i.fa.fa-fw(:class="child2.fa_class")
+                                                                font-awesome-icon(:icon="'fa-light ' + child2.fa_class")
                                                                 span.nav-link-text {{t(child2.translatable_title)}}
                                                         template(v-else-if="child2.target && !child2.target_is_routename")
                                                             a(:href='child2.target')
-                                                                i.fa.fa-fw(:class="child2.fa_class")
+                                                                font-awesome-icon(:icon="'fa-light ' + child2.fa_class")
                                                                 span.nav-link-text {{t(child2.translatable_title)}}
                                                     template(v-else)
-                                                        a.nav-link-collapse.collapsed(data-bs-toggle='collapse', :href="'#'+child2.name")
-                                                            i.fa.fa-fw(:class="child2.fa_class")
+                                                        a.nav-link-collapse.collapsed(:href="'#'+child2.name")
+                                                            font-awesome-icon(:icon="'fa-light ' + child2.fa_class")
                                                             span.nav-link-text
                                                                 | {{t(child2.translatable_title)}}
-        //- ul.navbar-nav.sidenav-toggler
-        //-     li.nav-item
-        //-         a#sidenavToggler.nav-link.text-center
-        //-             i.fa.fa-fw.fa-angle-left

@@ -7,6 +7,7 @@ import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VueAppController from '../../../VueAppController';
 import VueComponentBase from '../VueComponentBase';
 import './LangSelectorComponent.scss';
+import { ModuleLangSelectorAction, ModuleLangSelectorGetter } from './store/LangSelectorStore';
 
 @Component({
     template: require('./LangSelectorComponent.pug'),
@@ -14,8 +15,12 @@ import './LangSelectorComponent.scss';
 })
 export default class LangSelectorComponent extends VueComponentBase {
 
+    @ModuleLangSelectorGetter
+    private get_hide_lang_selector: boolean;
+    @ModuleLangSelectorAction
+    private set_hide_lang_selector: (hide_lang_selector: boolean) => void;
+
     private langs_by_ids: { [id: number]: LangVO } = {};
-    private hide: boolean = true;
     private tmp_user_lang: LangVO = null;
 
     get langs(): LangVO[] {
@@ -63,7 +68,7 @@ export default class LangSelectorComponent extends VueComponentBase {
         }
 
         this.tmp_user_lang = self.langs_by_ids[this.user_lang_id];
-        this.hide = false;
+        this.set_hide_lang_selector(false);
     }
 
     @Watch('tmp_user_lang')

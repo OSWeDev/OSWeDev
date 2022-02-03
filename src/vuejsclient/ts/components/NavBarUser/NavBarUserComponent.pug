@@ -1,6 +1,6 @@
 li.notification-list.NavBarUserComponent.dropdown
     
-        button.btn.btn-primary.dropdown-toggle.me-0(data-bs-toggle="dropdown" data-bs-target="" id="topbar-userdrop" href="#" role="button" aria-haspopup="true" aria-expanded="false")
+        button.btn.btn-primary.dropdown-toggle.me-0.w-md-auto.w-100(data-bs-toggle="dropdown" data-bs-target="" id="topbar-userdrop" href="#" role="button" aria-haspopup="true" aria-expanded="false")
             span.account-user-avatar(v-if='avatar_img_path')
                 img(:src="avatar_img_path" alt="user-image" class="rounded-circle")
             span
@@ -11,13 +11,13 @@ li.notification-list.NavBarUserComponent.dropdown
             //-     h6.text-overflow.m-0 XXX
 
             router-link.dropdown-item.notify-item(:to='{ name: "MyAccount" }')
-                font-awesome-icon(icon="fa-duotone fa-user").fa-fw.me-1
+                font-awesome-icon(icon="fa-light fa-user").fa-fw.me-1
                 span {{ label('client.my_account') }}
            
             a.dropdown-item.notify-item(href="javascript:void(0);" @click='open_support')
-                font-awesome-icon(icon="fa-duotone fa-comments-question").fa-fw.me-1
+                font-awesome-icon(icon="fa-light fa-comments-question").fa-fw.me-1
                 span {{ label('client.support') }}
 
             a.dropdown-item.notify-item(href='/logout')
-                font-awesome-icon(icon="fa-duotone fa-arrow-right-from-bracket").fa-fw.me-1
+                font-awesome-icon(icon="fa-light fa-arrow-right-from-bracket").fa-fw.me-1
                 span {{ label('client.logout') }}
