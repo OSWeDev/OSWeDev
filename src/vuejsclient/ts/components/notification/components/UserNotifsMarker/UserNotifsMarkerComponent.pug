@@ -1,20 +1,20 @@
-li.notification-list.UserNotifsMarkerComponent
-    button.btn.btn-secondary.dropdown-toggle(data-bs-toggle="dropdown" data-bs-target="topbar-notification-list" href="#" id="topbar-notifydrop" role="button")
+li.notification-list.UserNotifsMarkerComponent.dropdown
+    button.btn.btn-outline-primary.dropdown-toggle(data-bs-toggle="dropdown" data-bs-target="topbar-notification-list" href="#" id="topbar-notifydrop" role="button")
         font-awesome-icon(icon="fa-duotone fa-bell")
-        .badge.rounded-pill.bg-warn(v-if='get_nb_unread && (get_nb_unread > 0)') {{ get_nb_unread }}      
+        .badge.rounded-pill.bg-danger.ms-1(v-if='get_nb_unread && (get_nb_unread > 0)') {{ get_nb_unread }}      
 
-    .dropdown-menu.dropdown-menu-end(id="UserNotifsMarkerComponent-dropdown" aria-labelledby="topbar-notifydrop")
+    .dropdown-menu.dropdown-menu-end.mt-2(id="UserNotifsMarkerComponent-dropdown" aria-labelledby="topbar-notifydrop")
 
-        .container
-
-            button.btn.btn-light.float-end(@click='read_all') {{ label('UserNotifsViewerComponent.read_all') }}
-                font-awesome-icon.ms-1(icon="fa-duotone fa-eye")
+        .d-flex.flex-row.p-3
 
             h3 {{ label('UserNotifsViewerComponent.title') }}
+
+            button.btn.btn-light.ms-3(@click='read_all' style="width: max-content") {{ label('UserNotifsViewerComponent.empty') }}
+                font-awesome-icon.ms-1(icon="fa-duotone fa-eye")
 
         template(v-if='get_nb_unread > 0')
             .list-group.list-group-flush.border-bottom.scrollarea
                 template(v-for='notif in notifs_by_priority')
-                    Usernotifcomponent.list-group-item.list-group-item-action.py-3.lh-tight(:notification='notif')
+                    Usernotifcomponent.list-group-item.list-group-item-action(:notification='notif')
 
-        button.btn.btn-primary(href="javascript:void(0);") {{ label('UserNotifsViewerComponent.view_all') }}
+        //- button.btn.btn-primary(href="javascript:void(0);") {{ label('UserNotifsViewerComponent.view_all') }}

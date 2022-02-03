@@ -75,6 +75,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
             'fr-fr': 'Notifications'
         }, 'UserNotifsViewerComponent.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Vider'
+        }, 'UserNotifsViewerComponent.empty.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout lu'
         }, 'UserNotifsViewerComponent.read_all.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

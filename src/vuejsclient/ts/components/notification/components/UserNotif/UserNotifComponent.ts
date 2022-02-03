@@ -7,6 +7,7 @@ import { RawLocation } from 'vue-router';
 import { Dictionary } from 'vue-router/types/router';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import DateHandler from '../../../../../../shared/tools/DateHandler';
 
 @Component({
     template: require('./UserNotifComponent.pug')
@@ -65,6 +66,14 @@ export default class UserNotifComponent extends VueComponentBase {
         }
 
         return Dates.format(this.notification.creation_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
+    }
+
+    get date_notification_relativ(): string {
+        if (!this.notification) {
+            return null;
+        }
+
+        return DateHandler.getInstance().humanizeDurationTo(this.notification.creation_date);
     }
 
     get is_warn(): boolean {

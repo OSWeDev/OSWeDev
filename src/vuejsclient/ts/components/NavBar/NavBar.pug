@@ -1,5 +1,5 @@
 nav.navbar.navbar-expand-md(:class='nav_classes')
-    .container
+    .container-fluid
     
         a.navbar-brand(href="#")
             slot(name="navbar-brand")
@@ -9,7 +9,7 @@ nav.navbar.navbar-expand-md(:class='nav_classes')
 
         .collapse.navbar-collapse(id="navbarCollapse")
 
-            ul.navbar-nav
+            ul.navbar-nav.me-auto
             
                 li.nav-item
                     Menucomponent(
@@ -18,8 +18,10 @@ nav.navbar.navbar-expand-md(:class='nav_classes')
                     )
                     //- :is_navbar='true'
 
+            ul.navbar-nav.m-0
+
                 li.nav-item
-                    button.btn.btn-outline-light.top-menu-icons.print-page(href="javascript:void(0)", v-if="isPrintable && !is_mobile")
+                    button.btn.btn-outline-primary.print-page(href="javascript:void(0)", v-if="isPrintable && !is_mobile")
                         template(v-if="printComponent")
                             span
                                 component(v-bind:is="printComponent")
@@ -29,18 +31,16 @@ nav.navbar.navbar-expand-md(:class='nav_classes')
                             template(v-else)
                                 font-awesome-icon(icon="fa-duotone fa-print" @onclick="window.print()")
 
-                li.nav-item
-                    button.btn.btn-outline-light.top-menu-icons.export-page(href="javascript:void(0)", @click="export_to_xlsx()", v-if="isExportableToXLSX")
+                li.nav-item.ms-1(v-if="isExportableToXLSX")
+                    button.btn.btn-outline-primary.export-page(href="javascript:void(0)", @click="export_to_xlsx()")
                         font-awesome-icon(icon="fa-duotone fa-file-export")
                     
-                li.nav-item
-                    Documenthandlerbuttoncomponent.top-menu-icons
-
-            ul.navbar-nav.m-0
-
-                li.nav-item(v-if='show_lang_selector')
+                li.nav-item.ms-1(v-if='show_lang_selector')
                     Langselectorcomponent()
                 
-                li.nav-item(is='Usernotifsmarkercomponent')
+                li.nav-item.ms-1(is='Usernotifsmarkercomponent')
                 
-                li.nav-item(is='Navbarusercomponent')
+                li.nav-item.ms-1(is='Navbarusercomponent')
+
+                li.nav-item.ms-1
+                    Documenthandlerbuttoncomponent

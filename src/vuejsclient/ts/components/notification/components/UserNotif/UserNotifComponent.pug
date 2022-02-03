@@ -1,15 +1,19 @@
-.UserNotifComponent(@click='redirect_notification()') 
+.UserNotifComponent.d-flex.flex-row(@click='redirect_notification()') 
 
-    strong(:class='text_class_name') {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
-    small.text-muted  {{ date_notification }}
-    //- .col-10.mb-1.small {{ description }}
+    .type_icon_wrapper.me-3.fs-2
+        template(v-if='is_error')
+            font-awesome-icon(icon="fa-duotone fa-exclamation-triangle fa-fw").bg-danger.text-white.rounded-circle
+        template(v-if='is_warn')
+            font-awesome-icon(icon="fa-duotone fa-exclamation-triangle fa-fw").bg-warning.text-white.rounded-circle
+        template(v-if='is_info')
+            font-awesome-icon(icon="fa-duotone fa-exclamation-circle fa-fw").bg-info.text-white.rounded-circle
+        template(v-if='is_success')
+            font-awesome-icon(icon="fa-duotone fa-check-circle fa-fw").bg-success.text-white.rounded-circle
 
-    //- .type_icon_wrapper
-    //-     template(v-if='is_error')
-    //-         i.fa.fa-exclamation-triangle.fa-fw.bg-danger.text-white(aria-hidden="true")
-    //-     template(v-if='is_warn')
-    //-         i.fa.fa-exclamation-triangle.fa-fw.bg-warning.text-dark(aria-hidden="true")        
-    //-     template(v-if='is_info')
-    //-         i.fa.fa-exclamation-circle.fa-fw.bg-info.text-white(aria-hidden="true")
-    //-     template(v-if='is_success')
-    //-         i.fa.fa-check-circle.fa-fw.bg-success.text-white(aria-hidden="true")
+    //- strong(:class='text_class_name') {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
+    //- small.text-muted  {{ date_notification }}
+    //- .mb-1.small {{ description }}
+
+    div
+        small.text-muted {{ date_notification_relativ }}
+        p {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
