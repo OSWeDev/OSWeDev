@@ -4,6 +4,13 @@ AppVuexStoreManager.getInstance().registerModule(FeedbackStore.getInstance());
 AppVuexStoreManager.getInstance().registerModule(LangSelectorStore.getInstance());
 AppVuexStoreManager.getInstance().registerModule(BootstrapTemplateStore.getInstance());
 
+== Retirer des packages
+
+Bien supprimer 
+bootstrap-social
+vue-tables-2
+qui sont incompatibles avec bootstrap5
+
 == Des packages à installer
 
 Sur le projet

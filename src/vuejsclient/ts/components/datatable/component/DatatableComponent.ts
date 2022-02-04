@@ -682,14 +682,16 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private changeTextFilterValue(datatable_field_uid: string) {
-        Event.$emit('vue-tables.filter::' + datatable_field_uid,
-            this.custom_filters_values[datatable_field_uid] ? this.custom_filters_values[datatable_field_uid] : false);
+        //- TODO FIXME vue-table-2 n'existe plus
+        // Event.$emit('vue-tables.filter::' + datatable_field_uid,
+        //     this.custom_filters_values[datatable_field_uid] ? this.custom_filters_values[datatable_field_uid] : false);
     }
 
     private changeBooleanFilterValue(datatable_field_uid: string) {
         // Impossible d'envoyer un event avec une valeur false (donc false, 0, ...) car sinon c'est comme supprimer le filtre
-        Event.$emit('vue-tables.filter::' + datatable_field_uid,
-            this.custom_filters_values[datatable_field_uid] ? (this.custom_filters_values[datatable_field_uid].value ? "VRAI" : "FAUX") : false);
+        //- TODO FIXME vue-table-2 n'existe plus
+        // Event.$emit('vue-tables.filter::' + datatable_field_uid,
+        //     this.custom_filters_values[datatable_field_uid] ? (this.custom_filters_values[datatable_field_uid].value ? "VRAI" : "FAUX") : false);
     }
 
     @Watch('$route')
