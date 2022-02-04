@@ -1,6 +1,5 @@
 import Component from 'vue-class-component';
 import { Watch, Prop } from 'vue-property-decorator';
-import { ServerTable, ClientTable, Event } from 'vue-tables-2';
 import VueComponentBase from '../../../../VueComponentBase';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 
@@ -23,7 +22,7 @@ export default class VueFilterListComponent extends VueComponentBase {
 
     @Watch('values')
     public on_change_values(): void {
-        Event.$emit('vue-tables.filter::' + this.name, this.values);
+        // TODO FIXME vue-table-2 n'existe plus Event.$emit('vue-tables.filter::' + this.name, this.values);
     }
 
     public created(): void {

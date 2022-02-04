@@ -1,0 +1,18 @@
+.dashboard_template {
+
+    >.container-fluid .row {
+
+        >nav.sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 5em 0 0;
+        }
+
+        >main {
+            padding-top: 5.5em;
+        }
+    }
+}

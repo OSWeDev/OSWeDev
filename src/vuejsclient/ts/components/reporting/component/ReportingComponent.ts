@@ -1,5 +1,4 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
 import CardVO from '../vos/CardVO';
 import ColumnDataVO from '../vos/ColumnDataVO';
 import ColumnVO from '../vos/ColumnVO';

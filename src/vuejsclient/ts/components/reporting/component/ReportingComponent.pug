@@ -5,36 +5,37 @@
         
     .row(v-if="selected_card")
         .col-md-12
-            v-client-table.reporting_table(
-                :columns="selected_card_columns",
-                :data="data_selected_card",
-                :options="vue_tables_options_default",
-            )
+            //- TODO FIXME vue-table-2 n'existe plus 
+            //- v-client-table.reporting_table(
+            //-     :columns="selected_card_columns",
+            //-     :data="data_selected_card",
+            //-     :options="vue_tables_options_default",
+            //- )
 
-                template(v-if="selected_card.columnsHeaderSupp", v-for='groupColumn in selected_card.columnsHeaderSupp')
-                    tr(:class="'header_group ' + groupColumn.name", slot="prependBody")
-                        template(v-for='column in groupColumn.columns')
-                            td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
+            //-     template(v-if="selected_card.columnsHeaderSupp", v-for='groupColumn in selected_card.columnsHeaderSupp')
+            //-         tr(:class="'header_group ' + groupColumn.name", slot="prependBody")
+            //-             template(v-for='column in groupColumn.columns')
+            //-                 td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
                 
-                template(v-if="selected_card.columnsTotal", v-for='groupColumn in selected_card.columnsTotal')
-                    tr.main_total_line(slot="prependBody", :class="groupColumn.name")
-                        template(v-for='columnData in groupColumn.columns')
-                            td(:colspan='columnData.column.colspan', :class='getClassesColumnData(columnData)')
-                                column_widget(:columndata="columnData")
+            //-     template(v-if="selected_card.columnsTotal", v-for='groupColumn in selected_card.columnsTotal')
+            //-         tr.main_total_line(slot="prependBody", :class="groupColumn.name")
+            //-             template(v-for='columnData in groupColumn.columns')
+            //-                 td(:colspan='columnData.column.colspan', :class='getClassesColumnData(columnData)')
+            //-                     column_widget(:columndata="columnData")
 
-                template(v-if="selected_card.columnsFooter && selected_card.columnsFooter.length > 0")        
-                    tr.tfoot_repeat(slot="prependBody")
-                        template(v-for='column in selected_card.columnsFooter')
-                            td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
+            //-     template(v-if="selected_card.columnsFooter && selected_card.columnsFooter.length > 0")        
+            //-         tr.tfoot_repeat(slot="prependBody")
+            //-             template(v-for='column in selected_card.columnsFooter')
+            //-                 td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
 
-                template(v-for="columnName in selected_card_columns_without_first", :slot="columnName", slot-scope="props")
-                    column_widget(:columndata="getColumnByProps(props)")
+            //-     template(v-for="columnName in selected_card_columns_without_first", :slot="columnName", slot-scope="props")
+            //-         column_widget(:columndata="getColumnByProps(props)")
 
-                template(v-if="selected_card.columnsFooter && selected_card.columnsFooter.length > 0")        
-                    tfoot(slot="afterBody")
-                        tr
-                            template(v-for='column in selected_card.columnsFooter')
-                                td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
+            //-     template(v-if="selected_card.columnsFooter && selected_card.columnsFooter.length > 0")        
+            //-         tfoot(slot="afterBody")
+            //-             tr
+            //-                 template(v-for='column in selected_card.columnsFooter')
+            //-                     td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
                         
         .col-md-12(v-if="selected_card.message_footer")
             span {{ t(selected_card.message_footer) }}

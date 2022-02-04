@@ -1,5 +1,6 @@
 import { Component, Prop } from 'vue-property-decorator';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
+import { ModuleBootstrapTemplateGetter } from '../../BootstrapTemplate/store/BootstrapTemplateStore';
 import VueComponentBase from '../../VueComponentBase';
 import MenuController from '../MenuController';
 import './SideBarMenuComponent.scss';
@@ -9,6 +10,16 @@ import './SideBarMenuComponent.scss';
     components: {}
 })
 export default class SideBarMenuComponent extends VueComponentBase {
+
+    @ModuleBootstrapTemplateGetter
+    private get_fa_sidebarmenu_style: string;
+
+    @ModuleBootstrapTemplateGetter
+    private get_sidebar_nav_lvl1_text: string;
+    @ModuleBootstrapTemplateGetter
+    private get_sidebar_nav_lvl2_text: string;
+    @ModuleBootstrapTemplateGetter
+    private get_sidebar_nav_lvl3_text: string;
 
     @Prop()
     private app_name: string;

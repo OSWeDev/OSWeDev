@@ -19,7 +19,6 @@ import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';
 import Snotify from 'vue-snotify';
 import "vue-snotify/styles/material.scss";
-import { ClientTable } from "vue-tables-2";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from "../shared/modules/AccessPolicy/ModuleAccessPolicy";
@@ -47,6 +46,7 @@ import VueAppController from './VueAppController';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fal } from '@fortawesome/pro-light-svg-icons';
+import { far } from '@fortawesome/pro-regular-svg-icons';
 require('moment-json-parser').overrideDefault();
 
 
@@ -190,7 +190,7 @@ export default abstract class VueAppBase {
 
         await this.appController.initializeFlatLocales();
 
-        Vue.use(ClientTable);
+        // TODO FIXME vue-table-2 n'existe plus Vue.use(ClientTable);
         Vue.use(VueI18n);
         LocaleManager.getInstance().i18n = new VueI18n({
             locale: default_locale,
@@ -385,7 +385,7 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
-        library.add(fal);
+        library.add(fal, far);
 
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);

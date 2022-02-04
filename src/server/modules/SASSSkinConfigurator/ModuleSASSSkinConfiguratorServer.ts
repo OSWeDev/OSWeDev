@@ -4,6 +4,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
@@ -18,6 +20,19 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
+    }
+
+    public async configure() {
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Dark'
+        }, 'theme.dark_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Light'
+        }, 'theme.light_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Primary'
+        }, 'theme.primary_mode.___LABEL___'));
     }
 
     public async generate() {

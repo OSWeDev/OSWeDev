@@ -9,6 +9,8 @@ import NavBarUserComponent from '../NavBarUser/NavBarUserComponent';
 import VueAppController from '../../../VueAppController';
 import DocumentHandlerButtonComponent from '../document_handler/button/DocumentHandlerButtonComponent';
 import { ModuleLangSelectorGetter } from '../lang_selector/store/LangSelectorStore';
+import { ModuleBootstrapTemplateGetter } from '../BootstrapTemplate/store/BootstrapTemplateStore';
+import ThemeSwitchComponent from '../ThemeSwitch/ThemeSwitchComponent';
 
 @Component({
     template: require('./NavBarComponent.pug'),
@@ -17,7 +19,8 @@ import { ModuleLangSelectorGetter } from '../lang_selector/store/LangSelectorSto
         Langselectorcomponent: LangSelectorComponent,
         Usernotifsmarkercomponent: UserNotifsMarkerComponent,
         Navbarusercomponent: NavBarUserComponent,
-        Documenthandlerbuttoncomponent: DocumentHandlerButtonComponent
+        Documenthandlerbuttoncomponent: DocumentHandlerButtonComponent,
+        Themeswitchcomponent: ThemeSwitchComponent
     }
 })
 export default class NavBarComponent extends VueComponentBase {
@@ -28,11 +31,20 @@ export default class NavBarComponent extends VueComponentBase {
     @Prop()
     private app_name: string;
 
-    @Prop({ default: "bg-light" })
-    private bg_style: string;
+    @ModuleBootstrapTemplateGetter
+    private get_fa_navbarbtn_style: string;
 
-    @Prop({ default: "navbar-light" })
-    private navbar_style: string;
+    @ModuleBootstrapTemplateGetter
+    private get_navbar: string;
+
+    @ModuleBootstrapTemplateGetter
+    private get_nav_bg: string;
+
+    @ModuleBootstrapTemplateGetter
+    private get_nav_btn: string;
+
+    @ModuleBootstrapTemplateGetter
+    private get_nav_outlinebtn: string;
 
     /**
      * Permet de switcher entre le menu dans la navbar ou dans la sidebar
@@ -46,6 +58,11 @@ export default class NavBarComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_lang_selector: boolean;
 
+    /**
+     * Pour l'instant pour test
+     */
+    private show_theme_switch: boolean = true;
+
     get is_mobile() {
         return VueAppController.getInstance().is_mobile;
     }
@@ -54,12 +71,12 @@ export default class NavBarComponent extends VueComponentBase {
 
         let res: string = '';
 
-        if (this.bg_style) {
-            res += this.bg_style + ' ';
+        if (this.get_nav_bg) {
+            res += this.get_nav_bg + ' ';
         }
 
-        if (this.navbar_style) {
-            res += this.navbar_style + ' ';
+        if (this.get_navbar) {
+            res += this.get_navbar + ' ';
         }
 
         if (this.is_fixed) {

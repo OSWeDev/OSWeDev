@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import VueAppController from '../../../VueAppController';
+import { ModuleBootstrapTemplateGetter } from '../BootstrapTemplate/store/BootstrapTemplateStore';
 import DocumentHandlerModalComponent from '../document_handler/modal/DocumentHandlerModalComponent';
 import FeedbackHandlerComponent from '../feedback_handler/FeedbackHandlerComponent';
 import SideBarMenuComponent from '../menu/SideBarMenu/SideBarMenuComponent';
@@ -25,6 +26,9 @@ import './DashboardTemplate.scss';
     }
 })
 export default class DashboardTemplate extends VueComponentBase {
+
+    @ModuleBootstrapTemplateGetter
+    private get_sidebar_bg: string;
 
     @Prop()
     private app_name: string;

@@ -1,0 +1,23 @@
+li.notification-list.ThemeSwitchComponent.dropdown
+    
+        button.btn.dropdown-toggle.me-0.w-md-auto.w-100(
+            data-bs-toggle="dropdown" data-bs-target="ThemeSwitchComponent_dropdown" id="topbar-themeswitchdrop" 
+            href="#" role="button" aria-haspopup="true" aria-expanded="false"
+            :class='get_nav_outlinebtn'
+            )
+            
+            font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-palette'").fa-fw
+
+        .dropdown-menu.dropdown-menu-end.mt-2(aria-labelledby="topbar-themeswitchdrop" id="ThemeSwitchComponent_dropdown")
+
+            button.btn.btn-dark.dropdown-item(@click='activate_dark_mode')
+                font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-moon'").fa-fw.me-1
+                span {{ label('theme.dark_mode') }}
+           
+            button.btn.btn-dark.dropdown-item(@click='activate_light_mode')
+                font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-sun'").fa-fw.me-1
+                span {{ label('theme.light_mode') }}
+
+            button.btn.btn-dark.dropdown-item(@click='activate_primary_mode')
+                font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-copyright'").fa-fw.me-1
+                span {{ label('theme.primary_mode') }}

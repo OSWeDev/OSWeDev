@@ -5,9 +5,9 @@
 
     .container-fluid
         .row
-            nav.col-md-3.col-lg-2.d-md-block.bg-light.sidebar.collapse(:app_name='app_name' id='sidebarCollapse')
-                Sidebarmenucomponent
-            main.col-md-9.ms-sm-auto.col-lg-10.px-md-4
+            nav.col-md-3.col-lg-2.d-md-block.sidebar.collapse(:app_name='app_name' id='sidebarCollapse' :class='get_sidebar_bg')
+                Sidebarmenucomponent(:app_name='app_name')
+            main.col-md-9.ms-sm-auto.col-lg-10.px-md-4.mb-5.pb-4
                 router-view(:user="user")
 
     Navbarbottomcomponent(:app_name='app_name')

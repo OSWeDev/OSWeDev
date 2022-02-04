@@ -2,6 +2,7 @@
 
 AppVuexStoreManager.getInstance().registerModule(FeedbackStore.getInstance());
 AppVuexStoreManager.getInstance().registerModule(LangSelectorStore.getInstance());
+AppVuexStoreManager.getInstance().registerModule(BootstrapTemplateStore.getInstance());
 
 == Des packages à installer
 

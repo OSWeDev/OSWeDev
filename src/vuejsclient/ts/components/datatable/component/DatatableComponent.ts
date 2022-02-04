@@ -4,7 +4,6 @@ import debounce from 'lodash/debounce';
 import { Moment } from 'moment';
 import * as  moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';

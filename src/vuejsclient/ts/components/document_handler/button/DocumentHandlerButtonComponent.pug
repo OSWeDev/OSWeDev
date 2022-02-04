@@ -1,3 +1,5 @@
 .document_handler.hide_from_screenshot
-    button.btn.btn-outline-primary.document_handler_switcher.w-md-auto.w-100(@click='switch_hidden')
-        font-awesome-icon(icon="fa-light fa-book")
+    button.btn.document_handler_switcher.w-md-auto.w-100(
+        @click='switch_hidden' :class='get_nav_outlinebtn')
+
+        font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-book'")

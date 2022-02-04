@@ -1,112 +1,114 @@
-v-client-table(
-    ref="vclienttable"
-    :data="datatable_data",
-    :columns="datatable_columns",
-    :options="datatable_options"
-)
+p TODO FIXME vue-table-2 n'existe plus 
+//- TODO FIXME vue-table-2 n'existe plus 
+//- v-client-table(
+//-     ref="vclienttable"
+//-     :data="datatable_data",
+//-     :columns="datatable_columns",
+//-     :options="datatable_options"
+//- )
 
-    div.hidden-print(slot="filter____multiselect_column__")
-        input.d-print-none.form-control(type="checkbox" v-model="allselected_chck" @click.prevent="selectAll()")
+//-     div.hidden-print(slot="filter____multiselect_column__")
+//-         input.d-print-none.form-control(type="checkbox" v-model="allselected_chck" @click.prevent="selectAll()")
 
-    div(slot="__multiselect_column__" slot-scope="props")
-        input.d-print-none.form-control(type="checkbox" v-model="selected_datas[props.row.id]")
+//-     div(slot="__multiselect_column__" slot-scope="props")
+//-         input.d-print-none.form-control(type="checkbox" v-model="selected_datas[props.row.id]")
 
-    div(slot="__actions_column__" slot-scope="props")
-        .btn-group.d-print-none
-            template(v-if="embed")
-                button.btn.btn-sm.btn-primary.m-1(@click="selectVoForAction(props.row.id, 'update')")
-                    i.fa.fa-pencil
-            template(v-else)
-                router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
-                    i.fa.fa-pencil
-            template(v-if="vocus_button")
-                template(v-if="!embed")
-                    router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
-                        i.fa.fa-search
-            template(v-if="delete_button")
-                template(v-if="embed")
-                    button.btn.btn-sm.btn-danger.m-1(@click="selectVoForAction(props.row.id, 'delete')")
-                        i.fa.fa-trash
-                template(v-else)
-                    router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
-                        i.fa.fa-trash
+//-     div(slot="__actions_column__" slot-scope="props")
+//-         .btn-group.d-print-none
+//-             template(v-if="embed")
+//-                 button.btn.btn-sm.btn-primary.m-1(@click="selectVoForAction(props.row.id, 'update')")
+//-                     i.fa.fa-pencil
+//-             template(v-else)
+//-                 router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
+//-                     i.fa.fa-pencil
+//-             template(v-if="vocus_button")
+//-                 template(v-if="!embed")
+//-                     router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+//-                         i.fa.fa-search
+//-             template(v-if="delete_button")
+//-                 template(v-if="embed")
+//-                     button.btn.btn-sm.btn-danger.m-1(@click="selectVoForAction(props.row.id, 'delete')")
+//-                         i.fa.fa-trash
+//-                 template(v-else)
+//-                     router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+//-                         i.fa.fa-trash
 
-    template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
-        template(v-if="custom_filters_values[field.datatable_field_uid]")
-            input.form-control.d-print-none(type="date" v-model="custom_filters_values[field.datatable_field_uid].start" :max="custom_filters_values[field.datatable_field_uid].end" @change="onChangeFilterValue()")
-            input.form-control.d-print-none(type="date" v-model="custom_filters_values[field.datatable_field_uid].end" :min="custom_filters_values[field.datatable_field_uid].start" @change="onChangeFilterValue()")
+//-     template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+//-         template(v-if="custom_filters_values[field.datatable_field_uid]")
+//-             input.form-control.d-print-none(type="date" v-model="custom_filters_values[field.datatable_field_uid].start" :max="custom_filters_values[field.datatable_field_uid].end" @change="onChangeFilterValue()")
+//-             input.form-control.d-print-none(type="date" v-model="custom_filters_values[field.datatable_field_uid].end" :min="custom_filters_values[field.datatable_field_uid].start" @change="onChangeFilterValue()")
 
-    template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
-        input.form-control.d-print-none(type="text" v-model="custom_filters_values[field.datatable_field_uid]")
+//-     template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+//-         input.form-control.d-print-none(type="text" v-model="custom_filters_values[field.datatable_field_uid]")
 
-    template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
-        //- v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
-        template(v-if="custom_filters_options[field.datatable_field_uid]")
-            multiselect.d-print-none(
-                v-model="custom_filters_values[field.datatable_field_uid]"
-                :multiple="true"
-                :close-on-select="false"
-                :options="custom_filters_options[field.datatable_field_uid]"
-                :custom-label="multiselectOptionLabel"
-                :allow-empty="true"
-                :select-label='label("multiselect.selectLabel")'
-                :select-group-label='label("multiselect.selectGroupLabel")'
-                :selected-label='label("multiselect.selectedLabel")'
-                :deselect-label='label("multiselect.deselectLabel")'
-                :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                :placeholder="t(field.translatable_place_holder)"
-                :preselect-first="false"
-                :disabled="false"
-                :loading="false"
-                track-by="id"
-                :id="'filter__' + field.datatable_field_uid",
-            )
+//-     template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+//-         //- v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
+//-         template(v-if="custom_filters_options[field.datatable_field_uid]")
+//-             multiselect.d-print-none(
+//-                 v-model="custom_filters_values[field.datatable_field_uid]"
+//-                 :multiple="true"
+//-                 :close-on-select="false"
+//-                 :options="custom_filters_options[field.datatable_field_uid]"
+//-                 :custom-label="multiselectOptionLabel"
+//-                 :allow-empty="true"
+//-                 :select-label='label("multiselect.selectLabel")'
+//-                 :select-group-label='label("multiselect.selectGroupLabel")'
+//-                 :selected-label='label("multiselect.selectedLabel")'
+//-                 :deselect-label='label("multiselect.deselectLabel")'
+//-                 :deselect-group-label='label("multiselect.deselectGroupLabel")'
+//-                 :placeholder="t(field.translatable_place_holder)"
+//-                 :preselect-first="false"
+//-                 :disabled="false"
+//-                 :loading="false"
+//-                 track-by="id"
+//-                 :id="'filter__' + field.datatable_field_uid",
+//-             )
 
-        //- v-model="field_value_refranges_selected_ids",
-        //- :options="select_options",
-        //- @input="onChangeField"
+//-         //- v-model="field_value_refranges_selected_ids",
+//-         //- :options="select_options",
+//-         //- @input="onChangeField"
 
 
-        //- :searchable="true",
-        //- :internal-search="false",
-        //- @search-change="asyncLoadOptions",
+//-         //- :searchable="true",
+//-         //- :internal-search="false",
+//-         //- @search-change="asyncLoadOptions",
 
-        //- :searchable="true"
-        //- :internal-search="false"
-        //- @search-change="(query) => updateMultiSelectFilterOptions(query, field)"
+//-         //- :searchable="true"
+//-         //- :internal-search="false"
+//-         //- @search-change="(query) => updateMultiSelectFilterOptions(query, field)"
 
-        //- :preselect-first="false",
-        //- :multiple="true",
-        //- v-model="field_value_refranges_selected_ids",
-        //- :custom-label="field.voIdToHumanReadable",
-        //- :options="select_options",
-        //- :placeholder="t(field.translatable_place_holder)",
-        //- :loading="isLoadingOptions",
-        //- :id="field.datatable_field_uid",
-        //- :searchable="true",
-        //- :internal-search="false",
-        //- :allow-empty="!field.is_required",
-        //- :disabled="field.is_readonly",
-        //- @search-change="asyncLoadOptions",
-        //- @input="onChangeField"
+//-         //- :preselect-first="false",
+//-         //- :multiple="true",
+//-         //- v-model="field_value_refranges_selected_ids",
+//-         //- :custom-label="field.voIdToHumanReadable",
+//-         //- :options="select_options",
+//-         //- :placeholder="t(field.translatable_place_holder)",
+//-         //- :loading="isLoadingOptions",
+//-         //- :id="field.datatable_field_uid",
+//-         //- :searchable="true",
+//-         //- :internal-search="false",
+//-         //- :allow-empty="!field.is_required",
+//-         //- :disabled="field.is_readonly",
+//-         //- @search-change="asyncLoadOptions",
+//-         //- @input="onChangeField"
 
-    template(v-for="field in boolean_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
-        //- v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
-        multiselect.d-print-none(
-            v-if="custom_filters_options[field.datatable_field_uid]"
-            v-model="custom_filters_values[field.datatable_field_uid]"
-            :placeholder="t(field.translatable_place_holder)"
-            :options="custom_filters_options[field.datatable_field_uid]"
-            :custom-label="multiselectOptionLabel"
-            :select-label='label("multiselect.selectLabel")'
-            :select-group-label='label("multiselect.selectGroupLabel")'
-            :selected-label='label("multiselect.selectedLabel")'
-            :deselect-label='label("multiselect.deselectLabel")'
-            :deselect-group-label='label("multiselect.deselectGroupLabel")'
-        )
+//-     template(v-for="field in boolean_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
+//-         //- v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
+//-         multiselect.d-print-none(
+//-             v-if="custom_filters_options[field.datatable_field_uid]"
+//-             v-model="custom_filters_values[field.datatable_field_uid]"
+//-             :placeholder="t(field.translatable_place_holder)"
+//-             :options="custom_filters_options[field.datatable_field_uid]"
+//-             :custom-label="multiselectOptionLabel"
+//-             :select-label='label("multiselect.selectLabel")'
+//-             :select-group-label='label("multiselect.selectGroupLabel")'
+//-             :selected-label='label("multiselect.selectedLabel")'
+//-             :deselect-label='label("multiselect.deselectLabel")'
+//-             :deselect-group-label='label("multiselect.deselectGroupLabel")'
+//-         )
 
-    template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
-        Datatablecomponentfield(
-            :field="field",
-            :vo="props.row",
-        )
+//-     template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
+//-         Datatablecomponentfield(
+//-             :field="field",
+//-             :vo="props.row",
+//-         )

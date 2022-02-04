@@ -1,5 +1,5 @@
 
-nav.navbar.fixed-bottom.navbar-expand-sm.navbar-dark.bg-dark
+nav.navbar.fixed-bottom.navbar-expand-sm(:class='get_bottomnavbar + " " + get_bottomnav_bg')
     .container-fluid
         slot(name='navbarbottom-brand')
         slot(name='navbarbottom-copyright')

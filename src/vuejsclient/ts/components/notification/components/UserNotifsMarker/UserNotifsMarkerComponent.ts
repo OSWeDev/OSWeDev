@@ -3,6 +3,7 @@ import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import NotificationVO from '../../../../../../shared/modules/PushData/vos/NotificationVO';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueAppController from '../../../../../VueAppController';
+import { ModuleBootstrapTemplateGetter } from '../../../BootstrapTemplate/store/BootstrapTemplateStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction, ModuleNotificationGetter } from '../../store/NotificationStore';
 import UserNotifComponent from '../UserNotif/UserNotifComponent';
@@ -15,24 +16,31 @@ import './UserNotifsMarkerComponent.scss';
     }
 })
 export default class UserNotifsMarkerComponent extends VueComponentBase {
-    @ModuleNotificationGetter
-    public get_is_updating: boolean;
-    @ModuleNotificationGetter
-    public get_nb_unread: number;
-    @ModuleNotificationGetter
-    public get_notif_viewer_opened: boolean;
 
-    @ModuleNotificationAction
-    public set_notifications_by_ids: (notifications_by_ids: { [id: number]: NotificationVO }) => void;
-    @ModuleNotificationAction
-    public set_is_updating: (is_updating: boolean) => void;
-    @ModuleNotificationAction
-    public set_notif_viewer_opened: (notif_viewer_opened: boolean) => void;
+    @ModuleBootstrapTemplateGetter
+    private get_fa_navbarbtn_style: string;
+
+    @ModuleBootstrapTemplateGetter
+    private get_nav_outlinebtn: string;
 
     @ModuleNotificationGetter
-    public get_notifications_by_ids: { [id: number]: NotificationVO };
+    private get_is_updating: boolean;
+    @ModuleNotificationGetter
+    private get_nb_unread: number;
+    @ModuleNotificationGetter
+    private get_notif_viewer_opened: boolean;
+
     @ModuleNotificationAction
-    public read_notification: (notification: NotificationVO) => void;
+    private set_notifications_by_ids: (notifications_by_ids: { [id: number]: NotificationVO }) => void;
+    @ModuleNotificationAction
+    private set_is_updating: (is_updating: boolean) => void;
+    @ModuleNotificationAction
+    private set_notif_viewer_opened: (notif_viewer_opened: boolean) => void;
+
+    @ModuleNotificationGetter
+    private get_notifications_by_ids: { [id: number]: NotificationVO };
+    @ModuleNotificationAction
+    private read_notification: (notification: NotificationVO) => void;
 
     public async mounted() {
 

@@ -1,6 +1,10 @@
 li.notification-list.UserNotifsMarkerComponent.dropdown
-    button.btn.btn-outline-primary.dropdown-toggle.w-md-auto.w-100(data-bs-toggle="dropdown" data-bs-target="topbar-notification-list" href="#" id="topbar-notifydrop" role="button")
-        font-awesome-icon(icon="fa-light fa-bell")
+
+    button.btn.dropdown-toggle.w-md-auto.w-100(
+        data-bs-toggle="dropdown" data-bs-target="topbar-notification-list" href="#" id="topbar-notifydrop" role="button"
+        :class='get_nav_outlinebtn')
+        
+        font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-bell'")
         .badge.rounded-pill.bg-danger.ms-1(v-if='get_nb_unread && (get_nb_unread > 0)') {{ get_nb_unread }}      
 
     .dropdown-menu.dropdown-menu-end.mt-2(id="UserNotifsMarkerComponent-dropdown" aria-labelledby="topbar-notifydrop")
@@ -10,7 +14,7 @@ li.notification-list.UserNotifsMarkerComponent.dropdown
             h3 {{ label('UserNotifsViewerComponent.title') }}
 
             button.btn.btn-light.ms-3(@click='read_all' style="width: max-content") {{ label('UserNotifsViewerComponent.empty') }}
-                font-awesome-icon.ms-1(icon="fa-light fa-eye")
+                font-awesome-icon.ms-1(:icon="get_fa_navbarbtn_style + ' fa-eye'")
 
         template(v-if='get_nb_unread > 0')
             .list-group.list-group-flush.border-bottom.scrollarea

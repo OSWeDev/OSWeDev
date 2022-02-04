@@ -1,6 +1,5 @@
 import Component from 'vue-class-component';
 import { Watch, Prop } from 'vue-property-decorator';
-import { ServerTable, ClientTable, Event } from 'vue-tables-2';
 import VueComponentBase from '../../../../VueComponentBase';
 
 @Component({
@@ -19,7 +18,7 @@ export default class VueFilterDateComponent extends VueComponentBase {
 
     @Watch('value')
     public on_change_value(): void {
-        Event.$emit('vue-tables.filter::' + this.name, this.value);
+        // TODO FIXME vue-table-2 n'existe plus Event.$emit('vue-tables.filter::' + this.name, this.value);
     }
 
     public created(): void {
