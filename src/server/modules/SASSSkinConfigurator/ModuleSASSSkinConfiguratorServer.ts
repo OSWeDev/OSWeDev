@@ -33,6 +33,29 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Primary'
         }, 'theme.primary_mode.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'NavBar'
+        }, 'theme.navbar_fa_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Solid'
+        }, 'theme.fa_solid_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Regular'
+        }, 'theme.fa_regular_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Light'
+        }, 'theme.fa_light_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Thin'
+        }, 'theme.fa_thin_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'DuoTone'
+        }, 'theme.fa_duotone_mode.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'SideBarMenu'
+        }, 'theme.sidebarmenu_fa_mode.___LABEL___'));
     }
 
     public async generate() {

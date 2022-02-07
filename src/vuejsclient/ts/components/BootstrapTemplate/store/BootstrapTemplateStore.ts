@@ -48,10 +48,10 @@ export default class BootstrapTemplateStore implements IStoreModule<IBootstrapTe
 
 
         this.state = {
-            fa_navbarbtn_style: 'fa-light',
-            fa_sidebarmenu_style: 'fa-regular',
-            fa_bottomnavbarbtn_style: 'fa-light',
-            fa_default_style: 'fa-regular',
+            fa_navbarbtn_style: 'fa-solid',
+            fa_sidebarmenu_style: 'fa-duotone',
+            fa_bottomnavbarbtn_style: 'fa-solid',
+            fa_default_style: 'fa-duotone',
 
             navbar: 'navbar-light',
             nav_bg: 'bg-light',
@@ -115,10 +115,10 @@ export default class BootstrapTemplateStore implements IStoreModule<IBootstrapTe
                 state.nav_bg = 'bg-dark';
                 state.nav_btn = 'btn-light';
 
-                state.sidebar_bg = 'bg-dark';
-                state.sidebar_nav_lvl1_text = 'text-white';
-                state.sidebar_nav_lvl2_text = 'text-white-50';
-                state.sidebar_nav_lvl3_text = 'text-white-50';
+                state.sidebar_bg = 'bg-dark bg-opacity-75 bg-gradient';
+                state.sidebar_nav_lvl1_text = 'text-light';
+                state.sidebar_nav_lvl2_text = 'text-light text-opacity-75';
+                state.sidebar_nav_lvl3_text = 'text-light text-opacity-75';
 
                 state.bottomnavbar = 'navbar-dark';
                 state.bottomnav_bg = 'bg-dark';
@@ -129,7 +129,7 @@ export default class BootstrapTemplateStore implements IStoreModule<IBootstrapTe
                 state.nav_bg = 'bg-light';
                 state.nav_btn = 'btn-primary';
 
-                state.sidebar_bg = 'bg-light';
+                state.sidebar_bg = 'bg-light bg-gradient';
                 state.sidebar_nav_lvl1_text = 'text-primary';
                 state.sidebar_nav_lvl2_text = 'text-dark';
                 state.sidebar_nav_lvl3_text = 'text-dark';
@@ -143,10 +143,10 @@ export default class BootstrapTemplateStore implements IStoreModule<IBootstrapTe
                 state.nav_bg = 'bg-primary';
                 state.nav_btn = 'btn-light';
 
-                state.sidebar_bg = 'bg-primary';
-                state.sidebar_nav_lvl1_text = 'text-white';
-                state.sidebar_nav_lvl2_text = 'text-white-50';
-                state.sidebar_nav_lvl3_text = 'text-white-50';
+                state.sidebar_bg = 'bg-primary bg-opacity-75 bg-gradient';
+                state.sidebar_nav_lvl1_text = 'text-light';
+                state.sidebar_nav_lvl2_text = 'text-light text-opacity-75';
+                state.sidebar_nav_lvl3_text = 'text-light text-opacity-75';
 
                 state.bottomnavbar = 'navbar-dark';
                 state.bottomnav_bg = 'bg-dark';

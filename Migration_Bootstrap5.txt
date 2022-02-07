@@ -11,6 +11,9 @@ bootstrap-social
 vue-tables-2
 qui sont incompatibles avec bootstrap5
 
+Enlever bootstrap du vendor_generator_options
+et les autres package supprimés
+
 == Des packages à installer
 
 Sur le projet

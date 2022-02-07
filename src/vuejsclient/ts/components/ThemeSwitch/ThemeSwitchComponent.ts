@@ -17,6 +17,13 @@ export default class ThemeSwitchComponent extends VueComponentBase {
     private get_fa_navbarbtn_style: string;
 
     @ModuleBootstrapTemplateAction
+    private set_fa_navbarbtn_style: (fa_navbarbtn_style: string) => void;
+
+    @ModuleBootstrapTemplateAction
+    private set_fa_sidebarmenu_style: (fa_sidebarmenu_style: string) => void;
+
+
+    @ModuleBootstrapTemplateAction
     private activate_dark_mode: () => void;
     @ModuleBootstrapTemplateAction
     private activate_light_mode: () => void;

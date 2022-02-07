@@ -21,3 +21,51 @@ li.notification-list.ThemeSwitchComponent.dropdown
             button.btn.btn-dark.dropdown-item(@click='activate_primary_mode')
                 font-awesome-icon(:icon="get_fa_navbarbtn_style + ' fa-copyright'").fa-fw.me-1
                 span {{ label('theme.primary_mode') }}
+
+            hr
+
+            h6.ms-3 {{ label('theme.navbar_fa_mode') }}
+
+            button.btn.btn-dark.dropdown-item(@click='set_fa_navbarbtn_style("fa-solid")')
+                font-awesome-icon(icon="fa-solid fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_solid_mode') }}
+        
+            button.btn.btn-dark.dropdown-item(@click='set_fa_navbarbtn_style("fa-regular")')
+                font-awesome-icon(icon="fa-regular fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_regular_mode') }}
+
+            button.btn.btn-dark.dropdown-item(@click='set_fa_navbarbtn_style("fa-light")')
+                font-awesome-icon(icon="fa-light fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_light_mode') }}
+                
+            button.btn.btn-dark.dropdown-item(@click='set_fa_navbarbtn_style("fa-thin")')
+                font-awesome-icon(icon="fa-thin fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_thin_mode') }}
+        
+            button.btn.btn-dark.dropdown-item(@click='set_fa_navbarbtn_style("fa-duotone")')
+                font-awesome-icon(icon="fa-duotone fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_duotone_mode') }}
+        
+            hr
+
+            h6.ms-3 {{ label('theme.sidebarmenu_fa_mode') }}
+
+            button.btn.btn-dark.dropdown-item(@click='set_fa_sidebarmenu_style("fa-solid")')
+                font-awesome-icon(icon="fa-solid fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_solid_mode') }}
+        
+            button.btn.btn-dark.dropdown-item(@click='set_fa_sidebarmenu_style("fa-regular")')
+                font-awesome-icon(icon="fa-regular fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_regular_mode') }}
+
+            button.btn.btn-dark.dropdown-item(@click='set_fa_sidebarmenu_style("fa-light")')
+                font-awesome-icon(icon="fa-light fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_light_mode') }}
+                
+            button.btn.btn-dark.dropdown-item(@click='set_fa_sidebarmenu_style("fa-thin")')
+                font-awesome-icon(icon="fa-thin fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_thin_mode') }}
+        
+            button.btn.btn-dark.dropdown-item(@click='set_fa_sidebarmenu_style("fa-duotone")')
+                font-awesome-icon(icon="fa-duotone fa-font-awesome").fa-fw.me-1
+                span {{ label('theme.fa_duotone_mode') }}

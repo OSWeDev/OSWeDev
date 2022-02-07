@@ -47,6 +47,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fal } from '@fortawesome/pro-light-svg-icons';
 import { far } from '@fortawesome/pro-regular-svg-icons';
+import { fad } from '@fortawesome/pro-duotone-svg-icons';
+import { fat } from '@fortawesome/pro-thin-svg-icons';
+import { fas } from '@fortawesome/pro-solid-svg-icons';
 require('moment-json-parser').overrideDefault();
 
 
@@ -385,7 +388,7 @@ export default abstract class VueAppBase {
 
         this.vueRouter.afterEach(afterEachTransitionHandler);
 
-        library.add(fal, far);
+        library.add(fal, far, fad, fat, fas);
 
         Vue.use(VTooltip, { boundary: 'body' });
         Vue.use(Snotify);
