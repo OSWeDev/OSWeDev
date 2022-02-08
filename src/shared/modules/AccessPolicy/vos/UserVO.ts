@@ -32,6 +32,12 @@ export default class UserVO implements IDistantVOBase {
     public password_change_date: number;
 
     /**
+     * Ajout du prénom / nom dans le compte utilisateur
+     */
+    public firstname: string;
+    public lastname: string;
+
+    /**
      * Un compte bloqué est totalement inactivé et ne peut plus se connecter ni utiliser la procédure de
      *  récupération du mot de passe
      */

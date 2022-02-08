@@ -24,6 +24,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toinvalidate: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maila',
             id: 1,
             invalidated: false,
@@ -43,6 +45,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_invalidated: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailb',
             id: 2,
             invalidated: true,
@@ -62,6 +66,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toremind1: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailc',
             id: 3,
             invalidated: false,
@@ -81,6 +87,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_reminded1: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maild',
             id: 4,
             invalidated: false,
@@ -100,6 +108,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toremind2: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maile',
             id: 5,
             invalidated: false,
@@ -119,6 +129,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toremind1_before_2: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maile',
             id: 51,
             invalidated: false,
@@ -138,6 +150,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_reminded2: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailf',
             id: 6,
             invalidated: false,
@@ -157,6 +171,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_nothingtodo: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailz',
             id: 66,
             invalidated: false,
@@ -178,6 +194,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toinvalidate_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maila',
             id: 1,
             invalidated: false,
@@ -197,6 +215,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_invalidated_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailb',
             id: 2,
             invalidated: true,
@@ -216,6 +236,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toremind1_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailc',
             id: 3,
             invalidated: false,
@@ -235,6 +257,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_reminded1_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maild',
             id: 4,
             invalidated: false,
@@ -254,6 +278,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toremind2_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maile',
             id: 5,
             invalidated: false,
@@ -273,6 +299,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_toremind1_before_2_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'maile',
             id: 51,
             invalidated: false,
@@ -292,6 +320,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_reminded2_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailf',
             id: 6,
             invalidated: false,
@@ -311,6 +341,8 @@ describe('TestPasswordInvalidationController', () => {
 
         let user_nothingtodo_blocked: UserVO = {
             _type: UserVO.API_TYPE_ID,
+            firstname: 'firstname',
+            lastname: 'lastname',
             email: 'mailz',
             id: 66,
             invalidated: false,

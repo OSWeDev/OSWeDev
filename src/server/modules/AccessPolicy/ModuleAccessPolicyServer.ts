@@ -89,6 +89,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await AccessPolicyServerController.getInstance().preload_registered_users_roles();
         await AccessPolicyServerController.getInstance().preload_registered_roles_policies();
+        await AccessPolicyServerController.getInstance().reload_access_matrix();
     }
 
     /**
@@ -956,12 +957,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
-        let access_matrix: {
-            [policy_id: number]: {
-                [role_id: number]: boolean;
-            };
-        } = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
-
         let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
         let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
 
@@ -971,7 +966,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             for (let j in role_names) {
                 let role_name = role_names[j];
 
-                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], access_matrix);
+                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.getInstance().access_matrix);
             }
         }
     }
@@ -1351,6 +1346,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async getAccessMatrix(bool: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
+
+        /**
+         * Si la matrice est disponible, on la renvoie, sinon on force un recalcule avant de la renvoyer
+         */
+        if ((!bool) && AccessPolicyServerController.getInstance().access_matrix_validity) {
+            return AccessPolicyServerController.getInstance().access_matrix;
+        }
+        if ((bool) && AccessPolicyServerController.getInstance().access_matrix_heritance_only_validity) {
+            return AccessPolicyServerController.getInstance().access_matrix_heritance_only;
+        }
         return await AccessPolicyServerController.getInstance().getAccessMatrix(bool);
     }
 
@@ -1559,6 +1564,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
@@ -1568,6 +1574,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
@@ -1577,27 +1584,33 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return;
     }
 
     private async onUpdateAccessPolicyVO(vo_update_holder: DAOUpdateVOHolder<AccessPolicyVO>): Promise<void> {
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo_update_holder);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdatePolicyDependencyVO(vo_update_holder: DAOUpdateVOHolder<PolicyDependencyVO>): Promise<void> {
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo_update_holder);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateRolePolicyVO(vo_update_holder: DAOUpdateVOHolder<RolePolicyVO>): Promise<void> {
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo_update_holder);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateRoleVO(vo_update_holder: DAOUpdateVOHolder<RoleVO>): Promise<void> {
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo_update_holder);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onUpdateUserRoleVO(vo_update_holder: DAOUpdateVOHolder<UserRoleVO>): Promise<void> {
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo_update_holder);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo_update_holder);
     }
 
     private async onDeleteAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
@@ -1606,6 +1619,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy, vo);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1615,6 +1629,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, vo);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 
@@ -1624,6 +1639,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, vo);
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_reload_access_matrix, vo);
         return true;
     }
 

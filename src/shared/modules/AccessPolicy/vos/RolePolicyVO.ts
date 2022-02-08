@@ -1,4 +1,3 @@
-import ConversionHandler from '../../../tools/ConversionHandler';
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class RolePolicyVO implements IDistantVOBase {

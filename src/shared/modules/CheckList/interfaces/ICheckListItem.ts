@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
-export default interface ICheckListItem extends IDistantVOBase {
+export default interface ICheckListItem extends IDistantVOBase, IVersionedVO {
     name: string;
     explaination: string;
 

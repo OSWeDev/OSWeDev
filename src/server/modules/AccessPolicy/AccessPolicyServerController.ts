@@ -12,6 +12,7 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -35,6 +36,7 @@ export default class AccessPolicyServerController {
     public static TASK_NAME_delete_registered_policy_dependency = 'AccessPolicyServerController.delete_registered_policy_dependency';
     public static TASK_NAME_delete_registered_role_policy = 'AccessPolicyServerController.delete_registered_role_policy';
     public static TASK_NAME_delete_registered_role = 'AccessPolicyServerController.delete_registered_role';
+    public static TASK_NAME_reload_access_matrix = 'AccessPolicyServerController.reload_access_matrix';
 
     public static getInstance() {
         if (!AccessPolicyServerController.instance) {
@@ -54,6 +56,14 @@ export default class AccessPolicyServerController {
     /**
      * Global application cache - Brocasted CUD - Local R -----
      */
+    public access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
+    public access_matrix_heritance_only: { [policy_id: number]: { [role_id: number]: boolean } } = {};
+    /**
+     * la matrice d'accès doit être initialisée totalement avant usage, et tout changement nécessite une recompilation de la matrice avant le prochain usage
+     */
+    public access_matrix_validity: boolean = false;
+    public access_matrix_heritance_only_validity: boolean = false;
+
     private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
     private registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
@@ -68,6 +78,8 @@ export default class AccessPolicyServerController {
      * ----- Global application cache - Brocasted CUD - Local R
      */
 
+    private throttled_reload_access_matrix_computation = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_access_matrix_computation.bind(this), 2000);
+
     public constructor() {
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, this.set_registered_role.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, this.set_registered_user_role.bind(this));
@@ -75,6 +87,7 @@ export default class AccessPolicyServerController {
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, this.set_registered_policy.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, this.set_policy_dependency.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, this.set_role_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_reload_access_matrix, this.reload_access_matrix.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, this.update_registered_policy.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, this.update_policy_dependency.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, this.update_role_policy.bind(this));
@@ -99,6 +112,83 @@ export default class AccessPolicyServerController {
 
             this.registered_roles_policies[rolePolicy.role_id][rolePolicy.accpol_id] = rolePolicy;
         }
+    }
+
+    public has_access_by_name(policy_name: string, roles_names: string[]): boolean {
+
+        if (!this.registered_policies[policy_name]) {
+            ConsoleHandler.getInstance().error('has_access_by_name:Failed find policy by name:' + policy_name);
+            return false;
+        }
+
+        let policy_id: number = this.registered_policies[policy_name].id;
+        let roles_ids: number[] = [];
+
+        for (let i in roles_names) {
+            let role_name = roles_names[i];
+
+            if (!this.registered_roles[role_name]) {
+                ConsoleHandler.getInstance().error('has_access_by_name:Failed find role by name:' + role_name);
+                return false;
+            }
+
+            roles_ids.push(this.registered_roles[role_name].id);
+        }
+
+        return this.has_access_by_ids(policy_id, roles_ids);
+    }
+
+    public has_access_by_ids(policy_id: number, roles_ids: number[]): boolean {
+
+        if (!this.access_matrix[policy_id]) {
+            ConsoleHandler.getInstance().error('has_access_by_ids:Failed find policy by id in matrix:' + policy_id);
+            return false;
+        }
+
+        /**
+         * Si on a le rôle admin on dégage immédiatement
+         */
+        if (roles_ids && (roles_ids.indexOf(this.role_admin.id) >= 0)) {
+            return true;
+        }
+
+        for (let i in roles_ids) {
+            let role_id = roles_ids[i];
+
+            if (this.access_matrix[policy_id][role_id] == null) {
+                ConsoleHandler.getInstance().error('has_access_by_ids:Failed find role by id for policy in matrix:' + role_id + ':' + policy_id);
+                return false;
+            }
+
+            if (this.access_matrix[policy_id][role_id]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * On commence par invalider la matrice pour indiquer qu'on ne doit plus l'utiliser, et on prévoit une refonte de la matrice rapidement
+     */
+    public async reload_access_matrix() {
+        this.access_matrix_validity = false;
+        this.access_matrix_heritance_only_validity = false;
+        this.throttled_reload_access_matrix_computation();
+    }
+
+    public async reload_access_matrix_computation() {
+        /**
+         * Le changement de access_matrix et validity sont fait directement en générant la matrice
+         */
+        let promises = [];
+        if (!this.access_matrix_validity) {
+            promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(false));
+        }
+        if (!this.access_matrix_heritance_only_validity) {
+            promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(true));
+        }
+        await Promise.all(promises);
     }
 
     public async preload_registered_users_roles() {
@@ -808,6 +898,17 @@ export default class AccessPolicyServerController {
             }
         }
 
+        /**
+         * Si on génère une matrice globale, on la set directement comme nouvelle version valide à date
+         */
+        if (!ignore_role) {
+            this.access_matrix = res;
+            this.access_matrix_validity = true;
+        } else {
+            this.access_matrix_heritance_only = res;
+            this.access_matrix_heritance_only_validity = true;
+        }
+
         return res;
     }
 
@@ -839,6 +940,13 @@ export default class AccessPolicyServerController {
                 ConsoleHandler.getInstance().warn('checkAccessTo:!target_policy');
             }
             return false;
+        }
+
+        /**
+         * FastTrack : si la matrice d'accès a été initialisée, on passe par elle
+         */
+        if ((!ignore_role_policy) && this.access_matrix_validity) {
+            return this.has_access_by_ids(target_policy.id, Object.values(user_roles).map((role) => role.id));
         }
 
         /**

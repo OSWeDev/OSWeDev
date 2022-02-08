@@ -58,6 +58,25 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
         this.mutations = {
 
+            unregisterTypeWatcher(state: IDAOState, watcher: DaoStoreTypeWatcherDefinition) {
+
+                if (!watcher) {
+                    return;
+                }
+
+                if (!state.typeWatchers[watcher.API_TYPE_ID]) {
+                    return;
+                }
+
+                for (let i in state.typeWatchers[watcher.API_TYPE_ID]) {
+                    if (state.typeWatchers[watcher.API_TYPE_ID][i].UID == watcher.UID) {
+                        // On le supprime
+                        state.typeWatchers[watcher.API_TYPE_ID].splice(parseInt(i), 1);
+                        return;
+                    }
+                }
+            },
+
             registerTypeWatcher(state: IDAOState, watcher: DaoStoreTypeWatcherDefinition) {
 
                 if (!watcher) {
@@ -165,6 +184,9 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
 
         this.actions = {
+            unregisterTypeWatcher(context: DAOContext, watcher: DaoStoreTypeWatcherDefinition) {
+                commitunRegisterTypeWatcher(context, watcher);
+            },
             registerTypeWatcher(context: DAOContext, watcher: DaoStoreTypeWatcherDefinition) {
                 commitRegisterTypeWatcher(context, watcher);
             },
@@ -198,6 +220,7 @@ export const ModuleDAOAction = namespace('DAOStore', Action);
 export const getStoredDatas = read(DAOStore.getInstance().getters.getStoredDatas as GetterHandler<IDAOState, any, any>);
 
 export const commitRegisterTypeWatcher = commit(DAOStore.getInstance().mutations.registerTypeWatcher);
+export const commitunRegisterTypeWatcher = commit(DAOStore.getInstance().mutations.unregisterTypeWatcher);
 export const commitStoreData = commit(DAOStore.getInstance().mutations.storeData);
 export const commitStoreDatas = commit(DAOStore.getInstance().mutations.storeDatas);
 export const commitRemoveData = commit(DAOStore.getInstance().mutations.removeData);

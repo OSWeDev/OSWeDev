@@ -2,6 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
 import ICheckList from './interfaces/ICheckList';
 import ICheckListItem from './interfaces/ICheckListItem';
@@ -84,6 +85,7 @@ export default abstract class ModuleCheckListBase extends Module {
 
         let datatable = new ModuleTable(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
         checklist_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_type_id]);
+        VersionedVOController.getInstance().registerModuleTable(datatable);
         this.datatables.push(datatable);
     }
 

@@ -2,6 +2,7 @@ import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyVO from '../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import RolePolicyVO from '../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 import IGeneratorWorker from '../IGeneratorWorker';
@@ -69,5 +70,52 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         for (let i in roles_ids) {
             await this.activate_policy(policy_id, roles_ids[i]);
         }
+    }
+
+    /**
+     * On supprime tous les droits du role_destination et on lui redonne les mêmes que le role_source
+     * @param role_source
+     * @param role_destination
+     */
+    protected async copy_role(role_source: RoleVO, role_destination: RoleVO) {
+
+        if (!role_source) {
+            return;
+        }
+
+        if (!role_destination) {
+            return;
+        }
+
+        /**
+         * Supprimer les droits existants du role_destination
+         */
+        let rights_role_destination: RolePolicyVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds(
+            RolePolicyVO.API_TYPE_ID, 'role_id', [role_destination.id]
+        );
+        await ModuleDAO.getInstance().deleteVOs(rights_role_destination);
+
+        /**
+         * Charger les droits du role_source
+         */
+        let rights_role_source: RolePolicyVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds(
+            RolePolicyVO.API_TYPE_ID, 'role_id', [role_source.id]
+        );
+
+        /**
+         * Dupliquer pour le role_destination
+         */
+        rights_role_destination = [];
+        for (let i in rights_role_source) {
+            let right_role_source = rights_role_source[i];
+
+            let right_role_destination = new RolePolicyVO();
+            right_role_destination.accpol_id = right_role_source.accpol_id;
+            right_role_destination.granted = right_role_source.granted;
+            right_role_destination.role_id = role_destination.id;
+            rights_role_destination.push(right_role_destination);
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVOs(rights_role_destination);
     }
 }

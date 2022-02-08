@@ -9,8 +9,10 @@ import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicy
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
+import DaoStoreTypeWatcherDefinition from '../dao/vos/DaoStoreTypeWatcherDefinition';
 import './AccessPolicyComponent.scss';
 import PolicyGroupSegmentation from './PolicyGroupSegmentation';
 
@@ -23,16 +25,21 @@ import PolicyGroupSegmentation from './PolicyGroupSegmentation';
 export default class AccessPolicyComponent extends VueComponentBase {
 
     @ModuleDAOGetter
-    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+    private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDAOAction
-    public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
+    private storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
     @ModuleDAOAction
-    public updateData: (vo: IDistantVOBase) => void;
+    private updateData: (vo: IDistantVOBase) => void;
     @ModuleDAOAction
-    public removeData: (infos: { API_TYPE_ID: string, id: number }) => void;
+    private removeData: (infos: { API_TYPE_ID: string, id: number }) => void;
     @ModuleDAOAction
-    public storeData: (vo: IDistantVOBase) => void;
+    private storeData: (vo: IDistantVOBase) => void;
+
+    @ModuleDAOAction
+    private registerTypeWatcher: (watcher: DaoStoreTypeWatcherDefinition) => void;
+    @ModuleDAOAction
+    private unregisterTypeWatcher: (watcher: DaoStoreTypeWatcherDefinition) => void;
 
     private busy: boolean = false;
 
@@ -40,6 +47,26 @@ export default class AccessPolicyComponent extends VueComponentBase {
     private inherited_access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
     private display_policy_groups: { [policy_group_id: number]: boolean } = {};
     private display_policy_group_segmentations: { [policy_group_segmentation_id: number]: boolean } = {};
+
+    private dao_watchers = [];
+
+    private policy_groups_segmentations: { [group_id: number]: PolicyGroupSegmentation[] } = {};
+    private ordered_policy_groups: AccessPolicyGroupVO[] = [];
+    private policy_groups_vibility: { [group_id: number]: boolean } = {};
+    private dependencies_by_policy_id: { [policy_id: number]: PolicyDependencyVO[] } = {};
+    private policies_visibility_by_role_id: { [role_id: number]: { [policy_id: number]: boolean } } = {};
+    private policies_by_group_id: { [group_id: number]: AccessPolicyVO[] } = {};
+    private policy_visibility: { [policy_id: number]: boolean } = {};
+    private visible_policies_by_group_id: { [group_id: number]: AccessPolicyVO[] } = {};
+    private roles: { [id: number]: RoleVO } = {};
+
+    private throttled_update_component = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_component.bind(this), 500);
+
+    public async beforeDestroy() {
+        for (let i in this.dao_watchers) {
+            this.unregisterTypeWatcher(this.dao_watchers[i]);
+        }
+    }
 
     public async mounted() {
         this.startLoading();
@@ -97,15 +124,51 @@ export default class AccessPolicyComponent extends VueComponentBase {
             Vue.set(this.display_policy_groups as any, group.id, false);
         }
 
+        /**
+         * On ajoute des watchers sur tous les types de données liés aux droits, et on supprime ces watchers quand on quitte le composant
+         */
+        this.add_dao_watcher(AccessPolicyGroupVO.API_TYPE_ID);
+        this.add_dao_watcher(AccessPolicyVO.API_TYPE_ID);
+        this.add_dao_watcher(PolicyDependencyVO.API_TYPE_ID);
+        this.add_dao_watcher(RolePolicyVO.API_TYPE_ID);
+        this.add_dao_watcher(RoleVO.API_TYPE_ID);
+
+        this.throttled_update_component();
+
         this.stopLoading();
     }
 
+    private add_dao_watcher(api_type_id: string) {
+        let watcher: DaoStoreTypeWatcherDefinition = new DaoStoreTypeWatcherDefinition();
+        watcher.API_TYPE_ID = api_type_id;
+        watcher.UID = 'AccessPolicyComponent__' + api_type_id;
+        watcher.handler = this.throttled_update_component.bind(this);
+        this.registerTypeWatcher(watcher);
+        this.dao_watchers.push(watcher);
+    }
+
+    private update_component() {
+        this.set_ordered_policy_groups();
+        this.set_dependencies_by_policy_id();
+        this.set_roles();
+
+
+        this.set_policies_visibility_by_role_id();
+        this.set_visible_policies_by_group_id();
+        this.set_policy_groups_vibility();
+
+
+        this.set_policies_by_group_id();
+        this.set_policy_groups_segmentations();
+
+        this.set_policy_visibility();
+    }
 
     private switch_display_policy_group_segmentation(policy_group_segmentation: PolicyGroupSegmentation) {
         Vue.set(this.display_policy_group_segmentations as any, policy_group_segmentation.id, !this.display_policy_group_segmentations[policy_group_segmentation.id]);
     }
 
-    get policy_groups_segmentations(): { [group_id: number]: PolicyGroupSegmentation[] } {
+    private set_policy_groups_segmentations() {
         let res: { [group_id: number]: PolicyGroupSegmentation[] } = {};
 
         let policies_by_segmentation_index: { [group_id: number]: { [segmentation_index: string]: AccessPolicyVO[] } } = {};
@@ -166,10 +229,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             res[group_id].push(default_segment);
         }
 
-        return res;
+        this.policy_groups_segmentations = res;
     }
 
-    get ordered_policy_groups(): AccessPolicyGroupVO[] {
+    private set_ordered_policy_groups() {
         // sont visibles les groupes qui ont au moins une policy visible
         let res: AccessPolicyGroupVO[] = [];
 
@@ -189,10 +252,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             return 0;
         });
 
-        return res;
+        this.ordered_policy_groups = res;
     }
 
-    get policy_groups_vibility(): { [group_id: number]: boolean } {
+    private set_policy_groups_vibility() {
         // sont visibles les groupes qui ont au moins une policy visible
         let res: { [group_id: number]: boolean } = {};
 
@@ -205,10 +268,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             res[group.id] = true;
         }
 
-        return res;
+        this.policy_groups_vibility = res;
     }
 
-    get dependencies_by_policy_id(): { [policy_id: number]: PolicyDependencyVO[] } {
+    private set_dependencies_by_policy_id() {
 
         let res: { [policy_id: number]: PolicyDependencyVO[] } = {};
 
@@ -221,10 +284,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             res[dependency.src_pol_id].push(dependency);
         }
 
-        return res;
+        this.dependencies_by_policy_id = res;
     }
 
-    get policies_visibility_by_role_id(): { [role_id: number]: { [policy_id: number]: boolean } } {
+    private set_policies_visibility_by_role_id() {
         // sont visibles les policies dont les deps mandatory sont validées
         let res: { [role_id: number]: { [policy_id: number]: boolean } } = {};
 
@@ -256,10 +319,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             }
         }
 
-        return res;
+        this.policies_visibility_by_role_id = res;
     }
 
-    get policies_by_group_id(): { [group_id: number]: AccessPolicyVO[] } {
+    private set_policies_by_group_id() {
         let res: { [group_id: number]: AccessPolicyVO[] } = {};
 
         for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
@@ -289,10 +352,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             }
         }
 
-        return res;
+        this.policies_by_group_id = res;
     }
 
-    get policy_visibility(): { [policy_id: number]: boolean } {
+    private set_policy_visibility() {
         // sont visibles les policies dont au moins un role/policy est visible
         let res: { [policy_id: number]: boolean } = {};
 
@@ -312,10 +375,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             res[policy.id] = visible;
         }
 
-        return res;
+        this.policy_visibility = res;
     }
 
-    get visible_policies_by_group_id(): { [group_id: number]: AccessPolicyVO[] } {
+    private set_visible_policies_by_group_id() {
         // sont visibles les policies dont au moins un role/policy est visible
         let res: { [group_id: number]: AccessPolicyVO[] } = {};
 
@@ -358,10 +421,10 @@ export default class AccessPolicyComponent extends VueComponentBase {
             }
         }
 
-        return res;
+        this.visible_policies_by_group_id = res;
     }
 
-    get roles(): { [id: number]: RoleVO } {
+    private set_roles() {
         let res: { [id: number]: RoleVO } = {};
 
         for (let i in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
@@ -372,7 +435,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
             }
             res[role.id] = role;
         }
-        return res;
+        this.roles = res;
     }
 
     private async updateMatrices() {

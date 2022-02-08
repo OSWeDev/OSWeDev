@@ -395,6 +395,8 @@ export default class ModuleAccessPolicy extends Module {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), true);
         let datatable_fields = [
             label_field,
+            new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Prénom' }), false),
+            new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), false),
             new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ 'fr-fr': 'E-mail' }), true),
             new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Téléphone' })),
             new ModuleTableField('blocked', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Compte blocké' }), true, true, false),
