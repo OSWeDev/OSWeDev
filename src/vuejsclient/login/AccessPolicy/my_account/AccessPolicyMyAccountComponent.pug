@@ -18,13 +18,71 @@
                         .row 
                             .col-md-12
                                 .my_account_email 
+                                    i.fa.fa-id-card.fa-fw(aria-hidden="true")
+                                    Crudcomponentfield(
+                                        @onchangevo='onchangevo'
+                                        :field="editable_firstname"
+                                        :vo="user"
+                                        :auto_update_field_value='true'
+                                        :inline_input_mode='true'
+                                        :inline_input_hide_label='false'
+                                        :inline_input_read_value="user.firstname"
+                                        key='editable_firstname'
+                                        :inline_input_show_clear='false'
+                                        :inline_input_mode_semaphore='true'
+                                        :show_insert_or_update_target='false'
+                                    )
+                        .row 
+                            .col-md-12
+                                .my_account_email 
+                                    i.fa.fa-id-card.fa-fw(aria-hidden="true" style='opacity:0')
+                                    Crudcomponentfield(
+                                        @onchangevo='onchangevo'
+                                        :field="editable_lastname"
+                                        :vo="user"
+                                        :auto_update_field_value='true'
+                                        :inline_input_mode='true'
+                                        :inline_input_hide_label='false'
+                                        :inline_input_read_value="user.lastname"
+                                        key='editable_lastname'
+                                        :inline_input_show_clear='false'
+                                        :inline_input_mode_semaphore='true'
+                                        :show_insert_or_update_target='false'
+                                    )
+                        .row 
+                            .col-md-12
+                                .my_account_email 
                                     i.fa.fa-envelope.fa-fw(aria-hidden="true")
-                                    .my_account_infos_content {{ user.email }}
-                        .row(v-if="user.phone")
+                                    Crudcomponentfield(
+                                        @onchangevo='onchangevo'
+                                        :field="editable_email"
+                                        :vo="user"
+                                        :auto_update_field_value='true'
+                                        :inline_input_mode='true'
+                                        :inline_input_hide_label='false'
+                                        :inline_input_read_value="user.email"
+                                        key='editable_email'
+                                        :inline_input_show_clear='false'
+                                        :inline_input_mode_semaphore='true'
+                                        :show_insert_or_update_target='false'
+                                    )
+                        .row
                             .col-md-12
                                 .my_account_phone 
                                     i.fa.fa-mobile.fa-fw(aria-hidden="true")
-                                    .my_account_infos_content {{ user.phone }}
+                                    Crudcomponentfield(
+                                        @onchangevo='onchangevo'
+                                        :field="editable_phone"
+                                        :vo="user"
+                                        :auto_update_field_value='true'
+                                        :inline_input_mode='true'
+                                        :inline_input_hide_label='false'
+                                        :inline_input_read_value="user.phone"
+                                        key='editable_phone'
+                                        :inline_input_show_clear='false'
+                                        :inline_input_mode_semaphore='true'
+                                        :show_insert_or_update_target='false'
+                                    )
 
                 .col-md-6.my_account_plugins
                     .row 
