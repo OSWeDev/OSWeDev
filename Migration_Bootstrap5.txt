@@ -25,3 +25,22 @@ Sur le projet
         "@fortawesome/pro-solid-svg-icons": "6.0.0-beta3",
         "@fortawesome/pro-thin-svg-icons": "6.0.0-beta3",
         "@fortawesome/vue-fontawesome": "2.0.6",
+
+== Font Awesome PRO = OsWedev depends on Font Awesome PRO
+
+'If you use Font Awesome FREE : ' Add ' fontawesome-free@next ' package to your project's package.json
+
+If you use Font Awesome PRO : (https://fontawesome.com/v6.0/docs/web/setup/packages) Add these 2 lines in the .npmrc (or create one) on base project folder (even if you have "Set Up npm Token for All Projects" => for CI)
+
+    @fortawesome:registry=https://npm.fontawesome.com/
+    //npm.fontawesome.com/:_authToken=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+And replace the token by the one of your subscription
+
+Then add 
+    fontawesome-pro@next
+package to your project's package.json
+
+And install globally the auth token for OsWedev installation (DON'T put your authtoken on a public git like OsWedev) :
+    npm config set "@fortawesome:registry" https://npm.fontawesome.com/
+    npm config set "//npm.fontawesome.com/:_authToken" XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
