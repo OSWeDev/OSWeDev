@@ -1056,6 +1056,17 @@ export default class CRUDComponentField extends VueComponentBase
             CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
         }
         this.inline_input_is_editing = true;
+
+        /**
+         * Si on trouve un input_elt on lui donne le focus
+         * cf: https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/Vue_refs_focus_management
+         * pour l'explication du nexttick
+         */
+        this.$nextTick(() => {
+            if (this.$refs['input_elt'] && this.$refs['input_elt']['focus']) {
+                this.$refs['input_elt']['focus']();
+            }
+        });
     }
 
     private cancel_input() {

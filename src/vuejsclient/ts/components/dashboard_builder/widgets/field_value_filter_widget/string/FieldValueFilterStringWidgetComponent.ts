@@ -456,6 +456,24 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return a;
     }
 
+    get is_translatable_type(): boolean {
+        if (!this.vo_field_ref) {
+            return false;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        if (!moduletable) {
+            return false;
+        }
+
+        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        if (!field) {
+            return false;
+        }
+
+        return field.field_type == ModuleTableField.FIELD_TYPE_translatable_text;
+    }
+
     private get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, field: ModuleTableField<any>): ContextFilterVO {
         let translated_active_options = new ContextFilterVO();
 

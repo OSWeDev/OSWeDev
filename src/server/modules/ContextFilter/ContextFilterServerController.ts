@@ -1,25 +1,22 @@
-
+import { cloneDeep } from 'lodash';
 import moment = require('moment');
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import RangeHandler from '../../../shared/tools/RangeHandler';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleServerBase from '../ModuleServerBase';
+import FieldPathWrapper from './vos/FieldPathWrapper';
 import TypesPathElt from './vos/TypesPathElt';
 
 export default class ContextFilterServerController {
@@ -101,93 +98,7 @@ export default class ContextFilterServerController {
         return res;
     }
 
-    private async get_filtered_datatable_rows(
-        api_type_ids: string[],
-        field_ids: string[],
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        active_api_type_ids: string[],
-        limit: number,
-        offset: number,
-        sort_by: SortByVO,
-        res_field_aliases: string[]): Promise<any[]> {
-
-        return await this.query_rows_from_active_filters(
-            api_type_ids,
-            field_ids,
-            get_active_field_filters,
-            active_api_type_ids,
-            limit,
-            offset,
-            sort_by,
-            res_field_aliases
-        );
-    }
-
-    private async get_filter_visible_options(
-        api_type_id: string,
-        field_id: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        active_api_type_ids: string[],
-        actual_query: string,
-        limit: number,
-        offset: number): Promise<DataFilterOption[]> {
-
-        let res: DataFilterOption[] = [];
-
-        if ((!api_type_id) || (!field_id)) {
-            return res;
-        }
-
-        if ((!active_api_type_ids) || (active_api_type_ids.indexOf(api_type_id) < 0)) {
-            return res;
-        }
-
-        /**
-         * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
-         */
-        if (get_active_field_filters && get_active_field_filters[api_type_id] && get_active_field_filters[api_type_id][field_id]) {
-            delete get_active_field_filters[api_type_id][field_id];
-        }
-
-        if (actual_query) {
-            let actual_filter = new ContextFilterVO();
-            actual_filter.field_id = field_id;
-            actual_filter.vo_type = api_type_id;
-            actual_filter.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
-            actual_filter.param_text = actual_query;
-
-            if (!get_active_field_filters[api_type_id]) {
-                get_active_field_filters[api_type_id] = {};
-            }
-            get_active_field_filters[api_type_id][field_id] = actual_filter;
-        }
-
-
-        let query_res: any[] = await this.query_from_active_filters(
-            api_type_id,
-            field_id,
-            get_active_field_filters,
-            active_api_type_ids,
-            limit,
-            offset
-        );
-        if ((!query_res) || (!query_res.length)) {
-            return res;
-        }
-
-        for (let i in query_res) {
-            let res_field = query_res[i];
-            let line_option = this.translate_db_res_to_dataoption(api_type_id, field_id, res_field);
-
-            if (line_option) {
-                res.push(line_option);
-            }
-        }
-
-        return res;
-    }
-
-    private translate_db_res_to_dataoption(
+    public translate_db_res_to_dataoption(
         api_type_id: string,
         field_id: string,
         db_res: any
@@ -284,7 +195,7 @@ export default class ContextFilterServerController {
         return res;
     }
 
-    private update_where_conditions(
+    public update_where_conditions(
         where_conditions: string[],
         active_field_filter: ContextFilterVO,
         tables_aliases_by_type: { [vo_type: string]: string }
@@ -1313,359 +1224,377 @@ export default class ContextFilterServerController {
         }
     }
 
-    private updates_jointures(
+    public updates_jointures(
         jointures: string[],
         targeted_type: string,
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
-        path: Array<ModuleTableField<any>>,
+        path: FieldPathWrapper[],
         aliases_n: number
     ): number {
         if ((!path) || (!path.length)) {
             return aliases_n;
         }
 
-        /**
-         * On reverse le path pour faire les jointures du plus proche de la cible au plus loin
-         */
-        let field: ModuleTableField<any> = path.pop();
-        while (field) {
+        //TODO REBUILD
+        // /**
+        //  * On reverse le path pour faire les jointures du plus proche de la cible au plus loin
+        //  */
+        // let field: FieldPathWrapper = path.pop();
+        // while (field) {
 
-            /**
-             * Soit on est sur un manyToOne soit sur un oneToMany.
-             *  On teste d'abord le oneToMany potentiel
-             */
-            if ((!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type]) /*&& (field.manyToOne_target_moduletable.vo_type != targeted_type)*/) {
+        //     /**
+        //      * Soit on est sur un manyToOne soit sur un oneToMany.
+        //      *  On teste d'abord le oneToMany potentiel
+        //      */
+        //     if ((!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type]) /*&& (field.manyToOne_target_moduletable.vo_type != targeted_type)*/) {
 
-                // On est a priori sur un oneToMany qui nécessite un join
-                joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type] = field.manyToOne_target_moduletable;
+        //         // On est a priori sur un oneToMany qui nécessite un join
+        //         joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type] = field.manyToOne_target_moduletable;
 
-                if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
-                    tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
-                }
+        //         if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
+        //             tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
+        //         }
 
-                if (!tables_aliases_by_type[field.module_table.vo_type]) {
-                    tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
-                }
+        //         if (!tables_aliases_by_type[field.module_table.vo_type]) {
+        //             tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
+        //         }
 
-                /**
-                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
-                 */
-                if (field.manyToOne_target_moduletable.is_segmented) {
-                    throw new Error('Not implemented');
-                }
+        //         /**
+        //          * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+        //          */
+        //         if (field.manyToOne_target_moduletable.is_segmented) {
+        //             throw new Error('Not implemented');
+        //         }
 
-                switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_image_field:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                        jointures.push(
-                            field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
-                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
-                        );
-                        break;
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                        // jointures.push(
-                        // field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
-                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        // );
-                        throw new Error('Not Implemented');
+        //         switch (field.field_type) {
+        //             case ModuleTableField.FIELD_TYPE_file_field:
+        //             case ModuleTableField.FIELD_TYPE_file_ref:
+        //             case ModuleTableField.FIELD_TYPE_image_field:
+        //             case ModuleTableField.FIELD_TYPE_image_ref:
+        //             case ModuleTableField.FIELD_TYPE_int:
+        //             case ModuleTableField.FIELD_TYPE_foreign_key:
+        //                 jointures.push(
+        //                     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
+        //                     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
+        //                 );
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_numrange:
+        //                 // jointures.push(
+        //                 // field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                 //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+        //                 //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 // );
+        //                 throw new Error('Not Implemented');
 
-                        break;
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                        throw new Error('Not Implemented');
-                        // jointures.push(
-                        // field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
-                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        // );
-                        break;
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                        jointures.push(
-                            field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
-                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        );
-                        break;
-                }
-            } else if ((!joined_tables_by_vo_type[field.module_table.vo_type]) && (field.module_table.vo_type != targeted_type)) {
-                // } else if (field.module_table.vo_type != targeted_type) {
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_numrange_array:
+        //             case ModuleTableField.FIELD_TYPE_refrange_array:
+        //                 throw new Error('Not Implemented');
+        //                 // jointures.push(
+        //                 // field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                 //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+        //                 //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 // );
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_int_array:
+        //                 jointures.push(
+        //                     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
+        //                     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 );
+        //                 break;
+        //         }
+        //     } else if ((!joined_tables_by_vo_type[field.module_table.vo_type]) && (field.module_table.vo_type != targeted_type)) {
+        //         // } else if (field.module_table.vo_type != targeted_type) {
 
-                /**
-                 * On est sur un many to one
-                 */
+        //         /**
+        //          * On est sur un many to one
+        //          */
 
-                /**
-                 * Si la table cible n'est pas join on doit l'ajouter et faire le join dessus
-                 */
+        //         /**
+        //          * Si la table cible n'est pas join on doit l'ajouter et faire le join dessus
+        //          */
 
-                /**
-                 * Si les deux tables sont connues on devrait avoir
-                 */
-                // if ((!joined_tables_by_vo_type[field.module_table.vo_type]) && (!tables_aliases_by_type) {
+        //         /**
+        //          * Si les deux tables sont connues on devrait avoir
+        //          */
+        //         // if ((!joined_tables_by_vo_type[field.module_table.vo_type]) && (!tables_aliases_by_type) {
 
-                // }
+        //         // }
 
-                joined_tables_by_vo_type[field.module_table.vo_type] = field.module_table;
+        //         joined_tables_by_vo_type[field.module_table.vo_type] = field.module_table;
 
-                if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
-                    tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
-                }
+        //         if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
+        //             tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
+        //         }
 
-                if (!tables_aliases_by_type[field.module_table.vo_type]) {
-                    tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
-                }
+        //         if (!tables_aliases_by_type[field.module_table.vo_type]) {
+        //             tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
+        //         }
 
-                /**
-                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
-                 */
-                if (field.module_table.is_segmented) {
-                    throw new Error('Not implemented');
-                }
+        //         /**
+        //          * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+        //          */
+        //         if (field.module_table.is_segmented) {
+        //             throw new Error('Not implemented');
+        //         }
 
-                switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_image_field:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                        jointures.push(
-                            field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
-                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
-                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
-                        );
-                        break;
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                        // jointures.push(
-                        //     field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
-                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
-                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        // );
-                        throw new Error('Not Implemented');
+        //         switch (field.field_type) {
+        //             case ModuleTableField.FIELD_TYPE_file_field:
+        //             case ModuleTableField.FIELD_TYPE_file_ref:
+        //             case ModuleTableField.FIELD_TYPE_image_field:
+        //             case ModuleTableField.FIELD_TYPE_image_ref:
+        //             case ModuleTableField.FIELD_TYPE_int:
+        //             case ModuleTableField.FIELD_TYPE_foreign_key:
+        //                 jointures.push(
+        //                     field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
+        //                     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
+        //                     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
+        //                 );
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_numrange:
+        //                 // jointures.push(
+        //                 //     field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
+        //                 //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+        //                 //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 // );
+        //                 throw new Error('Not Implemented');
 
-                        break;
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                        throw new Error('Not Implemented');
-                        // jointures.push(
-                        //     field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
-                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
-                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        // );
-                        break;
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                        jointures.push(
-                            field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
-                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
-                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        );
-                        break;
-                }
-            } else if (joined_tables_by_vo_type[field.module_table.vo_type] && (field.module_table.vo_type != targeted_type) && (!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type])) {
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_numrange_array:
+        //             case ModuleTableField.FIELD_TYPE_refrange_array:
+        //                 throw new Error('Not Implemented');
+        //                 // jointures.push(
+        //                 //     field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
+        //                 //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+        //                 //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 // );
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_int_array:
+        //                 jointures.push(
+        //                     field.module_table.full_name + ' ' + tables_aliases_by_type[field.module_table.vo_type] + ' ON ' +
+        //                     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
+        //                     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 );
+        //                 break;
+        //         }
+        //     } else if (joined_tables_by_vo_type[field.module_table.vo_type] && (field.module_table.vo_type != targeted_type) && (!joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type])) {
 
-                /**
-                 * manytoOne mais dont c'est la cible qui est pas join encore
-                 */
+        //         /**
+        //          * manytoOne mais dont c'est la cible qui est pas join encore
+        //          */
 
-                joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type] = field.manyToOne_target_moduletable;
+        //         joined_tables_by_vo_type[field.manyToOne_target_moduletable.vo_type] = field.manyToOne_target_moduletable;
 
-                if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
-                    tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
-                }
+        //         if (!tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type]) {
+        //             tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
+        //         }
 
-                if (!tables_aliases_by_type[field.module_table.vo_type]) {
-                    tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
-                }
+        //         if (!tables_aliases_by_type[field.module_table.vo_type]) {
+        //             tables_aliases_by_type[field.module_table.vo_type] = 't' + (aliases_n++);
+        //         }
 
-                /**
-                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
-                 */
-                if (field.manyToOne_target_moduletable.is_segmented) {
-                    throw new Error('Not implemented');
-                }
+        //         /**
+        //          * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+        //          */
+        //         if (field.manyToOne_target_moduletable.is_segmented) {
+        //             throw new Error('Not implemented');
+        //         }
 
-                switch (field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_file_field:
-                    case ModuleTableField.FIELD_TYPE_file_ref:
-                    case ModuleTableField.FIELD_TYPE_image_field:
-                    case ModuleTableField.FIELD_TYPE_image_ref:
-                    case ModuleTableField.FIELD_TYPE_int:
-                    case ModuleTableField.FIELD_TYPE_foreign_key:
-                        jointures.push(
-                            field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
-                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
-                        );
-                        break;
-                    case ModuleTableField.FIELD_TYPE_numrange:
-                        // jointures.push(
-                        //     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
-                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        // );
-                        throw new Error('Not Implemented');
+        //         switch (field.field_type) {
+        //             case ModuleTableField.FIELD_TYPE_file_field:
+        //             case ModuleTableField.FIELD_TYPE_file_ref:
+        //             case ModuleTableField.FIELD_TYPE_image_field:
+        //             case ModuleTableField.FIELD_TYPE_image_ref:
+        //             case ModuleTableField.FIELD_TYPE_int:
+        //             case ModuleTableField.FIELD_TYPE_foreign_key:
+        //                 jointures.push(
+        //                     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id + ' = ' +
+        //                     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id'
+        //                 );
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_numrange:
+        //                 // jointures.push(
+        //                 //     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                 //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+        //                 //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 // );
+        //                 throw new Error('Not Implemented');
 
-                        break;
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                        throw new Error('Not Implemented');
-                        // jointures.push(
-                        //     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                        //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
-                        //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        // );
-                        break;
-                    case ModuleTableField.FIELD_TYPE_int_array:
-                        jointures.push(
-                            field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
-                            tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
-                            tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
-                        );
-                        break;
-                }
-            }
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_numrange_array:
+        //             case ModuleTableField.FIELD_TYPE_refrange_array:
+        //                 throw new Error('Not Implemented');
+        //                 // jointures.push(
+        //                 //     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                 //     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ' +
+        //                 //     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 // );
+        //                 break;
+        //             case ModuleTableField.FIELD_TYPE_int_array:
+        //                 jointures.push(
+        //                     field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + ' ON ' +
+        //                     tables_aliases_by_type[field.manyToOne_target_moduletable.vo_type] + '.id in ' +
+        //                     tables_aliases_by_type[field.module_table.vo_type] + '.' + field.field_id
+        //                 );
+        //                 break;
+        //         }
+        //     }
 
-            field = path.pop();
-        }
+        //     field = path.pop();
+        // }
 
         return aliases_n;
     }
 
-    private get_path_between_types(active_api_type_ids: string[], from_types: string[], to_type: string): Array<ModuleTableField<any>> {
+    /**
+     * On avance sur tous les fronts en même temps et on veut associer à chaque chemin un poids qui correspond à la distance
+     *  Une relation N/N compte pour 1 en poids et non 2 même si on a 2 vo_type_id à passer, on ignore directement la table intermédiaire
+     *
+     *  En premier lieu, si le type cible est un type from on retourne null, aucun chemin à chercher on a déjà un type connu
+     *  Ensuite on cherche à partir du type cible, et à remonter toutes les branches possibles jusqu'à atteindre un type from
+     *  On stocke les types rencontrés en chemin car si on retombe sur un type déjà présent dans un autre chemin, alors ce
+     *  chemin est inutile (liste_types_chemins_connus)
+     *  On avance chemin par chemin, d'un cran à chaque fois, à ceci près que si l'on rencontre un N/N qui n'est ni connu, ni from,
+     *  on continue directement à l'autre côté de la relation N/N pour traduire le fait que la distance d'une relation N/N est 1 et pas 2
+     *
+     *      On liste les champs ManyToOne du type sur lequel on est (au début type cible, ensuite le bout du chemin en cours d'extension)
+     *      NB : puisqu'il s'agit d'un manytoone ici on ne peut pas rencontrer de table N/N, au mieux on peut être sur une relation N/N
+     *      mais pas en atteindre une
+     *          On filtre sur les types actifs
+     *          Si on trouve parmi ces field.target_moduletable un type from, on a identifié le chemin => on renvoie
+     *          Sinon
+     *              Pour chaque field
+     *                  si le type field.target_moduletable est dans liste_types_chemins_connus, ce chemin est inutile, on ignore (puisqu'un autre chemin a déjà trouvé un
+     *                  moyen de joindre ce type)
+     *                  sinon on crée un nouveau chemin avec ce nouveau type cible en bout, et on le stocke pour le prochain passage
+     *      On liste par ailleurs les relations OneToMany vers notre type actuel
+     *          On filtre sur les types actifs
+     *          Si on trouve parmi ces field.moduletable un type from, on a identifié le chemin => on renvoie
+     *          Sinon
+     *              Pour chaque field
+     *                  si le type field.moduletable est dans liste_types_chemins_connus, ce chemin est inutile, on ignore (puisqu'un autre chemin a déjà trouvé un
+     *                  moyen de joindre ce type)
+     *                  sinon
+     *                      on check si le field.moduletable est un N/N, dans ce cas on ajoute au chemin l'autre field pour sortir du N/N rapidement
+     *                      on stocke ce nouveau chemin pour le prochain passage
+     *
+     *      Si on a trouvé aucun nouveau chemin, on quitte sans solution
+     *      Sinon on reprend sur la base des nouveaux chemins
+     *
+     *
+     * On peut simplifier l'algo en séparant une fonction intermédiaire qui doit savoir si on traite du manytone ou du onetomany en entrée pour faire varier
+     *  entre field.target_moduletable et field.moduletable, et qui dans le cas onetomany check la possible relation N/N
+     *
+     * @param active_api_type_ids liste des types valides pour la recherche. Un chemin qui passe par un autre api_type_id doit être ignoré
+     * @param from_types liste des types déjà liés par des jointures, donc dès qu'on en trouve un on peut arrêter la recherche de chemin
+     * @param to_type le type ciblé pour lequel on cherche le chemin
+     */
+    public get_path_between_types(active_api_type_ids: string[], from_types: string[], to_type: string): FieldPathWrapper[] {
+
         /**
-         * On avance sur tous les fronts en même temps et on veut associer à chaque chemin un poids qui correspond à la distance
-         *  Une relation N/N compte pour 1 en poids et non 2 même si on a 2 vo_type_id à passer, on ignore directement la table intermédiaire
+         * Forme opti du from_types et active_api_type_ids
          */
-        let reverse_paths: { [api_type_id: string]: { [field_id: string]: TypesPathElt } } = null;
-        let new_paths: { [api_type_id: string]: { [field_id: string]: TypesPathElt } } = null;
-        let deployed_deps_from: { [api_type_id: string]: boolean } = {};
+        let from_types_by_name: { [api_type_id: string]: boolean } = {};
+        from_types.forEach((type) => from_types_by_name[type] = true);
+        let active_api_type_ids_by_name: { [api_type_id: string]: boolean } = {};
+        active_api_type_ids.forEach((type) => active_api_type_ids_by_name[type] = true);
 
-        let isBlocked: boolean = false;
-        let starting_path_elt: TypesPathElt = null;
-        while ((!isBlocked) && (!starting_path_elt)) {
-
-            if (new_paths) {
-                starting_path_elt = this.get_starting_point(from_types, to_type, new_paths);
-                if (starting_path_elt) {
-                    break;
-                }
-            }
-
-            isBlocked = true;
-            let this_turn_new_paths: { [api_type_id: string]: { [field_id: string]: TypesPathElt } } = new_paths;
-            new_paths = null;
-
-            if (!reverse_paths) {
-                reverse_paths = {};
-
-                let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(to_type);
-                references = references.filter((ref) => active_api_type_ids.indexOf(ref.module_table.vo_type) >= 0);
-
-                if (!deployed_deps_from[to_type]) {
-                    deployed_deps_from[to_type] = true;
-
-                    let fields = VOsTypesManager.getInstance().getManyToOneFields(to_type, Object.keys(deployed_deps_from));
-                    for (let i in fields) {
-                        let field = fields[i];
-
-                        if (active_api_type_ids.indexOf(field.module_table.vo_type) < 0) {
-                            continue;
-                        }
-
-                        if (!references) {
-                            references = [];
-                        }
-                        references.push(field);
-                    }
-                }
-
-                if ((!references) || (!references.length)) {
-                    return null;
-                }
-                new_paths = this.merge_references(
-                    references,
-                    reverse_paths,
-                    from_types,
-                    null
-                );
-                isBlocked = (new_paths == null);
-                continue;
-            }
-
-            for (let api_type_id_i in this_turn_new_paths) {
-                let this_turn_new_paths_fields = this_turn_new_paths[api_type_id_i];
-
-                for (let field_i in this_turn_new_paths_fields) {
-                    let new_path = this_turn_new_paths_fields[field_i];
-
-                    let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(new_path.from_api_type_id);
-                    references = references.filter((ref) => active_api_type_ids.indexOf(ref.module_table.vo_type) >= 0);
-
-                    if (!deployed_deps_from[new_path.from_api_type_id]) {
-                        deployed_deps_from[new_path.from_api_type_id] = true;
-
-                        let fields = VOsTypesManager.getInstance().getManyToOneFields(new_path.from_api_type_id, Object.keys(deployed_deps_from));
-                        for (let i in fields) {
-                            let field = fields[i];
-
-                            if (active_api_type_ids.indexOf(field.module_table.vo_type) < 0) {
-                                continue;
-                            }
-
-                            if (!references) {
-                                references = [];
-                            }
-                            references.push(field);
-                        }
-                    }
-
-                    if ((!references) || (!references.length)) {
-
-                        let references_to: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(new_path.to_api_type_id);
-                        references = references_to.filter((ref) => active_api_type_ids.indexOf(ref.module_table.vo_type) >= 0);
-
-                        if ((!references) || (!references.length)) {
-                            continue;
-                        }
-                    }
-
-                    let local_new_paths = this.merge_references(
-                        references,
-                        reverse_paths,
-                        from_types,
-                        new_path
-                    );
-                    isBlocked = isBlocked && (local_new_paths == null);
-
-                    if (!!local_new_paths) {
-                        if (!new_paths) {
-                            new_paths = local_new_paths;
-                            continue;
-                        }
-
-                        this.merge_new_paths(local_new_paths, new_paths);
-                    }
-
-                    continue;
-                }
-            }
-        }
-
-        if (isBlocked || !starting_path_elt) {
+        /**
+         * pas de cible ou cible connue ou cible pas autorisée
+         */
+        if ((!to_type) || from_types_by_name[to_type] || !active_api_type_ids_by_name[to_type]) {
             return null;
         }
 
-        return this.get_fields_path_from_path_elts(starting_path_elt);
+        /**
+         * Marqueur des types rencontrés
+         */
+        let deployed_deps_from: { [api_type_id: string]: boolean } = {
+            [to_type]: true
+        };
+
+        /**
+         * Les chemins à étudier à ce tour, et le stockage des chemins à traiter au tour suivant
+         *  Le premier tour se fait avec un actual_paths vide, donc on est en train de tester le
+         */
+        let actual_paths: FieldPathWrapper[][] = [];
+        let next_turn_paths: FieldPathWrapper[][] = [];
+
+        /**
+         * Le marqueur pour identifier la fin de la balade
+         */
+        let is_blocked: boolean = false;
+
+        while (!is_blocked) {
+            is_blocked = true;
+
+            actual_paths = next_turn_paths;
+            next_turn_paths = [];
+
+            /**
+             * Le premier tour on demande de générer des chemins sans en fournir un, mais avec un moduletable de départ identifié
+             */
+            let this_path_next_turn_paths: FieldPathWrapper[][] = [];
+
+            if ((!actual_paths) || (!actual_paths.length)) {
+                let valid_path: FieldPathWrapper[] = this.get_paths_from_moduletable(
+                    [],
+                    this_path_next_turn_paths,
+                    to_type,
+                    from_types_by_name,
+                    active_api_type_ids_by_name,
+                    deployed_deps_from);
+                if (valid_path) {
+                    return valid_path;
+                }
+
+                if ((!this_path_next_turn_paths) || (!this_path_next_turn_paths.length)) {
+                    return null;
+                }
+
+                is_blocked = false;
+                next_turn_paths = this_path_next_turn_paths;
+                continue;
+            }
+
+            /**
+             * Sur un tour classique, on demande pour chaque chemin à identifier les ramifications possibles pour le prochain tour
+             */
+            for (let i in actual_paths) {
+                let actual_path = actual_paths[i];
+
+                let valid_path: FieldPathWrapper[] = this.get_paths_from_moduletable(
+                    actual_path,
+                    this_path_next_turn_paths,
+                    to_type,
+                    from_types_by_name,
+                    active_api_type_ids_by_name,
+                    deployed_deps_from);
+                if (valid_path) {
+                    return valid_path;
+                }
+
+                if ((!this_path_next_turn_paths) || (!this_path_next_turn_paths.length)) {
+                    continue;
+                }
+
+                is_blocked = false;
+                if ((!next_turn_paths) || (!next_turn_paths.length)) {
+                    next_turn_paths = this_path_next_turn_paths;
+                } else {
+                    next_turn_paths.concat(this_path_next_turn_paths);
+                }
+            }
+        }
+
+        return null;
     }
 
-    private get_starting_point(
+    public get_starting_point(
         from_types: string[], to_type: string,
         reverse_paths_to_test: { [api_type_id: string]: { [field_id: string]: TypesPathElt } }): TypesPathElt {
 
@@ -1696,7 +1625,7 @@ export default class ContextFilterServerController {
         return null;
     }
 
-    private get_fields_path_from_path_elts(
+    public get_fields_path_from_path_elts(
         starting_path_elt: TypesPathElt): Array<ModuleTableField<any>> {
 
         if (!starting_path_elt) {
@@ -1713,7 +1642,7 @@ export default class ContextFilterServerController {
         return res;
     }
 
-    private merge_new_paths(
+    public merge_new_paths(
         local_new_paths: { [api_type_id: string]: { [field_id: string]: TypesPathElt } },
         new_paths: { [api_type_id: string]: { [field_id: string]: TypesPathElt } }
     ) {
@@ -1745,7 +1674,7 @@ export default class ContextFilterServerController {
      * @param targeted_types
      * @param actual_path
      */
-    private merge_references(
+    public merge_references(
         references: Array<ModuleTableField<any>>,
         reverse_paths: { [api_type_id: string]: { [field_id: string]: TypesPathElt } },
         targeted_types: string[],
@@ -1840,7 +1769,7 @@ export default class ContextFilterServerController {
      * access_right doit contenir le droit (exemple DAO_ACCESS_TYPE_READ) le plus élevé nécessité pour la requête qui sera construite avec cette fonction
      * Par défaut on met donc la suppression puisque si l'on a accès à la suppression, on a accès à tout.
      */
-    private build_request_from_active_field_filters_(
+    public build_request_from_active_field_filters_(
         api_type_ids: string[],
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
@@ -1992,7 +1921,7 @@ export default class ContextFilterServerController {
                                 /**
                                  * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
                                  */
-                                let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(joined_tables_by_vo_type), api_type_id);
+                                let path: FieldPathWrapper[] = this.get_path_between_types(active_api_type_ids, Object.keys(joined_tables_by_vo_type), api_type_id);
                                 if (!path) {
                                     // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                                     continue;
@@ -2043,7 +1972,7 @@ export default class ContextFilterServerController {
                         /**
                          * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
                          */
-                        let path: Array<ModuleTableField<any>> = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
+                        let path: FieldPathWrapper[] = this.get_path_between_types(active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
                         if (!path) {
                             // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                             continue;
@@ -2101,7 +2030,7 @@ export default class ContextFilterServerController {
         }
     }
 
-    private check_access_to_api_type_ids_field_ids(
+    public check_access_to_api_type_ids_field_ids(
         api_type_ids: string[],
         field_ids: string[],
         access_type: string): boolean {
@@ -2130,8 +2059,8 @@ export default class ContextFilterServerController {
         return true;
     }
 
-    private check_access_to_fields(
-        fields: Array<ModuleTableField<any>>,
+    public check_access_to_fields(
+        fields: FieldPathWrapper[],
         access_type: string): boolean {
 
         if (!StackContext.getInstance().get('IS_CLIENT')) {
@@ -2147,8 +2076,8 @@ export default class ContextFilterServerController {
         }
 
         for (let i in fields) {
-            let api_type_id = fields[i].module_table.vo_type;
-            let field_id = fields[i].field_id;
+            let api_type_id = fields[i].field.module_table.vo_type;
+            let field_id = fields[i].field.field_id;
 
             if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
                 return false;
@@ -2158,7 +2087,7 @@ export default class ContextFilterServerController {
         return true;
     }
 
-    private check_access_to_field(
+    public check_access_to_field(
         api_type_id: string,
         field_id: string,
         access_type: string,
@@ -2182,5 +2111,125 @@ export default class ContextFilterServerController {
         }
 
         return true;
+    }
+
+    /**
+     * @see get_path_between_types for algo
+     * @returns solution path if has one
+     */
+    private get_paths_from_moduletable(
+        actual_path: FieldPathWrapper[],
+        this_path_next_turn_paths: FieldPathWrapper[][],
+        to_type: string,
+        from_types_by_name: { [api_type_id: string]: boolean },
+        active_api_type_ids_by_name: { [api_type_id: string]: boolean },
+        deployed_deps_from: { [api_type_id: string]: boolean }): FieldPathWrapper[] {
+
+        let moduletable: ModuleTable<any> = null;
+
+        /**
+         * Si on démarre on part du type cible
+         * Sinon on part du dernier type du chemin
+         */
+        if ((!actual_path) || (!actual_path.length)) {
+            moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[to_type];
+        } else {
+            /**
+             * Si on a pris un manytoone => on est parti de field.moduletable vers field.target_moduletable qui est donc le dernier api_type_id du path
+             * sinon, on est en onetomany et donc c'est l'inverse, la dernière étape est le field.moduletable
+             */
+            let last_field_path = actual_path[actual_path.length - 1];
+            moduletable = last_field_path.is_manytoone ?
+                last_field_path.field.manyToOne_target_moduletable :
+                last_field_path.field.module_table;
+        }
+
+        if (deployed_deps_from[moduletable.vo_type]) {
+            return null;
+        }
+
+        /**
+         * On charge les manytoone et on filtre sur les types actifs
+         */
+        let manytoone_fields = VOsTypesManager.getInstance().getManyToOneFields(moduletable.vo_type, Object.keys(deployed_deps_from));
+        manytoone_fields = manytoone_fields.filter((field) => active_api_type_ids_by_name[field.manyToOne_target_moduletable.vo_type]);
+
+        /**
+         * si on trouve un des point de départ (une des cibles) dans les targets des fields, on a terminé on a un chemin valide on le renvoie
+         */
+        let manytoone_fields_to_sources: Array<ModuleTableField<any>> = manytoone_fields.filter((field) => from_types_by_name[field.manyToOne_target_moduletable.vo_type]);
+        if (manytoone_fields_to_sources && manytoone_fields_to_sources.length) {
+            actual_path.push(new FieldPathWrapper(manytoone_fields_to_sources[0], true));
+            return actual_path;
+        }
+
+        /**
+         * Sinon, (on a déjà filtré les chemins potentiellement déjà connus) pour chaque nouveau field, on crée un nouveau chemin.
+         */
+        for (let i in manytoone_fields) {
+            let manytoone_field = manytoone_fields[i];
+
+            let newpath = cloneDeep(actual_path);
+            newpath.push(new FieldPathWrapper(manytoone_field, true));
+            this_path_next_turn_paths.push(newpath);
+        }
+
+        /**
+         * On passe aux onetomany. idem on charge toutes les refs et on filtres les types déjà connus (exclus) et les types actifs (inclus)
+         */
+        let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(moduletable.vo_type);
+        onetomany_fields = onetomany_fields.filter((ref) => active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
+
+        /**
+         * si on trouve un des point de départ (une des cibles) dans les tables des fields, on a terminé on a un chemin valide on le renvoie
+         */
+        let onetomany_fields_to_sources: Array<ModuleTableField<any>> = onetomany_fields.filter((field) => from_types_by_name[field.module_table.vo_type]);
+        if (onetomany_fields_to_sources && onetomany_fields_to_sources.length) {
+            actual_path.push(new FieldPathWrapper(onetomany_fields_to_sources[0], false));
+            return actual_path;
+        }
+
+        /**
+         * Sinon pour chacun,
+         *      on check la possibilité d'être sur un N/N.
+         *      si c'est le cas
+         *          on passe l'autre field aussi en même temps, et on check si c'est pas une source, un !active_api_type_ids_by_name ou une deployed_deps_from
+         *          et on réagit en conséquence
+         *          sinon on crée le nouveau chemin avec ces 2 fields ajoutés
+         *      sinon
+         *          on crée un nouveau chemin avec ce field ajouté
+         */
+        for (let i in onetomany_fields) {
+            let onetomany_field = onetomany_fields[i];
+
+            if (VOsTypesManager.getInstance().isManyToManyModuleTable(onetomany_field.module_table)) {
+                let second_field = VOsTypesManager.getInstance().getManyToManyOtherField(onetomany_field.module_table, onetomany_field);
+
+                if (from_types_by_name[second_field.manyToOne_target_moduletable.vo_type]) {
+                    actual_path.push(new FieldPathWrapper(onetomany_field, false));
+                    actual_path.push(new FieldPathWrapper(second_field, true));
+                    return actual_path;
+                }
+
+                if (!active_api_type_ids_by_name[second_field.manyToOne_target_moduletable.vo_type]) {
+                    continue;
+                }
+
+                if (deployed_deps_from[second_field.manyToOne_target_moduletable.vo_type]) {
+                    continue;
+                }
+
+                let newpath = cloneDeep(actual_path);
+                newpath.push(new FieldPathWrapper(onetomany_field, false));
+                newpath.push(new FieldPathWrapper(second_field, true));
+                this_path_next_turn_paths.push(newpath);
+            } else {
+                let newpath = cloneDeep(actual_path);
+                newpath.push(new FieldPathWrapper(onetomany_field, false));
+                this_path_next_turn_paths.push(newpath);
+            }
+        }
+
+        deployed_deps_from[moduletable.vo_type] = true;
     }
 }

@@ -15,9 +15,14 @@
         .my_account_infos{
 
             background: white;
-            padding: 1em;
+            padding: 2em;
 
-            i {
+            .my_account_content_header {
+                margin-top: 0;
+                margin-bottom: 1em;
+            }
+
+            i.fa-id-card, i.fa-envelope, i.fa-mobile {
                 float: left;
                 vertical-align: middle;
                 line-height: 1.5em;
@@ -26,6 +31,16 @@
 
             .my_account_infos_content {
                 vertical-align: middle;
+            }
+
+            .form-group.inline_input_mode {
+
+                text-align: left;
+
+                input {
+                    width: 30rem;
+                    background: beige;
+                }
             }
         }
 

@@ -13,6 +13,7 @@ import FileComponent from '../file/FileComponent';
 import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import VueComponentBase from '../VueComponentBase';
 import './FeedbackHandlerComponent.scss';
+import { ModuleFeedbackAction, ModuleFeedbackGetter } from './store/FeedbackStore';
 const { parse, stringify } = require('flatted/cjs');
 
 @Component({
@@ -24,7 +25,10 @@ const { parse, stringify } = require('flatted/cjs');
 })
 export default class FeedbackHandlerComponent extends VueComponentBase {
 
-    private hidden: boolean = true;
+    @ModuleFeedbackGetter
+    public get_hidden: boolean;
+    @ModuleFeedbackAction
+    public set_hidden: (hidden: boolean) => void;
 
     private tmp_user: string = null;
     private tmp_email: string = null;
@@ -81,7 +85,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
             this.tmp_start_url = this.$route.fullPath;
         }
 
-        this.hidden = !this.hidden;
+        this.set_hidden(!this.get_hidden);
     }
 
     private async send_feedback() {
@@ -146,7 +150,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
             return;
         }
 
-        this.hidden = true;
+        this.set_hidden(true);
         this.is_already_sending_feedback = false;
         this.reload();
     }

@@ -9,10 +9,8 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-
 import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
-import { performance } from 'perf_hooks';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
@@ -26,7 +24,6 @@ import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';

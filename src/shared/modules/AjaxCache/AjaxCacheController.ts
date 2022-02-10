@@ -1,8 +1,6 @@
 import ConsoleHandler from "../../tools/ConsoleHandler";
 import RequestResponseCacheVO from "./vos/RequestResponseCacheVO";
 
-
-
 export default class AjaxCacheController {
 
     public static MSGPACK_REQUEST_TYPE: string = 'application/x-msgpack; charset=utf-8';

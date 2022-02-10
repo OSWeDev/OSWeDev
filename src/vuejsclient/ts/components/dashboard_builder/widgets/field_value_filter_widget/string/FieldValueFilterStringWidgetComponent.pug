@@ -37,6 +37,7 @@
                                     :deselect-label='label("multiselect.deselectLabel")'
                                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                 )
+
                             .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]')
                                 input(v-model='advanced_string_filter.filter_content')
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
@@ -80,4 +81,19 @@
 
                     @search-change="query_update_visible_options"
                 )
+                    
                     span(slot="noOptions") -
+
+                    template(slot="option", slot-scope="props")
+                        template(v-if='is_translatable_type')
+                            span.option__title {{ label(props.option.label) }}
+                        template(v-else)
+                            span.option__title {{ props.option.label }}
+
+                    template(slot="tag", slot-scope="props")
+                        .pill_wrapper.bg-success
+                            template(v-if='is_translatable_type')
+                                span.option__tag {{ label(props.option.label) }}
+                            template(v-else)
+                                span.option__tag {{ props.option.label }}
+                            i.fa.fa-times(@click='props.remove(props.option)')

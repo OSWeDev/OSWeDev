@@ -548,7 +548,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Se connecter'
         }, 'login.reset.lien_connect.___LABEL___'));
 
-
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mon profil'
+        }, 'my_account_page.my_account_content_header.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accéder au site'

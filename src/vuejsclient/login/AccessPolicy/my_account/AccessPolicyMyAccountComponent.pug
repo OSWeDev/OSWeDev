@@ -11,13 +11,33 @@
             template(v-for='custcomp in registered_components')
                 .cust_comp(:is="custcomp")
 
-        .my_account_content
+        .my_account_content(id="my_account_content")
             .row
                 .col-md-6
                     .my_account_infos 
+                        .row
+                            .col-md-12
+                                h3.my_account_content_header {{ label('my_account_page.my_account_content_header') }}
                         .row 
                             .col-md-12
-                                .my_account_email 
+                                .my_account_login(v-tooltip='editable_login_tooltip')
+                                    i.fa.fa-id-card.fa-fw(aria-hidden="true")
+                                    Crudcomponentfield(
+                                        @onchangevo='onchangevo'
+                                        :field="editable_login"
+                                        :vo="user"
+                                        :auto_update_field_value='true'
+                                        :inline_input_mode='true'
+                                        :inline_input_hide_label='true'
+                                        :inline_input_read_value="user.login"
+                                        key='editable_login'
+                                        :inline_input_show_clear='false'
+                                        :inline_input_mode_semaphore='true'
+                                        :show_insert_or_update_target='false'
+                                    )
+                        .row 
+                            .col-md-12
+                                .my_account_firstname(v-tooltip='editable_firstname_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
@@ -25,7 +45,7 @@
                                         :vo="user"
                                         :auto_update_field_value='true'
                                         :inline_input_mode='true'
-                                        :inline_input_hide_label='false'
+                                        :inline_input_hide_label='true'
                                         :inline_input_read_value="user.firstname"
                                         key='editable_firstname'
                                         :inline_input_show_clear='false'
@@ -34,7 +54,7 @@
                                     )
                         .row 
                             .col-md-12
-                                .my_account_email 
+                                .my_account_lastname(v-tooltip='editable_lastname_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true" style='opacity:0')
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
@@ -42,7 +62,7 @@
                                         :vo="user"
                                         :auto_update_field_value='true'
                                         :inline_input_mode='true'
-                                        :inline_input_hide_label='false'
+                                        :inline_input_hide_label='true'
                                         :inline_input_read_value="user.lastname"
                                         key='editable_lastname'
                                         :inline_input_show_clear='false'
@@ -51,7 +71,7 @@
                                     )
                         .row 
                             .col-md-12
-                                .my_account_email 
+                                .my_account_email(v-tooltip='editable_email_tooltip')
                                     i.fa.fa-envelope.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
@@ -59,7 +79,7 @@
                                         :vo="user"
                                         :auto_update_field_value='true'
                                         :inline_input_mode='true'
-                                        :inline_input_hide_label='false'
+                                        :inline_input_hide_label='true'
                                         :inline_input_read_value="user.email"
                                         key='editable_email'
                                         :inline_input_show_clear='false'
@@ -68,7 +88,7 @@
                                     )
                         .row
                             .col-md-12
-                                .my_account_phone 
+                                .my_account_phone(v-tooltip='editable_phone_tooltip')
                                     i.fa.fa-mobile.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
@@ -76,7 +96,7 @@
                                         :vo="user"
                                         :auto_update_field_value='true'
                                         :inline_input_mode='true'
-                                        :inline_input_hide_label='false'
+                                        :inline_input_hide_label='true'
                                         :inline_input_read_value="user.phone"
                                         key='editable_phone'
                                         :inline_input_show_clear='false'

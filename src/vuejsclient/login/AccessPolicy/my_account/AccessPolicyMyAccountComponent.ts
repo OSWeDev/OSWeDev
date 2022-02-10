@@ -34,8 +34,52 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
         }
     }
 
+    get editable_login_tooltip() {
+        if (!this.editable_login) {
+            return null;
+        }
+
+        return this.t(this.editable_login.translatable_title);
+    }
+
+    get editable_firstname_tooltip() {
+        if (!this.editable_firstname) {
+            return null;
+        }
+
+        return this.t(this.editable_firstname.translatable_title);
+    }
+
+    get editable_lastname_tooltip() {
+        if (!this.editable_lastname) {
+            return null;
+        }
+
+        return this.t(this.editable_lastname.translatable_title);
+    }
+
+    get editable_email_tooltip() {
+        if (!this.editable_email) {
+            return null;
+        }
+
+        return this.t(this.editable_email.translatable_title);
+    }
+
+    get editable_phone_tooltip() {
+        if (!this.editable_phone) {
+            return null;
+        }
+
+        return this.t(this.editable_phone.translatable_title);
+    }
+
     get user_moduletable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+    }
+
+    get editable_login() {
+        return new SimpleDatatableField('name').setModuleTable(this.user_moduletable);
     }
 
     get editable_firstname() {
