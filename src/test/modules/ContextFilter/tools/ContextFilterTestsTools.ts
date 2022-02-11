@@ -56,7 +56,7 @@ export default class ContextFilterTestsTools {
             anon_field_id
         ];
         let datatable = new ModuleTable(null, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
-        anon_field_id.addManyToOneRelation(datatable);
+        anon_field_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID]);
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', AnonymizationUserConfVO.API_TYPE_ID);
     }

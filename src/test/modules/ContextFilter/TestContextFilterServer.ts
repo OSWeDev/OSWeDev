@@ -20,6 +20,168 @@ import FieldPathWrapper from '../../../server/modules/ContextFilter/vos/FieldPat
 
 describe('ContextFilterServer', () => {
 
+    //#region test_reverse_path
+
+    /**
+     * Test 0 :
+     *  chemin vide
+     */
+    it('test reverse_path - Empty path', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let path: FieldPathWrapper[] = [];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([]);
+    });
+
+    /**
+     * Test 1 :
+     *  de user à lang via user.lang_id
+     */
+    it('test reverse_path - User => Lang', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let user_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let path: FieldPathWrapper[] = [new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), false)];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), true)
+        ]);
+    });
+
+    /**
+     * Test 2 :
+     *  de lang à user via user.lang_id
+     */
+    it('test reverse_path - Lang => User', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let user_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let path: FieldPathWrapper[] = [new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), true)];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), false)
+        ]);
+    });
+
+    /**
+     * Test 3 :
+     *  de userrole à user via userrole.user_id puis de userrole à role via userrole.role_id
+     */
+    it('test reverse_path - Userrole => User & Role', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let path: FieldPathWrapper[] = [
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
+        ];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true)
+        ]);
+
+        path = [
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), false)
+        ];
+
+        reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), true)
+        ]);
+    });
+
+    /**
+     * Test 4 :
+     *  de UserRoleVO à AnonymizationUserConfVO via userrole.user_id => AnonymizationUserConfVO.user_id
+     */
+    it('test reverse_path - UserRoleVO => AnonymizationUserConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let path: FieldPathWrapper[] = [
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
+        ];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+        ]);
+    });
+
+    /**
+     * Test 5 :
+     *  de UserRoleVO à AnonymizationFieldConfVO via userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     *  Passage rapide de la relation N/N AnonymizationUserConfVO
+     */
+    it('test reverse_path - UserRoleVO => AnonymizationFieldConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let path: FieldPathWrapper[] = [
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
+        ];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), true),
+        ]);
+    });
+
+    /**
+     * Test 6 :
+     *  de RoleVO à AnonymizationFieldConfVO via userrole.role_id => userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     *  Passage rapide de 2 relations N/N
+     */
+    it('test reverse_path - RoleVO => AnonymizationFieldConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let path: FieldPathWrapper[] = [
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), true)
+        ];
+
+        let reverse_path = ContextFilterServerController.getInstance()['reverse_path'](path);
+
+        expect(reverse_path).to.deep.equal([
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), false),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), true),
+        ]);
+    });
+
+    //#endregion test_reverse_path
+
     //#region test_get_paths_from_moduletable
 
     /**
@@ -120,7 +282,7 @@ describe('ContextFilterServer', () => {
         path = ContextFilterServerController.getInstance()['get_paths_from_moduletable'](
             [],
             this_path_next_turn_paths,
-            UserVO.API_TYPE_ID,
+            RoleVO.API_TYPE_ID,
             {
                 [UserRoleVO.API_TYPE_ID]: true
             },
@@ -195,7 +357,7 @@ describe('ContextFilterServer', () => {
             new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true),
             new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
         ]);
-        expect(this_path_next_turn_paths_2).to.deep.equal(false);
+        expect(this_path_next_turn_paths_2).to.deep.equal([]);
         expect(deployed_deps_from).to.deep.equal({
             [AnonymizationUserConfVO.API_TYPE_ID]: true
         });
@@ -204,48 +366,138 @@ describe('ContextFilterServer', () => {
     /**
      * Test 5 :
      *  de UserRoleVO à AnonymizationFieldConfVO via userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     *  Passage rapide de la relation N/N AnonymizationUserConfVO
      */
-    it('test get_path_between_types - UserRoleVO => AnonymizationFieldConfVO', () => {
+    it('test get_paths_from_moduletable - UserRoleVO => AnonymizationFieldConfVO', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let path: FieldPathWrapper[] = ContextFilterServerController.getInstance().get_path_between_types(
-            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
-            [UserRoleVO.API_TYPE_ID],
-            AnonymizationFieldConfVO.API_TYPE_ID
-        );
+        let this_path_next_turn_paths: FieldPathWrapper[][] = [];
+        let deployed_deps_from: { [api_type_id: string]: boolean } = {};
+        let path: FieldPathWrapper[] = ContextFilterServerController.getInstance()['get_paths_from_moduletable'](
+            [],
+            this_path_next_turn_paths,
+            AnonymizationFieldConfVO.API_TYPE_ID,
+            {
+                [UserRoleVO.API_TYPE_ID]: true
+            },
+            {
+                [AnonymizationUserConfVO.API_TYPE_ID]: true,
+                [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+                [UserVO.API_TYPE_ID]: true,
+                [UserRoleVO.API_TYPE_ID]: true,
+                [RoleVO.API_TYPE_ID]: true
+            },
+            deployed_deps_from);
 
         let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        expect(path).to.deep.equal(null);
+        expect(this_path_next_turn_paths).to.deep.equal([[
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true)
+        ]]);
+        expect(deployed_deps_from).to.deep.equal({
+            [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+            [AnonymizationUserConfVO.API_TYPE_ID]: true
+        });
+
+        let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
+        path = ContextFilterServerController.getInstance()['get_paths_from_moduletable'](
+            this_path_next_turn_paths[0],
+            this_path_next_turn_paths_2,
+            AnonymizationFieldConfVO.API_TYPE_ID,
+            {
+                [UserRoleVO.API_TYPE_ID]: true
+            },
+            {
+                [AnonymizationUserConfVO.API_TYPE_ID]: true,
+                [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+                [UserVO.API_TYPE_ID]: true,
+                [UserRoleVO.API_TYPE_ID]: true,
+                [RoleVO.API_TYPE_ID]: true
+            },
+            deployed_deps_from);
+
         expect(path).to.deep.equal([
-            UserRoleVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false)
         ]);
+        expect(this_path_next_turn_paths_2).to.deep.equal([]);
+        expect(deployed_deps_from).to.deep.equal({
+            [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+            [AnonymizationUserConfVO.API_TYPE_ID]: true
+        });
     });
 
     /**
      * Test 6 :
      *  de RoleVO à AnonymizationFieldConfVO via userrole.role_id => userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     *  Passage rapide de 2 relations N/N
      */
-    it('test get_path_between_types - RoleVO => AnonymizationFieldConfVO', () => {
+    it('test get_paths_from_moduletable - RoleVO => AnonymizationFieldConfVO', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let path: FieldPathWrapper[] = ContextFilterServerController.getInstance().get_path_between_types(
-            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
-            [RoleVO.API_TYPE_ID],
-            AnonymizationFieldConfVO.API_TYPE_ID
-        );
+        let this_path_next_turn_paths: FieldPathWrapper[][] = [];
+        let deployed_deps_from: { [api_type_id: string]: boolean } = {};
+        let path: FieldPathWrapper[] = ContextFilterServerController.getInstance()['get_paths_from_moduletable'](
+            [],
+            this_path_next_turn_paths,
+            AnonymizationFieldConfVO.API_TYPE_ID,
+            {
+                [RoleVO.API_TYPE_ID]: true
+            },
+            {
+                [AnonymizationUserConfVO.API_TYPE_ID]: true,
+                [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+                [UserVO.API_TYPE_ID]: true,
+                [UserRoleVO.API_TYPE_ID]: true,
+                [RoleVO.API_TYPE_ID]: true
+            },
+            deployed_deps_from);
 
         let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        expect(path).to.deep.equal(null);
+        expect(this_path_next_turn_paths).to.deep.equal([[
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true)
+        ]]);
+        expect(deployed_deps_from).to.deep.equal({
+            [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+            [AnonymizationUserConfVO.API_TYPE_ID]: true
+        });
+
+        let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
+        path = ContextFilterServerController.getInstance()['get_paths_from_moduletable'](
+            this_path_next_turn_paths[0],
+            this_path_next_turn_paths_2,
+            AnonymizationFieldConfVO.API_TYPE_ID,
+            {
+                [RoleVO.API_TYPE_ID]: true
+            },
+            {
+                [AnonymizationUserConfVO.API_TYPE_ID]: true,
+                [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+                [UserVO.API_TYPE_ID]: true,
+                [UserRoleVO.API_TYPE_ID]: true,
+                [RoleVO.API_TYPE_ID]: true
+            },
+            deployed_deps_from);
+
         expect(path).to.deep.equal([
-            UserRoleVO_modultable.getFieldFromId('role_id'),
-            UserRoleVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), false),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), true)
         ]);
+        expect(this_path_next_turn_paths_2).to.deep.equal([]);
+        expect(deployed_deps_from).to.deep.equal({
+            [AnonymizationFieldConfVO.API_TYPE_ID]: true,
+            [AnonymizationUserConfVO.API_TYPE_ID]: true
+        });
     });
 
     //#endregion test_get_paths_from_moduletable
@@ -268,7 +520,7 @@ describe('ContextFilterServer', () => {
 
         let user_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
         expect(path).to.deep.equal([
-            user_modultable.getFieldFromId('lang_id')
+            new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), true)
         ]);
     });
 
@@ -288,7 +540,7 @@ describe('ContextFilterServer', () => {
 
         let user_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
         expect(path).to.deep.equal([
-            user_modultable.getFieldFromId('lang_id')
+            new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), false)
         ]);
     });
 
@@ -308,7 +560,7 @@ describe('ContextFilterServer', () => {
 
         let userrole_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         expect(path).to.deep.equal([
-            userrole_modultable.getFieldFromId('user_id'),
+            new FieldPathWrapper(userrole_modultable.getFieldFromId('user_id'), true)
         ]);
 
         path = ContextFilterServerController.getInstance().get_path_between_types(
@@ -317,7 +569,7 @@ describe('ContextFilterServer', () => {
             RoleVO.API_TYPE_ID
         );
         expect(path).to.deep.equal([
-            userrole_modultable.getFieldFromId('role_id'),
+            new FieldPathWrapper(userrole_modultable.getFieldFromId('role_id'), true)
         ]);
     });
 
@@ -338,8 +590,8 @@ describe('ContextFilterServer', () => {
         let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
         expect(path).to.deep.equal([
-            UserRoleVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('user_id')
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false)
         ]);
     });
 
@@ -360,9 +612,9 @@ describe('ContextFilterServer', () => {
         let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
         expect(path).to.deep.equal([
-            UserRoleVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), true)
         ]);
     });
 
@@ -383,10 +635,10 @@ describe('ContextFilterServer', () => {
         let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
         expect(path).to.deep.equal([
-            UserRoleVO_modultable.getFieldFromId('role_id'),
-            UserRoleVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('user_id'),
-            AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), false),
+            new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+            new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), true)
         ]);
     });
     //#endregion test_get_path_between_types
@@ -414,12 +666,18 @@ describe('ContextFilterServer', () => {
             LangVO.API_TYPE_ID,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
-            [user_modultable.getFieldFromId('lang_id')],
+            [
+                new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), true)
+            ],
             aliases_n
         );
 
-        expect(jointures).to.deep.equal(['ref.lang t1 ON t0.lang_id = t1.id']);
-        expect(joined_tables_by_vo_type).to.deep.equal({ [LangVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID] });
+        expect(jointures).to.deep.equal([
+            'ref.lang t1 on t1.id = t0.lang_id'
+        ]);
+        expect(joined_tables_by_vo_type).to.deep.equal({
+            [LangVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]
+        });
         expect(tables_aliases_by_type).to.deep.equal({
             [LangVO.API_TYPE_ID]: 't1',
             [UserVO.API_TYPE_ID]: 't0'
@@ -448,15 +706,21 @@ describe('ContextFilterServer', () => {
             UserVO.API_TYPE_ID,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
-            [user_modultable.getFieldFromId('lang_id')],
+            [
+                new FieldPathWrapper(user_modultable.getFieldFromId('lang_id'), false)
+            ],
             aliases_n
         );
 
-        expect(jointures).to.deep.equal(['ref.user t1 ON t1.lang_id = t0.id']);
-        expect(joined_tables_by_vo_type).to.deep.equal({ [LangVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID] });
+        expect(jointures).to.deep.equal([
+            'ref.user t1 on t1.lang_id = t0.id'
+        ]);
+        expect(joined_tables_by_vo_type).to.deep.equal({
+            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]
+        });
         expect(tables_aliases_by_type).to.deep.equal({
-            [LangVO.API_TYPE_ID]: 't1',
-            [UserVO.API_TYPE_ID]: 't0'
+            [UserVO.API_TYPE_ID]: 't1',
+            [LangVO.API_TYPE_ID]: 't0'
         });
         expect(aliases_n).to.equal(2);
     });
@@ -482,13 +746,16 @@ describe('ContextFilterServer', () => {
             RoleVO.API_TYPE_ID,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
-            [userrole_modultable.getFieldFromId('user_id'), userrole_modultable.getFieldFromId('role_id')],
+            [
+                new FieldPathWrapper(userrole_modultable.getFieldFromId('user_id'), false),
+                new FieldPathWrapper(userrole_modultable.getFieldFromId('role_id'), true)
+            ],
             aliases_n
         );
 
         expect(jointures).to.deep.equal([
-            'ref.userroles t1 ON t1.user_id = t0.id',
-            'ref.role t2 ON t1.role_id = t2.id'
+            'ref.userroles t1 on t1.user_id = t0.id',
+            'ref.role t2 on t2.id = t1.role_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
             [UserRoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
@@ -523,15 +790,17 @@ describe('ContextFilterServer', () => {
             UserVO.API_TYPE_ID,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
-            [userrole_modultable.getFieldFromId('user_id')],
+            [
+                new FieldPathWrapper(userrole_modultable.getFieldFromId('user_id'), true),
+            ],
             aliases_n
         );
 
         expect(jointures).to.deep.equal([
-            'ref.user t1 ON t0.user_id = t1.id'
+            'ref.user t1 on t1.id = t0.user_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [UserVO.API_TYPE_ID]: 't1',
@@ -545,16 +814,18 @@ describe('ContextFilterServer', () => {
             RoleVO.API_TYPE_ID,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
-            [userrole_modultable.getFieldFromId('role_id')],
+            [
+                new FieldPathWrapper(userrole_modultable.getFieldFromId('role_id'), true)
+            ],
             aliases_n
         );
 
         expect(jointures).to.deep.equal([
-            'ref.user t1 ON t0.user_id = t1.id',
-            'ref.role t2 ON t0.role_id = t2.id'
+            'ref.user t1 on t1.id = t0.user_id',
+            'ref.role t2 on t2.id = t0.role_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
             [RoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
@@ -563,6 +834,108 @@ describe('ContextFilterServer', () => {
             [UserRoleVO.API_TYPE_ID]: 't0'
         });
         expect(aliases_n).to.equal(3);
+    });
+
+    /**
+     * Test 5 :
+     *  de UserRoleVO à AnonymizationFieldConfVO via userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     */
+    it('test updates_jointures - UserRoleVO => AnonymizationFieldConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let jointures: string[] = [];
+        let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+
+        let aliases_n = 1;
+        let tables_aliases_by_type = {
+            [UserRoleVO.API_TYPE_ID]: 't0'
+        };
+        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+            jointures,
+            AnonymizationFieldConfVO.API_TYPE_ID,
+            joined_tables_by_vo_type,
+            tables_aliases_by_type,
+            [
+                new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+                new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+                new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), true)
+            ],
+            aliases_n
+        );
+
+        expect(jointures).to.deep.equal([
+            'ref.user t1 on t1.id = t0.user_id',
+            'ref.anonym_user_conf t2 on t2.user_id = t1.id',
+            'ref.anonym_field_conf t3 on t3.id = t2.anon_field_id'
+        ]);
+        expect(joined_tables_by_vo_type).to.deep.equal({
+            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
+            [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
+            [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
+        });
+        expect(tables_aliases_by_type).to.deep.equal({
+            [AnonymizationFieldConfVO.API_TYPE_ID]: 't3',
+            [AnonymizationUserConfVO.API_TYPE_ID]: 't2',
+            [UserVO.API_TYPE_ID]: 't1',
+            [UserRoleVO.API_TYPE_ID]: 't0'
+        });
+        expect(aliases_n).to.equal(4);
+    });
+
+    /**
+     * Test 6 :
+     *  de RoleVO à AnonymizationFieldConfVO via userrole.role_id => userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     */
+    it('test updates_jointures - RoleVO => AnonymizationFieldConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let jointures: string[] = [];
+        let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+
+        let aliases_n = 1;
+        let tables_aliases_by_type = {
+            [RoleVO.API_TYPE_ID]: 't0'
+        };
+        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+            jointures,
+            AnonymizationFieldConfVO.API_TYPE_ID,
+            joined_tables_by_vo_type,
+            tables_aliases_by_type,
+            [
+                new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('role_id'), false),
+                new FieldPathWrapper(UserRoleVO_modultable.getFieldFromId('user_id'), true),
+                new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('user_id'), false),
+                new FieldPathWrapper(AnonymizationUserConfVO_modultable.getFieldFromId('anon_field_id'), true)
+            ],
+            aliases_n
+        );
+
+        expect(jointures).to.deep.equal([
+            'ref.userroles t1 on t1.role_id = t0.id',
+            'ref.user t2 on t2.id = t1.user_id',
+            'ref.anonym_user_conf t3 on t3.user_id = t2.id',
+            'ref.anonym_field_conf t4 on t4.id = t3.anon_field_id'
+        ]);
+        expect(joined_tables_by_vo_type).to.deep.equal({
+            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
+            [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
+            [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
+        });
+        expect(tables_aliases_by_type).to.deep.equal({
+            [AnonymizationFieldConfVO.API_TYPE_ID]: 't4',
+            [AnonymizationUserConfVO.API_TYPE_ID]: 't3',
+            [UserVO.API_TYPE_ID]: 't2',
+            [UserRoleVO.API_TYPE_ID]: 't1',
+            [RoleVO.API_TYPE_ID]: 't0'
+        });
+        expect(aliases_n).to.equal(5);
     });
     //#endregion test_updates_jointures
 

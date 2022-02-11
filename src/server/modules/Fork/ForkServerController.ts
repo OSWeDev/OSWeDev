@@ -19,6 +19,8 @@ import PingForkMessage from './messages/PingForkMessage';
 
 export default class ForkServerController {
 
+    // public static PARAM_NAME_NODE_MEM_SIZE: string = 'ForkServerController.NODE_MEM_SIZE';
+
     public static getInstance() {
         if (!ForkServerController.instance) {
             ForkServerController.instance = new ForkServerController();
@@ -101,12 +103,12 @@ export default class ForkServerController {
 
             if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
-                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
+                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=6144'],
                     serialization: "advanced"
                 });
             } else {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
-                    execArgv: ['--max-old-space-size=4096'],
+                    execArgv: ['--max-old-space-size=6144'],
                     serialization: "advanced"
                 });
             }
