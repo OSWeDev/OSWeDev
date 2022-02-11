@@ -14,6 +14,21 @@ export default class ContextFilterHandler {
 
     private constructor() { }
 
+    public get_active_field_filters(filters: ContextFilterVO[]): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+
+        for (let i in filters) {
+            let filter = filters[i];
+
+            if (!res[filter.vo_type]) {
+                res[filter.vo_type] = {};
+            }
+            res[filter.vo_type][filter.field_id] = filter;
+        }
+
+        return res;
+    }
+
     /**
      * @param context_filter_tree_root
      * @param type

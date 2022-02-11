@@ -1,24 +1,21 @@
-import { performance } from 'perf_hooks';
-import * as  moment from 'moment';
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
-import ThreadHandler from '../../../../shared/tools/ThreadHandler';
-import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
-import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
-import SlowVarVO from '../../../../shared/modules/Var/vos/SlowVarVO';
-import VarsComputeController from '../VarsComputeController';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
-import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import ModuleForkServer from '../../Fork/ModuleForkServer';
-import ReloadAsapForkMessage from '../../Fork/messages/ReloadAsapForkMessage';
-import ForkMessageController from '../../Fork/ForkMessageController';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VarsTabsSubsController from '../VarsTabsSubsController';
-import VarsServerCallBackSubsController from '../VarsServerCallBackSubsController';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import SlowVarVO from '../../../../shared/modules/Var/vos/SlowVarVO';
+import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import ForkMessageController from '../../Fork/ForkMessageController';
+import ReloadAsapForkMessage from '../../Fork/messages/ReloadAsapForkMessage';
+import ModuleForkServer from '../../Fork/ModuleForkServer';
+import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import NotifVardatasParam from '../notifs/NotifVardatasParam';
+import VarsComputeController from '../VarsComputeController';
+import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
+import VarsServerCallBackSubsController from '../VarsServerCallBackSubsController';
+import VarsTabsSubsController from '../VarsTabsSubsController';
 
 /**
  * Objectif :
@@ -136,10 +133,7 @@ export default class SlowVarKiHandler {
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
         filter.param_numeric = SlowVarVO.TYPE_NEEDS_TEST;
 
-        let sort_by = new SortByVO();
-        sort_by.field_id = 'computation_ts';
-        sort_by.sort_asc = false;
-        sort_by.vo_type = SlowVarVO.API_TYPE_ID;
+        let sort_by = new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false);
 
         let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
             SlowVarVO.API_TYPE_ID,

@@ -17,6 +17,9 @@ import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import AnonymizationUserConfVO from '../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO';
 import AnonymizationFieldConfVO from '../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
 import FieldPathWrapper from '../../../server/modules/ContextFilter/vos/FieldPathWrapper';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 
 describe('ContextFilterServer', () => {
 
@@ -939,4 +942,181 @@ describe('ContextFilterServer', () => {
     });
     //#endregion test_updates_jointures
 
+    //#region test_build_request_from_active_field_filters_
+
+    /**
+     * Test 1 :
+     *  select first_name, last_name
+     *  de user à lang via user.lang_id
+     */
+    it('test build_request_from_active_field_filters_ - User => Lang', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let filter = new ContextFilterVO();
+        filter.vo_type = LangVO.API_TYPE_ID;
+        filter.field_id = 'code_lang';
+        filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+        filter.param_text = 'fr-fr';
+        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [UserVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            ['firstname', 'lastname'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
+            new SortByVO(UserVO.API_TYPE_ID, 'name', true),
+            ['firstname', 'lastname']
+        );
+
+        expect(request).to.equal(
+            "SELECT DISTINCT t0.firstname as firstname , t0.lastname as lastname  FROM ref.user t0 JOIN ref.lang t1 on t1.id = t0.lang_id WHERE (t1.code_lang = 'fr-fr') ORDER BY t0.name ASC "
+        );
+    });
+
+    /**
+     * Test 2 :
+     *  de lang à user via user.lang_id
+     */
+    it('test build_request_from_active_field_filters_ - Lang => User', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let filter = new ContextFilterVO();
+        filter.vo_type = UserVO.API_TYPE_ID;
+        filter.field_id = 'firstname';
+        filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [LangVO.API_TYPE_ID],
+            ['code_lang'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
+            new SortByVO(UserVO.API_TYPE_ID, 'phone', true),
+            ['code_lang']
+        );
+
+        expect(request).to.equal(
+            'SELECT DISTINCT t0.code_lang as code_lang  FROM ref.lang t0 JOIN ref.user t1 on t1.lang_id = t0.id WHERE (t1.firstname is NOT NULL) ORDER BY t1.phone ASC '
+        );
+    });
+
+    /**
+     * Test 3 :
+     *  de userrole à user via userrole.user_id puis de userrole+user à role via userrole.role_id
+     */
+    it('test build_request_from_active_field_filters_ - Userrole => User & Role', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let filter = new ContextFilterVO();
+        filter.vo_type = UserVO.API_TYPE_ID;
+        filter.field_id = 'firstname';
+        filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [UserRoleVO.API_TYPE_ID],
+            ['role_id'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID],
+            new SortByVO(UserVO.API_TYPE_ID, 'phone', true),
+            ['role_id']
+        );
+
+        expect(request).to.equal(
+            'SELECT DISTINCT t0.role_id as role_id  FROM ref.userroles t0 JOIN ref.user t1 on t1.id = t0.user_id WHERE (t1.firstname is NOT NULL) ORDER BY t1.phone ASC '
+        );
+
+        filter = new ContextFilterVO();
+        filter.vo_type = RoleVO.API_TYPE_ID;
+        filter.field_id = 'translatable_name';
+        filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+        request = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [UserRoleVO.API_TYPE_ID],
+            ['role_id'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID],
+            new SortByVO(RoleVO.API_TYPE_ID, 'translatable_name', true),
+            ['role_id']
+        );
+
+        expect(request).to.equal(
+            "SELECT DISTINCT t0.role_id as role_id  FROM ref.userroles t0 JOIN ref.role t1 on t1.id = t0.role_id WHERE (t1.translatable_name is NOT NULL) ORDER BY t1.translatable_name ASC "
+        );
+    });
+
+    /**
+     * Test 4 :
+     *  de UserRoleVO à AnonymizationUserConfVO via userrole.user_id => AnonymizationUserConfVO.user_id
+     */
+    it('test build_request_from_active_field_filters_ - UserRoleVO => AnonymizationUserConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let filter = new ContextFilterVO();
+        filter.vo_type = AnonymizationUserConfVO.API_TYPE_ID;
+        filter.field_id = 'anon_field_id';
+        filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [UserRoleVO.API_TYPE_ID],
+            ['role_id'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID],
+            new SortByVO(AnonymizationUserConfVO.API_TYPE_ID, 'anon_field_id', true),
+            ['role_id']
+        );
+
+        expect(request).to.equal(
+            "SELECT DISTINCT t0.role_id as role_id  FROM ref.userroles t0 JOIN ref.user t1 on t1.id = t0.user_id JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id WHERE (t2.anon_field_id is NOT NULL) ORDER BY t2.anon_field_id ASC "
+        );
+    });
+
+    /**
+     * Test 5 :
+     *  de UserRoleVO à AnonymizationFieldConfVO via userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     */
+    it('test build_request_from_active_field_filters_ - UserRoleVO => AnonymizationFieldConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let filter = new ContextFilterVO();
+        filter.vo_type = AnonymizationFieldConfVO.API_TYPE_ID;
+        filter.field_id = 'field_id';
+        filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [UserRoleVO.API_TYPE_ID],
+            ['role_id'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
+            new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true),
+            ['role_id']
+        );
+
+        expect(request).to.equal(
+            "SELECT DISTINCT t0.role_id as role_id  FROM ref.userroles t0 JOIN ref.user t1 on t1.id = t0.user_id JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id JOIN ref.anonym_field_conf t3 on t3.id = t2.anon_field_id WHERE (t3.field_id is NOT NULL) ORDER BY t3.vo_type ASC "
+        );
+    });
+
+    /**
+     * Test 6 :
+     *  de RoleVO à AnonymizationFieldConfVO via userrole.role_id => userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
+     */
+    it('test build_request_from_active_field_filters_ - RoleVO => AnonymizationFieldConfVO', () => {
+
+        ContextFilterTestsTools.getInstance().declare_modultables();
+
+        let filter = new ContextFilterVO();
+        filter.vo_type = AnonymizationFieldConfVO.API_TYPE_ID;
+        filter.field_id = 'field_id';
+        filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+            [RoleVO.API_TYPE_ID],
+            ['translatable_name'],
+            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+            [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
+            new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true),
+            ['translatable_name']
+        );
+
+        expect(request).to.equal(
+            "SELECT DISTINCT t0.translatable_name as translatable_name  FROM ref.role t0 JOIN ref.userroles t1 on t1.role_id = t0.id JOIN ref.user t2 on t2.id = t1.user_id JOIN ref.anonym_user_conf t3 on t3.user_id = t2.id JOIN ref.anonym_field_conf t4 on t4.id = t3.anon_field_id WHERE (t4.field_id is NOT NULL) ORDER BY t4.vo_type ASC "
+        );
+    });
+    //#endregion test_build_request_from_active_field_filters_
 });

@@ -1627,7 +1627,9 @@ export default class ContextFilterServerController {
             }
 
             let aliases_n: number = 0;
-            let tables_aliases_by_type: { [vo_type: string]: string } = {};
+            let tables_aliases_by_type: { [vo_type: string]: string } = {
+                [api_type_ids[0]]: 't' + (aliases_n++)
+            };
 
             let res: string = null;
             let FROM: string = null;
@@ -1684,8 +1686,6 @@ export default class ContextFilterServerController {
                     throw new Error('Not implemented');
                 }
 
-                tables_aliases_by_type[main_api_type_id] = 't' + (aliases_n++);
-
                 if (!is_delete) {
                     res = "SELECT " + tables_aliases_by_type[main_api_type_id] + ".* ";
                     FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
@@ -1718,11 +1718,36 @@ export default class ContextFilterServerController {
                         throw new Error('Not implemented');
                     }
 
+                    if (!main_api_type_id) {
+                        main_api_type_id = api_type_id;
 
-                    let is_new_t = false;
-                    if (!tables_aliases_by_type[api_type_id]) {
-                        tables_aliases_by_type[api_type_id] = 't' + (aliases_n++);
-                        is_new_t = true;
+                        FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
+                        joined_tables_by_vo_type[api_type_id] = moduletable;
+                    } else {
+                        /**
+                         * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+                         */
+                        if (!tables_aliases_by_type[api_type_id]) {
+
+                            /**
+                             * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                             */
+                            let path: FieldPathWrapper[] = this.get_path_between_types(active_api_type_ids, Object.keys(joined_tables_by_vo_type), api_type_id);
+                            if (!path) {
+                                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                                continue;
+                            }
+
+                            /**
+                             * On doit checker le trajet complet
+                             */
+                            if (!this.check_access_to_fields(path, access_type)) {
+                                return null;
+                            }
+
+                            aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                            // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+                        }
                     }
 
                     if (!first) {
@@ -1731,43 +1756,6 @@ export default class ContextFilterServerController {
                     first = false;
 
                     res += tables_aliases_by_type[api_type_id] + "." + field_id + " as " + res_field_aliases[i] + ' ';
-
-                    if (!main_api_type_id) {
-                        main_api_type_id = api_type_id;
-
-                        FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[api_type_id];
-                        joined_tables_by_vo_type[api_type_id] = moduletable;
-                    } else {
-                        /**
-                         * Si on connait déjà, rien à faire
-                         */
-                        if (is_new_t) {
-                            /**
-                             * Par contre si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-                             */
-                            if (!joined_tables_by_vo_type[api_type_id]) {
-
-                                /**
-                                 * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-                                 */
-                                let path: FieldPathWrapper[] = this.get_path_between_types(active_api_type_ids, Object.keys(joined_tables_by_vo_type), api_type_id);
-                                if (!path) {
-                                    // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                                    continue;
-                                }
-
-                                /**
-                                 * On doit checker le trajet complet
-                                 */
-                                if (!this.check_access_to_fields(path, access_type)) {
-                                    return null;
-                                }
-
-                                aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-                                // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
-                            }
-                        }
-                    }
                 }
             }
 

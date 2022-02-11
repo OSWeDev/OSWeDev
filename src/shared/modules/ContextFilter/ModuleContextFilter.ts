@@ -161,21 +161,6 @@ export default class ModuleContextFilter extends Module {
         ));
     }
 
-    public get_active_field_filters(filters: ContextFilterVO[]): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
-
-        for (let i in filters) {
-            let filter = filters[i];
-
-            if (!res[filter.vo_type]) {
-                res[filter.vo_type] = {};
-            }
-            res[filter.vo_type][filter.field_id] = filter;
-        }
-
-        return res;
-    }
-
     private init_SortByVO() {
 
         let datatable_fields = [
@@ -184,7 +169,7 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('sort_asc', ModuleTableField.FIELD_TYPE_boolean, 'ASC', true, true, true),
         ];
 
-        let datatable = new ModuleTable(this, SortByVO.API_TYPE_ID, () => new SortByVO(), datatable_fields, null, "Trier");
+        let datatable = new ModuleTable(this, SortByVO.API_TYPE_ID, () => new SortByVO(null, null, true), datatable_fields, null, "Trier");
         this.datatables.push(datatable);
     }
 

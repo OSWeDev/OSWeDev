@@ -281,10 +281,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         let offset = 0;
         let limit = 100;
         let might_have_more: boolean = true;
-        let sortby: SortByVO = new SortByVO();
-        sortby.field_id = 'id';
-        sortby.sort_asc = false;
-        sortby.vo_type = api_type_id;
+        let sortby: SortByVO = new SortByVO(api_type_id, 'id', false);
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
         let field = moduletable.get_field_by_id(update_field_id);
 
