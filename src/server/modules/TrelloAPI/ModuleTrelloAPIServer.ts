@@ -1,4 +1,4 @@
-import * as TrelloNodeApi from 'trello-node-api';
+import * as TrelloNodeApi from 'oswedev-trello-node-api';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleTrelloAPI from '../../../shared/modules/TrelloAPI/ModuleTrelloAPI';
 import ModuleServerBase from '../ModuleServerBase';
