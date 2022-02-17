@@ -8,5 +8,4 @@ export default class TrelloAPIChecklistVO {
     public idCard: string;
     public name: string;
     public pos: number;
-
 }

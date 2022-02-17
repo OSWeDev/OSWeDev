@@ -9,5 +9,6 @@ export default class TrelloAPIChecklistVO {
     public nameData: any;
     public pos: number;
     public state: string;
+    public checked: boolean;
 
 }
