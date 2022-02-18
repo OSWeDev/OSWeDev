@@ -11,9 +11,11 @@
         .row 
             .col-md-12
                 .header 
-                    .name
+                    .name.display_inline_block
                         Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="false")
-        
+                    .edit.display_inline_block.ml-3(v-if='can_edit')
+                        router-link.btn.btn-primary(:to="{ name: 'DashboardBuilder_id', params: { dashboard_id : dashboard.id }}")
+                            i.fa.fa-pencil.btn-primary
         .row 
             .col-md-12
                 template(v-if='!pages')

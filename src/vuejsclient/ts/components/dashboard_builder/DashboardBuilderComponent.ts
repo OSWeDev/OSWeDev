@@ -38,7 +38,7 @@ import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgets
 export default class DashboardBuilderComponent extends VueComponentBase {
 
     @Prop({ default: null })
-    private dashboard_id: number = null;
+    private dashboard_id: number;
 
     @ModuleDashboardPageGetter
     private get_page_history: DashboardPageVO[];

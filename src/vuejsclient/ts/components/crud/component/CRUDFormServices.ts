@@ -40,20 +40,23 @@ export default class CRUDFormServices {
     ): Array<Promise<any>> {
         let res: Array<Promise<any>> = [];
 
-        if ((!only_fields) && (api_types_involved.indexOf(datatable.API_TYPE_ID) < 0)) {
+        if (api_types_involved.indexOf(datatable.API_TYPE_ID) < 0) {
             api_types_involved.push(datatable.API_TYPE_ID);
 
-            res.push(
-                (async () => {
-                    let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
-                        IDistantVOBase
-                    >(datatable.API_TYPE_ID);
-                    storeDatas({
-                        API_TYPE_ID: datatable.API_TYPE_ID,
-                        vos: vos
-                    });
-                })()
-            );
+            if (!only_fields) {
+
+                res.push(
+                    (async () => {
+                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
+                            IDistantVOBase
+                        >(datatable.API_TYPE_ID);
+                        storeDatas({
+                            API_TYPE_ID: datatable.API_TYPE_ID,
+                            vos: vos
+                        });
+                    })()
+                );
+            }
 
             for (let i in datatable.fields) {
                 let field = datatable.fields[i];

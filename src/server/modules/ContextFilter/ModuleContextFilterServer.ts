@@ -40,6 +40,9 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
     /**
      * Builds a query to return the field values according to the context filters
+     * ATTENTION : sécurité déclarative...
+     * access_right doit contenir le droit (exemple DAO_ACCESS_TYPE_READ) le plus élevé nécessité pour la requête qui sera construite avec cette fonction
+     * Par défaut on met donc la suppression puisque si l'on a accès à la suppression, on a accès à tout.
      * @param api_type_id
      * @param field_id null returns all fields as would a getvo
      * @param get_active_field_filters
@@ -47,9 +50,11 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      * @param limit
      * @param offset
      * @param res_field_alias ignored if field_id is null
+     * @param access_type default to ModuleDAO.DAO_ACCESS_TYPE_DELETE
+     * @param is_delete if the goal is to delete. defaults to false
      * @returns
      */
-    public build_request_from_active_field_filters(
+    public async build_request_from_active_field_filters(
         api_type_ids: string[],
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
@@ -59,9 +64,9 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         sort_by: SortByVO,
         res_field_aliases: string[],
         is_delete: boolean = false
-    ): string {
+    ): Promise<string> {
 
-        return ContextFilterServerController.getInstance().build_request_from_active_field_filters(
+        return await ContextFilterServerController.getInstance().build_request_from_active_field_filters(
             api_type_ids,
             field_ids,
             get_active_field_filters,
@@ -74,15 +79,15 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         );
     }
 
-    public build_request_from_active_field_filters_count(
+    public async build_request_from_active_field_filters_count(
         api_type_ids: string[],
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         res_field_aliases: string[]
-    ): string {
+    ): Promise<string> {
 
-        return ContextFilterServerController.getInstance().build_request_from_active_field_filters_count(
+        return await ContextFilterServerController.getInstance().build_request_from_active_field_filters_count(
             api_type_ids,
             field_ids,
             get_active_field_filters,
@@ -104,7 +109,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         active_api_type_ids: string[]
     ): Promise<number> {
 
-        let request: string = this.build_request_from_active_field_filters_count(
+        let request: string = await this.build_request_from_active_field_filters_count(
             [api_type_id],
             null,
             get_active_field_filters,
@@ -144,7 +149,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             res_field_aliases.push('_' + i.toString());
         }
 
-        let request: string = this.build_request_from_active_field_filters_count(
+        let request: string = await this.build_request_from_active_field_filters_count(
             api_type_ids,
             field_ids,
             get_active_field_filters,
@@ -191,7 +196,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             }
         }
 
-        let request: string = this.build_request_from_active_field_filters(
+        let request: string = await this.build_request_from_active_field_filters(
             api_type_ids,
             field_ids,
             get_active_field_filters,
@@ -228,7 +233,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         offset: number
     ): Promise<any[]> {
         let res_field_alias: string = 'query_res';
-        let request: string = this.build_request_from_active_field_filters(
+        let request: string = await this.build_request_from_active_field_filters(
             [api_type_id],
             [field_id],
             get_active_field_filters,
@@ -316,13 +321,14 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
     /**
      * WARNING : does not call triggers !!
+     * TODO FIXME
      */
     public async delete_vos_from_active_filters(
         api_type_id: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[]
     ): Promise<void> {
-        let request: string = this.build_request_from_active_field_filters(
+        let request: string = await this.build_request_from_active_field_filters(
             [api_type_id],
             null,
             get_active_field_filters,
@@ -358,7 +364,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         offset: number,
         sort_by: SortByVO
     ): Promise<T[]> {
-        let request: string = this.build_request_from_active_field_filters(
+        let request: string = await this.build_request_from_active_field_filters(
             [api_type_id],
             null,
             get_active_field_filters,

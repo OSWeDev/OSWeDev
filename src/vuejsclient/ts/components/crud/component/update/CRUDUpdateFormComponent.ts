@@ -58,6 +58,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private is_only_readable: boolean = false;
 
     private crud_updateDatatable_key: number = 0;
+    private dao_store_loaded: boolean = false;
 
     get crud(): CRUD<any> {
         if ((!this.selected_vo) || (!this.selected_vo._type)) {
@@ -122,9 +123,18 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             return;
         }
 
-        // On passe la traduction en IHM sur les champs
-        this.editableVO = CRUDFormServices.getInstance().dataToIHM(this.selected_vo, this.crud.updateDatatable, true);
-        this.onChangeVO(this.editableVO);
+        let self = this;
+        let waiter = () => {
+            if (!self.dao_store_loaded) {
+                setTimeout(waiter, 300);
+            } else {
+                // On passe la traduction en IHM sur les champs
+                self.editableVO = CRUDFormServices.getInstance().dataToIHM(self.selected_vo, self.crud.updateDatatable, true);
+                self.onChangeVO(self.editableVO);
+            }
+        };
+
+        waiter();
     }
 
     private async updateVO() {
@@ -262,7 +272,9 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private onChangeVO(vo: IDistantVOBase) {
-        this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        if (this.crud_updateDatatable_key != this.crud.updateDatatable.key) {
+            this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        }
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
@@ -284,9 +296,11 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     private async reload_datas() {
+        this.dao_store_loaded = false;
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
         this.api_types_involved = [];
         await this.loaddatas();
+        this.dao_store_loaded = true;
     }
 
     private async callCallbackFunctionUpdate(): Promise<void> {

@@ -721,7 +721,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': "Conditions d'utilisation"
         }, 'signin.cgu.___LABEL___'));
 
-
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Connexion"
+        }, 'userlog.log_type.login'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Déconnexion"
+        }, 'userlog.log_type.logout'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Ouverture outil"
+        }, 'userlog.log_type.csrf_request'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }

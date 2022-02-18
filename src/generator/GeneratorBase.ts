@@ -68,6 +68,7 @@ import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916Set
 import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117ChangeVarDataIndex';
 import Patch20211203ClearVarCaches from './patchs/postmodules/Patch20211203ClearVarCaches';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
+import Patch20220217ChangeLoginTrad from './patchs/postmodules/Patch20220217ChangeLoginTrad';
 
 export default abstract class GeneratorBase {
 
@@ -148,6 +149,7 @@ export default abstract class GeneratorBase {
             Patch20210916SetParamPushData.getInstance(),
             Patch20211117ChangeVarDataIndex.getInstance(),
             Patch20211214ChangeVarTooltipTrads.getInstance(),
+            Patch20220217ChangeLoginTrad.getInstance(),
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }

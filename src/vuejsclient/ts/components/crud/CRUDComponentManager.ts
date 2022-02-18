@@ -75,60 +75,63 @@ export default class CRUDComponentManager {
 
         CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID] = crud;
 
-        routes.push({
-            path: url,
-            name: route_name,
-            component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
-            props: () => ({
-                crud: crud,
-                key: '__manage__' + API_TYPE_ID,
-                read_query: read_query,
-                sort_id_descending: sort_id_descending,
-            }),
-            meta: routes_meta ? routes_meta : undefined
-        });
+        if (!!routes) {
 
-        routes.push({
-            path: url + "/update/:id",
-            name: route_name + " --UPDATE",
-            component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
-            props: (route) => ({
-                crud: crud,
-                key: '__manage__' + API_TYPE_ID,
-                modal_show_update: true,
-                modal_vo_id: parseInt(route.params.id),
-                sort_id_descending: sort_id_descending,
-            }),
-            meta: routes_meta ? routes_meta : undefined
-        });
-
-        if (!VOsTypesManager.getInstance().moduleTables_by_voType[crud.readDatatable.API_TYPE_ID].isModuleParamTable) {
             routes.push({
-                path: url + "/create",
-                name: route_name + " --CREATE",
+                path: url,
+                name: route_name,
                 component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
-                props: (route) => ({
+                props: () => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
-                    modal_show_create: true,
+                    read_query: read_query,
                     sort_id_descending: sort_id_descending,
                 }),
                 meta: routes_meta ? routes_meta : undefined
             });
 
             routes.push({
-                path: url + "/delete/:id",
-                name: route_name + " --DELETE",
+                path: url + "/update/:id",
+                name: route_name + " --UPDATE",
                 component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
                 props: (route) => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
-                    modal_show_delete: true,
+                    modal_show_update: true,
                     modal_vo_id: parseInt(route.params.id),
                     sort_id_descending: sort_id_descending,
                 }),
                 meta: routes_meta ? routes_meta : undefined
             });
+
+            if (!VOsTypesManager.getInstance().moduleTables_by_voType[crud.readDatatable.API_TYPE_ID].isModuleParamTable) {
+                routes.push({
+                    path: url + "/create",
+                    name: route_name + " --CREATE",
+                    component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+                    props: (route) => ({
+                        crud: crud,
+                        key: '__manage__' + API_TYPE_ID,
+                        modal_show_create: true,
+                        sort_id_descending: sort_id_descending,
+                    }),
+                    meta: routes_meta ? routes_meta : undefined
+                });
+
+                routes.push({
+                    path: url + "/delete/:id",
+                    name: route_name + " --DELETE",
+                    component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
+                    props: (route) => ({
+                        crud: crud,
+                        key: '__manage__' + API_TYPE_ID,
+                        modal_show_delete: true,
+                        modal_vo_id: parseInt(route.params.id),
+                        sort_id_descending: sort_id_descending,
+                    }),
+                    meta: routes_meta ? routes_meta : undefined
+                });
+            }
         }
 
         if (!!menuElement) {

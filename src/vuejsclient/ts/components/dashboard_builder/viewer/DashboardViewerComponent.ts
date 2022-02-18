@@ -1,6 +1,8 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -40,6 +42,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
     private page: DashboardPageVO = null;
 
     private selected_widget: DashboardPageWidgetVO = null;
+
+    private can_edit: boolean = false;
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
@@ -82,23 +86,28 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.loading = true;
 
         if (!this.dashboard_id) {
+            this.can_edit = false;
             this.loading = false;
             return;
         }
 
         this.dashboard = await ModuleDAO.getInstance().getVoById<DashboardVO>(DashboardVO.API_TYPE_ID, this.dashboard_id);
         if (!this.dashboard) {
+            this.can_edit = false;
             this.loading = false;
             return;
         }
 
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {
+            this.isLoading = false;
+            this.can_edit = false;
             return;
         }
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
 
+        this.can_edit = await ModuleAccessPolicy.getInstance().checkAccess(ModuleDashboardBuilder.POLICY_BO_ACCESS);
         this.loading = false;
     }
 

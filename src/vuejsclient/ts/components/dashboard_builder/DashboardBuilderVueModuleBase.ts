@@ -58,6 +58,30 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             })
         });
 
+        url = "/dashboard_builder";
+        main_route_name = 'DashboardBuilder';
+
+        this.routes.push({
+            path: url,
+            name: main_route_name,
+            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            props: (route) => ({
+                dashboard_id: null
+            })
+        });
+
+        url = "/dashboard_builder" + "/:dashboard_id";
+        main_route_name = 'DashboardBuilder_id';
+
+        this.routes.push({
+            path: url,
+            name: main_route_name,
+            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            props: (route) => ({
+                dashboard_id: parseInt(route.params.dashboard_id),
+            })
+        });
+
         await this.initializeDefaultWidgets();
     }
 

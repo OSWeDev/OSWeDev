@@ -18,6 +18,8 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import FieldPathWrapper from './vos/FieldPathWrapper';
 import TypesPathElt from './vos/TypesPathElt';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 export default class ContextFilterServerController {
 
@@ -46,7 +48,7 @@ export default class ContextFilterServerController {
      * @param res_field_alias ignored if field_id is null
      * @returns
      */
-    public build_request_from_active_field_filters(
+    public async build_request_from_active_field_filters(
         api_type_ids: string[],
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
@@ -56,15 +58,16 @@ export default class ContextFilterServerController {
         sort_by: SortByVO,
         res_field_aliases: string[],
         is_delete: boolean = false
-    ): string {
+    ): Promise<string> {
 
-        let res = this.build_request_from_active_field_filters_(
+        let res = await this.build_request_from_active_field_filters_(
             api_type_ids,
             field_ids,
             get_active_field_filters,
             active_api_type_ids,
             sort_by,
-            res_field_aliases
+            res_field_aliases,
+            is_delete
         );
 
         if (limit) {
@@ -78,21 +81,22 @@ export default class ContextFilterServerController {
         return res;
     }
 
-    public build_request_from_active_field_filters_count(
+    public async build_request_from_active_field_filters_count(
         api_type_ids: string[],
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         res_field_aliases: string[]
-    ): string {
+    ): Promise<string> {
 
-        let res = 'SELECT COUNT(*) c FROM (' + this.build_request_from_active_field_filters_(
+        let res = 'SELECT COUNT(*) c FROM (' + await this.build_request_from_active_field_filters_(
             api_type_ids,
             field_ids,
             get_active_field_filters,
             active_api_type_ids,
             null,
-            res_field_aliases
+            res_field_aliases,
+            false
         ) + ') as tocount';
 
         return res;
@@ -1236,14 +1240,15 @@ export default class ContextFilterServerController {
      *              Ajouter un alias sur le path_i.field.moduletable => m
      *              On doit faire un join path_i.field.moduletable m on m.[path_i.field.field_id] = alias[path_i.field.target_moduletable].id
      */
-    public updates_jointures(
+    public async updates_jointures(
         jointures: string[],
         targeted_type: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
         path: FieldPathWrapper[],
         aliases_n: number
-    ): number {
+    ): Promise<number> {
 
         if ((!path) || (!path.length)) {
             return aliases_n;
@@ -1255,10 +1260,14 @@ export default class ContextFilterServerController {
             if (path_i.is_manytoone) {
 
                 if (!tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type]) {
+
                     tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
                     joined_tables_by_vo_type[path_i.field.manyToOne_target_moduletable.vo_type] = path_i.field.manyToOne_target_moduletable;
+
+                    let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, get_active_field_filters);
+
                     jointures.push(
-                        path_i.field.manyToOne_target_moduletable.full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
+                        full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
                         ' on ' +
                         tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id = ' +
                         tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id
@@ -1266,10 +1275,14 @@ export default class ContextFilterServerController {
                 }
             } else {
                 if (!tables_aliases_by_type[path_i.field.module_table.vo_type]) {
+
                     tables_aliases_by_type[path_i.field.module_table.vo_type] = 't' + (aliases_n++);
                     joined_tables_by_vo_type[path_i.field.module_table.vo_type] = path_i.field.module_table;
+
+                    let full_name = await this.get_table_full_name(path_i.field.module_table, get_active_field_filters);
+
                     jointures.push(
-                        path_i.field.module_table.full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
+                        full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
                         ' on ' +
                         tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ' = ' +
                         tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
@@ -1598,16 +1611,17 @@ export default class ContextFilterServerController {
      * access_right doit contenir le droit (exemple DAO_ACCESS_TYPE_READ) le plus élevé nécessité pour la requête qui sera construite avec cette fonction
      * Par défaut on met donc la suppression puisque si l'on a accès à la suppression, on a accès à tout.
      */
-    public build_request_from_active_field_filters_(
+    public async build_request_from_active_field_filters_(
         api_type_ids: string[],
         field_ids: string[],
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         sort_by: SortByVO,
         res_field_aliases: string[],
-        access_type: string = ModuleDAO.DAO_ACCESS_TYPE_DELETE,
         is_delete: boolean = false
-    ): string {
+    ): Promise<string> {
+
+        let access_type: string = is_delete ? ModuleDAO.DAO_ACCESS_TYPE_DELETE : ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         try {
 
@@ -1679,20 +1693,14 @@ export default class ContextFilterServerController {
                     return null;
                 }
 
-                /**
-                 * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
-                 */
-                if (moduletable.is_segmented) {
-                    throw new Error('Not implemented');
-                }
+                let full_name = await this.get_table_full_name(moduletable, get_active_field_filters);
 
                 if (!is_delete) {
                     res = "SELECT " + tables_aliases_by_type[main_api_type_id] + ".* ";
-                    FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
                 } else {
                     res = "DELETE ";
-                    FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[main_api_type_id];
                 }
+                FROM = " FROM " + full_name + " " + tables_aliases_by_type[main_api_type_id];
             } else {
 
                 if (is_delete) {
@@ -1711,12 +1719,12 @@ export default class ContextFilterServerController {
                         return null;
                     }
 
-                    /**
-                     * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
-                     */
-                    if (moduletable.is_segmented) {
-                        throw new Error('Not implemented');
-                    }
+                    // /**
+                    //  * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                    //  */
+                    // if (moduletable.is_segmented) {
+                    //     throw new Error('Not implemented');
+                    // }
 
                     if (!main_api_type_id) {
                         main_api_type_id = api_type_id;
@@ -1745,7 +1753,7 @@ export default class ContextFilterServerController {
                                 return null;
                             }
 
-                            aliases_n = this.updates_jointures(jointures, api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                            aliases_n = await this.updates_jointures(jointures, api_type_id, get_active_field_filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
                             // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
                         }
                     }
@@ -1794,7 +1802,7 @@ export default class ContextFilterServerController {
                             // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                             continue;
                         }
-                        aliases_n = this.updates_jointures(jointures, main_api_type_id, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                        aliases_n = await this.updates_jointures(jointures, main_api_type_id, get_active_field_filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
                         // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
                     }
 
@@ -2079,5 +2087,118 @@ export default class ContextFilterServerController {
         deployed_deps_from[moduletable.vo_type] = true;
 
         return null;
+    }
+
+    /**
+     * Fonction qui cherche à renvoyer un table full_name, même quand la table est segmentée
+     *  Faire évoluer vers un tableau de full_names et gérer le tableau dans le context filter pour
+     *  faire des requetes de context filter sur tables segmentées
+     */
+    private async get_table_full_name(
+        moduletable: ModuleTable<any>,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): Promise<string> {
+
+        let full_name = moduletable.full_name;
+
+        /**
+         * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+         */
+        if (moduletable.is_segmented) {
+
+            /**
+             * On peut peut-être gérer un cas simple, une table segmentée sur laquelle on a fait un filtrage
+             *  précis sur le champ de segmentation, ce qui fait une requete sur une table en fait
+             *  ou alors sur un champs unique de l'objet qui est lié directement en onetomany au champ de segmentation
+             *  exemple du userlog, segmenté sur user_id, et on sélection un user par l'email (unique) on peut donc
+             *  charger le user, puis son id, puis la table segmentée précise
+             */
+            let is_implemented = false;
+
+            // Cas champ segmenté exacte
+            if (get_active_field_filters && get_active_field_filters[moduletable.vo_type] &&
+                get_active_field_filters[moduletable.vo_type][moduletable.table_segmented_field.field_id]) {
+
+                let filter = get_active_field_filters[moduletable.vo_type][moduletable.table_segmented_field.field_id];
+
+                if ((filter.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS) &&
+                    (filter.param_numeric != null)) {
+                    is_implemented = true;
+                    full_name = moduletable.get_segmented_full_name(filter.param_numeric);
+                }
+            }
+
+            // Cas champ unique du vo_type sur lequel on segmente
+            if ((!is_implemented) && moduletable.table_segmented_field.manyToOne_target_moduletable) {
+                let linked_segment_table = moduletable.table_segmented_field.manyToOne_target_moduletable;
+
+                if (get_active_field_filters && get_active_field_filters[linked_segment_table.vo_type]) {
+
+                    let linked_segment_field_filters = get_active_field_filters[linked_segment_table.vo_type];
+                    let request = await this.build_request_from_active_field_filters_(
+                        [linked_segment_table.vo_type],
+                        null,
+                        { [linked_segment_table.vo_type]: linked_segment_field_filters },
+                        [linked_segment_table.vo_type],
+                        null,
+                        null
+                    );
+
+                    if (request) {
+
+                        let query_res: any[] = await ModuleDAOServer.getInstance().query(request);
+                        if (query_res && query_res.length) {
+
+                            let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, linked_segment_table.forceNumerics(query_res));
+
+                            if (unique_segment_vos && (unique_segment_vos.length == 1)) {
+                                is_implemented = true;
+                                full_name = moduletable.get_segmented_full_name(unique_segment_vos[0].id);
+                            }
+                        }
+                    }
+
+                    // for (let i in linked_segment_field_filters) {
+                    //     let linked_segment_field_filter = linked_segment_field_filters[i];
+                    //     let linked_segment_field = linked_segment_table.getFieldFromId(linked_segment_field_filter.field_id);
+
+                    //     if (linked_segment_field.is_unique) {
+
+                    //         if ((linked_segment_field_filter.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS) &&
+                    //             (linked_segment_field_filter.param_numeric != null)) {
+
+                    //             let request = await this.build_request_from_active_field_filters_(
+                    //                 [linked_segment_table.vo_type],
+                    //                 null,
+                    //                 ContextFilterHandler.getInstance().get_active_field_filters([linked_segment_field_filter]),
+                    //                 [linked_segment_table.vo_type],
+                    //                 null,
+                    //                 null
+                    //             );
+
+                    //             if (request) {
+
+                    //                 let query_res: any[] = await ModuleDAOServer.getInstance().query(request);
+                    //                 if (query_res && query_res.length) {
+
+                    //                     let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, linked_segment_table.forceNumerics(query_res));
+
+                    //                     if (unique_segment_vos && unique_segment_vos[0]) {
+                    //                         is_implemented = true;
+                    //                         full_name = moduletable.get_segmented_full_name(unique_segment_vos[0].id);
+                    //                     }
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                }
+            }
+
+            if (!is_implemented) {
+                throw new Error('Not implemented');
+            }
+        }
+
+        return full_name;
     }
 }

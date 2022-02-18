@@ -227,10 +227,7 @@ export default class CheckListComponent extends VueComponentBase {
                 return;
             }
 
-            let sort_by = new SortByVO();
-            sort_by.field_id = 'id';
-            sort_by.sort_asc = false;
-            sort_by.vo_type = self.checklist_shared_module.checklistitem_type_id;
+            let sort_by = new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false);
 
             /**
              * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour

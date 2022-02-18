@@ -652,7 +652,7 @@ describe('ContextFilterServer', () => {
      * Test 1 :
      *  de user à lang via user.lang_id
      */
-    it('test updates_jointures - User => Lang', () => {
+    it('test updates_jointures - User => Lang', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -664,9 +664,10 @@ describe('ContextFilterServer', () => {
         let tables_aliases_by_type: { [vo_type: string]: string } = {
             user: 't0'
         };
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             LangVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -692,7 +693,7 @@ describe('ContextFilterServer', () => {
      * Test 2 :
      *  de lang à user via user.lang_id
      */
-    it('test updates_jointures - Lang => User', () => {
+    it('test updates_jointures - Lang => User', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -704,9 +705,10 @@ describe('ContextFilterServer', () => {
         let tables_aliases_by_type = {
             [LangVO.API_TYPE_ID]: 't0'
         };
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             UserVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -732,7 +734,7 @@ describe('ContextFilterServer', () => {
      * Test 3 :
      *  de user à role via userrole.user_id + userrole.role_id
      */
-    it('test updates_jointures - User => Role', () => {
+    it('test updates_jointures - User => Role', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -744,9 +746,10 @@ describe('ContextFilterServer', () => {
         let tables_aliases_by_type = {
             [UserVO.API_TYPE_ID]: 't0'
         };
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             RoleVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -776,7 +779,7 @@ describe('ContextFilterServer', () => {
      * Test 4 :
      *  de userroles à role et user en 2 étapes via userrole.user_id + userrole.role_id
      */
-    it('test updates_jointures - UserRole => Role & User', () => {
+    it('test updates_jointures - UserRole => Role & User', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -788,9 +791,10 @@ describe('ContextFilterServer', () => {
         let tables_aliases_by_type = {
             [UserRoleVO.API_TYPE_ID]: 't0'
         };
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             UserVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -812,9 +816,10 @@ describe('ContextFilterServer', () => {
         expect(aliases_n).to.equal(2);
 
         // étape 2
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             RoleVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -843,7 +848,7 @@ describe('ContextFilterServer', () => {
      * Test 5 :
      *  de UserRoleVO à AnonymizationFieldConfVO via userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
      */
-    it('test updates_jointures - UserRoleVO => AnonymizationFieldConfVO', () => {
+    it('test updates_jointures - UserRoleVO => AnonymizationFieldConfVO', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -856,9 +861,10 @@ describe('ContextFilterServer', () => {
         let tables_aliases_by_type = {
             [UserRoleVO.API_TYPE_ID]: 't0'
         };
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             AnonymizationFieldConfVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -892,7 +898,7 @@ describe('ContextFilterServer', () => {
      * Test 6 :
      *  de RoleVO à AnonymizationFieldConfVO via userrole.role_id => userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
      */
-    it('test updates_jointures - RoleVO => AnonymizationFieldConfVO', () => {
+    it('test updates_jointures - RoleVO => AnonymizationFieldConfVO', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -905,9 +911,10 @@ describe('ContextFilterServer', () => {
         let tables_aliases_by_type = {
             [RoleVO.API_TYPE_ID]: 't0'
         };
-        aliases_n = ContextFilterServerController.getInstance().updates_jointures(
+        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
             AnonymizationFieldConfVO.API_TYPE_ID,
+            null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
             [
@@ -949,7 +956,7 @@ describe('ContextFilterServer', () => {
      *  select first_name, last_name
      *  de user à lang via user.lang_id
      */
-    it('test build_request_from_active_field_filters_ - User => Lang', () => {
+    it('test build_request_from_active_field_filters_ - User => Lang', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -958,7 +965,7 @@ describe('ContextFilterServer', () => {
         filter.field_id = 'code_lang';
         filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
         filter.param_text = 'fr-fr';
-        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        let request: string = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [UserVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             ['firstname', 'lastname'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),
@@ -976,7 +983,7 @@ describe('ContextFilterServer', () => {
      * Test 2 :
      *  de lang à user via user.lang_id
      */
-    it('test build_request_from_active_field_filters_ - Lang => User', () => {
+    it('test build_request_from_active_field_filters_ - Lang => User', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -984,7 +991,7 @@ describe('ContextFilterServer', () => {
         filter.vo_type = UserVO.API_TYPE_ID;
         filter.field_id = 'firstname';
         filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        let request: string = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [LangVO.API_TYPE_ID],
             ['code_lang'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),
@@ -1002,7 +1009,7 @@ describe('ContextFilterServer', () => {
      * Test 3 :
      *  de userrole à user via userrole.user_id puis de userrole+user à role via userrole.role_id
      */
-    it('test build_request_from_active_field_filters_ - Userrole => User & Role', () => {
+    it('test build_request_from_active_field_filters_ - Userrole => User & Role', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -1010,7 +1017,7 @@ describe('ContextFilterServer', () => {
         filter.vo_type = UserVO.API_TYPE_ID;
         filter.field_id = 'firstname';
         filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        let request: string = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [UserRoleVO.API_TYPE_ID],
             ['role_id'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),
@@ -1027,7 +1034,7 @@ describe('ContextFilterServer', () => {
         filter.vo_type = RoleVO.API_TYPE_ID;
         filter.field_id = 'translatable_name';
         filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-        request = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        request = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [UserRoleVO.API_TYPE_ID],
             ['role_id'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),
@@ -1045,7 +1052,7 @@ describe('ContextFilterServer', () => {
      * Test 4 :
      *  de UserRoleVO à AnonymizationUserConfVO via userrole.user_id => AnonymizationUserConfVO.user_id
      */
-    it('test build_request_from_active_field_filters_ - UserRoleVO => AnonymizationUserConfVO', () => {
+    it('test build_request_from_active_field_filters_ - UserRoleVO => AnonymizationUserConfVO', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -1053,7 +1060,7 @@ describe('ContextFilterServer', () => {
         filter.vo_type = AnonymizationUserConfVO.API_TYPE_ID;
         filter.field_id = 'anon_field_id';
         filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        let request: string = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [UserRoleVO.API_TYPE_ID],
             ['role_id'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),
@@ -1071,7 +1078,7 @@ describe('ContextFilterServer', () => {
      * Test 5 :
      *  de UserRoleVO à AnonymizationFieldConfVO via userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
      */
-    it('test build_request_from_active_field_filters_ - UserRoleVO => AnonymizationFieldConfVO', () => {
+    it('test build_request_from_active_field_filters_ - UserRoleVO => AnonymizationFieldConfVO', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -1079,7 +1086,7 @@ describe('ContextFilterServer', () => {
         filter.vo_type = AnonymizationFieldConfVO.API_TYPE_ID;
         filter.field_id = 'field_id';
         filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        let request: string = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [UserRoleVO.API_TYPE_ID],
             ['role_id'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),
@@ -1097,7 +1104,7 @@ describe('ContextFilterServer', () => {
      * Test 6 :
      *  de RoleVO à AnonymizationFieldConfVO via userrole.role_id => userrole.user_id => AnonymizationUserConfVO.user_id => AnonymizationUserConfVO.anon_field_id
      */
-    it('test build_request_from_active_field_filters_ - RoleVO => AnonymizationFieldConfVO', () => {
+    it('test build_request_from_active_field_filters_ - RoleVO => AnonymizationFieldConfVO', async () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
@@ -1105,7 +1112,7 @@ describe('ContextFilterServer', () => {
         filter.vo_type = AnonymizationFieldConfVO.API_TYPE_ID;
         filter.field_id = 'field_id';
         filter.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-        let request: string = ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
+        let request: string = await ContextFilterServerController.getInstance().build_request_from_active_field_filters_(
             [RoleVO.API_TYPE_ID],
             ['translatable_name'],
             ContextFilterHandler.getInstance().get_active_field_filters([filter]),

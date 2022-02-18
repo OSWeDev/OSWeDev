@@ -55,17 +55,8 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
                 )
             );
 
-        let url: string = "/dashboard_builder";
         let main_route_name: string = 'DashboardBuilder';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: null
-            })
-        });
         let menuPointer = MenuElementVO.create_new(
             ModuleDashboardBuilder.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
@@ -80,18 +71,7 @@ export default class DashboardBuilderAdminVueModule extends DashboardBuilderVueM
         //TODO FIXME ajouter les liens pour chaque checklist
         await MenuController.getInstance().declare_menu_element(menuPointer);
 
-
-        url = "/dashboard_builder" + "/:dashboard_id";
         main_route_name = 'DashboardBuilder_id';
-
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
 
         await CRUDComponentManager.getInstance().registerCRUD(
             DashboardVO.API_TYPE_ID,

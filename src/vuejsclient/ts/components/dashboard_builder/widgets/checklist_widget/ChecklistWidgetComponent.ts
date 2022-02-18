@@ -428,10 +428,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                     filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
                     filter);
 
-            let sort_by = new SortByVO();
-            sort_by.field_id = 'id';
-            sort_by.sort_asc = false;
-            sort_by.vo_type = self.checklist_shared_module.checklistitem_type_id;
+            let sort_by = new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false);
 
             let items: ICheckListItem[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<ICheckListItem>(
                 self.checklist_shared_module.checklistitem_type_id,

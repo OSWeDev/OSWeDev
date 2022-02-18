@@ -378,10 +378,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
             let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            sort_by = new SortByVO();
-            sort_by.vo_type = field.moduleTable.vo_type;
-            sort_by.field_id = field.module_table_field_id;
-            sort_by.sort_asc = !!this.order_asc_on_id;
+            sort_by = new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id);
         }
 
 
