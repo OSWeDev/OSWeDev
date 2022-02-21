@@ -18,12 +18,15 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
     @Prop()
     private vo_field_ref: VOFieldRefVO;
 
+    @Prop()
+    private page_widget_id: number;
+
     get translatable_name_code_text() {
-        if (!this.vo_field_ref) {
+        if ((!this.vo_field_ref) || (!this.page_widget_id)) {
             return null;
         }
 
-        return this.vo_field_ref.translatable_name_code_text;
+        return this.vo_field_ref.get_translatable_name_code_text(this.page_widget_id);
     }
 
     get default_field_label(): string {

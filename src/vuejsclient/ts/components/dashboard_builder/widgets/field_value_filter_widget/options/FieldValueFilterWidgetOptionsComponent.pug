@@ -2,7 +2,10 @@
     .field_ref 
         .input_label {{ label('field_value_filter_widget_component.vo_field_ref') }}
         .input_wrapper
-            Singlevofieldrefholdercomponent(:vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref")
+            Singlevofieldrefholdercomponent(
+                :vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref"
+                :page_widget_id='page_widget ? page_widget.id : null'
+            )
     .can_select_multiple 
         .input_label {{ label('field_value_filter_widget_component.can_select_multiple') }}
         .input_wrapper

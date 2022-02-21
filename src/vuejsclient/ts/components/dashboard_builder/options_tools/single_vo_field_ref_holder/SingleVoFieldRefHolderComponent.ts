@@ -16,6 +16,9 @@ export default class SingleVoFieldRefHolderComponent extends VueComponentBase {
     @Prop({ default: null })
     private vo_field_ref: VOFieldRefVO;
 
+    @Prop()
+    private page_widget_id: number;
+
     private remove_field_ref() {
         this.$emit('remove_field_ref', this.vo_field_ref);
     }

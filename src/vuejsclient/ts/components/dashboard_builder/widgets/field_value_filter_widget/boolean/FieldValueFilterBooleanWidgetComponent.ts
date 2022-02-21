@@ -64,7 +64,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
             return null;
         }
 
-        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
     private filter_type_label(filter_type: number): string {

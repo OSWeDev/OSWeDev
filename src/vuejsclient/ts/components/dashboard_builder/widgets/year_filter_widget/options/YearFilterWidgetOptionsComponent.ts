@@ -273,7 +273,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        await ModuleDAO.getInstance().deleteVOs([this.next_update_options.vo_field_ref]);
         this.next_update_options.vo_field_ref = null;
 
         await this.throttled_update_options();
@@ -311,12 +310,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         vo_field_ref.api_type_id = api_type_id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(vo_field_ref);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            ConsoleHandler.getInstance().error("Failed insert new field ref");
-            return null;
-        }
-        vo_field_ref.id = insertOrDeleteQueryResult.id;
 
         this.next_update_options.vo_field_ref = vo_field_ref;
 

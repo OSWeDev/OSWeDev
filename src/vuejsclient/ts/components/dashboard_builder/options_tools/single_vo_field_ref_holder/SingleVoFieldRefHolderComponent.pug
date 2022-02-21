@@ -3,6 +3,7 @@
         .vo_ref_field_container
             Vofieldwidgetrefcomponent(
                 :vo_field_ref="vo_field_ref"
+                :page_widget_id='page_widget_id'
                 @remove_field_ref="remove_field_ref")
     template(v-else)
         .vo_ref_field_receiver(@dragover="allowDrop" @drop="drop")

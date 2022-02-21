@@ -150,6 +150,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'month_filter_widget_component.no_month.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copier ce tableau de bord dans le presse-papier'
+        }, 'dashboard_builder.copy_dashboard.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Remplacer ce tableau de bord en important depuis le presse-papier'
+        }, 'dashboard_builder.replace_dashboard.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supprimer ce tableau de bord'
+        }, 'dashboard_builder.delete_dashboard.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nouveau tableau de bord vide'
+        }, 'dashboard_builder.create_dashboard.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Importer un nouveau tableau de bord depuis le presse-papier'
+        }, 'dashboard_builder.create_dashboard_from.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Checklist'
         }, 'checklist_widget_options_component.checklist_id.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

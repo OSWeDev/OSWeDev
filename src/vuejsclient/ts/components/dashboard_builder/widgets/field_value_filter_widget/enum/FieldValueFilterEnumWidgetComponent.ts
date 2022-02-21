@@ -63,7 +63,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return null;
         }
 
-        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
     @Watch('get_active_field_filters', { deep: true })

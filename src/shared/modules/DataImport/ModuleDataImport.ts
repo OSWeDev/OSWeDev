@@ -1,3 +1,4 @@
+import { valuesIn } from 'lodash';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
@@ -7,8 +8,10 @@ import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamV
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
+import APIStringAndVOParamVO, { APIStringAndVOParamVOStatic } from '../DAO/vos/APIStringAndVOParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
+import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -39,6 +42,7 @@ export default class ModuleDataImport extends Module {
     public static APINAME_getDataImportLogs: string = 'getDataImportLogs';
     public static APINAME_getDataImportFiles: string = 'getDataImportFiles';
     public static APINAME_getDataImportFile: string = 'getDataImportFile';
+    public static APINAME_importJSON: string = 'importJSON';
     public static APINAME_getDataImportColumnsFromFormatId: string = 'getDataImportColumnsFromFormatId';
 
     public static IMPORTATION_STATE_NAMES: string[] = [
@@ -85,6 +89,7 @@ export default class ModuleDataImport extends Module {
     public getDataImportLogs: (data_import_format_id: number) => Promise<DataImportLogVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportLogs);
     public getDataImportFiles: () => Promise<DataImportFormatVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFiles);
     public getDataImportFile: (import_uid: string) => Promise<DataImportFormatVO> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFile);
+    public importJSON: (import_json: string, import_on_vo: IDistantVOBase) => Promise<void> = APIControllerWrapper.sah(ModuleDataImport.APINAME_importJSON);
     public getDataImportColumnsFromFormatId: (data_import_format_id: number) => Promise<DataImportColumnVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId);
 
     private constructor() {
@@ -111,6 +116,34 @@ export default class ModuleDataImport extends Module {
             ModuleDataImport.APINAME_getDataImportHistoric,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
+        ));
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<APIStringAndVOParamVO, DataImportLogVO[]>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
+            ModuleDataImport.APINAME_importJSON,
+            (value: APIStringAndVOParamVO) => {
+                let res: string[] = [DataImportHistoricVO.API_TYPE_ID];
+
+                if (value && value.vo && value.vo._type) {
+                    res.push(value.vo._type);
+                }
+
+                if (value && value.text) {
+                    try {
+                        let vos = JSON.parse(value.text);
+                        for (let i in vos) {
+                            let vo = vos[i];
+
+                            if (vo && vo._type) {
+                                res.push(vo._type);
+                            }
+                        }
+                    } catch (error) {
+                    }
+                }
+
+                return res;
+            },
+            APIStringAndVOParamVOStatic
         ));
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportLogVO.API_TYPE_ID),

@@ -15,6 +15,7 @@ import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImp
 import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLogVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -25,7 +26,9 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -351,6 +354,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Autovalidation' },
             'import.success.autovalidation'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Import impossible' },
+            'importJSON.failed.___LABEL___'));
     }
 
 
@@ -362,6 +369,124 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_importJSON, this.importJSON.bind(this));
+    }
+
+    public async importJSON(import_json: string, import_on_vo: IDistantVOBase): Promise<void> {
+
+        let vos: IDistantVOBase[] = null;
+        let vos_by_type_and_initial_id: { [_type: string]: { [initial_id: number]: IDistantVOBase } } = {};
+        try {
+            vos = JSON.parse(import_json);
+            if (!vos) {
+                throw new Error('no datas to import');
+            }
+
+            for (let i in vos) {
+                let vo = vos[i];
+                let table = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+                if (!table) {
+                    throw new Error('unknown table:' + vo._type);
+                }
+
+                vo = table.from_api_version(vo);
+                if (!vos_by_type_and_initial_id[vo._type]) {
+                    vos_by_type_and_initial_id[vo._type] = {};
+                }
+                vos_by_type_and_initial_id[vo._type][vo.id] = vo;
+            }
+
+            let is_update: boolean = false;
+            let updated_item: IDistantVOBase = null;
+            if (import_on_vo != null) {
+
+                /**
+                 * On doit vérifier qu'on retrouve un objet de ce type (et un seul) dans les vos qu'on s'apprete à importer
+                 */
+                if ((!vos_by_type_and_initial_id[import_on_vo._type]) ||
+                    (Object.keys(vos_by_type_and_initial_id[import_on_vo._type]).length != 1)) {
+                    throw new Error('Failed find item to import on vo from JSON:' + import_on_vo._type + ':import_json:' + import_json);
+                }
+
+                is_update = true;
+                updated_item = vos_by_type_and_initial_id[import_on_vo._type][ObjectHandler.getInstance().getFirstAttributeName(vos_by_type_and_initial_id[import_on_vo._type])];
+            }
+
+            /**
+             * On check les dépendances des items et on essaie d'ordonner l'import pour pas avoir de soucis sur les liaisons
+             */
+            let ordered_vos: IDistantVOBase[] = [];
+            let ordered_vos_by_type_and_initial_id: { [_type: string]: { [initial_id: number]: IDistantVOBase } } = {};
+            /**
+             * On stocke les fields de ref, dans un tableau par vo_type cible de la liaison et id_initial, pour que quand on insère cet élement on puisse
+             *      trouver facilement les refs et modifier la valeur à importer avec le nouvel id qu'on vient d'insérer.
+             */
+            let ref_fields: { [_type_vo_target: string]: { [id_initial_vo_target: number]: { [_type_vo_src: string]: { [id_initial_vo_src: number]: { [field_id_vo_src: string]: boolean } } } } } = {};
+            let blocked = this.order_vos_to_import(
+                vos, vos_by_type_and_initial_id,
+                ordered_vos, ordered_vos_by_type_and_initial_id,
+                ref_fields
+            );
+
+            if (blocked) {
+                throw new Error('Import impossible: refs cycliques:' + import_json);
+            }
+
+            /**
+             * Maintenant on a l'import dans le bon ordre reste à le faire
+             *  On doit séparer le cas d'un insert pour le vo principal d'un insert
+             *  pour le reste c'est un insert
+             *  et quand on insère on stocke le nouveau vo en face de l'ancien id pour avoir le nouvel id à remplacer dans les champs de ref
+             */
+            for (let i in ordered_vos) {
+                let ordered_vo = ordered_vos[i];
+
+                if (is_update && (ordered_vo._type == updated_item._type) && (ordered_vo.id == updated_item.id)) {
+
+                    /**
+                     * TODO update
+                     */
+                    import_on_vo = await ModuleDAO.getInstance().getVoById<IDistantVOBase>(import_on_vo._type, import_on_vo.id);
+                    if (!ordered_vo) {
+                        throw new Error('Failed to retrieve vo from id:type:' + import_on_vo._type + ':id:' + import_on_vo.id + ':');
+                    }
+
+                    this.update_refs(ref_fields, ordered_vo, ordered_vos_by_type_and_initial_id, import_on_vo.id);
+
+                    let fields = VOsTypesManager.getInstance().moduleTables_by_voType[import_on_vo._type].get_fields();
+                    for (let field_i in fields) {
+                        let field = fields[field_i];
+
+                        import_on_vo[field.field_id] = ordered_vo[field.field_id];
+                    }
+
+                    let update_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(import_on_vo);
+                    if ((!update_res) || (!update_res.id)) {
+                        throw new Error('Failed update');
+                    }
+
+                    continue;
+                }
+
+                /**
+                 * TODO insert
+                 */
+                let insert_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ordered_vo);
+                if ((!insert_res) || (!insert_res.id)) {
+                    throw new Error('Failed insert');
+                }
+
+                this.update_refs(ref_fields, ordered_vo, ordered_vos_by_type_and_initial_id, insert_res.id);
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error('importJSON:' + error);
+            await PushDataServerController.getInstance().notifySimpleERROR(
+                StackContext.getInstance().get('UID'),
+                StackContext.getInstance().get('CLIENT_TAB_ID'),
+                'importJSON.failed.___LABEL___'
+            );
+            return;
+        }
     }
 
     public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
@@ -1118,6 +1243,111 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 // /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000);
             } else {
                 await ModuleDAO.getInstance().insertOrUpdateVOs(validated_imported_datas);
+            }
+        }
+    }
+
+    private order_vos_to_import(
+        vos: IDistantVOBase[],
+        vos_by_type_and_initial_id: { [_type: string]: { [initial_id: number]: IDistantVOBase } },
+        ordered_vos: IDistantVOBase[],
+        ordered_vos_by_type_and_initial_id: { [_type: string]: { [initial_id: number]: IDistantVOBase } },
+        ref_fields: { [_type_vo_target: string]: { [id_initial_vo_target: number]: { [_type_vo_src: string]: { [id_initial_vo_src: number]: { [field_id_vo_src: string]: boolean } } } } }
+    ): boolean {
+
+        let blocked = false;
+
+        while ((!blocked) && (ordered_vos.length != vos.length)) {
+
+            blocked = true;
+
+            for (let i in vos) {
+                let vo = vos[i];
+
+                /**
+                 * On cherche les deps vers d'autres objets
+                 */
+                let vo_fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].get_fields();
+                let need_ref = false;
+                for (let j in vo_fields) {
+
+                    let vo_field = vo_fields[j];
+                    if (!vo_field.manyToOne_target_moduletable) {
+                        continue;
+                    }
+
+                    /**
+                     * C'est une ref, si c'est une ref d'un type qu'on importe, on check si l'id est aussi importé et si oui
+                     *      alors soit on a "déjà importé" (donc déjà dans le ordered_vos_by_type_and_initial_id) et dans ce cas c'est ok
+                     *      soit on a pas importé et on doit postpone
+                     */
+                    if (vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type] &&
+                        vos_by_type_and_initial_id[vo[vo_field.field_id]]) {
+
+                        if (ordered_vos_by_type_and_initial_id[vo_field.manyToOne_target_moduletable.vo_type] &&
+                            ordered_vos_by_type_and_initial_id[vo[vo_field.field_id]]) {
+
+                            /**
+                             * si on a pas la ref encore on la stocke
+                             */
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type] = {};
+                            }
+
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]] = {};
+                            }
+
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type] = {};
+                            }
+
+                            if (!ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type][vo.id]) {
+                                ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type][vo.id] = {};
+                            }
+
+                            ref_fields[vo_field.manyToOne_target_moduletable.vo_type][vo[vo_field.field_id]][vo._type][vo.id][vo_field.field_id] = true;
+                            continue;
+                        }
+                        need_ref = true;
+                        break;
+                    }
+                }
+
+                if (need_ref) {
+                    continue;
+                }
+
+                if (!ordered_vos_by_type_and_initial_id[vo._type]) {
+                    ordered_vos_by_type_and_initial_id[vo._type] = {};
+                }
+                ordered_vos_by_type_and_initial_id[vo._type][vo.id] = vo;
+                ordered_vos.push(vo);
+                blocked = false;
+            }
+        }
+
+        return blocked;
+    }
+
+    private update_refs(
+        ref_fields: { [_type_vo_target: string]: { [id_initial_vo_target: number]: { [_type_vo_src: string]: { [id_initial_vo_src: number]: { [field_id_vo_src: string]: boolean } } } } },
+        ordered_vo: IDistantVOBase,
+        ordered_vos_by_type_and_initial_id,
+        new_id: number
+    ) {
+        if (ref_fields[ordered_vo._type] && ref_fields[ordered_vo._type][ordered_vo.id]) {
+            for (let ref_type in ref_fields[ordered_vo._type][ordered_vo.id]) {
+                let refs = ref_fields[ordered_vo._type][ordered_vo.id][ref_type];
+
+                for (let ref_id in refs) {
+                    let ref_field_ids = ref_fields[ordered_vo._type][ordered_vo.id][ref_type][ref_id];
+                    let ref_vo = ordered_vos_by_type_and_initial_id[ref_type][ref_id];
+
+                    for (let ref_field_id in ref_field_ids) {
+                        ref_vo[ref_field_id] = new_id;
+                    }
+                }
             }
         }
     }

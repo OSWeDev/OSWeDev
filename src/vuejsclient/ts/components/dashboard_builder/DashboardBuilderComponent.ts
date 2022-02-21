@@ -2,9 +2,12 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardGraphVORefVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
@@ -75,6 +78,73 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private selected_widget: DashboardPageWidgetVO = null;
 
     private collapsed_fields_wrapper: boolean = false;
+
+    private can_use_clipboard: boolean = false;
+
+    private async paste_dashboard(import_on_vo: DashboardVO = null) {
+        /**
+         * On récupère le contenu du presse-papier, et on checke qu'on a bien un db dedans
+         *  si oui on insère tous les éléments et on garde la trace des liaisons
+         *  si on se retrouve dans une impasse on invalide tout l'import
+         */
+        navigator.clipboard.readText().then(async (text: string) => {
+            await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
+        });
+    }
+
+    private async copy_dashboard() {
+
+        if (!this.dashboard) {
+            return null;
+        }
+
+        /**
+         * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO, VOFieldRefVO
+         */
+        let export_vos: IDistantVOBase[] = [];
+        let db_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardVO.API_TYPE_ID];
+        export_vos.push(db_table.get_api_version(this.dashboard));
+
+        let pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        let page_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageVO.API_TYPE_ID];
+        if (pages && pages.length) {
+            export_vos = export_vos.concat(pages.map((p) => page_table.get_api_version(p)));
+        }
+
+        let graphvorefs = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        let graphvoref_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardGraphVORefVO.API_TYPE_ID];
+        if (graphvorefs && graphvorefs.length) {
+            export_vos = export_vos.concat(graphvorefs.map((p) => graphvoref_table.get_api_version(p)));
+        }
+
+        let pagewidget_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID];
+        for (let i in pages) {
+            let page = pages[i];
+
+            let page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [page.id]);
+            if (page_widgets && page_widgets.length) {
+                export_vos = export_vos.concat(page_widgets.map((p) => pagewidget_table.get_api_version(p)));
+            }
+        }
+
+        let api_vos: IDistantVOBase[] = [];
+
+        let text: string = JSON.stringify(api_vos);
+        navigator.clipboard.writeText(newClip).then(function () {
+            /* clipboard successfully set */
+        }, function () {
+            /* clipboard write failed */
+        });
+
+        /**
+         * On récupère le contenu du presse-papier, et on checke qu'on a bien un db dedans
+         *  si oui on insère tous les éléments et on garde la trace des liaisons
+         *  si on se retrouve dans une impasse on invalide tout l'import
+         */
+        navigator.clipboard.readText().then(async (text: string) => {
+            await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
+        });
+    }
 
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
@@ -432,6 +502,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private mounted() {
+
+        let self = this;
+        navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
+            if (result.state == "granted" || result.state == "prompt") {
+                self.can_use_clipboard = true;
+            }
+        });
+
         let body = document.getElementById('page-top');
         body.classList.add("sidenav-toggled");
     }
