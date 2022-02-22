@@ -117,7 +117,7 @@ export default class ModuleDataImport extends Module {
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<APIStringAndVOParamVO, DataImportLogVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIStringAndVOParamVO, DataImportLogVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_importJSON,
             (value: APIStringAndVOParamVO) => {

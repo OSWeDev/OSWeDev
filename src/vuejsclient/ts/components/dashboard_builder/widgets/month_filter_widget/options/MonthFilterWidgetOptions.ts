@@ -45,9 +45,9 @@ export default class MonthFilterWidgetOptions {
 
     get placeholder_name_code_text(): string {
 
-        if ((!this.vo_field_ref) || (!this.vo_field_ref.id)) {
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.page_widget_id)) {
             return null;
         }
-        return MonthFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + this.vo_field_ref.id;
+        return MonthFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + this.vo_field_ref.page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 }

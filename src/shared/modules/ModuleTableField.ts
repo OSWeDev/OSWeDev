@@ -89,7 +89,6 @@ export default class ModuleTableField<T> {
     public max_values: number = 999;
 
     public is_indexed: boolean = false;
-    public is_unique: boolean = false;
     public is_readonly: boolean = false;
 
     public format_localized_time: boolean = false;
@@ -141,6 +140,11 @@ export default class ModuleTableField<T> {
      * ----- Local thread cache
      */
 
+    /**
+     * On passe en private pour être sûr de bien mettre la table à jour au besoin avec l'info de l'index d'unicité
+     */
+    private is_unique_: boolean = false;
+
     constructor(
         public field_id: string,                    //titre de la colonne en base
         public field_type: string,                  //type de donnée dans la colonne
@@ -172,6 +176,35 @@ export default class ModuleTableField<T> {
         this.target_database = null;                        //la database en base avec laquelle il y a une relation (generalement "ref")
         this.target_table = null;                           //la table de la database en base avec laquelle il y a une relation
         this.target_field = null;                           //le champ de la table en base avec laquelle il y a une relation
+    }
+
+    get is_unique(): boolean {
+        return this.is_unique_;
+    }
+
+    public set is_unique(is_unique_: boolean) {
+        this.is_unique_ = is_unique_;
+        if (!this.module_table) {
+            return;
+        }
+
+        if (!is_unique_) {
+            return;
+        }
+
+        let found = false;
+        for (let i in this.module_table.uniq_indexes) {
+            let index = this.module_table.uniq_indexes[i];
+
+            if (index && (index.length == 1) && (index[0].field_id == this.field_id)) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            this.module_table.uniq_indexes.push([this]);
+        }
     }
 
     public set_plain_obj_cstr(plain_obj_cstr: () => any): ModuleTableField<T> {

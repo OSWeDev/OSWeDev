@@ -204,7 +204,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return null;
         }
 
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
     }
 
     get link_type_labels(): { [link_type: number]: string } {
@@ -374,6 +374,11 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
+        }
+
+        // patch rétrocompatibilité
+        if (!options.vo_field_ref.page_widget_id) {
+            options.vo_field_ref.page_widget_id = this.page_widget.id;
         }
 
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);

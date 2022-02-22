@@ -150,6 +150,25 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'month_filter_widget_component.no_month.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copie du tableau de bord en cours...'
+        }, 'copy_dashboard.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copie du tableau de bord terminée'
+        }, 'copy_dashboard.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copie du tableau de bord échouée'
+        }, 'copy_dashboard.failed.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Collage du tableau de bord en cours...'
+        }, 'paste_dashboard.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Collage du tableau de bord terminé'
+        }, 'paste_dashboard.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Collage du tableau de bord échoué'
+        }, 'paste_dashboard.failed.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copier ce tableau de bord dans le presse-papier'
         }, 'dashboard_builder.copy_dashboard.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

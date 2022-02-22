@@ -58,7 +58,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
     }
 
     @Watch('selected_months', { deep: true })
@@ -233,6 +233,11 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;
+        }
+
+        // patch rétrocompatibilité
+        if (!options.vo_field_ref.page_widget_id) {
+            options.vo_field_ref.page_widget_id = this.page_widget.id;
         }
 
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);

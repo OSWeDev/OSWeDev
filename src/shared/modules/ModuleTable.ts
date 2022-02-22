@@ -100,6 +100,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public label: DefaultTranslation = null;
 
     /**
+     * On défini les champs uniques directement sur les champs,
+     *  et on remonte ici le fait qu'on a un index unique sur un champs, et on le fait pour chaque champs unique.
+     *  On peut aussi indiquer un index unique, sur un tableau de fields, et dans ce cas on le fait directement ici
+     */
+    public uniq_indexes: Array<Array<ModuleTableField<any>>> = [];
+
+    /**
      * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
      */
     public forceNumeric: (e: T) => T = null;
@@ -416,6 +423,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
             this.readonlyfields_by_ids[field.field_id] = field;
         }
 
+        if (field.is_unique) {
+            let found = false;
+            for (let i in this.uniq_indexes) {
+                let index = this.uniq_indexes[i];
+
+                if (index && (index.length == 1) && (index[0].field_id == field.field_id)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                this.uniq_indexes.push([field]);
+            }
+        }
+
         this.set_sortedFields();
     }
 
@@ -431,6 +454,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             if (field.is_readonly) {
                 this.readonlyfields_by_ids[field.field_id] = field;
+            }
+
+            if (field.is_unique) {
+                let found = false;
+                for (let j in this.uniq_indexes) {
+                    let index = this.uniq_indexes[j];
+
+                    if (index && (index.length == 1) && (index[0].field_id == field.field_id)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    this.uniq_indexes.push([field]);
+                }
             }
         }
 

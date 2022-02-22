@@ -69,6 +69,8 @@ import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117C
 import Patch20211203ClearVarCaches from './patchs/postmodules/Patch20211203ClearVarCaches';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
 import Patch20220217ChangeLoginTrad from './patchs/postmodules/Patch20220217ChangeLoginTrad';
+import Patch20220222MigrationCodesTradsDB from './patchs/postmodules/Patch20220222MigrationCodesTradsDB';
+import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
 
 export default abstract class GeneratorBase {
 
@@ -114,6 +116,7 @@ export default abstract class GeneratorBase {
             Patch20210914ClearDashboardWidgets.getInstance(),
             Patch20211004ChangeLang.getInstance(),
             Patch20220111LocalizeCRONDate.getInstance(),
+            Patch20220222RemoveVorfieldreffrombdd.getInstance()
         ];
 
         this.post_modules_workers = [
@@ -150,6 +153,7 @@ export default abstract class GeneratorBase {
             Patch20211117ChangeVarDataIndex.getInstance(),
             Patch20211214ChangeVarTooltipTrads.getInstance(),
             Patch20220217ChangeLoginTrad.getInstance(),
+            Patch20220222MigrationCodesTradsDB.getInstance()
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }

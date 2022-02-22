@@ -137,7 +137,7 @@ export default class ModuleTranslation extends Module {
         this.datatables = [];
 
         // Création de la table lang
-        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true);
+        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true).unique();
         let datatable_fields = [
             label_field,
             new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
@@ -147,7 +147,7 @@ export default class ModuleTranslation extends Module {
         this.datatables.push(datatable_lang);
 
         // Création de la table translatableText
-        label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true);
+        label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true).unique();
         datatable_fields = [
             label_field
         ];

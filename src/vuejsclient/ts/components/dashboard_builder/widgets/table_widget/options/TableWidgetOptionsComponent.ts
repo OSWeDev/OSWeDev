@@ -211,7 +211,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        await ModuleDAO.getInstance().deleteVOs([del_column]);
         this.next_update_options.columns.splice(i, 1);
 
         await this.throttled_update_options();
@@ -244,15 +243,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             found = true;
         }
 
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(add_column);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            ConsoleHandler.getInstance().error("Failed insert new column");
-            return null;
-        }
-        if (!add_column.id) {
-            add_column.id = insertOrDeleteQueryResult.id;
-        }
-
         if (!found) {
             if (!this.next_update_options.columns) {
                 this.next_update_options.columns = [];
@@ -273,6 +263,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         let res: TableColumnDescVO[] = [];
         for (let i in options.columns) {
+
+            // patch rétrocompatibilité
+            if (!options.columns[i].page_widget_id) {
+                options.columns[i].page_widget_id = this.page_widget.id;
+            }
+
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
         }
         WeightHandler.getInstance().sortByWeight(res);

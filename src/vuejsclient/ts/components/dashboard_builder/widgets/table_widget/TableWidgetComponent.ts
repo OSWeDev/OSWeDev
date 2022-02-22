@@ -268,6 +268,12 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         let res: TableColumnDescVO[] = [];
         for (let i in options.columns) {
+
+            // patch rétrocompatibilité
+            if (!options.columns[i].page_widget_id) {
+                options.columns[i].page_widget_id = this.page_widget.id;
+            }
+
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
         }
         WeightHandler.getInstance().sortByWeight(res);

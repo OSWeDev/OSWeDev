@@ -48,15 +48,15 @@
 
                         .col-md-2
                             .copy_dashboard(v-if="can_use_clipboard")
-                                i.fa.fa-plus.fa-fw.btn_icon.btn-primary(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
+                                i.fa.fa-download.fa-fw.btn_icon(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
                             .replace_dashboard(v-if="can_use_clipboard")
-                                i.fa.fa-clipboard.fa-fw.btn_icon.btn-primary(aria-hidden="true" @click="paste_dashboard(dashboard)" v-tooltip='label("dashboard_builder.replace_dashboard")')
+                                i.fa.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(dashboard)" v-tooltip='label("dashboard_builder.replace_dashboard")')
                             .delete_dashboard
                                 i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard" v-tooltip='label("dashboard_builder.delete_dashboard")')
                             .create_dashboard
                                 i.fa.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_new_dashboard" v-tooltip='label("dashboard_builder.create_dashboard")')
                             .create_dashboard_from(v-if="can_use_clipboard")
-                                i.fa.fa-clipboard.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard" v-tooltip='label("dashboard_builder.create_dashboard_from")')
+                                i.fa.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
 
         
         .row 

@@ -14,6 +14,7 @@ import GetOptionsForDeleteVosByContextParamVO, { GetOptionsForDeleteVosByContext
 import GetOptionsForUpdateVosByContextParamVO, { GetOptionsForUpdateVosByContextParamVOStatic } from './vos/GetOptionsForUpdateVosByContextParamVO';
 import GetOptionsForVosByContextParamVO, { GetOptionsForVosByContextParamVOStatic } from './vos/GetOptionsForVosByContextParamVO';
 import GetOptionsFromContextFiltersParamVO, { GetOptionsFromContextFiltersParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
+import QueryVOFromUniqueFieldContextFiltersParamVO, { QueryVOFromUniqueFieldContextFiltersParamVOStatic } from './vos/QueryVOFromUniqueFieldContextFiltersParamVO';
 import SortByVO from './vos/SortByVO';
 
 export default class ModuleContextFilter extends Module {
@@ -30,6 +31,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_delete_vos_from_active_filters: string = "delete_vos_from_active_filters";
     public static APINAME_update_vos_from_active_filters: string = "update_vos_from_active_filters";
     public static APINAME_query_vos_count_from_active_filters: string = "query_vos_count_from_active_filters";
+    public static APINAME_query_vo_from_unique_field: string = "query_vo_from_unique_field";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
@@ -56,6 +58,12 @@ export default class ModuleContextFilter extends Module {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         active_api_type_ids: string[]
     ) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_rows_count_from_active_filters);
+
+    public query_vo_from_unique_field: <T extends IDistantVOBase> (
+        api_type_id: string,
+        unique_field_id: string,
+        unique_field_value: any,
+    ) => Promise<T> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_query_vo_from_unique_field);
 
     public query_vos_count_from_active_filters: (
         api_type_id: string,
@@ -130,6 +138,13 @@ export default class ModuleContextFilter extends Module {
             ModuleContextFilter.APINAME_query_rows_count_from_active_filters,
             null,
             GetDatatableRowsCountFromContextFiltersParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
+            null,
+            ModuleContextFilter.APINAME_query_vo_from_unique_field,
+            null,
+            QueryVOFromUniqueFieldContextFiltersParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetDatatableVosCountFromContextFiltersParamVO, any[]>(

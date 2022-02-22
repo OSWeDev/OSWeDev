@@ -1,15 +1,25 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ContextFilterHandler from '../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardGraphVORefVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
+import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
+import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
+import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
@@ -18,7 +28,6 @@ import TranslatableTextController from '../InlineTranslatableText/TranslatableTe
 import VueComponentBase from '../VueComponentBase';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import './DashboardBuilderComponent.scss';
-import DroppableVosComponent from './droppable_vos/DroppableVosComponent';
 import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
@@ -82,28 +91,108 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private can_use_clipboard: boolean = false;
 
     private async paste_dashboard(import_on_vo: DashboardVO = null) {
-        /**
-         * On récupère le contenu du presse-papier, et on checke qu'on a bien un db dedans
-         *  si oui on insère tous les éléments et on garde la trace des liaisons
-         *  si on se retrouve dans une impasse on invalide tout l'import
-         */
-        navigator.clipboard.readText().then(async (text: string) => {
-            await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
-        });
+
+        let self = this;
+        self.snotify.async(self.label('paste_dashboard.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+
+                    /**
+                     * On récupère le contenu du presse-papier, et on checke qu'on a bien un db dedans
+                     *  si oui on insère tous les éléments et on garde la trace des liaisons
+                     *  si on se retrouve dans une impasse on invalide tout l'import
+                     */
+                    let text = await navigator.clipboard.readText();
+                    if ((!text) || (!JSON.parse(text))) {
+                        throw new Error('Invalid paste');
+                    }
+
+                    if ((!!import_on_vo) && (import_on_vo.id)) {
+                        let old_pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [import_on_vo.id]);
+                        await ModuleDAO.getInstance().deleteVOs(old_pages);
+                    }
+
+                    await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
+
+                    self.loading = true;
+                    self.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
+                    await self.on_load_dashboard();
+                    self.loading = false;
+
+                    resolve({
+                        body: self.label('paste_dashboard.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    reject({
+                        body: self.label('paste_dashboard.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     private async copy_dashboard() {
+
+        let self = this;
+        self.snotify.async(self.label('copy_dashboard.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+                    await this.do_copy_dashboard();
+
+                    resolve({
+                        body: self.label('copy_dashboard.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    reject({
+                        body: self.label('copy_dashboard.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
+    }
+
+    private async do_copy_dashboard() {
 
         if (!this.dashboard) {
             return null;
         }
 
         /**
-         * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO, VOFieldRefVO
+         * On exporte le DB, les pages, les widgets, DashboardGraphVORefVO et les trads associées (dont TableWidgetOptionsComponent et VOFieldRefVO)
+         *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
          */
         let export_vos: IDistantVOBase[] = [];
         let db_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardVO.API_TYPE_ID];
-        export_vos.push(db_table.get_api_version(this.dashboard));
+        let db = this.dashboard;
+        export_vos.push(db_table.get_api_version(db));
 
         let pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         let page_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageVO.API_TYPE_ID];
@@ -118,32 +207,150 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         let pagewidget_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID];
+        let page_widgets = null;
         for (let i in pages) {
             let page = pages[i];
 
-            let page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [page.id]);
+            page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [page.id]);
             if (page_widgets && page_widgets.length) {
                 export_vos = export_vos.concat(page_widgets.map((p) => pagewidget_table.get_api_version(p)));
             }
         }
 
-        let api_vos: IDistantVOBase[] = [];
+        let translation_codes: TranslatableTextVO[] = [];
+        let translations: TranslationVO[] = [];
+        let translation_code_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID];
+        let translation_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID];
+        await this.get_exportable_translations(
+            translation_codes,
+            translations,
+            db,
+            pages,
+            page_widgets
+        );
+        if (translation_codes && translation_codes.length) {
+            export_vos = export_vos.concat(translation_codes.map((p) => translation_code_table.get_api_version(p)));
+        }
+        if (translations && translations.length) {
+            export_vos = export_vos.concat(translations.map((p) => translation_table.get_api_version(p)));
+        }
 
-        let text: string = JSON.stringify(api_vos);
-        navigator.clipboard.writeText(newClip).then(function () {
-            /* clipboard successfully set */
-        }, function () {
-            /* clipboard write failed */
-        });
+        let text: string = JSON.stringify(export_vos);
+        await navigator.clipboard.writeText(text);
+    }
 
-        /**
-         * On récupère le contenu du presse-papier, et on checke qu'on a bien un db dedans
-         *  si oui on insère tous les éléments et on garde la trace des liaisons
-         *  si on se retrouve dans une impasse on invalide tout l'import
-         */
-        navigator.clipboard.readText().then(async (text: string) => {
-            await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
-        });
+    private async get_exportable_translations(
+        translation_codes: TranslatableTextVO[],
+        translations: TranslationVO[],
+        db: DashboardVO,
+        pages: DashboardPageVO[],
+        page_widgets: DashboardPageWidgetVO[]
+    ) {
+        let langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
+
+        // trad du db
+        if (db && db.translatable_name_code_text) {
+            await this.get_exportable_translation(
+                langs,
+                translation_codes,
+                translations,
+                db.translatable_name_code_text,
+                DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+        }
+
+        // trads des pages
+        for (let i in pages) {
+            let page = pages[i];
+
+            if (page && page.translatable_name_code_text) {
+                await this.get_exportable_translation(
+                    langs,
+                    translation_codes,
+                    translations,
+                    page.translatable_name_code_text,
+                    DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}');
+            }
+        }
+
+        // widgets
+        for (let i in page_widgets) {
+            let page_widget = page_widgets[i];
+
+            if (page_widget && page_widget.translatable_name_code_text) {
+                await this.get_exportable_translation(
+                    langs,
+                    translation_codes,
+                    translations,
+                    page_widget.translatable_name_code_text,
+                    DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}');
+            }
+
+            /**
+             * TableColumnDescVO, VOFieldRefVO
+             */
+            let filter = new ContextFilterVO();
+            filter.field_id = 'code_text';
+            filter.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
+            filter.vo_type = TranslatableTextVO.API_TYPE_ID;
+            filter.param_textarray = [
+                DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id,
+                DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id
+            ];
+            let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters(
+                TranslatableTextVO.API_TYPE_ID,
+                ContextFilterHandler.getInstance().get_active_field_filters([filter]),
+                [TranslatableTextVO.API_TYPE_ID],
+                null,
+                null,
+                null
+            );
+            for (let j in page_widget_trads) {
+                let page_widget_trad = page_widget_trads[j];
+
+                let code = page_widget_trad.code_text;
+                if (code.indexOf(DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id) == 0) {
+                    code =
+                        DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX +
+                        '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
+                        code.substring((DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id).length, code.length);
+                } else if (code.indexOf(DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id) == 0) {
+                    code =
+                        DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX +
+                        '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}' +
+                        code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id).length, code.length);
+                }
+
+                await this.get_exportable_translation(
+                    langs,
+                    translation_codes,
+                    translations,
+                    page_widget_trad.code_text,
+                    code);
+            }
+        }
+    }
+
+    private async get_exportable_translation(
+        langs: LangVO[],
+        translation_codes: TranslatableTextVO[],
+        translations: TranslationVO[],
+        initial_code: string,
+        exportable_code: string
+    ) {
+        let translatable_db = await ModuleTranslation.getInstance().getTranslatableText(initial_code);
+        if (!!translatable_db) {
+            translatable_db.code_text = exportable_code;
+            translation_codes.push(translatable_db);
+
+            for (let i in langs) {
+                let lang = langs[i];
+
+                let translation_db = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_db.id);
+                if (!!translation_db) {
+                    translations.push(translation_db);
+                }
+            }
+        }
     }
 
     private select_widget(page_widget) {

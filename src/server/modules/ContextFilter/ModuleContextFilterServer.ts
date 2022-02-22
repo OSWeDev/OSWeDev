@@ -5,6 +5,7 @@ import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -36,6 +37,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos_from_active_filters, this.delete_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos_from_active_filters, this.update_vos_from_active_filters.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vos_count_from_active_filters, this.query_vos_count_from_active_filters.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_query_vo_from_unique_field, this.query_vo_from_unique_field.bind(this));
     }
 
     /**
@@ -345,6 +347,41 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         }
 
         await ModuleDAOServer.getInstance().query(request);
+    }
+
+    public async query_vo_from_unique_field<T extends IDistantVOBase>(
+        api_type_id: string,
+        unique_field_id: string,
+        unique_field_value: any,
+    ): Promise<T> {
+
+        if ((!api_type_id) || (!unique_field_id) || (unique_field_value == null)) {
+            return null;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
+        let filter: ContextFilterVO = new ContextFilterVO();
+        filter.vo_type = api_type_id;
+        filter.field_id = field.field_id;
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_string:
+                filter.param_text = unique_field_value;
+                filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                break;
+            default:
+                throw new Error('Not Implemented');
+        }
+
+        let res = await this.query_vos_from_active_filters<T>(
+            api_type_id,
+            { [api_type_id]: { [unique_field_id]: filter } },
+            [api_type_id],
+            1,
+            0,
+            null
+        );
+        return res ? res[0] : null;
     }
 
     /**

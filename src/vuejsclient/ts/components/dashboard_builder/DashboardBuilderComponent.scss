@@ -53,6 +53,23 @@
             display: inline-block;
             font-size: 1.4em;
         }
+
+        .copy_dashboard,
+        .replace_dashboard {
+
+            text-align: center;
+            vertical-align: middle;
+            height: 2em;
+            width: 2em;
+            background: green;
+            padding: 0.3em;
+            margin-left: 0.5em;
+            color: white;
+            cursor: pointer;
+            border-radius: 2px;
+            display: inline-block;
+            font-size: 1.4em;
+        }
     }
 
     .pages {

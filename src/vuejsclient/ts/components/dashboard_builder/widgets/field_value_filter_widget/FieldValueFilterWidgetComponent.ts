@@ -131,6 +131,11 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
+        // patch rétrocompatibilité
+        if (!options.vo_field_ref.page_widget_id) {
+            options.vo_field_ref.page_widget_id = this.page_widget.id;
+        }
+
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 

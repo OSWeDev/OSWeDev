@@ -155,13 +155,18 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_VOFieldRefVO() {
 
+        let page_widget_id = new ModuleTableField('page_widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
+
         let datatable_fields = [
+            page_widget_id,
+
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'VO Type', true),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID Champs', true),
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
         this.datatables.push(new ModuleTable(this, VOFieldRefVO.API_TYPE_ID, () => new VOFieldRefVO(), datatable_fields, null, "Référence de champs"));
+        page_widget_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID]);
     }
 
     private init_TableColumnDescVO() {
@@ -178,6 +183,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID Champs', false),
 
             var_id,
+            new ModuleTableField('component_name', ModuleTableField.FIELD_TYPE_string, 'Composant', false),
 
             new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_string, 'Filtre', false),
             new ModuleTableField('filter_additional_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres filtre', false),

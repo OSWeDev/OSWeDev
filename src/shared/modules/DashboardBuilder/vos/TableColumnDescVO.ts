@@ -11,22 +11,33 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         "table_column_desc.type.vo_field_ref",
         "table_column_desc.type.var_ref",
         "table_column_desc.type.select_box",
+        "table_column_desc.type.component",
     ];
     public static TYPE_crud_actions: number = 0;
     public static TYPE_vo_field_ref: number = 1;
     public static TYPE_var_ref: number = 2;
     public static TYPE_select_box: number = 3;
-
-    public id: number;
-    public _type: string = TableColumnDescVO.API_TYPE_ID;
+    public static TYPE_component: number = 4;
 
     get translatable_name_code_text(): string {
 
         if (!this.id) {
             return null;
         }
-        return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + this.id;
+
+        return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + this.page_widget_id + '.' + this.type + '.' +
+            ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
+                ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
+                    ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
+                        ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : this.component_name
+                        )
+                    )
+                )
+            );
     }
+
+    public id: number;
+    public _type: string = TableColumnDescVO.API_TYPE_ID;
 
     public page_widget_id: number;
 
@@ -37,6 +48,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      */
     public api_type_id: string;
     public field_id: string;
+
+    /**
+     * Si TYPE_component
+     */
+    public component_name: string;
 
     /**
      * Si TYPE_var_ref
