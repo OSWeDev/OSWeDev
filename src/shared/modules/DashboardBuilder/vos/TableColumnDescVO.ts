@@ -21,7 +21,10 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
 
     get translatable_name_code_text(): string {
 
-        if (!this.id) {
+        if (!this.page_widget_id) {
+            return null;
+        }
+        if (!this.type) {
             return null;
         }
 

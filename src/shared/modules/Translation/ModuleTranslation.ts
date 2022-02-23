@@ -165,6 +165,10 @@ export default class ModuleTranslation extends Module {
         ];
 
         let datatable_translation = new ModuleTable(this, TranslationVO.API_TYPE_ID, () => new TranslationVO(), datatable_fields, label_field, "Traductions");
+        datatable_translation.uniq_indexes.push([
+            field_lang_id,
+            field_text_id
+        ]);
         field_lang_id.addManyToOneRelation(datatable_lang);
         field_text_id.addManyToOneRelation(datatable_translatabletext);
         this.datatables.push(datatable_translation);

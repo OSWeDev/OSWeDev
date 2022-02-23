@@ -43,6 +43,7 @@ import CRUDUpdateModalComponent from './crud_modals/update/CRUDUpdateModalCompon
 import TableWidgetOptions from './options/TableWidgetOptions';
 import TablePaginationComponent from './pagination/TablePaginationComponent';
 import './TableWidgetComponent.scss';
+import TableWidgetController from './TableWidgetController';
 
 @Component({
     template: require('./TableWidgetComponent.pug'),
@@ -294,6 +295,9 @@ export default class TableWidgetComponent extends VueComponentBase {
             let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
 
             switch (column.type) {
+                case TableColumnDescVO.TYPE_component:
+                    res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name];
+                    break;
                 case TableColumnDescVO.TYPE_var_ref:
                     let var_data_field: VarDatatableField<any, any> = new VarDatatableField(column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params, this.dashboard.id, column.translatable_name_code_text);
                     res[column.id] = var_data_field;

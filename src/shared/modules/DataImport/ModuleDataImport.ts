@@ -89,7 +89,7 @@ export default class ModuleDataImport extends Module {
     public getDataImportLogs: (data_import_format_id: number) => Promise<DataImportLogVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportLogs);
     public getDataImportFiles: () => Promise<DataImportFormatVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFiles);
     public getDataImportFile: (import_uid: string) => Promise<DataImportFormatVO> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFile);
-    public importJSON: (import_json: string, import_on_vo: IDistantVOBase) => Promise<void> = APIControllerWrapper.sah(ModuleDataImport.APINAME_importJSON);
+    public importJSON: (import_json: string, import_on_vo: IDistantVOBase) => Promise<IDistantVOBase[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_importJSON);
     public getDataImportColumnsFromFormatId: (data_import_format_id: number) => Promise<DataImportColumnVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId);
 
     private constructor() {
@@ -117,7 +117,7 @@ export default class ModuleDataImport extends Module {
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIStringAndVOParamVO, DataImportLogVO[]>(
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIStringAndVOParamVO, IDistantVOBase[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_importJSON,
             (value: APIStringAndVOParamVO) => {

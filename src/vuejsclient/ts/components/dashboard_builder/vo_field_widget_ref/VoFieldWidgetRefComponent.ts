@@ -22,7 +22,7 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
     private page_widget_id: number;
 
     get translatable_name_code_text() {
-        if ((!this.vo_field_ref) || (!this.page_widget_id)) {
+        if (!this.vo_field_ref) {
             return null;
         }
 

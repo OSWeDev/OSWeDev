@@ -27,6 +27,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     @Prop({ default: null })
     private column: TableColumnDescVO;
 
+    @Prop()
+    private get_new_column_id: () => number;
+
     private new_column_select_type_component: string = null;
     private new_column_select_type_var_ref: string = null;
 
@@ -35,16 +38,16 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     get component_options(): string[] {
-        if ((!this.page_widget) || (this.widget_options)) {
-            return null;
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
         }
 
         if (!this.widget_options.crud_api_type_id) {
-            return null;
+            return [];
         }
 
         if (!TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
-            return null;
+            return [];
         }
 
         let res = TableWidgetController.getInstance().components_by_crud_api_type_id[this.widget_options.crud_api_type_id];
@@ -94,7 +97,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         let new_column = new TableColumnDescVO();
         new_column.page_widget_id = this.page_widget.id;
         new_column.type = TableColumnDescVO.TYPE_component;
-        new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_component].id;
+        new_column.component_name = this.new_column_select_type_component;
+        new_column.id = this.get_new_column_id();
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -114,6 +118,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.page_widget_id = this.page_widget.id;
         new_column.type = TableColumnDescVO.TYPE_var_ref;
         new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_var_ref].id;
+        new_column.id = this.get_new_column_id();
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -150,6 +155,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.type = TableColumnDescVO.TYPE_vo_field_ref;
         new_column.api_type_id = api_type_id;
         new_column.field_id = field_id;
+        new_column.id = this.get_new_column_id();
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -177,6 +183,12 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         switch (this.object_column.type) {
+            case TableColumnDescVO.TYPE_component:
+                if (!this.object_column.component_name) {
+                    return null;
+                }
+
+                return this.t(TableWidgetController.getInstance().components_by_translatable_title[this.object_column.component_name].translatable_title);
             case TableColumnDescVO.TYPE_vo_field_ref:
                 if ((!this.object_column.api_type_id) || (!this.object_column.field_id)) {
                     return null;

@@ -27,6 +27,7 @@
                         Tablewidgetcolumnoptionscomponent(
                             :column="item" @add_column="add_column" @remove_column="remove_column"
                             :page_widget="page_widget"
+                            :get_new_column_id='get_new_column_id'
                         )
 
         template(v-if='columns && (columns.length == 1)')
@@ -34,12 +35,14 @@
                 Tablewidgetcolumnoptionscomponent(
                     :column="columns[0]" @add_column="add_column" @remove_column="remove_column"
                     :page_widget="page_widget"
+                    :get_new_column_id='get_new_column_id'
                 )
 
         .column_wrapper
             Tablewidgetcolumnoptionscomponent(
                 :column="null" @add_column="add_column" @remove_column="remove_column"
                 :page_widget="page_widget"
+                :get_new_column_id='get_new_column_id'
             )
 
     .crud_api_type_id

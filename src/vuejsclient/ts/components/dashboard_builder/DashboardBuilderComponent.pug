@@ -83,7 +83,7 @@
                                     i.fa.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
                         template(v-for='(page_, pagei) in pages')
                             .page
-                                .select(v-if='page_.id != page.id')
+                                .select(v-if='page && (page_.id != page.id)')
                                     i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
                                 .selected(v-else)
                                     i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')

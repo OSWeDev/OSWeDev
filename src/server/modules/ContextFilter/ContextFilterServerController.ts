@@ -1239,6 +1239,8 @@ export default class ContextFilterServerController {
      *          Si path_i.field.moduletable pas encore aliasé (et donc pas joined)
      *              Ajouter un alias sur le path_i.field.moduletable => m
      *              On doit faire un join path_i.field.moduletable m on m.[path_i.field.field_id] = alias[path_i.field.target_moduletable].id
+     * 
+     * Par ailleurs tout dépend du type de champs qui fait la jointure. sur un ref_ranges il faut utiliser id::numeric <@ ANY(ref_ranges_field)
      */
     public async updates_jointures(
         jointures: string[],
@@ -1266,12 +1268,28 @@ export default class ContextFilterServerController {
 
                     let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, get_active_field_filters);
 
-                    jointures.push(
-                        full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
-                        ' on ' +
-                        tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id = ' +
-                        tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id
-                    );
+                    switch (path_i.field.field_type) {
+                        case ModuleTableField.FIELD_TYPE_foreign_key:
+                        case ModuleTableField.FIELD_TYPE_file_ref:
+                        case ModuleTableField.FIELD_TYPE_image_ref:
+                            jointures.push(
+                                full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
+                                ' on ' +
+                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id = ' +
+                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id
+                            );
+                            break;
+                        case ModuleTableField.FIELD_TYPE_refrange_array:
+                            jointures.push(
+                                full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
+                                ' on ' +
+                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ANY(' +
+                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ')'
+                            );
+                            break;
+                        default:
+                            throw new Error('Not Implemented');
+                    }
                 }
             } else {
                 if (!tables_aliases_by_type[path_i.field.module_table.vo_type]) {
@@ -1281,12 +1299,28 @@ export default class ContextFilterServerController {
 
                     let full_name = await this.get_table_full_name(path_i.field.module_table, get_active_field_filters);
 
-                    jointures.push(
-                        full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
-                        ' on ' +
-                        tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ' = ' +
-                        tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
-                    );
+                    switch (path_i.field.field_type) {
+                        case ModuleTableField.FIELD_TYPE_foreign_key:
+                        case ModuleTableField.FIELD_TYPE_file_ref:
+                        case ModuleTableField.FIELD_TYPE_image_ref:
+                            jointures.push(
+                                full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
+                                ' on ' +
+                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ' = ' +
+                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
+                            );
+                            break;
+                        case ModuleTableField.FIELD_TYPE_refrange_array:
+                            jointures.push(
+                                full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
+                                ' on ' +
+                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ANY(' +
+                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ')'
+                            );
+                            break;
+                        default:
+                            throw new Error('Not Implemented');
+                    }
                 }
             }
         }

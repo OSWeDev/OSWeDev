@@ -374,7 +374,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_importJSON, this.importJSON.bind(this));
     }
 
-    public async importJSON(import_json: string, import_on_vo: IDistantVOBase): Promise<void> {
+    public async importJSON(import_json: string, import_on_vo: IDistantVOBase): Promise<IDistantVOBase[]> {
 
         let vos: IDistantVOBase[] = null;
         let vos_by_type_and_initial_id: { [_type: string]: { [initial_id: number]: IDistantVOBase } } = {};
@@ -435,7 +435,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 throw new Error('Import impossible: refs cycliques:' + import_json);
             }
 
-            await this.import_datas(
+            return await this.import_datas(
                 ref_fields,
                 ordered_vos,
                 ordered_vos_by_type_and_initial_id,
@@ -443,7 +443,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 import_on_vo,
                 updated_item
             );
-
         } catch (error) {
             ConsoleHandler.getInstance().error('importJSON:' + error);
             await PushDataServerController.getInstance().notifySimpleERROR(
@@ -451,8 +450,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 StackContext.getInstance().get('CLIENT_TAB_ID'),
                 'importJSON.failed.___LABEL___'
             );
-            return;
         }
+        return null;
     }
 
     public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
@@ -1337,19 +1336,16 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         is_update: boolean,
         import_on_vo: IDistantVOBase,
         updated_item: IDistantVOBase,
-    ) {
+    ): Promise<IDistantVOBase[]> {
         for (let i in ordered_vos) {
             let ordered_vo = ordered_vos[i];
-            let ordered_vo_to_update = null;
+
+            let initial_id = ordered_vo.id;
+            let new_id = null;
 
             if (is_update && (ordered_vo._type == updated_item._type) && (ordered_vo.id == updated_item.id)) {
 
-
-                import_on_vo = await ModuleDAO.getInstance().getVoById<IDistantVOBase>(import_on_vo._type, import_on_vo.id);
-                if (!import_on_vo) {
-                    throw new Error('Failed to retrieve vo from id:type:' + import_on_vo._type + ':id:' + import_on_vo.id + ':');
-                }
-                ordered_vo_to_update = import_on_vo;
+                new_id = updated_item.id;
             }
 
             /**
@@ -1357,105 +1353,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
              *  fait un insère. Sauf si on retrouve un élément en base qui empêcherait l'insertion,
              *  typiquement sur un champ unique commun au vo à insérer
              */
-            if (!ordered_vo_to_update) {
-                let table = VOsTypesManager.getInstance().moduleTables_by_voType[ordered_vo._type];
-
-                /**
-                 * On checke les indexs uniques :
-                 */
-                if (table.uniq_indexes && table.uniq_indexes.length) {
-                    for (let j in table.uniq_indexes) {
-                        let uniq_index = table.uniq_indexes[j];
-
-                        let filters = [];
-
-                        for (let k in uniq_index) {
-                            let field = uniq_index[k];
-
-                            let filter: ContextFilterVO = new ContextFilterVO();
-                            filter.vo_type = ordered_vo._type;
-                            filter.field_id = field.field_id;
-                            filters.push(filter);
-
-                            switch (field.field_type) {
-                                case ModuleTableField.FIELD_TYPE_string:
-                                case ModuleTableField.FIELD_TYPE_email:
-                                case ModuleTableField.FIELD_TYPE_html:
-                                case ModuleTableField.FIELD_TYPE_password:
-                                case ModuleTableField.FIELD_TYPE_textarea:
-                                    filter.param_text = ordered_vo[field.field_id];
-                                    filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-                                    break;
-                                case ModuleTableField.FIELD_TYPE_amount:
-                                case ModuleTableField.FIELD_TYPE_date:
-                                case ModuleTableField.FIELD_TYPE_enum:
-                                case ModuleTableField.FIELD_TYPE_file_ref:
-                                case ModuleTableField.FIELD_TYPE_float:
-                                case ModuleTableField.FIELD_TYPE_geopoint:
-                                case ModuleTableField.FIELD_TYPE_image_ref:
-                                case ModuleTableField.FIELD_TYPE_int:
-                                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                                case ModuleTableField.FIELD_TYPE_month:
-                                case ModuleTableField.FIELD_TYPE_month:
-                                case ModuleTableField.FIELD_TYPE_prct:
-                                case ModuleTableField.FIELD_TYPE_tstz:
-                                case ModuleTableField.FIELD_TYPE_foreign_key:
-                                    filter.param_numeric = ordered_vo[field.field_id];
-                                    filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
-                                    break;
-                                default:
-                                    throw new Error('Not Implemented');
-                            }
-
-                            let res = await ModuleContextFilter.getInstance().query_vos_from_active_filters(
-                                ordered_vo._type,
-                                ContextFilterHandler.getInstance().get_active_field_filters(filters),
-                                [ordered_vo._type],
-                                1,
-                                0,
-                                null
-                            );
-
-                            if (res && res[0]) {
-                                ordered_vo_to_update = res[0];
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!!ordered_vo_to_update) {
-
-                /**
-                 * update
-                 */
-                this.update_refs(ref_fields, ordered_vo, ordered_vos_by_type_and_initial_id, import_on_vo.id);
-                this.check_text_fields(import_on_vo, ordered_vos_by_type_and_initial_id);
-
-                let fields = VOsTypesManager.getInstance().moduleTables_by_voType[import_on_vo._type].get_fields();
-                for (let field_i in fields) {
-                    let field = fields[field_i];
-
-                    import_on_vo[field.field_id] = ordered_vo[field.field_id];
-                }
-
-                let update_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(import_on_vo);
-                if ((!update_res) || (!update_res.id)) {
-                    throw new Error('Failed update');
-                }
-
-                continue;
-            }
-
-            /**
-             * insert
-             */
             this.check_text_fields(ordered_vo, ordered_vos_by_type_and_initial_id);
-            let initial_id = ordered_vo.id;
-            ordered_vo.id = null;
+            ordered_vo.id = new_id;
             let insert_res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(ordered_vo);
-            if ((!insert_res) || (!insert_res.id)) {
+            if ((!insert_res) || (!insert_res.id) || (new_id && (new_id != insert_res.id))) {
                 throw new Error('Failed insert');
             }
             ordered_vo.id = initial_id;
@@ -1463,6 +1364,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             this.update_refs(ref_fields, ordered_vo, ordered_vos_by_type_and_initial_id, insert_res.id);
             ordered_vo.id = insert_res.id;
         }
+
+        return ordered_vos;
     }
 
     /**

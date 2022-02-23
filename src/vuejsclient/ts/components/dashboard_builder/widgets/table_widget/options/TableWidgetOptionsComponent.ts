@@ -140,6 +140,27 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    private get_new_column_id() {
+        if (!this.widget_options) {
+            ConsoleHandler.getInstance().error('get_new_column_id:failed');
+            return null;
+        }
+
+        if ((!this.widget_options.columns) || (!this.widget_options.columns.length)) {
+            return 0;
+        }
+
+        let ids = this.widget_options.columns.map((c) => c.id ? c.id : 0);
+        let max = -1;
+        for (let i in ids) {
+            if (max < ids[i]) {
+                max = ids[i];
+            }
+        }
+
+        return max + 1;
+    }
+
     @Watch('crud_api_type_id_selected')
     private async onchange_crud_api_type_id_selected() {
         this.next_update_options = this.widget_options;
@@ -161,6 +182,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.page_widget_id = this.page_widget.id;
                 crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
                 crud_actions_column.weight = -1;
+                crud_actions_column.id = this.get_new_column_id();
                 await this.add_column(crud_actions_column);
                 return;
             } else if (!!this.crud_api_type_id_selected) {
@@ -208,6 +230,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
+            ConsoleHandler.getInstance().error('remove_column failed');
             return null;
         }
 

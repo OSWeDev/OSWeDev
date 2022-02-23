@@ -1,6 +1,13 @@
 import { RouteConfig } from 'vue-router';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
+import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
+import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
+import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
 
 export default class AccessPolicyVueModule extends VueModuleBase {
     public static getInstance(): AccessPolicyVueModule {
@@ -21,8 +28,33 @@ export default class AccessPolicyVueModule extends VueModuleBase {
         this.routes.push(
             this.getRouteUser()
         );
+
+        TableWidgetController.getInstance().register_component(
+            new ComponentDatatableField(
+                'impersonate',
+                ImpersonateComponent,
+                'id'
+            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+        );
+        TableWidgetController.getInstance().register_component(
+            new ComponentDatatableField(
+                'sendinitpwd',
+                SendInitPwdComponent,
+                'id'
+            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+        );
+        TableWidgetController.getInstance().register_component(
+            new ComponentDatatableField(
+                'sendrecapture',
+                SendRecaptureComponent,
+                'id'
+            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+        );
     }
 
+    /**
+     * FIXME : duplicates with /me ...
+     */
     public getRoutesMenu(): Array<{ route: RouteConfig, icon: string, text: string }> {
         let routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
 
@@ -31,10 +63,12 @@ export default class AccessPolicyVueModule extends VueModuleBase {
             icon: 'fa-user',
             text: 'menu.mon-compte'
         });
-
         return routes;
     }
 
+    /**
+     * FIXME : duplicates with /me ...
+     */
     private getRouteUser(): RouteConfig {
         return {
             path: '/user',

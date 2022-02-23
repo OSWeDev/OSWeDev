@@ -8,7 +8,9 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -1390,28 +1392,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
                  */
                 if (!vo.id) {
-
-                    let fields = moduleTable.get_fields();
-                    for (let fieldi in fields) {
-                        let field = fields[fieldi];
-
-                        if (field.is_unique && !!vo[field.field_id]) {
-
-                            let check_this_uniq_field =
-                                'select * from ' + moduleTable.full_name + ' t where ' +
-                                self.get_simple_field_query(field, vo[field.field_id]);
-
-                            try {
-                                let uniq_refs = moduleTable.forceNumerics(await self.query(check_this_uniq_field)) as T[];
-                                if (uniq_refs && (uniq_refs.length == 1)) {
-                                    vo.id = uniq_refs[0].id;
-                                    break;
-                                }
-                            } catch (error) {
-                                ConsoleHandler.getInstance().error(error);
-                            }
-                        }
-                    }
+                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
                 }
 
                 isUpdates[i] = vo.id ? true : false;
@@ -1494,6 +1475,72 @@ export default class ModuleDAOServer extends ModuleServerBase {
         });
     }
 
+    /**
+     * On checke les indexs uniques, et si on trouve que l'objet existe, on renvoie l'id de l'objet identifié
+     */
+    private async check_uniq_indexes(vo: IDistantVOBase, moduleTable: ModuleTable<any>): Promise<number> {
+        if (moduleTable.uniq_indexes && moduleTable.uniq_indexes.length) {
+            for (let j in moduleTable.uniq_indexes) {
+                let uniq_index = moduleTable.uniq_indexes[j];
+
+                let filters = [];
+
+                for (let k in uniq_index) {
+                    let field = uniq_index[k];
+
+                    let filter: ContextFilterVO = new ContextFilterVO();
+                    filter.vo_type = moduleTable.vo_type;
+                    filter.field_id = field.field_id;
+                    filters.push(filter);
+
+                    switch (field.field_type) {
+                        case ModuleTableField.FIELD_TYPE_string:
+                        case ModuleTableField.FIELD_TYPE_email:
+                        case ModuleTableField.FIELD_TYPE_html:
+                        case ModuleTableField.FIELD_TYPE_password:
+                        case ModuleTableField.FIELD_TYPE_textarea:
+                            filter.param_text = vo[field.field_id];
+                            filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                            break;
+                        case ModuleTableField.FIELD_TYPE_amount:
+                        case ModuleTableField.FIELD_TYPE_date:
+                        case ModuleTableField.FIELD_TYPE_enum:
+                        case ModuleTableField.FIELD_TYPE_file_ref:
+                        case ModuleTableField.FIELD_TYPE_float:
+                        case ModuleTableField.FIELD_TYPE_geopoint:
+                        case ModuleTableField.FIELD_TYPE_image_ref:
+                        case ModuleTableField.FIELD_TYPE_int:
+                        case ModuleTableField.FIELD_TYPE_isoweekdays:
+                        case ModuleTableField.FIELD_TYPE_month:
+                        case ModuleTableField.FIELD_TYPE_month:
+                        case ModuleTableField.FIELD_TYPE_prct:
+                        case ModuleTableField.FIELD_TYPE_tstz:
+                        case ModuleTableField.FIELD_TYPE_foreign_key:
+                            filter.param_numeric = vo[field.field_id];
+                            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+                            break;
+                        default:
+                            throw new Error('Not Implemented');
+                    }
+                }
+
+                let uniquevos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(
+                    vo._type,
+                    ContextFilterHandler.getInstance().get_active_field_filters(filters),
+                    [vo._type],
+                    1,
+                    0,
+                    null
+                );
+
+                if (uniquevos && uniquevos[0] && uniquevos[0].id) {
+                    return uniquevos[0].id;
+                }
+            }
+        }
+        return null;
+    }
+
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
         if (this.global_update_blocker) {
@@ -1550,28 +1597,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
              *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
              */
             if (!vo.id) {
-
-                let fields = moduleTable.get_fields();
-                for (let fieldi in fields) {
-                    let field = fields[fieldi];
-
-                    if (field.is_unique && !!vo[field.field_id]) {
-
-                        let check_this_uniq_field =
-                            'select * from ' + moduleTable.full_name + ' t where ' +
-                            self.get_simple_field_query(field, vo[field.field_id]);
-
-                        try {
-                            let uniq_refs = moduleTable.forceNumerics(await self.query(check_this_uniq_field));
-                            if (uniq_refs && (uniq_refs.length == 1)) {
-                                vo.id = uniq_refs[0].id;
-                                break;
-                            }
-                        } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
-                        }
-                    }
-                }
+                vo.id = await this.check_uniq_indexes(vo, moduleTable);
             }
 
             /**

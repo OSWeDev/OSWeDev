@@ -23,8 +23,10 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
+import VueAppController from '../../../VueAppController';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
 import TranslatableTextController from '../InlineTranslatableText/TranslatableTextController';
+import { ModuleTranslatableTextAction } from '../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../VueComponentBase';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
 import './DashboardBuilderComponent.scss';
@@ -57,6 +59,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+
+    @ModuleTranslatableTextAction
+    private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
 
     @ModuleDashboardPageAction
     private add_page_history: (page_history: DashboardPageVO) => void;
@@ -113,11 +118,20 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         await ModuleDAO.getInstance().deleteVOs(old_pages);
                     }
 
-                    await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
+                    let imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
 
                     self.loading = true;
                     self.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
                     await self.on_load_dashboard();
+                    // On crée des trads, on les recharge
+                    await VueAppController.getInstance().initializeFlatLocales();
+                    self.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
+
+                    if ((!import_on_vo) && imported_datas && imported_datas.length) {
+                        // on récupère le nouveau db
+                        let new_db = imported_datas.find((i) => i._type == DashboardVO.API_TYPE_ID);
+                        self.dashboard = new_db ? new_db as DashboardVO : self.dashboard;
+                    }
                     self.loading = false;
 
                     resolve({

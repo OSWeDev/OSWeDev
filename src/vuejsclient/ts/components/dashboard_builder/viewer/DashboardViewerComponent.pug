@@ -37,7 +37,7 @@
                         template(v-if='(visible_pages && (visible_pages.length > 1))')
                             template(v-for='(page_, pagei) in visible_pages')
                                 .page(@click="select_page(page_)")
-                                    .select(v-if='page_.id != page.id')
+                                    .select(v-if='page && (page_.id != page.id)')
                                         i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true")
                                     .selected(v-else)
                                         i.fa.fa-check-circle.fa-fw(aria-hidden="true")
