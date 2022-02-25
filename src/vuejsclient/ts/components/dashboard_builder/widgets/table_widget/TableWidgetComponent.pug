@@ -59,7 +59,7 @@ include ../../../../../views/mixins/loading.pug
 
                             //- If it's the crud actions
                             template(v-if="column.type == 0")
-                                .btn-group.d-print-none
+                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})')
                                     .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
                                         i.fa.fa-pencil
                                     template(v-if="can_open_vocus")
