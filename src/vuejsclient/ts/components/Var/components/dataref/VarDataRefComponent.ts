@@ -73,6 +73,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     public add_infos_additional_params: any[];  // tableau des params pour chacun des champs présents dans add_infos
 
     @Prop({ default: false })
+    public show_import: boolean;
+
+    @Prop({ default: false })
     public show_import_aggregated: boolean;
 
     @Prop({ default: false })
