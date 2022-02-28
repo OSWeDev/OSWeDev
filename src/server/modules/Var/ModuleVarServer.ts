@@ -73,7 +73,12 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_getSimpleVarDataCachedValueFromParam = 'Var.getSimpleVarDataCachedValueFromParam';
     public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
+
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
+    public static TASK_NAME_invalidate_cache_exact_and_parents = 'VarsDatasProxy.invalidate_cache_exact_and_parents';
+    public static TASK_NAME_invalidate_cache_intersection_and_parents = 'VarsDatasProxy.invalidate_cache_intersection_and_parents';
+    public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
+    public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
 
     public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
 
@@ -385,6 +390,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
 
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
+
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
 
             /**
@@ -456,35 +466,63 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
-    public async invalidate_imports_for_c(vo: VarDataBaseVO) {
-        // Si on crée une data en import, on doit forcer le recalcul, si on crée en calcul aucun impact
-        if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+    public async invalidate_imports_for_c(vo: VarDataBaseVO): Promise<void> {
 
-            // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-            await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([vo])]);
-            await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
+        return new Promise(async (resolve, reject) => {
 
-            // et mettre à jour la version potentiellement en cache actuellement
-            await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
+                resolve,
+                vo)) {
+                return;
+            }
 
-            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
-        }
+            // Si on crée une data en import, on doit forcer le recalcul, si on crée en calcul aucun impact
+            if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+                // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
+                await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([vo])]);
+                await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
+
+                // et mettre à jour la version potentiellement en cache actuellement
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
+
+                await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
+            }
+            resolve();
+        });
     }
 
-    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>) {
-        // Si on modifier la valeur d'un import, ou si on change le type de valeur, on doit invalider l'arbre
-        if ((vo_update_handler.post_update_vo.value_type != vo_update_handler.pre_update_vo.value_type) ||
-            ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
+    public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>): Promise<void> {
 
-            // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
-            await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
-            await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+        return new Promise(async (resolve, reject) => {
 
-            // et mettre à jour la version potentiellement en cache actuellement
-            await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_invalidate_imports_for_u,
+                resolve,
+                vo_update_handler)) {
+                return;
+            }
 
-            await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
-        }
+            // Si on modifier la valeur d'un import, ou si on change le type de valeur, on doit invalider l'arbre
+            if ((vo_update_handler.post_update_vo.value_type != vo_update_handler.pre_update_vo.value_type) ||
+                ((vo_update_handler.post_update_vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (vo_update_handler.post_update_vo.value != vo_update_handler.pre_update_vo.value))) {
+
+                // Quand on reçoit un import / met à jour un import on doit aussi informer par notif tout le monde
+                await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([vo_update_handler.post_update_vo])]);
+                await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
+
+                // et mettre à jour la version potentiellement en cache actuellement
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
+
+                await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
+            }
+            resolve();
+        });
     }
 
     public async prepare_bdd_index_for_c(vo: VarDataBaseVO) {
@@ -568,78 +606,107 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
-    public async invalidate_cache_exact_and_parents(vos: VarDataBaseVO[]) {
+    public async invalidate_cache_exact_and_parents(vos: VarDataBaseVO[]): Promise<boolean> {
 
-        if ((!vos) || (!vos.length)) {
-            return;
-        }
 
-        vos = vos.filter((vo) => {
-            if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                return false;
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents,
+                resolve,
+                vos)) {
+                return;
             }
-            return true;
-        });
 
-        let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
-        for (let i in vos) {
-            let vo = vos[i];
-
-            if (!vos_by_type_id[vo._type]) {
-                vos_by_type_id[vo._type] = [];
+            if ((!vos) || (!vos.length)) {
+                resolve(true);
+                return;
             }
-            vos_by_type_id[vo._type].push(vo);
-        }
 
-        let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-        for (let api_type_id in vos_by_type_id) {
-            let vos_type = vos_by_type_id[api_type_id];
+            vos = vos.filter((vo) => {
+                if (!vo.check_param_is_valid(vo._type)) {
+                    ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                    return false;
+                }
+                return true;
+            });
 
-            let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
+            let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
+            for (let i in vos) {
+                let vo = vos[i];
 
-            if (bdd_vos && bdd_vos.length) {
+                if (!vos_by_type_id[vo._type]) {
+                    vos_by_type_id[vo._type] = [];
+                }
+                vos_by_type_id[vo._type].push(vo);
+            }
 
-                for (let j in bdd_vos) {
-                    let bdd_vo = bdd_vos[j];
+            let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+            for (let api_type_id in vos_by_type_id) {
+                let vos_type = vos_by_type_id[api_type_id];
 
-                    if (!vos_by_var_id[bdd_vo.var_id]) {
-                        vos_by_var_id[bdd_vo.var_id] = {};
+                let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
+
+                if (bdd_vos && bdd_vos.length) {
+
+                    for (let j in bdd_vos) {
+                        let bdd_vo = bdd_vos[j];
+
+                        if (!vos_by_var_id[bdd_vo.var_id]) {
+                            vos_by_var_id[bdd_vo.var_id] = {};
+                        }
+                        vos_by_var_id[bdd_vo.var_id][bdd_vo.index] = bdd_vo;
                     }
-                    vos_by_var_id[bdd_vo.var_id][bdd_vo.index] = bdd_vo;
                 }
             }
-        }
 
-        await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
+            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
+            resolve(true);
+        });
     }
 
-    public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]) {
+    public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]): Promise<boolean> {
 
-        if ((!vos) || (!vos.length)) {
-            return;
-        }
+        return new Promise(async (resolve, reject) => {
 
-        vos = vos.filter((vo) => {
-            if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                return false;
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents,
+                resolve,
+                vos)) {
+                return;
             }
-            return true;
+
+            if ((!vos) || (!vos.length)) {
+                resolve(true);
+                return;
+            }
+
+            vos = vos.filter((vo) => {
+                if (!vo.check_param_is_valid(vo._type)) {
+                    ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                    return false;
+                }
+                return true;
+            });
+
+            let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+            for (let i in vos) {
+                let vo = vos[i];
+
+                if (!vos_by_var_id[vo.var_id]) {
+                    vos_by_var_id[vo.var_id] = {};
+                }
+                vos_by_var_id[vo.var_id][vo.index] = vo;
+            }
+
+            // invalidate intersected && parents
+            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
+            resolve(true);
         });
-
-        let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-        for (let i in vos) {
-            let vo = vos[i];
-
-            if (!vos_by_var_id[vo.var_id]) {
-                vos_by_var_id[vo.var_id] = {};
-            }
-            vos_by_var_id[vo.var_id][vo.index] = vo;
-        }
-
-        // invalidate intersected && parents
-        await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
     }
 
     /**
