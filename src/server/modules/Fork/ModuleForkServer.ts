@@ -170,7 +170,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 }
                 resolve(res);
             };
-            ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver);
+            ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params);
         });
     }
 
