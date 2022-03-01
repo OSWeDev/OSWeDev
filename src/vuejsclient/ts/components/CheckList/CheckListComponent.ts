@@ -192,11 +192,15 @@ export default class CheckListComponent extends VueComponentBase {
         this.$nextTick(async () => {
             if (!self.modalinit) {
                 self.modalinit = true;
-                $("#checklist_item_modal").on("hidden.bs.modal", function () {
-                    self.$router.push(self.global_route_path + '/' + self.list_id);
+                $("#checklist_item_modal").on("hidden.bs.modal", async () => {
+                    await self.close_modal();
                 });
             }
         });
+    }
+
+    private async close_modal() {
+        this.$router.push(this.global_route_path + '/' + this.list_id);
     }
 
     get has_checklistitems() {
@@ -327,6 +331,10 @@ export default class CheckListComponent extends VueComponentBase {
 
         if (!!self.item_id) {
             self.$nextTick(tryOpenModal);
+        } else {
+            if ($('#checklist_item_modal')) {
+                $('#checklist_item_modal').modal('hide');
+            }
         }
     }
 

@@ -5,14 +5,14 @@
                 .modal-header
                     h4.modal-title {{ selected_checklist_item.name }}
                     a.btn.close(@click="closemodal") &times;
-                
+
                 .modal-body
                     Checklistmodalcomponent(
                         @onchangevo='onchangevo'
                         :checklist_item='selected_checklist_item'
                         :checkpoint='selected_checkpoint'
                         :checklist_controller='checklist_controller'
-                        :ordered_checkpoints='ordered_checkpoints' 
+                        :ordered_checkpoints='ordered_checkpoints'
                         :key='selected_checklist_item.id')
 
                 .modal-footer
