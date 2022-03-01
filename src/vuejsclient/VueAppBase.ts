@@ -28,10 +28,12 @@ import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import LangVO from "../shared/modules/Translation/vos/LangVO";
+import VOsTypesManager from "../shared/modules/VOsTypesManager";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import AlertComponent from './ts/components/alert/AlertComponent';
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
+import DroppableVoFieldsController from "./ts/components/dashboard_builder/droppable_vo_fields/DroppableVoFieldsController";
 import DocumentStore from './ts/components/document_handler/store/DocumentStore';
 import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
 import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
@@ -91,6 +93,15 @@ export default abstract class VueAppBase {
         PushDataVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
+
+        /**
+         * On ajoute tous les types aux DBB
+         */
+        let types = Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
+        DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids = {};
+        types.forEach((type) =>
+            DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
+        );
 
         // On commence par demander tous les droits d'accès des modules
         promises = [];

@@ -1201,6 +1201,38 @@ export default class ContextFilterServerController {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_DATE_INTERSECTS:
+                if ((!active_field_filter.param_tsranges) || (!active_field_filter.param_tsranges.length)) {
+                    throw new Error('Not Implemented');
+                }
+
+                let where_clause_date_intersects = null;
+                active_field_filter.param_tsranges.forEach((tsrange) => {
+                    where_clause_date_intersects = (where_clause_date_intersects ? where_clause_date_intersects + ' OR ' : '');
+                    switch (field.field_type) {
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                            where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field.field_id + "::numrange[]))";
+                            break;
+
+                        case ModuleTableField.FIELD_TYPE_tsrange:
+                            where_clause_date_intersects += '(' + field.field_id + " && '[" + tsrange.min + "," + tsrange.max + ")'::numrange)";
+                            break;
+
+                        case ModuleTableField.FIELD_TYPE_tstz_array:
+                            where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field.field_id + "::numeric[]))";
+                            break;
+
+                        case ModuleTableField.FIELD_TYPE_tstz:
+                            where_clause_date_intersects += '((' + field.field_id + " >= " + tsrange.min + ") and (" + field.field_id + " < " + tsrange.max + '))';
+                            break;
+
+                        default:
+                            throw new Error('Not Implemented');
+                    }
+                });
+                where_conditions.push(where_clause_date_intersects);
+                break;
+
             case ContextFilterVO.TYPE_FILTER_XOR:
             case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
@@ -1212,7 +1244,6 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_HOUR_EQUALS:
             case ContextFilterVO.TYPE_HOUR_INCLUDES:
             case ContextFilterVO.TYPE_HOUR_IS_INCLUDED_IN:
-            case ContextFilterVO.TYPE_DATE_INTERSECTS:
             case ContextFilterVO.TYPE_DATE_INCLUDES:
             case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
@@ -1239,7 +1270,7 @@ export default class ContextFilterServerController {
      *          Si path_i.field.moduletable pas encore aliasé (et donc pas joined)
      *              Ajouter un alias sur le path_i.field.moduletable => m
      *              On doit faire un join path_i.field.moduletable m on m.[path_i.field.field_id] = alias[path_i.field.target_moduletable].id
-     * 
+     *
      * Par ailleurs tout dépend du type de champs qui fait la jointure. sur un ref_ranges il faut utiliser id::numeric <@ ANY(ref_ranges_field)
      */
     public async updates_jointures(

@@ -193,10 +193,14 @@ export default class CheckListComponent extends VueComponentBase {
             if (!self.modalinit) {
                 self.modalinit = true;
                 $("#checklist_item_modal").on("hidden.bs.modal", function () {
-                    self.$router.push(self.global_route_path + '/' + self.list_id);
+                    self.close_modal();
                 });
             }
         });
+    }
+
+    private close_modal() {
+        this.$router.push(this.global_route_path + '/' + this.list_id);
     }
 
     get has_checklistitems() {

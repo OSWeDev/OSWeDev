@@ -46,7 +46,7 @@ include ../../../views/mixins/loading.pug
             .modal-content(v-if="selected_checklist_item")
                 .modal-header
                     h4.modal-title {{ selected_checklist_item.name }}
-                    router-link.btn.close(:to="global_route_path + '/' + list_id") &times;
+                    a.btn.close(data-dismiss="modal" @click='close_modal') &times;
                 
                 .modal-body
                     Checklistmodalcomponent(
@@ -58,5 +58,5 @@ include ../../../views/mixins/loading.pug
                         :key='selected_checklist_item.id')
 
                 .modal-footer
-                    button.btn.btn-danger(type='button', @click="deleteSelectedItem(selected_checklist_item)") {{ label('checklist.checklist_item_modal.delete') }}
-                    router-link.btn.btn-default(:to="global_route_path + '/' + list_id") {{ label('checklist.checklist_item_modal.close') }}
+                    a.btn.btn-danger(data-dismiss="modal" @click='deleteSelectedItem(selected_checklist_item)') {{ label('checklist.checklist_item_modal.delete') }}
+                    a.btn.btn-default(data-dismiss="modal" @click='close_modal') {{ label('checklist.checklist_item_modal.close') }}
