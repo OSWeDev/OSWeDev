@@ -98,6 +98,10 @@ export default class TablePaginationComponent extends VueComponentBase {
         this.page = Math.floor(this.pagination_offset / this.pagination_pagesize) + 1;
         this.new_page = this.page;
         this.max_page = Math.floor(this.pagination_count / this.pagination_pagesize) + 1;
+        if (this.new_page > this.max_page) {
+            this.new_page = this.max_page;
+            this.page = this.new_page;
+        }
     }
 
     private goto_next() {
@@ -106,6 +110,9 @@ export default class TablePaginationComponent extends VueComponentBase {
     }
 
     private goto_previous() {
+        if (this.new_page <= 1) {
+            return;
+        }
         this.new_page--;
         this.throttled_change_offset();
     }

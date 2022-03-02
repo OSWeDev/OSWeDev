@@ -3,8 +3,10 @@ import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
+import ModuleDAO from '../../../../../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
+import ModuleTableField from '../../../../../../../../shared/modules/ModuleTableField';
 import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../../VueComponentBase';
 import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWidgetRefComponent';
@@ -99,6 +101,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.type = TableColumnDescVO.TYPE_component;
         new_column.component_name = this.new_column_select_type_component;
         new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -119,6 +122,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.type = TableColumnDescVO.TYPE_var_ref;
         new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_var_ref].id;
         new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -156,9 +160,61 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.api_type_id = api_type_id;
         new_column.field_id = field_id;
         new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
+    }
+
+    private async switch_readonly() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.readonly = !this.column.readonly;
+        this.$emit('update_column', this.column);
+    }
+
+    /**
+     * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré
+     */
+    get can_be_editable(): boolean {
+        if (!this.column) {
+            return false;
+        }
+
+        if (this.column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+            return false;
+        }
+
+        if (this.column.api_type_id != this.widget_options.crud_api_type_id) {
+            return false;
+        }
+
+        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
+        if (!table) {
+            return false;
+        }
+
+        let field = table.getFieldFromId(this.column.field_id);
+        if (!field) {
+            return false;
+        }
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_boolean:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_string:
+                return true;
+        }
+
+        return false;
     }
 
     get object_column() {

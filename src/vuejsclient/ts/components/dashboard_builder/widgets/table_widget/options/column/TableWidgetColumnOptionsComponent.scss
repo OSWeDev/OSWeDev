@@ -42,6 +42,14 @@
             margin-left: 6px;
         }
 
+        .editable_column {
+            display: inline-block;
+
+            >label {
+                margin: 3px;
+            }
+        }
+
         .column_label {
             display: inline-block;
         }

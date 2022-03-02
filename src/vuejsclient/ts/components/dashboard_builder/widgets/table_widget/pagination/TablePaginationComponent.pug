@@ -16,7 +16,7 @@
                                     .custom-dot {{ value }}
                     .col-md-3
                         .pagination_form
-                            .pagination_arrow.go_back(:class="{disabled : new_page<=1}" @click="goto_previous")
+                            .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
                                 i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
 
                             form(v-on:submit.prevent="change_page_str")

@@ -574,6 +574,23 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_component.id.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrement en cours...'
+        }, 'TableWidgetComponent.onchange_column.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrement terminé'
+        }, 'TableWidgetComponent.onchange_column.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la mise à jour'
+        }, 'TableWidgetComponent.onchange_column.failed.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifiable'
+        }, 'table_widget_column_conf.editable_column.editable.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Lecture seule'
+        }, 'table_widget_column_conf.editable_column.readonly.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Composants'
         }, 'table_widget_column.new_column_select_type_component.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

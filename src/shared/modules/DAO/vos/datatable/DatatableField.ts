@@ -92,6 +92,7 @@ export default abstract class DatatableField<T, U> {
     public sieve: (vos: IDistantVOBase[]) => IDistantVOBase[];
     public sieveCondition: (e: any) => boolean;
 
+    public semaphore_auto_update_datatable_field_uid_with_vo_type: boolean = false;
 
     /**
      *
@@ -105,6 +106,14 @@ export default abstract class DatatableField<T, U> {
         this.onChange = null;
         this.onEndOfChange = null;
         this.isVisibleUpdateOrCreate = () => true;
+    }
+
+    public auto_update_datatable_field_uid_with_vo_type() {
+        if (!this.semaphore_auto_update_datatable_field_uid_with_vo_type) {
+            this.semaphore_auto_update_datatable_field_uid_with_vo_type = true;
+            this.datatable_field_uid = this.moduleTable.vo_type + '___' + this.datatable_field_uid;
+        }
+        return this;
     }
 
     public hide(): DatatableField<T, U> {

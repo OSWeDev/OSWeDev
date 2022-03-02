@@ -183,6 +183,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
                 crud_actions_column.weight = -1;
                 crud_actions_column.id = this.get_new_column_id();
+                crud_actions_column.readonly = true;
                 await this.add_column(crud_actions_column);
                 return;
             } else if (!!this.crud_api_type_id_selected) {
@@ -211,6 +212,31 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
         this.next_update_options = this.widget_options;
         this.next_update_options.columns = this.columns;
+        await this.throttled_update_options();
+    }
+
+    private async update_column(update_column: TableColumnDescVO) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            return null;
+        }
+
+        if (!this.next_update_options.columns) {
+            return null;
+        }
+
+        let i = this.next_update_options.columns.findIndex((column) => {
+            return column.id == update_column.id;
+        });
+
+        if (i < 0) {
+            ConsoleHandler.getInstance().error('update_column failed');
+            return null;
+        }
+
+        this.next_update_options.columns[i] = update_column;
+
         await this.throttled_update_options();
     }
 
@@ -290,6 +316,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             // patch rétrocompatibilité
             if (!options.columns[i].page_widget_id) {
                 options.columns[i].page_widget_id = this.page_widget.id;
+            }
+            if (options.columns[i].readonly == null) {
+                options.columns[i].readonly = true;
             }
 
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));

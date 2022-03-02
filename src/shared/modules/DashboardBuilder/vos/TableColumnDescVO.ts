@@ -52,6 +52,10 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public api_type_id: string;
     public field_id: string;
 
+    get datatable_field_uid() {
+        return this.api_type_id + '___' + this.field_id;
+    }
+
     /**
      * Si TYPE_component
      */
@@ -69,4 +73,6 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public filter_additional_params: string;
 
     public weight: number;
+
+    public readonly: boolean;
 }

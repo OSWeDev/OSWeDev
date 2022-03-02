@@ -180,6 +180,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             label_col.page_widget_id = this.page_widget.id;
             label_col.type = TableColumnDescVO.TYPE_vo_field_ref;
             label_col.id = 1;
+            label_col.readonly = true;
             res.push(label_col);
         }
 
@@ -189,6 +190,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         selected_col.page_widget_id = this.page_widget.id;
         selected_col.type = TableColumnDescVO.TYPE_vo_field_ref;
         selected_col.id = 2;
+        selected_col.readonly = true;
         res.push(selected_col);
 
         return res;
@@ -212,7 +214,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             if (data_field['set_translatable_title']) {
                 data_field['set_translatable_title'](this.moduletable.default_label_field.field_label.code_text);
             }
-            data_field.setModuleTable(this.moduletable);
+            data_field.setModuleTable(this.moduletable).auto_update_datatable_field_uid_with_vo_type();
             res[1] = data_field;
         }
 
@@ -224,7 +226,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         if (data_field['set_translatable_title']) {
             data_field['set_translatable_title'](field.field_label.code_text);
         }
-        data_field.setModuleTable(this.moduletable);
+        data_field.setModuleTable(this.moduletable).auto_update_datatable_field_uid_with_vo_type();
         res[2] = data_field;
 
         return res;

@@ -66,3 +66,11 @@
             .remove_column(@click="remove_column")
                 i.fa.fa-trash.fa-fw(aria-hidden="true")
 
+            .editable_column(v-if='can_be_editable')
+                toggle-button(
+                    @change="switch_readonly" 
+                    :value="!column.readonly" 
+                    :sync="true"
+                    :width="100"
+                    :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
+

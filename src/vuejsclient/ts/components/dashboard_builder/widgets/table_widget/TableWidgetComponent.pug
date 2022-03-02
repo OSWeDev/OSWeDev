@@ -72,13 +72,21 @@ include ../../../../../views/mixins/loading.pug
                             //- If it's a component
                             //-  or any other type of fields
                             template(v-else)
-                                Datatablecomponentfield(
-                                    :field="fields[column.id]"
-                                    :vo="row"
-                                    :columns="columns"
-                                )
-
-
+                                template(v-if='column.readonly')
+                                    Datatablecomponentfield(
+                                        :field="fields[column.id]"
+                                        :vo="row"
+                                        :columns="columns"
+                                    )
+                                template(v-else)
+                                    Crudcomponentfield(
+                                        @onchangevo='onchange_column'
+                                        :field="fields[column.id]"
+                                        :vo="row"
+                                        :inline_input_mode='true'
+                                        :inline_input_read_value="row[column.datatable_field_uid]"
+                                        :key='"crudcomponentfield_" + column.datatable_field_uid'
+                                    )
 
             .lower_pagination 
                 Tablepaginationcomponent(

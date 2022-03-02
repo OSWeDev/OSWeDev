@@ -316,8 +316,11 @@ export default class DatatableRowController {
 
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;
+                    let module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
+                        simpleField.moduleTableField.field_id;
 
-                    let value = field.dataToReadIHM(raw_data[simpleField.moduleTableField.field_id], raw_data);
+                    let value = field.dataToReadIHM(raw_data[module_table_field_id], raw_data);
                     // Limite à 300 cars si c'est du html et strip html
                     if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
 
@@ -389,11 +392,15 @@ export default class DatatableRowController {
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
 
+                    let src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        manyToOneField.srcField.module_table.vo_type + '___' + manyToOneField.srcField.field_id :
+                        manyToOneField.srcField.field_id;
+
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
-                    if (!!raw_data[manyToOneField.srcField.field_id]) {
-                        let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToOneField.targetModuleTable.vo_type, raw_data[manyToOneField.srcField.field_id]);
+                    if (!!raw_data[src_module_table_field_id]) {
+                        let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToOneField.targetModuleTable.vo_type, raw_data[src_module_table_field_id]);
                         resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                        resData[field.datatable_field_uid + "___id___"] = raw_data[manyToOneField.srcField.field_id];
+                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                     }
                     break;
@@ -464,7 +471,11 @@ export default class DatatableRowController {
 
                     resData[field.datatable_field_uid] = [];
 
-                    await RangeHandler.getInstance().foreach_ranges_batch_await(raw_data[refField.srcField.field_id], async (id: number) => {
+                    let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id :
+                        refField.srcField.field_id;
+
+                    await RangeHandler.getInstance().foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
                         let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(refField.targetModuleTable.vo_type, id);
                         resData[field.datatable_field_uid].push({
                             id: id,

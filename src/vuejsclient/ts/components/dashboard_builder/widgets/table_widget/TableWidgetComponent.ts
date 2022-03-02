@@ -1,8 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import TableColumnDescriptor from '../../../../../../server/modules/TableColumnDescriptor';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import APIControllerWrapper from '../../../../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -13,6 +11,7 @@ import CRUDActionsDatatableField from '../../../../../../shared/modules/DAO/vos/
 import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -30,7 +29,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import ClientAPIController from '../../../../modules/API/ClientAPIController';
+import CRUDComponentField from '../../../crud/component/field/CRUDComponentField';
 import CRUDComponentManager from '../../../crud/CRUDComponentManager';
 import DatatableRowController from '../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
@@ -274,12 +273,69 @@ export default class TableWidgetComponent extends VueComponentBase {
             if (!options.columns[i].page_widget_id) {
                 options.columns[i].page_widget_id = this.page_widget.id;
             }
+            if (options.columns[i].readonly == null) {
+                options.columns[i].readonly = true;
+            }
 
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
         }
         WeightHandler.getInstance().sortByWeight(res);
 
         return res;
+    }
+
+    private async onchange_column(
+        row: IDistantVOBase,
+        field: DatatableField<any, any>,
+        value: any,
+        crudComponentField: CRUDComponentField) {
+
+        let self = this;
+        self.snotify.async(self.label('TableWidgetComponent.onchange_column.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+
+                    // on récupère l'id de l'objet à modifier
+                    // comme on force sur le crud_api_type_id, on peut juste récupérer cet id
+                    let vo_id = row['__crud_actions'];
+                    let vo = await ModuleDAO.getInstance().getVoById(field.moduleTable.vo_type, vo_id);
+
+                    switch (field.type) {
+                        case DatatableField.SIMPLE_FIELD_TYPE:
+                            let simpleField = (field as SimpleDatatableField<any, any>);
+                            vo[simpleField.module_table_field_id] = value;
+                            await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                            break;
+                        default:
+                            throw new Error('Not Implemented');
+                    }
+
+                    resolve({
+                        body: self.label('TableWidgetComponent.onchange_column.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    reject({
+                        body: self.label('TableWidgetComponent.onchange_column.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                    self.throttled_update_visible_options();
+                }
+            })
+        );
     }
 
     get fields(): { [column_id: number]: DatatableField<any, any> } {
@@ -296,10 +352,12 @@ export default class TableWidgetComponent extends VueComponentBase {
 
             switch (column.type) {
                 case TableColumnDescVO.TYPE_component:
-                    res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name];
+                    res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
-                    let var_data_field: VarDatatableField<any, any> = new VarDatatableField(column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params, this.dashboard.id, column.translatable_name_code_text);
+                    let var_data_field: VarDatatableField<any, any> = new VarDatatableField(
+                        column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
+                        this.dashboard.id, column.translatable_name_code_text).auto_update_datatable_field_uid_with_vo_type();
                     res[column.id] = var_data_field;
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
@@ -320,7 +378,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                                 data_field['set_translatable_title'](field.field_label.code_text);
                             }
 
-                            data_field.setModuleTable(moduleTable);
+                            data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
                             res[column.id] = data_field;
                             break;
                     }
