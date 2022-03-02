@@ -8,4 +8,6 @@ export default class CheckListVO implements ICheckList {
 
     public name: string;
     public limit_affichage: number;
+    public hide_item_description: boolean;
+
 }

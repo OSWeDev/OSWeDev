@@ -1,7 +1,11 @@
 .checklist_modal
-    .modal-body        
+    .modal-header(v-if="checkpoint")
+        h4.modal-title {{ label(checkpoint.name) }}
+        p.modal_desc {{ label(checkpoint.explaination) }}
+
+    .modal-body
         template(v-if='editable_fields && editable_fields.length')
-            template(v-for='editable_field in editable_fields')       
+            template(v-for='editable_field in editable_fields')
                 Crudcomponentfield(
                     @onchangevo='onchangevo'
                     :field="editable_field"

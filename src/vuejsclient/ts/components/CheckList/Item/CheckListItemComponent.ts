@@ -31,6 +31,9 @@ export default class CheckListItemComponent extends VueComponentBase {
     @Prop({ default: null })
     private ordered_checkpoints: ICheckPoint[];
 
+    @Prop({ default: null })
+    private hide_item_description: boolean;
+
     private infos_cols_content: string[] = [];
     private state_steps: { [step_name: string]: number } = {};
     private debounced_update_state_step = debounce(this.update_state_step.bind(this), 100);
@@ -93,6 +96,10 @@ export default class CheckListItemComponent extends VueComponentBase {
     get item_description(): string {
 
         if (!this.checklist_item) {
+            return null;
+        }
+
+        if (!!this.hide_item_description) {
             return null;
         }
 

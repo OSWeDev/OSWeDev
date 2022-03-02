@@ -21,13 +21,14 @@ include ../../../views/mixins/loading.pug
                             th
                             th(v-for='label in infos_cols_labels') {{ t(label) }}
                             th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
-                            th  {{ label('checklist.archive') }}
+                            th.archive_item_title  {{ label('checklist.archive') }}
                     tbody
                         tr(v-for='checklist_item in ordered_checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
                             :checklist_item='checklist_item'
                             :checklist_controller='checklist_controller'
                             :ordered_checkpoints='ordered_checkpoints'
                             :global_route_path='global_route_path'
+                            :hide_item_description='checklist.hide_item_description'
                             @onchangevo='onchangevo')
 
         .row(v-else-if='has_checklistitems && ordered_checklistitems && (ordered_checklistitems.length > 15)')
