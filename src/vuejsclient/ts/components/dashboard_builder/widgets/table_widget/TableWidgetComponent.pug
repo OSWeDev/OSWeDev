@@ -51,7 +51,10 @@ include ../../../../../views/mixins/loading.pug
                         Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
                 tbody
                     tr.table_row(v-for='row in data_rows')
-                        td.table_col(v-for='column in columns' :class='"type_" + column.type')
+                        td.table_col(
+                            v-for='column in columns' 
+                            :class='"type_" + column.type' 
+                            )
                             
                             //- If it's a select box
                             template(v-if="column.type == 3")
@@ -77,15 +80,17 @@ include ../../../../../views/mixins/loading.pug
                                         :field="fields[column.id]"
                                         :vo="row"
                                         :columns="columns"
+                                        :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                     )
                                 template(v-else)
                                     Crudcomponentfield(
                                         @onchangevo='onchange_column'
                                         :field="fields[column.id]"
                                         :vo="row"
+                                        :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                         :inline_input_mode='true'
-                                        :inline_input_read_value="row[column.datatable_field_uid]"
-                                        :key='"crudcomponentfield_" + column.datatable_field_uid'
+                                        :inline_input_read_value="row['raw__' + column.datatable_field_uid]"
+                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
                                     )
 
             .lower_pagination 

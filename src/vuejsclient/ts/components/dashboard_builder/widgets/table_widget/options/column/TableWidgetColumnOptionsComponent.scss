@@ -44,9 +44,21 @@
 
         .editable_column {
             display: inline-block;
+            margin-left: 1.8rem;
 
             >label {
                 margin: 3px;
+            }
+        }
+
+        .column_width {
+            display: inline-block;
+            
+            >input[type="number"] {
+                width: 3rem;
+                margin: 3px;
+                border: solid 1px #BBB;
+                border-radius: 2px;
             }
         }
 

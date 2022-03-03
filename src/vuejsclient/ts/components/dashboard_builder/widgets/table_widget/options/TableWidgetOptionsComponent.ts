@@ -184,6 +184,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.weight = -1;
                 crud_actions_column.id = this.get_new_column_id();
                 crud_actions_column.readonly = true;
+                crud_actions_column.column_width = 0;
                 await this.add_column(crud_actions_column);
                 return;
             } else if (!!this.crud_api_type_id_selected) {
@@ -319,6 +320,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
             if (options.columns[i].readonly == null) {
                 options.columns[i].readonly = true;
+            }
+            if (options.columns[i].column_width == null) {
+                options.columns[i].column_width = 0;
             }
 
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));

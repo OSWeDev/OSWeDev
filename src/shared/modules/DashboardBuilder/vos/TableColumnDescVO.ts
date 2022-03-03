@@ -46,6 +46,8 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
 
     public type: number;
 
+    public column_width: number;
+
     /**
      * Si TYPE_vo_field_ref
      */

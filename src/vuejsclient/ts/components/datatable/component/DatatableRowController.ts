@@ -304,7 +304,8 @@ export default class DatatableRowController {
 
     public async get_datatable_row_field_data_async(
         raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>,
-        prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } }): Promise<any> {
+        prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } }
+    ): Promise<any> {
 
         try {
 

@@ -584,6 +584,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.onchange_column.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Largeur du contenu de la colonne, en rem'
+        }, 'table_widget_column_conf.column_width.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifiable'
         }, 'table_widget_column_conf.editable_column.editable.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

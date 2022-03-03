@@ -13,6 +13,7 @@ import VoFieldWidgetRefComponent from '../../../../vo_field_widget_ref/VoFieldWi
 import './TableWidgetColumnOptionsComponent.scss';
 import TableWidgetOptions from '../TableWidgetOptions';
 import TableWidgetController from '../../TableWidgetController';
+import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -34,6 +35,29 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private new_column_select_type_component: string = null;
     private new_column_select_type_var_ref: string = null;
+
+    private column_width: number = 0;
+    private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width, 800, { leading: false, trailing: true });
+
+    @Watch('column', { immediate: true })
+    private onchange_column() {
+        this.column_width = this.column ? this.column.column_width : 0;
+    }
+
+    @Watch('column_width', { immediate: true })
+    private onchange_column_width() {
+        this.throttled_update_column_width();
+    }
+
+    private async update_column_width() {
+
+        if (this.column && (this.column_width != this.column.column_width)) {
+            this.column.column_width = this.column_width;
+            this.$emit('update_column', this.column);
+        }
+    }
+
+
 
     get vars_options(): string[] {
         return Object.keys(VarsController.getInstance().var_conf_by_name);
@@ -102,6 +126,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.component_name = this.new_column_select_type_component;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
+        new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -123,6 +148,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_var_ref].id;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
+        new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -161,6 +187,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.field_id = field_id;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
+        new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);

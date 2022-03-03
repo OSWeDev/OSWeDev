@@ -181,6 +181,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             label_col.type = TableColumnDescVO.TYPE_vo_field_ref;
             label_col.id = 1;
             label_col.readonly = true;
+            label_col.column_width = 0;
             res.push(label_col);
         }
 
@@ -191,6 +192,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         selected_col.type = TableColumnDescVO.TYPE_vo_field_ref;
         selected_col.id = 2;
         selected_col.readonly = true;
+        selected_col.column_width = 0;
         res.push(selected_col);
 
         return res;

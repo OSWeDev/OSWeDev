@@ -259,6 +259,17 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
     }
 
+    get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
+        let res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+
+            res[column.datatable_field_uid] = column;
+        }
+        return res;
+    }
+
     get columns(): TableColumnDescVO[] {
         let options: TableWidgetOptions = this.widget_options;
 
@@ -275,6 +286,9 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
             if (options.columns[i].readonly == null) {
                 options.columns[i].readonly = true;
+            }
+            if (options.columns[i].column_width == null) {
+                options.columns[i].column_width = 0;
             }
 
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
@@ -494,7 +508,12 @@ export default class TableWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                promises.push(DatatableRowController.getInstance().get_datatable_row_field_data_async(row, resData, field, null));
+                // si on est en édition on laisse la data raw
+                if ((!this.columns_by_field_id[field.datatable_field_uid]) || this.columns_by_field_id[field.datatable_field_uid].readonly) {
+                    promises.push(DatatableRowController.getInstance().get_datatable_row_field_data_async(row, resData, field, null));
+                } else {
+                    resData[field.datatable_field_uid] = row[field.datatable_field_uid];
+                }
             }
             data_rows.push(resData);
         }

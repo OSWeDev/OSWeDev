@@ -1,6 +1,9 @@
 include ../../../../../views/mixins/loading.pug
 
-.field(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(vo))", :field="field.datatable_field_uid", :field_type="field_type" v-tooltip.left='label(field.tooltip)', :class="{'special_placeholder_field': special_placeholder, 'has_value': (field_value && (field_value.length > 0 || (field_value.toString().length > 0)))}")
+.field(
+    v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id) || (field.semaphore_auto_update_datatable_field_uid_with_vo_type && (field.datatable_field_uid == (field.moduleTable.vo_type + '___' + field.module_table_field_id)))) && (field.isVisibleUpdateOrCreate(vo))"
+    :field="field.datatable_field_uid", :field_type="field_type" v-tooltip.left='label(field.tooltip)'
+    :class="{'special_placeholder_field': special_placeholder, 'has_value': (field_value && (field_value.length > 0 || (field_value.toString().length > 0)))}")
     template(v-show='!isLoadingOptions')
         template(v-show="!field.hidden")
 

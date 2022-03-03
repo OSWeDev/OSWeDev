@@ -66,6 +66,9 @@
             .remove_column(@click="remove_column")
                 i.fa.fa-trash.fa-fw(aria-hidden="true")
 
+            .column_width
+                input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
+
             .editable_column(v-if='can_be_editable')
                 toggle-button(
                     @change="switch_readonly" 
