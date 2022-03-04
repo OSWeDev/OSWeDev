@@ -122,7 +122,8 @@ export default abstract class ModuleCheckListBase extends Module {
             new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
             new ModuleTableField('item_field_ids', ModuleTableField.FIELD_TYPE_string_array, 'Champs', false),
             checklist_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('item_fields_tooltip', ModuleTableField.FIELD_TYPE_string, 'item_fields_tooltip', false),
         );
 
         let datatable = new ModuleTable(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");

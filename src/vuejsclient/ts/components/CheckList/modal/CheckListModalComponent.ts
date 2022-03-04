@@ -69,7 +69,11 @@ export default class CheckListModalComponent extends VueComponentBase {
             let editable_field = this.all_editable_fields[i];
 
             if (this.checkpoint.item_field_ids.indexOf(editable_field.module_table_field_id) >= 0) {
+                if (this.checkpoint.item_fields_tooltip) {
+                    res.push(editable_field.set_tooltip(this.checkpoint.item_fields_tooltip + '.tooltip.' + editable_field.datatable_field_uid));
+                }
                 res.push(editable_field);
+
             }
         }
         return res;
