@@ -46,8 +46,8 @@ include ../../../views/mixins/loading.pug
         .modal-dialog.modal-lg(role='document')
             .modal-content(v-if="selected_checklist_item")
                 .modal-header
-                    h4.modal-title {{ selected_checklist_item.name }}
                     a.btn.close(data-dismiss="modal" @click='close_modal') &times;
+                    h4.modal-title {{ selected_checklist_item.name }}
 
                 .modal-body
                     Checklistmodalcomponent(
