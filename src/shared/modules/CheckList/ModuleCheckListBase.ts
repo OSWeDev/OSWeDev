@@ -61,6 +61,7 @@ export default abstract class ModuleCheckListBase extends Module {
             label_field,
             new ModuleTableField('limit_affichage', ModuleTableField.FIELD_TYPE_int, 'Nb. limite affichage', false),
             new ModuleTableField('hide_item_description', ModuleTableField.FIELD_TYPE_boolean, "cacher la desc. de l'item", false, true, false),
+            new ModuleTableField('show_legend', ModuleTableField.FIELD_TYPE_boolean, "afficher la légende", false, true, false),
         );
 
         let datatable = new ModuleTable(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");

@@ -68,6 +68,22 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Aucun champs lié à cette étape'
         }, 'checklist_modal.no_fields.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "inactif"
+        }, 'checklist.legend.checkpoint.state.disabled.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "à faire"
+        }, 'checklist.legend.checkpoint.state.todo.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "erreur"
+        }, 'checklist.legend.checkpoint.state.error.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "alerte"
+        }, 'checklist.legend.checkpoint.state.warn.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "ok"
+        }, 'checklist.legend.checkpoint.state.ok.___LABEL___'));
     }
 
     /**
