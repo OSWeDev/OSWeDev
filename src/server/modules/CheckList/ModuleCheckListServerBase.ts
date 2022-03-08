@@ -84,6 +84,9 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "ok"
         }, 'checklist.legend.checkpoint.state.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Légende :"
+        }, 'checklist.legend.checkpoint.state.legend.___LABEL___'));
     }
 
     /**
