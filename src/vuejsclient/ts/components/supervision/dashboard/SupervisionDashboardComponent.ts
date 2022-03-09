@@ -9,6 +9,7 @@ import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
+import SupervisedItemComponent from '../item/SupervisedItemComponent';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
 import './SupervisionDashboardComponent.scss';
@@ -19,13 +20,20 @@ import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWi
     template: require('./SupervisionDashboardComponent.pug'),
     components: {
         Supervisiondashboardwidgetcomponent: SupervisionDashboardWidgetComponent,
-        Supervisiondashboarditemcomponent: SupervisionDashboardItemComponent
+        Supervisiondashboarditemcomponent: SupervisionDashboardItemComponent,
+        Superviseditemcomponent: SupervisedItemComponent
     }
 })
 export default class SupervisionDashboardComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_key: string;
+
+    @Prop({ default: false })
+    private hide_supervised_item_graph: boolean;
+
+    @Prop({ default: false })
+    private display_item_in_same_p: boolean;
 
     @ModuleSupervisionGetter
     private get_show_errors: boolean;
@@ -41,6 +49,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private get_show_pauseds: boolean;
     @ModuleSupervisionGetter
     private get_show_unknowns: boolean;
+    @ModuleSupervisionGetter
+    private get_selected_item: ISupervisedItem;
 
     /** liste des sondes */
     private supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
@@ -61,6 +71,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private nb_warns_read: number = 0;
     private nb_unknowns: number = 0;
     private ordered_supervised_items: ISupervisedItem[] = null;
+
+    private filter_text: string = null;
 
     private debounced_on_change_show = debounce(this.debounce_on_change_show, 300);
 
@@ -85,13 +97,17 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.debounced_on_change_show();
     }
 
+    @Watch('filter_text')
+    private on_change_filter_text() {
+        this.debounced_on_change_show();
+    }
+
     /**
      * Rafraichit compteurs et liste des sondes.
-     * @see {@link SupervisionDashboardComponent.set_nb_elems set_nb_elems}
      * @see {@link SupervisionDashboardComponent.set_ordered_supervised_items set_ordered_supervised_items}
      */
     private debounce_on_change_show() {
-        this.set_nb_elems();
+        // this.set_nb_elems();
         this.set_ordered_supervised_items();
     }
 
@@ -208,10 +224,66 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.debounced_on_change_show();
     }
 
+    // /**
+    //  * refait le compte pour le compteur des états
+    //  */
+    // private set_nb_elems() {
+    //     this.nb_errors = 0;
+    //     this.nb_warns = 0;
+    //     this.nb_oks = 0;
+    //     this.nb_pauses = 0;
+    //     this.nb_errors_read = 0;
+    //     this.nb_warns_read = 0;
+    //     this.nb_unknowns = 0;
+
+    //     for (let i in this.supervised_items_by_names) {
+    //         let supervised_item = this.supervised_items_by_names[i];
+
+    //         // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
+    //         if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
+    //             continue;
+    //         }
+
+    //         // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
+    //         if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
+    //             continue;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_ERROR) {
+    //             this.nb_errors++;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_WARN) {
+    //             this.nb_warns++;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_OK) {
+    //             this.nb_oks++;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_PAUSED) {
+    //             this.nb_pauses++;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_ERROR_READ) {
+    //             this.nb_errors_read++;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_WARN_READ) {
+    //             this.nb_warns_read++;
+    //         }
+
+    //         if (supervised_item.state == SupervisionController.STATE_UNKOWN) {
+    //             this.nb_unknowns++;
+    //         }
+    //     }
+    // }
+
     /**
-     * refait le compte pour le compteur des états
+     * dresse la liste des sondes en la triant par état
      */
-    private set_nb_elems() {
+    private set_ordered_supervised_items() {
+        let res: ISupervisedItem[] = [];
         this.nb_errors = 0;
         this.nb_warns = 0;
         this.nb_oks = 0;
@@ -220,6 +292,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.nb_warns_read = 0;
         this.nb_unknowns = 0;
 
+        let filter_text_: string = this.filter_text ? this.filter_text.toLowerCase() : null;
+
         for (let i in this.supervised_items_by_names) {
             let supervised_item = this.supervised_items_by_names[i];
 
@@ -233,97 +307,46 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
                 continue;
             }
 
-            if (supervised_item.state == SupervisionController.STATE_ERROR) {
-                this.nb_errors++;
+            /** pour filtrer les ligne selon le nom */
+            if (filter_text_ && supervised_item.name.toLowerCase().indexOf(filter_text_) < 0) {
+                continue;
             }
 
-            if (supervised_item.state == SupervisionController.STATE_WARN) {
-                this.nb_warns++;
-            }
-
-            if (supervised_item.state == SupervisionController.STATE_OK) {
-                this.nb_oks++;
-            }
-
-            if (supervised_item.state == SupervisionController.STATE_PAUSED) {
-                this.nb_pauses++;
-            }
-
-            if (supervised_item.state == SupervisionController.STATE_ERROR_READ) {
-                this.nb_errors_read++;
-            }
-
-            if (supervised_item.state == SupervisionController.STATE_WARN_READ) {
-                this.nb_warns_read++;
-            }
-
-            if (supervised_item.state == SupervisionController.STATE_UNKOWN) {
-                this.nb_unknowns++;
-            }
-        }
-    }
-
-    /**
-     * dresse la liste des sondes en la triant par état
-     */
-    private set_ordered_supervised_items() {
-        let res: ISupervisedItem[] = [];
-
-        for (let i in this.supervised_items_by_names) {
-            let supervised_item = this.supervised_items_by_names[i];
+            /** pour filtrer en fonction de la catégorie et du type de sonde selectionné */
+            let is_in_state_filter: boolean = true;
 
             switch (supervised_item.state) {
                 case SupervisionController.STATE_ERROR:
-                    if (!this.get_show_errors) {
-                        continue;
-                    }
+                    this.nb_errors++;
+                    is_in_state_filter = !!this.get_show_errors;
                     break;
                 case SupervisionController.STATE_ERROR_READ:
-                    if (!this.get_show_errors_read) {
-                        continue;
-                    }
+                    this.nb_errors_read++;
+                    is_in_state_filter = !!this.get_show_errors_read;
                     break;
                 case SupervisionController.STATE_OK:
-                    if (!this.get_show_oks) {
-                        continue;
-                    }
+                    this.nb_oks++;
+                    is_in_state_filter = !!this.get_show_oks;
                     break;
                 case SupervisionController.STATE_PAUSED:
-                    if (!this.get_show_pauseds) {
-                        continue;
-                    }
+                    this.nb_pauses++;
+                    is_in_state_filter = !!this.get_show_pauseds;
                     break;
                 case SupervisionController.STATE_UNKOWN:
-                    if (!this.get_show_unknowns) {
-                        continue;
-                    }
+                    this.nb_unknowns++;
+                    is_in_state_filter = !!this.get_show_unknowns;
                     break;
                 case SupervisionController.STATE_WARN:
-                    if (!this.get_show_warns) {
-                        continue;
-                    }
+                    this.nb_warns++;
+                    is_in_state_filter = !!this.get_show_warns;
                     break;
                 case SupervisionController.STATE_WARN_READ:
-                    if (!this.get_show_warns_read) {
-                        continue;
-                    }
+                    this.nb_warns_read++;
+                    is_in_state_filter = !!this.get_show_warns_read;
                     break;
             }
 
-            /** pour filtrer en fonction de la catégorie et du type de sonde selectioné */
-            let is_ok: boolean = true;
-
-            // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-            if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-                is_ok = false;
-            }
-
-            // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-            if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-                is_ok = false;
-            }
-
-            if (is_ok) {
+            if (is_in_state_filter) {
                 res.push(supervised_item);
             }
         }

@@ -9,7 +9,8 @@
     cursor: pointer;
     padding: 0.5em 0em;
 
-    &:hover{
+    &:hover,
+    &.noclick{
         opacity: 1;
     }
 

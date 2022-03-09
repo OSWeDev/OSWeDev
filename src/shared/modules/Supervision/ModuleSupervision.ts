@@ -14,6 +14,7 @@ export default class ModuleSupervision extends Module {
 
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleSupervision.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSupervision.MODULE_NAME + ".FO_ACCESS";
 
     public static APINAME_execute_manually: string = 'execute_manually';
     public static APINAME_refresh_one_manually: string = 'refresh_one_manually';

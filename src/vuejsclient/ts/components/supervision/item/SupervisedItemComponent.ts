@@ -31,6 +31,12 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop()
     private supervised_item_vo_type: string;
 
+    @Prop({ default: false })
+    private hide_supervised_item_graph: boolean;
+
+    @Prop({ default: false })
+    private display_item_in_same_p: boolean;
+
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);
     private continue_reloading: boolean = true;

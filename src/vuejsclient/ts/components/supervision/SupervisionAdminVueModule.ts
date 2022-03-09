@@ -78,20 +78,24 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
 
 
         //initializing dashboard
-        let main_route_name: string = 'SupervisionDashboard';
+        // let main_route_name: string = 'SupervisionDashboard';
         this.routes.push({
             path: "/supervision/dashboard",
-            name: main_route_name,
+            name: SupervisionController.ROUTE_NAME_DASHBOARD,
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
+            props: () => ({
+                hide_supervised_item_graph: false,
+                display_item_in_same_p: false,
+            }),
         });
 
         let menuPointer = MenuElementVO.create_new(
             ModuleSupervision.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
-            'SupervisionDashboard',
+            SupervisionController.ROUTE_NAME_DASHBOARD,
             "fa-tachometer",
             10,
-            main_route_name,
+            SupervisionController.ROUTE_NAME_DASHBOARD,
             true,
             this.menuBranch.id
         );
@@ -103,7 +107,9 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './item/SupervisedItemComponent'),
             props: (route) => ({
                 supervised_item_id: parseInt(route.params.id),
-                supervised_item_vo_type: route.params.vo_type
+                supervised_item_vo_type: route.params.vo_type,
+                hide_supervised_item_graph: false,
+                display_item_in_same_p: false,
             }),
         });
 

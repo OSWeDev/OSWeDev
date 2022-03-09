@@ -9,7 +9,7 @@
 
                 template(v-for="category in categorys")
                     .btn.btn-secondary.mr-3.mb-1(@click="selectCategory(category)", :class="{'btn-success': ((selected_category) && (selected_category.id == category.id))}") {{ category.name }}
-    
+
     //- deuxième bandeau des types de sondes
     template(v-if="(filtered_api_type_ids) && (filtered_api_type_ids.length) && (filtered_api_type_ids.length > 1)")
         .row.mb-3
@@ -21,46 +21,58 @@
                 template(v-for="api_type_id in filtered_api_type_ids")
                     .btn.btn-secondary.mr-3.mb-1(@click="selectApiTypeId(api_type_id)", :class="{'btn-success': ((selected_api_type_id) && (selected_api_type_id == api_type_id))}") {{ label('supervision.dashboard.' + api_type_id) }}
 
+    //- champs de recherche
+    .row.mb-3
+        .col-md-12
+            input(type='text' :placeholder='label("supervision.filter_text")' v-model="filter_text")
+
     //- bandeau des compteurs pour chaque états
     .row
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_ERROR"
                 :nb_elts="nb_errors"
             )
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_ERROR_READ"
                 :nb_elts="nb_errors_read"
             )
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_WARN"
                 :nb_elts="nb_warns"
             )
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_WARN_READ"
                 :nb_elts="nb_warns_read"
             )
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_OK"
                 :nb_elts="nb_oks"
             )
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_PAUSED"
                 :nb_elts="nb_pauses"
             )
-        .col-md-1
+        .col-sm-1
             Supervisiondashboardwidgetcomponent(
                 state_classname="STATE_UNKOWN"
                 :nb_elts="nb_unknowns"
             )
 
     //- liste des sondes
-    template(v-for='supervised_item in ordered_supervised_items')
-        .row
-            .col-md-7
-                Supervisiondashboarditemcomponent(:item='supervised_item')
+    .row
+        .col-sm-7
+            template(v-for='supervised_item in ordered_supervised_items')
+                Supervisiondashboarditemcomponent(:item='supervised_item' :display_item_in_same_p='display_item_in_same_p')
+
+        .col-sm-5(v-if="display_item_in_same_p && get_selected_item")
+            Superviseditemcomponent(
+                :supervised_item_id='get_selected_item.id'
+                :supervised_item_vo_type='get_selected_item._type'
+                :hide_supervised_item_graph='hide_supervised_item_graph'
+                :display_item_in_same_p='display_item_in_same_p')

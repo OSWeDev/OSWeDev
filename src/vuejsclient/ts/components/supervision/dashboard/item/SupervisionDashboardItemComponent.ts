@@ -6,6 +6,7 @@ import ISupervisedItem from '../../../../../../shared/modules/Supervision/interf
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
+import { ModuleSupervisionAction } from '../SupervisionDashboardStore';
 import './SupervisionDashboardItemComponent.scss';
 
 @Component({
@@ -14,11 +15,17 @@ import './SupervisionDashboardItemComponent.scss';
 })
 export default class SupervisionDashboardItemComponent extends VueComponentBase {
 
+    @ModuleSupervisionAction
+    private set_selected_item: (selected_item: ISupervisedItem) => void;
+
     @Prop()
     private item: ISupervisedItem;
 
     @Prop({ default: false })
     private noclick: boolean;
+
+    @Prop({ default: false })
+    private display_item_in_same_p: boolean;
 
     private state_classname: string = 'STATE_UNKNOWN';
     private fa_class_name: string = null;
@@ -133,6 +140,11 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
             return;
         }
 
-        window.open('/admin#/supervision/item/' + this.item._type + '/' + this.item.id, "_blank");
+        if (this.display_item_in_same_p) {
+            this.set_selected_item(this.item);
+
+        } else {
+            this.$router.push('./item/' + this.item._type + '/' + this.item.id);
+        }
     }
 }

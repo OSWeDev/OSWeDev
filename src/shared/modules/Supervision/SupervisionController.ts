@@ -6,6 +6,8 @@ import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 
 export default class SupervisionController {
 
+    public static ROUTE_NAME_DASHBOARD: string = 'SupervisionDashboard';
+
     public static SUP_HIST_SCHEMA: string = 'supervsn_hist';
     public static SUP_HIST_TABLE_PREFIX: string = '_sh_';
 

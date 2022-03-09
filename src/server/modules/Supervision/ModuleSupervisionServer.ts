@@ -103,6 +103,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Types de sonde'
         }, 'supervision.dashboard.types_de_sonde.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrer par nom'
+        }, 'supervision.filter_text.___LABEL___'));
 
 
         /**
@@ -134,6 +137,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
             'fr-fr': 'Administration de la Supervision'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let fo_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_access.group_id = group.id;
+        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_access.translatable_name = ModuleSupervision.POLICY_FO_ACCESS;
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+            'fr-fr': 'Accès en front à la Supervision'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;

@@ -1,6 +1,7 @@
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
+import ISupervisedItem from "../../../../../shared/modules/Supervision/interfaces/ISupervisedItem";
 import IStoreModule from '../../../store/IStoreModule';
 
 export type SupervisionContext = ActionContext<ISupervisionState, any>;
@@ -13,6 +14,7 @@ export interface ISupervisionState {
     show_oks: boolean;
     show_pauseds: boolean;
     show_unknowns: boolean;
+    selected_item: ISupervisedItem;
 }
 
 export default class SupervisionDashboardStore implements IStoreModule<ISupervisionState, SupervisionContext> {
@@ -45,6 +47,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             show_oks: false,
             show_pauseds: false,
             show_unknowns: false,
+            selected_item: null,
         };
 
 
@@ -56,6 +59,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             get_show_oks: (state: ISupervisionState): boolean => state.show_oks,
             get_show_pauseds: (state: ISupervisionState): boolean => state.show_pauseds,
             get_show_unknowns: (state: ISupervisionState): boolean => state.show_unknowns,
+            get_selected_item: (state: ISupervisionState): ISupervisedItem => state.selected_item,
         };
 
         this.mutations = {
@@ -80,6 +84,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             switch_show_unknowns: (state: ISupervisionState): any => {
                 state.show_unknowns = !state.show_unknowns;
             },
+            set_selected_item: (state: ISupervisionState, selected_item: ISupervisedItem): any => state.selected_item = selected_item,
         };
 
 
@@ -92,6 +97,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             switch_show_oks: (context: SupervisionContext): any => commit_switch_show_oks(context, null),
             switch_show_pauseds: (context: SupervisionContext): any => commit_switch_show_pauseds(context, null),
             switch_show_unknowns: (context: SupervisionContext): any => commit_switch_show_unknowns(context, null),
+            set_selected_item: (context: SupervisionContext, selected_item: ISupervisedItem): any => commit_set_selected_item(context, selected_item),
         };
     }
 }
@@ -108,3 +114,4 @@ export const commit_switch_show_warns_read = commit(SupervisionDashboardStore.ge
 export const commit_switch_show_oks = commit(SupervisionDashboardStore.getInstance().mutations.switch_show_oks);
 export const commit_switch_show_pauseds = commit(SupervisionDashboardStore.getInstance().mutations.switch_show_pauseds);
 export const commit_switch_show_unknowns = commit(SupervisionDashboardStore.getInstance().mutations.switch_show_unknowns);
+export const commit_set_selected_item = commit(SupervisionDashboardStore.getInstance().mutations.set_selected_item);
