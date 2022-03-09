@@ -2,16 +2,33 @@ include ../../../views/mixins/loading.pug
 
 .rootElt.checklist
     +loading()
-        .row 
+        .row
             .col-md-2
                 button.btn.btn-primary(type='button', @click="createNew") {{ label('checklist.createNew') }}
-        
-        .row 
-            .col-md-12 
 
-        .row 
+        .row
+            .col-md-12
+
+        .row
             .col-md-4
                 input(type='text' :placeholder='label("checklist.filter_text")' v-model="filter_text")
+            .col-md-8.legend(v-if="checklist && checklist.show_legend")
+                .div {{ label('checklist.legend.checkpoint.state.legend') }}
+                .div
+                    i.text-muted.fa.fa-fw.fa-circle
+                    span {{ label('checklist.legend.checkpoint.state.disabled') }}
+                .div
+                    i.text-default.fa.fa-fw.fa-circle
+                    span {{ label('checklist.legend.checkpoint.state.todo') }}
+                .div
+                    i.text-danger.fa.fa-fw.fa-circle
+                    span {{ label('checklist.legend.checkpoint.state.error') }}
+                .div
+                    i.text-warning.fa.fa-fw.fa-circle
+                    span {{ label('checklist.legend.checkpoint.state.warn') }}
+                .div
+                    i.text-success.fa.fa-fw.fa-circle
+                    span {{ label('checklist.legend.checkpoint.state.ok') }}
 
         .row(v-if='has_checklistitems && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway)')
             .col-md-12
@@ -21,13 +38,14 @@ include ../../../views/mixins/loading.pug
                             th
                             th(v-for='label in infos_cols_labels') {{ t(label) }}
                             th(v-for='checkpoint in ordered_checkpoints') {{ label(checkpoint.name) }}
-                            th  {{ label('checklist.archive') }}
+                            th.archive_item_title  {{ label('checklist.archive') }}
                     tbody
                         tr(v-for='checklist_item in ordered_checklistitems' is='Checklistitemcomponent' :key="checklist_item.id"
-                            :checklist_item='checklist_item' 
+                            :checklist_item='checklist_item'
                             :checklist_controller='checklist_controller'
-                            :ordered_checkpoints='ordered_checkpoints' 
+                            :ordered_checkpoints='ordered_checkpoints'
                             :global_route_path='global_route_path'
+                            :hide_item_description='checklist.hide_item_description'
                             @onchangevo='onchangevo')
 
         .row(v-else-if='has_checklistitems && ordered_checklistitems && (ordered_checklistitems.length > 15)')
@@ -45,16 +63,15 @@ include ../../../views/mixins/loading.pug
         .modal-dialog.modal-lg(role='document')
             .modal-content(v-if="selected_checklist_item")
                 .modal-header
-                    h4.modal-title {{ selected_checklist_item.name }}
                     a.btn.close(data-dismiss="modal" @click='close_modal') &times;
-                
+                    h4.modal-title {{ selected_checklist_item.name }}
                 .modal-body
                     Checklistmodalcomponent(
                         @onchangevo='onchangevo'
                         :checklist_item='selected_checklist_item'
                         :checkpoint='selected_checkpoint'
                         :checklist_controller='checklist_controller'
-                        :ordered_checkpoints='ordered_checkpoints' 
+                        :ordered_checkpoints='ordered_checkpoints'
                         :key='selected_checklist_item.id')
 
                 .modal-footer

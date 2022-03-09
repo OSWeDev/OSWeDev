@@ -1046,6 +1046,17 @@ export default class VarsComputeController {
             let node = dag.nodes[i];
 
             if (!node.already_sent_result_to_subs) {
+
+                /**
+                 * On a pas notifié une var, qui est un import, et n'est pas la cible du calcul initial
+                 *  => a priori c'est ok ? si j'ai besoin de cette var, je l'ai déjà téléchargée normalement
+                 *  et on est pas en train de remettre en cause sa valeur
+                 */
+                if (node.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+                    // ConsoleHandler.getInstance().log('Pas notifiée mais import:' + JSON.stringify(node.var_data));
+                    continue;
+                }
+
                 ConsoleHandler.getInstance().error('Var pas notifiée:' + JSON.stringify(node.var_data));
             }
         }

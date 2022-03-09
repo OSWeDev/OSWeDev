@@ -3,6 +3,7 @@ import IDistantVOBase from '../../IDistantVOBase';
 export default interface ICheckPoint extends IDistantVOBase {
     name: string;
     explaination: string;
+    item_fields_tooltip: string;
 
     checklist_id: number;
 

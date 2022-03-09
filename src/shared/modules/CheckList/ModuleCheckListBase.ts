@@ -61,6 +61,8 @@ export default abstract class ModuleCheckListBase extends Module {
         additional_fields.unshift(
             label_field,
             new ModuleTableField('limit_affichage', ModuleTableField.FIELD_TYPE_int, 'Nb. limite affichage', false),
+            new ModuleTableField('hide_item_description', ModuleTableField.FIELD_TYPE_boolean, "cacher la desc. de l'item", false, true, false),
+            new ModuleTableField('show_legend', ModuleTableField.FIELD_TYPE_boolean, "afficher la légende", false, true, false),
         );
 
         let datatable = new ModuleTable(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");
@@ -123,7 +125,8 @@ export default abstract class ModuleCheckListBase extends Module {
             new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
             new ModuleTableField('item_field_ids', ModuleTableField.FIELD_TYPE_string_array, 'Champs', false),
             checklist_id,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('item_fields_tooltip', ModuleTableField.FIELD_TYPE_string, 'item_fields_tooltip', false),
         );
 
         let datatable = new ModuleTable(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");

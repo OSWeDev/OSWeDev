@@ -3,8 +3,8 @@
         .modal-dialog.modal-lg(role='document')
             .modal-content
                 .modal-header
-                    h4.modal-title {{ label('document_handler.modal_title') }}
                     button.btn.close(@click='switch_hidden') &times;
+                    h4.modal-title {{ label('document_handler.modal_title') }}
                     .tag-groups(v-if='hasMoreThanOneTag')
                         template(v-for='dtg in dtgs_by_weight')
                             template(v-if='hasMoreThanOneGroup')

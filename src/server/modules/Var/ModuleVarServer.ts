@@ -73,7 +73,12 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_getSimpleVarDataCachedValueFromParam = 'Var.getSimpleVarDataCachedValueFromParam';
     public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
+
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
+    public static TASK_NAME_invalidate_cache_exact_and_parents = 'VarsDatasProxy.invalidate_cache_exact_and_parents';
+    public static TASK_NAME_invalidate_cache_intersection_and_parents = 'VarsDatasProxy.invalidate_cache_intersection_and_parents';
+    public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
+    public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
 
     public static TASK_NAME_invalidate_cache_exact_and_parents = 'VarsDatasProxy.invalidate_cache_exact_and_parents';
     public static TASK_NAME_invalidate_cache_intersection_and_parents = 'VarsDatasProxy.invalidate_cache_intersection_and_parents';

@@ -380,7 +380,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Gestion des droits'
         }, 'menu.menuelements.admin.AccessPolicyComponent.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Gourpe d\'accès'
+            'fr-fr': 'Groupe d\'accès'
         }, 'menu.menuelements.admin.AccessPolicyGroupVO.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accès'

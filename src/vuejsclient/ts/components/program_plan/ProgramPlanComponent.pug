@@ -10,7 +10,7 @@ include ../../../views/mixins/loading.pug
 
         .row(v-if="!!custom_overview_program_plan_component")
             .col-md-12
-                .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv" :valid_targets='valid_targets' :segment='fcSegment')
+                .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv" :valid_targets='valid_targets' :segment='fcSegment' @reset_targets="reset_targets_throttled")
 
 
         program-plan-component-target-listing.hidden-print(
@@ -44,8 +44,8 @@ include ../../../views/mixins/loading.pug
             .modal-dialog.modal-lg(role='document')
                 .modal-content(v-if="selected_rdv && getTargetsByIds && getTargetsByIds[selected_rdv.target_id]")
                     .modal-header(v-if="!is_facilitator_specific")
-                        h4.modal-title {{ getTargetsByIds[selected_rdv.target_id].name }}
                         router-link.btn.close(:to="route_path") &times;
+                        h4.modal-title {{ getTargetsByIds[selected_rdv.target_id].name }}
 
                     .modal-body
                         program-plan-component-modal(

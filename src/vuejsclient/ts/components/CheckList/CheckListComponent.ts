@@ -328,6 +328,10 @@ export default class CheckListComponent extends VueComponentBase {
 
         if (!!self.item_id) {
             self.$nextTick(tryOpenModal);
+        } else {
+            if ($('#checklist_item_modal')) {
+                $('#checklist_item_modal').modal('hide');
+            }
         }
     }
 

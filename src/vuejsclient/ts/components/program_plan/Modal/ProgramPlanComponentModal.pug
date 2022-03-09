@@ -9,7 +9,7 @@
                     a#rdv_prep_pill.nav-item.nav-link(@click="set_active_view('rdv_prep')") {{ label('programplan.rdv_modal.pills.prep') }}
                 li(:class="{'active': active_view == 'rdv_cr'}")
                     a#rdv_cr_pill.nav-item.nav-link(@click="set_active_view('rdv_cr')") {{ label('programplan.rdv_modal.pills.cr') }}
-                li(v-if="program_plan_shared_module.show_rdv_historic" :class="{'active': active_view == 'rdv_historic'}")
+                li(v-if="program_plan_controller.show_rdv_historic" :class="{'active': active_view == 'rdv_historic'}")
                     a#rdv_historic_pill.nav-item.nav-link(@click="set_active_view('rdv_historic')") {{ label('programplan.rdv_modal.pills.historic') }}
 
             .tab-content

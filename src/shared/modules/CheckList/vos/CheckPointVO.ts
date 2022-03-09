@@ -14,6 +14,7 @@ export default class CheckPointVO implements ICheckPoint {
 
     public name: string;
     public explaination: string;
+    public item_fields_tooltip: string;
 
     public checklist_id: number;
 

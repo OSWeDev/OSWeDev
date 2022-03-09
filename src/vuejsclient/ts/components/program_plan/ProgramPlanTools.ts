@@ -19,7 +19,7 @@ export default class ProgramPlanTools {
     }
 
     public static getContactInfosHTMLFromTarget(target_contacts: IPlanContact[]): string {
-        let res: string;
+        let res: string = '';
 
         if ((!target_contacts) || (target_contacts.length <= 0)) {
             return null;
@@ -35,7 +35,7 @@ export default class ProgramPlanTools {
             res += (target_contact.infos ? ((res != '') ? '<br>' : '') + target_contact.infos : '');
         }
 
-        return res;
+        return (res == '') ? null : res;
     }
 
     private constructor() { }

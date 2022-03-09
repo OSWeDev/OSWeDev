@@ -254,7 +254,11 @@ export default class VarsDatasVoUpdateHandler {
             if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 thrower,
                 VarsdatasComputerBGThread.getInstance().name,
-                VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, resolve)) {
+                VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection,
+                resolve,
+                api_type_id,
+                matroids,
+                fields_ids_mapper)) {
                 return;
             }
 
