@@ -63,8 +63,9 @@ include ../../../../../views/mixins/loading.pug
                             //- If it's the crud actions
                             template(v-if="column.type == 0")
                                 .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})')
-                                    .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
-                                        i.fa.fa-pencil
+                                    template(v-if='update_button')
+                                        .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
+                                            i.fa.fa-pencil
                                     template(v-if="can_open_vocus")
                                         .btn.btn-sm.btn-secondary(@click="open_vocus(column, row)")
                                             i.fa.fa-search
@@ -89,7 +90,7 @@ include ../../../../../views/mixins/loading.pug
                                         :vo="row"
                                         :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                         :inline_input_mode='true'
-                                        :inline_input_read_value="row['raw__' + column.datatable_field_uid]"
+                                        :inline_input_read_value="row[column.datatable_field_uid]"
                                         :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
                                     )
 

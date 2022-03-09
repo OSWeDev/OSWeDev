@@ -47,12 +47,18 @@ export default class Datatable<T extends IDistantVOBase> {
     }
 
     public unshiftField(field: DatatableField<any, any>) {
-        field.setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.API_TYPE_ID]);
+        // Si la table est pas encore liée à ce stade on prend la table liée au datatable
+        if (!field.moduleTable) {
+            field.setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.API_TYPE_ID]);
+        }
         this.sortedFields.unshift(field);
     }
 
     public pushField(field: DatatableField<any, any>) {
-        field.setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.API_TYPE_ID]);
+        // Si la table est pas encore liée à ce stade on prend la table liée au datatable
+        if (!field.moduleTable) {
+            field.setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.API_TYPE_ID]);
+        }
         this.sortedFields.push(field);
     }
 

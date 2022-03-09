@@ -10,7 +10,7 @@
 
         .api_type_ids 
             template(v-for="api_type_id in api_type_ids")
-                .api_type_id(v-show='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) || (!!fields_ids_by_api_type_ids[api_type_id].find((field_id) => field_titles_by_api_type[api_type_id][field_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0))'  :class='{"closed":!!closed_api_type_id[api_type_id]}')
+                .api_type_id(v-show='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) || (!!fields_ids_by_api_type_ids[api_type_id].find((field_id) => field_titles_by_api_type[api_type_id][field_id] ? (field_titles_by_api_type[api_type_id][field_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) : false))'  :class='{"closed":!!closed_api_type_id[api_type_id]}')
                     .header
                         .open_close(@click='switch_open_closed(api_type_id)')
                             .open_api_type_id(v-if="!!closed_api_type_id[api_type_id]") +
@@ -24,7 +24,7 @@
                     .content(v-if='!closed_api_type_id[api_type_id]')
                         .fields
                             template(v-for='field_id in fields_ids_by_api_type_ids[api_type_id]')
-                                .field(v-show='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) || (field_titles_by_api_type[api_type_id][field_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0)')
+                                .field(v-show='((filter_value == null) || (filter_value == "")) || (api_type_titles[api_type_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0) || (field_titles_by_api_type[api_type_id][field_id] && (field_titles_by_api_type[api_type_id][field_id].trim().toLowerCase().indexOf(filter_value.trim().toLowerCase()) >= 0))')
                                     Droppablevofieldcomponent(:api_type_id="api_type_id" :field_id="field_id")
 
 

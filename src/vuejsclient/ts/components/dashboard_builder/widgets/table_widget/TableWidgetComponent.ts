@@ -220,6 +220,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         return this.widget_options.crud_api_type_id;
     }
 
+    get update_button(): boolean {
+        return (this.widget_options && this.widget_options.update_button);
+    }
+
     get delete_button(): boolean {
         return (this.widget_options && this.widget_options.delete_button);
     }
@@ -299,7 +303,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     }
 
     private async onchange_column(
-        row: IDistantVOBase,
+        row: any,
         field: DatatableField<any, any>,
         value: any,
         crudComponentField: CRUDComponentField) {
@@ -319,6 +323,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                         case DatatableField.SIMPLE_FIELD_TYPE:
                             let simpleField = (field as SimpleDatatableField<any, any>);
                             vo[simpleField.module_table_field_id] = value;
+                            let data_row_index = this.data_rows.findIndex((e) => e.__crud_actions == row.__crud_actions);
+                            this.data_rows[data_row_index][simpleField.module_table_field_id] = value;
                             await ModuleDAO.getInstance().insertOrUpdateVO(vo);
                             break;
                         default:
