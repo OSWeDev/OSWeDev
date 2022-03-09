@@ -6,7 +6,7 @@
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
 
-    .btn-group.link_ref(v-if='can_insert_or_update_target && show_insert_or_update_target')
+    .btn-group.link_ref(v-show='can_insert_or_update_target && show_insert_or_update_target')
         router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
             i.fa.fa-plus-circle
 

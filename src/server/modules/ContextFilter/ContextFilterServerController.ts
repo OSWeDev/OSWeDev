@@ -1901,7 +1901,7 @@ export default class ContextFilterServerController {
 
                     return 0;
                 });
-                res += ' JOIN ' + jointures.join(' JOIN ');
+                res += ' LEFT JOIN ' + jointures.join(' LEFT JOIN ');
             }
 
             if (where_conditions && where_conditions.length) {

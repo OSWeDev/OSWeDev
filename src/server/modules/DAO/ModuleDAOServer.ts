@@ -1488,6 +1488,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let k in uniq_index) {
                     let field = uniq_index[k];
 
+                    // Si la valeur est null dans le vo ça sert à rien de tester
+                    if (vo[field.field_id] == null) {
+                        continue;
+                    }
+
                     let filter: ContextFilterVO = new ContextFilterVO();
                     filter.vo_type = moduleTable.vo_type;
                     filter.field_id = field.field_id;
@@ -1522,6 +1527,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         default:
                             throw new Error('Not Implemented');
                     }
+                }
+
+                if ((!filters) || (!filters.length)) {
+                    continue;
                 }
 
                 let uniquevos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(

@@ -80,11 +80,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
     public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
 
-    public static TASK_NAME_invalidate_cache_exact_and_parents = 'VarsDatasProxy.invalidate_cache_exact_and_parents';
-    public static TASK_NAME_invalidate_cache_intersection_and_parents = 'VarsDatasProxy.invalidate_cache_intersection_and_parents';
-    public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
-    public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
-
     public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
 
     public static getInstance() {

@@ -176,6 +176,7 @@ export default class CRUDComponentField extends VueComponentBase
     private inline_input_is_busy: boolean = false;
 
     private can_insert_or_update_target: boolean = false;
+    private has_loaded_can_insert_or_update_target: boolean = false;
     private inline_input_is_editing: boolean = false;
 
     private select_options_enabled: number[] = [];
@@ -247,7 +248,9 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         // TODO FIXME VALIDATE
-        this.field_value = input_value;
+        if (this.field_value != input_value) {
+            this.field_value = input_value;
+        }
 
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = this.field_value;
@@ -277,14 +280,17 @@ export default class CRUDComponentField extends VueComponentBase
         if (!this.inline_input_mode) {
             return;
         }
-        this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+        let tmp = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+        if (this.field_value != tmp) {
+            this.field_value = tmp;
+        }
     }
 
     private async reload_field_value() {
 
-        this.can_insert_or_update_target = false;
-
-        this.is_readonly = this.field.is_readonly || this.is_disabled;
+        if (this.is_readonly != (this.field.is_readonly || this.is_disabled)) {
+            this.is_readonly = this.field.is_readonly || this.is_disabled;
+        }
 
         if (this.inline_input_mode && this.inline_input_read_value && ((!this.needs_options) || ((!!this.select_options) && this.select_options.length))) {
             // Si inline input mode et inline_input_read_value on esquive cette mise à jour puisque la valeur par défaut du champ est déjà définie à ce stade normalement
@@ -298,7 +304,9 @@ export default class CRUDComponentField extends VueComponentBase
             field_value = this.field.dataToUpdateIHM(field_value, this.vo);
         }
 
-        this.field_value = field_value;
+        if (this.field_value != field_value) {
+            this.field_value = field_value;
+        }
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
         if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
@@ -311,19 +319,27 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         let self = this;
-        if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+        if ((!this.has_loaded_can_insert_or_update_target) && (
+            (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE))) {
+
+            this.has_loaded_can_insert_or_update_target = true;
             ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
                     (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
-                        self.can_insert_or_update_target = res;
+
+                        if (self.can_insert_or_update_target != res) {
+                            self.can_insert_or_update_target = res;
+                        }
                     });
         }
 
-        this.isLoadingOptions = true;
+        if (!this.isLoadingOptions) {
+            this.isLoadingOptions = true;
+        }
         await this.prepare_select_options();
 
 
@@ -349,7 +365,9 @@ export default class CRUDComponentField extends VueComponentBase
                 });
             }
         }
-        this.isLoadingOptions = false;
+        if (!!this.isLoadingOptions) {
+            this.isLoadingOptions = false;
+        }
     }
 
     private formatDateForField(date: string, separator: string = '/'): string {
@@ -436,7 +454,10 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        this.field_value = this.getInputValue(input);
+        let tmp = this.getInputValue(input);
+        if (this.field_value != tmp) {
+            this.field_value = tmp;
+        }
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
@@ -457,7 +478,10 @@ export default class CRUDComponentField extends VueComponentBase
         //     return;
         // }
 
-        this.field_value = this.getInputValue(input);
+        let tmp = this.getInputValue(input);
+        if (this.field_value != tmp) {
+            this.field_value = tmp;
+        }
 
         if (this.field.onEndOfChange) {
             this.field.onEndOfChange(this.vo);
@@ -681,7 +705,9 @@ export default class CRUDComponentField extends VueComponentBase
                 }
             }
 
-            this.isLoadingOptions = false;
+            if (!!this.isLoadingOptions) {
+                this.isLoadingOptions = false;
+            }
             this.select_options = newOptions;
             return;
         }
@@ -699,14 +725,18 @@ export default class CRUDComponentField extends VueComponentBase
                         newOptions.push(id);
                     }
                 }
-                this.isLoadingOptions = false;
+                if (!!this.isLoadingOptions) {
+                    this.isLoadingOptions = false;
+                }
                 this.select_options = newOptions;
             }
         }
     }
 
     private async asyncLoadOptions(query: string) {
-        this.isLoadingOptions = true;
+        if (!this.isLoadingOptions) {
+            this.isLoadingOptions = true;
+        }
 
         if ((!this.field) ||
             ((this.field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
@@ -714,7 +744,9 @@ export default class CRUDComponentField extends VueComponentBase
                 (this.field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE) &&
                 (this.field.type != DatatableField.REF_RANGES_FIELD_TYPE))) {
             this.snotify.warning(this.label('crud.multiselect.search.error'));
-            this.isLoadingOptions = false;
+            if (!!this.isLoadingOptions) {
+                this.isLoadingOptions = false;
+            }
             return;
         }
 
@@ -748,18 +780,23 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        this.isLoadingOptions = false;
-
+        if (!!this.isLoadingOptions) {
+            this.isLoadingOptions = false;
+        }
         this.select_options = newOptions;
     }
 
     private asyncLoadEnumOptions(query: string) {
-        this.isLoadingOptions = true;
+        if (!this.isLoadingOptions) {
+            this.isLoadingOptions = true;
+        }
 
         if ((!this.field) ||
             ((this.field.type != DatatableField.SIMPLE_FIELD_TYPE))) {
             this.snotify.warning(this.label('crud.multiselect.search.error'));
-            this.isLoadingOptions = false;
+            if (!!this.isLoadingOptions) {
+                this.isLoadingOptions = false;
+            }
             return;
         }
 
@@ -776,7 +813,9 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        this.isLoadingOptions = false;
+        if (!!this.isLoadingOptions) {
+            this.isLoadingOptions = false;
+        }
         this.select_options = newOptions;
     }
 
@@ -875,7 +914,9 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        this.field_value = value;
+        if (this.field_value != value) {
+            this.field_value = value;
+        }
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);

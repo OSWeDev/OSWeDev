@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
@@ -346,7 +347,7 @@ export default class CRUDFormServices {
 
                 let field: OneToManyReferenceDatatableField<any> = datatable.fields[i] as OneToManyReferenceDatatableField<any>;
                 let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.targetModuleTable.vo_type, field.destField.field_id, [db_vo.id]);
-                let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
+                let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
                 let need_update_links: IDistantVOBase[] = [];
 
@@ -411,7 +412,7 @@ export default class CRUDFormServices {
                 let interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
                 let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.interModuleTable.vo_type, interSrcRefField.field_id, [db_vo.id]);
                 let interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
-                let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
+                let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
                 let need_add_links: IDistantVOBase[] = [];
                 let need_delete_links: IDistantVOBase[] = [];

@@ -1,5 +1,4 @@
-import { Component, Prop } from 'vue-property-decorator';
-import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
+import { Component } from 'vue-property-decorator';
 import CRUDCreateFormComponent from '../../../../../crud/component/create/CRUDCreateFormComponent';
 import VueComponentBase from '../../../../../VueComponentBase';
 import "./CRUDCreateModalComponent.scss";
