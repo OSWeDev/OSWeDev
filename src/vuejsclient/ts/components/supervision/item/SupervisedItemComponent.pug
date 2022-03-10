@@ -1,34 +1,30 @@
 .supervised_item
     template(v-if='!!supervised_item')
         .row
-            .supervised_item_header.mb-3(:class="{'col-sm-12': display_item_in_same_p, 'col-sm-7': !display_item_in_same_p}")
+            .supervised_item_header.mb-3(:class='display_item_in_same_p ? "col-sm-12" : "col-sm-7"')
                 Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true')
 
-        .row
-            .supervised_item_graph(v-if="!hide_supervised_item_graph" :class="{'col-sm-12': display_item_in_same_p, 'col-sm-4': !display_item_in_same_p}")
-                Superviseditemhistchartcomponent(
-                    :filter='supervised_item_client_controller.get_graph_filter(supervised_item)'
-                    :filter_additional_params='supervised_item_client_controller.get_graph_filter_additional_params(supervised_item)'
-                    :options='supervised_item_client_controller.get_graph_options(supervised_item)'
-                    :graph_segmentation='active_graph_segmentation'
-                    :date_format='supervised_item_client_controller.get_graph_date_format(supervised_item)'
-                    :label_translatable_code='supervised_item_client_controller.get_graph_label_translatable_code(supervised_item)'
-                    :historiques='historiques'
-                )
-
-            div(:class="{'col-sm-12': display_item_in_same_p, 'col-sm-8': !display_item_in_same_p}")
-                .row.mb-3
+        .row.mb-3
+            div(:class='display_item_in_same_p ? "col-sm-12" : "col-sm-7"')
+                .row
                     .col-sm-8
-
                         //- options d'affichage du graphique
                         .col-sm-12
-                            .row.supervised_item_graph_segmentations(v-if="!hide_supervised_item_graph")
+                            .row.supervised_item_graph_segmentations
+                                toggle-button.m-1(
+                                    @change="toggle_show_hide_graph"
+                                    :value="show_graph"
+                                    :sync="true"
+                                    :width="150"
+                                    :labels="{checked: label('supervision.item.graph.on'), unchecked: label('supervision.item.graph.off')}"
+                                )
                                 .btn-group.d-print-none
-                                    template(v-for='graph_segmentation in supervised_item_client_controller.get_graph_segmentation(supervised_item)')
-                                        template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
-                                            button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
-                                        template(v-else)
-                                            button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
+                                    template(v-if="show_graph")
+                                        template(v-for='graph_segmentation in supervised_item_client_controller.get_graph_segmentation(supervised_item)')
+                                            template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
+                                                button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
+                                            template(v-else)
+                                                button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
 
                         //- liens si renseignés
                         .col-sm-12
@@ -36,6 +32,7 @@
                                 template(v-for='supervised_item_url in supervised_item_urls')
                                     .supervised_item_url
                                         button.btn.btn-sm.btn-primary.m-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
+
 
                     //- option de de traitement de la ligne de supervision
                     .col-sm-4.supervised_item_controls
@@ -64,12 +61,30 @@
                                 button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true")
                                     i.fa.fa-envelope-open
 
-                template(v-if='supervised_item_controller')
-                    .row
-                        template(v-if="supervised_item_controller.get_description(supervised_item)")
-                            .col-sm-12
-                                .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_controller.get_description(supervised_item) }}
+        .row
+            .supervised_item_graph(
+                v-if="show_graph"
+                :class='display_item_in_same_p ? "col-sm-7 col-sm-offset-2 mx-auto mb-4" : "col-sm-4"'
+            )
+                Superviseditemhistchartcomponent(
+                    :filter='supervised_item_client_controller.get_graph_filter(supervised_item)'
+                    :filter_additional_params='supervised_item_client_controller.get_graph_filter_additional_params(supervised_item)'
+                    :options='supervised_item_client_controller.get_graph_options(supervised_item)'
+                    :graph_segmentation='active_graph_segmentation'
+                    :date_format='supervised_item_client_controller.get_graph_date_format(supervised_item)'
+                    :label_translatable_code='supervised_item_client_controller.get_graph_label_translatable_code(supervised_item)'
+                    :historiques='historiques'
+                )
 
-                        template(v-if="supervised_item_controller.get_description_html && supervised_item_controller.get_description_html(supervised_item)")
-                            .col-sm-12
-                                .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_controller.get_description_html(supervised_item)")
+            div(
+                v-if='supervised_item_controller'
+                :class='display_item_in_same_p ? "col-sm-12" : "col-sm-8"'
+            )
+                .row
+                    template(v-if="supervised_item_controller.get_description(supervised_item)")
+                        .col-sm-12
+                            .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_controller.get_description(supervised_item) }}
+
+                    template(v-if="supervised_item_controller.get_description_html && supervised_item_controller.get_description_html(supervised_item)")
+                        .col-sm-12
+                            .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_controller.get_description_html(supervised_item)")

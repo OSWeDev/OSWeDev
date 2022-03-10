@@ -102,4 +102,30 @@ export default class SupervisionDashboardWidgetComponent extends VueComponentBas
                 break;
         }
     }
+
+    get full_state_class_name(): string {
+        if (!this.state_classname) {
+            return "";
+        }
+
+        switch (this.state_classname) {
+            case "STATE_ERROR":
+                return this.state_classname + ' ' + (this.get_show_errors ? "" : "not_selected");
+            case "STATE_ERROR_READ":
+                return this.state_classname + ' ' + (this.get_show_errors_read ? "" : "not_selected");
+            case "STATE_OK":
+                return this.state_classname + ' ' + (this.get_show_oks ? "" : "not_selected");
+            case "STATE_PAUSED":
+                return this.state_classname + ' ' + (this.get_show_pauseds ? "" : "not_selected");
+            case "STATE_UNKOWN":
+                return this.state_classname + ' ' + (this.get_show_unknowns ? "" : "not_selected");
+            case "STATE_WARN":
+                return this.state_classname + ' ' + (this.get_show_warns ? "" : "not_selected");
+            case "STATE_WARN_READ":
+                return this.state_classname + ' ' + (this.get_show_warns_read ? "" : "not_selected");
+            default:
+                break;
+        }
+    }
+
 }

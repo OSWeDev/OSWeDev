@@ -5,40 +5,40 @@
     text-align: center;
     color: white;
     margin: 0.1em 0.3em;
-    opacity: 0.5;
+    opacity: 0.65;
     cursor: pointer;
     padding: 0.5em 0em;
 
     &:hover,
-    &.noclick{
+    &.noclick {
         opacity: 1;
     }
 
-    &.STATE_ERROR{
+    &.STATE_ERROR {
         background-color: red;
     }
 
-    &.STATE_ERROR_READ{
+    &.STATE_ERROR_READ {
         background-color: orangered;
     }
 
-    &.STATE_WARN{
+    &.STATE_WARN {
         background-color: orange;
     }
 
-    &.STATE_WARN_READ{
+    &.STATE_WARN_READ {
         background-color: #ffd400;
     }
 
-    &.STATE_OK{
+    &.STATE_OK {
         background-color: green;
     }
 
-    &.STATE_PAUSED{
+    &.STATE_PAUSED {
         background-color: blue;
     }
 
-    &.STATE_UNKOWN{
+    &.STATE_UNKOWN {
         background-color: grey;
     }
 }

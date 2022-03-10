@@ -109,6 +109,12 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Fermer'
         }, 'supervision.item_modal.close.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Masquer le graph'
+        }, 'supervision.item.graph.on.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher le graph'
+        }, 'supervision.item.graph.off.___LABEL___'));
 
 
         /**

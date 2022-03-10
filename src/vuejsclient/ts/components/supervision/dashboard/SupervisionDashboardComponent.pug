@@ -8,13 +8,13 @@
 
                 .btn.mr-3.mb-1(
                     @click="selectCategory(null)",
-                    :class="{'btn-success': !selected_category, 'btn-secondary': !!selected_category}"
+                    :class='selected_category ? "btn-secondary" : "btn-success"'
                     ) {{ label('supervision.dashboard.all') }}
 
                 template(v-for="category in categorys")
                     .btn.mr-3.mb-1(
                         @click="selectCategory(category)",
-                        :class="{'btn-success': !!is_cat_selected(category), 'btn-secondary': !is_cat_selected(category)}"
+                        :class='!!is_cat_selected(category) ? "btn-success" : "btn-secondary"'
                         ) {{ category.name }}
 
         //- deuxième bandeau des types de sondes
@@ -24,13 +24,13 @@
 
                 .btn.mr-3.mb-1(
                     @click="selectApiTypeId(null)",
-                    :class="{'btn-success': !selected_api_type_id, 'btn-secondary': !!selected_api_type_id}"
+                    :class='selected_api_type_id ? "btn-secondary" : "btn-success"'
                     ) {{ label('supervision.dashboard.all') }}
 
                 template(v-for="api_type_id in filtered_api_type_ids")
                     .btn.mr-3.mb-1(
                         @click="selectApiTypeId(api_type_id)",
-                        :class="{'btn-success': !!is_api_type_selected(api_type_id), 'btn-secondary': !is_api_type_selected(api_type_id)}"
+                        :class='!!is_api_type_selected(api_type_id) ? "btn-success" : "btn-secondary"'
                         ) {{ label('supervision.dashboard.' + api_type_id) }}
 
     //- panneau droit liste items
@@ -85,5 +85,5 @@
 
         template(v-if="display_item_in_same_p")
             Supervisionitemmodalcomponent(
-                :hide_supervised_item_graph='hide_supervised_item_graph'
+                :default_hide_item_graph='default_hide_item_graph'
                 :display_item_in_same_p='display_item_in_same_p')

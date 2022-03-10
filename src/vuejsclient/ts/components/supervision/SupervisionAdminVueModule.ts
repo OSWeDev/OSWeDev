@@ -84,7 +84,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             name: SupervisionController.ROUTE_NAME_DASHBOARD,
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
             props: () => ({
-                hide_supervised_item_graph: false,
+                default_hide_item_graph: false,
                 display_item_in_same_p: false,
             }),
         });
@@ -108,7 +108,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             props: (route) => ({
                 supervised_item_id: parseInt(route.params.id),
                 supervised_item_vo_type: route.params.vo_type,
-                hide_supervised_item_graph: false,
+                default_hide_item_graph: false,
                 display_item_in_same_p: false,
             }),
         });

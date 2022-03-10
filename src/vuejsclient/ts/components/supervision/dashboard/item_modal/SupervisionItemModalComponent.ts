@@ -26,7 +26,7 @@ export default class SupervisionItemModalComponent extends VueComponentBase {
     private noclick: boolean;
 
     @Prop({ default: false })
-    private hide_supervised_item_graph: boolean;
+    private default_hide_item_graph: boolean;
 
     @Prop({ default: false })
     private display_item_in_same_p: boolean;

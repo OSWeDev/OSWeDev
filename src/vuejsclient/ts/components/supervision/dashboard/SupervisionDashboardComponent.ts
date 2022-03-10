@@ -32,7 +32,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private dashboard_key: string;
 
     @Prop({ default: false })
-    private hide_supervised_item_graph: boolean;
+    private default_hide_item_graph: boolean;
 
     @Prop({ default: false })
     private display_item_in_same_p: boolean;
