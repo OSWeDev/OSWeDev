@@ -1,7 +1,7 @@
 .supervised_item
     template(v-if='!!supervised_item')
         .row
-            .supervised_item_header(:class="{'col-sm-12': display_item_in_same_p, 'col-sm-7': !display_item_in_same_p}")
+            .supervised_item_header.mb-3(:class="{'col-sm-12': display_item_in_same_p, 'col-sm-7': !display_item_in_same_p}")
                 Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true')
 
         .row
@@ -17,52 +17,59 @@
                 )
 
             div(:class="{'col-sm-12': display_item_in_same_p, 'col-sm-8': !display_item_in_same_p}")
-                .row
-                    .col-sm-8.supervised_item_graph_segmentations(v-if="!hide_supervised_item_graph")
-                        .btn-group.d-print-none
-                            template(v-for='graph_segmentation in supervised_item_client_controller.get_graph_segmentation(supervised_item)')
-                                template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
-                                    button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
-                                template(v-else)
-                                    button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
+                .row.mb-3
+                    .col-sm-8
 
+                        //- options d'affichage du graphique
+                        .col-sm-12
+                            .row.supervised_item_graph_segmentations(v-if="!hide_supervised_item_graph")
+                                .btn-group.d-print-none
+                                    template(v-for='graph_segmentation in supervised_item_client_controller.get_graph_segmentation(supervised_item)')
+                                        template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
+                                            button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
+                                        template(v-else)
+                                            button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
+
+                        //- liens si renseignés
+                        .col-sm-12
+                            .row(v-if='supervised_item_controller')
+                                template(v-for='supervised_item_url in supervised_item_urls')
+                                    .supervised_item_url
+                                        button.btn.btn-sm.btn-primary.m-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
+
+                    //- option de de traitement de la ligne de supervision
                     .col-sm-4.supervised_item_controls
-                        .btn-group.d-print-none
-
-                            button.btn.btn-sm.btn-primary.m-1(@click="reload")
+                        .btn-group.d-print-none.pull-right
+                            button.btn.btn-sm.m-1.btn-primary(@click="reload")
                                 i.fa.fa-refresh
 
-                            button.btn.btn-sm.btn-primary.m-1(@click="invalidate")
+                            button.btn.btn-sm.m-1.btn-primary(@click="invalidate")
                                 i.fa.fa-cogs
 
                             template(v-if='is_paused')
-                                button.btn.btn-sm.btn-primary.m-1(@click="switch_paused")
+                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused")
                                     i.fa.fa-play
                             template(v-else)
-                                button.btn.btn-sm.btn-primary.m-1(@click="switch_paused")
+                                button.btn.btn-sm.m-1.btn-primary(@click="switch_paused")
                                     i.fa.fa-pause
 
                             template(v-if='!can_not_switch_read')
                                 template(v-if='is_read')
-                                    button.btn.btn-sm.btn-primary.m-1(@click="switch_read")
+                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read")
                                         i.fa.fa-envelope-open
                                 template(v-if='!is_read')
-                                    button.btn.btn-sm.btn-primary.m-1(@click="switch_read")
+                                    button.btn.btn-sm.m-1.btn-primary(@click="switch_read")
                                         i.fa.fa-envelope
                             template(v-else)
-                                button.btn.btn-sm.btn-default.m-1(@click="switch_read" :disabled="true")
+                                button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true")
                                     i.fa.fa-envelope-open
 
-                .row
-                    .col-sm-12
-                        template(v-if='supervised_item_controller')
-                            template(v-for='supervised_item_url in supervised_item_urls')
-                                .supervised_item_url
-                                    button.btn.btn-sm.btn-primary.m-1(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}
-
                 template(v-if='supervised_item_controller')
-                    template(v-if="supervised_item_controller.get_description(supervised_item)")
-                        .col-sm-12.supervised_item_description {{ supervised_item_controller.get_description(supervised_item) }}
+                    .row
+                        template(v-if="supervised_item_controller.get_description(supervised_item)")
+                            .col-sm-12
+                                .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_controller.get_description(supervised_item) }}
 
-                    template(v-if="supervised_item_controller.get_description_html && supervised_item_controller.get_description_html(supervised_item)")
-                        .col-sm-12.supervised_item_description(v-html="supervised_item_controller.get_description_html(supervised_item)")
+                        template(v-if="supervised_item_controller.get_description_html && supervised_item_controller.get_description_html(supervised_item)")
+                            .col-sm-12
+                                .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_controller.get_description_html(supervised_item)")

@@ -104,8 +104,11 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             'fr-fr': 'Types de sonde'
         }, 'supervision.dashboard.types_de_sonde.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Filtrer par nom'
+            'fr-fr': 'Recherche par nom de ligne'
         }, 'supervision.filter_text.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Fermer'
+        }, 'supervision.item_modal.close.___LABEL___'));
 
 
         /**

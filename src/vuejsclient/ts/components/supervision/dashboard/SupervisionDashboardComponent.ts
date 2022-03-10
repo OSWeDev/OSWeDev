@@ -412,4 +412,12 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         return item_filter_conditions_by_url_key[this.dashboard_key] ? item_filter_conditions_by_url_key[this.dashboard_key] : () => true;
     }
 
+    private is_cat_selected(category: SupervisedCategoryVO): boolean {
+        return ((this.selected_category) && (this.selected_category.id == category.id));
+    }
+
+    private is_api_type_selected(api_type_id: string): boolean {
+        return ((this.selected_api_type_id) && (this.selected_api_type_id == api_type_id));
+    }
+
 }
