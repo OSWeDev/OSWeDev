@@ -142,6 +142,7 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
 
         if (this.display_item_in_same_p) {
             this.set_selected_item(this.item);
+            // $('#supervision_item_modal').modal('show');
 
         } else {
             this.$router.push('./item/' + this.item._type + '/' + this.item.id);
