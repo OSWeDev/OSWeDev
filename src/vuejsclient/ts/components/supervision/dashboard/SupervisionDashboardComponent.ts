@@ -11,15 +11,17 @@ import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisedItemComponent from '../item/SupervisedItemComponent';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
+import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComponent';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
-import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
+import './SupervisionDashboardComponent.scss';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
     components: {
         Supervisiondashboardwidgetcomponent: SupervisionDashboardWidgetComponent,
+        Supervisionitemmodalcomponent: SupervisionItemModalComponent,
         Supervisiondashboarditemcomponent: SupervisionDashboardItemComponent,
         Superviseditemcomponent: SupervisedItemComponent
     }
@@ -102,6 +104,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         this.debounced_on_change_show();
     }
 
+    @Watch('get_selected_item')
+    private on_change_selected_item() {
+        this.show_hide_modal();
+    }
+
     /**
      * Rafraichit compteurs et liste des sondes.
      * @see {@link SupervisionDashboardComponent.set_ordered_supervised_items set_ordered_supervised_items}
@@ -112,13 +119,21 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     }
 
     private async mounted() {
-
+        this.show_hide_modal();
         this.continue_reloading = true;
         await this.load_supervised_items_and_continue(true);
     }
 
     private async beforeDestroy() {
         this.continue_reloading = false;
+    }
+
+    private show_hide_modal() {
+        if (!this.get_selected_item) {
+            $('#supervision_item_modal').modal('hide');
+        } else {
+            $('#supervision_item_modal').modal('show');
+        }
     }
 
     /**
@@ -223,61 +238,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         this.debounced_on_change_show();
     }
-
-    // /**
-    //  * refait le compte pour le compteur des états
-    //  */
-    // private set_nb_elems() {
-    //     this.nb_errors = 0;
-    //     this.nb_warns = 0;
-    //     this.nb_oks = 0;
-    //     this.nb_pauses = 0;
-    //     this.nb_errors_read = 0;
-    //     this.nb_warns_read = 0;
-    //     this.nb_unknowns = 0;
-
-    //     for (let i in this.supervised_items_by_names) {
-    //         let supervised_item = this.supervised_items_by_names[i];
-
-    //         // Si j'ai une catégorie et qu'elle n'est pas celle sélectionné, je refuse
-    //         if ((this.selected_category) && (this.selected_category.id != supervised_item.category_id)) {
-    //             continue;
-    //         }
-
-    //         // Si j'ai un api_type_id sélectionné et que ce n'est pas l'item, je refuse
-    //         if ((this.selected_api_type_id) && (supervised_item._type != this.selected_api_type_id)) {
-    //             continue;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_ERROR) {
-    //             this.nb_errors++;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_WARN) {
-    //             this.nb_warns++;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_OK) {
-    //             this.nb_oks++;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_PAUSED) {
-    //             this.nb_pauses++;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_ERROR_READ) {
-    //             this.nb_errors_read++;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_WARN_READ) {
-    //             this.nb_warns_read++;
-    //         }
-
-    //         if (supervised_item.state == SupervisionController.STATE_UNKOWN) {
-    //             this.nb_unknowns++;
-    //         }
-    //     }
-    // }
 
     /**
      * dresse la liste des sondes en la triant par état

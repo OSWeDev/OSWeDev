@@ -21,11 +21,6 @@
                 template(v-for="api_type_id in filtered_api_type_ids")
                     .btn.btn-secondary.mr-3.mb-1(@click="selectApiTypeId(api_type_id)", :class="{'btn-success': ((selected_api_type_id) && (selected_api_type_id == api_type_id))}") {{ label('supervision.dashboard.' + api_type_id) }}
 
-    //- champs de recherche
-    .row.mb-3
-        .col-md-12
-            input(type='text' :placeholder='label("supervision.filter_text")' v-model="filter_text")
-
     //- bandeau des compteurs pour chaque états
     .row
         .col-sm-1
@@ -64,15 +59,18 @@
                 :nb_elts="nb_unknowns"
             )
 
+    //- champs de recherche
+    .row.mb-3
+        .col-md-3
+            input.form-control(type='text' :placeholder='label("supervision.filter_text")' v-model="filter_text")
+
     //- liste des sondes
     .row
         .col-sm-7
             template(v-for='supervised_item in ordered_supervised_items')
                 Supervisiondashboarditemcomponent(:item='supervised_item' :display_item_in_same_p='display_item_in_same_p')
 
-        .col-sm-5(v-if="display_item_in_same_p && get_selected_item")
-            Superviseditemcomponent(
-                :supervised_item_id='get_selected_item.id'
-                :supervised_item_vo_type='get_selected_item._type'
-                :hide_supervised_item_graph='hide_supervised_item_graph'
-                :display_item_in_same_p='display_item_in_same_p')
+    template(v-if="display_item_in_same_p")
+        Supervisionitemmodalcomponent(
+            :hide_supervised_item_graph='hide_supervised_item_graph'
+            :display_item_in_same_p='display_item_in_same_p')
