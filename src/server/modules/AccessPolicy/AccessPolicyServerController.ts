@@ -64,9 +64,9 @@ export default class AccessPolicyServerController {
     public access_matrix_validity: boolean = false;
     public access_matrix_heritance_only_validity: boolean = false;
 
+    public registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
     private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
-    private registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
     private registered_users_roles: { [uid: number]: RoleVO[] } = {};
     private registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {};
     private registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO } = {};
@@ -78,7 +78,7 @@ export default class AccessPolicyServerController {
      * ----- Global application cache - Brocasted CUD - Local R
      */
 
-    private throttled_reload_access_matrix_computation = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_access_matrix_computation.bind(this), 2000);
+    private throttled_reload_access_matrix_computation = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_access_matrix_computation.bind(this), 1000);
 
     public constructor() {
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, this.set_registered_role.bind(this));

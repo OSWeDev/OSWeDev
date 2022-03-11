@@ -55,7 +55,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public field_id: string;
 
     get datatable_field_uid() {
-        return this.api_type_id + '___' + this.field_id;
+        return (this.type == TableColumnDescVO.TYPE_crud_actions) ? '__crud_actions' : this.api_type_id + '___' + this.field_id;
     }
 
     /**

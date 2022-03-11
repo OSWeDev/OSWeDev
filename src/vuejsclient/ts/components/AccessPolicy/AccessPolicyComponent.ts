@@ -43,6 +43,8 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
     private busy: boolean = false;
 
+    private initialized: boolean = false;
+
     private access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
     private inherited_access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
     private display_policy_groups: { [policy_group_id: number]: boolean } = {};
@@ -148,20 +150,24 @@ export default class AccessPolicyComponent extends VueComponentBase {
     }
 
     private update_component() {
-        this.set_ordered_policy_groups();
-        this.set_dependencies_by_policy_id();
-        this.set_roles();
 
+        if (!this.initialized) {
+            this.set_ordered_policy_groups();
+            this.set_dependencies_by_policy_id();
+            this.set_roles();
+        }
 
         this.set_policies_visibility_by_role_id();
         this.set_visible_policies_by_group_id();
         this.set_policy_groups_vibility();
 
-
-        this.set_policies_by_group_id();
-        this.set_policy_groups_segmentations();
+        if (!this.initialized) {
+            this.set_policies_by_group_id();
+            this.set_policy_groups_segmentations();
+        }
 
         this.set_policy_visibility();
+        this.initialized = true;
     }
 
     private switch_display_policy_group_segmentation(policy_group_segmentation: PolicyGroupSegmentation) {
@@ -451,6 +457,9 @@ export default class AccessPolicyComponent extends VueComponentBase {
         })());
 
         await Promise.all(promises);
+
+        this.throttled_update_component();
+
         // this.stopLoading();
     }
 
@@ -461,17 +470,28 @@ export default class AccessPolicyComponent extends VueComponentBase {
         this.snotify.info(this.label('access_policy.admin.set_policy.start'));
         this.busy = true;
 
+        // Suite à la mise à jour on attend 1.5 secondes pour avoir les nouvelles matrices à jour
         if (!await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id)) {
+
             // On devrait pas pouvoir arriver là
-            await this.updateMatrices();
-            this.busy = false;
-            this.snotify.error(this.label('access_policy.admin.set_policy.ko'));
+            setTimeout(async () => {
+                await this.end_set_policy(true);
+            }, 1500);
             return;
         }
 
+        setTimeout(this.end_set_policy, 1500);
+    }
+
+    private async end_set_policy(is_error: boolean = false) {
         await this.updateMatrices();
         this.busy = false;
-        this.snotify.success(this.label('access_policy.admin.set_policy.ok'));
+
+        if (is_error) {
+            this.snotify.error(this.label('access_policy.admin.set_policy.ko'));
+        } else {
+            this.snotify.success(this.label('access_policy.admin.set_policy.ok'));
+        }
     }
 
     private set_display_policy_group(policy_group_id: number) {
