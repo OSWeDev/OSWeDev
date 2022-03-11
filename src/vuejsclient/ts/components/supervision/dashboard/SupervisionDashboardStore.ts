@@ -22,6 +22,7 @@ export interface ISupervisionState {
     selected_api_type_id: string;
     dashboard_key: string;
     filter_text_lower_case: string;
+    api_type_ids_by_category_ids: { [id: number]: string[] };
 }
 
 export default class SupervisionDashboardStore implements IStoreModule<ISupervisionState, SupervisionContext> {
@@ -61,6 +62,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             selected_api_type_id: null,
             dashboard_key: null,
             filter_text_lower_case: null,
+            api_type_ids_by_category_ids: null,
         };
 
 
@@ -79,6 +81,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             get_selected_api_type_id: (state: ISupervisionState): string => state.selected_api_type_id,
             get_dashboard_key: (state: ISupervisionState): string => state.dashboard_key,
             get_filter_text_lower_case: (state: ISupervisionState): string => state.filter_text_lower_case,
+            get_api_type_ids_by_category_ids: (state: ISupervisionState): { [id: number]: string[] } => state.api_type_ids_by_category_ids,
         };
 
         this.mutations = {
@@ -110,6 +113,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             set_selected_api_type_id: (state: ISupervisionState, selected_api_type_id: string): any => state.selected_api_type_id = selected_api_type_id,
             set_dashboard_key: (state: ISupervisionState, dashboard_key: string): any => state.dashboard_key = dashboard_key,
             set_filter_text_lower_case: (state: ISupervisionState, filter_text_lower_case: string): any => state.filter_text_lower_case = filter_text_lower_case,
+            set_api_type_ids_by_category_ids: (state: ISupervisionState, api_type_ids_by_category_ids: { [id: number]: string[] }): any => state.api_type_ids_by_category_ids = api_type_ids_by_category_ids,
         };
 
 
@@ -129,6 +133,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             set_selected_api_type_id: (context: SupervisionContext, selected_api_type_id: string): any => commit_set_selected_api_type_id(context, selected_api_type_id),
             set_dashboard_key: (context: SupervisionContext, dashboard_key: string): any => commit_set_dashboard_key(context, dashboard_key),
             set_filter_text_lower_case: (context: SupervisionContext, filter_text_lower_case: string): any => commit_set_filter_text_lower_case(context, filter_text_lower_case),
+            set_api_type_ids_by_category_ids: (context: SupervisionContext, api_type_ids_by_category_ids: { [id: number]: string[] }): any => commit_set_api_type_ids_by_category_ids(context, api_type_ids_by_category_ids),
         };
     }
 }
@@ -152,3 +157,4 @@ export const commit_set_api_type_ids = commit(SupervisionDashboardStore.getInsta
 export const commit_set_selected_api_type_id = commit(SupervisionDashboardStore.getInstance().mutations.set_selected_api_type_id);
 export const commit_set_dashboard_key = commit(SupervisionDashboardStore.getInstance().mutations.set_dashboard_key);
 export const commit_set_filter_text_lower_case = commit(SupervisionDashboardStore.getInstance().mutations.set_filter_text_lower_case);
+export const commit_set_api_type_ids_by_category_ids = commit(SupervisionDashboardStore.getInstance().mutations.set_api_type_ids_by_category_ids);

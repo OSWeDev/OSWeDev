@@ -51,6 +51,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private set_dashboard_key: (dashboard_key: string) => void;
     @ModuleSupervisionAction
     private set_filter_text_lower_case: (filter_text_lower_case: string) => void;
+    @ModuleSupervisionAction
+    private set_api_type_ids_by_category_ids: (api_type_ids_by_category_ids: { [id: number]: string[] }) => void;
 
     @ModuleSupervisionGetter
     private get_show_errors: boolean;
@@ -80,12 +82,14 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private get_dashboard_key: string;
     @ModuleSupervisionGetter
     private get_filter_text_lower_case: string;
+    @ModuleSupervisionGetter
+    private get_api_type_ids_by_category_ids: { [id: number]: string[] };
 
     /** liste des sondes */
     private supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
     private continue_reloading: boolean = true;
 
-    private api_type_ids_by_category_ids: { [id: number]: string[] } = {};
+    // private api_type_ids_by_category_ids: { [id: number]: string[] } = {};
 
     private nb_errors: number = 0;
     private nb_warns: number = 0;
@@ -193,20 +197,12 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             this.set_selected_category(null);
             this.set_selected_api_type_id(null);
             this.set_filter_text_lower_case(null);
-
-            this.api_type_ids_by_category_ids = {};
+            this.set_api_type_ids_by_category_ids(null);
             first_build = true;
         }
 
         /** liste des nouvelles sondes à afficher */
         let new_supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
-        let promises = [];
-
-        let registered_api_types = SupervisionController.getInstance().registered_controllers;
-
-        let api_type_ids: string[] = [];
-        let api_type_ids_by_category_ids: { [id: number]: string[] } = {};
-        let already_add_api_type_ids_by_category_ids: { [id: number]: { [api_type_id: string]: boolean } } = {};
 
         // récupération des catégories et filtrage en fonction de enabled_categories
         if (!this.get_categorys || !this.get_categorys.length) {
@@ -215,6 +211,13 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
         let enabled_categories_ids = this.get_categorys.map((cat) => cat.id);
+
+        let api_type_ids: string[] = [];
+        let api_type_ids_by_category_ids: { [id: number]: string[] } = {};
+        let already_add_api_type_ids_by_category_ids: { [id: number]: { [api_type_id: string]: boolean } } = {};
+
+        let registered_api_types = SupervisionController.getInstance().registered_controllers;
+        let promises = [];
 
         for (let api_type_id in registered_api_types) {
             let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
@@ -261,9 +264,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
-        if (first_build) {
-            this.api_type_ids_by_category_ids = api_type_ids_by_category_ids;
+        if (!this.get_api_type_ids || !this.get_api_type_ids.length) {
+            // if (first_build) {
+            this.set_api_type_ids_by_category_ids(api_type_ids_by_category_ids);
             this.set_api_type_ids(api_type_ids);
+            // }
         }
 
         this.supervised_items_by_names = new_supervised_items_by_names;
@@ -407,7 +412,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             return this.get_api_type_ids;
         }
 
-        return this.api_type_ids_by_category_ids[this.get_selected_category.id];
+        return this.get_api_type_ids_by_category_ids[this.get_selected_category.id];
     }
 
     /**
