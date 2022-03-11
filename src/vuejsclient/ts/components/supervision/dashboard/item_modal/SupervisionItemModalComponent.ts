@@ -25,19 +25,24 @@ export default class SupervisionItemModalComponent extends VueComponentBase {
     @Prop({ default: false })
     private noclick: boolean;
 
-    @Prop({ default: false })
-    private default_hide_item_graph: boolean;
-
-    @Prop({ default: false })
-    private display_item_in_same_p: boolean;
-
     // get supervised_item_controller(): ISupervisedItemController<any> {
     //     return SupervisionController.getInstance().registered_controllers[this.item._type];
     // }
+    private mounted() {
+        $("#supervision_item_modal").on("hidden.bs.modal", () => {
+            this.closemodal();
+        });
+    }
 
     private closemodal() {
         this.set_selected_item(null);
-        // $('#supervision_item_modal').modal('hide');
+        this.$router.push({
+            name: SupervisionController.ROUTE_NAME_DASHBOARD,
+            params: {
+                dashboard_key: this.$route.params.dashboard_key
+            },
+        });
+        $('#supervision_item_modal').modal('hide');
     }
 
 }

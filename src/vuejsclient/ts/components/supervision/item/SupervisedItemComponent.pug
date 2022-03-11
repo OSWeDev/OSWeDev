@@ -1,11 +1,11 @@
 .supervised_item
     template(v-if='!!supervised_item')
         .row
-            .supervised_item_header.mb-3(:class='display_item_in_same_p ? "col-sm-12" : "col-sm-7"')
+            .supervised_item_header.mb-3(class='col-sm-12')
                 Supervisiondashboarditemcomponent(:item='supervised_item' :noclick='true')
 
         .row.mb-3
-            div(:class='display_item_in_same_p ? "col-sm-12" : "col-sm-7"')
+            div(class="col-sm-12")
                 .row
                     .col-sm-8
                         //- options d'affichage du graphique
@@ -64,7 +64,7 @@
         .row
             .supervised_item_graph(
                 v-if="show_graph"
-                :class='display_item_in_same_p ? "col-sm-7 col-sm-offset-2 mx-auto mb-4" : "col-sm-4"'
+                class='col-sm-7 col-sm-offset-2 mx-auto mb-4'
             )
                 Superviseditemhistchartcomponent(
                     :filter='supervised_item_client_controller.get_graph_filter(supervised_item)'
@@ -78,7 +78,7 @@
 
             div(
                 v-if='supervised_item_controller'
-                :class='display_item_in_same_p ? "col-sm-12" : "col-sm-8"'
+                class='col-sm-12'
             )
                 .row
                     template(v-if="supervised_item_controller.get_description(supervised_item)")

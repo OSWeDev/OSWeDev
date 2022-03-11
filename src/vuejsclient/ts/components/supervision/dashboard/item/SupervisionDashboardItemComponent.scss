@@ -1,5 +1,5 @@
 .supervision_dashboard_item {
-
+    display: block;
     border-radius: 6px;
     font-size: small;
     text-align: center;
@@ -12,6 +12,8 @@
     &:hover,
     &.noclick {
         opacity: 1;
+        color: white;
+        text-decoration: none;
     }
 
     &.STATE_ERROR {

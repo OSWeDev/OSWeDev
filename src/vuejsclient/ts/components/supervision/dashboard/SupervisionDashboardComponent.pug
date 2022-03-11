@@ -2,16 +2,16 @@
     //- panneau gauche liste categories et sondes
     .col-md-4.col-sm-12
         //-  premier bandeau des catégories
-        template(v-if="(categorys) && (categorys.length) && (categorys.length > 1)")
+        template(v-if="(get_categorys) && (get_categorys.length) && (get_categorys.length > 1)")
             .col-md-12.mb-3
                 h2 {{ label('supervision.dashboard.category') }}
 
                 .btn.mr-3.mb-1(
                     @click="selectCategory(null)",
-                    :class='selected_category ? "btn-secondary" : "btn-success"'
+                    :class='get_selected_category ? "btn-secondary" : "btn-success"'
                     ) {{ label('supervision.dashboard.all') }}
 
-                template(v-for="category in categorys")
+                template(v-for="category in get_categorys")
                     .btn.mr-3.mb-1(
                         @click="selectCategory(category)",
                         :class='!!is_cat_selected(category) ? "btn-success" : "btn-secondary"'
@@ -24,7 +24,7 @@
 
                 .btn.mr-3.mb-1(
                     @click="selectApiTypeId(null)",
-                    :class='selected_api_type_id ? "btn-secondary" : "btn-success"'
+                    :class='get_selected_api_type_id ? "btn-secondary" : "btn-success"'
                     ) {{ label('supervision.dashboard.all') }}
 
                 template(v-for="api_type_id in filtered_api_type_ids")
@@ -81,9 +81,6 @@
         .row
             .col-sm-12
                 template(v-for='supervised_item in ordered_supervised_items')
-                    Supervisiondashboarditemcomponent(:item='supervised_item' :display_item_in_same_p='display_item_in_same_p')
+                    Supervisiondashboarditemcomponent(:item='supervised_item')
 
-        template(v-if="display_item_in_same_p")
-            Supervisionitemmodalcomponent(
-                :default_hide_item_graph='default_hide_item_graph'
-                :display_item_in_same_p='display_item_in_same_p')
+        Supervisionitemmodalcomponent

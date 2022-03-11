@@ -24,9 +24,6 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @Prop({ default: false })
     private noclick: boolean;
 
-    @Prop({ default: false })
-    private display_item_in_same_p: boolean;
-
     private state_classname: string = 'STATE_UNKNOWN';
     private fa_class_name: string = null;
     private formatted_date: string = null;
@@ -135,17 +132,14 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         return SupervisionController.getInstance().registered_controllers[this.item._type];
     }
 
-    private open_item() {
-        if (!this.item) {
-            return;
-        }
-
-        if (this.display_item_in_same_p) {
-            this.set_selected_item(this.item);
-            // $('#supervision_item_modal').modal('show');
-
-        } else {
-            this.$router.push('./item/' + this.item._type + '/' + this.item.id);
-        }
+    get router_to() {
+        return {
+            name: SupervisionController.ROUTE_NAME_DASHBOARD_ITEM,
+            params: {
+                dashboard_key: this.$route.params.dashboard_key,
+                supervised_item_vo_type: this.item._type,
+                supervised_item_vo_id: this.item.id.toString(),
+            }
+        };
     }
 }
