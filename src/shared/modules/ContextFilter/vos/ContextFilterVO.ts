@@ -2,6 +2,7 @@ import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import HourRange from "../../DataRender/vos/HourRange";
 import NumRange from "../../DataRender/vos/NumRange";
 import TSRange from "../../DataRender/vos/TSRange";
+import ContextQueryVO from "./ContextQueryVO";
 
 export default class ContextFilterVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_filter";
@@ -60,6 +61,8 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.NUMERIC_SUP_ALL',
         'context_filter.type.NUMERIC_SUPEQ_ANY',
         'context_filter.type.NUMERIC_SUPEQ_ALL',
+
+        'context_filter.type.TYPE_SUB_QUERY',
     ];
 
     /**
@@ -198,6 +201,12 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_NUMERIC_SUPEQ_ANY: number = 50;
     public static TYPE_NUMERIC_SUPEQ_ALL: number = 51;
 
+    /**
+     * Pour faire le lien avec une sous-requête
+     *  Le lien sera fait en indiquant field_id in (%SUB_QUERY%)
+     */
+    public static TYPE_SUB_QUERY: number = 52;
+
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;
 
@@ -218,4 +227,9 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public left_hook: ContextFilterVO;
     public right_hook: ContextFilterVO;
+
+    /**
+     * Sous-requête liée dans le cas d'un type sub_query
+     */
+    public sub_query: ContextQueryVO;
 }

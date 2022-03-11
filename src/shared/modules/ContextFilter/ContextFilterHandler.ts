@@ -29,6 +29,23 @@ export default class ContextFilterHandler {
         return res;
     }
 
+    public get_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
+        let res: ContextFilterVO[] = [];
+
+        for (let i in active_field_filters) {
+            let filters = active_field_filters[i];
+
+            for (let j in filters) {
+                let filter = filters[j];
+
+                res.push(filter);
+            }
+        }
+
+        return res;
+    }
+
+
     /**
      * @param context_filter_tree_root
      * @param type

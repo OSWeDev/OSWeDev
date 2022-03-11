@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
-import moment = require('moment');
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -18,20 +18,23 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import FieldPathWrapper from './vos/FieldPathWrapper';
 import TypesPathElt from './vos/TypesPathElt';
+import moment = require('moment');
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextAccessServerController from './ContextAccessServerController';
+import { resourceUsage } from 'process';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 
-export default class ContextFilterServerController {
+export default class ContextQueryServerController {
 
     public static getInstance() {
-        if (!ContextFilterServerController.instance) {
-            ContextFilterServerController.instance = new ContextFilterServerController();
+        if (!ContextQueryServerController.instance) {
+            ContextQueryServerController.instance = new ContextQueryServerController();
         }
-        return ContextFilterServerController.instance;
+        return ContextQueryServerController.instance;
     }
 
-    private static instance: ContextFilterServerController = null;
+    private static instance: ContextQueryServerController = null;
 
     private constructor() { }
 
@@ -39,69 +42,531 @@ export default class ContextFilterServerController {
     }
 
     /**
-     * Builds a query to return the field values according to the context filters
-     * @param api_type_id
-     * @param field_id null returns all fields as would a getvo
-     * @param get_active_field_filters
-     * @param active_api_type_ids
-     * @param limit
-     * @param offset
-     * @param res_field_alias ignored if field_id is null
-     * @returns
+     * Renvoie le comptage des vos en appliquant les filtres demandés
      */
-    public async build_request_from_active_field_filters(
-        api_type_ids: string[],
-        field_ids: string[],
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        active_api_type_ids: string[],
-        limit: number,
-        offset: number,
-        sort_by: SortByVO,
-        res_field_aliases: string[],
-        is_delete: boolean = false
-    ): Promise<string> {
+    public async select_count(context_query: ContextQueryVO): Promise<number> {
 
-        let res = await this.build_request_from_active_field_filters_(
-            api_type_ids,
-            field_ids,
-            get_active_field_filters,
-            active_api_type_ids,
-            sort_by,
-            res_field_aliases,
-            is_delete
-        );
+        let query_str = await this.build_query_count(context_query);
 
-        if (limit) {
-            res += ' LIMIT ' + limit;
+        if (!query_str) {
+            throw new Error('Invalid context_query param');
+        }
 
-            if (offset) {
-                res += ' OFFSET ' + offset;
+        let query_res = await ModuleDAOServer.getInstance().query(query_str);
+        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
+        c = c ? parseInt(c.toString()) : 0;
+        return c;
+    }
+
+    /**
+     * Renvoie les vos en appliquant les filtres demandés
+     */
+    public async select_vos<T extends IDistantVOBase>(context_query: ContextQueryVO): Promise<T[]> {
+
+        if (!context_query) {
+            throw new Error('Invalid context_query param');
+        }
+
+        if (context_query.fields && context_query.fields.length) {
+            throw new Error('Invalid context_query.fields param');
+        }
+
+        let query = await this.build_select_query(context_query);
+        if (!query) {
+            throw new Error('Invalid query');
+        }
+
+        let query_res = await ModuleDAOServer.getInstance().query();
+        if ((!query_res) || (!query_res.length)) {
+            return null;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+
+        // On devrait plus avoir besoin de faire ça ici, on doit le faire dans la requête directement et sur tous les types rencontrés
+        // return await ModuleDAOServer.getInstance().filterVOsAccess(moduletable, ModuleDAO.DAO_ACCESS_TYPE_READ, moduletable.forceNumerics(query_res));
+
+        return moduletable.forceNumerics(query_res);
+    }
+
+    /**
+     * Renvoie les lignes du datatable en appliquant les filtres demandés
+     */
+    public async select_datatable_rows<T extends IDistantVOBase>(context_query: ContextQueryVO): Promise<T[]> {
+
+        if (!context_query) {
+            throw new Error('Invalid context_query param');
+        }
+
+        if ((!context_query.fields) || !context_query.fields.length) {
+            throw new Error('Invalid context_query.fields param');
+        }
+
+        let query = await this.build_select_query(context_query);
+        if (!query) {
+            throw new Error('Invalid query');
+        }
+
+        let query_res = await ModuleDAOServer.getInstance().query();
+        if ((!query_res) || (!query_res.length)) {
+            return null;
+        }
+
+        return query_res;
+    }
+
+    /**
+     * Renvoie les options pour un filtrage en appliquant les filtres demandés
+     */
+    public async select_filter_visible_options(
+        context_query: ContextQueryVO,
+        actual_query: string
+    ): Promise<DataFilterOption[]> {
+
+        if (!context_query) {
+            throw new Error('Invalid context_query param');
+        }
+
+        let res: DataFilterOption[] = [];
+
+        if (!context_query.base_api_type_id) {
+            throw new Error('Invalid context_query param');
+        }
+
+        /**
+         * On doit avoir qu'un seul champs en cible
+         */
+        if ((!context_query.fields) || (context_query.fields.length != 1)) {
+            throw new Error('Invalid context_query param');
+        }
+        let field = context_query.fields[0];
+        let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+
+        /**
+         * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
+         */
+        if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_id]) {
+            delete get_active_field_filters[field.api_type_id][field.field_id];
+        }
+
+        if (actual_query) {
+            let actual_filter = new ContextFilterVO();
+            actual_filter.field_id = field.field_id;
+            actual_filter.vo_type = field.api_type_id;
+            actual_filter.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
+            actual_filter.param_text = actual_query;
+
+            if (!get_active_field_filters[field.api_type_id]) {
+                get_active_field_filters[field.api_type_id] = {};
+            }
+            get_active_field_filters[field.api_type_id][field.field_id] = actual_filter;
+        }
+
+        context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
+
+        let query_res: any[] = await this.select_datatable_rows(context_query);
+        if ((!query_res) || (!query_res.length)) {
+            return res;
+        }
+
+        for (let i in query_res) {
+            let res_field = query_res[i];
+            let line_option = this.translate_db_res_to_dataoption(field.api_type_id, field.field_id, res_field);
+
+            if (line_option) {
+                res.push(line_option);
             }
         }
 
         return res;
     }
 
-    public async build_request_from_active_field_filters_count(
-        api_type_ids: string[],
-        field_ids: string[],
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        active_api_type_ids: string[],
-        res_field_aliases: string[]
-    ): Promise<string> {
+    /**
+     * Construit la requête pour un select count(*) from context_filters
+     */
+    public async build_query_count(context_query: ContextQueryVO): Promise<string> {
 
-        let res = 'SELECT COUNT(*) c FROM (' + await this.build_request_from_active_field_filters_(
-            api_type_ids,
-            field_ids,
-            get_active_field_filters,
-            active_api_type_ids,
-            null,
-            res_field_aliases,
-            false
-        ) + ') as tocount';
+        if (!context_query) {
+            throw new Error('Invalid context_query param');
+        }
+
+        let query = await this.build_select_query(context_query);
+        if (!query) {
+            throw new Error('Invalid query');
+        }
+
+        query = 'SELECT COUNT(*) c FROM (' +
+            query +
+            ') as tocount';
+
+        return query;
+    }
+
+    /**
+     * Update des vos en appliquant les filtres
+     *  1 à un (enfin en paquet de 100) pour appeler les triggers => rien de comparable à un update qui serait faire directement
+     *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
+     *  ne seraient pas exécutés dans ce cas...
+     * @param update_field_id En cas d'update, le nom du champs cible (sur le base_api_type_id)
+     * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
+     *  qu'on va mettre en remplacement de la valeur actuelle
+     */
+    public async update_vos(
+        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any): Promise<void> {
+
+        /**
+         * On a besoin d'utiliser les limit / offset et sortBy donc on refuse ces infos en amont
+         */
+        if (context_query.limit || context_query.offset || context_query.sort_by) {
+            throw new Error('Invalid context_query param');
+        }
+
+        /**
+         * On se fixe des paquets de 100 vos à updater
+         * et on sort by id desc pour éviter que l'ordre change pendant le process
+         * au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. probablement pas très grave
+         */
+        context_query.offset = 0;
+        context_query.limit = 100;
+        let might_have_more: boolean = true;
+        context_query.sort_by = new SortByVO(context_query.base_api_type_id, 'id', false);
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+        let field = moduletable.get_field_by_id(update_field_id);
+        let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+
+        // Si le champs modifié impact un filtrage, on doit pas faire évoluer l'offset
+        let change_offset = true;
+        for (let field_id in get_active_field_filters[context_query.base_api_type_id]) {
+            if (field_id == update_field_id) {
+                change_offset = false;
+                break;
+            }
+        }
+
+        if (!field.is_readonly) {
+            while (might_have_more) {
+
+                let vos = await this.select_vos(context_query);
+
+                if ((!vos) || (!vos.length)) {
+                    break;
+                }
+
+                vos.forEach((vo) => {
+                    vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
+                });
+                await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+
+                might_have_more = (vos.length >= context_query.limit);
+                context_query.offset += change_offset ? context_query.limit : 0;
+            }
+        }
+    }
+
+    /**
+     * Delete des vos en appliquant les filtres
+     *  1 à un (enfin en paquet de 100) pour appeler les triggers => rien de comparable à un delete qui serait faire directement
+     *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
+     *  ne seraient pas exécutés dans ce cas...
+     */
+    public async delete_vos(context_query: ContextQueryVO): Promise<void> {
+
+        /**
+         * On a besoin d'utiliser les limit / offset et sortBy donc on refuse ces infos en amont
+         */
+        if (context_query.limit || context_query.offset || context_query.sort_by) {
+            throw new Error('Invalid context_query param');
+        }
+
+        /**
+         * On se fixe des paquets de 100 vos à delete
+         */
+        context_query.offset = 0;
+        context_query.limit = 100;
+        let might_have_more: boolean = true;
+
+        while (might_have_more) {
+
+            let vos = await this.select_vos(context_query);
+
+            if ((!vos) || (!vos.length)) {
+                break;
+            }
+
+            await ModuleDAO.getInstance().deleteVOs(vos);
+
+            might_have_more = (vos.length >= context_query.limit);
+        }
+    }
+
+    /**
+     * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
+     *  sur les fields passées dans le context_query
+     */
+    public async build_select_query(context_query: ContextQueryVO): Promise<string> {
+
+        if (!context_query) {
+            throw new Error('Invalid query param');
+        }
+
+        let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
+        let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+
+        try {
+
+            /**
+             * Par mesure de sécu on check que les éléments proposés existent en base
+             */
+            if (!context_query.base_api_type_id) {
+                return null;
+            }
+
+            if (!ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query.base_api_type_id, context_query.fields, access_type)) {
+                return null;
+            }
+
+            let aliases_n: number = 0;
+            let tables_aliases_by_type: { [vo_type: string]: string } = {
+                [context_query.base_api_type_id]: (context_query.query_tables_prefix ?
+                    (context_query.query_tables_prefix + '_t' + (aliases_n++)) :
+                    ('t' + (aliases_n++))
+                )
+            };
+
+            let res: string = null;
+            let FROM: string = null;
+
+            /**
+             * On prend arbitrairement la première table comme FROM, on join vers elle par la suite.
+             */
+            let jointures: string[] = [];
+            let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+
+            this.add_activated_many_to_many(context_query);
+
+            if (!context_query.fields) {
+
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+
+                if (!moduletable) {
+                    return null;
+                }
+
+                let full_name = await this.get_table_full_name(moduletable, get_active_field_filters);
+
+                res = "SELECT " + tables_aliases_by_type[context_query.base_api_type_id] + ".* ";
+                FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
+            } else {
+
+                res = "SELECT DISTINCT ";
+                let first = true;
+
+                for (let i in context_query.fields) {
+                    let context_field = context_query.fields[i];
+
+                    let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_field.api_type_id];
+                    if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
+                        return null;
+                    }
+
+                    // /**
+                    //  * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+                    //  */
+                    // if (moduletable.is_segmented) {
+                    //     throw new Error('Not implemented');
+                    // }
+
+                    if (!context_query.base_api_type_id) {
+                        context_query.base_api_type_id = context_field.api_type_id;
+
+                        FROM = " FROM " + moduletable.full_name + " " + tables_aliases_by_type[context_field.api_type_id];
+                        joined_tables_by_vo_type[context_field.api_type_id] = moduletable;
+                    } else {
+                        /**
+                         * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+                         */
+                        if (!tables_aliases_by_type[context_field.api_type_id]) {
+
+                            /**
+                             * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                             */
+                            let path: FieldPathWrapper[] = this.get_path_between_types(
+                                context_query.active_api_type_ids, Object.keys(joined_tables_by_vo_type), context_field.api_type_id);
+                            if (!path) {
+                                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                                continue;
+                            }
+
+                            /**
+                             * On doit checker le trajet complet
+                             */
+                            if (!ContextAccessServerController.getInstance().check_access_to_fields(path, access_type)) {
+                                return null;
+                            }
+
+                            aliases_n = await this.updates_jointures(jointures, context_field.api_type_id, get_active_field_filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                            // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+                        }
+                    }
+
+                    if (!first) {
+                        res += ', ';
+                    }
+                    first = false;
+
+                    res += tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id +
+                        (context_field.alias ? " as " + context_field.alias : '') + ' ';
+                }
+            }
+
+            res += FROM;
+
+            /**
+             * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
+             */
+            let where_conditions: string[] = [];
+
+            for (let api_type_id_i in get_active_field_filters) {
+                let active_field_filters_by_fields = get_active_field_filters[api_type_id_i];
+
+                for (let field_id_i in active_field_filters_by_fields) {
+                    let active_field_filter: ContextFilterVO = active_field_filters_by_fields[field_id_i];
+
+                    if (!active_field_filter) {
+                        continue;
+                    }
+
+                    if (active_field_filter.vo_type == context_query.base_api_type_id) {
+                        /**
+                         * On a pas besoin de jointure mais par contre on a besoin du filtre
+                         */
+                        await this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                        continue;
+                    }
+
+                    if (!joined_tables_by_vo_type[api_type_id_i]) {
+
+                        /**
+                         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                         */
+                        let path: FieldPathWrapper[] = this.get_path_between_types(
+                            context_query.active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
+                        if (!path) {
+                            // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                            continue;
+                        }
+                        aliases_n = await this.updates_jointures(jointures, context_query.base_api_type_id, get_active_field_filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                        // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+                    }
+
+                    await this.update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                }
+            }
+
+            res += this.get_ordered_jointures(context_query, jointures);
+
+            if (where_conditions && where_conditions.length) {
+                res += ' WHERE (' + where_conditions.join(') AND (') + ')';
+            }
+
+            if (context_query.sort_by) {
+
+                res += ' ORDER BY ' + tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id +
+                    (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
+            }
+
+            res = this.add_limit(context_query, res);
+
+            return res;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+    }
+
+    /**
+     * Ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
+     */
+    private get_ordered_jointures(context_query: ContextQueryVO, jointures: string[]): string {
+        let res = '';
+
+        if (jointures && jointures.length) {
+
+            jointures.sort((jointurea: string, jointureb: string) => {
+                // Si on cite un alias dans a qui est déclaré dans b, on doit être après b, sinon
+                //  soit l'inverse soit osef
+                let alias_a = jointurea.split(' ')[1];
+                let alias_b = jointureb.split(' ')[1];
+
+                let citation_1_a = jointurea.split(' ')[3].split('.')[0];
+                let citation_2_a = jointurea.split(' ')[5].split('.')[0];
+
+                let citation_1_b = jointureb.split(' ')[3].split('.')[0];
+                let citation_2_b = jointureb.split(' ')[5].split('.')[0];
+
+                if ((citation_1_a == alias_b) || (citation_2_a == alias_b)) {
+                    return 1;
+                }
+
+                if ((citation_1_b == alias_a) || (citation_2_b == alias_a)) {
+                    return -1;
+                }
+
+                return 0;
+            });
+            res += ' LEFT JOIN ' + jointures.join(' LEFT JOIN ');
+        }
 
         return res;
     }
+
+    /**
+     * On agrémente la liste des active_api_type_ids par les relations N/N dont les types liés sont actifs
+     */
+    private add_activated_many_to_many(context_query: ContextQueryVO) {
+
+        let nn_tables = VOsTypesManager.getInstance().get_manyToManyModuleTables();
+        for (let i in nn_tables) {
+            let nn_table = nn_tables[i];
+
+            if (context_query.active_api_type_ids.indexOf(nn_table.vo_type) >= 0) {
+                continue;
+            }
+
+            let nnfields = nn_table.get_fields();
+            let has_inactive_relation = false;
+            for (let j in nnfields) {
+                let nnfield = nnfields[j];
+
+                if (context_query.active_api_type_ids.indexOf(nnfield.manyToOne_target_moduletable.vo_type) < 0) {
+                    has_inactive_relation = true;
+                    break;
+                }
+            }
+
+            if (!has_inactive_relation) {
+                context_query.active_api_type_ids.push(nn_table.vo_type);
+            }
+        }
+    }
+
+    private add_limit(context_query: ContextQueryVO, query_str: string): string {
+
+        if ((!query_str) || (!context_query)) {
+            return query_str;
+        }
+
+        if (context_query.limit) {
+            query_str += ' LIMIT ' + context_query.limit;
+
+            if (context_query.offset) {
+                query_str += ' OFFSET ' + context_query.offset;
+            }
+        }
+
+        return query_str;
+    }
+
 
     public translate_db_res_to_dataoption(
         api_type_id: string,
@@ -1711,7 +2176,7 @@ export default class ContextFilterServerController {
                 return null;
             }
 
-            if (!this.check_access_to_api_type_ids_field_ids(api_type_ids, field_ids, access_type)) {
+            if (!ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(api_type_ids, field_ids, access_type)) {
                 return null;
             }
 
@@ -1824,7 +2289,7 @@ export default class ContextFilterServerController {
                             /**
                              * On doit checker le trajet complet
                              */
-                            if (!this.check_access_to_fields(path, access_type)) {
+                            if (!ContextAccessServerController.getInstance().check_access_to_fields(path, access_type)) {
                                 return null;
                             }
 
@@ -1928,89 +2393,6 @@ export default class ContextFilterServerController {
             ConsoleHandler.getInstance().error(error);
             return null;
         }
-    }
-
-    public check_access_to_api_type_ids_field_ids(
-        api_type_ids: string[],
-        field_ids: string[],
-        access_type: string): boolean {
-
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
-            return true;
-        }
-
-        let uid: number = StackContext.getInstance().get('UID');
-        let roles;
-        if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
-        } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
-        }
-
-        for (let i in api_type_ids) {
-            let api_type_id = api_type_ids[i];
-            let field_id = field_ids ? field_ids[i] : null;
-
-            if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public check_access_to_fields(
-        fields: FieldPathWrapper[],
-        access_type: string): boolean {
-
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
-            return true;
-        }
-
-        let uid: number = StackContext.getInstance().get('UID');
-        let roles;
-        if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
-        } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
-        }
-
-        for (let i in fields) {
-            let api_type_id = fields[i].field.module_table.vo_type;
-            let field_id = fields[i].field.field_id;
-
-            if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public check_access_to_field(
-        api_type_id: string,
-        field_id: string,
-        access_type: string,
-        roles): boolean {
-
-        /**
-         * Si le field_id est le label du type ou id, on peut transformer un droit de type READ en LIST
-         */
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-        let tmp_access_type = access_type;
-        if ((access_type == ModuleDAO.DAO_ACCESS_TYPE_READ) && ((field_id == 'id') || (table.default_label_field && table.default_label_field.field_id && (field_id == table.default_label_field.field_id)))) {
-            tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;
-        }
-
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(
-            ModuleDAO.getInstance().getAccessPolicyName(tmp_access_type, api_type_id)
-        );
-
-        if (!AccessPolicyServerController.getInstance().checkAccessTo(target_policy, roles)) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
