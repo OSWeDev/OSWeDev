@@ -124,8 +124,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
     @Watch('filter_text')
     private on_change_filter_text() {
-        this.set_filter_text_lower_case(this.filter_text ? this.filter_text.toLowerCase() : null);
-        this.debounced_on_change_show();
+        let lower_case = this.filter_text ? this.filter_text.toLowerCase() : null;
+        if (lower_case != this.get_filter_text_lower_case) {
+            this.set_filter_text_lower_case(lower_case);
+            this.debounced_on_change_show();
+        }
     }
 
     @Watch('get_selected_item')
@@ -144,6 +147,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private async created() {
         this.show_hide_modal();
         this.continue_reloading = true;
+        this.filter_text = this.get_filter_text_lower_case;
         await this.load_supervised_items_and_continue(true);
     }
 
