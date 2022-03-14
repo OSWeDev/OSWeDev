@@ -174,4 +174,12 @@ export default class TSTZInputComponent extends VueComponentBase {
 
         return this.format_datepicker_day;
     }
+
+    get inline_input_mode_and_disabled(): boolean {
+        if (this.disabled) {
+            return false;
+        }
+
+        return this.inline_input_mode;
+    }
 }
