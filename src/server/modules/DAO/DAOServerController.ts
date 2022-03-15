@@ -1,6 +1,7 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -41,8 +42,26 @@ export default class DAOServerController {
      * Local thread cache -----
      */
 
-    // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
+    /**
+     * @deprecated utiliser les context_access_hooks
+     * On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
+     */
     public access_hooks: { [api_type_id: string]: { [access_type: string]: Array<IHookFilterVos<IDistantVOBase>> } } = {};
+
+    /**
+     * Le filtrage des accès est découpé ainsi :
+     *  - Pour définir le droit de lire / modifier / supprimer => utiliser les Policies / les droits des utilisateurs sur chaque api_type_id
+     *  - Une fois qu'on a un droit de principe, on peut préciser le droit d'usage d'un type pour un utilisateur donné ou un contexte donné
+     *      en utilisant un context_access_hook, qui est un contextQuery généré en fonction du user lançant la requête et appliqué à toutes les
+     *      requêtes qui passent par le type du hook
+     *  - On peut aussi préciser le droit de faire un update ou un delete, via un trigger preupdate ou predelete cette fois qui permettra en renvoyant
+     *      false de refuser une demande précise, or droit de principe d'insérer/updater des éléments dans la table
+     *  - On peut ensuite détailler par champs, pour en bloquer certains, via des policies, 1 par champs, en Select ou en Update, et le contextQuery
+     *      filtrera en fonction de ces droits => les filtres (droit Select) les fields du Select (droit Select) le field édité par un Update (droit Update)
+     *      le field du sort_by (droit Select) les fields utilisés dans les paths entre objects et donc dans les jointures (droit Select)
+     *      Si un des fields est refusé on supprime ce qui lui est associé (on supprime le sort_by par exemple si c'est ce champs auquel on a pas le droit)
+     */
+    public context_access_hooks: { [api_type_id: string]: Array<IContextHookFilterVos<IDistantVOBase>> } = {};
 
     public pre_update_trigger_hook: DAOPreUpdateTriggerHook;
     public pre_create_trigger_hook: DAOPreCreateTriggerHook;

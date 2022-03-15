@@ -15,6 +15,16 @@ import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import FieldPathWrapper from './vos/FieldPathWrapper';
 import moment = require('moment');
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import DAOServerController from '../DAO/DAOServerController';
+import StackContext from '../../StackContext';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ServerBase from '../../ServerBase';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { cloneDeep } from 'lodash';
 
 export default class ContextQueryServerController {
 
@@ -448,6 +458,12 @@ export default class ContextQueryServerController {
 
             res += this.get_ordered_jointures(context_query, jointures);
 
+            let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
+            if (context_query.is_access_hook_def) {
+                delete tables_aliases_by_type_for_access_hooks[context_query.base_api_type_id];
+            }
+            await this.add_context_access_hooks(context_query, tables_aliases_by_type_for_access_hooks, where_conditions);
+
             if (where_conditions && where_conditions.length) {
                 res += ' WHERE (' + where_conditions.join(') AND (') + ')';
             }
@@ -464,6 +480,70 @@ export default class ContextQueryServerController {
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
+        }
+    }
+
+    /**
+     * On prend tous les types utilisés pour réaliser la requête (donc référencés dans tables_aliases_by_type)
+     *  et pour chacun si on a un context_access_hook on rajoute la condition associée à la requête
+     * @param context_query le contexte de requête actuel
+     * @param tables_aliases_by_type les tables utilisées et donc à vérifier
+     * @param where_conditions les conditions actuelles et que l'on va amender
+     */
+    private async add_context_access_hooks(context_query: ContextQueryVO, tables_aliases_by_type: { [vo_type: string]: string }, where_conditions: string[]) {
+
+        let context_access_hooks: { [alias: string]: ContextQueryVO[] } = {};
+        let uid: number = null;
+        let user_data: IUserData = null;
+        let user: UserVO = null;
+        let user_roles_by_role_id: { [role_id: number]: RoleVO } = null;
+        let user_roles: RoleVO[] = null;
+        let loaded = false;
+
+        for (let vo_type in tables_aliases_by_type) {
+
+            // Si pas de hook, osef
+            if (!DAOServerController.getInstance().context_access_hooks[vo_type]) {
+                continue;
+            }
+
+            let alias = tables_aliases_by_type[vo_type];
+            let module_table = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type];
+
+            if (!loaded) {
+                loaded = true;
+                uid = StackContext.getInstance().get('UID');
+                user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
+                user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+                user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+                user_roles = ObjectHandler.getInstance().hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
+            }
+
+            let promises = [];
+            let hook_cbs = DAOServerController.getInstance().context_access_hooks[vo_type];
+            for (let j in hook_cbs) {
+                let hook_cb = hook_cbs[j];
+
+                promises.push((async () => {
+                    let query = await hook_cb(module_table, uid, user, user_data, user_roles);
+                    if (!context_access_hooks[alias]) {
+                        context_access_hooks[alias] = [];
+                    }
+                    context_access_hooks[alias].push(query);
+                })());
+            }
+
+            await Promise.all(promises);
+        }
+
+        for (let alias in context_access_hooks) {
+            let querys = context_access_hooks[alias];
+
+            for (let j in querys) {
+                let query = querys[j];
+
+                where_conditions.push(alias + '.id in (' + await this.build_select_query(query) + ')');
+            }
         }
     }
 

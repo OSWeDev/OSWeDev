@@ -11,6 +11,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -359,6 +360,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DAOCronWorkersHandler.getInstance();
     }
 
+    /**
+     * @deprecated préférer l'usage des contextAccessHook
+     */
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID]) {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID] = {};
@@ -367,6 +371,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type] = [];
         }
         DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type].push(hook);
+    }
+
+    /**
+     * Enregistrer un nouveau context access hook qui sera exécuté quand une requête est passée au module context filter
+     *  Si on a plusieurs context query pour un même type, on les enchaînera dans la requête avec un ET (l'id de l'objet
+     *  fitré devra se trouver dans les résultats de toutes les contextQuery)
+     */
+    public registerContextAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, hook: IContextHookFilterVos<T>) {
+        if (!DAOServerController.getInstance().context_access_hooks[API_TYPE_ID]) {
+            DAOServerController.getInstance().context_access_hooks[API_TYPE_ID] = [];
+        }
+        DAOServerController.getInstance().context_access_hooks[API_TYPE_ID].push(hook);
     }
 
     public registerServerApiHandlers() {

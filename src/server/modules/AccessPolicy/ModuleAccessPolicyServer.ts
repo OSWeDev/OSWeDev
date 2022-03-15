@@ -1,5 +1,4 @@
 import { Response } from 'express';
-
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -11,6 +10,9 @@ import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -51,6 +53,7 @@ import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisat
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
+
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -1935,6 +1938,59 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     //     }
     // }
 
+    /**
+     * Context access hook pour les policies qui doivent être liées à un module valide. On sélectionne le filtre id des policies valides
+     * @param moduletable La table sur laquelle on fait la demande (donc ici les AccessPolicyVO)
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les access valides
+     */
+    private async filterPolicyByActivModulesContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        let filter_module_actif: ContextFilterVO = new ContextFilterVO();
+        filter_module_actif.field_id = 'actif';
+        filter_module_actif.vo_type = ModuleVO.API_TYPE_ID;
+        filter_module_actif.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
+
+        let query_module_actif: ContextQueryVO = new ContextQueryVO();
+        query_module_actif.base_api_type_id = ModuleVO.API_TYPE_ID;
+        query_module_actif.active_api_type_ids = [ModuleVO.API_TYPE_ID];
+        query_module_actif.filters = [filter_module_actif];
+        query_module_actif.fields = [new ContextQueryFieldVO(ModuleVO.API_TYPE_ID, 'id', 'filter_module_actif_id')];
+
+        let filter_module_in: ContextFilterVO = new ContextFilterVO();
+        filter_module_in.field_id = 'module_id';
+        filter_module_in.vo_type = AccessPolicyVO.API_TYPE_ID;
+        filter_module_in.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        filter_module_in.sub_query = query_module_actif;
+
+        let filter_no_module: ContextFilterVO = new ContextFilterVO();
+        filter_no_module.field_id = 'module_id';
+        filter_no_module.vo_type = AccessPolicyVO.API_TYPE_ID;
+        filter_no_module.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+
+        let filter_or: ContextFilterVO = new ContextFilterVO();
+        filter_or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
+        filter_or.field_id = 'module_id';
+        filter_or.vo_type = AccessPolicyVO.API_TYPE_ID;
+        filter_or.left_hook = filter_no_module;
+        filter_or.right_hook = filter_module_in;
+
+        let res: ContextQueryVO = new ContextQueryVO();
+        res.base_api_type_id = AccessPolicyVO.API_TYPE_ID;
+        res.fields = [new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')];
+        res.active_api_type_ids = [AccessPolicyVO.API_TYPE_ID];
+        res.filters = [filter_or];
+        res.is_access_hook_def = true;
+
+        return res;
+    }
+
+    /**
+     * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
+     */
     private async filterPolicyByActivModules(datatable: ModuleTable<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
         let res: AccessPolicyVO[] = [];
 

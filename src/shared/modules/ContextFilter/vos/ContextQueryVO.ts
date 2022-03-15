@@ -57,4 +57,13 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  pour assurer l'unicité des noms des tables au sein de la requête globale
      */
     public query_tables_prefix: string;
+
+    /**
+     * Pas fan de cette solution : le but est d'identifier qu'on est en train de définir un accesshook
+     *  pour éviter de tourner en boucle sur l'ajout de conditions where sur le base_type_id.
+     *  si on identifie pas ce cas correctement on définit le access hook en renvoyer un contextquery,
+     *  qui par définition va déclencher l'appel au contexte accesshook et ajouter une condition sur subquery... en boucle
+     *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
+     */
+    public is_access_hook_def: boolean;
 }
