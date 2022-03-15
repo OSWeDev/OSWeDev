@@ -24,6 +24,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
 
     public enabled_categories_by_key: { [key: string]: string[] } = {};
     public item_filter_conditions_by_key: { [key: string]: (supervised_item: ISupervisedItem) => boolean } = {};
+
     public menuBranch: MenuElementVO = null;
 
     private constructor() {
@@ -78,33 +79,33 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
 
 
         //initializing dashboard
-        let main_route_name: string = 'SupervisionDashboard';
+        // let main_route_name: string = 'SupervisionDashboard';
         this.routes.push({
-            path: "/supervision/dashboard",
-            name: main_route_name,
+            path: "/supervision/:dashboard_key",
+            name: SupervisionController.ROUTE_NAME_DASHBOARD,
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
+            props: true
         });
 
         let menuPointer = MenuElementVO.create_new(
             ModuleSupervision.POLICY_BO_ACCESS,
             VueAppController.getInstance().app_name,
-            'SupervisionDashboard',
+            SupervisionController.ROUTE_NAME_DASHBOARD,
             "fa-tachometer",
             10,
-            main_route_name,
+            SupervisionController.ROUTE_NAME_DASHBOARD,
             true,
             this.menuBranch.id
         );
+
+        menuPointer.target_route_params = JSON.stringify({ dashboard_key: SupervisionController.SUPERVISION_DASHBOARD_KEY });
         await MenuController.getInstance().declare_menu_element(menuPointer);
 
         this.routes.push({
-            path: "/supervision/item/:vo_type/:id",
-            name: 'SupervisedItem',
-            component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './item/SupervisedItemComponent'),
-            props: (route) => ({
-                supervised_item_id: parseInt(route.params.id),
-                supervised_item_vo_type: route.params.vo_type
-            }),
+            path: "/supervision/:dashboard_key/item/:supervised_item_vo_type/:supervised_item_vo_id",
+            name: SupervisionController.ROUTE_NAME_DASHBOARD_ITEM,
+            component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
+            props: true
         });
 
         //initializing categoryCRUD

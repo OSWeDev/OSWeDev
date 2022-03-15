@@ -6,6 +6,7 @@ import ISupervisedItem from '../../../../../../shared/modules/Supervision/interf
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
+import { ModuleSupervisionAction } from '../SupervisionDashboardStore';
 import './SupervisionDashboardItemComponent.scss';
 
 @Component({
@@ -13,6 +14,9 @@ import './SupervisionDashboardItemComponent.scss';
     components: {}
 })
 export default class SupervisionDashboardItemComponent extends VueComponentBase {
+
+    @ModuleSupervisionAction
+    private set_selected_item: (selected_item: ISupervisedItem) => void;
 
     @Prop()
     private item: ISupervisedItem;
@@ -128,11 +132,14 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         return SupervisionController.getInstance().registered_controllers[this.item._type];
     }
 
-    private open_item() {
-        if (!this.item) {
-            return;
-        }
-
-        window.open('/admin#/supervision/item/' + this.item._type + '/' + this.item.id, "_blank");
+    get router_to() {
+        return {
+            name: SupervisionController.ROUTE_NAME_DASHBOARD_ITEM,
+            params: {
+                dashboard_key: this.$route.params.dashboard_key,
+                supervised_item_vo_type: this.item._type,
+                supervised_item_vo_id: this.item.id.toString(),
+            }
+        };
     }
 }

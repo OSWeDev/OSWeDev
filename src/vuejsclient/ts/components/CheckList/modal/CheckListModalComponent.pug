@@ -18,6 +18,7 @@
                     :inline_input_show_clear='true'
                     :inline_input_mode_semaphore='true'
                     :show_insert_or_update_target='false'
+                    :is_disabled='editable_field.is_readonly'
                 )
         template(v-else)
             .no_fields {{ label('checklist_modal.no_fields') }}
