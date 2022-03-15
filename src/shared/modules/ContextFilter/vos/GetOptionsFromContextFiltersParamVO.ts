@@ -1,42 +1,27 @@
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
-import ContextFilterVO from "./ContextFilterVO";
+import ContextQueryVO from "./ContextQueryVO";
 
-export default class GetOptionsFromContextFiltersParamVO implements IAPIParamTranslator<GetOptionsFromContextFiltersParamVO> {
+export default class SelectFilterVisibleOptionsParamVO implements IAPIParamTranslator<SelectFilterVisibleOptionsParamVO> {
 
     public static fromParams(
-        api_type_id: string,
-        field_id: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        active_api_type_ids: string[],
-        actual_query: string,
-        limit: number,
-        offset: number): GetOptionsFromContextFiltersParamVO {
+        context_query: ContextQueryVO,
+        actual_query: string): SelectFilterVisibleOptionsParamVO {
 
-        return new GetOptionsFromContextFiltersParamVO(api_type_id, field_id, get_active_field_filters, active_api_type_ids, actual_query, limit, offset);
+        return new SelectFilterVisibleOptionsParamVO(context_query, actual_query);
     }
 
-    public static getAPIParams(param: GetOptionsFromContextFiltersParamVO): any[] {
+    public static getAPIParams(param: SelectFilterVisibleOptionsParamVO): any[] {
         return [
-            param.api_type_id,
-            param.field_id,
-            param.get_active_field_filters,
-            param.active_api_type_ids,
-            param.actual_query,
-            param.limit,
-            param.offset
+            param.context_query,
+            param.actual_query
         ];
     }
 
     public constructor(
-        public api_type_id: string,
-        public field_id: string,
-        public get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        public active_api_type_ids: string[],
-        public actual_query: string,
-        public limit: number,
-        public offset: number) {
+        public context_query: ContextQueryVO,
+        public actual_query: string) {
     }
 }
 
-export const GetOptionsFromContextFiltersParamVOStatic: IAPIParamTranslatorStatic<GetOptionsFromContextFiltersParamVO> = GetOptionsFromContextFiltersParamVO;
+export const SelectFilterVisibleOptionsParamVOStatic: IAPIParamTranslatorStatic<SelectFilterVisibleOptionsParamVO> = SelectFilterVisibleOptionsParamVO;

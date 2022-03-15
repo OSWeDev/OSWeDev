@@ -6,6 +6,7 @@ import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckP
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -231,19 +232,18 @@ export default class CheckListComponent extends VueComponentBase {
                 return;
             }
 
-            let sort_by = new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false);
+            let query: ContextQueryVO = new ContextQueryVO();
+            query.base_api_type_id = self.checklist_shared_module.checklistitem_type_id;
+            query.active_api_type_ids = [self.checklist_shared_module.checklistitem_type_id];
+            query.filters = [filter];
+            query.limit = checklist.limit_affichage ? checklist.limit_affichage : 0;
+            query.offset = 0;
+            query.sort_by = new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false);
 
             /**
              * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
              */
-            let items: ICheckListItem[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<ICheckListItem>(
-                self.checklist_shared_module.checklistitem_type_id,
-                { [self.checklist_shared_module.checklistitem_type_id]: { ['checklist_id']: filter } },
-                [self.checklist_shared_module.checklistitem_type_id],
-                checklist.limit_affichage ? checklist.limit_affichage : 0,
-                0,
-                sort_by
-            );
+            let items: ICheckListItem[] = await ModuleContextFilter.getInstance().select_vos<ICheckListItem>(query);
             items = (items && items.length) ? items.filter((e) => !e.archived) : [];
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());

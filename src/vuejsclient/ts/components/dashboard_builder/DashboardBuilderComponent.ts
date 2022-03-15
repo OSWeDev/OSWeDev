@@ -3,6 +3,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
@@ -310,14 +311,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                 DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id,
                 DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id
             ];
-            let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters(
-                TranslatableTextVO.API_TYPE_ID,
-                ContextFilterHandler.getInstance().get_active_field_filters([filter]),
-                [TranslatableTextVO.API_TYPE_ID],
-                null,
-                null,
-                null
-            );
+
+            let query: ContextQueryVO = new ContextQueryVO();
+            query.base_api_type_id = TranslatableTextVO.API_TYPE_ID;
+            query.active_api_type_ids = [TranslatableTextVO.API_TYPE_ID];
+            query.filters = [filter];
+
+            let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().select_vos(query);
             for (let j in page_widget_trads) {
                 let page_widget_trad = page_widget_trads[j];
 

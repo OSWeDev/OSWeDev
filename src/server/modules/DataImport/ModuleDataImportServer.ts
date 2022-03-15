@@ -50,6 +50,7 @@ import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -1042,14 +1043,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         /**
          * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
          */
-        return await ModuleContextFilterServer.getInstance().query_vos_from_active_filters(
-            raw_api_type_id,
-            { [raw_api_type_id]: { ['importation_state']: filter } },
-            [raw_api_type_id],
-            batch_size,
-            0,
-            null
-        );
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = raw_api_type_id;
+        query.active_api_type_ids = [raw_api_type_id];
+        query.filters = [filter];
+        query.limit = batch_size;
+        query.offset = 0;
+
+        return await ModuleContextFilterServer.getInstance().select_vos(query);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {

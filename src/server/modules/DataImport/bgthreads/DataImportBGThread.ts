@@ -17,6 +17,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
+import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -385,22 +386,14 @@ export default class DataImportBGThread implements IBGThread {
         filter_last_up_date.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
         filter_last_up_date.param_numeric = Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE);
 
-        let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID,
-            {
-                [DataImportHistoricVO.API_TYPE_ID]: {
-                    ['state']: filter_state,
-                    ['reimport_of_dih_id']: filter_reimport_of_dih_id,
-                    ['status_of_last_reimport']: filter_status_of_last_reimport,
-                    ['last_up_date']: filter_last_up_date,
-                    ['status_before_reimport']: filter_status_before_reimport
-                }
-            },
-            [DataImportHistoricVO.API_TYPE_ID],
-            0,
-            0,
-            null
-        );
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = DataImportHistoricVO.API_TYPE_ID;
+        query.active_api_type_ids = [DataImportHistoricVO.API_TYPE_ID];
+        query.filters = [filter_state, filter_reimport_of_dih_id, filter_status_of_last_reimport, filter_last_up_date, filter_status_before_reimport];
+        query.limit = 0;
+        query.offset = 0;
+
+        let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().select_vos<DataImportHistoricVO>(query);
 
         if ((!dihs) || (!dihs.length)) {
             return null;

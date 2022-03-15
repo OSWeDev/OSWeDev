@@ -87,7 +87,15 @@ export default class VarWidgetComponent extends VueComponentBase {
             custom_filters,
             this.dashboard.api_type_ids);
 
-        // let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
+        // let query = new ContextQueryVO();
+        // query.base_api_type_id = this.vo_field_ref.api_type_id;
+        // query.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
+        // query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+        //     ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters));
+        // query.limit = this.widget_options.max_visible_options;
+        // query.offset = 0;
+        // query.active_api_type_ids = this.dashboard.api_type_ids;
+        // let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
         //     this.vo_field_ref.api_type_id,
         //     this.vo_field_ref.field_id,
         //     ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),

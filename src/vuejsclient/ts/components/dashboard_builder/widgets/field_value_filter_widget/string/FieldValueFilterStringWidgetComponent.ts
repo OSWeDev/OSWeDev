@@ -3,6 +3,8 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -245,14 +247,17 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
         }
 
-        let tmp = await ModuleContextFilter.getInstance().get_filter_visible_options(
-            this.vo_field_ref.api_type_id,
-            this.vo_field_ref.field_id,
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
-            this.dashboard.api_type_ids,
-            this.actual_query,
-            this.widget_options.max_visible_options,
-            0);
+        let query = new ContextQueryVO();
+        query.base_api_type_id = this.vo_field_ref.api_type_id;
+        query.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
+        query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters));
+        query.limit = this.widget_options.max_visible_options;
+        query.offset = 0;
+        query.active_api_type_ids = this.dashboard.api_type_ids;
+        let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            query,
+            this.actual_query);
 
         if (!tmp) {
             this.filter_visible_options = [];

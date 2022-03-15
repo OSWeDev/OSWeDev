@@ -8,9 +8,9 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -46,7 +46,6 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -799,11 +798,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async delete_all_vos_triggers_ok(api_type_id: string) {
 
-        let vos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(api_type_id, null, [api_type_id], 1000, 0, null);
-        while (vos && vos.length) {
-            await this.deleteVOs(vos);
-            vos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(api_type_id, null, [api_type_id], 1000, 0, null);
-        }
+        let context_query: ContextQueryVO = new ContextQueryVO();
+        context_query.base_api_type_id = api_type_id;
+        context_query.active_api_type_ids = [api_type_id];
+        await ModuleContextFilter.getInstance().delete_vos(context_query);
     }
 
     /**
@@ -1533,14 +1531,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let uniquevos = await ModuleContextFilter.getInstance().query_vos_from_active_filters(
-                    vo._type,
-                    ContextFilterHandler.getInstance().get_active_field_filters(filters),
-                    [vo._type],
-                    1,
-                    0,
-                    null
-                );
+                let query: ContextQueryVO = new ContextQueryVO();
+                query.base_api_type_id = vo._type;
+                query.active_api_type_ids = [vo._type];
+                query.filters = filters;
+                query.limit = 1;
+                query.offset = 0;
+
+                let uniquevos = await ModuleContextFilter.getInstance().select_vos(query);
 
                 if (uniquevos && uniquevos[0] && uniquevos[0].id) {
                     return uniquevos[0].id;

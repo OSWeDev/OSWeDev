@@ -5,6 +5,8 @@ import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/Mo
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
@@ -16,6 +18,7 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import DatatableRowController from '../../../datatable/component/DatatableRowController';
@@ -283,7 +286,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (!this.fields) {
+        if ((!this.fields) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.fields))) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
@@ -297,9 +300,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let api_type_ids: string[] = [];
-        let field_ids: string[] = [];
-        let res_field_aliases: string[] = [];
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = null;
+        query.active_api_type_ids = this.dashboard.api_type_ids;
+        query.fields = [];
+        query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+        );
+        query.limit = this.widget_options.limit;
+        query.offset = this.pagination_offset;
 
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -310,7 +319,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             }
 
             if (this.dashboard.api_type_ids.indexOf(field.moduleTable.vo_type) < 0) {
-                ConsoleHandler.getInstance().warn('get_filtered_datatable_rows: asking for datas from types not included in request:' +
+                ConsoleHandler.getInstance().warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.moduleTable.vo_type);
                 this.data_rows = [];
                 this.loaded_once = true;
@@ -318,20 +327,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            api_type_ids.push(field.moduleTable.vo_type);
-            field_ids.push(field.module_table_field_id);
-            res_field_aliases.push(field.datatable_field_uid);
+            if (!query.base_api_type_id) {
+                query.base_api_type_id = field.moduleTable.vo_type;
+            }
+
+            query.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
         }
 
-        let rows = await ModuleContextFilter.getInstance().get_filtered_datatable_rows(
-            api_type_ids,
-            field_ids,
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
-            this.dashboard.api_type_ids,
-            this.widget_options.limit,
-            this.pagination_offset,
-            null,
-            res_field_aliases);
+
+        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query);
 
         let data_rows = [];
         let promises = [];
@@ -353,11 +357,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        this.pagination_count = await ModuleContextFilter.getInstance().query_rows_count_from_active_filters(
-            api_type_ids,
-            field_ids,
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
-            this.dashboard.api_type_ids);
+        query.limit = 0;
+        query.offset = 0;
+        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query);
 
         this.loaded_once = true;
         this.is_busy = false;
@@ -377,8 +379,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_get_filtered_datatable_rows));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_query_rows_count_from_active_filters));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
         await this.throttled_update_visible_options();
     }
 
@@ -411,8 +413,14 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                                 try {
 
                                     let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
-                                    await ModuleContextFilter.getInstance().update_vos_from_active_filters(
-                                        self.api_type_id, self.get_active_field_filters, self.dashboard.api_type_ids,
+
+                                    let context_query: ContextQueryVO = new ContextQueryVO();
+                                    context_query.base_api_type_id = self.api_type_id;
+                                    context_query.active_api_type_ids = self.dashboard.api_type_ids;
+                                    context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters);
+
+                                    await ModuleContextFilter.getInstance().update_vos(
+                                        context_query,
                                         self.field_id_selected, new_value);
                                     await self.throttled_update_visible_options();
                                     resolve({

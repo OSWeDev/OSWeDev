@@ -6,6 +6,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
@@ -1265,14 +1267,16 @@ export default class ModuleVarServer extends ModuleServerBase {
                 switch (matroid_field.field_type) {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                         if (matroid_field.has_relation) {
-                            let ids_db: any[] = await ModuleContextFilterServer.getInstance().query_from_active_filters(
-                                matroid_field.manyToOne_target_moduletable.vo_type,
-                                matroid_field.target_field,
-                                cleaned_active_field_filters,
-                                active_api_type_ids,
-                                0,
-                                0
-                            );
+
+                            let context_query: ContextQueryVO = new ContextQueryVO();
+                            context_query.base_api_type_id = matroid_field.manyToOne_target_moduletable.vo_type;
+                            context_query.active_api_type_ids = active_api_type_ids;
+                            context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters);
+                            context_query.fields = [
+                                new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
+                            ];
+
+                            let ids_db: Array<{ id: number }> = await ModuleContextFilterServer.getInstance().select_vos(context_query);
 
                             if (!ids_db) {
                                 var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
@@ -1280,7 +1284,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                             let ids: number[] = [];
-                            ids_db.forEach((id) => ids.push(parseInt(id.toString())));
+                            ids_db.forEach((id_db) => ids.push(parseInt(id_db.toString())));
 
                             var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
                         } else {
@@ -1483,14 +1487,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
         filter.param_numeric = SlowVarVO.TYPE_DENIED;
 
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
-            SlowVarVO.API_TYPE_ID,
-            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
-            [SlowVarVO.API_TYPE_ID],
-            0,
-            0,
-            null
-        );
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = SlowVarVO.API_TYPE_ID;
+        query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
+        query.filters = [filter];
+        query.limit = 0;
+        query.offset = 0;
+
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
 
         VarsDatasProxy.getInstance().denied_slowvars = {};
         for (let i in items) {

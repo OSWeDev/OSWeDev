@@ -1,5 +1,6 @@
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -99,14 +100,14 @@ export default class SlowVarKiHandler {
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
         filter.param_numeric = SlowVarVO.TYPE_TESTING;
 
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
-            SlowVarVO.API_TYPE_ID,
-            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
-            [SlowVarVO.API_TYPE_ID],
-            0,
-            0,
-            null
-        );
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = SlowVarVO.API_TYPE_ID;
+        query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
+        query.filters = [filter];
+        query.limit = 0;
+        query.offset = 0;
+
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
 
         if (items && items.length) {
 
@@ -133,16 +134,15 @@ export default class SlowVarKiHandler {
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
         filter.param_numeric = SlowVarVO.TYPE_NEEDS_TEST;
 
-        let sort_by = new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false);
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = SlowVarVO.API_TYPE_ID;
+        query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
+        query.filters = [filter];
+        query.limit = 1;
+        query.offset = 0;
+        query.sort_by = new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false);
 
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<SlowVarVO>(
-            SlowVarVO.API_TYPE_ID,
-            { [SlowVarVO.API_TYPE_ID]: { ['type']: filter } },
-            [SlowVarVO.API_TYPE_ID],
-            1,
-            0,
-            sort_by
-        );
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
 
         if (items && items.length) {
             let slow_var: SlowVarVO = items[0];

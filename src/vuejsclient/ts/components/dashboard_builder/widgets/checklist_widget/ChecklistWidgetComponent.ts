@@ -10,6 +10,7 @@ import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckLis
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -428,16 +429,15 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                     filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
                     filter);
 
-            let sort_by = new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false);
+            let query: ContextQueryVO = new ContextQueryVO();
+            query.base_api_type_id = self.checklist_shared_module.checklistitem_type_id;
+            query.active_api_type_ids = this.dashboard.api_type_ids;
+            query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters);
+            query.limit = this.pagination_pagesize;
+            query.offset = this.pagination_offset;
+            query.sort_by = new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false);
 
-            let items: ICheckListItem[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters<ICheckListItem>(
-                self.checklist_shared_module.checklistitem_type_id,
-                filters,
-                this.dashboard.api_type_ids,
-                this.pagination_pagesize,
-                this.pagination_offset,
-                sort_by
-            );
+            let items: ICheckListItem[] = await ModuleContextFilter.getInstance().select_vos<ICheckListItem>(query);
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 
@@ -457,19 +457,19 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         this.infos_cols_labels = this.checklist_controller.get_infos_cols_labels();
 
-
-        this.pagination_count = await ModuleContextFilter.getInstance().query_vos_count_from_active_filters(
-            self.checklist_shared_module.checklistitem_type_id,
-            filters,
-            this.dashboard.api_type_ids);
+        let query_count: ContextQueryVO = new ContextQueryVO();
+        query_count.base_api_type_id = self.checklist_shared_module.checklistitem_type_id;
+        query_count.active_api_type_ids = this.dashboard.api_type_ids;
+        query_count.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters);
+        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 
         this.loaded_once = true;
         this.is_busy = false;
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_get_filtered_datatable_rows));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_query_rows_count_from_active_filters));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_vos));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
         await this.throttled_update_visible_options();
     }
 

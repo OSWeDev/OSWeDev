@@ -1,9 +1,9 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
@@ -36,14 +36,13 @@ export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWor
             DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX,
             DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX
         ];
-        let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().query_vos_from_active_filters(
-            TranslatableTextVO.API_TYPE_ID,
-            ContextFilterHandler.getInstance().get_active_field_filters([filter]),
-            [TranslatableTextVO.API_TYPE_ID],
-            null,
-            null,
-            null
-        );
+
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = TranslatableTextVO.API_TYPE_ID;
+        query.active_api_type_ids = [TranslatableTextVO.API_TYPE_ID];
+        query.filters = [filter];
+
+        let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().select_vos(query);
 
         await ModuleDAO.getInstance().deleteVOs(page_widget_trads);
 

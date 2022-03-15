@@ -4,6 +4,8 @@ import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/Mo
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
@@ -454,11 +456,16 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let api_type_ids: string[] = [];
-        let field_ids: string[] = [];
-        let res_field_aliases: string[] = [];
-
-        let sort_by: SortByVO = null;
+        let query: ContextQueryVO = new ContextQueryVO();
+        query.base_api_type_id = null;
+        query.active_api_type_ids = this.dashboard.api_type_ids;
+        query.fields = [];
+        query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+        );
+        query.limit = this.limit;
+        query.offset = this.pagination_offset;
+        query.sort_by = null;
 
         if (this.fields && (
             (this.order_asc_on_id && this.fields[this.order_asc_on_id]) ||
@@ -466,7 +473,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
             let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            sort_by = new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id);
+            query.sort_by = new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id);
         }
 
 
@@ -479,7 +486,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
 
             if (this.dashboard.api_type_ids.indexOf(field.moduleTable.vo_type) < 0) {
-                ConsoleHandler.getInstance().warn('get_filtered_datatable_rows: asking for datas from types not included in request:' +
+                ConsoleHandler.getInstance().warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.moduleTable.vo_type);
                 this.data_rows = [];
                 this.loaded_once = true;
@@ -487,20 +494,14 @@ export default class TableWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            api_type_ids.push(field.moduleTable.vo_type);
-            field_ids.push(field.module_table_field_id);
-            res_field_aliases.push(field.datatable_field_uid);
+            if (!query.base_api_type_id) {
+                query.base_api_type_id = field.moduleTable.vo_type;
+            }
+
+            query.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
         }
 
-        let rows = await ModuleContextFilter.getInstance().get_filtered_datatable_rows(
-            api_type_ids,
-            field_ids,
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
-            this.dashboard.api_type_ids,
-            this.limit,
-            this.pagination_offset,
-            sort_by,
-            res_field_aliases);
+        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query);
 
         let data_rows = [];
         let promises = [];
@@ -527,11 +528,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        this.pagination_count = await ModuleContextFilter.getInstance().query_rows_count_from_active_filters(
-            api_type_ids,
-            field_ids,
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters),
-            this.dashboard.api_type_ids);
+        query.limit = 0;
+        query.offset = 0;
+        query.sort_by = null;
+        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query);
 
         this.loaded_once = true;
         this.is_busy = false;
@@ -546,8 +546,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     }
 
     private async refresh() {
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_get_filtered_datatable_rows));
-        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_query_rows_count_from_active_filters));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
         await this.throttled_update_visible_options();
     }
 
