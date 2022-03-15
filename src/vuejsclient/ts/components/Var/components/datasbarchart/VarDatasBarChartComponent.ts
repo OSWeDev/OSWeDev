@@ -302,6 +302,10 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
                 dataset['type'] = var_dataset_descriptor.type;
             }
 
+            if (!!var_dataset_descriptor.stack) {
+                dataset['stack'] = var_dataset_descriptor.stack;
+            }
+
             if (!!var_dataset_descriptor.dataset_options_overrides) {
                 dataset = Object.assign(dataset, var_dataset_descriptor.dataset_options_overrides);
             }
