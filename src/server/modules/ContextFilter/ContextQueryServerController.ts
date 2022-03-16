@@ -315,7 +315,6 @@ export default class ContextQueryServerController {
         }
 
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
-        let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
 
         let res: string = null;
         let FROM: string = null;
@@ -355,7 +354,7 @@ export default class ContextQueryServerController {
                 return null;
             }
 
-            let full_name = await ContextFilterServerController.getInstance().get_table_full_name(base_moduletable, get_active_field_filters);
+            let full_name = await ContextFilterServerController.getInstance().get_table_full_name(base_moduletable, context_query.filters);
             FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
             joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
 
@@ -397,7 +396,7 @@ export default class ContextQueryServerController {
                         }
 
                         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
-                            jointures, context_field.api_type_id, get_active_field_filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                            jointures, context_field.api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
                         // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
                     }
 
@@ -418,42 +417,30 @@ export default class ContextQueryServerController {
              */
             let where_conditions: string[] = [];
 
-            for (let api_type_id_i in get_active_field_filters) {
-                let active_field_filters_by_fields = get_active_field_filters[api_type_id_i];
+            for (let i in context_query.filters) {
+                let filter = context_query.filters[i];
 
-                for (let field_id_i in active_field_filters_by_fields) {
-                    let active_field_filter: ContextFilterVO = active_field_filters_by_fields[field_id_i];
-
-                    if (!active_field_filter) {
-                        continue;
-                    }
-
-                    if (active_field_filter.vo_type == context_query.base_api_type_id) {
-                        /**
-                         * On a pas besoin de jointure mais par contre on a besoin du filtre
-                         */
-                        await ContextFilterServerController.getInstance().update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
-                        continue;
-                    }
-
-                    if (!joined_tables_by_vo_type[api_type_id_i]) {
-
-                        /**
-                         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-                         */
-                        let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
-                            context_query.active_api_type_ids, Object.keys(tables_aliases_by_type), api_type_id_i);
-                        if (!path) {
-                            // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                            continue;
-                        }
-                        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
-                            jointures, context_query.base_api_type_id, get_active_field_filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-                        // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
-                    }
-
-                    await ContextFilterServerController.getInstance().update_where_conditions(where_conditions, active_field_filter, tables_aliases_by_type);
+                if (!filter) {
+                    continue;
                 }
+
+                if (filter.vo_type && (filter.vo_type != context_query.base_api_type_id) && !joined_tables_by_vo_type[filter.vo_type]) {
+
+                    /**
+                     * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+                     */
+                    let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+                        context_query.active_api_type_ids, Object.keys(tables_aliases_by_type), filter.vo_type);
+                    if (!path) {
+                        // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                        continue;
+                    }
+                    aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
+                        jointures, context_query.base_api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                    // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+                }
+
+                await ContextFilterServerController.getInstance().update_where_conditions(where_conditions, filter, tables_aliases_by_type);
             }
 
             res += this.get_ordered_jointures(context_query, jointures);
@@ -526,6 +513,11 @@ export default class ContextQueryServerController {
 
                 promises.push((async () => {
                     let query = await hook_cb(module_table, uid, user, user_data, user_roles);
+
+                    if (!query) {
+                        return;
+                    }
+
                     if (!context_access_hooks[alias]) {
                         context_access_hooks[alias] = [];
                     }

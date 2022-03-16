@@ -3,7 +3,14 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTable from '../../../shared/modules/ModuleTable';
@@ -17,7 +24,6 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -143,6 +149,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             this.programplan_shared_module.manager_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterManagerByIdByAccess.bind(this));
+        ModuleDAOServer.getInstance().registerContextAccessHook(
+            this.programplan_shared_module.manager_type_id,
+            this.filterManagerByIdByContextAccessHook.bind(this));
+
 
         // IPlanFacilitator
         // manager_id
@@ -151,6 +161,9 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             this.programplan_shared_module.facilitator_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterIPlanFacilitatorByManagerByAccess.bind(this));
+        ModuleDAOServer.getInstance().registerContextAccessHook(
+            this.programplan_shared_module.facilitator_type_id,
+            this.filterIPlanFacilitatorByManagerByContextAccessHook.bind(this));
 
         // IPlanRDV
         // facilitator_id
@@ -159,6 +172,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             this.programplan_shared_module.rdv_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVsByFacilitatorIdByAccess.bind(this));
+        ModuleDAOServer.getInstance().registerContextAccessHook(
+            this.programplan_shared_module.rdv_type_id,
+            this.filterRDVsByFacilitatorIdByContextAccessHook.bind(this));
+
         // et CREATE / UPDATE / DELETE own / team / tous => on part du principe que c'est l'interface qui bloque à ce niveau
 
         // IPlanRDVCR => en fonction du IPlanRDV sur CRUD
@@ -166,6 +183,9 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             this.programplan_shared_module.rdv_cr_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
+        ModuleDAOServer.getInstance().registerContextAccessHook(
+            this.programplan_shared_module.rdv_cr_type_id,
+            this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook.bind(this));
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
             // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
@@ -173,6 +193,9 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
                 this.programplan_shared_module.rdv_prep_type_id,
                 ModuleDAO.DAO_ACCESS_TYPE_READ,
                 this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
+            ModuleDAOServer.getInstance().registerContextAccessHook(
+                this.programplan_shared_module.rdv_prep_type_id,
+                this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook.bind(this));
         }
     }
 
@@ -372,6 +395,63 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(edit_own_team_rdvs_access_dependency);
     }
 
+    /**
+     * Context access hook pour les IPlanFacilitator par équipe. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+            return null;
+        }
+
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        if (!this.programplan_shared_module.manager_type_id) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        if (!loggedUserId) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
+        is_own_facilitators_manager_filter.field_id = 'user_id';
+        is_own_facilitators_manager_filter.vo_type = this.programplan_shared_module.manager_type_id;
+        is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitators_manager_filter.param_numeric = loggedUserId;
+
+        let is_own_facilitator_filter: ContextFilterVO = new ContextFilterVO();
+        is_own_facilitator_filter.field_id = 'user_id';
+        is_own_facilitator_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitator_filter.param_numeric = loggedUserId;
+        is_own_facilitator_filter.vo_type = moduletable.vo_type;
+
+        let root_filter: ContextFilterVO = new ContextFilterVO();
+        root_filter.filter_type = ContextFilterVO.TYPE_FILTER_OR;
+        root_filter.left_hook = is_own_facilitator_filter;
+        root_filter.right_hook = is_own_facilitators_manager_filter;
+
+        let res: ContextQueryVO = new ContextQueryVO();
+        res.base_api_type_id = moduletable.vo_type;
+        res.active_api_type_ids = [moduletable.vo_type, this.programplan_shared_module.manager_type_id];
+        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
+        res.filters = [root_filter];
+        res.is_access_hook_def = true;
+        return res;
+    }
+
+    /**
+     * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
+     */
     private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
         if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
@@ -382,6 +462,63 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return null;
     }
 
+    /**
+     * Context access hook pour les IPlanManager par équipe. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    private async filterManagerByIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+            return null;
+        }
+
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        if (!this.programplan_shared_module.manager_type_id) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        if (!loggedUserId) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
+        is_own_facilitators_manager_filter.field_id = 'user_id';
+        is_own_facilitators_manager_filter.vo_type = this.programplan_shared_module.facilitator_type_id;
+        is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitators_manager_filter.param_numeric = loggedUserId;
+
+        let is_own_manager_filter: ContextFilterVO = new ContextFilterVO();
+        is_own_manager_filter.field_id = 'user_id';
+        is_own_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_manager_filter.param_numeric = loggedUserId;
+        is_own_manager_filter.vo_type = moduletable.vo_type;
+
+        let root_filter: ContextFilterVO = new ContextFilterVO();
+        root_filter.filter_type = ContextFilterVO.TYPE_FILTER_OR;
+        root_filter.left_hook = is_own_manager_filter;
+        root_filter.right_hook = is_own_facilitators_manager_filter;
+
+        let res: ContextQueryVO = new ContextQueryVO();
+        res.base_api_type_id = moduletable.vo_type;
+        res.active_api_type_ids = [moduletable.vo_type, this.programplan_shared_module.facilitator_type_id];
+        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
+        res.filters = [root_filter];
+        res.is_access_hook_def = true;
+        return res;
+    }
+
+    /**
+     * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
+     */
     private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
         if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
@@ -557,7 +694,48 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return res;
     }
 
+    /**
+     * Context access hook pour les IPlanRDV par équipe. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+            return null;
+        }
+
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        if (!loggedUserId) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        let is_own_facilitators_rdv_filter: ContextFilterVO = new ContextFilterVO();
+        is_own_facilitators_rdv_filter.field_id = 'user_id';
+        is_own_facilitators_rdv_filter.vo_type = this.programplan_shared_module.facilitator_type_id;
+        is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
+
+        let res: ContextQueryVO = new ContextQueryVO();
+        res.base_api_type_id = moduletable.vo_type;
+        res.active_api_type_ids = [moduletable.vo_type];
+        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
+        res.filters = [is_own_facilitators_rdv_filter];
+        res.is_access_hook_def = true;
+        return res;
+    }
+
+    /**
+     * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
+     */
     private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
@@ -583,6 +761,52 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return res;
     }
 
+    /**
+     * Context access hook pour les IPlanRDVCR | IPlanRDVPrep par équipe. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+            return null;
+        }
+
+        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+            return ContextFilterHandler.getInstance().get_empty_res_context_hook_query(moduletable);
+        }
+
+        /**
+         * Là on utilise la récursivité des subquery, en disant qu'on peut read un cr ou prep de rdv readable
+         *  donc on fait une subquery sur rdv.id mais en indiquant bien que cette subquery doit utiliser les context filters access hooks
+         */
+        let sub_query_list_rdvs: ContextQueryVO = new ContextQueryVO();
+        sub_query_list_rdvs.base_api_type_id = this.programplan_shared_module.rdv_type_id;
+        sub_query_list_rdvs.active_api_type_ids = [this.programplan_shared_module.rdv_type_id];
+        sub_query_list_rdvs.fields = [new ContextQueryFieldVO(this.programplan_shared_module.rdv_type_id, 'id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id')];
+
+        let filter: ContextFilterVO = new ContextFilterVO();
+        filter.field_id = 'rdv_id';
+        filter.vo_type = moduletable.vo_type;
+        filter.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        filter.sub_query = sub_query_list_rdvs;
+
+        let res: ContextQueryVO = new ContextQueryVO();
+        res.base_api_type_id = moduletable.vo_type;
+        res.active_api_type_ids = [moduletable.vo_type];
+        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
+        res.filters = [filter];
+        res.is_access_hook_def = true;
+        return res;
+    }
+
+    /**
+     * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
+     */
     private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
         if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;

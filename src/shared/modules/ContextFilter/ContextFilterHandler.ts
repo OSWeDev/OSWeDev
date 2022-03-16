@@ -1,5 +1,8 @@
 import { cloneDeep } from "lodash";
+import ModuleTable from "../ModuleTable";
 import ContextFilterVO from "./vos/ContextFilterVO";
+import ContextQueryFieldVO from "./vos/ContextQueryFieldVO";
+import ContextQueryVO from "./vos/ContextQueryVO";
 
 export default class ContextFilterHandler {
 
@@ -120,6 +123,71 @@ export default class ContextFilterHandler {
         return context_filter_tree_root;
     }
 
+    /**
+     * Objectif retrouver les filtres simples (pas de or / xor ou subquery par exemple) d'un vo_type spécifique
+     */
+    public get_simple_filters_by_vo_type(filters: ContextFilterVO[], vo_type: string): ContextFilterVO[] {
+
+        let res: ContextFilterVO[] = [];
+        for (let i in filters) {
+            let filter = filters[i];
+
+            if (filter.vo_type != vo_type) {
+                continue;
+            }
+
+            switch (filter.filter_type) {
+                case ContextFilterVO.TYPE_FILTER_AND:
+                case ContextFilterVO.TYPE_FILTER_NOT:
+                case ContextFilterVO.TYPE_FILTER_OR:
+                case ContextFilterVO.TYPE_FILTER_XOR:
+                case ContextFilterVO.TYPE_SUB_QUERY:
+                    continue;
+            }
+
+            res.push(filter);
+        }
+
+        return res;
+    }
+
+    /**
+     * Objectif retrouver un filtre simple (pas de or / xor ou subquery par exemple) pour identifier par exemple
+     *  un filtre sur un champ de segmentation
+     *  on checke qu'on a qu'un seul résultat (sinon on est sur un filtre complexe)
+     */
+    public get_simple_filter_by_vo_type_and_field_id(filters: ContextFilterVO[], vo_type: string, field_id: string): ContextFilterVO {
+
+        let res = null;
+        for (let i in filters) {
+            let filter = filters[i];
+
+            if (filter.field_id != field_id) {
+                continue;
+            }
+
+            if (filter.vo_type != vo_type) {
+                continue;
+            }
+
+            switch (filter.filter_type) {
+                case ContextFilterVO.TYPE_FILTER_AND:
+                case ContextFilterVO.TYPE_FILTER_NOT:
+                case ContextFilterVO.TYPE_FILTER_OR:
+                case ContextFilterVO.TYPE_FILTER_XOR:
+                case ContextFilterVO.TYPE_SUB_QUERY:
+                    continue;
+            }
+
+            if (res) {
+                return null;
+            }
+
+            res = filter;
+        }
+
+        return res;
+    }
 
     /**
      * Add context_filter to the root, using the and/or/xor .... type of operator if necessary
@@ -158,5 +226,24 @@ export default class ContextFilterHandler {
         delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
 
         return res;
+    }
+
+    /**
+     * Renvoie une context query qui renvoie systématiquement 0 éléments, pour bloquer l'accès à un vo par exemple dans un context access hook
+     */
+    public get_empty_res_context_hook_query(moduletable: ModuleTable<any>) {
+        // on veut rien renvoyer, donc on fait une query qui retourne rien
+        let filter_none: ContextFilterVO = new ContextFilterVO();
+        filter_none.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+        filter_none.field_id = 'id';
+        filter_none.vo_type = moduletable.vo_type;
+
+        let empty_res: ContextQueryVO = new ContextQueryVO();
+        empty_res.base_api_type_id = moduletable.vo_type;
+        empty_res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
+        empty_res.active_api_type_ids = [moduletable.vo_type];
+        empty_res.filters = [filter_none];
+        empty_res.is_access_hook_def = true;
+        return empty_res;
     }
 }

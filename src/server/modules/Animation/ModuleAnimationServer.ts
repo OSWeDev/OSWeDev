@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import AnimationController from '../../../shared/modules/Animation/AnimationController';
 import ModuleAnimation from '../../../shared/modules/Animation/ModuleAnimation';
 import ThemeModuleDataRangesVO from '../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
@@ -14,6 +15,10 @@ import AnimationThemeVO from '../../../shared/modules/Animation/vos/AnimationThe
 import AnimationUserModuleVO from '../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUserQRVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
@@ -133,6 +138,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
     public registerAccessHooks(): void {
         ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterAnimationModule.bind(this));
+        ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this.filterAnimationModuleContextAccessHook.bind(this));
     }
 
     public async configure() {
@@ -522,6 +528,50 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * Context access hook pour les modules d'animation qui doivent être liées à un rôle de l'utilisateur. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    private async filterAnimationModuleContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        if (this.isAdmin()) {
+            return null;
+        }
+
+        let filter_roles: ContextFilterVO = new ContextFilterVO();
+        filter_roles.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+        filter_roles.field_id = 'role_id_ranges';
+        filter_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
+        filter_roles.param_numranges = RangeHandler.getInstance().get_ids_ranges_from_vos(user_roles);
+
+        let filter_no_roles: ContextFilterVO = new ContextFilterVO();
+        filter_no_roles.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+        filter_no_roles.field_id = 'role_id_ranges';
+        filter_no_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
+
+        let filter_or: ContextFilterVO = new ContextFilterVO();
+        filter_or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
+        filter_or.left_hook = filter_no_roles;
+        filter_or.right_hook = filter_roles;
+
+        let res: ContextQueryVO = new ContextQueryVO();
+        res.base_api_type_id = AnimationModuleVO.API_TYPE_ID;
+        res.fields = [new ContextQueryFieldVO(AnimationModuleVO.API_TYPE_ID, 'id', 'filter_animation_module_id')];
+        res.active_api_type_ids = [AnimationModuleVO.API_TYPE_ID];
+        res.filters = [filter_or];
+        res.is_access_hook_def = true;
+
+        return res;
+    }
+
+    /**
+     * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
+     */
     private async filterAnimationModule(datatable: ModuleTable<AnimationModuleVO>, vos: AnimationModuleVO[], uid: number): Promise<AnimationModuleVO[]> {
         if (this.isAdmin()) {
             return vos;

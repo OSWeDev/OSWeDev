@@ -1074,6 +1074,86 @@ export default class ContextFilterServerController {
 
                 break;
 
+            case ContextFilterVO.TYPE_EMPTY:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                    default:
+                        where_conditions.push(field_id + " = ''");
+                        break;
+
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        where_conditions.push("array_length(" + field_id + ", 1) = 0");
+                        break;
+                }
+                break;
+
+            case ContextFilterVO.TYPE_NULL_OR_EMPTY:
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                    default:
+                        where_conditions.push("(" + field_id + " <> '') is not TRUE");
+                        break;
+
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        where_conditions.push("((" + field_id + " is NULL) OR ((array_length(" + field_id + ", 1) = 0) is not TRUE))");
+                        break;
+                }
+                break;
+
             case ContextFilterVO.TYPE_FILTER_XOR:
             case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
@@ -1117,7 +1197,7 @@ export default class ContextFilterServerController {
     public async updates_jointures(
         jointures: string[],
         targeted_type: string,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        filters: ContextFilterVO[],
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
         path: FieldPathWrapper[],
@@ -1138,7 +1218,7 @@ export default class ContextFilterServerController {
                     tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
                     joined_tables_by_vo_type[path_i.field.manyToOne_target_moduletable.vo_type] = path_i.field.manyToOne_target_moduletable;
 
-                    let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, get_active_field_filters);
+                    let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, filters);
 
                     switch (path_i.field.field_type) {
                         case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -1169,7 +1249,7 @@ export default class ContextFilterServerController {
                     tables_aliases_by_type[path_i.field.module_table.vo_type] = 't' + (aliases_n++);
                     joined_tables_by_vo_type[path_i.field.module_table.vo_type] = path_i.field.module_table;
 
-                    let full_name = await this.get_table_full_name(path_i.field.module_table, get_active_field_filters);
+                    let full_name = await this.get_table_full_name(path_i.field.module_table, filters);
 
                     switch (path_i.field.field_type) {
                         case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -1207,7 +1287,7 @@ export default class ContextFilterServerController {
      */
     public async get_table_full_name(
         moduletable: ModuleTable<any>,
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): Promise<string> {
+        filters: ContextFilterVO[]): Promise<string> {
 
         let full_name = moduletable.full_name;
 
@@ -1225,32 +1305,37 @@ export default class ContextFilterServerController {
              */
             let is_implemented = false;
 
-            // Cas champ segmenté exacte
-            if (get_active_field_filters && get_active_field_filters[moduletable.vo_type] &&
-                get_active_field_filters[moduletable.vo_type][moduletable.table_segmented_field.field_id]) {
+            // Cas champ segmenté exacte - on filtre directement sur l'id du champs de segmentation, par exemple sur pdv_id
+            //  de la facture (vo_type c'est la ligne de facturation et donc on veut le filtre exacte sur le champs pdv_id)
+            let simple_filter = ContextFilterHandler.getInstance().get_simple_filter_by_vo_type_and_field_id(
+                filters, moduletable.vo_type, moduletable.table_segmented_field.field_id);
+            if (simple_filter) {
 
-                let filter = get_active_field_filters[moduletable.vo_type][moduletable.table_segmented_field.field_id];
-
-                if ((filter.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS) &&
-                    (filter.param_numeric != null)) {
+                if ((simple_filter.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS) &&
+                    (simple_filter.param_numeric != null)) {
                     is_implemented = true;
-                    full_name = moduletable.get_segmented_full_name(filter.param_numeric);
+                    full_name = moduletable.get_segmented_full_name(simple_filter.param_numeric);
                 }
             }
 
-            // Cas champ unique du vo_type sur lequel on segmente
+            /**
+             * Cas champ unique du vo_type sur lequel on segmente (par exemple 1 pdv ciblé par d'autres filtres,
+             *  ce qui implique qu'un vo segmenté sur pdv_id on peut résoudre finalement)
+             *  donc on prend tous les filtres simple liés au type de segmentation (pdv dans l'exemple des lignes de factu)
+             *  et on requête les pdvs qui réponde à ça. on pourrait commencer par requêter le count d'ailleurs mais ça fait 2 requêtes...
+             */
             if ((!is_implemented) && moduletable.table_segmented_field.manyToOne_target_moduletable) {
                 let linked_segment_table = moduletable.table_segmented_field.manyToOne_target_moduletable;
 
-                if (get_active_field_filters && get_active_field_filters[linked_segment_table.vo_type]) {
+                let simple_filters = ContextFilterHandler.getInstance().get_simple_filters_by_vo_type(
+                    filters, moduletable.vo_type);
 
-                    let linked_segment_field_filters = get_active_field_filters[linked_segment_table.vo_type];
+                if (simple_filters && simple_filters.length) {
 
                     let context_query = new ContextQueryVO();
                     context_query.base_api_type_id = linked_segment_table.vo_type;
                     context_query.active_api_type_ids = [linked_segment_table.vo_type];
-                    context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                        { [linked_segment_table.vo_type]: linked_segment_field_filters });
+                    context_query.filters = simple_filters;
                     let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(context_query);
 
                     if (query_res && query_res.length) {

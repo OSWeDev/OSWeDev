@@ -267,6 +267,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public registerAccessHooks(): void {
 
+        ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this.filterPolicyByActivModulesContextAccessHook.bind(this));
         ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterPolicyByActivModules.bind(this));
     }
 
@@ -1939,7 +1940,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     // }
 
     /**
-     * Context access hook pour les policies qui doivent être liées à un module valide. On sélectionne le filtre id des policies valides
+     * Context access hook pour les policies qui doivent être liées à un module valide. On sélectionne l'id des policies valides
      * @param moduletable La table sur laquelle on fait la demande (donc ici les AccessPolicyVO)
      * @param uid L'uid lié à la session qui fait la requête
      * @param user L'utilisateur qui fait la requête
@@ -1973,8 +1974,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let filter_or: ContextFilterVO = new ContextFilterVO();
         filter_or.filter_type = ContextFilterVO.TYPE_FILTER_OR;
-        filter_or.field_id = 'module_id';
-        filter_or.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_or.left_hook = filter_no_module;
         filter_or.right_hook = filter_module_in;
 

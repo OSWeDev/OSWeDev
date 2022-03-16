@@ -361,7 +361,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated préférer l'usage des contextAccessHook
+     * @deprecated préférer l'usage des contextAccessHook sauf pour les hooks de type UPDATE ou DELETE pour le moment
+     *  En fait pour le moment les deux se complètent, mais à terme on voudra migrer sur les context filters pour le READ
+     *  et vers des fonctions dédiées pour les update, create et delete. Le create peut à la limite rester applicatif
+     *  mais les update et delete devraient devenir petit à petit des flitres contextualisés aussi pour éviter de
+     *  filtrer une première fois via le read en context, puis applicativement chaque vo chargé de la bdd... autant
+     *  charger directement les vos que l'on peut réellement update ou delete dès le départ
      */
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID]) {

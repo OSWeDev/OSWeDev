@@ -129,6 +129,8 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
             let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[i];
 
             ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.getInstance().anonymise);
+            //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait
+            ModuleDAOServer.getInstance().registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.getInstance().anonymiseContextAccessHook);
 
             // On doit refuser d'insérer/modifier des vos anonymisés
             ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController.getInstance().check_is_anonymise);

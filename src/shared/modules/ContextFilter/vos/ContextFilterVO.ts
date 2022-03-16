@@ -207,6 +207,13 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public static TYPE_SUB_QUERY: number = 52;
 
+    /**
+     * (Vide) et (vide || null)
+     *  par exemple sur les array on peut tester la taille == 0 ou sur les type string == ''
+     */
+    public static TYPE_EMPTY: number = 53;
+    public static TYPE_NULL_OR_EMPTY: number = 54;
+
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;
 

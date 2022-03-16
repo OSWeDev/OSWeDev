@@ -1,5 +1,8 @@
+import RoleVO from "../../../shared/modules/AccessPolicy/vos/RoleVO";
+import UserVO from "../../../shared/modules/AccessPolicy/vos/UserVO";
 import AnonymizationFieldConfVO from "../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO";
 import AnonymizationUserConfVO from "../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO";
+import ContextQueryVO from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IUserData from "../../../shared/modules/DAO/interface/IUserData";
 import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
@@ -95,6 +98,32 @@ export default class ServerAnonymizationController {
         }
 
         return res;
+    }
+
+    /**
+     * Context access hook pour les modules d'animation qui doivent être liées à un rôle de l'utilisateur. On sélectionne l'id des vos valides
+     * @param moduletable La table sur laquelle on fait la demande
+     * @param uid L'uid lié à la session qui fait la requête
+     * @param user L'utilisateur qui fait la requête
+     * @param user_data Les datas de profil de l'utilisateur qui fait la requête
+     * @param user_roles Les rôles de l'utilisateur qui fait la requête
+     * @returns la query qui permet de filtrer les vos valides
+     */
+    public async anonymiseContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
+
+        if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[moduletable.vo_type]) {
+            // FIXME TODO très chaud ça... comment on peut faire ça sous forme de context filter ... ?
+            //  surtout que là on est sensé renvoyer l'id pour dire qu'on valide le champ. c'est pas du tout ce qui est en train d'être fait.
+            //  est-ce qu'on doit pas gérer ça dans un defaultNumerics ? => en même temps ça répond pas à la question des datatable rows qui renvoient
+            //  directement le contenu de la base... donc faut autre chose encore...
+            //  le cache d'anonimization doit être disponible directement en base, ou alors faut anonimiser avec une fonction (traduite facilement en requête)
+            //  et qu'on applique directement dans le context query field, pour filtrer le résultat de requête. la fonction doit alors renvoyer toujours le
+            //  même résultat pour une entrée identique (donc exit l'aléatoire). pas simple. Pour le moment l'anonimisation n'est pas compatible avec les context
+            //  query sur datatable rows du coup
+            throw new Error('Not implemented');
+        }
+
+        return null;
     }
 
     public async anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
