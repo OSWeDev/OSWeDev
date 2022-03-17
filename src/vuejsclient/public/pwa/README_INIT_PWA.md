@@ -87,14 +87,55 @@ if (!config.ISDEV) {
         } as any)
     );
 }
+
+Bien penser à remplacer la ligne plugins dans export.default par :
+plugins: plugins_client.concat(common_plugins),
+
 ----------------------------------------------------------------------------------------------------------------------------------
 
 
 ----------------------------------------------------------------------------------------------------------------------------------
 5. Modifier fichier webpack_login.config.ts
-Même chose que l'étape 3 en remplaçant :
-client-src-sw => login-src-sw
-client-sw => login-sw
+Ajouter l'import suivant en haut du fichier :
+import WorkboxPlugin = require('workbox-webpack-plugin');
+
+Ajouter les lignes suivantes dans le export default plugins :
+new WorkboxPlugin.InjectManifest({
+    swSrc: path.resolve(projectRoot, "node_modules/oswedev/dist/vuejsclient/public/pwa/login-src-sw.js"),
+    swDest: path.resolve(projectRoot, "dist/vuejsclient/public/pwa/login-sw." + version + ".js"),
+    include: [
+        /.*/,
+    ]
+} as any)
+
+Préconisation : ne le rajouter que quand (config.ISDEV == false) sinon c'est pénible pour le développement
+Du coup, il faut créer une variable pour pouvoir faire cet ajout, exemple à ajouter au dessus de export default :
+
+const config = ConfigurationService.getInstance().getNodeConfiguration();
+
+var plugins_login = [
+    new VueLoaderPlugin(),
+    new HtmlWebpackPlugin({
+        title: 'OSWEDEV',
+        filename: '../login.html',
+        template: path.join(__dirname, 'views/login.pug')
+    })
+];
+
+if (!config.ISDEV) {
+    plugins_login.push(
+        new WorkboxPlugin.InjectManifest({
+            swSrc: path.resolve(projectRoot, "src/vuejsclient/public/pwa/login-src-sw.js"),
+            swDest: path.resolve(projectRoot, "dist/vuejsclient/public/pwa/login-sw." + version + ".js"),
+            include: [
+                /.*/,
+            ]
+        } as any)
+    );
+}
+
+Bien penser à remplacer la ligne plugins dans export.default par :
+plugins: plugins_login.concat(common_plugins),
 ----------------------------------------------------------------------------------------------------------------------------------
 
 
