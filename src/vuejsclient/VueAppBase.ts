@@ -30,6 +30,7 @@ import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import LangVO from "../shared/modules/Translation/vos/LangVO";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
+import PWAController from "./public/pwa/PWAController";
 import AlertComponent from './ts/components/alert/AlertComponent';
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 import DocumentStore from './ts/components/document_handler/store/DocumentStore';
@@ -433,6 +434,13 @@ export default abstract class VueAppBase {
 
         await this.postMountHook();
 
+        let app_name: "client" | "admin" | "login" = this.appController.app_name;
+
+        if (app_name == "client" || app_name == "login") {
+            PWAController.getInstance().initialize_pwa(
+                '/vuejsclient/public/pwa/' + app_name + '-sw.' + this.getVersion() + '.js'
+            );
+        }
         // this.registerPushWorker();
 
         window.onbeforeunload = function (e) {
@@ -463,6 +471,7 @@ export default abstract class VueAppBase {
 
     protected abstract createVueMain(): VueComponentBase;
     protected abstract initializeVueAppModulesDatas(): Promise<any>;
+    protected abstract getVersion(): any;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 
