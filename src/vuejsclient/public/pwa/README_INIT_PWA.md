@@ -18,9 +18,9 @@ if (config.ACTIVATE_PWA) {
             name: config.APP_TITLE,
             short_name: config.APP_TITLE,
             description: config.APP_TITLE,
-            background_color: '#ffffff',
+            background_color: BACKGROUND_COLOR,
             crossorigin: 'use-credentials',
-            theme_color: '#546123',
+            theme_color: THEME_COLOR,
             orientation: 'any',
             start_url: config.BASE_URL + 'login',
             ios: {
