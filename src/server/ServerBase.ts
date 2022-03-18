@@ -128,7 +128,7 @@ export default abstract class ServerBase {
         EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
         EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.getInstance().VERSION = this.version;
-        EnvHandler.getInstance().ACTIVATE_PWA = this.envParam.ACTIVATE_PWA;
+        EnvHandler.getInstance().ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;

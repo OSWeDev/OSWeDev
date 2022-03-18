@@ -68,6 +68,7 @@ import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916Set
 import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117ChangeVarDataIndex';
 import Patch20211203ClearVarCaches from './patchs/postmodules/Patch20211203ClearVarCaches';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
+import VersionUpdater from './version_updater/VersionUpdater';
 
 export default abstract class GeneratorBase {
 
@@ -152,6 +153,8 @@ export default abstract class GeneratorBase {
         ];
     }
 
+    public abstract getVersion();
+
     public async generate() {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
@@ -178,6 +181,10 @@ export default abstract class GeneratorBase {
         console.log("pre modules initialization workers done.");
 
         await this.modulesService.register_all_modules(db, true);
+
+        console.log("VersionUpdater: ...");
+        await VersionUpdater.getInstance().update_version();
+        console.log("VersionUpdater: OK!");
 
         console.log("ModuleSASSSkinConfiguratorServer.getInstance().generate()");
         await ModuleSASSSkinConfiguratorServer.getInstance().generate();

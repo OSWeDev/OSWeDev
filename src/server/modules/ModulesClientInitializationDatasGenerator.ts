@@ -1,3 +1,4 @@
+import GeneratorBase from "../../generator/GeneratorBase";
 import Module from "../../shared/modules/Module";
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleFileServer from './File/ModuleFileServer';
@@ -80,6 +81,9 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().BASE_URL = '" + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "';\n";
         fileContent += "    EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.getInstance().getNodeConfiguration().CODE_GOOGLE_ANALYTICS + "';\n";
+        fileContent += "    EnvHandler.getInstance().VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
+        fileContent += "    EnvHandler.getInstance().ACTIVATE_PWA = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
+
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 

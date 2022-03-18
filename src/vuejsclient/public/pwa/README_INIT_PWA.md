@@ -24,15 +24,15 @@ if (config.ACTIVATE_PWA) {
             orientation: 'any',
             start_url: config.BASE_URL + 'login',
             ios: {
-                "apple-touch-icon": config.BASE_URL + 'client/public/img/logo_psp.png',
+                "apple-touch-icon": config.BASE_URL + 'client/public/img/logo_pwa.png',
             },
             icons: [
                 {
-                    src: path.resolve(projectRoot, 'src/client/public/img/logo_psp.png'),
+                    src: path.resolve(projectRoot, 'src/client/public/img/logo_pwa.png'),
                     sizes: [96, 128, 192, 512], // multiple sizes,
                 },
                 {
-                    src: path.resolve(projectRoot, 'src/client/public/img/logo_psp.png'),
+                    src: path.resolve(projectRoot, 'src/client/public/img/logo_pwa.png'),
                     size: 96,
                     purpose: 'maskable'
                 }
@@ -125,4 +125,10 @@ plugins: plugins_login.concat(common_plugins),
 ----------------------------------------------------------------------------------------------------------------------------------
 6. Modifier le STATIC_ENV_PARAMS pour activer le PWA sur les environnements souhaités
 ACTIVATE_PWA: true
+----------------------------------------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+7. Vérifier le STATIC_ENV_PARAMS
+Vérifier que le BASE_URL se termine bien par / pour que le start_url défini dans le fichier webpack_common.config.ts
 ----------------------------------------------------------------------------------------------------------------------------------
