@@ -752,7 +752,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            where_clause_params.push(this.getClauseWhereRangeIntersectsField(field, field_range));
+            where_clause_params.push(this.getClauseWhereRangeIntersectsField(field.field_type, field.field_id, field_range));
         }
         return " (" + where_clause_params.join(" OR ") + ") ";
     }
@@ -1181,15 +1181,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vos;
     }
 
-    public getClauseWhereRangeIntersectsField(field: ModuleTableField<any>, intersector_range: IRange): string {
-        switch (field.field_type) {
+    public getClauseWhereRangeIntersectsField(field_type: string, field_id: string, intersector_range: IRange): string {
+        switch (field_type) {
 
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
                 if (intersector_range.range_type == TSRange.RANGE_TYPE) {
-                    return field.field_id + "::timestamp with time zone <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
+                    return field_id + "::timestamp with time zone <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
                 }
                 break;
 
@@ -1202,7 +1202,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // Sinon on fait comme pour les float et autres, on prend >= ou > et <= ou < suivant inclusive ou inclusive
                 if ((intersector_range.segment_type == NumSegment.TYPE_INT) && (intersector_range.min_inclusiv && !intersector_range.max_inclusiv) && (intersector_range.min == (intersector_range.max - 1))) {
                     // TODO : généraliser le concept, là on spécifie un truc très particulier pour faire vite et efficace, mais ya d'autres cas qu'on peut optimiser de la sorte
-                    return field.field_id + " = " + intersector_range.min;
+                    return field_id + " = " + intersector_range.min;
                 }
 
             case ModuleTableField.FIELD_TYPE_amount:
@@ -1211,48 +1211,48 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
             case ModuleTableField.FIELD_TYPE_prct:
-                return field.field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field.field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
+                return field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
 
             case ModuleTableField.FIELD_TYPE_tstz:
-                return field.field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field.field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
+                return field_id + " >" + (intersector_range.min_inclusiv ? "=" : "") + " " + intersector_range.min + " and " + field_id + " <" + (intersector_range.max_inclusiv ? "=" : "") + " " + intersector_range.max;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
 
             case ModuleTableField.FIELD_TYPE_int_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
 
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
-                return field.field_id + "::date <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                return field_id + "::date <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
 
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 // TODO FIXME
                 break;
 
             case ModuleTableField.FIELD_TYPE_daterange:
-                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::daterange";
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_numrange:
-                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_hourrange:
-                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
 
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
@@ -2179,7 +2179,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     where_clause += (where_clause == '') ? "" : " OR ";
 
-                    where_clause += this.getClauseWhereRangeIntersectsField(field, field_range);
+                    where_clause += this.getClauseWhereRangeIntersectsField(field.field_type, field.field_id, field_range);
                 }
 
                 if (has_null && (ids.length == 1)) {

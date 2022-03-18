@@ -214,6 +214,110 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_EMPTY: number = 53;
     public static TYPE_NULL_OR_EMPTY: number = 54;
 
+    /**
+     * Sucre syntaxique pour faire un id in sub_query
+     * @param API_TYPE_ID Le type sur lequel on veut filtrer l'id
+     */
+    public static id_in(API_TYPE_ID: string, query: ContextQueryVO): ContextFilterVO {
+        let res: ContextFilterVO = new ContextFilterVO();
+
+        res.field_id = 'id';
+        res.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        res.vo_type = API_TYPE_ID;
+        res.sub_query = query;
+        return res;
+    }
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des or et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne OR
+     */
+    public static or(filters: ContextFilterVO[]): ContextFilterVO {
+        if ((!filters) || (!filters.length)) {
+            return null;
+        }
+
+        if (filters.length == 1) {
+            return filters[0];
+        }
+
+        let res: ContextFilterVO = null;
+        let first_filter: ContextFilterVO = null;
+        for (let i = 0; i < (filters.length - 1); i++) {
+            let filter = filters[i];
+
+            let tmp = new ContextFilterVO();
+            tmp.filter_type = ContextFilterVO.TYPE_FILTER_OR;
+            tmp.left_hook = filter;
+            tmp.right_hook = res;
+            if (!first_filter) {
+                first_filter = tmp;
+            }
+            res = tmp;
+        }
+
+        first_filter.right_hook = filters[filters.length - 1];
+        return res;
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric equals sans ranges
+     * @param API_TYPE_ID Le type sur lequel on veut filtrer
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     */
+    public static num_eq(API_TYPE_ID: string, field_id: string, num: number): ContextFilterVO {
+        let res: ContextFilterVO = new ContextFilterVO();
+        res.field_id = field_id;
+        res.vo_type = API_TYPE_ID;
+        res.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        res.param_numeric = num;
+        return res;
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric intersects ranges
+     * @param API_TYPE_ID Le type sur lequel on veut filtrer
+     * @param field_id le field qu'on veut filtrer
+     * @param ranges les valeurs qu'on veut filtrer
+     */
+    public static num_x_ranges(API_TYPE_ID: string, field_id: string, ranges: NumRange[]): ContextFilterVO {
+        let res: ContextFilterVO = new ContextFilterVO();
+        res.field_id = field_id;
+        res.vo_type = API_TYPE_ID;
+        res.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+        res.param_numranges = ranges;
+        return res;
+    }
+
+    /**
+     * Filter sur le champs id, avec un id numérique simple
+     * @param API_TYPE_ID Le type sur lequel on veut filtrer
+     * @param id la valeur de l'id qu'on veut filtrer
+     */
+    public static by_id(API_TYPE_ID: string, id: number): ContextFilterVO {
+        let res: ContextFilterVO = new ContextFilterVO();
+        res.field_id = 'id';
+        res.vo_type = API_TYPE_ID;
+        res.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        res.param_numeric = id;
+        return res;
+    }
+
+    /**
+     * Filter sur le champs id, avec un numranges à intersecter
+     * @param API_TYPE_ID Le type sur lequel on veut filtrer
+     * @param id_ranges les ids qu'on filtre
+     */
+    public static by_ids(API_TYPE_ID: string, id_ranges: NumRange[]): ContextFilterVO {
+        let res: ContextFilterVO = new ContextFilterVO();
+        res.field_id = 'id';
+        res.vo_type = API_TYPE_ID;
+        res.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+        res.param_numranges = id_ranges;
+        return res;
+    }
+
     public id: number;
     public _type: string = ContextFilterVO.API_TYPE_ID;
 

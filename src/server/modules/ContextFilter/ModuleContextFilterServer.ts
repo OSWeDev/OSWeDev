@@ -2,16 +2,11 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
-import ContextFilterServerController from './ContextFilterServerController';
-import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import ContextQueryServerController from './ContextQueryServerController';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {

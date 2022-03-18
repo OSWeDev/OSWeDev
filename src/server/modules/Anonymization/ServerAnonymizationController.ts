@@ -120,7 +120,7 @@ export default class ServerAnonymizationController {
             //  et qu'on applique directement dans le context query field, pour filtrer le résultat de requête. la fonction doit alors renvoyer toujours le
             //  même résultat pour une entrée identique (donc exit l'aléatoire). pas simple. Pour le moment l'anonimisation n'est pas compatible avec les context
             //  query sur datatable rows du coup
-            throw new Error('Not implemented');
+            // throw new Error('Not implemented');
         }
 
         return null;

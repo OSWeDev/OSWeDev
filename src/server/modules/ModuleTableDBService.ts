@@ -176,7 +176,9 @@ export default class ModuleTableDBService {
                     let table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // Une fois la création de la table terminée, on peut faire la migration des datas si on attendait de le faire.
-                    let field_where_clause = ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(moduleTable.table_segmented_field, RangeHandler.getInstance().create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
+                    let field_where_clause = ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
+                        moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_id,
+                        RangeHandler.getInstance().create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
 
                     await this.db.query('INSERT INTO ' + database_name + '.' + table_name + ' (' + column_names + ') SELECT ' + column_names + ' FROM ref.' + database_name + ' WHERE ' + field_where_clause + ';');
 

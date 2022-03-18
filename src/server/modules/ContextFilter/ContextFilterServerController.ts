@@ -37,8 +37,19 @@ export default class ContextFilterServerController {
         tables_aliases_by_type: { [vo_type: string]: string }
     ) {
 
-        let field_id = tables_aliases_by_type[active_field_filter.vo_type] + '.' + active_field_filter.field_id;
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id);
+        let field_id = active_field_filter.field_id ?
+            tables_aliases_by_type[active_field_filter.vo_type] + '.' + active_field_filter.field_id :
+            null;
+
+        let field = active_field_filter.vo_type ?
+            VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id) :
+            null;
+
+        /**
+         * Cas spécifique de l'id qu'on doit gérer comme un field de type int
+         *  et des or / xor / ... qui n'ont pas de filed_id et pas de vo_type
+         */
+        let field_type = field_id ? (field ? field.field_type : ModuleTableField.FIELD_TYPE_int) : null;
 
         switch (active_field_filter.filter_type) {
 
@@ -52,7 +63,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -114,7 +125,7 @@ export default class ContextFilterServerController {
                 throw new Error('Not Implemented');
 
             case ContextFilterVO.TYPE_TEXT_EQUALS_ALL:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -173,7 +184,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_EQUALS_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -232,7 +243,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -291,7 +302,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -350,7 +361,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -409,7 +420,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -468,7 +479,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -527,7 +538,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
                     case ModuleTableField.FIELD_TYPE_textarea:
@@ -587,7 +598,7 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INFEQ_ALL:
             case ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -628,7 +639,7 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_INF_ALL:
             case ContextFilterVO.TYPE_NUMERIC_INF_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -669,7 +680,7 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_SUP_ALL:
             case ContextFilterVO.TYPE_NUMERIC_SUP_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -710,7 +721,7 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_NUMERIC_SUPEQ_ALL:
             case ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -750,7 +761,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_NUMERIC_EQUALS:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -790,7 +801,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_NUMERIC_INTERSECTS:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -822,7 +833,8 @@ export default class ContextFilterServerController {
 
                             where_clause += (where_clause == '') ? "" : " OR ";
 
-                            where_clause += ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(field, field_range);
+                            where_clause += ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
+                                field_type, field_id, field_range);
                         }
 
                         where_conditions.push(where_clause);
@@ -834,7 +846,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_NULL_ALL:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -883,7 +895,7 @@ export default class ContextFilterServerController {
 
 
             case ContextFilterVO.TYPE_NULL_ANY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -915,7 +927,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_NULL_NONE:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -947,7 +959,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_DATE_DOW:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         throw new Error('Not Implemented');
 
@@ -976,7 +988,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_DATE_YEAR:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         throw new Error('Not Implemented');
 
@@ -1005,7 +1017,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_DATE_MONTH:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         throw new Error('Not Implemented');
 
@@ -1041,7 +1053,7 @@ export default class ContextFilterServerController {
                 let where_clause_date_intersects = null;
                 active_field_filter.param_tsranges.forEach((tsrange) => {
                     where_clause_date_intersects = (where_clause_date_intersects ? where_clause_date_intersects + ' OR ' : '');
-                    switch (field.field_type) {
+                    switch (field_type) {
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field_id + "::numrange[]))";
                             break;
@@ -1075,7 +1087,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_EMPTY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1115,7 +1127,7 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_NULL_OR_EMPTY:
-                switch (field.field_type) {
+                switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:

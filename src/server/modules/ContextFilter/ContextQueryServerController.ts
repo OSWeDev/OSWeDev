@@ -14,7 +14,6 @@ import ContextFieldPathServerController from './ContextFieldPathServerController
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import FieldPathWrapper from './vos/FieldPathWrapper';
-import moment = require('moment');
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DAOServerController from '../DAO/DAOServerController';
 import StackContext from '../../StackContext';
@@ -79,7 +78,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query();
+        let query_res = await ModuleDAOServer.getInstance().query(query);
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -111,7 +110,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query();
+        let query_res = await ModuleDAOServer.getInstance().query(query);
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -175,7 +174,7 @@ export default class ContextQueryServerController {
         }
 
         for (let i in query_res) {
-            let res_field = query_res[i];
+            let res_field = query_res[i] ? query_res[i][field.alias] : null;
             let line_option = ContextQueryFieldServerController.getInstance().translate_db_res_to_dataoption(field, res_field);
 
             if (line_option) {

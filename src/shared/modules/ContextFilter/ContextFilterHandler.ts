@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash";
 import ModuleTable from "../ModuleTable";
 import ContextFilterVO from "./vos/ContextFilterVO";
 import ContextQueryFieldVO from "./vos/ContextQueryFieldVO";
-import ContextQueryVO from "./vos/ContextQueryVO";
+import ContextQueryVO, { query } from "./vos/ContextQueryVO";
 
 export default class ContextFilterHandler {
 
@@ -40,6 +40,10 @@ export default class ContextFilterHandler {
 
             for (let j in filters) {
                 let filter = filters[j];
+
+                if (!filter) {
+                    continue;
+                }
 
                 res.push(filter);
             }
@@ -238,12 +242,6 @@ export default class ContextFilterHandler {
         filter_none.field_id = 'id';
         filter_none.vo_type = moduletable.vo_type;
 
-        let empty_res: ContextQueryVO = new ContextQueryVO();
-        empty_res.base_api_type_id = moduletable.vo_type;
-        empty_res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
-        empty_res.active_api_type_ids = [moduletable.vo_type];
-        empty_res.filters = [filter_none];
-        empty_res.is_access_hook_def = true;
-        return empty_res;
+        return query(moduletable.vo_type).field('id').add_filters([filter_none]).ignore_access_hooks();
     }
 }
