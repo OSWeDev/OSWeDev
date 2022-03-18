@@ -11,33 +11,35 @@ npm i workbox-webpack-plugin --save-dev
 Ajouter l'import suivant en haut du fichier :
 import WebpackPwaManifest = require('webpack-pwa-manifest');
 
-Ajouter les lignes suivantes dans le common_plugins au niveau de config.ISDEV == false :
-new WebpackPwaManifest({
-    name: config.APP_TITLE,
-    short_name: config.APP_TITLE,
-    description: config.APP_TITLE,
-    background_color: BACKGROUND_COLOR_APP,
-    crossorigin: 'use-credentials',
-    theme_color: THEME_COLOR,
-    orientation: 'any',
-    start_url: config.BASE_URL + 'login',
-    ios: {
-        "apple-touch-icon": config.BASE_URL + 'client/public/img/logo_pwa.png',
-    },
-    icons: [
-        {
-            src: path.resolve(projectRoot, 'src/client/public/img/logo_pwa.png'),
-            sizes: [96, 128, 192, 512], // multiple sizes,
-        },
-        {
-            src: path.resolve(projectRoot, 'src/client/public/img/logo_pwa.png'),
-            size: 96,
-            purpose: 'maskable'
-        }
-    ]
-})
-
-Préconisation : ne le rajouter que quand (config.ISDEV == false) sinon c'est pénible pour le développement
+Ajouter les lignes suivantes pour remplir le common_plugins :
+if (config.ACTIVATE_PWA) {
+    common_plugins.push(
+        new WebpackPwaManifest({
+            name: config.APP_TITLE,
+            short_name: config.APP_TITLE,
+            description: config.APP_TITLE,
+            background_color: '#ffffff',
+            crossorigin: 'use-credentials',
+            theme_color: '#546123',
+            orientation: 'any',
+            start_url: config.BASE_URL + 'login',
+            ios: {
+                "apple-touch-icon": config.BASE_URL + 'client/public/img/logo_psp.png',
+            },
+            icons: [
+                {
+                    src: path.resolve(projectRoot, 'src/client/public/img/logo_psp.png'),
+                    sizes: [96, 128, 192, 512], // multiple sizes,
+                },
+                {
+                    src: path.resolve(projectRoot, 'src/client/public/img/logo_psp.png'),
+                    size: 96,
+                    purpose: 'maskable'
+                }
+            ]
+        })
+    );
+}
 ----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -53,17 +55,8 @@ Dans notre cas : src/client/public/img/logo_pwa.png
 Ajouter l'import suivant en haut du fichier :
 import WorkboxPlugin = require('workbox-webpack-plugin');
 
-Ajouter les lignes suivantes dans le export default plugins :
-new WorkboxPlugin.InjectManifest({
-    swSrc: path.resolve(projectRoot, "node_modules/oswedev/dist/vuejsclient/public/pwa/client-src-sw.js"),
-    swDest: path.resolve(projectRoot, "dist/vuejsclient/public/pwa/client-sw." + version + ".js"),
-    include: [
-        /.*/,
-    ]
-} as any)
-
-Préconisation : ne le rajouter que quand (config.ISDEV == false) sinon c'est pénible pour le développement
-Du coup, il faut créer une variable pour pouvoir faire cet ajout, exemple à ajouter au dessus de export default :
+Créer une variable plugins_client pour pouvoir remplir le default plugins avec des conditions
+Exemple :
 
 const config = ConfigurationService.getInstance().getNodeConfiguration();
 
@@ -76,10 +69,10 @@ var plugins_client = [
     })
 ];
 
-if (!config.ISDEV) {
+if (config.ACTIVATE_PWA) {
     plugins_client.push(
         new WorkboxPlugin.InjectManifest({
-            swSrc: path.resolve(projectRoot, "src/vuejsclient/public/pwa/client-src-sw.js"),
+            swSrc: path.resolve(projectRoot, "node_modules/oswedev/dist/vuejsclient/public/pwa/client-src-sw.js"),
             swDest: path.resolve(projectRoot, "dist/vuejsclient/public/pwa/client-sw." + version + ".js"),
             include: [
                 /.*/,
@@ -90,7 +83,6 @@ if (!config.ISDEV) {
 
 Bien penser à remplacer la ligne plugins dans export.default par :
 plugins: plugins_client.concat(common_plugins),
-
 ----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -99,17 +91,8 @@ plugins: plugins_client.concat(common_plugins),
 Ajouter l'import suivant en haut du fichier :
 import WorkboxPlugin = require('workbox-webpack-plugin');
 
-Ajouter les lignes suivantes dans le export default plugins :
-new WorkboxPlugin.InjectManifest({
-    swSrc: path.resolve(projectRoot, "node_modules/oswedev/dist/vuejsclient/public/pwa/login-src-sw.js"),
-    swDest: path.resolve(projectRoot, "dist/vuejsclient/public/pwa/login-sw." + version + ".js"),
-    include: [
-        /.*/,
-    ]
-} as any)
-
-Préconisation : ne le rajouter que quand (config.ISDEV == false) sinon c'est pénible pour le développement
-Du coup, il faut créer une variable pour pouvoir faire cet ajout, exemple à ajouter au dessus de export default :
+Créer une variable plugins_login pour pouvoir remplir le default plugins avec des conditions
+Exemple :
 
 const config = ConfigurationService.getInstance().getNodeConfiguration();
 
@@ -119,13 +102,13 @@ var plugins_login = [
         title: 'OSWEDEV',
         filename: '../login.html',
         template: path.join(__dirname, 'views/login.pug')
-    })
+    }),
 ];
 
-if (!config.ISDEV) {
+if (config.ACTIVATE_PWA) {
     plugins_login.push(
         new WorkboxPlugin.InjectManifest({
-            swSrc: path.resolve(projectRoot, "src/vuejsclient/public/pwa/login-src-sw.js"),
+            swSrc: path.resolve(projectRoot, "node_modules/oswedev/dist/vuejsclient/public/pwa/login-src-sw.js"),
             swDest: path.resolve(projectRoot, "dist/vuejsclient/public/pwa/login-sw." + version + ".js"),
             include: [
                 /.*/,
@@ -141,5 +124,5 @@ plugins: plugins_login.concat(common_plugins),
 
 ----------------------------------------------------------------------------------------------------------------------------------
 6. Modifier le STATIC_ENV_PARAMS pour activer le PWA sur les environnements souhaités
-ACTIVE_PWA: true
+ACTIVATE_PWA: true
 ----------------------------------------------------------------------------------------------------------------------------------

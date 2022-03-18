@@ -18,7 +18,7 @@ export default class EnvHandler {
     public BASE_URL: string = null;
     public CODE_GOOGLE_ANALYTICS: string = null;
     public VERSION: string = null;
-    public ACTIVE_PWA: boolean = false;
+    public ACTIVATE_PWA: boolean = false;
 
     private constructor() { }
 }
