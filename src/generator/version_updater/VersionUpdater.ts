@@ -25,7 +25,11 @@ export default class VersionUpdater {
         let package_json_file = './package.json';
         let package_json_content = await ModuleFileServer.getInstance().readFile(package_json_file);
 
-        let lines = (await package_json_content).split('\n');
+        if (!package_json_content) {
+            return null;
+        }
+
+        let lines = package_json_content.split('\n');
         for (let i in lines) {
             let line = lines[i];
 
