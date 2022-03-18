@@ -27,4 +27,5 @@ export default interface IEnvParam {
     START_MAINTENANCE_ACCEPTATION_CODE: string;
     AUTO_END_MAINTENANCE_ON_START: boolean;
     CODE_GOOGLE_ANALYTICS: string;
+    ACTIVE_PWA: boolean;
 }

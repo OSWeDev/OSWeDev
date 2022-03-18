@@ -436,9 +436,9 @@ export default abstract class VueAppBase {
 
         let app_name: "client" | "admin" | "login" = this.appController.app_name;
 
-        if (app_name == "client" || app_name == "login") {
+        if (EnvHandler.getInstance().ACTIVE_PWA && ((app_name == "client") || (app_name == "login"))) {
             PWAController.getInstance().initialize_pwa(
-                '/vuejsclient/public/pwa/' + app_name + '-sw.' + this.getVersion() + '.js'
+                '/vuejsclient/public/pwa/' + app_name + '-sw.' + EnvHandler.getInstance().VERSION + '.js'
             );
         }
         // this.registerPushWorker();
@@ -471,7 +471,6 @@ export default abstract class VueAppBase {
 
     protected abstract createVueMain(): VueComponentBase;
     protected abstract initializeVueAppModulesDatas(): Promise<any>;
-    protected abstract getVersion(): any;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
 

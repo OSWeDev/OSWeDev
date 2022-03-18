@@ -140,9 +140,6 @@ plugins: plugins_login.concat(common_plugins),
 
 
 ----------------------------------------------------------------------------------------------------------------------------------
-6. Modifier les fichiers ClientApp.ts + AdminApp.ts + LoginApp.ts
-Ajouter la fonction suivante : 
-public getVersion() {
-    return require('../../package.json').version;
-}
+6. Modifier le STATIC_ENV_PARAMS pour activer le PWA sur les environnements souhaités
+ACTIVE_PWA: true
 ----------------------------------------------------------------------------------------------------------------------------------

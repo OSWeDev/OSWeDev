@@ -118,6 +118,8 @@ export default abstract class ServerBase {
 
         await this.createMandatoryFolders();
 
+        this.version = this.getVersion();
+
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
         EnvHandler.getInstance().BASE_URL = this.envParam.BASE_URL;
         EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
@@ -125,7 +127,8 @@ export default abstract class ServerBase {
         EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
         EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
         EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
-        this.version = this.getVersion();
+        EnvHandler.getInstance().VERSION = this.version;
+        EnvHandler.getInstance().ACTIVE_PWA = this.envParam.ACTIVE_PWA;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
