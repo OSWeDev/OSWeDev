@@ -120,6 +120,34 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             get_refresh: (state: IProgramPlanState): boolean => state.refresh,
 
             get_targets_facilitators_by_ids: (state: IProgramPlanState): { [id: number]: IPlanTargetFacilitator } => state.targets_facilitators_by_ids,
+            get_targets_facilitators_by_facilitator_ids: (state: IProgramPlanState): { [facilitator_id: number]: IPlanTargetFacilitator[] } => {
+                let res: { [facilitator_id: number]: IPlanTargetFacilitator[] } = {};
+
+                for (let i in state.targets_facilitators_by_ids) {
+                    let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
+
+                    if (!res[target_facilitator.facilitator_id]) {
+                        res[target_facilitator.facilitator_id] = [];
+                    }
+                    res[target_facilitator.facilitator_id].push(target_facilitator);
+                }
+
+                return res;
+            },
+            get_targets_facilitators_by_target_ids: (state: IProgramPlanState): { [target_id: number]: IPlanTargetFacilitator[] } => {
+                let res: { [target_id: number]: IPlanTargetFacilitator[] } = {};
+
+                for (let i in state.targets_facilitators_by_ids) {
+                    let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
+
+                    if (!res[target_facilitator.target_id]) {
+                        res[target_facilitator.target_id] = [];
+                    }
+                    res[target_facilitator.target_id].push(target_facilitator);
+                }
+
+                return res;
+            },
             get_facilitators_by_target_ids: (state: IProgramPlanState): { [target_id: number]: IPlanFacilitator[] } => {
                 let res: { [target_id: number]: IPlanFacilitator[] } = {};
 
