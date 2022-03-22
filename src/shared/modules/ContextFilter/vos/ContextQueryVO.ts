@@ -194,6 +194,26 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text contenu dans la valeur du champ
+     * @param field_id le field qu'on veut filtrer
+     * @param included le texte qu'on veut voir apparaître dans la valeur du champs
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_including(field_id: string, included: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_including(included)]);
+    }
+
+    /**
+     * Filtrer par text en début de la valeur du champ
+     * @param field_id le field qu'on veut filtrer
+     * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with)]);
+    }
+
+    /**
      * Filter by ID in (subquery)
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */

@@ -1,3 +1,4 @@
+import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import HourRange from "../../DataRender/vos/HourRange";
 import NumRange from "../../DataRender/vos/NumRange";
@@ -271,6 +272,34 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Sous-requête liée dans le cas d'un type sub_query
      */
     public sub_query: ContextQueryVO;
+
+    /**
+     * Filtrer par text en début de la valeur du champ
+     * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
+     */
+    public by_text_starting_with(starts_with: string | string[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
+        if (isArray(starts_with)) {
+            this.param_textarray = starts_with;
+        } else {
+            this.param_text = starts_with;
+        }
+        return this;
+    }
+
+    /**
+     * Filtrer par text contenu dans la valeur du champ
+     * @param included le texte qu'on veut voir apparaître dans la valeur du champs
+     */
+    public by_text_including(included: string | string[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
+        if (isArray(included)) {
+            this.param_textarray = included;
+        } else {
+            this.param_text = included;
+        }
+        return this;
+    }
 
     /**
      * Filter by ID in (subquery)

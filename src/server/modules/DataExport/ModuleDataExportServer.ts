@@ -1,4 +1,5 @@
 
+import { cloneDeep } from 'lodash';
 import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -167,6 +168,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
 
+        datas = this.translate_context_query_fields_from_bdd(datas, context_query);
+
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
@@ -179,6 +182,57 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
         return filepath;
+    }
+
+    public translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO): any[] {
+        if ((!datas) || (!datas.length)) {
+            return null;
+        }
+
+        if (!context_query) {
+            return null;
+        }
+
+        let res = cloneDeep(datas);
+
+        if ((!context_query.fields) || !context_query.fields.length) {
+
+            let table = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+            res = table.forceNumerics(res);
+            for (let i in res) {
+                let e = res[i];
+                res[i] = table.get_xlsx_version(e);
+            }
+            return res;
+        }
+
+        for (let i in datas) {
+            let data = datas[i];
+
+            for (let j in context_query.fields) {
+                let field = context_query.fields[j];
+
+                let table = VOsTypesManager.getInstance().moduleTables_by_voType[field.api_type_id];
+
+                // cas spécifique de l'id
+                if (field.field_id == 'id') {
+                    res[field.alias] = parseInt(data[field.alias]);
+                    continue;
+                }
+
+                let table_field = table.get_field_by_id(field.field_id);
+
+                if (!table_field) {
+                    ConsoleHandler.getInstance().error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
+                    throw new Error('Unknown field');
+                }
+
+                table.force_numeric_field(table_field, data, res[i], field.alias);
+                table.field_to_xlsx(table_field, res[i], res[i], field.alias);
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -197,6 +251,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas = (context_query.fields && context_query.fields.length) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
+
+        datas = this.translate_context_query_fields_from_bdd(datas, context_query);
 
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
