@@ -1,0 +1,13 @@
+.supervision_item_modal
+    #supervision_item_modal.modal.fade.in(ref="supervision_item_modal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content(v-if="get_selected_item")
+                .modal-header
+                    a.btn.close(@click="closemodal") &times;
+                .modal-body
+                    Superviseditemcomponent(
+                        :supervised_item_id='get_selected_item.id'
+                        :supervised_item_vo_type='get_selected_item._type'
+                    )
+                .modal-footer
+                    a.btn.btn-secondary(@click="closemodal") {{ label('supervision.item_modal.close') }}

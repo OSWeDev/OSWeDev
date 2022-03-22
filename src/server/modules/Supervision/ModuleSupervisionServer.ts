@@ -103,6 +103,18 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Types de sonde'
         }, 'supervision.dashboard.types_de_sonde.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Recherche par nom de ligne'
+        }, 'supervision.filter_text.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Fermer'
+        }, 'supervision.item_modal.close.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Masquer le graph'
+        }, 'supervision.item.graph.on.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher le graph'
+        }, 'supervision.item.graph.off.___LABEL___'));
 
 
         /**
@@ -134,6 +146,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
             'fr-fr': 'Administration de la Supervision'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
@@ -275,14 +288,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         message.title = 'Supervision - Nouvelle ERREUR';
         message.summary = 'ERREUR : ' + supervised_item.name;
         message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
                 .set_activityImage(ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "vuejsclient/public/img/error.png"));
 
         // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
         if (!!supervised_item.id) {
             message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                    ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id)]));
+                    ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
         }
 
         let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
@@ -320,11 +333,11 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         message.title = 'Supervision - Retour a la normale';
         message.summary = 'OK : ' + supervised_item.name;
         message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
                 .set_activityImage(ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "vuejsclient/public/img/ok.png"));
         message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
             new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id)]));
+                ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
 
         let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
         for (let i in urls) {

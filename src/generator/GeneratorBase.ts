@@ -66,12 +66,12 @@ import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang
 import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
 import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
 import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117ChangeVarDataIndex';
-import Patch20211203ClearVarCaches from './patchs/postmodules/Patch20211203ClearVarCaches';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
 import Patch20220217ChangeLoginTrad from './patchs/postmodules/Patch20220217ChangeLoginTrad';
 import Patch20220222MigrationCodesTradsDB from './patchs/postmodules/Patch20220222MigrationCodesTradsDB';
 import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
+import VersionUpdater from './version_updater/VersionUpdater';
 
 export default abstract class GeneratorBase {
 
@@ -85,7 +85,7 @@ export default abstract class GeneratorBase {
     protected post_modules_workers: IGeneratorWorker[];
 
     private modulesService: ModuleServiceBase;
-    private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
+    private STATIC_ENV_PARAMS: { [env: string]: EnvParam } = {};
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
@@ -160,6 +160,8 @@ export default abstract class GeneratorBase {
         ];
     }
 
+    public abstract getVersion();
+
     public async generate() {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
@@ -186,6 +188,10 @@ export default abstract class GeneratorBase {
         console.log("pre modules initialization workers done.");
 
         await this.modulesService.register_all_modules(db, true);
+
+        console.log("VersionUpdater: ...");
+        await VersionUpdater.getInstance().update_version();
+        console.log("VersionUpdater: OK!");
 
         console.log("ModuleSASSSkinConfiguratorServer.getInstance().generate()");
         await ModuleSASSSkinConfiguratorServer.getInstance().generate();

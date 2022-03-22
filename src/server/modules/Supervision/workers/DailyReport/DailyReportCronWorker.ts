@@ -119,7 +119,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             if (!log_errors) {
                 log_errors = '<ul>';
             }
-            log_errors += '<li><a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
+            log_errors += '<li><a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
         }
 
         if (!!log_errors) {

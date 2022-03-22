@@ -109,6 +109,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @ModuleProgramPlanGetter
     public get_targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator };
 
+    @ModuleProgramPlanGetter
+    public get_targets_facilitators_by_facilitator_ids: { [facilitator_id: number]: IPlanTargetFacilitator[] };
+
+    @ModuleProgramPlanGetter
+    public get_targets_facilitators_by_target_ids: { [target_id: number]: IPlanTargetFacilitator[] };
+
     @ModuleProgramPlanAction
     public set_targets_regions_by_ids: (targets_regions_by_ids: { [id: number]: IPlanTargetRegion }) => void;
 
@@ -251,6 +257,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private show_targets: boolean = true;
 
     private valid_targets: IPlanTarget[] = [];
+    private valid_target_by_ids: { [id: number]: IPlanTarget } = {};
     private valid_facilitators: IPlanFacilitator[] = [];
     private valid_rdvs: IPlanRDV[] = [];
 
@@ -686,9 +693,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             for (let i in this.valid_targets) {
                 let target: IPlanTarget = this.valid_targets[i];
 
-                for (let j in this.get_targets_facilitators_by_ids) {
+                let tfs: IPlanTargetFacilitator[] = this.get_targets_facilitators_by_target_ids[target.id];
 
-                    let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[j];
+                for (let j in tfs) {
+
+                    let target_facilitator: IPlanTargetFacilitator = tfs[j];
 
                     if (target_facilitator.target_id != target.id) {
                         continue;
@@ -764,12 +773,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
         }
 
-        let target: IPlanTarget = null;
-        for (let i in this.valid_targets) {
-            if (this.valid_targets[i].id == rdv.target_id) {
-                target = this.valid_targets[i];
-            }
-        }
+        let target: IPlanTarget = this.valid_target_by_ids[rdv.target_id];
+
         if (!target) {
             // on a un RDV en base qui est orphelin on ignore, sauf si tache admin
             if (!!this.program_plan_shared_module.task_type_id) {
@@ -810,9 +815,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             if ((!!this.get_tasks_by_ids[rdv.task_id]) && (this.get_tasks_by_ids[rdv.task_id].is_facilitator_specific)) {
 
+                let ptfs: IPlanTargetFacilitator[] = this.get_targets_facilitators_by_facilitator_ids[rdv.facilitator_id];
+
                 // C'est une tâche d'admin sur l'employé
-                for (let i in this.get_targets_facilitators_by_ids) {
-                    let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[i];
+                for (let i in ptfs) {
+                    let target_facilitator: IPlanTargetFacilitator = ptfs[i];
 
                     if (target_facilitator.facilitator_id != rdv.facilitator_id) {
                         continue;
@@ -824,8 +831,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     res.push(cloned_event);
                 }
             } else {
-                for (let i in this.get_targets_facilitators_by_ids) {
-                    let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[i];
+                let ptfs: IPlanTargetFacilitator[] = this.get_targets_facilitators_by_facilitator_ids[rdv.facilitator_id];
+
+                for (let i in ptfs) {
+                    let target_facilitator: IPlanTargetFacilitator = ptfs[i];
 
                     if (target_facilitator.target_id != rdv.target_id) {
                         continue;
@@ -959,16 +968,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 if (!!this.program_plan_shared_module.target_facilitator_type_id) {
                     let new_target_facilitator_id: number = parseInt(event.resourceId);
-                    for (let i in this.get_targets_facilitators_by_ids) {
-                        let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[i];
 
-                        if (target_facilitator.id != new_target_facilitator_id) {
-                            continue;
-                        }
+                    let target_facilitator: IPlanTargetFacilitator = this.get_targets_facilitators_by_ids[new_target_facilitator_id];
 
+                    if (target_facilitator) {
                         new_facilitator_id = target_facilitator.facilitator_id;
                         new_target_id = target_facilitator.target_id;
-                        break;
                     }
                 } else {
                     new_facilitator_id = parseInt(event.resourceId);
@@ -1947,15 +1952,22 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     private reset_targets_throttled() {
-        this.valid_targets = [];
+        let valid_targets: IPlanTarget[] = [];
+        let valid_target_by_ids: { [id: number]: IPlanTarget } = {};
+
         for (let i in this.getTargetsByIds) {
             let target: IPlanTarget = this.getTargetsByIds[i];
 
             if ((!!this.program_plan_controller.is_valid_target) && (!this.program_plan_controller.is_valid_target(target))) {
                 continue;
             }
-            this.valid_targets.push(target);
+
+            valid_targets.push(target);
+            valid_target_by_ids[target.id] = target;
         }
+
+        this.valid_targets = valid_targets;
+        this.valid_target_by_ids = valid_target_by_ids;
     }
 
     private filter_ready() {

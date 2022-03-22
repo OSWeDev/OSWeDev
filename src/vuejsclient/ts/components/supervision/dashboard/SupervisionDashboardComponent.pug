@@ -1,66 +1,86 @@
-.supervision_dashboard
-    //-  premier bandeau des catégories
-    template(v-if="(categorys) && (categorys.length) && (categorys.length > 1)")
-        .row.mb-3
-            .col-md-12
+.supervision_dashboard.row
+    //- panneau gauche liste categories et sondes
+    .col-md-4.col-sm-12
+        //-  premier bandeau des catégories
+        template(v-if="(get_categorys) && (get_categorys.length) && (get_categorys.length > 1)")
+            .col-md-12.mb-3
                 h2 {{ label('supervision.dashboard.category') }}
 
-                .btn.btn-secondary.mr-3.mb-1(@click="selectCategory(null)", :class="{'btn-success': (selected_category == null)}") {{ label('supervision.dashboard.all') }}
+                .btn.mr-3.mb-1(
+                    @click="selectCategory(null)",
+                    :class='get_selected_category ? "btn-secondary" : "btn-success"'
+                    ) {{ label('supervision.dashboard.all') }}
 
-                template(v-for="category in categorys")
-                    .btn.btn-secondary.mr-3.mb-1(@click="selectCategory(category)", :class="{'btn-success': ((selected_category) && (selected_category.id == category.id))}") {{ category.name }}
-    
-    //- deuxième bandeau des types de sondes
-    template(v-if="(filtered_api_type_ids) && (filtered_api_type_ids.length) && (filtered_api_type_ids.length > 1)")
-        .row.mb-3
-            .col-md-12
+                template(v-for="category in get_categorys")
+                    .btn.mr-3.mb-1(
+                        @click="selectCategory(category)",
+                        :class='!!is_cat_selected(category) ? "btn-success" : "btn-secondary"'
+                        ) {{ category.name }}
+
+        //- deuxième bandeau des types de sondes
+        template(v-if="(filtered_api_type_ids) && (filtered_api_type_ids.length) && (filtered_api_type_ids.length > 1)")
+            .col-md-12.mb-3
                 h2 {{ label('supervision.dashboard.types_de_sonde') }}
 
-                .btn.btn-secondary.mr-3.mb-1(@click="selectApiTypeId(null)", :class="{'btn-success': (selected_api_type_id == null)}") {{ label('supervision.dashboard.all') }}
+                .btn.mr-3.mb-1(
+                    @click="selectApiTypeId(null)",
+                    :class='get_selected_api_type_id ? "btn-secondary" : "btn-success"'
+                    ) {{ label('supervision.dashboard.all') }}
 
                 template(v-for="api_type_id in filtered_api_type_ids")
-                    .btn.btn-secondary.mr-3.mb-1(@click="selectApiTypeId(api_type_id)", :class="{'btn-success': ((selected_api_type_id) && (selected_api_type_id == api_type_id))}") {{ label('supervision.dashboard.' + api_type_id) }}
+                    .btn.mr-3.mb-1(
+                        @click="selectApiTypeId(api_type_id)",
+                        :class='!!is_api_type_selected(api_type_id) ? "btn-success" : "btn-secondary"'
+                        ) {{ label('supervision.dashboard.' + api_type_id) }}
 
-    //- bandeau des compteurs pour chaque états
-    .row
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_ERROR"
-                :nb_elts="nb_errors"
-            )
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_ERROR_READ"
-                :nb_elts="nb_errors_read"
-            )
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_WARN"
-                :nb_elts="nb_warns"
-            )
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_WARN_READ"
-                :nb_elts="nb_warns_read"
-            )
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_OK"
-                :nb_elts="nb_oks"
-            )
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_PAUSED"
-                :nb_elts="nb_pauses"
-            )
-        .col-md-1
-            Supervisiondashboardwidgetcomponent(
-                state_classname="STATE_UNKOWN"
-                :nb_elts="nb_unknowns"
-            )
-
-    //- liste des sondes
-    template(v-for='supervised_item in ordered_supervised_items')
+    //- panneau droit liste items
+    .col-md-7.col-sm-12
+        //- bandeau des compteurs pour chaque états
         .row
-            .col-md-7
-                Supervisiondashboarditemcomponent(:item='supervised_item')
+            .col-sm-2
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_ERROR"
+                    :nb_elts="nb_errors"
+                )
+            .col-sm-2
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_ERROR_READ"
+                    :nb_elts="nb_errors_read"
+                )
+            .col-sm-2
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_WARN"
+                    :nb_elts="nb_warns"
+                )
+            .col-sm-2
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_WARN_READ"
+                    :nb_elts="nb_warns_read"
+                )
+            .col-sm-2
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_OK"
+                    :nb_elts="nb_oks"
+                )
+            .col-sm-2
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_PAUSED"
+                    :nb_elts="nb_pauses"
+                )
+                Supervisiondashboardwidgetcomponent(
+                    state_classname="STATE_UNKOWN"
+                    :nb_elts="nb_unknowns"
+                )
+
+        //- champs de recherche
+        .row.form-group
+            .col-sm-4
+                input.form-control(type='text' :placeholder='label("supervision.filter_text")' v-model="filter_text")
+
+        //- liste des sondes
+        .row
+            .col-sm-12
+                template(v-for='supervised_item in ordered_supervised_items')
+                    Supervisiondashboarditemcomponent(:item='supervised_item')
+
+        Supervisionitemmodalcomponent

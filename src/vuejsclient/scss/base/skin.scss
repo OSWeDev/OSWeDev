@@ -223,10 +223,11 @@ i.fa.fa-spin:before {
       padding: 0;
       width: 100%;
 
-      &.disabled {
-        background-color: #eeeeee;
-        cursor: not-allowed;
-      }
+    }
+
+    & .disabled {
+      background-color: #eeeeee;
+      cursor: not-allowed;
     }
   }
 

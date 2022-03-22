@@ -1,13 +1,13 @@
 .timestamp_input
     template(v-if='is_segmentation_year')
-        Datepicker(:clear-button="!required" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')"  :required="required" :disabled="disabled" :format="format_datepicker_year" :minimum-view="'year'" :maximum-view="'year'" :class="form_control?'form-control date_input':'date_input'" @input="emitInput")
+        Datepicker(:clear-button="!required && !disabled" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')"  :required="required" :disabled="disabled" :format="format_datepicker_year" :minimum-view="'year'" :maximum-view="'year'" :class="form_control?'form-control date_input':'date_input'" @input="emitInput")
     template(v-if='is_segmentation_mois')
-        Datepicker(:clear-button="!required" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')"  :required="required" :disabled="disabled" :format="format_datepicker_month" :minimum-view="'month'" :maximum-view="'month'" :class="form_control?'form-control date_input':'date_input'" @input="emitInput")
+        Datepicker(:clear-button="!required && !disabled" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')"  :required="required" :disabled="disabled" :format="format_datepicker_month" :minimum-view="'month'" :maximum-view="'month'" :class="form_control?'form-control date_input':'date_input'" @input="emitInput")
     template(v-if='is_segmentation_day')
-        Datepicker(:clear-button="!required" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control date_input':'date_input'" @input="emitInput")
+        Datepicker(:clear-button="!required && !disabled" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control date_input':'date_input'" @input="emitInput")
     template(v-if='is_segmentation_minute || is_segmentation_second')
         .row
             .col-sm-6
-                Datepicker(:clear-button="!required" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control max-width':'max-width'" @input="emitInput")
+                Datepicker(:clear-button="!required && !disabled" v-model="date" :monday-first='true' :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" :class="form_control?'form-control max-width':'max-width'" @input="emitInput")
             .col-sm-6
                 input.max-width(:class="{'form-control': !inline_input_mode}" v-model="date_time", type="time", id="date_time" :disabled="disabled")

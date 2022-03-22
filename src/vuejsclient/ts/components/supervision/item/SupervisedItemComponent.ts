@@ -31,6 +31,8 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop()
     private supervised_item_vo_type: string;
 
+
+    private show_graph: boolean = false;
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);
     private continue_reloading: boolean = true;
@@ -112,7 +114,6 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private async mounted() {
-
         this.continue_reloading = true;
         await this.load_supervised_item_and_continue();
     }
@@ -191,5 +192,9 @@ export default class SupervisedItemComponent extends VueComponentBase {
 
     private open_url(url: string) {
         window.open(url, "_blank");
+    }
+
+    private toggle_show_hide_graph() {
+        this.show_graph = !this.show_graph;
     }
 }

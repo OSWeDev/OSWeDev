@@ -5,10 +5,10 @@ export default class TrelloAPICardVO {
     public checkItemStates: any;
     public closed: boolean;
     public cover: any;
-    public dateLastActivity: any;
+    public dateLastActivity: any; // /!\ Entrée Moment => Sortie string
     public desc: string;
     public descData: any;
-    public due: any;
+    public due: any; // /!\ Entrée Moment => Sortie string
     public dueComplete: boolean;
     public dueReminder: number;
     public id: string;

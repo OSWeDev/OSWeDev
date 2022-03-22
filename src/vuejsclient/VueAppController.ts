@@ -13,6 +13,9 @@ import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientCon
 
 export default abstract class VueAppController {
 
+    public static APP_NAME_LOGIN: string = "login";
+    public static APP_NAME_CLIENT: string = "client";
+    public static APP_NAME_ADMIN: string = "admin";
     /**
      * Ne crée pas d'instance mais permet de récupérer l'instance active
      */
@@ -46,7 +49,7 @@ export default abstract class VueAppController {
     public has_access_to_onpage_translation: boolean = false;
     public has_access_to_feedback: boolean = false;
 
-    protected constructor(public app_name: string) {
+    protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
     }
 

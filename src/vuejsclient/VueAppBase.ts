@@ -31,6 +31,7 @@ import LangVO from "../shared/modules/Translation/vos/LangVO";
 import VOsTypesManager from "../shared/modules/VOsTypesManager";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
+import PWAController from "./public/pwa/PWAController";
 import AlertComponent from './ts/components/alert/AlertComponent';
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 import DroppableVoFieldsController from "./ts/components/dashboard_builder/droppable_vo_fields/DroppableVoFieldsController";
@@ -444,6 +445,13 @@ export default abstract class VueAppBase {
 
         await this.postMountHook();
 
+        let app_name: "client" | "admin" | "login" = this.appController.app_name;
+
+        if (EnvHandler.getInstance().ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
+            PWAController.getInstance().initialize_pwa(
+                '/vuejsclient/public/pwa/' + app_name + '-sw.' + EnvHandler.getInstance().VERSION + '.js'
+            );
+        }
         // this.registerPushWorker();
 
         window.onbeforeunload = function (e) {

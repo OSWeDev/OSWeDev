@@ -115,6 +115,8 @@ export default abstract class ServerBase {
 
         await this.createMandatoryFolders();
 
+        this.version = this.getVersion();
+
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
         EnvHandler.getInstance().BASE_URL = this.envParam.BASE_URL;
         EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
@@ -122,7 +124,8 @@ export default abstract class ServerBase {
         EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
         EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
         EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
-        this.version = this.getVersion();
+        EnvHandler.getInstance().VERSION = this.version;
+        EnvHandler.getInstance().ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
@@ -320,6 +323,8 @@ export default abstract class ServerBase {
         };
 
         this.hook_configure_express();
+
+        this.hook_pwa_init();
 
         // app.get(/^[/]public[/]generated[/].*/, function (req, res, next) {
         //     tryuseGZ('client', req, res, next);
@@ -1006,6 +1011,23 @@ export default abstract class ServerBase {
 
     /* istanbul ignore next: nothing to test here */
     protected async hook_on_ready() { }
+
+    /* istanbul ignore next: nothing to test here */
+    protected async hook_pwa_init() {
+        let version = this.getVersion();
+
+        this.app.get('/vuejsclient/public/pwa/client-sw.' + version + '.js', (req, res, next) => {
+            res.header('Service-Worker-Allowed', '/');
+
+            res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/client-sw.' + version + '.js'));
+        });
+
+        this.app.get('/vuejsclient/public/pwa/login-sw.' + version + '.js', (req, res, next) => {
+            res.header('Service-Worker-Allowed', '/');
+
+            res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/login-sw.' + version + '.js'));
+        });
+    }
 
     /* istanbul ignore next: hardly testable */
     protected handleError(promise, res) {
