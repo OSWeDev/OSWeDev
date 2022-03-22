@@ -34,6 +34,7 @@ export default class VersionedVOController implements IVOController {
 
     public registerModuleTable(moduleTable: ModuleTable<any>) {
         moduleTable.defineVOInterfaces([VersionedVOController.INTERFACE_VERSIONED]);
+        moduleTable.is_versioned = true;
 
         this.registeredModuleTables.push(moduleTable);
 

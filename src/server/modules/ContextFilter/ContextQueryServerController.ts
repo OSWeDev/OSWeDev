@@ -381,7 +381,10 @@ export default class ContextQueryServerController {
                          * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
                          */
                         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
-                            context_query.active_api_type_ids, Object.keys(joined_tables_by_vo_type), context_field.api_type_id);
+                            context_query,
+                            context_query.active_api_type_ids,
+                            Object.keys(joined_tables_by_vo_type),
+                            context_field.api_type_id);
                         if (!path) {
                             // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                             continue;
@@ -429,7 +432,10 @@ export default class ContextQueryServerController {
                      * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
                      */
                     let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
-                        context_query.active_api_type_ids, Object.keys(tables_aliases_by_type), filter.vo_type);
+                        context_query,
+                        context_query.active_api_type_ids,
+                        Object.keys(tables_aliases_by_type),
+                        filter.vo_type);
                     if (!path) {
                         // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
                         continue;
@@ -445,10 +451,9 @@ export default class ContextQueryServerController {
             res += this.get_ordered_jointures(context_query, jointures);
 
             let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
-            if (context_query.is_access_hook_def) {
-                delete tables_aliases_by_type_for_access_hooks[context_query.base_api_type_id];
+            if (!context_query.is_access_hook_def) {
+                await this.add_context_access_hooks(context_query, tables_aliases_by_type_for_access_hooks, where_conditions);
             }
-            await this.add_context_access_hooks(context_query, tables_aliases_by_type_for_access_hooks, where_conditions);
 
             if (where_conditions && where_conditions.length) {
                 res += ' WHERE (' + where_conditions.join(') AND (') + ')';

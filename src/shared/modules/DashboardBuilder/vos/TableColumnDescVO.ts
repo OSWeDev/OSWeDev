@@ -77,4 +77,14 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public weight: number;
 
     public readonly: boolean;
+
+    /**
+     * Permet de cacher des colonnes dans les exports, par exemple les colonnes logAs sur la base des utilisateurs
+     */
+    public exportable: boolean;
+
+    /**
+     * Permet de cacher des colonnes dans les tableaux (pour exporter des colonnes cachées par exemple)
+     */
+    public hide_from_table: boolean;
 }

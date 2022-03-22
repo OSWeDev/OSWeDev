@@ -3,6 +3,8 @@ import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
@@ -21,6 +23,7 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
@@ -81,6 +84,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
+
+
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.exportContextQueryToXLSX.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile, this.exportContextQueryToXLSXFile.bind(this));
+
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
@@ -142,6 +150,78 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         return file;
     }
+
+    /**
+     * Export des résultats d'un context_query en XLSX, et on télécharge le fichier directement
+     */
+    public async exportContextQueryToXLSX(
+        filename: string,
+        context_query: ContextQueryVO,
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+        is_secured: boolean = false,
+        file_access_policy_name: string = null): Promise<string> {
+
+        let api_type_id = context_query.base_api_type_id;
+        let datas = (context_query.fields && context_query.fields.length) ?
+            await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
+            await ModuleContextFilter.getInstance().select_vos(context_query);
+
+        let filepath: string = await this.exportDataToXLSX_base(
+            filename,
+            datas,
+            ordered_column_list,
+            column_labels,
+            api_type_id,
+            is_secured,
+            file_access_policy_name
+        );
+
+        await this.getFileVo(filepath, is_secured, file_access_policy_name);
+        return filepath;
+    }
+
+    /**
+     * Export des résultats d'un context_query en XLSX, et on renvoie le file généré
+     */
+    public async exportContextQueryToXLSXFile(
+        filename: string,
+        context_query: ContextQueryVO,
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+        is_secured: boolean = false,
+        file_access_policy_name: string = null
+    ): Promise<FileVO> {
+
+        let api_type_id = context_query.base_api_type_id;
+        let datas = (context_query.fields && context_query.fields.length) ?
+            await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
+            await ModuleContextFilter.getInstance().select_vos(context_query);
+
+        let filepath: string = await this.exportDataToXLSX_base(
+            filename,
+            datas,
+            ordered_column_list,
+            column_labels,
+            api_type_id,
+            is_secured,
+            file_access_policy_name
+        );
+
+        let file: FileVO = new FileVO();
+        file.path = filepath;
+        file.file_access_policy_name = file_access_policy_name;
+        file.is_secured = is_secured;
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            return null;
+        }
+        file.id = res.id;
+
+        return file;
+    }
+
 
     /**
      * WARN : Pour exporter on doit pouvoir récupérer toutes les données, donc attention à la volumétrie avant de faire la demande...

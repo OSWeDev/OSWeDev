@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
@@ -63,7 +64,7 @@ export default class ContextFieldPathServerController {
      * @param from_types liste des types déjà liés par des jointures, donc dès qu'on en trouve un on peut arrêter la recherche de chemin
      * @param to_type le type ciblé pour lequel on cherche le chemin
      */
-    public get_path_between_types(active_api_type_ids: string[], from_types: string[], to_type: string): FieldPathWrapper[] {
+    public get_path_between_types(contextQuery: ContextQueryVO, active_api_type_ids: string[], from_types: string[], to_type: string): FieldPathWrapper[] {
 
         /**
          * Forme opti du from_types et active_api_type_ids
@@ -110,6 +111,7 @@ export default class ContextFieldPathServerController {
 
             if ((!actual_paths) || (!actual_paths.length)) {
                 let valid_path: FieldPathWrapper[] = this.get_paths_from_moduletable(
+                    contextQuery,
                     [],
                     this_path_next_turn_paths,
                     to_type,
@@ -136,6 +138,7 @@ export default class ContextFieldPathServerController {
                 let actual_path = actual_paths[i];
 
                 let valid_path: FieldPathWrapper[] = this.get_paths_from_moduletable(
+                    contextQuery,
                     actual_path,
                     this_path_next_turn_paths,
                     to_type,
@@ -191,6 +194,7 @@ export default class ContextFieldPathServerController {
      * @returns solution path if has one
      */
     private get_paths_from_moduletable(
+        context_query: ContextQueryVO,
         actual_path: FieldPathWrapper[],
         this_path_next_turn_paths: FieldPathWrapper[][],
         to_type: string,
@@ -233,6 +237,29 @@ export default class ContextFieldPathServerController {
          * si on trouve un des point de départ (une des cibles) dans les targets des fields, on a terminé on a un chemin valide on le renvoie
          */
         let manytoone_fields_to_sources: Array<ModuleTableField<any>> = manytoone_fields.filter((field) => from_types_by_name[field.manyToOne_target_moduletable.vo_type]);
+        manytoone_fields_to_sources = manytoone_fields_to_sources.filter((field) => !this.filter_technical_field(context_query, field));
+
+        /**
+         * On ajoute juste un ordre sur les champs, pour mettre en fin de sélection les champs de type "technique" comme le versioning typiquement
+         */
+        // manytoone_fields_to_sources.sort((a, b) => {
+        //     let weight_a = this.get_field_weight(a);
+        //     let weight_b = this.get_field_weight(b);
+
+        //     if (weight_a != weight_b) {
+        //         return weight_a - weight_b;
+        //     }
+
+        //     if (a.field_id < b.field_id) {
+        //         return -1;
+        //     }
+        //     if (a.field_id > b.field_id) {
+        //         return 1;
+        //     }
+
+        //     return 0;
+        // });
+
         if (manytoone_fields_to_sources && manytoone_fields_to_sources.length) {
             actual_path.push(new FieldPathWrapper(manytoone_fields_to_sources[0], true));
             return actual_path;
@@ -254,6 +281,25 @@ export default class ContextFieldPathServerController {
          */
         let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(moduletable.vo_type);
         onetomany_fields = onetomany_fields.filter((ref) => active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
+        onetomany_fields = onetomany_fields.filter((field) => !this.filter_technical_field(context_query, field));
+
+        // onetomany_fields.sort((a, b) => {
+        //     let weight_a = this.get_field_weight(a);
+        //     let weight_b = this.get_field_weight(b);
+
+        //     if (weight_a != weight_b) {
+        //         return weight_a - weight_b;
+        //     }
+
+        //     if (a.field_id < b.field_id) {
+        //         return -1;
+        //     }
+        //     if (a.field_id > b.field_id) {
+        //         return 1;
+        //     }
+
+        //     return 0;
+        // });
 
         /**
          * si on trouve un des point de départ (une des cibles) dans les tables des fields, on a terminé on a un chemin valide on le renvoie
@@ -311,5 +357,69 @@ export default class ContextFieldPathServerController {
         deployed_deps_from[moduletable.vo_type] = true;
 
         return null;
+    }
+
+    // /**
+    //  * On tente d'identifier les fields "techniques" comme les fields ajoutés automatiquement pour le versioning
+    //  *  et on leur donne un poids suivant la source du field (field "métier" ou field "technique" et peut-être plusieurs niveaux
+    //  *  de fields techniques. dans l'idée où les fields de versioning sont apposés sur tous les vos et ne sont donc pas représentatifs)
+    //  * @param field
+    //  * @returns le poids du champs
+    //  */
+    // private get_field_weight(field: ModuleTableField<any>): number {
+    //     if (!field) {
+    //         return 1000;
+    //     }
+
+    //     /**
+    //      * Le versioning : poids 100
+    //      */
+    //     if (field.module_table.is_versioned) {
+
+    //         switch (field.field_id) {
+    //             case 'parent_id':
+    //             case 'trashed':
+    //             case 'version_num':
+    //             case 'version_author_id':
+    //             case 'version_timestamp':
+    //             case 'version_edit_author_id':
+    //             case 'version_edit_timestamp':
+    //                 return 100;
+    //         }
+    //     }
+
+    //     return 0;
+    // }
+
+    /**
+     * En // de la désambiguisation des chemins précise par field et filter
+     *  on filtre les champs dits "techniques" pour ne garder que les champs "métier"
+     *  au global de la requête
+     * @param field
+     * @returns true si c'est un field technique (versioning, ...) et si la query filtre ce type de champs
+     */
+    private filter_technical_field(context_query: ContextQueryVO, field: ModuleTableField<any>): boolean {
+        if (context_query && context_query.use_technical_field_versioning) {
+            return false;
+        }
+
+        /**
+         * Le versioning : poids 100
+         */
+        if (field.module_table.is_versioned) {
+
+            switch (field.field_id) {
+                case 'parent_id':
+                case 'trashed':
+                case 'version_num':
+                case 'version_author_id':
+                case 'version_timestamp':
+                case 'version_edit_author_id':
+                case 'version_edit_timestamp':
+                    return true;
+            }
+        }
+
+        return false;
     }
 }

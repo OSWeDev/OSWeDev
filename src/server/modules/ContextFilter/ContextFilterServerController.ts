@@ -837,7 +837,9 @@ export default class ContextFilterServerController {
                                 field_type, field_id, field_range);
                         }
 
-                        where_conditions.push(where_clause);
+                        if (where_clause && (where_clause != '')) {
+                            where_conditions.push(where_clause);
+                        }
                         break;
 
                     default:
@@ -1074,7 +1076,10 @@ export default class ContextFilterServerController {
                             throw new Error('Not Implemented');
                     }
                 });
-                where_conditions.push(where_clause_date_intersects);
+
+                if (where_clause_date_intersects && (where_clause_date_intersects != '')) {
+                    where_conditions.push(where_clause_date_intersects);
+                }
                 break;
 
             case ContextFilterVO.TYPE_SUB_QUERY:

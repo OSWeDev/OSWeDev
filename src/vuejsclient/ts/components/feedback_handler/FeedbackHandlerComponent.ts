@@ -1,6 +1,7 @@
 
 
 import Component from 'vue-class-component';
+import { Watch } from 'vue-property-decorator';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
@@ -77,14 +78,16 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.is_already_sending_feedback = false;
     }
 
-    private switch_hidden() {
-
+    @Watch('get_hidden', { immediate: true })
+    private onchange_get_hidden() {
         // If first time, store date + url
         if (!this.tmp_start_date) {
             this.tmp_start_date = Dates.now();
             this.tmp_start_url = this.$route.fullPath;
         }
+    }
 
+    private switch_hidden() {
         this.set_hidden(!this.get_hidden);
     }
 

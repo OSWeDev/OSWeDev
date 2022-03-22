@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -22,6 +23,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
+import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -100,6 +102,8 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private loaded_once: boolean = false;
     private is_busy: boolean = false;
+
+    private actual_rows_query: ContextQueryVO = null;
 
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -332,6 +336,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         default:
                             throw new Error('Not Implemented');
                     }
+                    self.throttled_update_visible_options();
 
                     resolve({
                         body: self.label('TableWidgetComponent.onchange_column.ok'),
@@ -345,6 +350,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
+                    self.throttled_update_visible_options();
                     reject({
                         body: self.label('TableWidgetComponent.onchange_column.failed'),
                         config: {
@@ -354,7 +360,6 @@ export default class TableWidgetComponent extends VueComponentBase {
                             pauseOnHover: true,
                         },
                     });
-                    self.throttled_update_visible_options();
                 }
             })
         );
@@ -502,6 +507,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query);
+        this.actual_rows_query = cloneDeep(query);
 
         let data_rows = [];
         let promises = [];
@@ -665,15 +671,43 @@ export default class TableWidgetComponent extends VueComponentBase {
 
 
 
-    private get_export_params_for_xlsx(): ExportDataToXLSXParamVO {
+    // private get_export_params_for_xlsx(): ExportDataToXLSXParamVO {
 
-        let exportable_datatable_data = this.get_exportable_datatable_data();
-        return new ExportDataToXLSXParamVO(
-            "Export-" + Dates.now() + ".xlsx",
-            exportable_datatable_data,
+    //     let exportable_datatable_data = this.get_exportable_datatable_data();
+    //     return new ExportDataToXLSXParamVO(
+    //         "Export-" + Dates.now() + ".xlsx",
+    //         exportable_datatable_data,
+    //         this.exportable_datatable_columns,
+    //         this.datatable_columns_labels,
+    //         this.crud_activated_api_type,
+    //     );
+    // }
+
+    /**
+     * On fabrique / récupère la query pour l'export + les params
+     * @param limit_to_page limiter à la page actuellement visible. false => exporter toutes les datas
+     */
+    private get_export_params_for_context_query_xlsx(limit_to_page: boolean = true): ExportContextQueryToXLSXParamVO {
+
+        if (!this.actual_rows_query) {
+            return null;
+        }
+
+        let context_query = cloneDeep(this.actual_rows_query);
+        if (!limit_to_page) {
+            context_query.limit = 0;
+            context_query.offset = 0;
+        }
+
+        let export_name = this.dashboard_page.translatable_name_code_text ?
+            "Export-" + this.t(this.dashboard_page.translatable_name_code_text) + "-" + Dates.now() + ".xlsx" :
+            "Export-" + Dates.now() + ".xlsx";
+
+        return new ExportContextQueryToXLSXParamVO(
+            export_name,
+            context_query,
             this.exportable_datatable_columns,
-            this.datatable_columns_labels,
-            this.crud_activated_api_type,
+            this.datatable_columns_labels
         );
     }
 
@@ -682,7 +716,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column = this.columns[i];
-            res[column.field_id] = this.t(column.translatable_name_code_text);
+            res[column.datatable_field_uid] = this.t(column.translatable_name_code_text);
         }
 
         return res;
@@ -694,11 +728,11 @@ export default class TableWidgetComponent extends VueComponentBase {
         for (let i in this.columns) {
             let column: TableColumnDescVO = this.columns[i];
 
-            if (column.type == TableColumnDescVO.TYPE_crud_actions) {
+            if (!column.exportable) {
                 continue;
             }
 
-            res.push(column.field_id);
+            res.push(column.datatable_field_uid);
         }
 
         return res;
@@ -742,20 +776,74 @@ export default class TableWidgetComponent extends VueComponentBase {
         return res;
     }
 
-    private async do_export_to_xlsx() {
-        let param: ExportDataToXLSXParamVO = this.get_export_params_for_xlsx();
+    /**
+     * On demande si on veut exporter tout en juste la page actuellement lue
+     */
+    private async choose_export_type() {
+
+        let self = this;
+        this.$snotify.confirm(self.label('table_widget.choose_export_type.body'), self.label('table_widget.choose_export_type.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.label('table_widget.choose_export_type.page'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        await self.do_export_to_xlsx(true);
+                    },
+                    bold: false
+                },
+                {
+                    text: self.label('table_widget.choose_export_type.all'),
+                    action: async (toast) => {
+                        await self.do_export_to_xlsx(false);
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    /**
+     * Export de toutes les données (en appliquant les filtrages)
+     * @param limit_to_page se limiter à la page vue, ou renvoyer toutes les datas suivant les filtres actifs
+     */
+    private async do_export_to_xlsx(limit_to_page: boolean = true) {
+        let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
 
         if (!!param) {
 
-            await ModuleDataExport.getInstance().exportDataToXLSX(
+            await ModuleDataExport.getInstance().exportContextQueryToXLSX(
                 param.filename,
-                param.datas,
+                param.context_query,
                 param.ordered_column_list,
                 param.column_labels,
-                param.api_type_id,
                 param.is_secured,
                 param.file_access_policy_name
             );
         }
     }
+
+    // /**
+    //  * Export de la page lue
+    //  */
+    // private async do_export_page_to_xlsx() {
+    //     let param: ExportDataToXLSXParamVO = this.get_export_params_for_xlsx();
+
+    //     if (!!param) {
+
+    //         await ModuleDataExport.getInstance().exportDataToXLSX(
+    //             param.filename,
+    //             param.datas,
+    //             param.ordered_column_list,
+    //             param.column_labels,
+    //             param.api_type_id,
+    //             param.is_secured,
+    //             param.file_access_policy_name
+    //         );
+    //     }
+    // }
 }

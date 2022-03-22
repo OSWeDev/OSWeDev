@@ -1,7 +1,8 @@
 import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import NumRange from "../../DataRender/vos/NumRange";
-import ContextFilterVO from "./ContextFilterVO";
+import ModuleContextFilter from "../ModuleContextFilter";
+import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
 import SortByVO from "./SortByVO";
 
@@ -68,6 +69,20 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
      */
     public is_access_hook_def: boolean;
+
+    /**
+     * Pour exclure les champs techniques de type versioning du path autorisé (false pour exclure)
+     */
+    public use_technical_field_versioning: boolean;
+
+    /**
+     * Autorise l'utilisation des fields techniques de type versioning pour les chemins
+     */
+    public use_tecpaths_versioning(): ContextQueryVO {
+        this.use_technical_field_versioning = true;
+
+        return this;
+    }
 
     /**
      * Ajouter un ou plusieurs active_api_type_ids pour spécifier les chemins acceptables
@@ -147,7 +162,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
     public filter_by_num_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([ContextFilterVO.num_eq(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id, num)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_eq(num)]);
     }
 
     /**
@@ -157,7 +172,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
     public filter_by_num_x_ranges(field_id: string, ranges: NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([ContextFilterVO.num_x_ranges(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id, ranges)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_x_ranges(ranges)]);
     }
 
     /**
@@ -166,7 +181,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
     public filter_by_id(id: number, API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([ContextFilterVO.by_id(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, id)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id(id)]);
     }
 
     /**
@@ -175,7 +190,79 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
     public filter_by_ids(id_ranges: NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([ContextFilterVO.by_ids(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, id_ranges)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_ids(id_ranges)]);
+    }
+
+    /**
+     * Filter by ID in (subquery)
+     * @param query la sous requête qui doit renvoyer les ids comme unique field
+     */
+    public filter_by_id_in(query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id_in(query_)]);
+    }
+
+    /**
+     * Filtrer un champ number par un sous-requête : field in (subquery)
+     * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
+     */
+    public filter_by_num_in(field_id: string, query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_in(query_)]);
+    }
+
+    /**
+     * Filter sur champs strictement NULL
+     */
+    public filter_is_null(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_null()]);
+    }
+
+    /**
+     * Filter sur champs au moins partiellement NULL
+     */
+    public filter_has_null(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).has_null()]);
+    }
+
+    /**
+     * Filter sur champs strictement NON NULL
+     */
+    public filter_is_not_null(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_not_null()]);
+    }
+
+    /**
+     * Filter sur champs strictement NULL ou VIDE
+     */
+    public filter_is_null_or_empty(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_null_or_empty()]);
+    }
+
+    /**
+     * Filter sur le champs par boolean strictement vrai
+     */
+    public filter_is_true(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_true()]);
+    }
+
+    /**
+     * Filter sur le champs par boolean strictement faux
+     */
+    public filter_is_false(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_false()]);
+    }
+
+    /**
+     * Filter sur le champs par boolean au moins partiellement vrai
+     */
+    public filter_has_true(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).has_true()]);
+    }
+
+    /**
+     * Filter sur le champs par boolean au moins partiellement faux
+     */
+    public filter_has_false(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).has_false()]);
     }
 
     /**
@@ -232,6 +319,32 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Faire la requête en mode select_vos
+     *  Si on avait défini des fields on les supprime puisqu'ils deviennent invalides
+     * @returns les vos issus de la requête
+     */
+    public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
+        this.fields = null;
+        return await ModuleContextFilter.getInstance().select_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode select_datatable_rows
+     * @returns les lignes de datatable issues de la requête
+     */
+    public async select_datatable_rows(): Promise<any[]> {
+        return await ModuleContextFilter.getInstance().select_datatable_rows(this);
+    }
+
+    /**
+     * Faire la requête en mode select_count
+     * @returns le count issus de la requête
+     */
+    public async select_count(): Promise<number> {
+        return await ModuleContextFilter.getInstance().select_count(this);
+    }
+
+    /**
      * Objectif automatiser la définition des tables à utiliser pour la requête a minima sur les
      *  éléments qui sont explicitement demandés. Reste à ajouter manuellement les tables de liaisons
      *  qui ne sont pas des manytomany (qui sont elles ajoutées automatiquement entre les types actifs)
@@ -262,13 +375,13 @@ export default class ContextQueryVO implements IDistantVOBase {
          * Récursivité sur les filtres qui contiennent des filtres (pas sur les sub_querys)
          */
         for (let i in filters) {
-            let filter = filters[i];
+            let filter_ = filters[i];
 
-            if (!!filter.left_hook) {
-                this.update_active_api_type_ids_from_filters([filter.left_hook]);
+            if (!!filter_.left_hook) {
+                this.update_active_api_type_ids_from_filters([filter_.left_hook]);
             }
-            if (!!filter.right_hook) {
-                this.update_active_api_type_ids_from_filters([filter.right_hook]);
+            if (!!filter_.right_hook) {
+                this.update_active_api_type_ids_from_filters([filter_.right_hook]);
             }
         }
 
@@ -294,5 +407,6 @@ export const query = (API_TYPE_ID: string) => {
     res.is_access_hook_def = false;
     res.query_tables_prefix = null;
     res.sort_by = null;
+    res.use_technical_field_versioning = false;
     return res;
 };

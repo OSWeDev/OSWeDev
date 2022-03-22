@@ -42,10 +42,10 @@
             margin-left: 6px;
         }
 
-        .editable_column {
+        .editable_column, .exportable_column, 
+        .hide_from_table_column {
             display: inline-block;
-            margin-left: 1.8rem;
-
+        
             >label {
                 margin: 3px;
             }

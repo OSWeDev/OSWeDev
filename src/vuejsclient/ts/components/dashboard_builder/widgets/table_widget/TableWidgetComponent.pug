@@ -16,7 +16,7 @@ include ../../../../../views/mixins/loading.pug
                     button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
                         i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('crud.actions.refresh') }}
-                    button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="do_export_to_xlsx")
+                    button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
                         i.fa.fa-download.fa-lg.btn_icon
                         | {{ label('crud.actions.export') }}
                     button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
@@ -89,6 +89,7 @@ include ../../../../../views/mixins/loading.pug
                                         :field="fields[column.id]"
                                         :vo="row"
                                         :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                        :ask_confirmation_to_delete='true'
                                         :inline_input_mode='true'
                                         :inline_input_read_value="row[column.datatable_field_uid]"
                                         :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'

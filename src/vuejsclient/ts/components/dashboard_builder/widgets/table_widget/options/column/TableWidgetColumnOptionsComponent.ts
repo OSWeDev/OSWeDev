@@ -126,6 +126,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.component_name = this.new_column_select_type_component;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -148,6 +150,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_var_ref].id;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -187,6 +191,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.field_id = field_id;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -201,6 +207,25 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.column.readonly = !this.column.readonly;
         this.$emit('update_column', this.column);
     }
+
+    private async switch_exportable() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.exportable = !this.column.exportable;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_hide_from_table() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.hide_from_table = !this.column.hide_from_table;
+        this.$emit('update_column', this.column);
+    }
+
 
     /**
      * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré

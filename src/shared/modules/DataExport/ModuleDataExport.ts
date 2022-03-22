@@ -4,6 +4,7 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -11,6 +12,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
+import ExportContextQueryToXLSXParamVO, { ExportContextQueryToXLSXParamVOStatic } from './vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
@@ -22,6 +24,8 @@ export default class ModuleDataExport extends Module {
     public static APINAME_ExportDataToXLSXParamVOFile: string = 'ExportDataToXLSXParamVOFile';
     public static APINAME_ExportDataToMultiSheetsXLSXParamVO: string = 'ExportDataToMultiSheetsXLSXParamVO';
     public static APINAME_ExportDataToMultiSheetsXLSXParamVOFile: string = 'ExportDataToMultiSheetsXLSXParamVOFile';
+    public static APINAME_ExportContextQueryToXLSXParamVO: string = 'ExportContextQueryToXLSXParamVO';
+    public static APINAME_ExportContextQueryToXLSXParamVOFile: string = 'ExportContextQueryToXLSXParamVOFile';
 
     public static getInstance(): ModuleDataExport {
         if (!ModuleDataExport.instance) {
@@ -31,6 +35,22 @@ export default class ModuleDataExport extends Module {
     }
 
     private static instance: ModuleDataExport = null;
+
+    public exportContextQueryToXLSX: (
+        filename: string,
+        context_query: ContextQueryVO,
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+        is_secured?: boolean,
+        file_access_policy_name?: string
+    ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
+    public exportContextQueryToXLSXFile: (
+        filename: string,
+        context_query: ContextQueryVO,
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+        is_secured?: boolean,
+        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
 
     public exportDataToXLSX: (
         filename: string,
@@ -76,10 +96,25 @@ export default class ModuleDataExport extends Module {
     }
 
     public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, string>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
+            ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO,
+            [FileVO.API_TYPE_ID],
+            ExportContextQueryToXLSXParamVOStatic,
+            APIDefinition.API_RETURN_TYPE_FILE
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, FileVO>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
+            ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile,
+            [FileVO.API_TYPE_ID],
+            ExportContextQueryToXLSXParamVOStatic
+        ));
+
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
-            [],
+            [FileVO.API_TYPE_ID],
             ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
@@ -92,7 +127,7 @@ export default class ModuleDataExport extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO,
-            [],
+            [FileVO.API_TYPE_ID],
             ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));

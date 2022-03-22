@@ -10,9 +10,10 @@ import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -1385,12 +1386,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await ModuleDAOServer.getInstance().selectAll<RoleVO>(
-            RoleVO.API_TYPE_ID,
-            " join " + VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID].full_name + " ur on ur.role_id = t.id " +
-            " where ur.user_id = $1",
-            [uid],
-            [UserRoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]);
+        return await ModuleContextFilter.getInstance().select_vos(
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks());
     }
 
     /**

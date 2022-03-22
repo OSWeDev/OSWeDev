@@ -25,7 +25,7 @@ export default class TablePaginationComponent extends VueComponentBase {
     private compressed: boolean;
 
     private throttled_update_slider = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_slider.bind(this), 50, { leading: false, trailing: true });
-    private throttled_change_offset = ThrottleHelper.getInstance().declare_throttle_without_args(this.change_offset.bind(this), 1000, { leading: false, trailing: true });
+    private throttled_change_offset = ThrottleHelper.getInstance().declare_throttle_without_args(this.change_offset.bind(this), 400, { leading: false, trailing: true });
 
     private page: number = 0;
 
@@ -102,6 +102,7 @@ export default class TablePaginationComponent extends VueComponentBase {
             this.new_page = this.max_page;
             this.page = this.new_page;
         }
+        this.throttled_change_offset();
     }
 
     private goto_next() {

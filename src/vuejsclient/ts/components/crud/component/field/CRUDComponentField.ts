@@ -153,6 +153,12 @@ export default class CRUDComponentField extends VueComponentBase
     private searchable: boolean;
 
     /**
+     * Ajouté pour avoir une confirmation en notif pour les suppressions, dans certaines interfaces on peut supprimer très facilement par erreur sinon
+     */
+    @Prop({ default: false })
+    private ask_confirmation_to_delete: boolean;
+
+    /**
      * Une string de la forme composant_partieconcernee_option
      * Ex: 'tsrange_date_noneditable'
      * Ajouté à la base pour désactiver seulement une partie du composant TSRangeInputComponent
@@ -963,6 +969,39 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private async inline_clear_value() {
+
+        if (!this.ask_confirmation_to_delete) {
+            await this.inline_clear_value_confirmed();
+            return;
+        }
+
+        let self = this;
+        this.$snotify.confirm(self.label('inline_clear_value.confirm.body'), self.label('inline_clear_value.confirm.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        await self.inline_clear_value_confirmed();
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private async inline_clear_value_confirmed() {
+
         this.field_value = null;
 
         await this.change_inline_field_value();

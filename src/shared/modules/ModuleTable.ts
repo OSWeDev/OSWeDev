@@ -85,6 +85,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
      *      on garde lisible juste pour trace et éviter de refaire le switch en permanence.
      */
     public is_segmented: boolean = false;
+    public is_versioned: boolean = false;
     public table_segmented_field: ModuleTableField<any> = null;
     public table_segmented_field_range_type: number = null;
     public table_segmented_field_segment_type: number = null;

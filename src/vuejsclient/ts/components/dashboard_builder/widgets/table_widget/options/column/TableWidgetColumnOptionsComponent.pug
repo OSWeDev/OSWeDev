@@ -77,3 +77,19 @@
                     :width="100"
                     :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
 
+            .exportable_column
+                toggle-button(
+                    @change="switch_exportable" 
+                    :value="column.exportable" 
+                    :sync="true"
+                    :width="105"
+                    :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
+
+            .hide_from_table_column
+                toggle-button(
+                    @change="switch_hide_from_table" 
+                    :value="!column.hide_from_table" 
+                    :sync="true"
+                    :width="75"
+                    :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
+

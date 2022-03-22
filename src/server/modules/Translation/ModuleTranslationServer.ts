@@ -286,43 +286,43 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Page:'
         }, 'datatable.page.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictCancelUpload'
+            'fr-fr': 'Annuler'
         }, 'dropzone.dictCancelUpload.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictCancelUploadConfirmation'
+            'fr-fr': 'Annuler l\'upload'
         }, 'dropzone.dictCancelUploadConfirmation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictDefaultMessage'
+            'fr-fr': 'Déposez votre fichier'
         }, 'dropzone.dictDefaultMessage.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictFallbackMessage'
+            'fr-fr': ''
         }, 'dropzone.dictFallbackMessage.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictFallbackText'
+            'fr-fr': ''
         }, 'dropzone.dictFallbackText.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictFileSizeUnits'
+            'fr-fr': 'Mo'
         }, 'dropzone.dictFileSizeUnits.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictFileTooBig'
+            'fr-fr': 'Fichier trop lourd'
         }, 'dropzone.dictFileTooBig.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictInvalidFileType'
+            'fr-fr': 'Type de fichier invalide'
         }, 'dropzone.dictInvalidFileType.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictMaxFilesExceeded'
+            'fr-fr': 'Nb. max de fichiers atteint'
         }, 'dropzone.dictMaxFilesExceeded.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictRemoveFile'
+            'fr-fr': 'Supprimer'
         }, 'dropzone.dictRemoveFile.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictRemoveFileConfirmation'
+            'fr-fr': 'Fichier supprimé'
         }, 'dropzone.dictRemoveFileConfirmation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictResponseError'
+            'fr-fr': 'Erreur'
         }, 'dropzone.dictResponseError.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'dictUploadCanceled'
+            'fr-fr': 'Upload annulé'
         }, 'dropzone.dictUploadCanceled.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Aucun historique'

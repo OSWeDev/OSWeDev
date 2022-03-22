@@ -33,6 +33,40 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     public async configure() {
 
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Exportable'
+        }, 'table_widget_column_conf.editable_column.exportable.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non exportable'
+        }, 'table_widget_column_conf.editable_column.not_exportable.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher'
+        }, 'table_widget_column_conf.editable_column.show_in_table.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cacher'
+        }, 'table_widget_column_conf.editable_column.hide_from_table.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Exporter la page ou tout ?'
+        }, 'table_widget.choose_export_type.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Export'
+        }, 'table_widget.choose_export_type.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Page'
+        }, 'table_widget.choose_export_type.page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Tout'
+        }, 'table_widget.choose_export_type.all.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer la suppression'
+        }, 'inline_clear_value.confirm.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supprimer'
+        }, 'inline_clear_value.confirm.title.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Activer le menu sur : {app_name}'
         }, 'dashboard_menu_conf.menu_switch.label.___LABEL___'));

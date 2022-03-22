@@ -184,6 +184,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.weight = -1;
                 crud_actions_column.id = this.get_new_column_id();
                 crud_actions_column.readonly = true;
+                crud_actions_column.exportable = false;
+                crud_actions_column.hide_from_table = false;
                 crud_actions_column.column_width = 0;
                 await this.add_column(crud_actions_column);
                 return;
@@ -323,6 +325,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
             if (options.columns[i].column_width == null) {
                 options.columns[i].column_width = 0;
+            }
+            if (options.columns[i].exportable == null) {
+                options.columns[i].exportable = (options.columns[i].type != TableColumnDescVO.TYPE_crud_actions);
+            }
+            if (options.columns[i].hide_from_table == null) {
+                options.columns[i].hide_from_table = false;
             }
 
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
