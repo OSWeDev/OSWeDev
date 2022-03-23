@@ -64,32 +64,62 @@
                     :default_translation="default_column_label")
 
             .remove_column(@click="remove_column")
-                i.fa.fa-trash.fa-fw(aria-hidden="true")
+                i.fa.fa-trash(aria-hidden="true")
 
-            .column_width
-                input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
+            template(v-if='!show_options')
+                .show_options(@click="unhide_options")
+                    i.fa.fa-plus(aria-hidden="true")
 
-            .editable_column(v-if='can_be_editable')
-                toggle-button(
-                    @change="switch_readonly" 
-                    :value="!column.readonly" 
-                    :sync="true"
-                    :width="100"
-                    :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
+            template(v-if='show_options')
+                .hide_options(@click="hide_options")
+                    i.fa.fa-minus(aria-hidden="true")
 
-            .exportable_column
-                toggle-button(
-                    @change="switch_exportable" 
-                    :value="column.exportable" 
-                    :sync="true"
-                    :width="105"
-                    :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
+                .column_width
+                    input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
 
-            .hide_from_table_column
-                toggle-button(
-                    @change="switch_hide_from_table" 
-                    :value="!column.hide_from_table" 
-                    :sync="true"
-                    :width="75"
-                    :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
+                .editable_column(v-if='can_be_editable')
+                    toggle-button(
+                        @change="switch_readonly" 
+                        :value="!column.readonly" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
 
+                .exportable_column
+                    toggle-button(
+                        @change="switch_exportable" 
+                        :value="column.exportable" 
+                        :sync="true"
+                        :width="105"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
+
+                .hide_from_table_column
+                    toggle-button(
+                        @change="switch_hide_from_table" 
+                        :value="!column.hide_from_table" 
+                        :sync="true"
+                        :width="75"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
+
+                .filter_by_access
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="column.filter_by_access"
+                        :placeholder="label('table_widget_column.filter_by_access')"
+                        :options="filter_by_access_options"
+                        :custom-label="filter_by_access_label"
+                        :allow-empty="true",
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="true"
+
+                        id="filter_by_access"
+
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )

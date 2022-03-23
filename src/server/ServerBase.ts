@@ -803,12 +803,7 @@ export default abstract class ServerBase {
                 /**
                  * Gestion du impersonate
                  */
-                if (!!session.impersonated_from) {
-
-                    let imp_uid: number = session.impersonated_from.uid;
-                    user_log.impersonated = true;
-                    user_log.comment = 'Impersonated from user_id [' + imp_uid + ']';
-                }
+                user_log.handle_impersonation(session);
 
                 await StackContext.getInstance().runPromise(
                     { IS_CLIENT: false },

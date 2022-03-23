@@ -186,6 +186,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.readonly = true;
                 crud_actions_column.exportable = false;
                 crud_actions_column.hide_from_table = false;
+                crud_actions_column.filter_by_access = null;
                 crud_actions_column.column_width = 0;
                 await this.add_column(crud_actions_column);
                 return;

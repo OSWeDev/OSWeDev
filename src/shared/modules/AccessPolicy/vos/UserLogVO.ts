@@ -1,3 +1,4 @@
+import IServerUserSession from "../../../../server/IServerUserSession";
 
 export default class UserLogVO {
     public static API_TYPE_ID: string = "userlog";
@@ -20,4 +21,25 @@ export default class UserLogVO {
 
     public comment: string;
     public data: string;
+
+    /**
+     * Gestion du impersonate. On va chercher récursivement si il y a des impersonates récursifs
+     * @param session la session de l'utilisateur
+     */
+    public handle_impersonation(session: IServerUserSession) {
+
+        let impersonated_from_session = session ? session.impersonated_from : null;
+        this.impersonated = false;
+        let comment = '';
+
+        while (!!impersonated_from_session) {
+
+            let imp_uid: number = impersonated_from_session.uid;
+            this.impersonated = true;
+            comment += ((comment == '') ? '' : ' <- ') + 'Impersonated from user_id [' + imp_uid + ']';
+            impersonated_from_session = impersonated_from_session.impersonated_from;
+        }
+
+        this.comment = comment;
+    }
 }

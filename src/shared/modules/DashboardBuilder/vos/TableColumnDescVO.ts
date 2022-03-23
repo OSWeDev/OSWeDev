@@ -49,6 +49,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public column_width: number;
 
     /**
+     * On filtre par un droit d'accès (le nom du droit en l'occurrence)
+     */
+    public filter_by_access: string;
+
+    /**
      * Si TYPE_vo_field_ref
      */
     public api_type_id: string;

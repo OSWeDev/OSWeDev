@@ -30,7 +30,7 @@
     .inline_input_is_not_editing {
 
         padding: 5px;
-        height: 1.8em;
+        height: 1.85em;
         padding-top: 0.3em;
         font-size: 1em;
         line-height: 1em;
@@ -64,6 +64,8 @@
 
 .inline_input_mode {
     text-align: center;
+    background: white;
+    border: solid 1px lightgrey;
 
     input[type~="number"],
     input[type~="text"],
@@ -77,6 +79,7 @@
         line-height: 1.7em;
         vertical-align: bottom;
         text-align: center;
+        cursor: pointer;
     }
 
     .bool_field_inline_readonly_value,
@@ -147,6 +150,32 @@
             margin-left: 0.3em;
             vertical-align: middle;
         }
+    }
+
+    >label {
+        margin-top: 3px;
+        margin-bottom: 0;
+        margin-left: 3px;
+        margin-right: 3px;
+    }
+
+    &:hover>i.inline_input_show_clear:hover,
+    &:hover>i.inline_input_hide_clear:hover,
+    &:hover>i.inline_input_is_not_editing:hover {
+        opacity: 1;
+    }
+
+    >i.inline_input_show_clear,
+    >i.inline_input_hide_clear,
+    >i.inline_input_is_not_editing {
+        opacity: 0;
+        transition: opacity 0.4s ease-in-out;
+    }
+
+    &:hover>i.inline_input_show_clear,
+    &:hover>i.inline_input_hide_clear,
+    &:hover>i.inline_input_is_not_editing {
+        opacity: 0.2;
     }
 }
 

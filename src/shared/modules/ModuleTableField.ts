@@ -302,6 +302,8 @@ export default class ModuleTableField<T> {
     public setModuleTable(moduleTable: ModuleTable<any>): ModuleTableField<T> {
         this.module_table = moduleTable;
 
+        this.setLabelCodeText();
+
         return this;
     }
 

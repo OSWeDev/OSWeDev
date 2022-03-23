@@ -831,14 +831,14 @@ export default class ContextFilterServerController {
                         for (let j in active_field_filter.param_numranges) {
                             let field_range: NumRange = active_field_filter.param_numranges[j];
 
-                            where_clause += (where_clause == '') ? "" : " OR ";
+                            where_clause += (where_clause == '') ? "(" : ") OR (";
 
                             where_clause += ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
                                 field_type, field_id, field_range);
                         }
 
                         if (where_clause && (where_clause != '')) {
-                            where_conditions.push(where_clause);
+                            where_conditions.push(where_clause + ')');
                         }
                         break;
 

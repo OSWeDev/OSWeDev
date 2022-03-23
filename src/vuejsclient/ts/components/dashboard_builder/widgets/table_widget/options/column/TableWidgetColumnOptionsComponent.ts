@@ -14,6 +14,8 @@ import './TableWidgetColumnOptionsComponent.scss';
 import TableWidgetOptions from '../TableWidgetOptions';
 import TableWidgetController from '../../TableWidgetController';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
+import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -38,6 +40,38 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private column_width: number = 0;
     private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width, 800, { leading: false, trailing: true });
+
+    private filter_by_access_options: string[] = [];
+
+    private show_options: boolean = false;
+
+    private unhide_options() {
+        this.show_options = true;
+    }
+
+    private hide_options() {
+        this.show_options = false;
+    }
+
+    private async mounted() {
+        let policies = await query(AccessPolicyVO.API_TYPE_ID).field('translatable_name').select_vos<AccessPolicyVO>();
+
+        this.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
+    }
+
+    private filter_by_access_label(translatable_name: string): string {
+        return this.label(translatable_name);
+    }
+
+    @Watch('filter_by_access')
+    private async onchange_filter_by_access() {
+        if (!this.column) {
+            return;
+        }
+
+        this.$emit('update_column', this.column);
+    }
+
 
     @Watch('column', { immediate: true })
     private onchange_column() {
@@ -128,6 +162,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.filter_by_access = null;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -152,6 +187,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.filter_by_access = null;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -193,6 +229,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.readonly = true;
         new_column.exportable = true;
         new_column.hide_from_table = false;
+        new_column.filter_by_access = null;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget

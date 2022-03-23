@@ -31,15 +31,30 @@
 
         padding: .2em 0em;
 
+        .hide_options,
+        .show_options,
         .remove_column {
             display: inline-block;
-            padding: 0.2em;
+            padding: 0.2em 0.4em;
             background: indianred;
             color: #EEE;
             border-radius: 2px;
             cursor: pointer;
             margin-top: 1px;
             margin-left: 6px;
+
+            i {
+                width: 0.8em;
+            }
+        }
+
+        .remove_column {
+            background: indianred;
+        }
+
+        .hide_options,
+        .show_options {
+            background: grey;
         }
 
         .editable_column, .exportable_column, 
@@ -55,7 +70,7 @@
             display: inline-block;
             
             >input[type="number"] {
-                width: 3rem;
+                width: 4rem;
                 margin: 3px;
                 border: solid 1px #BBB;
                 border-radius: 2px;

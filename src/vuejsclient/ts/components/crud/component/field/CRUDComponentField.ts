@@ -968,7 +968,11 @@ export default class CRUDComponentField extends VueComponentBase
         await this.onChangeField();
     }
 
-    private async inline_clear_value() {
+    private async inline_clear_value(event) {
+
+        if (event) {
+            event.stopPropagation();
+        }
 
         if (!this.ask_confirmation_to_delete) {
             await this.inline_clear_value_confirmed();
@@ -1008,7 +1012,11 @@ export default class CRUDComponentField extends VueComponentBase
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
 
-    private async validate_inline_input() {
+    private async validate_inline_input(event) {
+
+        if (event) {
+            event.stopPropagation();
+        }
 
         let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
         if (alerts && alerts.length) {
@@ -1076,7 +1084,11 @@ export default class CRUDComponentField extends VueComponentBase
         this.inline_input_is_busy = false;
     }
 
-    private prepare_inline_input() {
+    private prepare_inline_input(event) {
+
+        if (event) {
+            event.stopPropagation();
+        }
 
         // Mise en place d'un sémaphore sur l'édition inline : si on est en train d'éditer un champ, on ne peut pas en éditer un second,
         //  sauf à valider un snotify
@@ -1149,7 +1161,11 @@ export default class CRUDComponentField extends VueComponentBase
         });
     }
 
-    private cancel_input() {
+    private cancel_input(event = null) {
+
+        if (event) {
+            event.stopPropagation();
+        }
 
         this.$emit('on_cancel_input', this.vo, this.field, this);
 
@@ -1168,7 +1184,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        this.validate_inline_input();
+        this.validate_inline_input(null);
     }
 
     private async beforeDestroy() {
@@ -1189,7 +1205,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (keynum == 'Enter') {
 
-            await this.validate_inline_input();
+            await this.validate_inline_input(null);
             return;
         }
 
@@ -1197,6 +1213,18 @@ export default class CRUDComponentField extends VueComponentBase
 
             return;
         }
+    }
+
+    private try_prepare_inline_input(event) {
+        if (!this.inline_input_mode) {
+            return;
+        }
+
+        if (this.inline_input_is_editing) {
+            return;
+        }
+
+        this.prepare_inline_input(null);
     }
 
     private async onkeypress_escape() {

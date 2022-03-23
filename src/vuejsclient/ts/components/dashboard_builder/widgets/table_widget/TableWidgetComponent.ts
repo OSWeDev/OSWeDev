@@ -32,6 +32,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
+import VueAppBase from '../../../../../VueAppBase';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import CRUDComponentField from '../../../crud/component/field/CRUDComponentField';
 import CRUDComponentManager from '../../../crud/CRUDComponentManager';
@@ -104,6 +105,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private is_busy: boolean = false;
 
     private actual_rows_query: ContextQueryVO = null;
+
+    private filter_by_access_cache: { [translatable_policy_name: string]: boolean } = {};
 
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -290,18 +293,27 @@ export default class TableWidgetComponent extends VueComponentBase {
         let res: TableColumnDescVO[] = [];
         for (let i in options.columns) {
 
+            let column = options.columns[i];
+
             // patch rétrocompatibilité
-            if (!options.columns[i].page_widget_id) {
-                options.columns[i].page_widget_id = this.page_widget.id;
+            if (!column.page_widget_id) {
+                column.page_widget_id = this.page_widget.id;
             }
-            if (options.columns[i].readonly == null) {
-                options.columns[i].readonly = true;
+            if (column.readonly == null) {
+                column.readonly = true;
             }
-            if (options.columns[i].column_width == null) {
-                options.columns[i].column_width = 0;
+            if (column.column_width == null) {
+                column.column_width = 0;
             }
 
-            res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
+            /**
+             * Gestion du check des droits
+             */
+            if (column.filter_by_access && !this.filter_by_access_cache[column.filter_by_access]) {
+                continue;
+            }
+
+            res.push(Object.assign(new TableColumnDescVO(), column));
         }
         WeightHandler.getInstance().sortByWeight(res);
 
@@ -560,7 +572,28 @@ export default class TableWidgetComponent extends VueComponentBase {
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
 
-        await this.throttled_update_visible_options();
+        let promises = [
+            this.throttled_update_visible_options(),
+            this.update_filter_by_access_cache()
+        ];
+        await Promise.all(promises);
+    }
+
+    private async update_filter_by_access_cache() {
+
+        let promises = [];
+        let self = this;
+        for (let i in this.widget_options.columns) {
+            let column = this.widget_options.columns[i];
+
+            if (!!column.filter_by_access) {
+                promises.push((async () => {
+                    VueAppBase.getInstance().vueInstance.$set(self.filter_by_access_cache, column.filter_by_access, await ModuleAccessPolicy.getInstance().checkAccess(column.filter_by_access));
+                    ConsoleHandler.getInstance().log(column.filter_by_access + ':' + self.filter_by_access_cache[column.filter_by_access]);
+                })());
+            }
+        }
+        await Promise.all(promises);
     }
 
     get title_name_code_text() {

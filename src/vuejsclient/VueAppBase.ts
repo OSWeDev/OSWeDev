@@ -57,7 +57,7 @@ export default abstract class VueAppBase {
         return this.instance_;
     }
 
-    public vueInstance: VueComponentBase;
+    public vueInstance: VueComponentBase & Vue;
     public vueRouter: VueRouter;
 
     protected constructor(

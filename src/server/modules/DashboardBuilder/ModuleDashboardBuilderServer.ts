@@ -48,6 +48,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column_conf.editable_column.hide_from_table.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Conditionner au droit'
+        }, 'table_widget_column.filter_by_access.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Exporter la page ou tout ?'
         }, 'table_widget.choose_export_type.body.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

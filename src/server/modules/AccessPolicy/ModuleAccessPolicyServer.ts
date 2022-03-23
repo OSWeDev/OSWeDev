@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { cloneDeep } from 'lodash';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -828,13 +829,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 // On stocke le log de connexion en base
                 user_log = new UserLogVO();
                 user_log.user_id = uid;
-                user_log.impersonated = (session && !!session.impersonated_from);
                 user_log.log_time = Dates.now();
                 user_log.referer = null;
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-                if (session && !!session.impersonated_from) {
-                    user_log.comment = 'Impersonated from user_id [' + uid + ']';
-                }
+
+                /**
+                 * Gestion du impersonate
+                 */
+                user_log.handle_impersonation(session);
+
 
                 await StackContext.getInstance().runPromise(
                     { IS_CLIENT: false },
@@ -852,7 +855,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session = Object.assign(session, session.impersonated_from);
-                delete session.impersonated_from;
+                // delete session.impersonated_from;
 
                 session.save((err) => {
                     if (err) {
@@ -1245,6 +1248,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     /**
      * Renvoie le UID de l'admin qui utilise la fonction logAs
+     *  On remonte à la racine des logas
      */
     public getAdminLogedUserId(): number {
 
@@ -1253,6 +1257,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let session = StackContext.getInstance().get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
+
+            while (impersonated_from_session && !!impersonated_from_session.impersonated_from) {
+                impersonated_from_session = impersonated_from_session.impersonated_from;
+            }
 
             if (impersonated_from_session && !!impersonated_from_session.uid) {
                 return impersonated_from_session.uid;
@@ -1271,9 +1279,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let res = StackContext.getInstance().get('SESSION');
 
-            return (session && session.impersonated_from) ? session.impersonated_from as IServerUserSession : null;
+            if (!res.impersonated_from) {
+                return null;
+            }
+
+            while (res && !!res.impersonated_from) {
+                res = res.impersonated_from;
+            }
+            return res;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
@@ -1905,10 +1920,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
-            user_log.impersonated = true;
             user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-            user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.uid + ']';
+            user_log.handle_impersonation(session);
 
             // On await pas ici on se fiche du résultat
             await StackContext.getInstance().runPromise(
@@ -2147,13 +2161,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             user_log = new UserLogVO();
             user_log.user_id = uid;
-            user_log.impersonated = (session && !!session.impersonated_from);
             user_log.log_time = Dates.now();
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
-            if (session && !!session.impersonated_from) {
-                user_log.comment = 'Impersonated from user_id [' + uid + ']';
-            }
+            user_log.handle_impersonation(session);
 
             await StackContext.getInstance().runPromise(
                 { IS_CLIENT: false },
@@ -2165,48 +2176,39 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         /**
          * Gestion du impersonate => dans le cas présent on logout aussi le compte principal
          */
-        if (session && !!session.impersonated_from) {
+        while (session && !!session.impersonated_from) {
 
             await ConsoleHandler.getInstance().log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, false);
 
             session = Object.assign(session, session.impersonated_from);
-            delete session.impersonated_from;
+            // delete session.impersonated_from;
 
             let uid: number = session.uid;
 
             // On stocke le log de connexion en base
             user_log = new UserLogVO();
             user_log.user_id = uid;
-            user_log.impersonated = false;
             user_log.log_time = Dates.now();
             user_log.referer = null;
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            user_log.handle_impersonation(session);
 
             await StackContext.getInstance().runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
                 });
-
-            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
-            await PushDataServerController.getInstance().unregisterSession(session, true);
-            session.destroy((err) => {
-                if (err) {
-                    ConsoleHandler.getInstance().log(err);
-                }
-            });
-        } else {
-
-            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
-            await PushDataServerController.getInstance().unregisterSession(session, true);
-
-            session.uid = null;
-            session.destroy((err) => {
-                if (err) {
-                    ConsoleHandler.getInstance().log(err);
-                }
-            });
         }
+
+        await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
+        await PushDataServerController.getInstance().unregisterSession(session, true);
+
+        session.uid = null;
+        session.destroy((err) => {
+            if (err) {
+                ConsoleHandler.getInstance().log(err);
+            }
+        });
     }
 }
