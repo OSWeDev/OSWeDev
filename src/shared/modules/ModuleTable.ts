@@ -13,7 +13,6 @@ import NumRange from './DataRender/vos/NumRange';
 import NumSegment from './DataRender/vos/NumSegment';
 import TimeSegment from './DataRender/vos/TimeSegment';
 import TSRange from './DataRender/vos/TSRange';
-import Dates from './FormatDatesNombres/Dates/Dates';
 import GeoPointVO from './GeoPoint/vos/GeoPointVO';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
@@ -118,8 +117,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public get_bdd_version: (e: T) => T = null;
 
-    public get_xlsx_version: (e: T) => any = null;
-
     public get_api_version: (e: T) => any = null;
     public from_api_version: (e: any) => T = null;
 
@@ -171,7 +168,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
 
-        this.get_xlsx_version = this.default_get_xlsx_version;
         this.get_api_version = this.default_get_api_version;
         this.from_api_version = this.default_from_api_version;
 
@@ -709,86 +705,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
     }
 
-    /**
-     * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
-     * @param field le descriptif du champs à traduire
-     * @param src_vo le vo source
-     * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
-     * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
-     */
-    public field_to_xlsx(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
-
-        let field_id = field_alias ? field_alias : field.field_id;
-
-        /**
-         * Si le champ possible un custom_to_api
-         */
-        if (!!field.custom_translate_to_xlsx) {
-            dest_vo[field_id] = field.custom_translate_to_xlsx(src_vo[field_id]);
-            /**
-             * Compatibilité MSGPACK : il traduit les undefind en null
-             */
-            if (typeof dest_vo[field_id] === 'undefined') {
-                delete dest_vo[field_id];
-            }
-            return;
-        }
-
-        switch (field.field_type) {
-
-            // TODO FIXME  export des ranges dans xlsx à réfléchir...
-
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                dest_vo[field_id] = RangeHandler.getInstance().translate_to_api(src_vo[field_id]);
-                break;
-
-            case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-            case ModuleTableField.FIELD_TYPE_hourrange:
-                dest_vo[field_id] = RangeHandler.getInstance().translate_range_to_api(src_vo[field_id]);
-                break;
-
-            case ModuleTableField.FIELD_TYPE_tstz:
-
-                dest_vo[field_id] = new Date(src_vo[field_id] * 1000);
-                break;
-
-            case ModuleTableField.FIELD_TYPE_tstz_array:
-                if ((src_vo[field_id] === null) || (typeof src_vo[field_id] === 'undefined')) {
-                    dest_vo[field_id] = src_vo[field_id];
-                } else {
-                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => new Date(ts * 1000));
-                }
-                break;
-
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                delete dest_vo[field_id];
-                break;
-
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_enum:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_hour:
-            default:
-                dest_vo[field_id] = src_vo[field_id];
-        }
-
-        if (typeof dest_vo[field_id] === 'undefined') {
-            delete dest_vo[field_id];
-        }
-    }
 
     /**
      * Traduire le champs field.field_id de src_vo dans dest_vo. Possibilité de fournir un alias qui sera utilisé pour retrouver le champs dans la source et la destination
@@ -999,34 +915,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         return res;
     }
-
-    /**
-     * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
-     * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
-     * @param e Le VO dont on veut une version api
-     */
-    private default_get_xlsx_version(e: T): any {
-        if (!e) {
-            return null;
-        }
-
-        let res = {};
-
-        if (!this.fields_) {
-            return cloneDeep(e);
-        }
-
-        res['_type'] = e._type;
-        res['id'] = e.id;
-        for (let i in this.fields_) {
-            let field = this.fields_[i];
-
-            this.field_to_xlsx(field, e, res);
-        }
-
-        return res;
-    }
-
 
     /**
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).

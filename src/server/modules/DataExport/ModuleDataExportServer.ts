@@ -3,9 +3,10 @@ import { cloneDeep } from 'lodash';
 import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
@@ -14,17 +15,23 @@ import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHisto
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
-import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
@@ -168,7 +175,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
 
-        datas = this.translate_context_query_fields_from_bdd(datas, context_query);
+        datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
@@ -184,7 +191,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         return filepath;
     }
 
-    public translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO): any[] {
+    public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO): Promise<any[]> {
         if ((!datas) || (!datas.length)) {
             return null;
         }
@@ -201,36 +208,47 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             res = table.forceNumerics(res);
             for (let i in res) {
                 let e = res[i];
-                res[i] = table.get_xlsx_version(e);
+                res[i] = this.get_xlsx_version(table, e);
             }
             return res;
         }
 
+        let promises = [];
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
         for (let i in datas) {
             let data = datas[i];
 
             for (let j in context_query.fields) {
                 let field = context_query.fields[j];
 
-                let table = VOsTypesManager.getInstance().moduleTables_by_voType[field.api_type_id];
-
-                // cas spécifique de l'id
-                if (field.field_id == 'id') {
-                    res[field.alias] = parseInt(data[field.alias]);
-                    continue;
+                if (promises.length >= max) {
+                    await Promise.all(promises);
+                    promises = [];
                 }
 
-                let table_field = table.get_field_by_id(field.field_id);
+                promises.push((async () => {
+                    let table = VOsTypesManager.getInstance().moduleTables_by_voType[field.api_type_id];
 
-                if (!table_field) {
-                    ConsoleHandler.getInstance().error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
-                    throw new Error('Unknown field');
-                }
+                    // cas spécifique de l'id
+                    if (field.field_id == 'id') {
+                        res[i][field.alias] = parseInt(data[field.alias]);
+                        return;
+                    }
 
-                table.force_numeric_field(table_field, data, res[i], field.alias);
-                table.field_to_xlsx(table_field, res[i], res[i], field.alias);
+                    let table_field = table.get_field_by_id(field.field_id);
+
+                    if (!table_field) {
+                        ConsoleHandler.getInstance().error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
+                        throw new Error('Unknown field');
+                    }
+
+                    table.force_numeric_field(table_field, data, res[i], field.alias);
+                    await this.field_to_xlsx(table_field, res[i], res[i], field.alias);
+                })());
             }
         }
+
+        await Promise.all(promises);
 
         return res;
     }
@@ -252,7 +270,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
 
-        datas = this.translate_context_query_fields_from_bdd(datas, context_query);
+        datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
@@ -306,7 +324,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let vos = await ModuleDAO.getInstance().getVos(api_type_id);
         for (let i in vos) {
-            let vo = modultable.get_xlsx_version(vos[i]);
+            let vo = this.get_xlsx_version(modultable, vos[i]);
             if (vo) {
                 datas.push(vo);
             }
@@ -559,5 +577,126 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         exhi.creation_date = Dates.now();
         exhi.state = ExportHistoricVO.EXPORT_STATE_TODO;
         return true;
+    }
+
+    /**
+     * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
+     * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
+     * @param e Le VO dont on veut une version api
+     */
+    private async get_xlsx_version<T extends IDistantVOBase>(module_table: ModuleTable<any>, e: T): Promise<any> {
+        if (!e) {
+            return null;
+        }
+
+        let res = {};
+        let fields = module_table.get_fields();
+
+        if (!fields) {
+            return cloneDeep(e);
+        }
+
+        res['_type'] = e._type;
+        res['id'] = e.id;
+        let promises = [];
+        for (let i in fields) {
+            let field = fields[i];
+
+            promises.push(this.field_to_xlsx(field, e, res));
+        }
+
+        await Promise.all(promises);
+
+        return res;
+    }
+
+    /**
+     * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
+     * @param field le descriptif du champs à traduire
+     * @param src_vo le vo source
+     * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
+     * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
+     */
+    private async field_to_xlsx(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
+
+        let field_id = field_alias ? field_alias : field.field_id;
+
+        /**
+         * Si le champ possible un custom_to_api
+         */
+        if (!!field.custom_translate_to_xlsx) {
+            dest_vo[field_id] = field.custom_translate_to_xlsx(src_vo[field_id]);
+            /**
+             * Compatibilité MSGPACK : il traduit les undefind en null
+             */
+            if (typeof dest_vo[field_id] === 'undefined') {
+                delete dest_vo[field_id];
+            }
+            return;
+        }
+
+        switch (field.field_type) {
+
+            // TODO FIXME  export des ranges dans xlsx à réfléchir...
+
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                dest_vo[field_id] = RangeHandler.getInstance().translate_to_api(src_vo[field_id]);
+                break;
+
+            case ModuleTableField.FIELD_TYPE_numrange:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                dest_vo[field_id] = RangeHandler.getInstance().translate_range_to_api(src_vo[field_id]);
+                break;
+
+            case ModuleTableField.FIELD_TYPE_tstz:
+
+                dest_vo[field_id] = new Date(src_vo[field_id] * 1000);
+                break;
+
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+                if ((src_vo[field_id] === null) || (typeof src_vo[field_id] === 'undefined')) {
+                    dest_vo[field_id] = src_vo[field_id];
+                } else {
+                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => new Date(ts * 1000));
+                }
+                break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                delete dest_vo[field_id];
+                break;
+
+            case ModuleTableField.FIELD_TYPE_enum:
+                let user = await ModuleAccessPolicy.getInstance().getSelfUser();
+                let trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
+                    .filter_by_text_eq('code_text', field.enum_values[src_vo[field_id]], TranslatableTextVO.API_TYPE_ID)
+                    .filter_by_num_in('lang_id', query(UserVO.API_TYPE_ID).field('lang_id').filter_by_id(user.id))
+                    .select_vos();
+                let trad = trads ? trads[0] : null;
+                dest_vo[field_id] = trad ? trad.translated : null;
+                break;
+
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_hour:
+            default:
+                dest_vo[field_id] = src_vo[field_id];
+        }
+
+        if (typeof dest_vo[field_id] === 'undefined') {
+            delete dest_vo[field_id];
+        }
     }
 }

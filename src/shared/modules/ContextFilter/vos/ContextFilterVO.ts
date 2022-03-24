@@ -1,7 +1,9 @@
 import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import RangeHandler from "../../../tools/RangeHandler";
 import HourRange from "../../DataRender/vos/HourRange";
 import NumRange from "../../DataRender/vos/NumRange";
+import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import ContextQueryVO from "./ContextQueryVO";
 
@@ -288,6 +290,16 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text strictement égal
+     * @param text le texte que l'on doit retrouver à l'identique en base
+     */
+    public by_text_eq(text: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
+        this.param_text = text;
+        return this;
+    }
+
+    /**
      * Filtrer par text contenu dans la valeur du champ
      * @param included le texte qu'on veut voir apparaître dans la valeur du champs
      */
@@ -332,6 +344,50 @@ export default class ContextFilterVO implements IDistantVOBase {
         }
 
         return ContextFilterVO.or([this, filter_]);
+    }
+
+    /**
+     * Filtre par champs < param date
+     * @param date timestamp en secondes
+     * @param segmentation_type optionnel, par défaut TimeSegment.TYPE_SECOND, normalement (si les segmentations sont gérées correctement en amont) inutile sur un <
+     */
+    public by_date_before(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, false, segmentation_type)];
+        return this;
+    }
+
+    /**
+     * Filtre par champs <= param date
+     * @param date timestamp en secondes
+     * @param segmentation_type optionnel, par défaut TimeSegment.TYPE_SECOND
+     */
+    public by_date_same_or_before(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, true, segmentation_type)];
+        return this;
+    }
+
+    /**
+     * Filtre par champs > param date
+     * @param date timestamp en secondes
+     * @param segmentation_type optionnel, par défaut TimeSegment.TYPE_SECOND
+     */
+    public by_date_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, false, false, segmentation_type)];
+        return this;
+    }
+
+    /**
+     * Filtre par champs >= param date
+     * @param date timestamp en secondes
+     * @param segmentation_type optionnel, par défaut TimeSegment.TYPE_SECOND
+     */
+    public by_date_same_or_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, true, false, segmentation_type)];
+        return this;
     }
 
     /**

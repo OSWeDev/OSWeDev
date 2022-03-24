@@ -1237,6 +1237,14 @@ export default class ContextFilterServerController {
 
                     let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, filters);
 
+                    /**
+                     * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+                     *  normalement ça devrait pas arriver sur une jointure
+                     */
+                    if (!full_name) {
+                        continue;
+                    }
+
                     switch (path_i.field.field_type) {
                         case ModuleTableField.FIELD_TYPE_foreign_key:
                         case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1267,6 +1275,14 @@ export default class ContextFilterServerController {
                     joined_tables_by_vo_type[path_i.field.module_table.vo_type] = path_i.field.module_table;
 
                     let full_name = await this.get_table_full_name(path_i.field.module_table, filters);
+
+                    /**
+                     * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+                     *  normalement ça devrait pas arriver sur une jointure
+                     */
+                    if (!full_name) {
+                        continue;
+                    }
 
                     switch (path_i.field.field_type) {
                         case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -1330,6 +1346,14 @@ export default class ContextFilterServerController {
 
                 if ((simple_filter.filter_type == ContextFilterVO.TYPE_NUMERIC_EQUALS) &&
                     (simple_filter.param_numeric != null)) {
+
+                    /**
+                     * On check que la table existe, si la table existe pas, ça veut dire qu'on a pas de données à requêter mais
+                     *  pas qu'on est pas implémenté
+                     */
+                    if (!ModuleDAOServer.getInstance().has_segmented_known_database(moduletable, simple_filter.param_numeric)) {
+                        return null;
+                    }
                     is_implemented = true;
                     full_name = moduletable.get_segmented_full_name(simple_filter.param_numeric);
                 }
@@ -1345,7 +1369,7 @@ export default class ContextFilterServerController {
                 let linked_segment_table = moduletable.table_segmented_field.manyToOne_target_moduletable;
 
                 let simple_filters = ContextFilterHandler.getInstance().get_simple_filters_by_vo_type(
-                    filters, moduletable.vo_type);
+                    filters, linked_segment_table.vo_type);
 
                 if (simple_filters && simple_filters.length) {
 

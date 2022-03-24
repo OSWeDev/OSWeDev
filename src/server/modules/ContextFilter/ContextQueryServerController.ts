@@ -354,6 +354,14 @@ export default class ContextQueryServerController {
             }
 
             let full_name = await ContextFilterServerController.getInstance().get_table_full_name(base_moduletable, context_query.filters);
+
+            /**
+             * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+             */
+            if (!full_name) {
+                return "SELECT NULL";
+            }
+
             FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
             joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
 
