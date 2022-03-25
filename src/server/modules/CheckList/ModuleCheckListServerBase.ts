@@ -23,6 +23,10 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Archivage refusé'
+        }, 'CheckListItemComponent.archive_item.failed.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Aucun élément à afficher'
         }, 'checklist.no_elts.___LABEL___'));
 

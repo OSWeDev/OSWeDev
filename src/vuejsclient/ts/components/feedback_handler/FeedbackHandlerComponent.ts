@@ -64,8 +64,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_message = null;
         this.tmp_title = null;
 
-        this.tmp_start_date = null;
-        this.tmp_start_url = null;
+        this.tmp_start_date = Dates.now();
+        this.tmp_start_url = this.$route.fullPath;
 
         this.tmp_attachment_1_vo = null;
         this.tmp_attachment_2_vo = null;

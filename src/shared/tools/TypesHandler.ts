@@ -1,4 +1,4 @@
-import { isMoment, isDuration, Moment } from 'moment';
+import { isMoment, isDuration, Moment, isDate } from 'moment';
 
 export default class TypesHandler {
 
@@ -13,6 +13,10 @@ export default class TypesHandler {
     private static instance: TypesHandler = null;
 
     private constructor() {
+    }
+
+    public isDate(e: any): boolean {
+        return e && isDate(e);
     }
 
     public isMoment(e: any): boolean {

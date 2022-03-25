@@ -89,7 +89,11 @@ export default class CheckListItemComponent extends VueComponentBase {
 
     private async archive_item() {
         this.checklist_item.archived = true;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_item);
+        let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_item);
+
+        if ((!res) || (!res.id)) {
+            this.snotify.error(this.label('CheckListItemComponent.archive_item.failed'));
+        }
         this.$emit('onchangevo', this.checklist_item);
     }
 

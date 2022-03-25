@@ -32,6 +32,9 @@ export default class DashboardViewerComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private pop_page_history: (fk) => void;
 
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
+
     @Prop({ default: null })
     private dashboard_id: number;
 
@@ -81,6 +84,11 @@ export default class DashboardViewerComponent extends VueComponentBase {
         return res;
     }
 
+    /**
+     * Quand on change de dahsboard, on supprime les filtres contextuels existants (en tout cas par défaut)
+     *  on pourrait vouloir garder les filtres communs aussi => non implémenté (il faut un switch et supprimer les filtres non applicables aux widgets du dashboard)
+     *  et on pourrait vouloir garder tous les filtres => non implémenté (il faut un switch et simplement ne pas supprimer les filtres)
+     */
     @Watch("dashboard_id", { immediate: true })
     private async onchange_dashboard_id() {
         this.loading = true;
@@ -97,6 +105,8 @@ export default class DashboardViewerComponent extends VueComponentBase {
             this.loading = false;
             return;
         }
+
+        this.clear_active_field_filters();
 
         this.pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
         if (!this.pages) {

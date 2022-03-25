@@ -73,6 +73,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -423,6 +425,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             this.loading = false;
             return;
         }
+
+        this.clear_active_field_filters();
 
         this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
         this.show_build_page = this.can_build_page;

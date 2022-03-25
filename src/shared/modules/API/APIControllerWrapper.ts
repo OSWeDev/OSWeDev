@@ -7,6 +7,7 @@ import IDistantVOBase from '../IDistantVOBase';
 import VOsTypesManager from '../VOsTypesManager';
 import IAPIController from './interfaces/IAPIController';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
+import IDateAPI from './interfaces/IDateAPI';
 import IDurationAPI from './interfaces/IDurationAPI';
 import IMomentAPI from './interfaces/IMomentAPI';
 import APIDefinition from './vos/APIDefinition';
@@ -170,6 +171,10 @@ export default class APIControllerWrapper {
                 return this.try_translate_moment_from_api(e);
             }
 
+            if (this.is_date_from_api(e)) {
+                return this.try_translate_date_from_api(e);
+            }
+
             if (this.is_duration_from_api(e)) {
                 return this.try_translate_duration_from_api(e);
             }
@@ -209,6 +214,10 @@ export default class APIControllerWrapper {
 
             if (this.is_range(e as IRange)) {
                 return this.try_translate_range_to_api(e as IRange);
+            }
+
+            if (TypesHandler.getInstance().isDate(e)) {
+                return this.try_translate_date_to_api(e);
             }
 
             if (TypesHandler.getInstance().isMoment(e)) {
@@ -300,12 +309,14 @@ export default class APIControllerWrapper {
     }
 
     private is_moment_from_api(e: IMomentAPI): boolean {
-
         return e && (!!e.__ismom);
     }
 
-    private is_duration_from_api(e: IDurationAPI): boolean {
+    private is_date_from_api(e: IDateAPI): boolean {
+        return e && (!!e.__isdate);
+    }
 
+    private is_duration_from_api(e: IDurationAPI): boolean {
         return e && (!!e.__isdur);
     }
 
@@ -316,6 +327,24 @@ export default class APIControllerWrapper {
     private try_translate_moment_from_api(e: IMomentAPI): moment.Moment {
 
         return moment(e.__munix * 1000).utc();
+    }
+
+    /**
+     * Valide uniquement si TypesHandler.getInstance().isDate
+     * @param e
+     */
+    private try_translate_date_from_api(e: IDateAPI): Date {
+
+        return new Date(e.__munixms);
+    }
+
+    /**
+     * Valide uniquement si TypesHandler.getInstance().isDate
+     * @param e
+     */
+    private try_translate_date_to_api(e: Date): IDateAPI {
+
+        return e ? { __isdate: true, __munixms: e.getTime() } : null;
     }
 
     /**

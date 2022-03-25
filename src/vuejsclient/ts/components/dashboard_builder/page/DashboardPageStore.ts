@@ -147,6 +147,11 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 Vue.set(state.active_field_filters[params.vo_type], params.field_id, null);
             },
 
+            clear_active_field_filters(state: IDashboardPageState, empty) {
+
+                state.active_field_filters = {};
+            },
+
             set_page_widgets(state: IDashboardPageState, page_widgets: DashboardPageWidgetVO[]) {
                 state.page_widgets = page_widgets;
             },
@@ -230,6 +235,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 commit_remove_active_field_filter(context, params);
             },
 
+            clear_active_field_filters(context: DashboardPageContext, empty) {
+                commit_clear_active_field_filters(context, empty);
+            },
+
             set_page_widgets(context: DashboardPageContext, page_widgets: DashboardPageWidgetVO[]) {
                 commit_set_page_widgets(context, page_widgets);
             },
@@ -265,3 +274,4 @@ export const commit_set_page_history = commit(DashboardPageStoreInstance.mutatio
 export const commit_add_page_history = commit(DashboardPageStoreInstance.mutations.add_page_history);
 export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);
 export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);
+export const commit_clear_active_field_filters = commit(DashboardPageStoreInstance.mutations.clear_active_field_filters);
