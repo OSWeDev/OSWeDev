@@ -13,6 +13,7 @@ import VModal from 'vue-js-modal';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
+import { ColorPicker, ColorPanel } from 'one-colorpicker';
 import * as VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
@@ -197,6 +198,9 @@ export default abstract class VueAppBase {
         moment.locale(default_locale);
 
         await this.appController.initializeFlatLocales();
+
+        Vue.use(ColorPanel);
+        Vue.use(ColorPicker);
 
         Vue.use(ClientTable);
         Vue.use(VueI18n);

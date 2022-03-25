@@ -1,5 +1,7 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import IDistantVOBase from "../../IDistantVOBase";
+import ModuleTableField from "../../ModuleTableField";
+import VOsTypesManager from "../../VOsTypesManager";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem {
@@ -54,6 +56,12 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public filter_by_access: string;
 
     /**
+     * Pour la mise en forme des enum
+     */
+    public enum_bg_colors: { [value: number]: string };
+    public enum_fg_colors: { [value: number]: string };
+
+    /**
      * Si TYPE_vo_field_ref
      */
     public api_type_id: string;
@@ -92,4 +100,21 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      * Permet de cacher des colonnes dans les tableaux (pour exporter des colonnes cachées par exemple)
      */
     public hide_from_table: boolean;
+
+    get is_enum(): boolean {
+        if ((!this) || (!this.api_type_id) || (!this.field_id)) {
+            return false;
+        }
+
+        if (this.type != TableColumnDescVO.TYPE_vo_field_ref) {
+            return false;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        if (!field) {
+            return false;
+        }
+
+        return (field.field_type == ModuleTableField.FIELD_TYPE_enum);
+    }
 }

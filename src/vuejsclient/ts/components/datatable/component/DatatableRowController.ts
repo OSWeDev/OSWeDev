@@ -309,6 +309,8 @@ export default class DatatableRowController {
 
         try {
 
+            resData[field.datatable_field_uid + '__raw'] = raw_data[field.datatable_field_uid];
+
             switch (field.type) {
 
                 case DatatableField.CRUD_ACTIONS_FIELD_TYPE:

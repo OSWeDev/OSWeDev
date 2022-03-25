@@ -40,10 +40,48 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private column_width: number = 0;
     private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width, 800, { leading: false, trailing: true });
+    private throttled_update_enum_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_enum_colors, 800, { leading: false, trailing: true });
 
     private filter_by_access_options: string[] = [];
 
+    private enum_options: { [value: number]: string } = {};
+    private enum_bg_colors: { [value: number]: string } = {};
+    private enum_fg_colors: { [value: number]: string } = {};
+
     private show_options: boolean = false;
+
+    private async update_enum_colors() {
+        if ((!this.object_column) || (!this.object_column.is_enum)) {
+            return;
+        }
+
+        /**
+         * Si on a pas de différence entre les confs, on update rien
+         */
+        let has_diff = false;
+        for (let i in this.enum_bg_colors) {
+            if (this.object_column.enum_bg_colors && (this.enum_bg_colors[i] == this.object_column.enum_bg_colors[i])) {
+                continue;
+            }
+            has_diff = true;
+            break;
+        }
+        for (let i in this.enum_fg_colors) {
+            if (this.object_column.enum_fg_colors && (this.enum_fg_colors[i] == this.object_column.enum_fg_colors[i])) {
+                continue;
+            }
+            has_diff = true;
+            break;
+        }
+
+        if (!has_diff) {
+            return;
+        }
+
+        this.object_column.enum_fg_colors = this.enum_fg_colors;
+        this.object_column.enum_bg_colors = this.enum_bg_colors;
+        this.$emit('update_column', this.object_column);
+    }
 
     private unhide_options() {
         this.show_options = true;
@@ -65,17 +103,37 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     @Watch('filter_by_access')
     private async onchange_filter_by_access() {
-        if (!this.column) {
+        if (!this.object_column) {
             return;
         }
 
-        this.$emit('update_column', this.column);
+        this.$emit('update_column', this.object_column);
     }
-
 
     @Watch('column', { immediate: true })
     private onchange_column() {
-        this.column_width = this.column ? this.column.column_width : 0;
+        this.column_width = this.object_column ? this.object_column.column_width : 0;
+
+        if (this.object_column && this.object_column.is_enum) {
+            let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.object_column.api_type_id].getFieldFromId(this.object_column.field_id);
+            this.enum_options = field.enum_values;
+            this.enum_bg_colors = Object.assign({}, this.object_column.enum_bg_colors);
+            this.enum_fg_colors = Object.assign({}, this.object_column.enum_fg_colors);
+
+            if ((!this.enum_bg_colors) || (Object.keys(this.enum_bg_colors).length != Object.keys(field.enum_values).length)) {
+                this.enum_bg_colors = Object.assign({}, field.enum_values);
+                for (let i in this.enum_bg_colors) {
+                    this.enum_bg_colors[i] = '#555';
+                }
+            }
+
+            if ((!this.enum_fg_colors) || (Object.keys(this.enum_fg_colors).length != Object.keys(field.enum_values).length)) {
+                this.enum_fg_colors = Object.assign({}, field.enum_values);
+                for (let i in this.enum_fg_colors) {
+                    this.enum_fg_colors[i] = '#FFF';
+                }
+            }
+        }
     }
 
     @Watch('column_width', { immediate: true })
@@ -85,9 +143,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private async update_column_width() {
 
-        if (this.column && (this.column_width != this.column.column_width)) {
-            this.column.column_width = this.column_width;
-            this.$emit('update_column', this.column);
+        if (this.object_column && (this.column_width != this.object_column.column_width)) {
+            this.object_column.column_width = this.column_width;
+            this.$emit('update_column', this.object_column);
         }
     }
 
@@ -163,6 +221,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -188,6 +248,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -230,6 +292,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget

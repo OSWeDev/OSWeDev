@@ -80,5 +80,25 @@
         .column_label {
             display: inline-block;
         }
+
+        .enum_bg_color,
+        .enum_fg_color,
+        .enum_preview {
+            display: inline-block;
+
+            .color-block {
+                width: 20px;
+                height: 20px;
+                box-shadow: 1px 1px 5px #888;
+                margin: 3px;
+            }
+        }
+
+        .enum_preview {
+            padding: 2px 4px;
+            vertical-align: bottom;
+            border-radius: 4px;
+            text-align: center;
+        }
     }
 }

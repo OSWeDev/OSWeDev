@@ -1,24 +1,22 @@
 import Component from 'vue-class-component';
+import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
-import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
 import TableWidgetOptions from './TableWidgetOptions';
 import './TableWidgetOptionsComponent.scss';
-import { cloneDeep } from 'lodash';
-import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
@@ -187,6 +185,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.exportable = false;
                 crud_actions_column.hide_from_table = false;
                 crud_actions_column.filter_by_access = null;
+                crud_actions_column.enum_bg_colors = null;
+                crud_actions_column.enum_fg_colors = null;
                 crud_actions_column.column_width = 0;
                 await this.add_column(crud_actions_column);
                 return;
@@ -338,7 +338,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         WeightHandler.getInstance().sortByWeight(res);
 
-        this.editable_columns = cloneDeep(res);
+        this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
 
         return res;
     }

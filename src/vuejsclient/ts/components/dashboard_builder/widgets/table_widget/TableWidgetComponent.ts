@@ -538,6 +538,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     promises.push(DatatableRowController.getInstance().get_datatable_row_field_data_async(row, resData, field, null));
                 } else {
                     resData[field.datatable_field_uid] = row[field.datatable_field_uid];
+                    resData[field.datatable_field_uid + '__raw'] = row[field.datatable_field_uid];
                 }
             }
             data_rows.push(resData);

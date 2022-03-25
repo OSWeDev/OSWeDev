@@ -115,6 +115,7 @@
         "mxgraph": "4.2.2",
         "node-powershell": "4.0.0",
         "nodemailer": "4.6.5",
+        "one-colorpicker": "1.0.12",
         "oswedev-trello-node-api": "0.0.11",
         "pg": "8.7.1",
         "pg-promise": "10.11.0",

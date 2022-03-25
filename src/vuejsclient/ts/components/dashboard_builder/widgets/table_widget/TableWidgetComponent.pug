@@ -58,11 +58,11 @@ include ../../../../../views/mixins/loading.pug
                             
                             //- If it's a select box
                             template(v-if="column.type == 3")
-                                input.d-print-none.form-control(type="checkbox" v-model="selected_rows[row.__crud_actions]")
+                                input.d-print-none.form-control(type="checkbox" v-model="selected_rows[row.__crud_actions]" :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
 
                             //- If it's the crud actions
                             template(v-if="column.type == 0")
-                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})')
+                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
                                     template(v-if='update_button')
                                         .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
                                             i.fa.fa-pencil
@@ -77,12 +77,21 @@ include ../../../../../views/mixins/loading.pug
                             //-  or any other type of fields
                             template(v-else)
                                 template(v-if='column.readonly')
-                                    Datatablecomponentfield(
-                                        :field="fields[column.id]"
-                                        :vo="row"
-                                        :columns="columns"
-                                        :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
-                                    )
+                                    template(v-if='column.is_enum')
+                                        Datatablecomponentfield.is_enum(
+                                            :field="fields[column.id]"
+                                            :vo="row"
+                                            :columns="columns"
+                                            :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
+                                        )
+                                    template(v-else)
+                                        Datatablecomponentfield(
+                                            :field="fields[column.id]"
+                                            :vo="row"
+                                            :columns="columns"
+                                            :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                        )
+
                                 template(v-else)
                                     Crudcomponentfield(
                                         @onchangevo='onchange_column'
