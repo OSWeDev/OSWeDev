@@ -32,6 +32,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -47,6 +48,7 @@ import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerCo
 import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
+import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
@@ -55,6 +57,7 @@ import UserRecapture from './UserRecapture/UserRecapture';
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
+    public static TASK_NAME_delete_sessions_from_other_thread = 'ModuleAccessPolicyServer.delete_sessions_from_other_thread';
 
     public static getInstance() {
         if (!ModuleAccessPolicyServer.instance) {
@@ -70,6 +73,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
+
+        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, this.delete_sessions_from_other_thread.bind(this));
     }
 
     /**
@@ -267,6 +272,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     public async configure() {
+        ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
@@ -1306,6 +1312,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
+    public async delete_sessions_from_other_thread(session_to_delete_by_sids: { [sid: string]: IServerUserSession }) {
+        if (!session_to_delete_by_sids) {
+            return;
+        }
+
+        for (let sid in session_to_delete_by_sids) {
+            await StackContext.getInstance().runPromise(
+                { SESSION: session_to_delete_by_sids[sid] },
+                async () => {
+                    await this.delete_session();
+                }
+            );
+        }
+    }
+
     private async togglePolicy(policy_id: number, role_id: number): Promise<boolean> {
         if ((!policy_id) || (!role_id)) {
             return false;
@@ -1317,9 +1338,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy_by_id(policy_id);
         let role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(role_id);
+        /**
+         * Le but est d'avoir false, donc on esquive le log et la déco avec le dernier param
+         */
         if (AccessPolicyServerController.getInstance().checkAccessTo(
             target_policy,
-            { [role.id]: role }, undefined, undefined, undefined, undefined, role)) {
+            { [role.id]: role }, undefined, undefined, undefined, undefined, role, true)) {
             // On devrait pas pouvoir arriver là avec un héritage true
             return false;
         }

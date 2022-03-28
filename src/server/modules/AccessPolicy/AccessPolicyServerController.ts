@@ -12,10 +12,13 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import IServerUserSession from '../../IServerUserSession';
+import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
+import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './ModuleAccessPolicyServer';
 
 export default class AccessPolicyServerController {
@@ -944,12 +947,24 @@ export default class AccessPolicyServerController {
         if (!is_recur_test_call) {
             ConsoleHandler.getInstance().warn('checkAccessTo:refused:' +
                 'target_policy:' + (target_policy ? target_policy.translatable_name : 'N/A') + ':' +
+                'uid:' + StackContext.getInstance().get('UID') + ':' +
                 'user_roles:' + (user_roles ? Object.values(user_roles).map(function (role) { return role.translatable_name; }).join(',') : 'N/A') + ':' +
                 'all_roles:' + (all_roles ? 'LOADED' : 'N/A') + ':' +
                 'role_policies:' + (role_policies ? 'LOADED' : 'N/A') + ':' +
                 'policies:' + (policies ? 'LOADED' : 'N/A') + ':' +
                 'policies_dependencies:' + (policies_dependencies ? 'LOADED' : 'N/A') + ':' +
-                'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':');
+                'ignore_role_policy:' + JSON.stringify(ignore_role_policy) + ':'
+            );
+
+            // On ajoute la session au bgthread d'invalidation si on a un sid
+            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            if (session && session.sid) {
+                ForkedTasksController.getInstance().exec_self_on_bgthread(
+                    AccessPolicyDeleteSessionBGThread.getInstance().name,
+                    AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
+                    session
+                );
+            }
         }
         return false;
     }
