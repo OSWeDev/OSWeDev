@@ -7,6 +7,7 @@
         template(v-if='var_data_other_fields')
             template(v-for='field in var_data_other_fields')
                 .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+field.field_id) }}
+                .var_code_card(@click='copy_card_field_code(field)') {{ get_card_field_code(field) }}
                 template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == ts_range_type)')
                     Tsrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]')
                 template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == hour_range_type)')

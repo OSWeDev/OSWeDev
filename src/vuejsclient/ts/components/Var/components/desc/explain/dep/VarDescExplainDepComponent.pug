@@ -2,6 +2,7 @@
     .row
         .col-md-12
             .dep_name(@click='opened=!opened') {{ dep_name }}
+            .dep_code(@click='copy_dep_code') {{ dep_code }}
     .row
         .col-md-12.var_controller_label_wrapper
             .var_controller_label {{ label('var_desc.var_controller_label') }}

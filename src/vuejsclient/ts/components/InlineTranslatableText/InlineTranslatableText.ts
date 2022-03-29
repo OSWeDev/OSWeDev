@@ -42,7 +42,14 @@ export default class InlineTranslatableText extends VueComponentBase {
     @Prop({ default: null })
     private default_translation: string;
 
+    @Prop({ default: null })
+    private translation_params: any;
+
+    @Prop({ default: false })
+    private textarea: boolean;
+
     private text: string = null;
+    private parameterized_text: string = null;
     private semaphore: boolean = false;
 
     @Watch("code_text", { immediate: true })
@@ -53,6 +60,7 @@ export default class InlineTranslatableText extends VueComponentBase {
         }
 
         this.text = this.translation;
+        this.parameterized_text = this.get_parameterized_translation(this.text);
 
         if (!this.code_text) {
             return;
@@ -122,6 +130,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     private onchange_translation() {
 
         this.text = this.translation;
+        this.parameterized_text = this.get_parameterized_translation(this.text);
     }
 
     get has_modif(): boolean {
@@ -137,7 +146,30 @@ export default class InlineTranslatableText extends VueComponentBase {
             return null;
         }
 
+        /**
+         * Appliquer les params
+         *  Version simple
+         */
         return this.get_flat_locale_translations[this.code_text];
+    }
+
+    /**
+     * Version très simple du remplacement de params qui marchent pour un param à fields de type string ou qui accepte toString
+     * @param translation
+     */
+    private get_parameterized_translation(translation: string): string {
+        if (!this.translation_params) {
+            return translation;
+        }
+
+        let res: string = translation;
+        for (let i in this.translation_params) {
+            let translation_param = this.translation_params[i];
+
+            let regexp = new RegExp('\{' + i + '\}', 'ig');
+            res = res.replace(regexp, (translation_param != null) ? translation_param.toString() : 'N/A');
+        }
+        return res;
     }
 
     private async update_trad(muted: boolean = false) {

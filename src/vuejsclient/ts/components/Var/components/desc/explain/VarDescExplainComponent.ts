@@ -10,6 +10,7 @@ import VarUpdateCallback from '../../../../../../../shared/modules/Var/vos/VarUp
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import VarsClientController from '../../../VarsClientController';
 import './VarDescExplainComponent.scss';
@@ -17,6 +18,7 @@ import './VarDescExplainComponent.scss';
 @Component({
     template: require('./VarDescExplainComponent.pug'),
     components: {
+        Inlinetranslatabletext: InlineTranslatableText,
         Vardescexplaindepcomponent: () => import(/* webpackChunkName: "VarDescExplainDepComponent" */ './dep/VarDescExplainDepComponent'),
         Vardescexplaindscomponent: () => import(/* webpackChunkName: "VarDescExplainDsComponent" */ './ds/VarDescExplainDsComponent'),
         Vardescexplainimportscomponent: () => import(/* webpackChunkName: "VarDescExplainImportsComponent" */ './imports/VarDescExplainImportsComponent'),
@@ -212,12 +214,20 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return res;
     }
 
-    get explaination(): string {
+    get explaination_code_text(): string {
         if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_explaination_by_var_id(this.var_param.var_id), this.explaination_sample_param);
+        return VarsController.getInstance().get_translatable_explaination_by_var_id(this.var_param.var_id);
+    }
+
+    get explaination(): string {
+        if (!this.explaination_code_text) {
+            return null;
+        }
+
+        return this.t(this.explaination_code_text, this.explaination_sample_param);
     }
 
     get has_explaination(): boolean {

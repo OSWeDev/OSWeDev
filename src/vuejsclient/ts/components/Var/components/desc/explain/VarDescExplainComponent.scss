@@ -29,6 +29,13 @@
         margin-bottom: 10px;
 
         .var_desc_explaination {
+
+            input,
+            textarea {
+                color: black;
+                width: 100%;
+            }
+
             margin-bottom: .6em;
             word-break: break-word;
         }
