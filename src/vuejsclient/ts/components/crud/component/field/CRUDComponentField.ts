@@ -1092,50 +1092,35 @@ export default class CRUDComponentField extends VueComponentBase
 
         // Mise en place d'un sémaphore sur l'édition inline : si on est en train d'éditer un champ, on ne peut pas en éditer un second,
         //  sauf à valider un snotify
+
+        /**
+         * On va fluidifier un peu : si on change de champs sans enregistrer on annule la saisie et on snotify qu'il faut enregistrer pour prendre en compte une modif
+         */
         if (this.inline_input_mode_semaphore && CRUDComponentManager.getInstance().inline_input_mode_semaphore) {
 
             let self = this;
-            this.$snotify.confirm(this.label('crud.inline_input_mode_semaphore.confirm.body'), self.label('crud.inline_input_mode_semaphore.confirm.title'), {
-                timeout: 10000,
-                showProgressBar: true,
-                closeOnClick: false,
-                pauseOnHover: true,
-                buttons: [
-                    {
-                        text: self.t('YES'),
-                        action: async (toast) => {
-                            self.$snotify.remove(toast.id);
-                            for (let idstr in CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb) {
-                                let id = parseInt(idstr.toString());
-                                let cb = CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[idstr];
+            for (let idstr in CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb) {
+                let id = parseInt(idstr.toString());
+                let cb = CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[idstr];
 
-                                if (id == self.this_CRUDComp_UID) {
-                                    continue;
-                                }
-                                cb();
-                            }
+                if (id == self.this_CRUDComp_UID) {
+                    continue;
+                }
+                cb();
+            }
 
-                            if (!self.field_value) {
+            if (!self.field_value) {
 
-                                // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
-                                self.field_value = self.field.dataToUpdateIHM(self.inline_input_read_value, self.vo);
-                            }
+                // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
+                self.field_value = self.field.dataToUpdateIHM(self.inline_input_read_value, self.vo);
+            }
 
-                            if (this.inline_input_mode_semaphore) {
-                                CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
-                            }
-                            self.inline_input_is_editing = true;
-                        },
-                        bold: false
-                    },
-                    {
-                        text: self.t('NO'),
-                        action: (toast) => {
-                            self.$snotify.remove(toast.id);
-                        }
-                    }
-                ]
-            });
+            if (this.inline_input_mode_semaphore) {
+                CRUDComponentManager.getInstance().inline_input_mode_semaphore = true;
+            }
+            self.inline_input_is_editing = true;
+
+            this.$snotify.warning(this.label('crud.inline_input_mode_semaphore.canceled'));
             return;
         }
 

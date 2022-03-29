@@ -1404,8 +1404,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await ModuleContextFilter.getInstance().select_vos(
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks());
+        return await
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks().select_vos();
     }
 
     /**
@@ -1978,7 +1978,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let filter_module_in: ContextFilterVO = new ContextFilterVO();
         filter_module_in.field_id = 'module_id';
         filter_module_in.vo_type = AccessPolicyVO.API_TYPE_ID;
-        filter_module_in.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        filter_module_in.filter_type = ContextFilterVO.TYPE_IN;
         filter_module_in.sub_query = query_module_actif;
 
         let filter_no_module: ContextFilterVO = new ContextFilterVO();

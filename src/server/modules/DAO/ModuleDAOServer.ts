@@ -323,6 +323,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Des modifications sont en cours'
         }, 'crud.inline_input_mode_semaphore.confirm.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications annulées'
+        }, 'crud.inline_input_mode_semaphore.canceled.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Demande refusée : Le système est en lecture seule'
@@ -1559,8 +1562,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 query.limit = 1;
                 query.offset = 0;
 
-                let uniquevos = await ModuleContextFilter.getInstance().select_vos(query);
+                /**
+                 * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base
+                 */
+                query.ignore_access_hooks();
 
+                let uniquevos = null;
+                await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                    uniquevos = await ModuleContextFilter.getInstance().select_vos(query);
+                });
                 if (uniquevos && uniquevos[0] && uniquevos[0].id) {
                     return uniquevos[0].id;
                 }

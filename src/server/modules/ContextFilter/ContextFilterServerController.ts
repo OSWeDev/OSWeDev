@@ -774,12 +774,17 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        if (active_field_filter.param_numeric != null) {
-                            where_conditions.push(field_id + " = '" + active_field_filter.param_numeric + "'");
-                        } else {
-                            throw new Error('Not Implemented');
+
+                        if (active_field_filter.param_alias != null) {
+                            where_conditions.push(field_id + " = " + active_field_filter.param_alias);
+                            break;
                         }
-                        break;
+
+                        if (active_field_filter.param_numeric != null) {
+                            where_conditions.push(field_id + " = " + active_field_filter.param_numeric);
+                            break;
+                        }
+                        throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
@@ -890,10 +895,13 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_FILTER_NOT:
-                let conditions_NOT: string[] = [];
-                await this.update_where_conditions(conditions_NOT, active_field_filter.left_hook, tables_aliases_by_type);
-                where_conditions.push(' (NOT (' + conditions_NOT[0] + ')) ');
-                break;
+                // Marche pas comme ça le NOT...
+                throw new Error('Not Implemented');
+
+            // let conditions_NOT: string[] = [];
+            // await this.update_where_conditions(conditions_NOT, active_field_filter.left_hook, tables_aliases_by_type);
+            // where_conditions.push(' (NOT (' + conditions_NOT[0] + ')) ');
+            // break;
 
 
             case ContextFilterVO.TYPE_NULL_ANY:
@@ -1082,12 +1090,30 @@ export default class ContextFilterServerController {
                 }
                 break;
 
-            case ContextFilterVO.TYPE_SUB_QUERY:
+            case ContextFilterVO.TYPE_IN:
                 if (!active_field_filter.sub_query) {
                     throw new Error('Not Implemented');
                 }
 
                 where_conditions.push(field_id + ' IN (' + await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query) + ')');
+
+                break;
+
+            case ContextFilterVO.TYPE_NOT_IN:
+                if (!active_field_filter.sub_query) {
+                    throw new Error('Not Implemented');
+                }
+
+                where_conditions.push(field_id + ' NOT IN (' + await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query) + ')');
+
+                break;
+
+            case ContextFilterVO.TYPE_NOT_EXISTS:
+                if (!active_field_filter.sub_query) {
+                    throw new Error('Not Implemented');
+                }
+
+                where_conditions.push('NOT EXISTS (' + await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query) + ')');
 
                 break;
 

@@ -65,7 +65,9 @@ export default class ContextFilterVO implements IDistantVOBase {
         'context_filter.type.NUMERIC_SUPEQ_ANY',
         'context_filter.type.NUMERIC_SUPEQ_ALL',
 
-        'context_filter.type.TYPE_SUB_QUERY',
+        'context_filter.type.TYPE_IN',
+        'context_filter.type.TYPE_NOT_IN',
+        'context_filter.type.TYPE_NOT_EXISTS'
     ];
 
     /**
@@ -208,7 +210,19 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Pour faire le lien avec une sous-requête
      *  Le lien sera fait en indiquant field_id in (%SUB_QUERY%)
      */
-    public static TYPE_SUB_QUERY: number = 52;
+    public static TYPE_IN: number = 52;
+
+    /**
+     * Pour faire le lien avec une sous-requête
+     *  Le lien sera fait en indiquant field_id not in (%SUB_QUERY%)
+     */
+    public static TYPE_NOT_IN: number = 55;
+
+    /**
+     * Pour faire le lien avec une sous-requête
+     *  Le lien sera fait en indiquant field_id not exists (%SUB_QUERY%)
+     */
+    public static TYPE_NOT_EXISTS: number = 56;
 
     /**
      * (Vide) et (vide || null)
@@ -222,6 +236,26 @@ export default class ContextFilterVO implements IDistantVOBase {
      * @param filters les filtres à joindre par une chaîne OR
      */
     public static or(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_OR);
+    }
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des and et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne AND
+     */
+    public static and(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_AND);
+    }
+
+    /**
+     * Sucre syntaxique pour echaîner facilement des xor et obtenir le filtre résultat
+     * @param filters les filtres à joindre par une chaîne XOR
+     */
+    public static xor(filters: ContextFilterVO[]): ContextFilterVO {
+        return this.chain_cond(filters, ContextFilterVO.TYPE_FILTER_XOR);
+    }
+
+    private static chain_cond(filters: ContextFilterVO[], type: number): ContextFilterVO {
         if ((!filters) || (!filters.length)) {
             return null;
         }
@@ -236,7 +270,7 @@ export default class ContextFilterVO implements IDistantVOBase {
             let filter_ = filters[i];
 
             let tmp = new ContextFilterVO();
-            tmp.filter_type = ContextFilterVO.TYPE_FILTER_OR;
+            tmp.filter_type = type;
             tmp.left_hook = filter_;
             tmp.right_hook = res;
             if (!first_filter) {
@@ -274,6 +308,11 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Sous-requête liée dans le cas d'un type sub_query
      */
     public sub_query: ContextQueryVO;
+
+    /**
+     * Permet de faire référence à un field de la query, plutôt qu'une valeur
+     */
+    public param_alias: string;
 
     /**
      * Filtrer par text en début de la valeur du champ
@@ -314,12 +353,43 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filter by ID not in (subquery)
+     * @param query la sous requête qui doit renvoyer les ids comme unique field
+     */
+    public by_id_not_in(query: ContextQueryVO): ContextFilterVO {
+        this.field_id = 'id';
+        this.filter_type = ContextFilterVO.TYPE_NOT_IN;
+        this.sub_query = query;
+        return this;
+    }
+
+    /**
+     * Filtrer un champ number par un sous-requête : field not in (subquery)
+     * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
+     */
+    public by_num_not_in(query: ContextQueryVO): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NOT_IN;
+        this.sub_query = query;
+        return this;
+    }
+
+    /**
+     * Filtrer en fonction d'un sub en not exists
+     * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
+     */
+    public by_not_exists(query: ContextQueryVO): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NOT_EXISTS;
+        this.sub_query = query;
+        return this;
+    }
+
+    /**
      * Filter by ID in (subquery)
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
     public by_id_in(query: ContextQueryVO): ContextFilterVO {
         this.field_id = 'id';
-        this.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        this.filter_type = ContextFilterVO.TYPE_IN;
         this.sub_query = query;
         return this;
     }
@@ -329,7 +399,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
     public by_num_in(query: ContextQueryVO): ContextFilterVO {
-        this.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        this.filter_type = ContextFilterVO.TYPE_IN;
         this.sub_query = query;
         return this;
     }
@@ -344,6 +414,30 @@ export default class ContextFilterVO implements IDistantVOBase {
         }
 
         return ContextFilterVO.or([this, filter_]);
+    }
+
+    /**
+     * Enchaîner des and
+     * @param filter le filtre qu'on veut chaîner en ET
+     */
+    public and(filter_: ContextFilterVO): ContextFilterVO {
+        if (!filter_) {
+            return this;
+        }
+
+        return ContextFilterVO.and([this, filter_]);
+    }
+
+    /**
+     * Enchaîner des xor
+     * @param filter le filtre qu'on veut chaîner en XOR
+     */
+    public xor(filter_: ContextFilterVO): ContextFilterVO {
+        if (!filter_) {
+            return this;
+        }
+
+        return ContextFilterVO.xor([this, filter_]);
     }
 
     /**
@@ -387,6 +481,16 @@ export default class ContextFilterVO implements IDistantVOBase {
     public by_date_same_or_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
         this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, true, false, segmentation_type)];
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_eq_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        this.param_alias = alias;
         return this;
     }
 

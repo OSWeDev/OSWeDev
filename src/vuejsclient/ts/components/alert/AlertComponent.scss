@@ -19,6 +19,34 @@
             border-color: $color;
         }
     }
+    
+    .popover-container {
+        position: relative;
+
+        .popover-origin {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            min-width: 220px;
+            z-index: 1;
+
+            .popover-content-wrapper {
+                padding-top: 0 !important;
+
+                .popover-content {
+                    padding: 10px;
+                    border: 5px solid $header_text_color;
+                    border-radius: 10px;
+                    background: white;
+
+                    .alert_content {
+                        background: none;
+                        padding: 0;
+                    }
+                }
+            }
+        }
+    }
 
     .alert_component_error {
         color: $danger_color;

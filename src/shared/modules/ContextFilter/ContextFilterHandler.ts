@@ -145,7 +145,9 @@ export default class ContextFilterHandler {
                 case ContextFilterVO.TYPE_FILTER_NOT:
                 case ContextFilterVO.TYPE_FILTER_OR:
                 case ContextFilterVO.TYPE_FILTER_XOR:
-                case ContextFilterVO.TYPE_SUB_QUERY:
+                case ContextFilterVO.TYPE_IN:
+                case ContextFilterVO.TYPE_NOT_IN:
+                case ContextFilterVO.TYPE_NOT_EXISTS:
                     continue;
             }
 
@@ -179,7 +181,9 @@ export default class ContextFilterHandler {
                 case ContextFilterVO.TYPE_FILTER_NOT:
                 case ContextFilterVO.TYPE_FILTER_OR:
                 case ContextFilterVO.TYPE_FILTER_XOR:
-                case ContextFilterVO.TYPE_SUB_QUERY:
+                case ContextFilterVO.TYPE_IN:
+                case ContextFilterVO.TYPE_NOT_IN:
+                case ContextFilterVO.TYPE_NOT_EXISTS:
                     continue;
             }
 

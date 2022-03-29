@@ -31,6 +31,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_delete_vos: string = "delete_vos";
     public static APINAME_update_vos: string = "update_vos";
     public static APINAME_select_vo_from_unique_field: string = "select_vo_from_unique_field";
+    public static APINAME_build_select_query: string = "build_select_query";
 
     public static getInstance(): ModuleContextFilter {
         if (!ModuleContextFilter.instance) {
@@ -68,6 +69,12 @@ export default class ModuleContextFilter extends Module {
         unique_field_id: string,
         unique_field_value: any,
     ) => Promise<T> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_vo_from_unique_field);
+
+    /**
+     * Créer la requête sur la base des filtres
+     * @param context_query
+     */
+    public build_select_query: (context_query: ContextQueryVO) => Promise<string> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query);
 
     /**
      * Filtrer des vos avec les context filters
@@ -147,6 +154,13 @@ export default class ModuleContextFilter extends Module {
             ModuleContextFilter.APINAME_select_vo_from_unique_field,
             null,
             QueryVOFromUniqueFieldContextFiltersParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, string>(
+            null,
+            ModuleContextFilter.APINAME_build_select_query,
+            null,
+            SelectVosParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(

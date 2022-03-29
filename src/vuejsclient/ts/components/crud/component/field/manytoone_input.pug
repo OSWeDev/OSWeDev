@@ -1,4 +1,4 @@
-.form-group
+.form-group(:class="{[field_type]:true, inline_input_mode:inline_input_mode, has_alert:(get_alerts && get_alerts[alert_path] && (get_alerts[alert_path].length > 0))}" @click='try_prepare_inline_input')
 
     template(v-if='inline_input_mode && (!is_disabled)')
         template(v-if='!inline_input_is_editing')

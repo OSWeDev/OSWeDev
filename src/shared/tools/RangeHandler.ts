@@ -1278,15 +1278,15 @@ export default class RangeHandler {
     }
 
     public get_ids_ranges_from_vos(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): NumRange[] {
-        let res: NumRange[] = [];
+        let ids = [];
 
         for (let i in vos) {
             let vo = vos[i];
 
-            res.push(this.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT));
+            ids.push(vo.id);
         }
 
-        return res;
+        return this.get_ids_ranges_from_list(ids);
     }
 
     public is_same(a: IRange, b: IRange): boolean {

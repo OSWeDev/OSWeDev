@@ -205,6 +205,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Sucre syntaxique pour une filtre numeric equals sans ranges
      * @param field_id le field qu'on veut filtrer
+     * @param alias alias du field qu'on utilise comme valeur (ref d'un field de la requête)
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_eq_alias(field_id: string, alias: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_eq_alias(alias)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric equals sans ranges
+     * @param field_id le field qu'on veut filtrer
      * @param num la valeur qu'on veut filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
@@ -268,6 +278,30 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with)]);
+    }
+
+    /**
+     * Filtrer en fonction d'un sub en not exists
+     * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
+     */
+    public filter_by_not_exists(query_: ContextQueryVO): ContextQueryVO {
+        return this.add_filters([filter().by_not_exists(query_)]);
+    }
+
+    /**
+     * Filter by ID not in (subquery)
+     * @param query la sous requête qui doit renvoyer les ids comme unique field
+     */
+    public filter_by_id_not_in(query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id_not_in(query_)]);
+    }
+
+    /**
+     * Filtrer un champ number par un sous-requête : field not in (subquery)
+     * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
+     */
+    public filter_by_num_not_in(field_id: string, query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_not_in(query_)]);
     }
 
     /**
@@ -393,6 +427,13 @@ export default class ContextQueryVO implements IDistantVOBase {
         this.is_access_hook_def = true;
 
         return this;
+    }
+
+    /**
+     * Faire la requête en mode select
+     */
+    public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
+        return await ModuleContextFilter.getInstance().build_select_query(this);
     }
 
     /**

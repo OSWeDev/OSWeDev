@@ -34,6 +34,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_vos, this.select_vos.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos, this.delete_vos.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
     }
 
@@ -113,6 +114,16 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
 
         let res = await this.select_vos<T>(context_query);
         return res ? res[0] : null;
+    }
+
+    /**
+     * Créer la requête en select
+     * @param context_query
+     */
+    public async build_select_query(
+        context_query: ContextQueryVO
+    ): Promise<string> {
+        return await ContextQueryServerController.getInstance().build_select_query(context_query);
     }
 
     /**

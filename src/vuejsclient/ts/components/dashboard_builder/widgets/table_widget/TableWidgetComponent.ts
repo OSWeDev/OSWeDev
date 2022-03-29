@@ -166,16 +166,6 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        if (this.can_delete_all_right == null) {
-            let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
-            if (!crud) {
-                this.can_delete_all_right = true;
-                this.can_open_vocus_right = true;
-                return;
-            }
-            this.can_delete_all_right = await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
-        }
-
         if (this.can_open_vocus_right == null) {
             this.can_open_vocus_right = await ModuleAccessPolicy.getInstance().testAccess(ModuleVocus.POLICY_BO_ACCESS);
         }
@@ -183,6 +173,15 @@ export default class TableWidgetComponent extends VueComponentBase {
         if (this.can_delete_right == null) {
             this.can_delete_right = await ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, this.crud_activated_api_type));
+        }
+
+        if (this.can_delete_all_right == null) {
+            let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud_activated_api_type];
+            if (!crud) {
+                this.can_delete_all_right = this.can_delete_right;
+            } else {
+                this.can_delete_all_right = this.can_delete_right && await ModuleAccessPolicy.getInstance().testAccess(crud.delete_all_access_right);
+            }
         }
 
         if (this.can_update_right == null) {

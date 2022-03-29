@@ -792,7 +792,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let filter: ContextFilterVO = new ContextFilterVO();
         filter.field_id = 'rdv_id';
         filter.vo_type = moduletable.vo_type;
-        filter.filter_type = ContextFilterVO.TYPE_SUB_QUERY;
+        filter.filter_type = ContextFilterVO.TYPE_IN;
         filter.sub_query = sub_query_list_rdvs;
 
         let res: ContextQueryVO = new ContextQueryVO();

@@ -3,11 +3,11 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 
-export default class ComputedDatatableField<T, U> extends DatatableField<T, U> {
+export default class ComputedDatatableField<T, U, V extends IDistantVOBase> extends DatatableField<T, U> {
 
     public constructor(
         datatable_field_uid: string,
-        public computeFieldValue: (e: IDistantVOBase) => any,
+        public computeFieldValue: (e: V) => any,
         translatable_title: string = null) {
 
         super(DatatableField.COMPUTED_FIELD_TYPE, 'id', translatable_title);
@@ -16,11 +16,11 @@ export default class ComputedDatatableField<T, U> extends DatatableField<T, U> {
         this.setUID_for_readDuplicateOnly(datatable_field_uid);
     }
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
+    public dataToReadIHM(e: T, vo: V): U {
         return this.computeFieldValue(vo);
     }
 
-    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
+    public ReadIHMToData(e: U, vo: V): T {
         return undefined;
     }
 
@@ -35,7 +35,7 @@ export default class ComputedDatatableField<T, U> extends DatatableField<T, U> {
         return this;
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
+    public dataToHumanReadableField(e: V): U {
         return this.dataToReadIHM(e[this.datatable_field_uid], e);
     }
 }

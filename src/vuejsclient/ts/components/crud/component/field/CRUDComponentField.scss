@@ -65,7 +65,6 @@
 .inline_input_mode {
     text-align: center;
     background: white;
-    border: solid 1px lightgrey;
 
     input[type~="number"],
     input[type~="text"],
@@ -78,8 +77,21 @@
         border: none;
         line-height: 1.7em;
         vertical-align: bottom;
-        text-align: center;
         cursor: pointer;
+    }
+
+    &.tstz_input {
+        vertical-align: middle;
+    }
+
+    .form-control {
+        width: auto;
+        border: none;
+        color: initial;
+        margin: 0;
+        box-shadow: none;
+        padding: 0;
+        height: auto;
     }
 
     .bool_field_inline_readonly_value,
@@ -95,7 +107,6 @@
         border: none;
         line-height: 1.7em;
         vertical-align: top;
-        text-align: center;
 
         .multiselect__option {
             white-space: inherit;
@@ -106,7 +117,6 @@
         }
 
         .multiselect__tags {
-            border: none;
             border-radius: 0;
         }
     }
@@ -115,15 +125,13 @@
         opacity: 1;
     }
 
-    .multiselect--disabled .multiselect__current,
-    .multiselect--disabled .multiselect__select {
-        background: none;
-        color: transparent;
-    }
-
     .multiselect--disabled .multiselect__current::before,
     .multiselect--disabled .multiselect__select::before {
         display: none;
+    }
+
+    .multiselect>.multiselect__tags>input{
+        border: none !important;
     }
 
     .multiselect,

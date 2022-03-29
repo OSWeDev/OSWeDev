@@ -51,12 +51,13 @@
         width: 20em;
     }
 
-    input[type~=text]:not([readonly=readonly]) {
+    input[type~=text]:not([readonly=readonly]),
+    .tstz_input {
         width: 30em;
         margin-left: 1em;
         background: white;
-        border: solid 1px #EEE;
-        padding: 0.3em;
+        border: solid 1px #E8E8E8;
+        padding: 7px 13px;
         text-align: left;
         vertical-align: middle;
     }
