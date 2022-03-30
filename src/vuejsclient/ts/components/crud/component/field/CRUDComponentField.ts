@@ -10,7 +10,9 @@ import ICRUDComponentField from '../../../../../../shared/modules/DAO/interface/
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToManyReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -565,6 +567,62 @@ export default class CRUDComponentField extends VueComponentBase
         for (let i in datatable.fields) {
             let field_datatable: DatatableField<any, any> = datatable.fields[i];
 
+            if (field_datatable.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
+
+                let OneToManyField: OneToManyReferenceDatatableField<any> = (field_datatable as OneToManyReferenceDatatableField<any>);
+                let options: { [id: number]: IDistantVOBase; } = this.getStoredDatas[OneToManyField.targetModuleTable.vo_type];
+
+                if (!!OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
+                    options = OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany(vo, options);
+                }
+
+                let newOptions: IDistantVOBase[] = [];
+
+                if (!OneToManyField.select_options_enabled) {
+                    continue;
+                }
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (OneToManyField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
+                }
+            }
+
+            if (field_datatable.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+
+                let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field_datatable as ManyToManyReferenceDatatableField<any, any>);
+                let options: { [id: number]: IDistantVOBase; } = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type];
+
+                if (!!manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
+                    options = manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany(vo, options);
+                }
+
+                let newOptions: IDistantVOBase[] = [];
+
+                if (!manyToManyField.select_options_enabled) {
+                    continue;
+                }
+
+                for (let j in options) {
+                    let option: IDistantVOBase = options[j];
+
+                    if (manyToManyField.select_options_enabled.indexOf(option.id) >= 0) {
+                        newOptions.push(option);
+                    }
+                }
+
+                if (newOptions.length > 0) {
+                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
+                }
+            }
+
             if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
@@ -685,10 +743,24 @@ export default class CRUDComponentField extends VueComponentBase
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
+            if (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
+                let OneToManyField: OneToManyReferenceDatatableField<any> = (this.field as OneToManyReferenceDatatableField<any>);
+                if (!!OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
+                    options = OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany(this.vo, options);
+                }
+            }
+
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
+                }
+            }
+
+            if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+                let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (this.field as ManyToManyReferenceDatatableField<any, any>);
+                if (!!manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
+                    options = manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany(this.vo, options);
                 }
             }
 
@@ -757,6 +829,8 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         let manyToOne: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
+        let OneToMany: OneToManyReferenceDatatableField<any> = (this.field as OneToManyReferenceDatatableField<any>);
+        let manyToMany: ManyToManyReferenceDatatableField<any, any> = (this.field as ManyToManyReferenceDatatableField<any, any>);
 
         // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
 
@@ -765,8 +839,14 @@ export default class CRUDComponentField extends VueComponentBase
             options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
+        if (!!OneToMany.filterOptionsForUpdateOrCreateOnOneToMany) {
+            options = OneToMany.filterOptionsForUpdateOrCreateOnOneToMany(this.vo, options);
+        }
         if (!!manyToOne.filterOptionsForUpdateOrCreateOnManyToOne) {
             options = manyToOne.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
+        }
+        if (!!manyToMany.filterOptionsForUpdateOrCreateOnManyToMany) {
+            options = manyToMany.filterOptionsForUpdateOrCreateOnManyToMany(this.vo, options);
         }
 
         //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
@@ -860,6 +940,62 @@ export default class CRUDComponentField extends VueComponentBase
             let newOptions: number[] = [];
             for (let index in ordered_option_array) {
                 let option: IDistantVOBase = ordered_option_array[index];
+
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                    newOptions.push(option.id);
+                }
+            }
+            this.select_options = newOptions;
+        }
+
+        if (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
+
+            let OneToManyField: OneToManyReferenceDatatableField<any> = (this.field as OneToManyReferenceDatatableField<any>);
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = this.getStoredDatas[OneToManyField.targetModuleTable.vo_type];
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
+                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(OneToManyField.targetModuleTable.vo_type));
+                this.storeDatasByIds({ API_TYPE_ID: OneToManyField.targetModuleTable.vo_type, vos_by_ids: options });
+            }
+
+            if (!!OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany) {
+                options = OneToManyField.filterOptionsForUpdateOrCreateOnOneToMany(this.vo, options);
+            }
+
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
+            let newOptions: number[] = [];
+            for (let j in ordered_option_array) {
+                let option = ordered_option_array[j];
+
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                    newOptions.push(option.id);
+                }
+            }
+            this.select_options = newOptions;
+        }
+
+        if (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
+
+            let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (this.field as ManyToManyReferenceDatatableField<any, any>);
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type];
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
+                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToManyField.targetModuleTable.vo_type));
+                this.storeDatasByIds({ API_TYPE_ID: manyToManyField.targetModuleTable.vo_type, vos_by_ids: options });
+            }
+
+            if (!!manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany) {
+                options = manyToManyField.filterOptionsForUpdateOrCreateOnManyToMany(this.vo, options);
+            }
+
+            let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
+            let newOptions: number[] = [];
+            for (let j in ordered_option_array) {
+                let option = ordered_option_array[j];
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);

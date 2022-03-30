@@ -6,6 +6,8 @@ import DefaultTranslation from '../../../../../shared/modules/Translation/vos/De
 
 export default class ManyToManyReferenceDatatableField<Target extends IDistantVOBase, Inter extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
+    public filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
+
     public interTargetRefFieldId: string = null;
     public interSrcRefFieldId: string = null;
 
@@ -16,6 +18,11 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         sortedTargetFields: Array<DatatableField<any, any>>,
         translatable_title: string = null) {
         super(DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields, translatable_title);
+    }
+
+    public setFilterOptionsForUpdateOrCreateOnManyToMany(filterOptionsForUpdateOrCreateOnManyToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): ManyToManyReferenceDatatableField<Target, Inter> {
+        this.filterOptionsForUpdateOrCreateOnManyToMany = filterOptionsForUpdateOrCreateOnManyToMany;
+        return this;
     }
 
     public set_interTargetRefFieldId(interTargetRefFieldId: string): ManyToManyReferenceDatatableField<Target, Inter> {

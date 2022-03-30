@@ -239,13 +239,13 @@ export default class ContextFilterHandler {
     /**
      * Renvoie une context query qui renvoie systématiquement 0 éléments, pour bloquer l'accès à un vo par exemple dans un context access hook
      */
-    public get_empty_res_context_hook_query(moduletable: ModuleTable<any>) {
+    public get_empty_res_context_hook_query(api_type_id: string) {
         // on veut rien renvoyer, donc on fait une query qui retourne rien
         let filter_none: ContextFilterVO = new ContextFilterVO();
         filter_none.filter_type = ContextFilterVO.TYPE_NULL_ALL;
         filter_none.field_id = 'id';
-        filter_none.vo_type = moduletable.vo_type;
+        filter_none.vo_type = api_type_id;
 
-        return query(moduletable.vo_type).field('id').add_filters([filter_none]).ignore_access_hooks();
+        return query(api_type_id).field('id').add_filters([filter_none]).ignore_access_hooks();
     }
 }

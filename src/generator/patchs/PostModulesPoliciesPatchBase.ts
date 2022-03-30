@@ -72,6 +72,22 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         }
     }
 
+    protected async revoke_policy(policy_id: number, role_id: number) {
+
+        if ((!!this.access_matrix[policy_id]) && (!!this.access_matrix[policy_id][role_id])) {
+            await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id);
+        }
+    }
+
+    protected async revoke_policies(
+        policy_id: number,
+        roles_ids: number[]) {
+
+        for (let i in roles_ids) {
+            await this.revoke_policy(policy_id, roles_ids[i]);
+        }
+    }
+
     /**
      * On supprime tous les droits du role_destination et on lui redonne les mêmes que le role_source
      * @param role_source

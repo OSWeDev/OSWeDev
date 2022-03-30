@@ -35,6 +35,12 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private option_label_func: (vo: IDistantVOBase) => string;
 
     /**
+     * Pour cacher l'input si on a une seule option possible
+     */
+    @Prop({ default: true })
+    private hide_unique_option: boolean;
+
+    /**
      * Convention de nommage :
      *  - Pour les filter_active_otions, on doit trouver dans le store :
      *      state : 'filter_' + api_type_id + '_active_options'

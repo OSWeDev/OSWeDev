@@ -1171,6 +1171,9 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                        where_conditions.push(field_id + " is null");
+                        break;
+
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_string:
@@ -1192,7 +1195,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_refrange_array:
-                        where_conditions.push("((" + field_id + " is NULL) OR ((array_length(" + field_id + ", 1) = 0) is not TRUE))");
+                        where_conditions.push("((" + field_id + " is NULL) OR (array_length(" + field_id + ", 1) = 0))");
                         break;
                 }
                 break;

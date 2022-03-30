@@ -56,7 +56,8 @@ include ../../../views/mixins/loading.pug
                                                         :sync="true"
                                                         :width="100"
                                                         :disabled="busy || !((!inherited_access_matrix[policy.id][role.id]) && (policies_visibility_by_role_id[role.id][policy.id]))"
-                                                        :labels="{checked: label('access_policy.admin.table.granted'), unchecked: label('access_policy.admin.table.denied')}")
+                                                        :labels="{checked: label('access_policy.admin.table.granted'), unchecked: label('access_policy.admin.table.denied')}"
+                                                        v-tooltip="label(policy.translatable_name)")
 
                                                 //- tr.policy_group(:class="{'group_hidden': !policy_groups_vibility[policy_group.id]}")
                                                 //-     td 

@@ -7,6 +7,8 @@ import DefaultTranslation from '../../../../../shared/modules/Translation/vos/De
 
 export default class OneToManyReferenceDatatableField<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
+    public filterOptionsForUpdateOrCreateOnOneToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
+
     public constructor(
         datatable_field_uid: string,
         targetModuleTable: ModuleTable<Target>,
@@ -14,6 +16,11 @@ export default class OneToManyReferenceDatatableField<Target extends IDistantVOB
         sortedTargetFields: Array<DatatableField<any, any>>,
         translatable_title: string = null) {
         super(DatatableField.ONE_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields, translatable_title);
+    }
+
+    public setFilterOptionsForUpdateOrCreateOnOneToMany(filterOptionsForUpdateOrCreateOnOneToMany: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): OneToManyReferenceDatatableField<Target> {
+        this.filterOptionsForUpdateOrCreateOnOneToMany = filterOptionsForUpdateOrCreateOnOneToMany;
+        return this;
     }
 
     public setModuleTable(moduleTable: ModuleTable<any>) {
