@@ -375,5 +375,34 @@ describe('ContextQueryServer', () => {
         );
     });
 
+    /**
+     * Test 12 :
+     *  or chaines
+     */
+    it('test .build_select_query chained OR', async () => {
+
+        let f1 = ContextFilterVO.or([
+            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id').ignore_access_hooks()),
+            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks()),
+            filter(UserVO.API_TYPE_ID).by_id(15)
+        ]);
+
+        let filter_ = filter(UserVO.API_TYPE_ID).by_id(15);
+        let compl = ContextFilterVO.or([
+            filter(UserVO.API_TYPE_ID).by_id_in(
+                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks()),
+            filter(UserVO.API_TYPE_ID).by_id_in(
+                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks())
+        ]);
+        filter_ = filter_.or(compl);
+
+        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).add_filters([f1]).add_filters([filter_]).ignore_access_hooks();
+
+        let request: string = await ContextQueryServerController.getInstance().build_select_query(context_query);
+
+        expect(request).to.equal(
+            "SELECT t0.*  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t0.id NOT IN (SELECT DISTINCT t0.user_id as user_id  FROM ref.userroles t0)) OR ( ((t2.id IN (SELECT DISTINCT t0.id as id  FROM ref.role t0)) OR (t0.id = 15)) )) ) AND ( ((t0.id = 15) OR ( ((t0.id IN (SELECT DISTINCT t0.id as id  FROM ref.user t0)) OR (t0.id IN (SELECT DISTINCT t0.id as id  FROM ref.user t0))) )) )"
+        );
+    });
     //#endregion test_.build_select_query
 });
