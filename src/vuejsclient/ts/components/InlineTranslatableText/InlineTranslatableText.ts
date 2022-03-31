@@ -163,12 +163,18 @@ export default class InlineTranslatableText extends VueComponentBase {
         }
 
         let res: string = translation;
+
+        if (!res) {
+            return res;
+        }
+
         for (let i in this.translation_params) {
             let translation_param = this.translation_params[i];
 
             let regexp = new RegExp('\{' + i + '\}', 'ig');
             res = res.replace(regexp, (translation_param != null) ? translation_param.toString() : 'N/A');
         }
+
         return res;
     }
 
