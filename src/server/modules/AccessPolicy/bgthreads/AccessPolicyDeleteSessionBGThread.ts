@@ -1,4 +1,6 @@
 import { cloneDeep } from 'lodash';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import TeamsWebhookContentSectionVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
@@ -16,6 +18,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     public static TEAMS_WEBHOOK_PARAM_NAME: string = 'AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK';
     public static TASK_NAME_set_session_to_delete_by_sids: string = 'AccessPolicyDeleteSessionBGThread.set_session_to_delete_by_sids';
+    public static TASK_NAME_add_api_reqs: string = 'AccessPolicyDeleteSessionBGThread.add_api_reqs';
 
     public static getInstance() {
         if (!AccessPolicyDeleteSessionBGThread.instance) {
@@ -26,7 +29,9 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     private static instance: AccessPolicyDeleteSessionBGThread = null;
 
+    public session_last_send_date: { [sid: string]: number } = {};
     public session_to_delete_by_sids: { [sid: string]: IServerUserSession } = {};
+    public api_reqs: string[] = [];
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
@@ -34,6 +39,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     private constructor() {
         ForkedTasksController.getInstance().register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids, this.set_session_to_delete_by_sids.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs, this.add_api_reqs.bind(this));
     }
 
     get name(): string {
@@ -44,17 +50,22 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
         try {
 
-            let invalidate_sessions: any[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
+            let invalidate_sessions: IServerUserSession[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
 
             if (!invalidate_sessions || !invalidate_sessions.length) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
-            let session_to_delete_by_sids = cloneDeep(this.session_to_delete_by_sids);
+            let session_to_delete_by_sids_cp: { [sid: string]: IServerUserSession } = cloneDeep(this.session_to_delete_by_sids);
             this.session_to_delete_by_sids = {};
 
-            for (let i in session_to_delete_by_sids) {
-                let session_to_delete = session_to_delete_by_sids[i];
+            let api_reqs: string[] = cloneDeep(this.api_reqs);
+            this.api_reqs = [];
+
+            let to_invalidate: IServerUserSession[] = [];
+
+            for (let sid in session_to_delete_by_sids_cp) {
+                let session_to_delete = session_to_delete_by_sids_cp[sid];
 
                 if (!!session_to_delete.id) {
                     continue;
@@ -64,22 +75,43 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
                     continue;
                 }
 
+                // Si on a un uid, on ne fait rien
+                if (session_to_delete.uid) {
+                    continue;
+                }
+
+                // Si on a envoyé la dernière fois il y a moins de 1 minute, on ne renvoie rien
+                if (this.session_last_send_date[sid] && (Dates.diff(Dates.now(), this.session_last_send_date[sid], TimeSegment.TYPE_MINUTE) < 1)) {
+                    continue;
+                }
+
+                this.session_last_send_date[sid] = Dates.now();
+
                 session_to_delete.id = session_to_delete.sid.replace(/^[^:]+:([^.]+)\..*/i, '$1');
+
+                to_invalidate.push(session_to_delete);
             }
 
-            let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK_PARAM_NAME);
+            if (to_invalidate.length > 0) {
+                let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK_PARAM_NAME);
 
-            let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+                let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
-            message.title = "AccessPolicyDeleteSessionBGThread - " + ConfigurationService.getInstance().getNodeConfiguration().APP_TITLE + " - " + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
-            message.summary = "Suppression de sessions suite invalidation";
-            message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote>Suppression de sessions suite invalidation</blockquote>'));
-            await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(
-                TEAMS_WEBHOOK_PARAM_NAME,
-                message
-            );
+                message.title = "AccessPolicyDeleteSessionBGThread - " + ConfigurationService.getInstance().getNodeConfiguration().APP_TITLE + " - " + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+                message.summary = "Suppression de sessions suite invalidation";
+                message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>SID</div><ul>' + to_invalidate.map((m) => "<li>" + m.id + "</li>").join("") + '</ul></blockquote>'));
 
-            await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, session_to_delete_by_sids);
+                if (api_reqs && (api_reqs.length > 0)) {
+                    message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>Requêtes</div><ul>' + api_reqs.map((m) => "<li>" + m + "</li>").join("") + '</ul></blockquote>'));
+                }
+
+                await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(
+                    TEAMS_WEBHOOK_PARAM_NAME,
+                    message
+                );
+
+                await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
+            }
 
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
@@ -95,6 +127,17 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
         }
 
         this.session_to_delete_by_sids[session.sid] = session;
+
+        return true;
+    }
+
+    public add_api_reqs(api_reqs: string[]): boolean {
+        if (!api_reqs) {
+            return false;
+        }
+
+        this.api_reqs.unshift(...api_reqs);
+        this.api_reqs = this.api_reqs.splice(0, 20);
 
         return true;
     }
