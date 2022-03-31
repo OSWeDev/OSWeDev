@@ -1,5 +1,8 @@
 import { Component } from 'vue-property-decorator';
+import CRUD from '../../../../../../../../shared/modules/DAO/vos/CRUD';
+import CRUDHandler from '../../../../../../../../shared/tools/CRUDHandler';
 import CRUDCreateFormComponent from '../../../../../crud/component/create/CRUDCreateFormComponent';
+import CRUDComponentManager from '../../../../../crud/CRUDComponentManager';
 import VueComponentBase from '../../../../../VueComponentBase';
 import "./CRUDCreateModalComponent.scss";
 
@@ -17,7 +20,18 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
     private onclose_callback: () => Promise<void> = null;
 
-    public open_modal(api_type_id: string, onclose_callback: () => Promise<void>) {
+    public async open_modal(api_type_id: string, onclose_callback: () => Promise<void>) {
+
+        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        if (crud) {
+            crud.createDatatable.refresh();
+            (this.$refs['Crudcreateformcomponent'] as CRUDCreateFormComponent).update_key();
+        }
+
+        if (crud && crud.callback_handle_modal_show_hide) {
+            await crud.callback_handle_modal_show_hide(null, 'create');
+        }
+
         this.api_type_id = api_type_id;
         this.onclose_callback = onclose_callback;
         $('#crud_create_modal').modal('show');
@@ -32,8 +46,18 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
         }
     }
 
-    private close_modal() {
+    private async close_modal() {
         $('#crud_create_modal').modal('hide');
+
+        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        if (crud) {
+            crud.createDatatable.refresh();
+            (this.$refs['Crudcreateformcomponent'] as CRUDCreateFormComponent).update_key();
+        }
+        if (crud && crud.callback_handle_modal_show_hide) {
+            await crud.callback_handle_modal_show_hide(null, 'create');
+        }
+
         if (this.onclose_callback) {
             this.onclose_callback();
         }

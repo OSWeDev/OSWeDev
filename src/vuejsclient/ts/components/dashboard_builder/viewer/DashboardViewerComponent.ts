@@ -117,7 +117,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
 
-        this.can_edit = await ModuleAccessPolicy.getInstance().checkAccess(ModuleDashboardBuilder.POLICY_BO_ACCESS);
+        this.can_edit = await ModuleAccessPolicy.getInstance().testAccess(ModuleDashboardBuilder.POLICY_BO_ACCESS);
         this.loading = false;
     }
 

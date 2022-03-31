@@ -187,7 +187,7 @@ export default class CRUDComponentField extends VueComponentBase
     private has_loaded_can_insert_or_update_target: boolean = false;
     private inline_input_is_editing: boolean = false;
 
-    private select_options_enabled: number[] = [];
+    private select_options_enabled_by_id: { [id: number]: number } = {};
 
     private is_readonly: boolean = false;
 
@@ -202,7 +202,13 @@ export default class CRUDComponentField extends VueComponentBase
             this.$nextTick(() => self.$refs.input_elt['focus']());
         }
 
-        this.select_options_enabled = this.field.select_options_enabled; // (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
+        this.select_options_enabled_by_id = this.field.select_options_enabled ? {} : null;
+        for (let i in this.field.select_options_enabled) {
+            let option = this.field.select_options_enabled[i];
+
+            this.select_options_enabled_by_id[option] = option;
+        }
+        // (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
 
         /**
          * On propose un lien au datatable pour certains comportement
@@ -578,14 +584,17 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                if (!OneToManyField.select_options_enabled) {
-                    continue;
+                let select_options_enabled_by_id = OneToManyField.select_options_enabled ? {} : null;
+                for (let j in OneToManyField.select_options_enabled) {
+                    let option = OneToManyField.select_options_enabled[j];
+
+                    select_options_enabled_by_id[option] = option;
                 }
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if (OneToManyField.select_options_enabled.indexOf(option.id) >= 0) {
+                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -606,14 +615,17 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                if (!manyToManyField.select_options_enabled) {
-                    continue;
+                let select_options_enabled_by_id = manyToManyField.select_options_enabled ? {} : null;
+                for (let j in manyToManyField.select_options_enabled) {
+                    let option = manyToManyField.select_options_enabled[j];
+
+                    select_options_enabled_by_id[option] = option;
                 }
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if (manyToManyField.select_options_enabled.indexOf(option.id) >= 0) {
+                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -634,14 +646,17 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                if (!manyToOneField.select_options_enabled) {
-                    continue;
+                let select_options_enabled_by_id = manyToOneField.select_options_enabled ? {} : null;
+                for (let j in manyToOneField.select_options_enabled) {
+                    let option = manyToOneField.select_options_enabled[j];
+
+                    select_options_enabled_by_id[option] = option;
                 }
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if (manyToOneField.select_options_enabled.indexOf(option.id) >= 0) {
+                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -662,14 +677,17 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                if (!refrangesField.select_options_enabled) {
-                    continue;
+                let select_options_enabled_by_id = refrangesField.select_options_enabled ? {} : null;
+                for (let j in refrangesField.select_options_enabled) {
+                    let option = refrangesField.select_options_enabled[j];
+
+                    select_options_enabled_by_id[option] = option;
                 }
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if (refrangesField.select_options_enabled.indexOf(option.id) >= 0) {
+                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -778,7 +796,7 @@ export default class CRUDComponentField extends VueComponentBase
             for (let index in ordered_option_array) {
                 let option: IDistantVOBase = ordered_option_array[index];
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }
@@ -799,7 +817,7 @@ export default class CRUDComponentField extends VueComponentBase
                 for (let j in simpleField.moduleTableField.enum_values) {
                     let id: number = parseInt(j.toString());
 
-                    if ((!this.select_options_enabled) || (this.select_options_enabled.indexOf(id) >= 0)) {
+                    if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[id] != null)) {
                         newOptions.push(id);
                     }
                 }
@@ -859,8 +877,7 @@ export default class CRUDComponentField extends VueComponentBase
 
             if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
-                if ((!this.select_options_enabled) || (this.select_options_enabled.indexOf(option.id) >= 0)) {
-
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }
@@ -893,7 +910,7 @@ export default class CRUDComponentField extends VueComponentBase
 
             if (simpleField.enumIdToHumanReadable(parseInt(i)).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(parseInt(i)) >= 0) {
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[parseInt(i)] != null)) {
                     newOptions.push(parseInt(i));
                 }
             }
@@ -941,7 +958,7 @@ export default class CRUDComponentField extends VueComponentBase
             for (let index in ordered_option_array) {
                 let option: IDistantVOBase = ordered_option_array[index];
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }
@@ -969,7 +986,7 @@ export default class CRUDComponentField extends VueComponentBase
             for (let j in ordered_option_array) {
                 let option = ordered_option_array[j];
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }
@@ -997,7 +1014,7 @@ export default class CRUDComponentField extends VueComponentBase
             for (let j in ordered_option_array) {
                 let option = ordered_option_array[j];
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }
@@ -1025,7 +1042,7 @@ export default class CRUDComponentField extends VueComponentBase
             for (let j in ordered_option_array) {
                 let option = ordered_option_array[j];
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
                 }
             }

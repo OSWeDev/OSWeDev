@@ -13,6 +13,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -177,18 +178,24 @@ export default class AccessPolicyServerController {
         this.throttled_reload_access_matrix_computation();
     }
 
+    /**
+     * On passe en SERVER pour refaire les matrices
+     */
     public async reload_access_matrix_computation() {
-        /**
-         * Le changement de access_matrix et validity sont fait directement en générant la matrice
-         */
-        let promises = [];
-        if (!this.access_matrix_validity) {
-            promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(false));
-        }
-        if (!this.access_matrix_heritance_only_validity) {
-            promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(true));
-        }
-        await Promise.all(promises);
+        await StackContext.getInstance().runPromise({ IS_CLIENT: false, UID: null }, async () => {
+
+            /**
+             * Le changement de access_matrix et validity sont fait directement en générant la matrice
+             */
+            let promises = [];
+            if (!this.access_matrix_validity) {
+                promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(false));
+            }
+            if (!this.access_matrix_heritance_only_validity) {
+                promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(true));
+            }
+            await Promise.all(promises);
+        });
     }
 
     public async preload_registered_users_roles() {

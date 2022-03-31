@@ -60,6 +60,12 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private crud_updateDatatable_key: number = 0;
     private dao_store_loaded: boolean = false;
 
+    public update_key() {
+        if (this.crud && (this.crud_updateDatatable_key != this.crud.updateDatatable.key)) {
+            this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        }
+    }
+
     get crud(): CRUD<any> {
         if ((!this.selected_vo) || (!this.selected_vo._type)) {
             return null;

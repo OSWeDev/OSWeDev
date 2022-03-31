@@ -13,7 +13,7 @@ include ../../../../../views/mixins/loading.pug
                     template(v-for="field in crud.updateDatatable.fields")
                         Crudcomponentfield(
                             v-show="!field.hidden",
-                            :key="editableVO._type + '_updateDatatable_' + field.datatable_field_uid + '_' + crud_updateDatatable_key",
+                            :key="editableVO._type + '_updateDatatable_' + field.datatable_field_uid + '_' + crud_updateDatatable_key + '_' + editableVO.id",
                             :field="field",
                             :vo="editableVO",
                             :datatable="crud.updateDatatable",

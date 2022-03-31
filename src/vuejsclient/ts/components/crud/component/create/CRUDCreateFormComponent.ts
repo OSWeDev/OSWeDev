@@ -68,6 +68,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private crud_createDatatable_key: number = 0;
 
+    public update_key() {
+        if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {
+            this.crud_createDatatable_key = this.crud.createDatatable.key;
+        }
+    }
+
     get crud(): CRUD<any> {
         if (!this.api_type_id) {
             return null;
@@ -283,7 +289,9 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     }
 
     private onChangeVO(vo: IDistantVOBase) {
-        this.crud_createDatatable_key = this.crud.createDatatable.key;
+        if (this.crud_createDatatable_key != this.crud.createDatatable.key) {
+            this.crud_createDatatable_key = this.crud.createDatatable.key;
+        }
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);

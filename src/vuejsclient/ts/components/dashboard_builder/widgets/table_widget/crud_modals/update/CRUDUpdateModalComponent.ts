@@ -1,6 +1,7 @@
 import { Component, Prop } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../../../../shared/modules/IDistantVOBase';
 import CRUDUpdateFormComponent from '../../../../../crud/component/update/CRUDUpdateFormComponent';
+import CRUDComponentManager from '../../../../../crud/CRUDComponentManager';
 import VueComponentBase from '../../../../../VueComponentBase';
 import "./CRUDUpdateModalComponent.scss";
 
@@ -18,7 +19,17 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
 
     private onclose_callback: () => Promise<void> = null;
 
-    public open_modal(vo: IDistantVOBase, onclose_callback: () => Promise<void>) {
+    public async open_modal(vo: IDistantVOBase, onclose_callback: () => Promise<void>) {
+
+        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[vo._type];
+        if (crud) {
+            crud.updateDatatable.refresh();
+            (this.$refs['Crudupdateformcomponent'] as CRUDUpdateFormComponent).update_key();
+        }
+        if (crud && crud.callback_handle_modal_show_hide) {
+            await crud.callback_handle_modal_show_hide(vo, 'update');
+        }
+
         this.vo = vo;
         this.onclose_callback = onclose_callback;
         $('#crud_update_modal').modal('show');
@@ -33,8 +44,18 @@ export default class CRUDUpdateModalComponent extends VueComponentBase {
         }
     }
 
-    private close_modal() {
+    private async close_modal() {
         $('#crud_update_modal').modal('hide');
+
+        let crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.vo ? this.vo._type : null];
+        if (crud) {
+            crud.updateDatatable.refresh();
+            (this.$refs['Crudupdateformcomponent'] as CRUDUpdateFormComponent).update_key();
+        }
+        if (crud && crud.callback_handle_modal_show_hide) {
+            await crud.callback_handle_modal_show_hide(this.vo, 'update');
+        }
+
         if (this.onclose_callback) {
             this.onclose_callback();
         }
