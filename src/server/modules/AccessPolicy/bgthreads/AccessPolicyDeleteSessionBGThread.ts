@@ -92,7 +92,8 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
                 to_invalidate.push(session_to_delete);
             }
 
-            if (to_invalidate.length > 0) {
+            // Si on a quelque chose et qu'on est pas en DEV, on met un message sur Teams et on invalide la session
+            if ((to_invalidate.length > 0) && !ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
                 let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK_PARAM_NAME);
 
                 let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
