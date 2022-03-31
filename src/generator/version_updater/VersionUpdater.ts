@@ -37,7 +37,7 @@ export default class VersionUpdater {
                 continue;
             }
 
-            lines[i] = line.replace(/(^.*"version": "[0-9.]+)(-[0-9a-zA-Z]+)?(".*$)/i, "$1-" + Dates.now() + "$3");
+            lines[i] = line.replace(/(^.*"version": "[0-9.]+)(-[0-9a-zA-Z]+)?(".*[\r\n]*$)/i, "$1-" + Dates.now() + "$3");
         }
 
         package_json_content = lines.join('\n');

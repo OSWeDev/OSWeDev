@@ -38,6 +38,7 @@ import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
+import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
@@ -624,6 +625,25 @@ export default abstract class ServerBase {
                     ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             }
+
+            // On log les requêtes pour ensuite pouvoir les utiliser dans le delete session en log
+            let api_req: string[] = [];
+            let uid: number = (session) ? session.uid : null;
+            let date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", false);
+
+            if (req.url == "/api_handler/requests_wrapper") {
+                for (let i in req.body) {
+                    api_req.push("DATE:" + date + " || UID:" + uid + " || URL:" + req.body[i].url);
+                }
+            } else {
+                api_req.push("DATE:" + date + " || UID:" + uid + " || URL:" + req.url);
+            }
+
+            ForkedTasksController.getInstance().exec_self_on_bgthread(
+                AccessPolicyDeleteSessionBGThread.getInstance().name,
+                AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
+                api_req
+            );
 
             next();
         });

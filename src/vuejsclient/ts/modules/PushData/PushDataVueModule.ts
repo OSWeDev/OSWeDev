@@ -5,6 +5,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -449,6 +450,15 @@ export default class PushDataVueModule extends VueModuleBase {
                                 VueAppBase.instance_.vueInstance.snotify.warning(content, {
                                     timeout: 3000
                                 });
+
+                                // On test si la personne a accès au front
+                                // S'il n'a pas accès, on redirige vers la page de login
+                                let fo_access: boolean = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_FO_ACCESS);
+
+                                if (!fo_access) {
+                                    PARAM_TECH_DISCONNECT_URL = "/login";
+                                }
+
                                 setTimeout(() => {
                                     location.href = PARAM_TECH_DISCONNECT_URL;
                                 }, 3000);

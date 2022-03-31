@@ -25,6 +25,14 @@ export default class VarDescExplainDepComponent extends VueComponentBase {
 
     private opened: boolean = true;
 
+    private async copy_dep_code() {
+        await navigator.clipboard.writeText(this.dep_code);
+    }
+
+    get dep_code() {
+        return '{' + VarsController.getInstance().get_sum_dep_code(this.dep_id) + '}';
+    }
+
     get dep_name(): string {
         if (!this.dep_id) {
             return null;

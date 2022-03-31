@@ -5,6 +5,13 @@
             .row(v-if='has_explaination')
                 .col-md-12        
                     .var_desc_explaination {{ explaination }}
+            .row
+                .col-md-12        
+                    .var_desc_explaination 
+                        Inlinetranslatabletext(
+                            :code_text="explaination_code_text" :is_editable="true" 
+                            :translation_params="explaination_sample_param" :textarea="true")
+
             .row.aggregated_var_datas(v-if='is_aggregator')
                 .col-md-12        
                     .aggregated_var_datas_label {{ label('var_desc.aggregated_var_datas') }}

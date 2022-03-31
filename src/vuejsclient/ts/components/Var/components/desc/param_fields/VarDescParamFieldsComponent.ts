@@ -18,6 +18,14 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
     @Prop()
     private var_param: VarDataBaseVO;
 
+    private async copy_card_field_code(field: ModuleTableField<any>) {
+        await navigator.clipboard.writeText(this.get_card_field_code(field));
+    }
+
+    private get_card_field_code(field: ModuleTableField<any>) {
+        return '{' + VarsController.getInstance().get_card_field_code(field.field_id) + '}';
+    }
+
     get ts_range_type(): number {
         return TSRange.RANGE_TYPE;
     }

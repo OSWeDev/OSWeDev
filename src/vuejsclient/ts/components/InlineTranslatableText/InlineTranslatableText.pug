@@ -5,10 +5,13 @@
     template(v-else)
 
         template(v-if='!is_editable')
-            .translated_text {{ text }}
+            .translated_text {{ parameterized_text }}
         template(v-else)
             form(v-on:submit.prevent="update_trad")
-                input.editable_text(type="text" v-model="text" :disabled="!semaphore")
+                template(v-if='textarea')
+                    textarea.editable_text(v-model="text" :disabled="!semaphore" v-tooltip='parameterized_text')
+                template(v-else)
+                    input.editable_text(type="text" v-model="text" :disabled="!semaphore" v-tooltip='parameterized_text')
                 template(v-if='!semaphore')
                     .is_updating
                         i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
