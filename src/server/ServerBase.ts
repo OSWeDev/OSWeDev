@@ -854,8 +854,8 @@ export default abstract class ServerBase {
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
 
-            await ThreadHandler.getInstance().sleep(1000);
-            res.redirect('/');
+            // await ThreadHandler.getInstance().sleep(1000);
+            // res.redirect('/');
         });
 
         this.app.use('/js', express.static('client/js'));
