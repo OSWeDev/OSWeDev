@@ -72,6 +72,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -134,6 +135,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -193,6 +195,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -252,6 +255,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -311,6 +315,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -370,6 +375,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -429,6 +435,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -488,6 +495,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -547,6 +555,7 @@ export default class ContextFilterServerController {
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -1141,6 +1150,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
@@ -1184,6 +1194,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
                     case ModuleTableField.FIELD_TYPE_textarea:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:

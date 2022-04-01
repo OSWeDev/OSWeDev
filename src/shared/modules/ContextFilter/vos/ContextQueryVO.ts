@@ -447,6 +447,20 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Faire la requête en mode select_vo
+     *  Si on avait défini des fields on les supprime puisqu'ils deviennent invalides
+     * @returns le vo issu de la requête => Throws si on a + de 1 résultat
+     */
+    public async select_vo<T extends IDistantVOBase>(): Promise<T> {
+        this.fields = null;
+        let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
+        if (res && (res.length > 1)) {
+            throw new Error('Multiple results on select_vo is not allowed');
+        }
+        return res ? res[0] : null;
+    }
+
+    /**
      * Faire la requête en mode select_datatable_rows
      * @returns les lignes de datatable issues de la requête
      */

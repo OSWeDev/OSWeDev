@@ -183,8 +183,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_FieldValueFilter() {
         let fieldValueFilter = new DashboardWidgetVO();
 
-        fieldValueFilter.default_height = 9;
-        fieldValueFilter.default_width = 36;
+        fieldValueFilter.default_height = 5;
+        fieldValueFilter.default_width = 3;
         fieldValueFilter.name = 'fieldvaluefilter';
         fieldValueFilter.widget_component = 'Fieldvaluefilterwidgetcomponent';
         fieldValueFilter.options_component = 'Fieldvaluefilterwidgetoptionscomponent';
@@ -202,8 +202,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_DOWFilter() {
         let DOWFilter = new DashboardWidgetVO();
 
-        DOWFilter.default_height = 9;
-        DOWFilter.default_width = 36;
+        DOWFilter.default_height = 5;
+        DOWFilter.default_width = 3;
         DOWFilter.name = 'dowfilter';
         DOWFilter.widget_component = 'Dowfilterwidgetcomponent';
         DOWFilter.options_component = 'Dowfilterwidgetoptionscomponent';
@@ -221,8 +221,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_MonthFilter() {
         let MonthFilter = new DashboardWidgetVO();
 
-        MonthFilter.default_height = 9;
-        MonthFilter.default_width = 36;
+        MonthFilter.default_height = 5;
+        MonthFilter.default_width = 4;
         MonthFilter.name = 'monthfilter';
         MonthFilter.widget_component = 'Monthfilterwidgetcomponent';
         MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
@@ -240,8 +240,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_YearFilter() {
         let YearFilter = new DashboardWidgetVO();
 
-        YearFilter.default_height = 9;
-        YearFilter.default_width = 36;
+        YearFilter.default_height = 5;
+        YearFilter.default_width = 2;
         YearFilter.name = 'yearfilter';
         YearFilter.widget_component = 'Yearfilterwidgetcomponent';
         YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
@@ -278,8 +278,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_PageSwitch() {
         let pageswitch_widget = new DashboardWidgetVO();
 
-        pageswitch_widget.default_height = 6;
-        pageswitch_widget.default_width = 20;
+        pageswitch_widget.default_height = 5;
+        pageswitch_widget.default_width = 2;
         pageswitch_widget.name = 'pageswitch';
         pageswitch_widget.widget_component = 'Pageswitchwidgetcomponent';
         pageswitch_widget.options_component = 'Pageswitchwidgetoptionscomponent';

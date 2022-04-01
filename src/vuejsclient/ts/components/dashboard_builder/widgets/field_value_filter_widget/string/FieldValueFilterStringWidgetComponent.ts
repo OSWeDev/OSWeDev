@@ -491,7 +491,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         translated_active_options.vo_type = this.vo_field_ref.api_type_id;
 
         switch (field.field_type) {
-            // case ModuleTableField.FIELD_TYPE_file_field:
             // case ModuleTableField.FIELD_TYPE_file_ref:
             // case ModuleTableField.FIELD_TYPE_image_field:
             // case ModuleTableField.FIELD_TYPE_image_ref:
@@ -520,6 +519,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
@@ -593,7 +593,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         translated_active_options.vo_type = this.vo_field_ref.api_type_id;
 
         switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:
@@ -618,6 +617,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
 

@@ -213,7 +213,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let field = this.getFieldFromId(field_id);
 
         switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:
@@ -223,6 +222,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_geopoint:

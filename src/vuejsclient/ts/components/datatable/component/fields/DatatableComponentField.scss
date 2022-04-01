@@ -15,6 +15,12 @@
         margin-bottom: 0.15em;
     }
 
+    &.field_type_boolean {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 2em;
+    }
+
     .many_to_one {
         background-color: #28a745;
         border-color: #28a745;

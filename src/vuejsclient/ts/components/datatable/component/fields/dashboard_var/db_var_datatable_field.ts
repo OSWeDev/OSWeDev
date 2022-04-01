@@ -136,7 +136,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ALL;
         } else {
             switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_file_field:
                 case ModuleTableField.FIELD_TYPE_file_ref:
                 case ModuleTableField.FIELD_TYPE_image_field:
                 case ModuleTableField.FIELD_TYPE_image_ref:
@@ -164,6 +163,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_html:
                 case ModuleTableField.FIELD_TYPE_password:
                 case ModuleTableField.FIELD_TYPE_email:
+                case ModuleTableField.FIELD_TYPE_file_field:
                 case ModuleTableField.FIELD_TYPE_string:
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_translatable_text:

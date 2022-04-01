@@ -83,10 +83,10 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_file_field:
                 return true;
 
             case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:

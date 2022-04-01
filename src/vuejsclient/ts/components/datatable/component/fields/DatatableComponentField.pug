@@ -1,18 +1,21 @@
-.field(:field_name="field.datatable_field_uid")
+.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field.moduleTableField.field_type : ""')
     template(v-if='!field.hidden')
         template(v-if="show_label")
             span {{ t(field.translatable_title) }} :
         template(v-if="field.type == 'Simple'")
             template(v-if="field.moduleTableField.field_type == 'boolean'")
                 template(v-if="field_value == 'true' || field_value === true")
-                    i.fa.fa-check
+                    i.boolean_value.is_true.fa.fa-check-circle.text-success
                 template(v-if="field_value == 'false' || field_value === false")
-                    i.fa.fa-close
+                    i.boolean_value.is_false.fa.fa-times-circle.text-danger
             template(v-else-if="field.moduleTableField.field_type == 'password'")
                 i.fa.fa-lock
             template(v-else-if="field.moduleTableField.field_type == 'number[]'")
                 ul.multi-input(v-if="field_value")
                     li(v-for="value in field_value") {{ value }}
+            
+            template(v-else-if="field.moduleTableField.field_type == 'file'")
+                Filedatatablefieldcomponent(:file_path="field_value")
 
             template(v-else-if="field.moduleTableField.field_type == 'text[]'")
                 ul.multi-input(v-if="field_value")

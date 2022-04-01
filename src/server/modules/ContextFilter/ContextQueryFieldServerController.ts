@@ -46,7 +46,6 @@ export default class ContextQueryFieldServerController {
                 res.label = res.string_value;
                 break;
 
-            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:
@@ -78,6 +77,7 @@ export default class ContextQueryFieldServerController {
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
                 res.string_value = db_res;

@@ -1,6 +1,6 @@
 .rootElt.file_datatable_field
     template(v-if='(!!file) && (!!file.path)')
         .text-center
-            a.btn.btn-primary(:href="'/' + file.path" target='_blank') {{ label('file_datatable_field.download') }}
+            a.btn.btn-primary(:href="'/' + file.path" target='_blank' v-tooltip='"/" + file.path') {{ label('file_datatable_field.download') }}
     template(v-else)
         .introuvable {{ label('file_datatable_field.introuvable', { file_id: file_id }) }}
