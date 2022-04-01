@@ -63,7 +63,7 @@
                     :is_editable="true"
                     :default_translation="default_column_label")
 
-            .remove_column(@click="remove_column")
+            .remove_column(@click="remove_column" v-tooltip='vo_ref_tooltip')
                 i.fa.fa-trash(aria-hidden="true")
 
             template(v-if='!show_options')

@@ -1,24 +1,42 @@
 .dashboard_builder_board {
 
-    width: 1280px;
-    height: 720px;
-    border: dashed 1px #AAA;
-    border-radius: 2px;
+    .grid_wrapper {
+
+        margin-left: -10px;
+        margin-top: -10px;
+        margin-right: -10px;
+        margin-bottom: -10px;
+    }
 
     .grid_item_wrapper {
 
         &.widget_name__datatable .vue-grid-item,
         &.widget_name__valuetable .vue-grid-item,
         &.widget_name__checklist .vue-grid-item {
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            .dashboard_builder_board_item {
+                height: -webkit-fill-available;
+
+                >.widget_component_wrapper {
+                    height: -webkit-fill-available;
+
+                    >.widget_component{
+                        height: -webkit-fill-available;
+                    }
+                }
+            }
         }
 
-        &.selected {
-         
-            .vue-grid-item {
-                z-index: 1;
-                box-shadow: 1px 1px 1px #888;
-            }
-        } 
+        .vue-grid-item {
+            box-shadow: 1px 1px 20px #e0e0e0;
+            border-radius: 4px;
+        }
+
+        &.selected .vue-grid-item {
+            z-index: 1;
+            box-shadow: 1px 1px 20px #888;
+        }
     }
 }

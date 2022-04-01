@@ -50,6 +50,25 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private show_options: boolean = false;
 
+    get vo_ref_tooltip(): string {
+        if (!this.column) {
+            return null;
+        }
+
+        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
+        if (!table) {
+            return null;
+        }
+        let field = table.get_field_by_id(this.column.field_id);
+        if (!field) {
+            return null;
+        }
+
+        return this.t(table.label.code_text) +
+            ' > ' +
+            this.t(field.field_label.code_text);
+    }
+
     private async update_enum_colors() {
         if ((!this.object_column) || (!this.object_column.is_enum)) {
             return;

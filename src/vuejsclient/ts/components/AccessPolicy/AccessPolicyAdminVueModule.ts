@@ -19,6 +19,7 @@ import TextHandler from '../../../../shared/tools/TextHandler';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
+import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import MenuController from '../menu/MenuController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
@@ -47,6 +48,30 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             ModuleAccessPolicy.POLICY_SENDRECAPTURE,
             ModuleAccessPolicy.POLICY_IMPERSONATE
         ];
+    }
+
+    public initialize() {
+        TableWidgetController.getInstance().register_component(
+            new ComponentDatatableField(
+                'impersonate',
+                ImpersonateComponent,
+                'id'
+            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+        );
+        TableWidgetController.getInstance().register_component(
+            new ComponentDatatableField(
+                'sendinitpwd',
+                SendInitPwdComponent,
+                'id'
+            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+        );
+        TableWidgetController.getInstance().register_component(
+            new ComponentDatatableField(
+                'sendrecapture',
+                SendRecaptureComponent,
+                'id'
+            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+        );
     }
 
     public async initializeAsync() {

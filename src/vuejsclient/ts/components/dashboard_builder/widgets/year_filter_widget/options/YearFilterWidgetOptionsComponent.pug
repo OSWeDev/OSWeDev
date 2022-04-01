@@ -8,23 +8,6 @@
                 :sync="false"
                 :width="150"
                 :labels="{checked: label('year_filter_widget_component.is_vo_field_ref.data'), unchecked: label('year_filter_widget_component.is_vo_field_ref.value')}")
-    .field_ref(v-if='is_vo_field_ref')
-        .input_label {{ label('year_filter_widget_component.vo_field_ref') }}
-        .input_wrapper
-            Singlevofieldrefholdercomponent(
-                :vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref"
-                :page_widget_id='page_widget ? page_widget.id : null'
-            )
-    .custom_filter_name(v-else)
-        .input_label {{ label('year_filter_widget_component.custom_filter_name') }}
-        .input_wrapper
-            input(
-                type="text"
-                v-model="custom_filter_name"
-            )
-        .existing_custom_filters_list(v-if='has_existing_other_custom_filters')
-            template(v-for='custom_filter in other_custom_filters')
-                .custom_filter(@click='change_custom_filter(custom_filter)') {{ custom_filter }}
 
     .year_relative_mode 
         .input_label {{ label('year_filter_widget_component.year_relative_mode') }}
@@ -85,3 +68,21 @@
                 type="number"
                 v-model="auto_select_year_max"
             )
+            
+    .field_ref(v-if='is_vo_field_ref')
+        .input_label {{ label('year_filter_widget_component.vo_field_ref') }}
+        .input_wrapper
+            Singlevofieldrefholdercomponent(
+                :vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref"
+                :page_widget_id='page_widget ? page_widget.id : null'
+            )
+    .custom_filter_name(v-else)
+        .input_label {{ label('year_filter_widget_component.custom_filter_name') }}
+        .input_wrapper
+            input(
+                type="text"
+                v-model="custom_filter_name"
+            )
+        .existing_custom_filters_list(v-if='has_existing_other_custom_filters')
+            template(v-for='custom_filter in other_custom_filters')
+                .custom_filter(@click='change_custom_filter(custom_filter)') {{ custom_filter }}

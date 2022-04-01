@@ -1,4 +1,3 @@
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -7,13 +6,11 @@ import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import StackContext from '../../StackContext';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ContextQueryServerController from './ContextQueryServerController';
 import FieldPathWrapper from './vos/FieldPathWrapper';
-import moment = require('moment');
 
 export default class ContextFilterServerController {
 
@@ -40,6 +37,15 @@ export default class ContextFilterServerController {
         let field_id = active_field_filter.field_id ?
             tables_aliases_by_type[active_field_filter.vo_type] + '.' + active_field_filter.field_id :
             null;
+
+        /**
+         * On est sur un filtre qui a pas de rapport a priori avec la requete (aucune jointure trouvée)
+         *  on ignore le filtrage tout simplement
+         */
+        if (field_id && !tables_aliases_by_type[active_field_filter.vo_type]) {
+            ConsoleHandler.getInstance().warn('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
+            return;
+        }
 
         let field = active_field_filter.vo_type ?
             VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id) :

@@ -7,5 +7,5 @@
                 :is_editable="true"
                 :default_translation="default_field_label")
 
-        .remove_field_ref(@click="remove_field_ref")
+        .remove_field_ref(@click="remove_field_ref" v-tooltip='vo_ref_tooltip')
             i.fa.fa-trash.fa-fw(aria-hidden="true")

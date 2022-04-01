@@ -11,17 +11,15 @@
         template(v-else)
             Gridlayout(
                 :layout.sync="editable_dashboard_page.layout"
-                :col-num="col_num"
                 :row-height="elt_height"
-                :max-rows="max_rows"
-                :auto-size="false"
+                :auto-size="true"
                 :is-draggable="draggable"
                 :is-resizable="resizable"
-                :responsive="false"
-                :vertical-compact="false"
-                :prevent-collision="true"
+                :responsive="true"
+                :vertical-compact="true"
+                :prevent-collision="false"
                 :use-css-transforms="true"
-                :margin="[0, 0]"
+                :margin="[10, 10]"
                 :key="'Gridlayout__' + dashboard_page.id"
             )
                 template(v-for="item in editable_dashboard_page.layout")

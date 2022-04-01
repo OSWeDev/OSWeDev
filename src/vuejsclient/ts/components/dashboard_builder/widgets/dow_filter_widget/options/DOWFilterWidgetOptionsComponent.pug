@@ -8,6 +8,7 @@
                 :sync="false"
                 :width="150"
                 :labels="{checked: label('dow_filter_widget_component.is_vo_field_ref.data'), unchecked: label('dow_filter_widget_component.is_vo_field_ref.value')}")
+    
     .field_ref(v-if='is_vo_field_ref')
         .input_label {{ label('dow_filter_widget_component.vo_field_ref') }}
         .input_wrapper

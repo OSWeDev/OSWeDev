@@ -2,7 +2,7 @@
 
 .dashboard_builder {
     
-    margin-bottom: 5em;
+    margin-bottom: 500px;
 
     >.row>.col-md-12>.header {
 
@@ -73,9 +73,9 @@
     }
 
     .pages {
-        border: dashed 1px #AAA;
         border-radius: 2px;
         margin-bottom: 1em;
+        margin-left: -5px;
 
         .create_dashboard_page {
             text-align: center;
@@ -103,7 +103,13 @@
             display: inline-block;
             background: #F5F5F5;
             padding: 1em;
-            margin: 0.5em;
+            margin: 5px;
+            box-shadow: 1px 1px 20px #e0e0e0;
+            border-radius: 4px;
+
+            &:hover {
+                box-shadow: 1px 1px 20px #888;
+            }
 
             .select,
             .selected,
@@ -203,6 +209,16 @@
 
     .fields_wrapper {
         z-index: 2;
+        position: fixed;
+        right: 0;
+        width: 680px;
+        top: 100px;
+        max-height: 80%;
+        overflow-y: auto;
+        padding-right: 0;
+        min-height: 80px;
+        padding-top: 10px;
+        padding-left: 70px;
     }
     
     .collapse_fields_wrapper {
@@ -210,12 +226,12 @@
         margin: 0em;
         float: left;
         position: absolute;
-        left: -40px;
+        left: 10px;
         background: #F5F5F5;
         font-size: 2em;
         cursor: pointer;
         color: #555;
-        box-shadow: 1px 1px 1px grey;
+        box-shadow: 1px 1px 5px grey;
 
         &.collapsed {
             right: 10px;
