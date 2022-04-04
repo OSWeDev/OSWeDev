@@ -233,6 +233,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Sucre syntaxique pour une filtre date intersects ranges
+     * @param field_id le field qu'on veut filtrer
+     * @param ranges les valeurs qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_date_x_ranges(field_id: string, ranges: TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_x_ranges(ranges)]);
+    }
+
+    /**
      * Filter sur le champs id, avec un id numérique simple
      * @param id la valeur de l'id qu'on veut filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id

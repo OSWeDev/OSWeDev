@@ -505,6 +505,16 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtre par intersection de ts_ranges
+     * @param ranges
+     */
+    public by_date_x_ranges(ranges: TSRange[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+        this.param_tsranges = ranges;
+        return this;
+    }
+
+    /**
      * Filtre par intersection de num_ranges
      * @param ranges
      */

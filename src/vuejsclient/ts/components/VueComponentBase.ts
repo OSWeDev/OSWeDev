@@ -775,6 +775,16 @@ export default class VueComponentBase extends Vue
         el.className = (res ? res : '');
     }
 
+    protected on_every_update_green_if_supp_zero(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
+
+        this.removeClassName('text-success', el);
+
+        let className = (simple_value >= 1) ? 'text-success' : '';
+
+        this.addClassName(className, el);
+    }
+
     protected on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
         let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 

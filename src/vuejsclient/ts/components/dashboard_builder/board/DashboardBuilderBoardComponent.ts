@@ -235,6 +235,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                         this.delete_page_widget(page_widget);
                         this.select_widget(null);
 
+                        // On reload les widgets
+                        this.widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
+                            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
+
+                        this.editable_dashboard_page = Object.assign({
+                            layout: this.widgets
+                        }, this.dashboard_page);
+
                         self.snotify.success(self.label('DashboardBuilderBoardComponent.delete_widget.ok'));
                     },
                     bold: false

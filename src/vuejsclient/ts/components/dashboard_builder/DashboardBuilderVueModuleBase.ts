@@ -107,8 +107,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_BulkOps() {
         let BulkOps = new DashboardWidgetVO();
 
-        BulkOps.default_height = 18;
-        BulkOps.default_width = 45;
+        BulkOps.default_height = 35;
+        BulkOps.default_width = 12;
         BulkOps.name = 'bulkops';
         BulkOps.widget_component = 'Bulkopswidgetcomponent';
         BulkOps.options_component = 'Bulkopswidgetoptionscomponent';
@@ -126,8 +126,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_Checklist() {
         let Checklist = new DashboardWidgetVO();
 
-        Checklist.default_height = 18;
-        Checklist.default_width = 45;
+        Checklist.default_height = 35;
+        Checklist.default_width = 12;
         Checklist.name = 'checklist';
         Checklist.widget_component = 'Checklistwidgetcomponent';
         Checklist.options_component = 'Checklistwidgetoptionscomponent';
@@ -145,8 +145,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_DataTable() {
         let Table = new DashboardWidgetVO();
 
-        Table.default_height = 18;
-        Table.default_width = 45;
+        Table.default_height = 35;
+        Table.default_width = 12;
         Table.name = 'datatable';
         Table.widget_component = 'Tablewidgetcomponent';
         Table.options_component = 'Tablewidgetoptionscomponent';
@@ -164,8 +164,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_ValueTable() {
         let Table = new DashboardWidgetVO();
 
-        Table.default_height = 18;
-        Table.default_width = 45;
+        Table.default_height = 35;
+        Table.default_width = 12;
         Table.name = 'valuetable';
         Table.widget_component = 'Tablewidgetcomponent';
         Table.options_component = 'Tablewidgetoptionscomponent';
@@ -259,8 +259,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
     private async initializeWidget_Var() {
         let var_widget = new DashboardWidgetVO();
 
-        var_widget.default_height = 12;
-        var_widget.default_width = 27;
+        var_widget.default_height = 10;
+        var_widget.default_width = 1;
         var_widget.name = 'var';
         var_widget.widget_component = 'Varwidgetcomponent';
         var_widget.options_component = 'Varwidgetoptionscomponent';

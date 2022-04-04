@@ -97,7 +97,7 @@ export default class TablePaginationComponent extends VueComponentBase {
     private update_slider() {
         this.page = Math.floor(this.pagination_offset / this.pagination_pagesize) + 1;
         this.new_page = this.page;
-        this.max_page = Math.floor(this.pagination_count / this.pagination_pagesize) + 1;
+        this.max_page = Math.floor((this.pagination_count ? (this.pagination_count - 1) : 0) / this.pagination_pagesize) + 1;
         if (this.new_page > this.max_page) {
             this.new_page = this.max_page;
             this.page = this.new_page;
@@ -125,7 +125,7 @@ export default class TablePaginationComponent extends VueComponentBase {
 
     private change_offset() {
         let offset = (this.new_page - 1) * this.pagination_pagesize;
-        offset = (offset > this.pagination_count) ? Math.floor(this.pagination_count / this.pagination_pagesize) + 1 : offset;
+        offset = (offset >= this.pagination_count) ? Math.floor((this.pagination_count > 0 ? (this.pagination_count - 1) : 0) / this.pagination_pagesize) * this.pagination_pagesize : offset;
         this.$emit("change_offset", offset);
     }
 }

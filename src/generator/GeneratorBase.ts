@@ -72,6 +72,7 @@ import Patch20220222MigrationCodesTradsDB from './patchs/postmodules/Patch202202
 import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import VersionUpdater from './version_updater/VersionUpdater';
+import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 
 export default abstract class GeneratorBase {
 
@@ -155,7 +156,8 @@ export default abstract class GeneratorBase {
             Patch20211117ChangeVarDataIndex.getInstance(),
             Patch20211214ChangeVarTooltipTrads.getInstance(),
             Patch20220217ChangeLoginTrad.getInstance(),
-            Patch20220222MigrationCodesTradsDB.getInstance()
+            Patch20220222MigrationCodesTradsDB.getInstance(),
+            Patch20220404UpdateDBBWidgetsDefaultSize.getInstance()
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }
