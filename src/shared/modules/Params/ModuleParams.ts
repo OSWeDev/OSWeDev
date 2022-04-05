@@ -78,6 +78,12 @@ export default class ModuleParams extends Module {
         this.datatables.push(new ModuleTable(this, ParamVO.API_TYPE_ID, () => new ParamVO(), datatable_fields, label_field, "Params"));
     }
 
+    public async getParamValueAsString(param_name: string, default_if_undefined: string = null): Promise<string> {
+        let res = await this.getParamValue(param_name);
+
+        return (res != null) ? res : default_if_undefined;
+    }
+
     public async getParamValueAsInt(param_name: string, default_if_undefined: number = null): Promise<number> {
         let res = await this.getParamValue(param_name);
 
