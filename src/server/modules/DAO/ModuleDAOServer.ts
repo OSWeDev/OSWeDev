@@ -1829,6 +1829,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             //  Attention si un des output est false avant modification, on annule la modification
             let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
             if (!BooleanHandler.getInstance().AND(res, true)) {
+                ConsoleHandler.getInstance().error("un des output est false avant modification ! :" + JSON.stringify(res) + ':' + JSON.stringify(vo));
                 return null;
             }
 
@@ -1880,6 +1881,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             //  Attention si un des output est false avant modification, on annule la modification
             let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
             if (!BooleanHandler.getInstance().AND(res, true)) {
+                ConsoleHandler.getInstance().error("un des output est false avant modification ! :" + JSON.stringify(res) + ':' + JSON.stringify(vo));
                 return null;
             }
 
