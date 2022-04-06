@@ -77,6 +77,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
             }
 
             let fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_fields();
+            res[vo_type].push('id');
 
             for (let j in fields) {
                 let field = fields[j];
@@ -119,7 +120,8 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
             for (let i in fields) {
                 let field_id = fields[i];
 
-                res[vo_type][field_id] = this.t(VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_field_by_id(field_id).field_label.code_text);
+                let field = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_field_by_id(field_id);
+                res[vo_type][field_id] = field ? this.t(field.field_label.code_text) : field_id;
             }
         }
 
@@ -142,6 +144,8 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
                     break;
                 }
             }
+
+            res[vo_type] = res[vo_type] || (this.get_selected_fields && this.get_selected_fields[vo_type] && this.get_selected_fields[vo_type]['id']);
         }
 
         return res;

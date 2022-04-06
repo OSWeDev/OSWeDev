@@ -159,12 +159,15 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             this.snotify.error(this.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'));
             return;
         }
-        page_widget = await ModuleDAO.getInstance().getVoById<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, insertOrDeleteQueryResult.id);
 
-        /**
-         * On ajoute le widget dans les items du layout
-         */
-        this.editable_dashboard_page.layout.push(page_widget);
+        // On reload les widgets
+        this.widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
+            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
+
+        this.editable_dashboard_page = Object.assign({
+            layout: this.widgets
+        }, this.dashboard_page);
+
         this.set_page_widget(page_widget);
         this.select_widget(page_widget);
 

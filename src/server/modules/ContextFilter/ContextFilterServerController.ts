@@ -799,6 +799,7 @@ export default class ContextFilterServerController {
                             where_conditions.push(field_id + " = " + active_field_filter.param_numeric);
                             break;
                         }
+
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:

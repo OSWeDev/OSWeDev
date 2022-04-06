@@ -755,6 +755,25 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.confirm_delete.ko.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '<' },
+            'adv_number_fltr.inf'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '<=' },
+            'adv_number_fltr.infeq'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '>' },
+            'adv_number_fltr.sup'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '>=' },
+            'adv_number_fltr.supeq'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Est null' },
+            'adv_number_fltr.est_null'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'N\'est pas null' },
+            'adv_number_fltr.nest_pas_null'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Contient' },
             'adv_str_fltr.contient'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(

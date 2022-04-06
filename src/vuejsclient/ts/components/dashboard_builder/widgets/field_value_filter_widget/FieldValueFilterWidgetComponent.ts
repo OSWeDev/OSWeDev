@@ -11,6 +11,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import FieldValueFilterBooleanWidgetComponent from './boolean/FieldValueFilterBooleanWidgetComponent';
 import FieldValueFilterEnumWidgetComponent from './enum/FieldValueFilterEnumWidgetComponent';
 import './FieldValueFilterWidgetComponent.scss';
+import FieldValueFilterNumberWidgetComponent from './number/FieldValueFilterNumberWidgetComponent';
 import FieldValueFilterWidgetOptions from './options/FieldValueFilterWidgetOptions';
 import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStringWidgetComponent';
 
@@ -19,7 +20,8 @@ import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStri
     components: {
         Fieldvaluefilterstringwidgetcomponent: FieldValueFilterStringWidgetComponent,
         Fieldvaluefilterbooleanwidgetcomponent: FieldValueFilterBooleanWidgetComponent,
-        Fieldvaluefilterenumwidgetcomponent: FieldValueFilterEnumWidgetComponent
+        Fieldvaluefilterenumwidgetcomponent: FieldValueFilterEnumWidgetComponent,
+        Fieldvaluefilternumberwidgetcomponent: FieldValueFilterNumberWidgetComponent
     }
 })
 export default class FieldValueFilterWidgetComponent extends VueComponentBase {
@@ -41,6 +43,10 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
         let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
+        if (!field) {
+            return false;
+        }
+
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_boolean:
                 return true;
@@ -58,6 +64,10 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
         let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
+        if (!field) {
+            return false;
+        }
+
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_enum:
                 return true;
@@ -74,6 +84,10 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
         }
 
         let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+        if (!field) {
+            return false;
+        }
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_html:
@@ -119,6 +133,36 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            default:
+                return false;
+        }
+    }
+
+    get is_type_number(): boolean {
+
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
+            return false;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+        if (!field) {
+
+            /**
+             * Cas spécifique du field_id == 'id' qu'on voudrait pouvoir filtrer comme un number
+             */
+            return this.vo_field_ref.field_id == 'id';
+        }
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_prct:
+                return true;
+
             default:
                 return false;
         }

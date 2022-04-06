@@ -425,7 +425,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
 
                 if (!field) {
-                    return null;
+                    return this.object_column.field_id;
                 }
 
                 return this.t(field.field_label.code_text);

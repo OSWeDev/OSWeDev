@@ -34,12 +34,13 @@ export default class ContextQueryFieldServerController {
         }
 
         let field = VOsTypesManager.getInstance().moduleTables_by_voType[query_field.api_type_id].get_field_by_id(query_field.field_id);
+        let field_type = field ? field.field_type : ((query_field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int : null);
         let res: DataFilterOption = new DataFilterOption(
             DataFilterOption.STATE_SELECTABLE,
             db_res.toString(),
             null
         );
-        switch (field.field_type) {
+        switch (field_type) {
             case ModuleTableField.FIELD_TYPE_enum:
                 res.numeric_value = ConversionHandler.forceNumber(db_res);
                 res.string_value = (res.numeric_value == null) ? null : field.enum_values[res.numeric_value];

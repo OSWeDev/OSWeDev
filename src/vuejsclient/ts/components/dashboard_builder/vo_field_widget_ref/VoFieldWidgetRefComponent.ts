@@ -31,13 +31,10 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
             return null;
         }
         let field = table.get_field_by_id(this.vo_field_ref.field_id);
-        if (!field) {
-            return null;
-        }
 
         return this.t(table.label.code_text) +
             ' > ' +
-            this.t(field.field_label.code_text);
+            (field ? this.t(field.field_label.code_text) : this.vo_field_ref.field_id);
     }
 
     get translatable_name_code_text() {
@@ -59,7 +56,7 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
 
         let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
-        return this.t(field.field_label.code_text);
+        return field ? this.t(field.field_label.code_text) : this.vo_field_ref.field_id;
     }
 
     private remove_field_ref() {
