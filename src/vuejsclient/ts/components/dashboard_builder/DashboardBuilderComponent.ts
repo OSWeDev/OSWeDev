@@ -94,7 +94,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private selected_widget: DashboardPageWidgetVO = null;
 
-    private collapsed_fields_wrapper: boolean = false;
+    private collapsed_fields_wrapper: boolean = true;
 
     private can_use_clipboard: boolean = false;
 
@@ -228,9 +228,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (let i in pages) {
             let page = pages[i];
 
-            page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [page.id]);
-            if (page_widgets && page_widgets.length) {
-                export_vos = export_vos.concat(page_widgets.map((p) => pagewidget_table.get_api_version(p)));
+            let this_page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [page.id]);
+            if (this_page_widgets && this_page_widgets.length) {
+                /**
+                 * On remplace les page_widget_id par une ref vers l'id
+                 */
+                this_page_widgets.map((p) => p.json_options = p.json_options.replace(/"page_widget_id":([0-9]+)/ig, '"page_widget_id":{{IMPORT:dashboard_pwidget:$1}}'));
+                export_vos = export_vos.concat(this_page_widgets.map((p) => pagewidget_table.get_api_version(p)));
+                page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
             }
         }
 
@@ -265,14 +270,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     ) {
         let langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
 
+        let promises = [];
+
         // trad du db
         if (db && db.translatable_name_code_text) {
-            await this.get_exportable_translation(
+            promises.push(this.get_exportable_translation(
                 langs,
                 translation_codes,
                 translations,
-                db.translatable_name_code_text,
-                DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+                db.translatable_name_code_text, DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + '{{IMPORT:' + db._type + ':' + db.id + '}}' + DefaultTranslation.DEFAULT_LABEL_EXTENSION)
+            );
         }
 
         // trads des pages
@@ -280,12 +287,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             let page = pages[i];
 
             if (page && page.translatable_name_code_text) {
-                await this.get_exportable_translation(
+                promises.push(this.get_exportable_translation(
                     langs,
                     translation_codes,
                     translations,
                     page.translatable_name_code_text,
-                    DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}');
+                    DashboardBuilderController.PAGE_NAME_CODE_PREFIX + '{{IMPORT:' + page._type + ':' + page.id + '}}'));
             }
         }
 
@@ -294,12 +301,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             let page_widget = page_widgets[i];
 
             if (page_widget && page_widget.translatable_name_code_text) {
-                await this.get_exportable_translation(
+                promises.push(this.get_exportable_translation(
                     langs,
                     translation_codes,
                     translations,
                     page_widget.translatable_name_code_text,
-                    DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}');
+                    DashboardBuilderController.WIDGET_NAME_CODE_PREFIX + '{{IMPORT:' + page_widget._type + ':' + page_widget.id + '}}'));
             }
 
             /**
@@ -310,8 +317,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
             filter.vo_type = TranslatableTextVO.API_TYPE_ID;
             filter.param_textarray = [
-                DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id,
-                DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id
+                DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.',
+                DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id + '.'
             ];
 
             let query: ContextQueryVO = new ContextQueryVO();
@@ -336,14 +343,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         code.substring((DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id).length, code.length);
                 }
 
-                await this.get_exportable_translation(
+                promises.push(this.get_exportable_translation(
                     langs,
                     translation_codes,
                     translations,
                     page_widget_trad.code_text,
-                    code);
+                    code));
             }
         }
+
+        await Promise.all(promises);
     }
 
     private async get_exportable_translation(

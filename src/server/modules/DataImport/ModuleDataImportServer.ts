@@ -1387,7 +1387,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         for (let i in fields) {
             let field = fields[i];
 
-            if (field.field_type == ModuleTableField.FIELD_TYPE_string) {
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_string) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_plain_vo_obj) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_textarea)) {
                 if (!vo[field.field_id]) {
                     continue;
                 }

@@ -119,17 +119,21 @@
                 .col-md-12.tables_graph_wrapper 
                     Tablesgraphcomponent(:dashboard='dashboard' @add_api_type_id='add_api_type_id' @del_api_type_id='del_api_type_id')
 
-            .row(v-if='show_build_page')
-                .col-md-12.fields_wrapper
-                    .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
-                        i.fa.fa-caret-square-o-up.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
-                        i.fa.fa-caret-square-o-down.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+            
+            .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')
+                .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
+                    i.fa.fa-caret-square-o-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
+                    i.fa.fa-caret-square-o-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+
+                .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
                     Dashboardbuilderwidgetscomponent(
-                        :dashboard='dashboard' :selected_widget='selected_widget' v-show='!collapsed_fields_wrapper'
+                        :dashboard='dashboard' :selected_widget='selected_widget'
                         :dashboard_page='page'
-                        :dashboard_pages='pages'
+                        :dashboard_pages='pages'                        
                     )
-                    Droppablevofieldscomponent(:dashboard='dashboard' v-show='!collapsed_fields_wrapper')
+                    Droppablevofieldscomponent(:dashboard='dashboard')
+            
+            .row
                 .col-md-12.builder_wrapper
                     Dashboardbuilderboardcomponent(
                         :dashboard_page='page' 

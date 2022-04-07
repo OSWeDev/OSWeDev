@@ -211,32 +211,36 @@
         z-index: 2;
         position: fixed;
         right: 0;
-        width: 680px;
-        top: 100px;
+        width: 600px;
+        top: 124px;
         max-height: 80%;
         overflow-y: auto;
-        padding-right: 0;
-        min-height: 80px;
-        padding-top: 10px;
-        padding-left: 70px;
+        padding: 0;
+        box-shadow: 1px 1px 10px;
+        background: white; 
+        overflow-x: hidden;
+        transition: width 0.5s ease-out;
+
+        &.collapsed{
+            width: 0px;
+        }
+    
+        .collapsible_component_wrapper {
+            width: 600px;
+        }
     }
     
     .collapse_fields_wrapper {
         padding: 0.2em;
         margin: 0em;
-        float: left;
-        position: absolute;
-        left: 10px;
+        position: fixed;
+        right: 0;
         background: #F5F5F5;
         font-size: 2em;
         cursor: pointer;
         color: #555;
         box-shadow: 1px 1px 5px grey;
-
-        &.collapsed {
-            right: 10px;
-            left: auto;
-        }
+        top: 66px;
     }
 
     .steps {
