@@ -1422,6 +1422,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     vo[field.field_id] = start + ordered_vos_by_type_and_initial_id[vo_type][initial_id].id + end;
 
                     m = reg_exp.exec(vo[field.field_id]);
+                    /**
+                     * Par ce que si on catch la dernière occurrence à chaque fois on remplace un élément et paf null derrière
+                     */
+                    if (!m) {
+                        m = reg_exp.exec(vo[field.field_id]);
+                    }
                 }
             }
         }
