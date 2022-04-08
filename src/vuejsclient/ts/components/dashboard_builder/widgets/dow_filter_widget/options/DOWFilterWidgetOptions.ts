@@ -36,11 +36,11 @@ export default class DOWFilterWidgetOptions {
         public custom_filter_name: string
     ) { }
 
-    get placeholder_name_code_text(): string {
+    public get_placeholder_name_code_text(page_widget_id: number): string {
 
-        if ((!this.vo_field_ref) || (!this.vo_field_ref.page_widget_id)) {
+        if ((!this.vo_field_ref) || (!page_widget_id)) {
             return null;
         }
-        return DOWFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + this.vo_field_ref.page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        return DOWFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 }

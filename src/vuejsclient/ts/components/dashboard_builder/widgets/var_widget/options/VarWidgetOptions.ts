@@ -11,17 +11,16 @@ export default class VarWidgetOptions {
 
     public constructor(
         public var_id: number,
-        public page_widget_id: number,
         public filter_type: string,
         public filter_custom_field_filters: { [field_id: string]: string },
         public filter_additional_params: string
     ) { }
 
-    get title_name_code_text(): string {
+    public get_title_name_code_text(page_widget_id: number): string {
 
-        if ((!this.page_widget_id) || (!this.var_id)) {
+        if ((!page_widget_id) || (!this.var_id)) {
             return null;
         }
-        return VarWidgetOptions.TITLE_CODE_PREFIX + this.var_id + '.' + this.page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarWidgetOptions.TITLE_CODE_PREFIX + this.var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }

@@ -48,7 +48,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         if (!this.next_update_options) {
             this.next_update_options = new VarWidgetOptions(
                 this.widget_options.var_id,
-                this.widget_options.page_widget_id,
                 this.widget_options.filter_type,
                 this.widget_options.filter_custom_field_filters,
                 this.widget_options.filter_additional_params);
@@ -93,7 +92,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         if (!this.next_update_options) {
             this.next_update_options = new VarWidgetOptions(
                 this.widget_options.var_id,
-                this.widget_options.page_widget_id,
                 this.widget_options.filter_type,
                 this.widget_options.filter_custom_field_filters,
                 this.widget_options.filter_additional_params);
@@ -110,7 +108,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         if (!this.next_update_options) {
             this.next_update_options = new VarWidgetOptions(
                 this.widget_options.var_id,
-                this.widget_options.page_widget_id,
                 this.widget_options.filter_type,
                 this.widget_options.filter_custom_field_filters,
                 this.widget_options.filter_additional_params);
@@ -177,7 +174,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             if (this.widget_options.var_id != selected_var_id) {
                 this.next_update_options = this.widget_options;
                 this.next_update_options.var_id = selected_var_id;
-                this.next_update_options.page_widget_id = this.page_widget.id;
 
                 await this.throttled_update_options();
             }
@@ -202,7 +198,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get default_title_translation(): string {
@@ -228,7 +224,6 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
                 options = options ? new VarWidgetOptions(
                     options.var_id,
-                    options.page_widget_id,
                     options.filter_type,
                     options.filter_custom_field_filters,
                     options.filter_additional_params) : null;

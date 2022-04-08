@@ -177,7 +177,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if ((!!this.crud_api_type_id_selected) && ((!this.next_update_options.columns) || (!this.next_update_options.columns.find((column: TableColumnDescVO) => column.type == TableColumnDescVO.TYPE_crud_actions)))) {
                 let crud_actions_column = new TableColumnDescVO();
                 crud_actions_column.api_type_id = this.crud_api_type_id_selected;
-                crud_actions_column.page_widget_id = this.page_widget.id;
                 crud_actions_column.type = TableColumnDescVO.TYPE_crud_actions;
                 crud_actions_column.weight = -1;
                 crud_actions_column.id = this.get_new_column_id();
@@ -270,7 +269,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, this.page_widget.id, false, 100, null, false, true, false, true, true, true, true);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -317,10 +316,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         let res: TableColumnDescVO[] = [];
         for (let i in options.columns) {
 
-            // patch rétrocompatibilité
-            if (!options.columns[i].page_widget_id) {
-                options.columns[i].page_widget_id = this.page_widget.id;
-            }
             if (options.columns[i].readonly == null) {
                 options.columns[i].readonly = true;
             }
@@ -363,7 +358,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get default_title_translation(): string {
@@ -380,7 +375,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.page_widget_id, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
+                    options.columns, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
                     options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
                     options.refresh_button, options.export_button) : null;
             }

@@ -49,7 +49,7 @@ include ../../../../../views/mixins/loading.pug
                                     template(v-if='order_desc_on_id == column.id')
                                         i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
 
-                            Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
+                            Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
                     tbody
                         tr.table_row(v-for='row in data_rows')
                             td.table_col(

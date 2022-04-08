@@ -155,28 +155,20 @@ export default class ModuleDashboardBuilder extends Module {
 
     private init_VOFieldRefVO() {
 
-        let page_widget_id = new ModuleTableField('page_widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
-
         let datatable_fields = [
-            page_widget_id,
-
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'VO Type', true),
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID Champs', true),
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
         this.datatables.push(new ModuleTable(this, VOFieldRefVO.API_TYPE_ID, () => new VOFieldRefVO(), datatable_fields, null, "Référence de champs"));
-        page_widget_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID]);
     }
 
     private init_TableColumnDescVO() {
 
-        let page_widget_id = new ModuleTableField('page_widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var', false);
 
         let datatable_fields = [
-            page_widget_id,
-
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de colonne', true).setEnumValues(TableColumnDescVO.TYPE_LABELS),
 
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'VO Type', false),
@@ -193,7 +185,6 @@ export default class ModuleDashboardBuilder extends Module {
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
 
-        page_widget_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID]);
         var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 

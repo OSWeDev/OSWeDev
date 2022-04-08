@@ -116,7 +116,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         BulkOps.default_background = '#f5f5f5';
         BulkOps.icon_component = 'Bulkopswidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(BulkOps, () => new BulkOpsWidgetOptions(null, null, 10), BulkOpsWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(BulkOps, () => new BulkOpsWidgetOptions(null, 10), BulkOpsWidgetOptions.get_selected_fields);
 
         Vue.component('Bulkopswidgetcomponent', () => import(/* webpackChunkName: "BulkOpsWidgetComponent" */ './widgets/bulkops_widget/BulkOpsWidgetComponent'));
         Vue.component('Bulkopswidgetoptionscomponent', () => import(/* webpackChunkName: "BulkOpsWidgetOptionsComponent" */ './widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
@@ -135,7 +135,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Checklist.default_background = '#f5f5f5';
         Checklist.icon_component = 'Checklistwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Checklist, () => new ChecklistWidgetOptions(null, 10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Checklist, () => new ChecklistWidgetOptions(10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
 
         Vue.component('Checklistwidgetcomponent', () => import(/* webpackChunkName: "ChecklistWidgetComponent" */ './widgets/checklist_widget/ChecklistWidgetComponent'));
         Vue.component('Checklistwidgetoptionscomponent', () => import(/* webpackChunkName: "ChecklistWidgetOptionsComponent" */ './widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
@@ -154,7 +154,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, true, 100, null, false, true, false, true, true, true, true), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -173,7 +173,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, null, false, 100, null, false, false, false, false, false, true, true), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -268,7 +268,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         var_widget.default_background = '#f5f5f5';
         var_widget.icon_component = 'Varwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null, null), VarWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null), VarWidgetOptions.get_selected_fields);
 
         Vue.component('Varwidgetcomponent', () => import(/* webpackChunkName: "VarWidgetComponent" */ './widgets/var_widget/VarWidgetComponent'));
         Vue.component('Varwidgetoptionscomponent', () => import(/* webpackChunkName: "VarWidgetOptionsComponent" */ './widgets/var_widget/options/VarWidgetOptionsComponent'));
@@ -287,7 +287,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         pageswitch_widget.default_background = '#f5f5f5';
         pageswitch_widget.icon_component = 'Pageswitchwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(pageswitch_widget, () => new PageSwitchWidgetOptions(null, null), () => null);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(pageswitch_widget, () => new PageSwitchWidgetOptions(null), () => null);
 
         Vue.component('Pageswitchwidgetcomponent', () => import(/* webpackChunkName: "PageSwitchWidgetComponent" */ './widgets/page_switch_widget/PageSwitchWidgetComponent'));
         Vue.component('Pageswitchwidgetoptionscomponent', () => import(/* webpackChunkName: "PageSwitchWidgetOptionsComponent" */ './widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));

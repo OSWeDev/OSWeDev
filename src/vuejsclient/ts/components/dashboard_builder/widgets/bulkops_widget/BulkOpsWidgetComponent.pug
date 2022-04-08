@@ -70,7 +70,7 @@ include ../../../../../views/mixins/loading.pug
                         table.table-striped.table-hover
                             thead 
                                 th.table_header(v-for='column in columns')
-                                    Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
+                                    Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
                             tbody
                                 tr.table_row(v-for='row in data_rows')
                                     td.table_col(v-for='column in columns')
@@ -97,7 +97,7 @@ include ../../../../../views/mixins/loading.pug
                         table.table-striped.table-hover
                             thead 
                                 th.table_header(v-for='column in columns')
-                                    Inlinetranslatabletext(:code_text="column.translatable_name_code_text")
+                                    Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
                             tbody
                                 tr.table_row(v-for='row in data_rows_after')
                                     td.table_col(v-for='column in columns')

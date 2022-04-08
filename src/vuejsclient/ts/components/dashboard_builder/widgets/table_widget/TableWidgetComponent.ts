@@ -294,10 +294,6 @@ export default class TableWidgetComponent extends VueComponentBase {
 
             let column = options.columns[i];
 
-            // patch rétrocompatibilité
-            if (!column.page_widget_id) {
-                column.page_widget_id = this.page_widget.id;
-            }
             if (column.readonly == null) {
                 column.readonly = true;
             }
@@ -395,7 +391,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 case TableColumnDescVO.TYPE_var_ref:
                     let var_data_field: VarDatatableField<any, any> = new VarDatatableField(
                         column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-                        this.dashboard.id, column.translatable_name_code_text).auto_update_datatable_field_uid_with_vo_type();
+                        this.dashboard.id, column.get_translatable_name_code_text(this.page_widget.id)).auto_update_datatable_field_uid_with_vo_type();
                     res[column.id] = var_data_field;
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
@@ -600,7 +596,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options(): TableWidgetOptions {
@@ -613,7 +609,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.page_widget_id, options.is_focus_api_type_id,
+                    options.columns, options.is_focus_api_type_id,
                     options.limit, options.crud_api_type_id, options.vocus_button,
                     options.delete_button, options.delete_all_button, options.create_button, options.update_button,
                     options.refresh_button, options.export_button) : null;
@@ -749,7 +745,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column = this.columns[i];
-            res[column.datatable_field_uid] = this.t(column.translatable_name_code_text);
+            res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
         }
 
         return res;

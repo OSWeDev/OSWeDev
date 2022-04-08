@@ -259,11 +259,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        // patch rétrocompatibilité
-        if (!options.vo_field_ref.page_widget_id) {
-            options.vo_field_ref.page_widget_id = this.page_widget.id;
-        }
-
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
@@ -296,6 +291,10 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptions;
+                options = options ? new YearFilterWidgetOptions(
+                    options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.year_relative_mode,
+                    options.min_year, options.max_year, options.auto_select_year, options.auto_select_year_relative_mode,
+                    options.auto_select_year_min, options.auto_select_year_max) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -313,7 +312,6 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
 
         let vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
-        vo_field_ref.page_widget_id = this.page_widget.id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
 

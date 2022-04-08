@@ -180,7 +180,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let label_col = new TableColumnDescVO();
             label_col.api_type_id = this.api_type_id;
             label_col.field_id = this.moduletable.default_label_field.field_id;
-            label_col.page_widget_id = this.page_widget.id;
             label_col.type = TableColumnDescVO.TYPE_vo_field_ref;
             label_col.id = 1;
             label_col.readonly = true;
@@ -191,7 +190,6 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         let selected_col = new TableColumnDescVO();
         selected_col.api_type_id = this.api_type_id;
         selected_col.field_id = this.field_id_selected;
-        selected_col.page_widget_id = this.page_widget.id;
         selected_col.type = TableColumnDescVO.TYPE_vo_field_ref;
         selected_col.id = 2;
         selected_col.readonly = true;
@@ -465,7 +463,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options(): BulkOpsWidgetOptions {
@@ -477,7 +475,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
-                options = options ? new BulkOpsWidgetOptions(options.page_widget_id, options.api_type_id, options.limit) : null;
+                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

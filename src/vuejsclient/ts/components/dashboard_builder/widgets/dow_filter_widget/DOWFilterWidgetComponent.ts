@@ -72,7 +72,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        return this.get_flat_locale_translations[this.vo_field_ref.translatable_name_code_text];
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
     @Watch('selected_dows', { deep: true })
@@ -246,11 +246,6 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        // patch rétrocompatibilité
-        if (!options.vo_field_ref.page_widget_id) {
-            options.vo_field_ref.page_widget_id = this.page_widget.id;
-        }
-
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
@@ -263,6 +258,9 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as DOWFilterWidgetOptions;
+                options = options ? new DOWFilterWidgetOptions(
+                    options.is_vo_field_ref, options.vo_field_ref,
+                    options.custom_filter_name) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

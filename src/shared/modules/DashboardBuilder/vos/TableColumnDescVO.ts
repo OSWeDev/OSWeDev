@@ -21,30 +21,9 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public static TYPE_select_box: number = 3;
     public static TYPE_component: number = 4;
 
-    get translatable_name_code_text(): string {
-
-        if (!this.page_widget_id) {
-            return null;
-        }
-        if (!this.type) {
-            return null;
-        }
-
-        return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + this.page_widget_id + '.' + this.type + '.' +
-            ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
-                ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
-                    ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
-                        ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : this.component_name
-                        )
-                    )
-                )
-            );
-    }
 
     public id: number;
     public _type: string = TableColumnDescVO.API_TYPE_ID;
-
-    public page_widget_id: number;
 
     public type: number;
 
@@ -116,5 +95,25 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         }
 
         return (field.field_type == ModuleTableField.FIELD_TYPE_enum);
+    }
+
+    public get_translatable_name_code_text(page_widget_id: number): string {
+
+        if (!page_widget_id) {
+            return null;
+        }
+        if (!this.type) {
+            return null;
+        }
+
+        return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
+            ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
+                ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
+                    ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
+                        ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : this.component_name
+                        )
+                    )
+                )
+            );
     }
 }

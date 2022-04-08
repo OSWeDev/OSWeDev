@@ -91,7 +91,6 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             if (this.widget_options.page_id != selected_page_id) {
                 this.next_update_options = this.widget_options;
                 this.next_update_options.page_id = selected_page_id;
-                this.next_update_options.page_widget_id = this.page_widget.id;
 
                 await this.throttled_update_options();
             }
@@ -116,7 +115,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get default_title_translation(): string {
@@ -141,7 +140,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as PageSwitchWidgetOptions;
-                options = options ? new PageSwitchWidgetOptions(options.page_id, options.page_widget_id) : null;
+                options = options ? new PageSwitchWidgetOptions(options.page_id) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

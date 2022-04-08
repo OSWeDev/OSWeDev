@@ -76,8 +76,6 @@ export default class VarWidgetComponent extends VueComponentBase {
          */
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
 
-        this.widget_options.title_name_code_text
-
         /**
          * Pour les dates il faut réfléchir....
          */
@@ -120,7 +118,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options() {
@@ -134,7 +132,6 @@ export default class VarWidgetComponent extends VueComponentBase {
                 options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
                 options = options ? new VarWidgetOptions(
                     options.var_id,
-                    options.page_widget_id,
                     options.filter_type,
                     options.filter_custom_field_filters,
                     options.filter_additional_params) : null;

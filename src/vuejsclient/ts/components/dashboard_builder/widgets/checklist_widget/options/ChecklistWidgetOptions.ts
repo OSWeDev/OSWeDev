@@ -10,7 +10,6 @@ export default class ChecklistWidgetOptions {
     }
 
     public constructor(
-        public page_widget_id: number,
         public limit: number,
         public checklist_id: number,
         public delete_all_button: boolean,
@@ -19,11 +18,11 @@ export default class ChecklistWidgetOptions {
         public export_button: boolean,
     ) { }
 
-    get title_name_code_text(): string {
+    public get_title_name_code_text(page_widget_id: number): string {
 
-        if (!this.page_widget_id) {
+        if (!page_widget_id) {
             return null;
         }
-        return ChecklistWidgetOptions.TITLE_CODE_PREFIX + this.page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return ChecklistWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }

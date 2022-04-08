@@ -12,8 +12,8 @@
         .input_label {{ label('field_value_filter_widget_component.placeholder_name_code_text') }}
         .input_wrapper
             Inlinetranslatabletext(
-                v-if='widget_options && widget_options.placeholder_name_code_text'
-                :code_text="widget_options.placeholder_name_code_text" 
+                v-if='widget_options && widget_options.get_placeholder_name_code_text(page_widget.id)'
+                :code_text="widget_options.get_placeholder_name_code_text(page_widget.id)" 
                 :is_editable="true"
                 :default_translation="default_placeholder_translation")
     .max_visible_options

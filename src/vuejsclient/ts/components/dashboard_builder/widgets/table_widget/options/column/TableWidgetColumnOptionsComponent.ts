@@ -202,7 +202,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.page_widget_id, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
+                    options.columns, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
                     options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
                     options.refresh_button, options.export_button) : null;
             }
@@ -232,7 +232,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         let new_column = new TableColumnDescVO();
-        new_column.page_widget_id = this.page_widget.id;
         new_column.type = TableColumnDescVO.TYPE_component;
         new_column.component_name = this.new_column_select_type_component;
         new_column.id = this.get_new_column_id();
@@ -259,7 +258,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         let new_column = new TableColumnDescVO();
-        new_column.page_widget_id = this.page_widget.id;
         new_column.type = TableColumnDescVO.TYPE_var_ref;
         new_column.var_id = VarsController.getInstance().var_conf_by_name[this.new_column_select_type_var_ref].id;
         new_column.id = this.get_new_column_id();
@@ -302,7 +300,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         let new_column = new TableColumnDescVO();
-        new_column.page_widget_id = this.page_widget.id;
         new_column.type = TableColumnDescVO.TYPE_vo_field_ref;
         new_column.api_type_id = api_type_id;
         new_column.field_id = field_id;
@@ -402,7 +399,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        return this.object_column.translatable_name_code_text;
+        return this.object_column.get_translatable_name_code_text(this.page_widget.id);
     }
 
     get default_column_label(): string {

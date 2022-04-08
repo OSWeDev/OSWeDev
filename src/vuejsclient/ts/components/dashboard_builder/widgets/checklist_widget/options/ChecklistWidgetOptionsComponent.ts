@@ -115,7 +115,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): ChecklistWidgetOptions {
-        return new ChecklistWidgetOptions(this.page_widget.id, 10, null, false, true, true, true);
+        return new ChecklistWidgetOptions(10, null, false, true, true, true);
     }
 
     private async update_options() {
@@ -139,7 +139,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get default_title_translation(): string {
@@ -156,7 +156,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
                 options = options ? new ChecklistWidgetOptions(
-                    options.page_widget_id, options.limit, options.checklist_id,
+                    options.limit, options.checklist_id,
                     options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
             }
         } catch (error) {

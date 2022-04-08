@@ -79,7 +79,7 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): BulkOpsWidgetOptions {
-        return new BulkOpsWidgetOptions(this.page_widget.id, null, 10);
+        return new BulkOpsWidgetOptions(null, 10);
     }
 
     private async update_options() {
@@ -102,7 +102,7 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get default_title_translation(): string {
@@ -118,7 +118,7 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as BulkOpsWidgetOptions;
-                options = options ? new BulkOpsWidgetOptions(options.page_widget_id, options.api_type_id, options.limit) : null;
+                options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

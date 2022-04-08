@@ -61,7 +61,7 @@ export default class PageSwitchWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options() {
@@ -73,7 +73,7 @@ export default class PageSwitchWidgetComponent extends VueComponentBase {
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as PageSwitchWidgetOptions;
-                options = options ? new PageSwitchWidgetOptions(options.page_id, options.page_widget_id) : null;
+                options = options ? new PageSwitchWidgetOptions(options.page_id) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

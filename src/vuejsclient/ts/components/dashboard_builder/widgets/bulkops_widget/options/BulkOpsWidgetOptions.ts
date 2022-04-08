@@ -10,16 +10,15 @@ export default class BulkOpsWidgetOptions {
     }
 
     public constructor(
-        public page_widget_id: number,
         public api_type_id: string,
         public limit: number
     ) { }
 
-    get title_name_code_text(): string {
+    public get_title_name_code_text(page_widget_id: number): string {
 
-        if (!this.page_widget_id) {
+        if (!page_widget_id) {
             return null;
         }
-        return BulkOpsWidgetOptions.TITLE_CODE_PREFIX + this.page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return BulkOpsWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }

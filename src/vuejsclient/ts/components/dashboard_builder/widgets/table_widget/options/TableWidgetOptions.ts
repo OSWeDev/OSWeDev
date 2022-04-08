@@ -33,7 +33,6 @@ export default class TableWidgetOptions {
 
     public constructor(
         public columns: TableColumnDescVO[],
-        public page_widget_id: number,
         public is_focus_api_type_id: boolean,
         public limit: number,
         public crud_api_type_id: string,
@@ -46,11 +45,11 @@ export default class TableWidgetOptions {
         public export_button: boolean
     ) { }
 
-    get title_name_code_text(): string {
+    public get_title_name_code_text(page_widget_id: number): string {
 
-        if (!this.page_widget_id) {
+        if (!page_widget_id) {
             return null;
         }
-        return TableWidgetOptions.TITLE_CODE_PREFIX + this.page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return TableWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }

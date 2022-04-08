@@ -103,11 +103,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return null;
         }
 
-        // patch rétrocompatibilité
-        if (!options.vo_field_ref.page_widget_id) {
-            options.vo_field_ref.page_widget_id = this.page_widget.id;
-        }
-
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
@@ -140,6 +135,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         try {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
+                options = options ? new FieldValueFilterWidgetOptions(
+                    options.vo_field_ref,
+                    options.can_select_multiple, options.max_visible_options) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -157,7 +155,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         let vo_field_ref = new VOFieldRefVO();
         vo_field_ref.api_type_id = api_type_id;
-        vo_field_ref.page_widget_id = this.page_widget.id;
         vo_field_ref.field_id = field_id;
         vo_field_ref.weight = 0;
 

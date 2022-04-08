@@ -483,7 +483,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return null;
         }
-        return this.widget_options.title_name_code_text;
+        return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 
     get widget_options(): ChecklistWidgetOptions {
@@ -496,7 +496,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as ChecklistWidgetOptions;
                 options = options ? new ChecklistWidgetOptions(
-                    options.page_widget_id, options.limit, options.checklist_id,
+                    options.limit, options.checklist_id,
                     options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
             }
         } catch (error) {
