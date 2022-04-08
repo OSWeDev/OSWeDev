@@ -232,8 +232,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             if (this_page_widgets && this_page_widgets.length) {
                 /**
                  * On remplace les page_widget_id par une ref vers l'id
+                 *  FIXME : il y a eu des soucis dans les refs à retester, pour le moment on force l'id au page_widget qui a cette option
                  */
-                this_page_widgets.map((p) => p.json_options = p.json_options.replace(/"page_widget_id":([0-9]+)/ig, '"page_widget_id":{{IMPORT:dashboard_pwidget:$1}}'));
+                this_page_widgets.map((p) => p.json_options = p.json_options.replace(/"page_widget_id":([0-9]+)/ig, '"page_widget_id":{{IMPORT:dashboard_pwidget:' + p.id + '}}'));
                 export_vos = export_vos.concat(this_page_widgets.map((p) => pagewidget_table.get_api_version(p)));
                 page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
             }
