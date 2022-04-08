@@ -1,6 +1,10 @@
 .rootElt.file_datatable_field
-    template(v-if='(!!file) && (!!file.path)')
-        .text-center
-            a.btn.btn-primary(:href="'/' + file.path" target='_blank' v-tooltip='"/" + file.path') {{ label('file_datatable_field.download') }}
+    template(v-if="!loaded")
+        .is_loading
+            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
     template(v-else)
-        .introuvable {{ label('file_datatable_field.introuvable', { file_id: file_id }) }}
+        template(v-if='(!!file) && (!!file.path)')
+            .text-center
+                a.btn.btn-primary(:href="'/' + file.path" target='_blank' v-tooltip='"/" + file.path') {{ label('file_datatable_field.download') }}
+        template(v-else)
+            .introuvable {{ label('file_datatable_field.introuvable', { file_id: file_id }) }}
