@@ -396,26 +396,26 @@ export default class TableWidgetComponent extends VueComponentBase {
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
                     let field = moduleTable.get_field_by_id(column.field_id);
+                    // let field_type = field ? field.field_type : moduletablfiel
+                    // switch (field.field_type) {
 
-                    switch (field.field_type) {
+                    // let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
+                    // data_field.setModuleTable(moduleTable);
+                    // res[column.id] = data_field;
+                    // break;
+                    // default:
 
-                        // let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
-                        // data_field.setModuleTable(moduleTable);
-                        // res[column.id] = data_field;
-                        // break;
-                        default:
+                    let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
-                            let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
-
-                            // sur un simple on set le label
-                            if (data_field['set_translatable_title']) {
-                                data_field['set_translatable_title'](field.field_label.code_text);
-                            }
-
-                            data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
-                            res[column.id] = data_field;
-                            break;
+                    // sur un simple on set le label
+                    if (data_field['set_translatable_title']) {
+                        data_field['set_translatable_title'](field.field_label.code_text);
                     }
+
+                    data_field.setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type();
+                    res[column.id] = data_field;
+                    //         break;
+                    // }
                     break;
                 case TableColumnDescVO.TYPE_crud_actions:
                     res[column.id] = new CRUDActionsDatatableField().setModuleTable(moduleTable);

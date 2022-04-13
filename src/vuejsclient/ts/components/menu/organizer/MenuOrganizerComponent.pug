@@ -18,7 +18,7 @@
     //-         span Item :: {{ item.text }}
 
     .row
-        .col-md-8
+        .col-md-12
             .app_name_title {{ label('menu_organizer.app_name_title', { app_name : app_name }) }}
             Vuenestable(
                 v-model="nestable_items"
@@ -36,8 +36,12 @@
                         .menu_name {{ item.text }}
                         .menu_target(v-if="item.target") {{ item.target }}
 
-        .col-md-4
+    .options_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
+        .collapse_options_wrapper(@click='reverse_collapse_options_wrapper' :class='{"collapsed":collapsed_options_wrapper}')
+            i.fa.fa-caret-square-o-right.fa-fw(aria-hidden="true" v-if='!collapsed_options_wrapper')
+            i.fa.fa-caret-square-o-left.fa-fw(aria-hidden="true" v-if='collapsed_options_wrapper')
 
+        .collapsible_component_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
             .add_menu_wrapper
                 .row
                     .col-md-12
@@ -45,6 +49,19 @@
                             i.fa.fa-plus.fa-fw(aria-hidden="true")
                             | {{ label('menu_organizer.add') }}
 
+            template(v-if='has_modif')
+                .update_cancel_menu_wrapper
+                    .row
+                        .col-md-12
+                            .save(@click="update_db_menu")
+                                i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
+                                | {{ label('menu_organizer.save') }}
+                    .row
+                        .col-md-12
+                            .cancel(@click="reload_from_db")
+                                i.fa.fa-refresh.fa-fw(aria-hidden="true")
+                                | {{ label('menu_organizer.cancel') }}
+                                
             template(v-if='selected_item && selected_item.id')
                 .selected_item_wrapper
                     .unselect(@click='unselect')
@@ -130,15 +147,3 @@
                                     select(v-model='app_name')
                                         option(v-for='app_name_ in app_names') {{ app_name_ }}
 
-            template(v-if='has_modif')
-                .update_cancel_menu_wrapper
-                    .row
-                        .col-md-12
-                            .save(@click="update_db_menu")
-                                i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
-                                | {{ label('menu_organizer.save') }}
-                    .row
-                        .col-md-12
-                            .cancel(@click="reload_from_db")
-                                i.fa.fa-refresh.fa-fw(aria-hidden="true")
-                                | {{ label('menu_organizer.cancel') }}

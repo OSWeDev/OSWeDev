@@ -1,5 +1,41 @@
 .menu_organizer {
 
+    .options_wrapper {
+        z-index: 2;
+        position: fixed;
+        right: 0;
+        width: 600px;
+        top: 124px;
+        max-height: 80%;
+        overflow-y: auto;
+        padding: 0;
+        box-shadow: 1px 1px 10px;
+        background: white; 
+        overflow-x: hidden;
+        transition: width 0.5s ease-out;
+
+        &.collapsed{
+            width: 0px;
+        }
+    
+        .collapsible_component_wrapper {
+            width: 600px;
+        }
+    }
+    
+    .collapse_options_wrapper {
+        padding: 0.2em;
+        margin: 0em;
+        position: fixed;
+        right: 0;
+        background: #F5F5F5;
+        font-size: 2em;
+        cursor: pointer;
+        color: #555;
+        box-shadow: 1px 1px 5px grey;
+        top: 66px;
+    }
+
     .app_name_title {
         font-size: 1.2em;
         margin-bottom: 0.3em;
@@ -21,9 +57,12 @@
     .add_menu_wrapper {
         padding: 1em;
         background: #F5F5F5;
-        border-radius: 3px;
-        box-shadow: 1px 1px 1px #888;
-        margin-bottom: 1.4em;
+    }
+
+    .selected_item_wrapper,
+    .select_app_wrapper,
+    .update_cancel_menu_wrapper {
+        margin-top: 1em;
     }
 
     .selected_item_wrapper {

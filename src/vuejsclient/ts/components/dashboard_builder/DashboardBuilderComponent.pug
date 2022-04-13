@@ -133,7 +133,7 @@
                     )
                     Droppablevofieldscomponent(:dashboard='dashboard')
             
-            .row
+            .row(v-if='show_build_page')
                 .col-md-12.builder_wrapper
                     Dashboardbuilderboardcomponent(
                         :dashboard_page='page' 

@@ -61,6 +61,12 @@ export default class MenuOrganizerComponent extends VueComponentBase {
 
     private has_modif_selected: boolean = false;
 
+    private collapsed_options_wrapper: boolean = true;
+
+    private reverse_collapse_options_wrapper() {
+        this.collapsed_options_wrapper = !this.collapsed_options_wrapper;
+    }
+
     private switch_selected_hidden() {
         if (!this.selected_item) {
             return;
