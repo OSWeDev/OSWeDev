@@ -1,8 +1,8 @@
 .menucomponent
     ul#mainmenu.navbar-nav.navbar-sidenav
         template(v-for="menuElement in menuElements")
-            template(v-if='app_name && (!menuElement.hidden) && (menuElement.app_name.toLowerCase() == app_name.toLowerCase()) && ((!menuElement.access_policy_name) || access_by_name[menuElement.access_policy_name])')
-                li.nav-item(data-placement='right', :title='t(menuElement.translatable_title)')
+            template(v-if='app_name && (!menuElement.hidden) && (menuElement.app_name.toLowerCase() == app_name.toLowerCase()) && ((!menuElement.access_policy_name) || access_by_name[menuElement.access_policy_name]) && has_no_children_or_at_least_one_visible(menuElement)')
+                li.nav-item(data-placement='right', :title='show_title ? t(menuElement.translatable_title) : null')
                     //Composants récursif ???? : menu_element(:menu-element="menuElement", :lvl="1")
                     template(v-if='(!childrenElementsById[menuElement.id]) || (childrenElementsById[menuElement.id].length <= 0)')
                         template(v-if='menuElement.target && menuElement.target_is_routename')
