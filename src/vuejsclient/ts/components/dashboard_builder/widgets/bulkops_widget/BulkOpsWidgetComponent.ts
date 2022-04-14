@@ -355,9 +355,11 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        query.limit = 0;
-        query.offset = 0;
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(query);
+        let context_query = cloneDeep(query);
+        context_query.limit = 0;
+        context_query.offset = 0;
+        context_query.sort_by = null;
+        this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 
         this.loaded_once = true;
         this.is_busy = false;
