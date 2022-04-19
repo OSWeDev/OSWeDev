@@ -204,7 +204,8 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import (XLS, XLSX, CSV)', true).setEnumValues({
                 [DataImportFormatVO.TYPE_XLS]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLS],
                 [DataImportFormatVO.TYPE_XLSX]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLSX],
-                [DataImportFormatVO.TYPE_CSV]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_CSV]
+                [DataImportFormatVO.TYPE_CSV]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_CSV],
+                [DataImportFormatVO.TYPE_XML]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XML],
             }),
             new ModuleTableField('encoding', ModuleTableField.FIELD_TYPE_enum, 'Encodage', false).setEnumValues({
                 [DataImportFormatVO.TYPE_UTF8]: DataImportFormatVO.TYPE_ENCODING_LABELS[DataImportFormatVO.TYPE_UTF8],

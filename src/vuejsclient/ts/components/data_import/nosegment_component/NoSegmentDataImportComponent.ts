@@ -740,6 +740,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
                             if (api_type_id_accepted_files.indexOf('.csv') < 0) {
                                 api_type_id_accepted_files.push('.csv');
                             }
+                        case DataImportFormatVO.TYPE_XML:
+                            if (api_type_id_accepted_files.indexOf('.xml') < 0) {
+                                api_type_id_accepted_files.push('.xml');
+                            }
                         case DataImportFormatVO.TYPE_XLS:
                         case DataImportFormatVO.TYPE_XLSX:
                             if (api_type_id_accepted_files.indexOf('.xls') < 0) {

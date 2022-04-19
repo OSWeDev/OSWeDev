@@ -3,10 +3,11 @@ import IDistantVOBase from '../../IDistantVOBase';
 export default class DataImportFormatVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dif";
 
-    public static TYPE_LABELS: string[] = ['import.file_types.XLS.name', 'import.file_types.XLSX.name', 'import.file_types.CSV.name'];
+    public static TYPE_LABELS: string[] = ['import.file_types.XLS.name', 'import.file_types.XLSX.name', 'import.file_types.CSV.name', 'import.file_types.XML.name'];
     public static TYPE_XLS: number = 0;
     public static TYPE_XLSX: number = 1;
     public static TYPE_CSV: number = 2;
+    public static TYPE_XML: number = 3;
 
     public static TYPE_ENCODING_LABELS: string[] = ['import.encoding.utf8.name', 'import.encoding.windows1252.name'];
     public static TYPE_UTF8: number = 0;
