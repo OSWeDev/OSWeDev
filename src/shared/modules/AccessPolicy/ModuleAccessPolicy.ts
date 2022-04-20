@@ -29,6 +29,7 @@ import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
 import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
+import UserSessionVO from './vos/UserSessionVO';
 import UserVO from './vos/UserVO';
 
 export default class ModuleAccessPolicy extends Module {
@@ -381,6 +382,8 @@ export default class ModuleAccessPolicy extends Module {
         this.datatables = [];
 
         this.initializeUser();
+        // Pour le moment on initialize pas car conflit entre la génération de la table et le module pgsession
+        this.initializeUserSession();
         this.initializeRole();
         this.initializeUserRoles();
         this.initializeModuleAccessPolicyGroup();
@@ -413,6 +416,20 @@ export default class ModuleAccessPolicy extends Module {
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
         field_lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', 'user');
+        this.datatables.push(datatable);
+    }
+
+    private initializeUserSession() {
+        let label_field = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'SID' })).unique();
+
+        let datatable_fields = [
+            label_field,
+            new ModuleTableField('sess', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Information session' })),
+            new ModuleTableField('expire', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Expiration' })).set_format_localized_time(true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+        ];
+
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserSessionVO.API_TYPE_ID, () => new UserSessionVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Sessions des utilisateurs" }));
+        datatable.set_bdd_ref('ref', UserSessionVO.API_TYPE_ID);
         this.datatables.push(datatable);
     }
 

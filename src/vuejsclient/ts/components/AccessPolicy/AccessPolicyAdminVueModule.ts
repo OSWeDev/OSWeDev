@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPo
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../../shared/modules/AccessPolicy/vos/UserLogVO';
+import UserSessionVO from '../../../../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
@@ -73,6 +74,25 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                     ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS,
                     VueAppController.getInstance().app_name,
                     "UserVO",
+                    "fa-lock",
+                    0,
+                    null,
+                    null,
+                    accessPolicyMenuBranch.id
+                ),
+                this.routes,
+                null,
+                null,
+                false
+            );
+
+            await CRUDComponentManager.getInstance().registerCRUD(
+                UserSessionVO.API_TYPE_ID,
+                null,
+                MenuElementVO.create_new(
+                    ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS,
+                    VueAppController.getInstance().app_name,
+                    "UserSessionVO",
                     "fa-lock",
                     0,
                     null,
