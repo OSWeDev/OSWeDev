@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.22.98",
+    "version": "0.22.100",
     "description": "",
     "repository": {
         "type": "git",
@@ -80,6 +80,7 @@
         "chart.js": "2.9.3",
         "chartjs-plugin-labels": "1.1.0",
         "compression": "1.7.2",
+        "oswedev-connect-pg-simple": "7.0.1",
         "cookie-parser": "1.4.4",
         "csurf": "1.10.0",
         "csv-reader": "1.0.8",
