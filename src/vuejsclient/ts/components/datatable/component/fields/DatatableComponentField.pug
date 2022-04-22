@@ -1,4 +1,4 @@
-.field(:field_name="field.datatable_field_uid")
+.field(:field_name="field.datatable_field_uid", :data-label="t(field.translatable_title)")
     template(v-if='!field.hidden')
         template(v-if="show_label")
             span {{ t(field.translatable_title) }} :
