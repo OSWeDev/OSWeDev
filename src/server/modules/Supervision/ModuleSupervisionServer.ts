@@ -115,6 +115,24 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher le graph'
         }, 'supervision.item.graph.off.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur'
+        }, 'supervision.legend.STATE_ERROR.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur prise en compte'
+        }, 'supervision.legend.STATE_ERROR_READ.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valide'
+        }, 'supervision.legend.STATE_OK.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'En pause ou non défini'
+        }, 'supervision.legend.STATE_PAUSED_et_STATE_UNKOWN.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Warning'
+        }, 'supervision.legend.STATE_WARN.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Warning prise en compte'
+        }, 'supervision.legend.STATE_WARN_READ.___LABEL___'));
 
 
         /**

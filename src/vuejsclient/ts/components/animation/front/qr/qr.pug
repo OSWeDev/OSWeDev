@@ -34,7 +34,7 @@
         .qr_file(v-if="!is_validated")
             template(v-if="question_file")
                 template(v-if="get_is_image(question_file)")
-                    img(:src="question_file.path", @click="showModal(true, question_file)")
+                    img.clickable(:src="question_file.path", @click="showModal(true, question_file)")
                 template(v-if="get_is_video(question_file)")
                     video(controls)
                         source(:src="question_file.path" type="video/mp4")

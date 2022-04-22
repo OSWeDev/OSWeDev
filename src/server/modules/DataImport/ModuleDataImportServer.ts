@@ -45,6 +45,7 @@ import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
+import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -469,7 +470,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             let format: DataImportFormatVO = formats[i];
             let columns: DataImportColumnVO[] = await ModuleDataImport.getInstance().getDataImportColumnsFromFormatId(format.id);
 
-            if ((!format) || (!columns) || (!columns.length)) {
+            if ((!format) || ((!columns) || (!columns.length))) {
                 if (!importHistoric.use_fast_track) {
                     await ImportLogger.getInstance().log(importHistoric, format, "Impossible de charger un des formats, ou il n'a pas de colonnes", DataImportLogVO.LOG_LEVEL_ERROR);
                 }
@@ -512,6 +513,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     } else {
                         datas = await ImportTypeCSVHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
                     }
+                    break;
+                case DataImportFormatVO.TYPE_XML:
+                    datas = await ImportTypeXMLHandler.getInstance().importFile(format, columns, importHistoric, format.type_column_position != DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL);
                     break;
                 case DataImportFormatVO.TYPE_XLS:
                 case DataImportFormatVO.TYPE_XLSX:

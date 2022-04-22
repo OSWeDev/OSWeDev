@@ -37,32 +37,32 @@
     .col-md-7.col-sm-12
         //- bandeau des compteurs pour chaque états
         .row
-            .col-sm-2
+            .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_ERROR')")
                 Supervisiondashboardwidgetcomponent(
                     state_classname="STATE_ERROR"
                     :nb_elts="nb_errors"
                 )
-            .col-sm-2
+            .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_ERROR_READ')")
                 Supervisiondashboardwidgetcomponent(
                     state_classname="STATE_ERROR_READ"
                     :nb_elts="nb_errors_read"
                 )
-            .col-sm-2
+            .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_WARN')")
                 Supervisiondashboardwidgetcomponent(
                     state_classname="STATE_WARN"
                     :nb_elts="nb_warns"
                 )
-            .col-sm-2
+            .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_WARN_READ')")
                 Supervisiondashboardwidgetcomponent(
                     state_classname="STATE_WARN_READ"
                     :nb_elts="nb_warns_read"
                 )
-            .col-sm-2
+            .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_OK')")
                 Supervisiondashboardwidgetcomponent(
                     state_classname="STATE_OK"
                     :nb_elts="nb_oks"
                 )
-            .col-sm-2
+            .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_PAUSED_et_STATE_UNKOWN')")
                 Supervisiondashboardwidgetcomponent(
                     state_classname="STATE_PAUSED"
                     :nb_elts="nb_pauses"

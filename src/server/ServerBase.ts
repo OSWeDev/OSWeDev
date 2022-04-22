@@ -16,12 +16,12 @@ import { performance } from 'perf_hooks';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
-import * as sessionFileStore from 'session-file-store';
 import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
+import UserSessionVO from '../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
@@ -58,6 +58,7 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
+const pgSession = require('oswedev-connect-pg-simple')(expressSession);
 
 export default abstract class ServerBase {
 
@@ -151,7 +152,6 @@ export default abstract class ServerBase {
 
         await this.initializeDataImports();
 
-        const FileStore = sessionFileStore(expressSession);
         this.spawn = child_process.spawn;
 
         /* A voir l'intéret des différents routers this.app.use(apiRouter());
@@ -467,18 +467,12 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new FileStore({
-                ttl: 30 * 86400,
-                retries: 10,
-                reapAsync: true
+            store: new pgSession({
+                conString: this.connectionString,
+                schemaName: 'ref',
+                tableName: UserSessionVO.API_TYPE_ID,
             }),
-            cookie: {
-                // httpOnly: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
-                // secure: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
-                maxAge: 30 * 86400 * 1000,
-
-                secure: false
-            }
+            cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
         });
         this.app.use(this.session);
 
