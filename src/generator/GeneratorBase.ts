@@ -65,8 +65,6 @@ import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch2021091
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
 import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
 import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
-import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117ChangeVarDataIndex';
-import Patch20211203ClearVarCaches from './patchs/postmodules/Patch20211203ClearVarCaches';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
 import VersionUpdater from './version_updater/VersionUpdater';
@@ -148,7 +146,6 @@ export default abstract class GeneratorBase {
             Patch20210727VarsCacheMSToSEC.getInstance(),
             Patch20210804Changebddvarsindexes.getInstance(),
             Patch20210916SetParamPushData.getInstance(),
-            Patch20211117ChangeVarDataIndex.getInstance(),
             Patch20211214ChangeVarTooltipTrads.getInstance(),
             Patch20220401SetParamPushData.getInstance(),
             // Patch20211203ClearVarCaches.getInstance()
