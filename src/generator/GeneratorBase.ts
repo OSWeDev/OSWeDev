@@ -65,12 +65,12 @@ import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch2021091
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
 import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
 import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
-import Patch20211117ChangeVarDataIndex from './patchs/postmodules/Patch20211117ChangeVarDataIndex';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
 import Patch20220217ChangeLoginTrad from './patchs/postmodules/Patch20220217ChangeLoginTrad';
 import Patch20220222MigrationCodesTradsDB from './patchs/postmodules/Patch20220222MigrationCodesTradsDB';
 import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
+import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 
@@ -153,11 +153,11 @@ export default abstract class GeneratorBase {
             Patch20210727VarsCacheMSToSEC.getInstance(),
             Patch20210804Changebddvarsindexes.getInstance(),
             Patch20210916SetParamPushData.getInstance(),
-            Patch20211117ChangeVarDataIndex.getInstance(),
             Patch20211214ChangeVarTooltipTrads.getInstance(),
             Patch20220217ChangeLoginTrad.getInstance(),
             Patch20220222MigrationCodesTradsDB.getInstance(),
-            Patch20220404UpdateDBBWidgetsDefaultSize.getInstance()
+            Patch20220404UpdateDBBWidgetsDefaultSize.getInstance(),
+            Patch20220401SetParamPushData.getInstance(),
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }

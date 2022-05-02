@@ -93,24 +93,28 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
             }
 
             // Si on a quelque chose et qu'on est pas en DEV, on met un message sur Teams et on invalide la session
-            if ((to_invalidate.length > 0) && !ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
-                let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK_PARAM_NAME);
+            if (to_invalidate.length > 0) {
+                // On ne met pas de message sur Teams si on est en DEV
+                if (!ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
+                    let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(AccessPolicyDeleteSessionBGThread.TEAMS_WEBHOOK_PARAM_NAME);
 
-                let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+                    let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
 
-                message.title = "AccessPolicyDeleteSessionBGThread - " + ConfigurationService.getInstance().getNodeConfiguration().APP_TITLE + " - " + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
-                message.summary = "Suppression de sessions suite invalidation";
-                message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>SID</div><ul>' + to_invalidate.map((m) => "<li>" + m.id + "</li>").join("") + '</ul></blockquote>'));
+                    message.title = "AccessPolicyDeleteSessionBGThread - " + ConfigurationService.getInstance().getNodeConfiguration().APP_TITLE + " - " + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+                    message.summary = "Suppression de sessions suite invalidation";
+                    message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>SID</div><ul>' + to_invalidate.map((m) => "<li>" + m.id + "</li>").join("") + '</ul></blockquote>'));
 
-                if (api_reqs && (api_reqs.length > 0)) {
-                    message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>Requêtes</div><ul>' + api_reqs.map((m) => "<li>" + m + "</li>").join("") + '</ul></blockquote>'));
+                    if (api_reqs && (api_reqs.length > 0)) {
+                        message.sections.push(new TeamsWebhookContentSectionVO().set_text('<blockquote><div>Requêtes</div><ul>' + api_reqs.map((m) => "<li>" + m + "</li>").join("") + '</ul></blockquote>'));
+                    }
+
+                    await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(
+                        TEAMS_WEBHOOK_PARAM_NAME,
+                        message
+                    );
                 }
 
-                await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(
-                    TEAMS_WEBHOOK_PARAM_NAME,
-                    message
-                );
-
+                // On supprime la session
                 await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
             }
 

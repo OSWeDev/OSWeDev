@@ -20,14 +20,18 @@ export default class Dates {
     /**
      * @returns current timestamp in secs
      */
-    public static now(): number {
+    public static now(localized_src: boolean = true): number {
         if (!Dates.p) {
 
             // server side
             Dates.p = require("perf_hooks").performance;
         }
 
-        return Math.floor(((Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart) + Dates.p.now()) / 1000);
+        if (localized_src) {
+            return Math.floor(((Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart) + Dates.p.now()) / 1000);
+        }
+
+        return moment().utc(true).unix();
     }
 
     /**

@@ -632,6 +632,18 @@ export default class ModuleTableDBService {
             let field = moduleTable.get_fields()[i];
 
             pgSQL += ', ' + field.getPGSqlFieldDescription();
+
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                pgSQL += ', ' + field.field_id.toLowerCase() + '_ndx' + ' text';
+            }
         }
 
         pgSQL += ', CONSTRAINT ' + table_name + '_pkey PRIMARY KEY (id)';

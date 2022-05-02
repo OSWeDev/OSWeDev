@@ -80,6 +80,7 @@
         "chart.js": "2.9.3",
         "chartjs-plugin-labels": "1.1.0",
         "compression": "1.7.2",
+        "oswedev-connect-pg-simple": "7.0.1",
         "cookie-parser": "1.4.4",
         "csurf": "1.10.0",
         "csv-reader": "1.0.8",
@@ -154,7 +155,8 @@
         "winston": "2.4.1",
         "winston-daily-rotate-file": "1.7.2",
         "wkhtmltopdf": "0.3.4",
-        "xlsx": "0.14.3"
+        "xlsx": "0.14.3",
+        "xml-reader": "^2.4.3"
     },
     "devDependencies": {
         "@types/chai": "4.2.10",

@@ -1,4 +1,4 @@
-.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field.moduleTableField.field_type : ""')
+.field(:field_name="field.datatable_field_uid" :class='(field.type == "Simple") ? "field_type_" + field.moduleTableField.field_type : ""' :data-label="t(field.translatable_title)")
     template(v-if='!field.hidden')
         template(v-if="show_label")
             span {{ t(field.translatable_title) }} :

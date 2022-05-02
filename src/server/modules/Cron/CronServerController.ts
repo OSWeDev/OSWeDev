@@ -99,6 +99,14 @@ export default class CronServerController {
 
             let plannedWorkers: CronWorkerPlanification[] = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
 
+            if (plannedWorkers) {
+                plannedWorkers = plannedWorkers.sort((a: CronWorkerPlanification, b: CronWorkerPlanification) => {
+                    if (a.date_heure_planifiee < b.date_heure_planifiee) { return -1; }
+                    if (a.date_heure_planifiee > b.date_heure_planifiee) { return 1; }
+                    return 0;
+                });
+            }
+
             for (let i in plannedWorkers) {
                 let plannedWorker: CronWorkerPlanification = plannedWorkers[i];
 

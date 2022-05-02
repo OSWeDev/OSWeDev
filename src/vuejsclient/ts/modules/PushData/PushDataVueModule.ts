@@ -451,14 +451,6 @@ export default class PushDataVueModule extends VueModuleBase {
                                     timeout: 3000
                                 });
 
-                                // On test si la personne a accès au front
-                                // S'il n'a pas accès, on redirige vers la page de login
-                                let fo_access: boolean = await ModuleAccessPolicy.getInstance().testAccess(ModuleAccessPolicy.POLICY_FO_ACCESS);
-
-                                if (!fo_access) {
-                                    PARAM_TECH_DISCONNECT_URL = "/login";
-                                }
-
                                 setTimeout(() => {
                                     location.href = PARAM_TECH_DISCONNECT_URL;
                                 }, 3000);

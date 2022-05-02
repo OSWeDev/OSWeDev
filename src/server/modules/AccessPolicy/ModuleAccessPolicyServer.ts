@@ -744,6 +744,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'userlog.log_type.csrf_request'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà'
+        }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Sessions des utilisateurs"
+        }, 'menu.menuelements.admin.UserSessionVO.___LABEL___'));
     }
 
     public registerServerApiHandlers() {
