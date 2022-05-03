@@ -27,6 +27,7 @@ import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/Da
 import ExportDataToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -41,7 +42,7 @@ import DatatableComponentField from '../../../datatable/component/fields/Datatab
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import CRUDCreateModalComponent from './crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
@@ -63,6 +64,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    @ModuleDashboardPageAction
+    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    @ModuleDashboardPageAction
+    private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -107,6 +112,205 @@ export default class TableWidgetComponent extends VueComponentBase {
     private actual_rows_query: ContextQueryVO = null;
 
     private filter_by_access_cache: { [translatable_policy_name: string]: boolean } = {};
+
+    private is_filtering_by: boolean = false;
+    private filtering_by_active_field_filter: ContextFilterVO = null;
+
+    /**
+     * On doit avoir accepté sur la tablen, sur le champs,
+     */
+    private can_filter_by(column: TableColumnDescVO) {
+        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by;
+    }
+
+    private filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
+
+        /**
+         * On vide le filtre
+         */
+        if (!vo) {
+            this.is_filtering_by = false;
+            this.filtering_by_active_field_filter = null;
+            this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ? column.field_id : 'id') });
+            return;
+        }
+
+        let filtered_value = vo ? vo[datatable_field_uid] : null;
+
+        this.is_filtering_by = true;
+        let filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
+        filtering_by_active_field_filter.vo_type = column.api_type_id;
+        filtering_by_active_field_filter.field_id = column.field_id;
+
+        // cas de l'id
+        if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
+
+            if (!filtered_value) {
+                filtering_by_active_field_filter.has_null();
+            } else {
+                filtering_by_active_field_filter.by_id(filtered_value);
+            }
+        } else {
+            let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_html:
+                case ModuleTableField.FIELD_TYPE_password:
+                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableField.FIELD_TYPE_email:
+                case ModuleTableField.FIELD_TYPE_string:
+                    if (!filtered_value) {
+                        filtering_by_active_field_filter.has_null();
+                    } else {
+                        filtering_by_active_field_filter.by_text_has(filtered_value);
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_foreign_key:
+                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_prct:
+                    if (!filtered_value) {
+                        filtering_by_active_field_filter.has_null();
+                    } else {
+                        filtering_by_active_field_filter.by_num_eq(filtered_value);
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_file_ref:
+                case ModuleTableField.FIELD_TYPE_image_field:
+                case ModuleTableField.FIELD_TYPE_date:
+                case ModuleTableField.FIELD_TYPE_image_ref:
+                case ModuleTableField.FIELD_TYPE_html_array:
+                case ModuleTableField.FIELD_TYPE_boolean:
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableField.FIELD_TYPE_geopoint:
+                case ModuleTableField.FIELD_TYPE_numrange:
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_string_array:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableField.FIELD_TYPE_daterange:
+                case ModuleTableField.FIELD_TYPE_tstz:
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                case ModuleTableField.FIELD_TYPE_hour:
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                case ModuleTableField.FIELD_TYPE_month:
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+                default:
+                    throw new Error('Not implemented');
+            }
+
+        }
+
+        this.set_active_field_filter(filtering_by_active_field_filter);
+        this.filtering_by_active_field_filter = filtering_by_active_field_filter;
+    }
+
+    private is_row_filter_ok(row: any): boolean {
+        if (!row) {
+            return true;
+        }
+
+        if (!this.filter_by) {
+            return true;
+        }
+
+        if (!this.filtering_by_active_field_filter) {
+            return true;
+        }
+
+        if (!this.columns) {
+            return true;
+        }
+
+        let columns = this.columns.filter((c) => (c.api_type_id == this.filtering_by_active_field_filter.vo_type) && (
+            (c.field_id == this.filtering_by_active_field_filter.field_id) ||
+            ((!c.field_id) && (this.filtering_by_active_field_filter.field_id == 'id')) ||
+            ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_id == 'id'))
+        ));
+        let column = columns ? columns[0] : null;
+        if (!column) {
+            return true;
+        }
+
+        // cas de l'id
+        if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
+
+            if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
+                return row['__crud_actions'] == null;
+            }
+            return row['__crud_actions'] == this.filtering_by_active_field_filter.param_numeric;
+        } else {
+            let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_html:
+                case ModuleTableField.FIELD_TYPE_password:
+                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableField.FIELD_TYPE_email:
+                case ModuleTableField.FIELD_TYPE_string:
+                    if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
+                        return row[column.datatable_field_uid] == null;
+                    }
+                    return row[column.datatable_field_uid] == this.filtering_by_active_field_filter.param_text;
+
+                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_foreign_key:
+                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_prct:
+                    if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
+                        return row[column.datatable_field_uid] == null;
+                    }
+                    return row[column.datatable_field_uid] == this.filtering_by_active_field_filter.param_numeric;
+
+                case ModuleTableField.FIELD_TYPE_file_ref:
+                case ModuleTableField.FIELD_TYPE_image_field:
+                case ModuleTableField.FIELD_TYPE_date:
+                case ModuleTableField.FIELD_TYPE_image_ref:
+                case ModuleTableField.FIELD_TYPE_html_array:
+                case ModuleTableField.FIELD_TYPE_boolean:
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableField.FIELD_TYPE_geopoint:
+                case ModuleTableField.FIELD_TYPE_numrange:
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_string_array:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableField.FIELD_TYPE_daterange:
+                case ModuleTableField.FIELD_TYPE_tstz:
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                case ModuleTableField.FIELD_TYPE_hour:
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                case ModuleTableField.FIELD_TYPE_month:
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+                default:
+                    throw new Error('Not implemented');
+            }
+        }
+    }
 
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
@@ -468,6 +672,23 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
+        /**
+         * On checke si le param de is_filtering_by devrait pas être invalidé (suite changement de filtrage manuel par ailleurs typiquement)
+         */
+        if (this.is_filtering_by && this.filtering_by_active_field_filter) {
+
+            if ((!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type]) ||
+                (!this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id]) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].filter_type != this.filtering_by_active_field_filter.filter_type) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].vo_type != this.filtering_by_active_field_filter.vo_type) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].field_id != this.filtering_by_active_field_filter.field_id) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
+                (this.get_active_field_filters[this.filtering_by_active_field_filter.vo_type][this.filtering_by_active_field_filter.field_id].param_text != this.filtering_by_active_field_filter.param_text)) {
+                this.is_filtering_by = false;
+                this.filtering_by_active_field_filter = null;
+            }
+        }
+
         let query: ContextQueryVO = new ContextQueryVO();
         query.base_api_type_id = null;
         query.active_api_type_ids = this.dashboard.api_type_ids;
@@ -478,6 +699,18 @@ export default class TableWidgetComponent extends VueComponentBase {
         query.limit = this.limit;
         query.offset = this.pagination_offset;
         query.sort_by = null;
+
+        /**
+         * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
+         */
+        if (this.is_filtering_by && this.filtering_by_active_field_filter) {
+            query.filters = query.filters.filter((f) =>
+                (f.filter_type != this.filtering_by_active_field_filter.filter_type) ||
+                (f.vo_type != this.filtering_by_active_field_filter.vo_type) ||
+                (f.field_id != this.filtering_by_active_field_filter.field_id) ||
+                (f.param_numeric != this.filtering_by_active_field_filter.param_numeric) ||
+                (f.param_text != this.filtering_by_active_field_filter.param_text));
+        }
 
         if (this.fields && (
             (this.order_asc_on_id && this.fields[this.order_asc_on_id]) ||
@@ -613,7 +846,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.columns, options.is_focus_api_type_id,
                     options.limit, options.crud_api_type_id, options.vocus_button,
                     options.delete_button, options.delete_all_button, options.create_button, options.update_button,
-                    options.refresh_button, options.export_button) : null;
+                    options.refresh_button, options.export_button, options.can_filter_by) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -737,7 +970,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             export_name,
             context_query,
             this.exportable_datatable_columns,
-            this.datatable_columns_labels
+            this.datatable_columns_labels,
+            this.exportable_datatable_custom_field_columns
         );
     }
 
@@ -747,6 +981,26 @@ export default class TableWidgetComponent extends VueComponentBase {
         for (let i in this.columns) {
             let column = this.columns[i];
             res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
+        }
+
+        return res;
+    }
+
+    get exportable_datatable_custom_field_columns(): { [datatable_field_uid: string]: string } {
+        let res: { [datatable_field_uid: string]: string } = {};
+
+        for (let i in this.columns) {
+            let column: TableColumnDescVO = this.columns[i];
+
+            if (!column.exportable) {
+                continue;
+            }
+
+            if (column.type != TableColumnDescVO.TYPE_component) {
+                continue;
+            }
+
+            res[column.datatable_field_uid] = column.component_name;
         }
 
         return res;
@@ -851,6 +1105,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 param.context_query,
                 param.ordered_column_list,
                 param.column_labels,
+                param.exportable_datatable_custom_field_columns,
                 param.is_secured,
                 param.file_access_policy_name
             );

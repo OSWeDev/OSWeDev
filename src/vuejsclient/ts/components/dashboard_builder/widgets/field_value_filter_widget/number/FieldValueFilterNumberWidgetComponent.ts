@@ -266,7 +266,13 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
          */
         if (this.has_advanced_filter(filter)) {
 
-            this.switch_advanced_filters();
+            if (!this.advanced_filters) {
+                this.advanced_filters = true;
+            }
+            if (this.tmp_filter_active_options) {
+                this.tmp_filter_active_options = null;
+            }
+
             let advanced_filters: AdvancedNumberFilter[] = [];
             this.try_apply_advanced_filters(filter, advanced_filters);
             this.advanced_number_filters = advanced_filters;

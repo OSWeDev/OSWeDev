@@ -276,7 +276,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
          */
         if (this.has_advanced_filter(filter)) {
 
-            this.switch_advanced_filters();
+            if (!this.advanced_filters) {
+                this.advanced_filters = true;
+            }
+            if (this.tmp_filter_active_options) {
+                this.tmp_filter_active_options = null;
+            }
             let advanced_filters: AdvancedStringFilter[] = [];
             this.try_apply_advanced_filters(filter, advanced_filters);
             this.advanced_string_filters = advanced_filters;
@@ -332,7 +337,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
-            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+
+            if (!this.advanced_filters) {
+                this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+            }
             return;
         }
 

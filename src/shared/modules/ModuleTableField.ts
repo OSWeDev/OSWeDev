@@ -20,7 +20,6 @@ export default class ModuleTableField<T> {
     public static VALIDATION_CODE_TEXT_format_unix_timestamp_invalid: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "format_unix_timestamp_invalid";
 
 
-    public static FIELD_TYPE_file_field: string = 'file';
     public static FIELD_TYPE_file_ref: string = 'file_ref';
     public static FIELD_TYPE_image_field: string = 'image';
     public static FIELD_TYPE_image_ref: string = 'image_ref';
@@ -42,6 +41,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_numrange: string = 'numrange';
     public static FIELD_TYPE_numrange_array: string = 'numrange[]';
     public static FIELD_TYPE_refrange_array: string = 'refrange[]';
+    public static FIELD_TYPE_file_field: string = 'file';
     public static FIELD_TYPE_isoweekdays: string = 'isoweekdays';
     public static FIELD_TYPE_int_array: string = 'number[]';
     public static FIELD_TYPE_string_array: string = 'text[]';

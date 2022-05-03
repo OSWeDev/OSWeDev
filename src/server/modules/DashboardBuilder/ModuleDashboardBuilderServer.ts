@@ -48,6 +48,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column_conf.editable_column.hide_from_table.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrable'
+        }, 'table_widget_column_conf.editable_column.can_filter_by.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non filtrable'
+        }, 'table_widget_column_conf.editable_column.cannot_filter_by.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Conditionner au droit'
         }, 'table_widget_column.filter_by_access.___LABEL___'));
 
@@ -737,6 +744,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non'
         }, 'table_widget_options_component.delete_all_button.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrage par champs'
+        }, 'table_widget_options_component.can_filter_by.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'table_widget_options_component.can_filter_by.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'table_widget_options_component.can_filter_by.hidden.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer ?'

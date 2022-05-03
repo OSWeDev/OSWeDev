@@ -9,6 +9,7 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
@@ -111,6 +112,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         api_type_id: string,
         is_secured: boolean = false,
         file_access_policy_name: string = null): Promise<string> {
+
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
@@ -120,6 +122,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             is_secured,
             file_access_policy_name
         );
+
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
 
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
         return filepath;
@@ -145,6 +152,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file_access_policy_name
         );
 
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
+
         let file: FileVO = new FileVO();
         file.path = filepath;
         file.file_access_policy_name = file_access_policy_name;
@@ -167,6 +179,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         context_query: ContextQueryVO,
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
+        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
         is_secured: boolean = false,
         file_access_policy_name: string = null): Promise<string> {
 
@@ -177,6 +190,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
+        await this.update_custom_fields(datas, exportable_datatable_custom_field_columns);
+
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
@@ -186,6 +201,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             is_secured,
             file_access_policy_name
         );
+
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
 
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
         return filepath;
@@ -261,6 +281,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         context_query: ContextQueryVO,
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
+        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
         is_secured: boolean = false,
         file_access_policy_name: string = null
     ): Promise<FileVO> {
@@ -272,6 +293,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
+        await this.update_custom_fields(datas, exportable_datatable_custom_field_columns);
+
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
             datas,
@@ -281,6 +304,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             is_secured,
             file_access_policy_name
         );
+
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
 
         let file: FileVO = new FileVO();
         file.path = filepath;
@@ -295,7 +323,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         return file;
     }
-
 
     /**
      * WARN : Pour exporter on doit pouvoir récupérer toutes les données, donc attention à la volumétrie avant de faire la demande...
@@ -361,6 +388,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             true,
             file_access_policy_name
         );
+
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
 
         let file: FileVO = new FileVO();
         file.path = filepath;
@@ -455,6 +487,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         is_secured: boolean = false,
         file_access_policy_name: string = null
     ): Promise<string> {
+
         let filepath: string = await this.exportDataToMultiSheetsXLSX_base(
             filename,
             sheets,
@@ -462,6 +495,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             is_secured,
             file_access_policy_name
         );
+
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
+
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
         return filepath;
     }
@@ -481,6 +520,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             is_secured,
             file_access_policy_name
         );
+
+        if (!filepath) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            return null;
+        }
 
         return await this.getFileVo(filepath, is_secured, file_access_policy_name);
     }
@@ -699,5 +743,40 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (typeof dest_vo[field_id] === 'undefined') {
             delete dest_vo[field_id];
         }
+    }
+
+    /**
+     * On retouche les champs custom en appelant les cbs
+     */
+    private async update_custom_fields(
+        datas: any[],
+        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+    ) {
+
+        let promises = [];
+        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        for (let field_id in exportable_datatable_custom_field_columns) {
+            let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
+            let cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
+
+            if (!cb) {
+                continue;
+            }
+
+            for (let i in datas) {
+                let data = datas[i];
+
+                if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                    await Promise.all(promises);
+                    promises = [];
+                }
+
+                promises.push((async () => {
+                    data[field_id] = await cb(data);
+                })());
+            }
+        }
+
+        await Promise.all(promises);
     }
 }

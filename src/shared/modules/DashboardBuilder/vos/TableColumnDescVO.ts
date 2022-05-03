@@ -80,6 +80,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      */
     public hide_from_table: boolean;
 
+    /**
+     * Permet le filtrage sur la valeur de cette colonne
+     */
+    public can_filter_by: boolean;
+
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {
             return false;

@@ -15,14 +15,13 @@
     }
 
     .advanced_string_filter_type {
-        max-width: fit-content;
+        width: 40%;
         display: inline-block;
-        min-width: 10em;
     }
 
-    .advanced_string_filter_content{
+    .advanced_string_filter_content {
         display: inline-block;
-        width: 8em;
+        width: 40%;
 
         input {
             width: -webkit-fill-available;
@@ -30,6 +29,7 @@
             border: none;
             margin-left: 1em;
         }
+
         margin-right: .3em;
     }
 
@@ -74,7 +74,11 @@
     }
 
     .advanced_string_filter_type {
-        .multiselect, .multiselect__input, .multiselect__single, .multiselect__option {
+
+        .multiselect,
+        .multiselect__input,
+        .multiselect__single,
+        .multiselect__option {
             font-size: .8em;
         }
     }

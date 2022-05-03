@@ -41,6 +41,7 @@ export default class ModuleDataExport extends Module {
         context_query: ContextQueryVO,
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
+        exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
         is_secured?: boolean,
         file_access_policy_name?: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
@@ -49,6 +50,7 @@ export default class ModuleDataExport extends Module {
         context_query: ContextQueryVO,
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
+        exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
 

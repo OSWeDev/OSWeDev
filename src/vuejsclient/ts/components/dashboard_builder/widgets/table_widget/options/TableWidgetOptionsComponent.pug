@@ -113,6 +113,15 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.vocus_button.visible'), unchecked: label('table_widget_options_component.vocus_button.hidden')}")
 
+    .can_filter_by(v-if='widget_options')
+        .input_label {{ label('table_widget_options_component.can_filter_by') }}
+        
+        toggle-button(
+            @change="switch_can_filter_by" 
+            :value="can_filter_by" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.can_filter_by.visible'), unchecked: label('table_widget_options_component.can_filter_by.hidden')}")
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}

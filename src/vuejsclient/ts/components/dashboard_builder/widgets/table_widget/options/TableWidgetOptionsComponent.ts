@@ -52,6 +52,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private export_button: boolean = true;
     private update_button: boolean = true;
     private create_button: boolean = true;
+    private can_filter_by: boolean = true;
     private limit: string = '100';
 
     private editable_columns: TableColumnDescVO[] = null;
@@ -91,6 +92,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.refresh_button) {
                 this.refresh_button = true;
             }
+            if (!this.can_filter_by) {
+                this.can_filter_by = true;
+            }
             this.limit = '100';
             return;
         }
@@ -120,6 +124,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.update_button != this.widget_options.update_button) {
             this.update_button = this.widget_options.update_button;
         }
+        if (this.can_filter_by != this.widget_options.can_filter_by) {
+            this.can_filter_by = this.widget_options.can_filter_by;
+        }
+
         this.limit = (this.widget_options.limit == null) ? '100' : this.widget_options.limit.toString();
     }
 
@@ -186,6 +194,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.filter_by_access = null;
                 crud_actions_column.enum_bg_colors = null;
                 crud_actions_column.enum_fg_colors = null;
+                crud_actions_column.can_filter_by = true;
                 crud_actions_column.column_width = 0;
                 await this.add_column(crud_actions_column);
                 return;
@@ -269,7 +278,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -328,6 +337,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (options.columns[i].hide_from_table == null) {
                 options.columns[i].hide_from_table = false;
             }
+            if (options.columns[i].can_filter_by == null) {
+                options.columns[i].can_filter_by = true;
+            }
 
             res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
         }
@@ -377,7 +389,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 options = options ? new TableWidgetOptions(
                     options.columns, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
                     options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
-                    options.refresh_button, options.export_button) : null;
+                    options.refresh_button, options.export_button, options.can_filter_by) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -431,6 +443,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.delete_button != this.delete_button) {
             this.next_update_options.delete_button = this.delete_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_can_filter_by() {
+        this.can_filter_by = !this.can_filter_by;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.can_filter_by != this.can_filter_by) {
+            this.next_update_options.can_filter_by = this.can_filter_by;
             await this.throttled_update_options();
         }
     }

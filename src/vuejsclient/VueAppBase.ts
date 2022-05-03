@@ -369,7 +369,7 @@ export default abstract class VueAppBase {
             AppVuexStoreManager.getInstance().appVuexStore.commit('set_onprint', null);
 
             // On nettoie les traductions de la page
-            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/clear');
+            // AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/clear');
 
             // Commencer par nettoyer
             if (document.body.className.match(/ page-[^ ]+/)) {

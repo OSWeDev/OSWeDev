@@ -204,7 +204,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 options = options ? new TableWidgetOptions(
                     options.columns, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
                     options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
-                    options.refresh_button, options.export_button) : null;
+                    options.refresh_button, options.export_button, options.can_filter_by) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -241,6 +241,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_by_access = null;
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
+        new_column.can_filter_by = true;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -267,6 +268,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_by_access = null;
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
+        new_column.can_filter_by = true;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -310,6 +312,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_by_access = null;
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
+        new_column.can_filter_by = true;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -331,6 +334,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.column.exportable = !this.column.exportable;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_can_filter_by() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.can_filter_by = !this.column.can_filter_by;
         this.$emit('update_column', this.column);
     }
 

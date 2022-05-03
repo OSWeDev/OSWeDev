@@ -81,7 +81,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         //initializing dashboard
         // let main_route_name: string = 'SupervisionDashboard';
         this.routes.push({
-            path: "/supervision/:dashboard_key",
+            path: "/supervision/:dashboard_key?",
             name: SupervisionController.ROUTE_NAME_DASHBOARD,
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent'),
             props: true

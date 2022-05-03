@@ -1,12 +1,12 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
+import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
@@ -18,7 +18,8 @@ import './FieldValueFilterWidgetOptionsComponent.scss';
 @Component({
     template: require('./FieldValueFilterWidgetOptionsComponent.pug'),
     components: {
-        Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent
+        Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent,
+        Inlinetranslatabletext: InlineTranslatableText
     }
 })
 export default class FieldValueFilterWidgetOptionsComponent extends VueComponentBase {

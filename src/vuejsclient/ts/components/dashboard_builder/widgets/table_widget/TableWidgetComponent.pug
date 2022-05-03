@@ -14,7 +14,7 @@ include ../../../../../views/mixins/loading.pug
                         button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
                             i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
                             | {{ label('crud.actions.delete_all') }}
-                        button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                        button.btn.btn-xs.btn-secondary(v-if='can_refresh', @click='refresh')
                             i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                             | {{ label('crud.actions.refresh') }}
                         button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
@@ -51,12 +51,22 @@ include ../../../../../views/mixins/loading.pug
 
                             Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
                     tbody
-                        tr.table_row(v-for='row in data_rows')
+                        tr.table_row(v-for='row in data_rows' :class='is_filtering_by ? (is_row_filter_ok(row) ? "" : "filtered_value") : ""')
                             td.table_col(
                                 v-for='column in columns' 
                                 :class='"type_" + column.type' 
                                 )
-                                
+
+                                //- Si on peut filtrer par ce champs, on affiche le bouton de filtrage (à voir ergo mais le problème c'est qu'on a du inline edit aussi sur certains champs, filtrables par ailleurs...)
+                                template(v-if="(column.type == 0) || (column.type == 1)")
+                                    template(v-if="can_filter_by(column) && !is_filtering_by")
+                                        .btn.btn-xs.btn-secondary.search-plus(@click="filter_by(column, column.datatable_field_uid, row)")
+                                            i.fa.fa-search-plus
+                                    template(v-if="can_filter_by(column) && is_filtering_by && filtering_by_active_field_filter && ((filtering_by_active_field_filter.field_id == column.field_id) || ((!column.field_id) && (filtering_by_active_field_filter.field_id == 'id'))) && (filtering_by_active_field_filter.vo_type == column.api_type_id)")
+                                        .btn.btn-xs.btn-secondary.search-minus(@click="filter_by(column, column.datatable_field_uid, null)")
+                                            i.fa.fa-search-minus
+
+
                                 //- If it's a select box
                                 template(v-if="column.type == 3")
                                     input.d-print-none.form-control(type="checkbox" v-model="selected_rows[row.__crud_actions]" :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
@@ -68,7 +78,7 @@ include ../../../../../views/mixins/loading.pug
                                             .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
                                                 i.fa.fa-pencil
                                         template(v-if="can_open_vocus")
-                                            .btn.btn-sm.btn-secondary(@click="open_vocus(column, row)")
+                                            .btn.btn-xs.btn-secondary(@click="open_vocus(column, row)")
                                                 i.fa.fa-search
                                         template(v-if="delete_button")
                                             .btn.btn-sm.btn-danger(@click="confirm_delete(column, row)")

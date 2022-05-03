@@ -42,7 +42,8 @@ export default class TableWidgetOptions {
         public create_button: boolean,
         public update_button: boolean,
         public refresh_button: boolean,
-        public export_button: boolean
+        public export_button: boolean,
+        public can_filter_by: boolean
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {
