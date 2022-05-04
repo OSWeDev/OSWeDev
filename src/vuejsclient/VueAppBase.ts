@@ -47,6 +47,7 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
 require('moment-json-parser').overrideDefault();
 
 
@@ -441,6 +442,7 @@ export default abstract class VueAppBase {
         Vue.component('Hourrangescomponent', () => import(/* webpackChunkName: "HourRangesComponent" */ './ts/components/ranges/hourranges/HourRangesComponent'));
 
         Vue.directive('var-directive', VarDirective.getInstance());
+        Vue.directive('vars-directive', VarsDirective.getInstance());
 
         AppVuexStoreManager.getInstance().registerModule(DocumentStore.getInstance());
 

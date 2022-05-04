@@ -47,6 +47,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Cacher'
         }, 'table_widget_column_conf.editable_column.hide_from_table.___LABEL___'));
 
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrer par cette ligne'
+        }, 'table_widget_component.filter_by.id.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtrer par cette valeur de la colonne'
+        }, 'table_widget_component.filter_by.column_value.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Retirer le filtre'
+        }, 'table_widget_component.filter_by.unfilter.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrable'
         }, 'table_widget_column_conf.editable_column.can_filter_by.___LABEL___'));

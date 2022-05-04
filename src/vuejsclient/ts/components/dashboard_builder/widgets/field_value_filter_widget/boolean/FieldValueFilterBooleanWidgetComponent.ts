@@ -96,6 +96,9 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
         if (!filter) {
+            if (this.boolean_filter_types && this.boolean_filter_types.length) {
+                this.boolean_filter_types = [];
+            }
             return true;
         }
 

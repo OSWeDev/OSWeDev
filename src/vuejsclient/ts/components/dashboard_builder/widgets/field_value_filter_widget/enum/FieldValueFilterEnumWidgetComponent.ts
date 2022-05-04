@@ -132,13 +132,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
         if (!filter) {
+
+            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
+                this.tmp_filter_active_options = [];
+            }
             return true;
         }
 
         let tmp_filter_active_options: DataFilterOption[] = [];
 
         if (!filter.param_numranges) {
-            this.tmp_filter_active_options = [];
+            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
+                this.tmp_filter_active_options = [];
+            }
             return true;
         }
 

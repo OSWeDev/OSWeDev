@@ -214,14 +214,23 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     private async update_visible_options() {
-        if (this.advanced_filters) {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
             return;
         }
 
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            this.filter_visible_options = [];
-            return;
+        /**
+         * Si le filtrage est vide, on repasse en filtrage normal si on était en avancé
+         */
+        if ((!this.get_active_field_filters) || (!this.get_active_field_filters[this.vo_field_ref.api_type_id]) ||
+            (!this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id])) {
+
+            if (this.advanced_filters) {
+                this.advanced_filters = false;
+            }
+            if (this.advanced_number_filters) {
+                this.advanced_number_filters = null;
+            }
         }
 
         /**
@@ -258,6 +267,16 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
         if (!filter) {
+            if (this.advanced_filters) {
+                this.advanced_filters = false;
+            }
+            if (this.tmp_filter_active_options) {
+                this.tmp_filter_active_options = null;
+            }
+            if (this.advanced_number_filters) {
+                this.advanced_number_filters = null;
+            }
+
             return true;
         }
 
@@ -277,6 +296,13 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             this.try_apply_advanced_filters(filter, advanced_filters);
             this.advanced_number_filters = advanced_filters;
         } else {
+
+            if (this.advanced_filters) {
+                this.advanced_filters = false;
+            }
+            if (this.advanced_number_filters) {
+                this.advanced_number_filters = null;
+            }
 
             let tmp_filter_active_options: DataFilterOption[] = [];
 

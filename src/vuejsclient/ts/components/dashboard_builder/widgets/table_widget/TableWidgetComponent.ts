@@ -117,10 +117,18 @@ export default class TableWidgetComponent extends VueComponentBase {
     private filtering_by_active_field_filter: ContextFilterVO = null;
 
     /**
-     * On doit avoir accepté sur la tablen, sur le champs,
+     * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
-    private can_filter_by(column: TableColumnDescVO) {
-        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by;
+    private can_filter_by(column: TableColumnDescVO): boolean {
+        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by && column.readonly;
+    }
+
+    private is_filtering_by_col(column: TableColumnDescVO): boolean {
+        return this.is_filtering_by &&
+            this.filtering_by_active_field_filter && (
+                (this.filtering_by_active_field_filter.field_id == column.field_id) ||
+                ((!column.field_id) && (this.filtering_by_active_field_filter.field_id == 'id'))
+            ) && (this.filtering_by_active_field_filter.vo_type == column.api_type_id);
     }
 
     private filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {

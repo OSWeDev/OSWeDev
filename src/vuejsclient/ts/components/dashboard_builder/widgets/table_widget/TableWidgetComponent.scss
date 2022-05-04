@@ -80,7 +80,7 @@
             tr {
 
                 &.filtered_value {
-                    opacity: 0.5;
+                    opacity: 0.2;
 
                     &:hover {
                         opacity: 0.9;
@@ -95,23 +95,19 @@
                         width: 0;
                     }
 
-                    .btn.btn-xs {
-                        float: left;
-                        opacity: 0.3;
-                        margin: 0;
-                        padding: 0;
-                        border: none;
+                    &.can_filter {
 
-                        &.search-plus {
-                            cursor: zoom-in;
-                        }
+                        &.is_filtering_by {
+                            background: #F2F2F2 !important;
 
-                        &.search-minus {
-                            cursor: zoom-out;
+                            &:hover {
+                                cursor: zoom-out;
+                            }
                         }
 
                         &:hover {
-                            opacity: 1;
+                            background: #F2F2F2 !important;
+                            cursor: zoom-in;
                         }
                     }
 
