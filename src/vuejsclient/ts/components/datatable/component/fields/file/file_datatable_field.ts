@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
@@ -47,7 +48,7 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
 
         this.file = this.file_id ?
             await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo() :
-            await query(FileVO.API_TYPE_ID).filter_by_text_eq('path', this.file_path).select_vo();
+            await query(FileVO.API_TYPE_ID).filter_by_text_eq('path', this.file_path).set_sort(new SortByVO(FileVO.API_TYPE_ID, 'id', false)).set_limit(1).select_vo();
 
         if (!this.loaded) {
             this.loaded = true;

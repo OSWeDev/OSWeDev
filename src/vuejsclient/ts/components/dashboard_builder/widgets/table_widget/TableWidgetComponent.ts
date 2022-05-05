@@ -617,6 +617,11 @@ export default class TableWidgetComponent extends VueComponentBase {
                     // break;
                     // default:
 
+                    // if (!field) {
+                    //     res[column.id] = new SimpleDatatableField(column.field_id).setModuleTable(moduleTable).auto_update_datatable_field_uid_with_vo_type().set_translatable_title();
+                    //     break;
+                    // }
+
                     let data_field: DatatableField<any, any> = CRUD.get_dt_field(field);
 
                     // sur un simple on set le label
