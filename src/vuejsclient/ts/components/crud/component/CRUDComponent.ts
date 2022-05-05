@@ -165,8 +165,15 @@ export default class CRUDComponent extends VueComponentBase {
         this.crud.createDatatable.refresh();
         this.crud_createDatatable_key = this.crud.createDatatable.key;
 
-        this.crud.updateDatatable.refresh();
-        this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        if (this.crud.updateDatatable != this.crud.createDatatable) {
+            this.crud.updateDatatable.refresh();
+            this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        } else {
+            if (this.crud_updateDatatable_key != this.crud_createDatatable_key) {
+                this.crud_updateDatatable_key = this.crud_createDatatable_key;
+            }
+        }
+
 
         this.clear_alerts();
 
@@ -1157,8 +1164,12 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private onChangeVO(vo: IDistantVOBase) {
-        this.crud_createDatatable_key = this.crud.createDatatable.key;
-        this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        if (this.crud_createDatatable_key != this.crud.createDatatable.key) {
+            this.crud_createDatatable_key = this.crud.createDatatable.key;
+        }
+        if (this.crud_updateDatatable_key != this.crud.updateDatatable.key) {
+            this.crud_updateDatatable_key = this.crud.updateDatatable.key;
+        }
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
