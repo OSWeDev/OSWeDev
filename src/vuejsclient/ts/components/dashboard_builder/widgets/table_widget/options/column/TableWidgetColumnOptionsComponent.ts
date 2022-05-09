@@ -241,7 +241,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_by_access = null;
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
-        new_column.can_filter_by = true;
+        new_column.can_filter_by = false;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -268,7 +268,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_by_access = null;
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
-        new_column.can_filter_by = true;
+        new_column.can_filter_by = false;
         new_column.column_width = 0;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
@@ -412,6 +412,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         return this.object_column.get_translatable_name_code_text(this.page_widget.id);
+    }
+
+    get can_filter_by_table(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return this.widget_options.can_filter_by;
     }
 
     get default_column_label(): string {

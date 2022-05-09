@@ -101,12 +101,12 @@
                         :width="75"
                         :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
 
-                .can_filter_by_column
+                .can_filter_by_column(v-if='can_filter_by_table')
                     toggle-button(
                         @change="switch_can_filter_by" 
                         :value="column.can_filter_by" 
                         :sync="true"
-                        :width="75"
+                        :width="100"
                         :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
                 .filter_by_access

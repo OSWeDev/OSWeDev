@@ -325,23 +325,26 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         let res: TableColumnDescVO[] = [];
         for (let i in options.columns) {
 
-            if (options.columns[i].readonly == null) {
-                options.columns[i].readonly = true;
+            let column = options.columns[i];
+            if (column.readonly == null) {
+                column.readonly = true;
             }
-            if (options.columns[i].column_width == null) {
-                options.columns[i].column_width = 0;
+            if (column.column_width == null) {
+                column.column_width = 0;
             }
-            if (options.columns[i].exportable == null) {
-                options.columns[i].exportable = (options.columns[i].type != TableColumnDescVO.TYPE_crud_actions);
+            if (column.exportable == null) {
+                column.exportable = (column.type != TableColumnDescVO.TYPE_crud_actions);
             }
-            if (options.columns[i].hide_from_table == null) {
-                options.columns[i].hide_from_table = false;
+            if (column.hide_from_table == null) {
+                column.hide_from_table = false;
             }
-            if (options.columns[i].can_filter_by == null) {
-                options.columns[i].can_filter_by = true;
+            if (column.can_filter_by == null) {
+                column.can_filter_by = column.readonly && (
+                    (column.type != TableColumnDescVO.TYPE_crud_actions) ||
+                    (column.type != TableColumnDescVO.TYPE_vo_field_ref));
             }
 
-            res.push(Object.assign(new TableColumnDescVO(), options.columns[i]));
+            res.push(Object.assign(new TableColumnDescVO(), column));
         }
         WeightHandler.getInstance().sortByWeight(res);
 
