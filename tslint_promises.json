@@ -1,0 +1,6 @@
+{
+    "defaultSeverity": "error",
+    "rules": {
+        "no-floating-promises": true
+    }
+}

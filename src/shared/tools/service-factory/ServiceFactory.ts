@@ -13,7 +13,7 @@
     }
 
     private singletons: {[name:string] : Object} = {};
-    
+
     public addSingleton(name:string, item:Object){
         this.singletons[name] = item;
     }

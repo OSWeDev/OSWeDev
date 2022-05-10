@@ -52,7 +52,7 @@ export default class BGThreadServerController {
             if (BGThreadServerController.getInstance().valid_bgthreads_names[bgthread_name]) {
                 await BGThreadServerController.getInstance().registered_BGThreads[bgthread_name].work();
             } else {
-                ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)));
+                await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunBGThreadForkMessage(bgthread_name)));
             }
         } else {
 
@@ -61,7 +61,7 @@ export default class BGThreadServerController {
                 return false;
             }
             let forked = ForkServerController.getInstance().process_fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread_name];
-            ForkMessageController.getInstance().send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
+            await ForkMessageController.getInstance().send(new RunBGThreadForkMessage(bgthread_name), forked.child_process, forked);
         }
     }
 }

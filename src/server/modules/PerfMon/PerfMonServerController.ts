@@ -111,14 +111,14 @@ export default class PerfMonServerController {
 
                 // On indique qu'on peut mettre en bdd ainsi que les enfants dès qu'on est sur un parent
                 if (!temp_parent_uid) {
-                    PerfMonServerController.getInstance().prepare_for_update(uid);
+                    await PerfMonServerController.getInstance().prepare_for_update(uid);
                 }
 
                 return res;
             });
     }
 
-    private prepare_for_update(uid) {
+    private async prepare_for_update(uid) {
         this.ordered_lines_to_update_in_db.push(this.temp_perf_lines_per_uid[uid]);
         delete this.temp_perf_lines_per_uid[uid];
 
@@ -130,12 +130,12 @@ export default class PerfMonServerController {
 
             for (let child_uid in this.temp_childrens_per_parent_uid[uid]) {
                 this.childrens_per_parent_uid[uid].push(this.temp_perf_lines_per_uid[child_uid]);
-                this.prepare_for_update(child_uid);
+                await this.prepare_for_update(child_uid);
             }
             delete this.temp_childrens_per_parent_uid[uid];
         }
 
-        PerfMonDBUpdater.getInstance().throttled_exec();
+        await PerfMonDBUpdater.getInstance().throttled_exec();
     }
 }
 

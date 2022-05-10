@@ -1,5 +1,5 @@
-import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator"
-import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic"
+import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
+import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
 
 export default class PrepareHTMLParamVO implements IAPIParamTranslator<PrepareHTMLParamVO> {
 

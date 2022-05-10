@@ -87,6 +87,7 @@ export default class VarsDatasVoUpdateHandler {
     public async force_empty_vars_datas_vo_update_cache() {
 
         ModuleDAOServer.getInstance().global_update_blocker = true;
+        let max_sleeps = 100;
 
         while (true) {
 
@@ -102,6 +103,10 @@ export default class VarsDatasVoUpdateHandler {
                 return;
             }
             await ThreadHandler.getInstance().sleep(5000);
+            max_sleeps--;
+            if (max_sleeps <= 0) {
+                throw new Error('Unable to force_empty_vars_datas_vo_update_cache');
+            }
         }
     }
 
@@ -210,7 +215,7 @@ export default class VarsDatasVoUpdateHandler {
     public async has_vos_cud(): Promise<boolean> {
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, resolve)) {
@@ -251,7 +256,7 @@ export default class VarsDatasVoUpdateHandler {
                 resolve([]);
             };
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection,
@@ -843,7 +848,7 @@ export default class VarsDatasVoUpdateHandler {
 
     private async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
             return;
         }
 

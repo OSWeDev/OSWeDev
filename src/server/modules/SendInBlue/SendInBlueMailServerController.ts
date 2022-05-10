@@ -200,12 +200,12 @@ export default class SendInBlueMailServerController {
         if (!category) {
             category = new MailCategoryVO();
             category.name = mail_category;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(category);
-            if (!res || !res.id) {
+            let res_cat = await ModuleDAO.getInstance().insertOrUpdateVO(category);
+            if (!res_cat || !res_cat.id) {
                 ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
                 return;
             }
-            category.id = res.id;
+            category.id = res_cat.id;
         }
 
         let mail = new MailVO();

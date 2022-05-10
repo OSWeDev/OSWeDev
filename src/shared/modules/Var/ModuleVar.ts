@@ -304,9 +304,9 @@ export default class ModuleVar extends Module {
 
     public async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
         if (!var_conf_by_id) {
-            VarsController.getInstance().initializeasync(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID)));
+            await VarsController.getInstance().initializeasync(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID)));
         } else {
-            VarsController.getInstance().initializeasync(var_conf_by_id);
+            await VarsController.getInstance().initializeasync(var_conf_by_id);
         }
     }
 

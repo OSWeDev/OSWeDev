@@ -470,7 +470,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
@@ -499,7 +499,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_u,
@@ -611,7 +611,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents,
@@ -671,7 +671,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents,

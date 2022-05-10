@@ -76,7 +76,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
 
         if (produitsParam) {
             for (let i in produitsParam) {
-                this.ajouterLigneCommande(commande, produitsParam[i]);
+                await this.ajouterLigneCommande(commande, produitsParam[i]);
             }
         }
 

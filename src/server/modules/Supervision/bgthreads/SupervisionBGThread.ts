@@ -72,7 +72,7 @@ export default class SupervisionBGThread implements IBGThread {
                             { leading: false });
                     }
 
-                    this.throttle_by_api_type_id[api_type_id]();
+                    await this.throttle_by_api_type_id[api_type_id]();
                 }
             }
         } catch (error) {
