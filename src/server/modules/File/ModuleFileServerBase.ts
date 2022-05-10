@@ -147,7 +147,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         try {
             let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, num);
-            return fs.existsSync(fileVo.path);
+
+            if (!!fileVo) {
+                return fs.existsSync(fileVo.path);
+            }
+            return false;
+
         } catch (error) {
             console.error(error);
         }
