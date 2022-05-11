@@ -9,10 +9,8 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-
 import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
-import { performance } from 'perf_hooks';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
@@ -718,9 +716,17 @@ export default abstract class ServerBase {
 
             let session: IServerUserSession = req.session as IServerUserSession;
 
+            // On va regarder si la personne essaye d'y accéder en direct
+            // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
+            let can_fail: boolean = true;
+
+            if (req && req.headers && req.headers.referer) {
+                can_fail = false;
+            }
+
             let has_access: boolean = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS));
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -734,9 +740,17 @@ export default abstract class ServerBase {
 
             let session: IServerUserSession = req.session as IServerUserSession;
 
+            // On va regarder si la personne essaye d'y accéder en direct
+            // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
+            let can_fail: boolean = true;
+
+            if (req && req.headers && req.headers.referer) {
+                can_fail = false;
+            }
+
             let has_access: boolean = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS));
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
             if (!has_access) {
 
