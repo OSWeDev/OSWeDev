@@ -74,11 +74,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      */
 
     public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 1000, { leading: true, trailing: true });
+    public semaphore: boolean = false;
 
     private timeout_calculation: number = 30;
     private last_calculation_unix: number = 0;
-
-    private semaphore: boolean = false;
 
     private partial_clean_next_ms: number = 0;
 
