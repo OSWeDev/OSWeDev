@@ -12,6 +12,26 @@
                 "isDefault": true
             },
             "problemMatcher": "$tsc-watch"
-        }
+        },
+        {
+            "label": "tslint",
+            "type": "shell",
+            "command": "npm run-script lint",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": "$tsc-watch"
+        },
+        {
+            "label": "tslint global",
+            "type": "shell",
+            "command": "npm run-script lint-global",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": "$tsc-watch"
+        },
     ]
 }

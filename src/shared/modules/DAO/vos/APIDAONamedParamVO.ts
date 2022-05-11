@@ -1,7 +1,7 @@
 import IAPIParamTranslator from "../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../API/interfaces/IAPIParamTranslatorStatic";
 
-export default class APIDAONamedParamVO implements IAPIParamTranslator<APIDAONamedParamVO>{
+export default class APIDAONamedParamVO implements IAPIParamTranslator<APIDAONamedParamVO> {
 
     public static URL: string = ':api_type_id/:name';
 

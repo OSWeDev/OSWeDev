@@ -2,7 +2,7 @@ import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 
-export default class APIMatroidsAndFieldsmapperParamsVO implements IAPIParamTranslator<APIMatroidsAndFieldsmapperParamsVO>{
+export default class APIMatroidsAndFieldsmapperParamsVO implements IAPIParamTranslator<APIMatroidsAndFieldsmapperParamsVO> {
 
     public static fromParams(
         matroids: IMatroid[],

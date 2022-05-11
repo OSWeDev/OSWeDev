@@ -97,7 +97,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 resolve(true);
             };
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, resolve)) {
@@ -119,7 +119,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 resolve(true);
             };
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, resolve)) {
@@ -420,7 +420,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 resolve(true);
             };
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 thrower,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsdatasComputerBGThread.TASK_NAME_force_run_asap, resolve)) {

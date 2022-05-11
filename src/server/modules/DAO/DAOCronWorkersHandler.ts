@@ -1,4 +1,5 @@
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import CheckSegmentedIdsCronWorker from './checksegmentedids/CheckSegmentedIdsCronWorker';
 
@@ -23,7 +24,7 @@ export default class DAOCronWorkersHandler {
         planCronWorker.planification_uid = "CheckSegmentedIdsCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
         planCronWorker.worker_uid = CheckSegmentedIdsCronWorker.getInstance().worker_uid;
-        // Pas besoin d'être dans un contexte synchrone
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker);
+
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 }

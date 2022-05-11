@@ -1909,11 +1909,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.uid + ']';
 
-            // On await pas ici on se fiche du résultat
             await StackContext.getInstance().runPromise(
                 { IS_CLIENT: false },
                 async () => {
-                    ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
                 });
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();

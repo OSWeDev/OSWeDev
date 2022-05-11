@@ -245,7 +245,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         let roles: string[] = [];
 
         if (module && module.role_id_ranges && module.role_id_ranges.length > 0) {
-            RangeHandler.getInstance().foreach_ranges(module.role_id_ranges, async (role_id: number) => {
+            await RangeHandler.getInstance().foreach_ranges(module.role_id_ranges, async (role_id: number) => {
                 let role: RoleVO = all_role_by_ids[role_id];
 
                 if (!role) {

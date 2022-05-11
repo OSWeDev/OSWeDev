@@ -169,7 +169,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
         try {
 
-            CronServerController.getInstance().executeWorkers();
+            await CronServerController.getInstance().executeWorkers();
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually.success');
         } catch (error) {
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually.failed');
@@ -190,7 +190,7 @@ export default class ModuleCronServer extends ModuleServerBase {
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
         try {
 
-            CronServerController.getInstance().executeWorker(worker_uid);
+            await CronServerController.getInstance().executeWorker(worker_uid);
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.success');
         } catch (error) {
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.failed');

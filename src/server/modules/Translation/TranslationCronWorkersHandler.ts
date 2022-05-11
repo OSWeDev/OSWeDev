@@ -1,4 +1,5 @@
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import InstallTranslationsCronWorker from './workers/InstallTranslations/InstallTranslationsCronWorker';
 
@@ -23,6 +24,6 @@ export default class TranslationCronWorkersHandler {
         planCronWorker.planification_uid = "InstallTranslationsCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;
         planCronWorker.worker_uid = InstallTranslationsCronWorker.getInstance().worker_uid;
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker);
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 }

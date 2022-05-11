@@ -1,7 +1,7 @@
 import IAPIParamTranslator from "../../../API/interfaces/IAPIParamTranslator";
 import IAPIParamTranslatorStatic from "../../../API/interfaces/IAPIParamTranslatorStatic";
 
-export default class ResetPwdParamVO implements IAPIParamTranslator<ResetPwdParamVO>{
+export default class ResetPwdParamVO implements IAPIParamTranslator<ResetPwdParamVO> {
 
     public static fromParams(
         email: string,

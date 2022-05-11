@@ -1,5 +1,6 @@
 import Module from '../../shared/modules/Module';
 import ModuleParamChange from '../../shared/modules/ModuleParamChange';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../shared/tools/ThreadHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleTableDBService from './ModuleTableDBService';
@@ -207,7 +208,7 @@ export default class ModuleDBService {
 
         // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
         if (module.fields && (module.fields.length > 0)) {
-            this.reloadParamsThread(module);
+            this.reloadParamsThread(module).then().catch((error) => ConsoleHandler.getInstance().error(error));
         }
 
         // On appelle le hook de fin d'installation

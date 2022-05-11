@@ -1,6 +1,7 @@
 
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import CleanOldNotifsCronWorker from './workers/CleanOldNotifs/CleanOldNotifsCronWorker';
@@ -27,6 +28,6 @@ export default class PushDataCronWorkersHandler {
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
         planCronWorker.worker_uid = CleanOldNotifsCronWorker.getInstance().worker_uid;
         // Pas besoin d'être dans un contexte synchrone
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker);
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 }

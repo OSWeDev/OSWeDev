@@ -113,9 +113,9 @@ export default class ForkedTasksController {
      * @param task_uid
      * @param task_params
      */
-    public exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): boolean {
+    public async exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): Promise<boolean> {
         if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
-            ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params));
+            await ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params));
             return false;
         }
         return true;
@@ -128,7 +128,7 @@ export default class ForkedTasksController {
      * @param task_params
      * @param resolver fonction resolve issue de la promise de la fonction que l'on souhaite exécuter côté main process
      */
-    public exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): boolean {
+    public async exec_self_on_bgthread_and_return_value(thrower, bgthread: string, task_uid: string, resolver, ...task_params): Promise<boolean> {
         if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
 
             let result_task_uid = this.get_result_task_uid();
@@ -157,7 +157,7 @@ export default class ForkedTasksController {
                     return false;
                 }
 
-                ForkMessageController.getInstance().send(
+                await ForkMessageController.getInstance().send(
                     new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
                     fork.child_process,
                     fork);
@@ -167,7 +167,7 @@ export default class ForkedTasksController {
 
             // Si on est sur un bgthread (et donc pas le bon à ce stade) on envoie une demande au thread principal d'envoie de message au bgthread
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid));
+            await ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid));
             return false;
         }
         return true;
@@ -199,7 +199,7 @@ export default class ForkedTasksController {
      * Méthode qui gère de nettoyer les appels en attente d'autres threads en fonction du timeout
      * assigné à chaque demande
      */
-    private async handle_fork_message_callback_timeout() {
+    private handle_fork_message_callback_timeout() {
 
         let to_delete = [];
         for (let i in this.registered_task_result_wrappers) {

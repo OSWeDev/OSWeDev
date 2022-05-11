@@ -712,7 +712,7 @@ export default class VarsComputeController {
                  */
                 this.add_vars_datas_to_dag(var_dag, vars_datas, true);
 
-                let vars_datas_to_deploy_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = this.get_vars_datas_by_controller_height(var_dag);
+                let vars_datas_to_deploy_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = await this.get_vars_datas_by_controller_height(var_dag);
                 let step = 1;
 
                 while (Object.keys(vars_datas_to_deploy_by_controller_height).length) {
@@ -734,7 +734,7 @@ export default class VarsComputeController {
                     // On doit ensuite charger les ds pre deps
                     await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag, ds_cache);
 
-                    vars_datas_to_deploy_by_controller_height = this.get_vars_datas_by_controller_height(var_dag);
+                    vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
                     step++;
                 }
 
@@ -760,12 +760,12 @@ export default class VarsComputeController {
      * Organiser les vars datas par profondeur du controller (en sachant que plus le controller est haut dans l'arbre, plus sa profondeur est élevée)
      *  on se base directement sur l'arbre, et on prend en compte que les éléments pas encore déployé, et sans valeur valide
      */
-    private get_vars_datas_by_controller_height(var_dag: DAG<VarDAGNode>): { [height: number]: { [index: string]: VarDataBaseVO } } {
+    private async get_vars_datas_by_controller_height(var_dag: DAG<VarDAGNode>): Promise<{ [height: number]: { [index: string]: VarDataBaseVO } }> {
         let vars_datas_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = {};
 
         // Ensuite par hauteur dans l'arbre
         if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
-            VarsServerController.getInstance().init_varcontrollers_dag_depths();
+            await VarsServerController.getInstance().init_varcontrollers_dag_depths();
         }
 
         for (let i in var_dag.nodes) {

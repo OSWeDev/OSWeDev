@@ -1,6 +1,7 @@
 import { throttle } from 'lodash';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import PerfMonLineTypeVO from '../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkMessageController from '../Fork/ForkMessageController';
 import UpdatePerfConfsForkMessage from './messages/UpdatePerfConfsForkMessage';
 
@@ -20,7 +21,7 @@ export default class PerfMonConfController {
 
     private constructor() {
         ForkMessageController.getInstance().register_message_handler(UpdatePerfConfsForkMessage.FORK_MESSAGE_TYPE, this.update_cached_perf_conf.bind(this));
-        this.update_cached_perf_conf();
+        this.update_cached_perf_conf().then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 
     public async registerPerformanceType(perf_type_by_name: string): Promise<PerfMonLineTypeVO> {

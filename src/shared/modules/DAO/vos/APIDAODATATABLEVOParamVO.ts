@@ -3,7 +3,7 @@ import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorS
 import IDistantVOBase from '../../IDistantVOBase';
 import Datatable from './datatable/Datatable';
 
-export default class APIDAODATATABLEVOParamVO implements IAPIParamTranslator<APIDAODATATABLEVOParamVO>{
+export default class APIDAODATATABLEVOParamVO implements IAPIParamTranslator<APIDAODATATABLEVOParamVO> {
 
     public static fromParams(
         datatable_vo: IDistantVOBase,

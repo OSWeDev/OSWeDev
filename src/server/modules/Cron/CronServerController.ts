@@ -62,7 +62,7 @@ export default class CronServerController {
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
                 await this.handle_runcron_message(new RunCronForkMessage(worker_uid));
             } else {
-                ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
+                await ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
             }
         } else {
 
@@ -71,7 +71,7 @@ export default class CronServerController {
                 return false;
             }
             let forked = ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType][worker_uid];
-            ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
+            await ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid), forked.child_process, forked);
         }
     }
 

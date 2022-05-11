@@ -329,13 +329,13 @@ export default abstract class DatatableField<T, U> {
      * @param options les id des vos à afficher
      * @returns le datatableField modifié
      */
-    public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
+    public async setSelectOptionsEnabled(options: number[]): Promise<DatatableField<T, U>> {
         this.select_options_enabled = Array.from(options);
 
         if (!!this.vue_component) {
             // on informe
             this.vue_component.$data.select_options_enabled = Array.from(options);
-            this.vue_component.on_reload_field_value();
+            await this.vue_component.on_reload_field_value();
         }
 
         return this;
