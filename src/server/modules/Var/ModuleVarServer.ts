@@ -956,7 +956,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             VarsdatasComputerBGThread.getInstance().semaphore = true;
 
-            await cb();
+            try {
+                await cb();
+            } catch (err) {
+                ConsoleHandler.getInstance().error("ModuleVarServer:exec_in_computation_hole:cb:" + err);
+            }
 
             VarsdatasComputerBGThread.getInstance().semaphore = false;
 

@@ -197,4 +197,15 @@ export default class SupervisedItemComponent extends VueComponentBase {
     private toggle_show_hide_graph() {
         this.show_graph = !this.show_graph;
     }
+
+    get supervised_item_description(): string {
+        return this.supervised_item && this.supervised_item_controller.get_description ? this.supervised_item_controller.get_description(this.supervised_item) : null;
+    }
+    get supervised_item_description_html(): string {
+        return this.supervised_item && this.supervised_item_controller.get_description_html ? this.supervised_item_controller.get_description_html(this.supervised_item) : null;
+    }
+
+    get supervised_item_graph_segmentation(): ISupervisedItemGraphSegmentation[] {
+        return this.supervised_item ? this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item) : null;
+    }
 }

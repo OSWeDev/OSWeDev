@@ -20,7 +20,7 @@
                                 )
                                 .btn-group.d-print-none
                                     template(v-if="show_graph")
-                                        template(v-for='graph_segmentation in supervised_item_client_controller.get_graph_segmentation(supervised_item)')
+                                        template(v-for='graph_segmentation in supervised_item_graph_segmentation')
                                             template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
                                                 button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
                                             template(v-else)
@@ -81,10 +81,10 @@
                 class='col-sm-12'
             )
                 .row
-                    template(v-if="supervised_item_controller.get_description(supervised_item)")
+                    template(v-if="supervised_item_description")
                         .col-sm-12
-                            .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_controller.get_description(supervised_item) }}
+                            .col-sm-12.supervised_item_description.pt-3.pb-3 {{ supervised_item_description }}
 
-                    template(v-if="supervised_item_controller.get_description_html && supervised_item_controller.get_description_html(supervised_item)")
+                    template(v-if="supervised_item_description_html")
                         .col-sm-12
-                            .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_controller.get_description_html(supervised_item)")
+                            .col-sm-12.supervised_item_description.pt-3.pb-3(v-html="supervised_item_description_html")
