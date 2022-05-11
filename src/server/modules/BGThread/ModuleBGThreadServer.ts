@@ -109,7 +109,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        this.execute_bgthread(bgthread);
+        this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 
     /**

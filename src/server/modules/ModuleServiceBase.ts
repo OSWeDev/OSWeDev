@@ -51,6 +51,7 @@ import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
@@ -266,7 +267,7 @@ export default abstract class ModuleServiceBase {
 
                 await ModuleDBService.getInstance(db).loadParams(registered_module);
 
-                ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
+                ModuleDBService.getInstance(db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.getInstance().error(error));
             }
 
             // On appelle le hook de fin d'installation

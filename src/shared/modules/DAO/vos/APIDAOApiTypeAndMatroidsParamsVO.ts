@@ -2,7 +2,7 @@ import IAPIParamTranslator from '../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../API/interfaces/IAPIParamTranslatorStatic';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 
-export default class APIDAOApiTypeAndMatroidsParamsVO implements IAPIParamTranslator<APIDAOApiTypeAndMatroidsParamsVO>{
+export default class APIDAOApiTypeAndMatroidsParamsVO implements IAPIParamTranslator<APIDAOApiTypeAndMatroidsParamsVO> {
 
     public static fromParams(
         API_TYPE_ID: string,

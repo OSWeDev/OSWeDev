@@ -3,6 +3,7 @@ import { fork } from 'child_process';
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -86,7 +87,7 @@ export default class ForkServerController {
         /**
          * On met en place un thread sur le master qui check le status régulièrement des forked (en tentant d'envoyer un alive)
          */
-        this.checkForksAvailability();
+        this.checkForksAvailability().then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 
     public reload_unavailable_threads() {
@@ -125,7 +126,7 @@ export default class ForkServerController {
 
             forked.child_process.on('message', async (msg: IForkMessage) => {
                 msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
-                ForkMessageController.getInstance().message_handler(msg, forked.child_process);
+                await ForkMessageController.getInstance().message_handler(msg, forked.child_process);
             });
         }
     }

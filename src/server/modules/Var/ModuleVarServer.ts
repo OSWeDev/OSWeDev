@@ -75,6 +75,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_getSimpleVarDataCachedValueFromParam = 'Var.getSimpleVarDataCachedValueFromParam';
     public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
+    public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
 
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
     public static TASK_NAME_invalidate_cache_exact_and_parents = 'VarsDatasProxy.invalidate_cache_exact_and_parents';
@@ -391,6 +392,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_wait_for_computation_hole, this.wait_for_computation_hole.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
 
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
@@ -472,7 +474,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_c,
@@ -501,7 +503,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_imports_for_u,
@@ -613,7 +615,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents,
@@ -673,7 +675,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents,
@@ -908,6 +910,62 @@ export default class ModuleVarServer extends ModuleServerBase {
                     ConsoleHandler.getInstance().warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                 }
             }
+            resolve(true);
+        });
+    }
+
+
+    /**
+     * Objectif : lancer un comportement dans un trou forcé d'exec des vars
+     * Fonction ayant pour but d'être appelée sur le thread de computation des vars
+     * FIXME : POURQUOI ? await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve
+     */
+    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 10000, timeout_ms: number = 60000): Promise<boolean> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_exec_in_computation_hole,
+                resolve,
+                cb, interval_sleep_ms, timeout_ms)) {
+                return;
+            }
+
+            // FIXME je vois pas pourquoi
+            // if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+            //     reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve)) {
+            //     return;
+            // }
+
+            let start_time = Dates.now();
+            let real_start_time = start_time;
+            while (
+                VarsdatasComputerBGThread.getInstance().semaphore ||
+                ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
+                ||
+                ObjectHandler.getInstance().hasAtLeastOneAttribute(await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(1, 1, 1, 1))
+            ) {
+                await ThreadHandler.getInstance().sleep(interval_sleep_ms);
+                let actual_time = Dates.now();
+
+                if (actual_time > (start_time + (timeout_ms / 1000))) {
+                    start_time = actual_time;
+                    ConsoleHandler.getInstance().warn('ModuleVarServer:exec_in_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                }
+            }
+
+            VarsdatasComputerBGThread.getInstance().semaphore = true;
+
+            try {
+                await cb();
+            } catch (err) {
+                ConsoleHandler.getInstance().error("ModuleVarServer:exec_in_computation_hole:cb:" + err);
+            }
+
+            VarsdatasComputerBGThread.getInstance().semaphore = false;
+
             resolve(true);
         });
     }

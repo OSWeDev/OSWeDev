@@ -4,7 +4,7 @@ import DateHandler from '../../../../tools/DateHandler';
 import IAPIParamTranslator from '../../interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../interfaces/IAPIParamTranslatorStatic';
 
-export default class DayParamVO implements IAPIParamTranslator<DayParamVO>{
+export default class DayParamVO implements IAPIParamTranslator<DayParamVO> {
 
     public static URL: string = ':day';
 

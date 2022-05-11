@@ -97,6 +97,8 @@ export default abstract class ServerBase {
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.getInstance().log("Main Process starting");
+        }).catch((reason) => {
+            ConsoleHandler.getInstance().error("FileLogger prepare : " + reason);
         });
 
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
@@ -212,17 +214,17 @@ export default abstract class ServerBase {
         process.stdin.resume(); //so the program will not close instantly
 
         //do something when app is closing
-        process.on('exit', this.exitHandler.bind(null, { cleanup: true, from: 'exit' }));
+        process.on('exit', async () => await this.exitHandler.bind(null, { cleanup: true, from: 'exit' }));
 
         //catches ctrl+c event
-        process.on('SIGINT', this.exitHandler.bind(null, { exit: true, from: 'SIGINT' }));
+        process.on('SIGINT', async () => await this.exitHandler.bind(null, { exit: true, from: 'SIGINT' }));
 
         // catches "kill pid" (for example: nodemon restart)
-        process.on('SIGUSR1', this.exitHandler.bind(null, { exit: true, from: 'SIGUSR1' }));
-        process.on('SIGUSR2', this.exitHandler.bind(null, { exit: true, from: 'SIGUSR2' }));
+        process.on('SIGUSR1', async () => await this.exitHandler.bind(null, { exit: true, from: 'SIGUSR1' }));
+        process.on('SIGUSR2', async () => await this.exitHandler.bind(null, { exit: true, from: 'SIGUSR2' }));
 
         //catches uncaught exceptions
-        process.on('uncaughtException', (err) => this.exitHandler.bind(null, { exit: true, from: 'uncaughtException:' + err }));
+        process.on('uncaughtException', async (err) => await this.exitHandler.bind(null, { exit: true, from: 'uncaughtException:' + err }));
 
         this.app.use(cookieParser());
 
@@ -325,7 +327,7 @@ export default abstract class ServerBase {
 
         this.hook_configure_express();
 
-        this.hook_pwa_init();
+        await this.hook_pwa_init();
 
         // app.get(/^[/]public[/]generated[/].*/, function (req, res, next) {
         //     tryuseGZ('client', req, res, next);
@@ -474,6 +476,7 @@ export default abstract class ServerBase {
         this.app.use(this.session);
 
         this.app.use(function (req, res, next) {
+            // TODO JNE - A DISCUTER
             try {
                 let sid = res.req.cookies['sid'];
 
@@ -623,17 +626,18 @@ export default abstract class ServerBase {
             // On log les requêtes pour ensuite pouvoir les utiliser dans le delete session en log
             let api_req: string[] = [];
             let uid: number = (session) ? session.uid : null;
+            let sid: string = (session) ? session.sid : null;
             let date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", false);
 
             if (req.url == "/api_handler/requests_wrapper") {
                 for (let i in req.body) {
-                    api_req.push("DATE:" + date + " || UID:" + uid + " || URL:" + req.body[i].url);
+                    api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.body[i].url);
                 }
             } else {
-                api_req.push("DATE:" + date + " || UID:" + uid + " || URL:" + req.url);
+                api_req.push("DATE:" + date + " || UID:" + uid + " || SID:" + sid + " || URL:" + req.url);
             }
 
-            ForkedTasksController.getInstance().exec_self_on_bgthread(
+            await ForkedTasksController.getInstance().exec_self_on_bgthread(
                 AccessPolicyDeleteSessionBGThread.getInstance().name,
                 AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
                 api_req
@@ -711,9 +715,17 @@ export default abstract class ServerBase {
 
             let session: IServerUserSession = req.session as IServerUserSession;
 
+            // On va regarder si la personne essaye d'y accéder en direct
+            // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
+            let can_fail: boolean = true;
+
+            if (req && req.headers && req.headers.referer) {
+                can_fail = false;
+            }
+
             let has_access: boolean = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS));
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -727,9 +739,17 @@ export default abstract class ServerBase {
 
             let session: IServerUserSession = req.session as IServerUserSession;
 
+            // On va regarder si la personne essaye d'y accéder en direct
+            // Si c'est le cas, on considère que la personne peut ne pas avoir accès et donc sa session ne sera pas supprimée
+            let can_fail: boolean = true;
+
+            if (req && req.headers && req.headers.referer) {
+                can_fail = false;
+            }
+
             let has_access: boolean = await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS));
+                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
             if (!has_access) {
 
@@ -1097,11 +1117,11 @@ export default abstract class ServerBase {
     //     ]);
     // }
 
-    protected exitHandler(options, exitCode, from) {
+    protected async exitHandler(options, exitCode, from) {
         ConsoleHandler.getInstance().log('Server is starting cleanup: ' + from);
 
         ConsoleHandler.getInstance().log(JSON.stringify(VarsDatasVoUpdateHandler.getInstance()['ordered_vos_cud']));
-        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
         if (options.cleanup) {
             console.log('clean');
         }

@@ -5,6 +5,7 @@
     ],
     "jsRules": {},
     "rules": {
+        "no-floating-promises": true,
         "eofline": false,
         "quotemark": [
             false

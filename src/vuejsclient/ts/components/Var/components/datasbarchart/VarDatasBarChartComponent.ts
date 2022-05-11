@@ -281,7 +281,8 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
 
             let dataset = {
                 data: dataset_datas,
-                yAxisID: var_dataset_descriptor.y_axis_id
+                yAxisID: var_dataset_descriptor.y_axis_id,
+                var_name: var_dataset_descriptor.var_name
             };
 
             if (!!var_dataset_descriptor.label_translatable_code) {

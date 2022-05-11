@@ -200,7 +200,7 @@ export default class ImportTypeCSVHandler {
             let batch_datas: IImportedData[] = [];
             inputStream
                 .pipe(new CsvReadableStream({ parseNumbers: false, parseBooleans: false, trim: false, delimiter: ';' }))
-                .on('data', function (raw_row_data) {
+                .on('data', async function (raw_row_data) {
 
                     if (raw_row_index == dataImportFormat.column_labels_row_index) {
 
@@ -253,7 +253,7 @@ export default class ImportTypeCSVHandler {
 
                                                     if (dataImportColumn.column_index != null) {
                                                         if (!muted) {
-                                                            ImportLogger.getInstance().log(historic, dataImportFormat, 'Ce titre de colonne existe en double :' + dataImportColumn.title + '.', DataImportLogVO.LOG_LEVEL_WARN);
+                                                            await ImportLogger.getInstance().log(historic, dataImportFormat, 'Ce titre de colonne existe en double :' + dataImportColumn.title + '.', DataImportLogVO.LOG_LEVEL_WARN);
                                                         }
                                                         break;
                                                     }
@@ -275,7 +275,7 @@ export default class ImportTypeCSVHandler {
 
                                         // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
                                         //  donc on doit remonter l'info des colonnes obligatoires que l'on ne trouve pas
-                                        ImportLogger.getInstance().log(historic, dataImportFormat, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
+                                        await ImportLogger.getInstance().log(historic, dataImportFormat, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
 
                                         misses_mandatory_columns = true;
                                         break;
@@ -315,18 +315,13 @@ export default class ImportTypeCSVHandler {
                             self.pause();
 
                             if (dataImportFormat.use_multiple_connections) {
-                                ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                                    batch_datas)
-                                    // /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000)
-                                    .then(() => {
-                                        batch_datas = [];
-                                        self.resume();
-                                    });
+                                await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(batch_datas);
+                                batch_datas = [];
+                                self.resume();
                             } else {
-                                ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
-                                    batch_datas = [];
-                                    self.resume();
-                                });
+                                await ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas);
+                                batch_datas = [];
+                                self.resume();
                             }
                         }
                     }
@@ -337,18 +332,13 @@ export default class ImportTypeCSVHandler {
                     if (batch_datas && batch_datas.length) {
 
                         if (dataImportFormat.use_multiple_connections) {
-                            ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(
-                                batch_datas)
-                                // /*Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2))*/100000)
-                                .then(() => {
-                                    resolve(!closed);
-                                    batch_datas = [];
-                                });
+                            await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(batch_datas);
+                            resolve(!closed);
+                            batch_datas = [];
                         } else {
-                            ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas).then(() => {
-                                resolve(!closed);
-                                batch_datas = [];
-                            });
+                            await ModuleDAO.getInstance().insertOrUpdateVOs(batch_datas);
+                            resolve(!closed);
+                            batch_datas = [];
                         }
                     } else {
                         resolve(!closed);

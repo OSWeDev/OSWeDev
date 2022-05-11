@@ -87,7 +87,7 @@ export default class VarsDatasProxy {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 VarsDatasProxy.TASK_NAME_has_cached_vars_waiting_for_compute,
@@ -203,7 +203,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_append_var_datas, var_datas)) {
+                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_append_var_datas, var_datas)) {
                     return;
                 }
 
@@ -228,7 +228,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas)) {
+                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas)) {
                     return;
                 }
 
@@ -695,7 +695,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
+                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_update_existing_buffered_older_datas, var_datas)) {
                     return;
                 }
 
@@ -752,7 +752,7 @@ export default class VarsDatasProxy {
                  * On commence par ordonner les vars par cardinal pour commencer par les plus petites, et aussi par celles qui sont en bas de l'arbre
                  */
                 if (this.vars_datas_buffer && this.vars_datas_buffer.length) {
-                    this.order_vars_datas_buffer();
+                    await this.order_vars_datas_buffer();
                 }
 
                 for (let i in this.vars_datas_buffer) {
@@ -1113,13 +1113,18 @@ export default class VarsDatasProxy {
         }
     }
 
-    private order_vars_datas_buffer() {
+    private async order_vars_datas_buffer() {
 
         let cardinaux: { [index: string]: number } = {};
 
         for (let i in this.vars_datas_buffer) {
             let var_wrapper = this.vars_datas_buffer[i];
             cardinaux[var_wrapper.var_data.index] = MatroidController.getInstance().get_cardinal(var_wrapper.var_data);
+        }
+
+        // Ensuite par hauteur dans l'arbre
+        if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
+            await VarsServerController.getInstance().init_varcontrollers_dag_depths();
         }
 
         this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
@@ -1136,11 +1141,6 @@ export default class VarsDatasProxy {
             // Ensuite par cardinal
             if (cardinaux[a.var_data.index] != cardinaux[b.var_data.index]) {
                 return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
-            }
-
-            // Ensuite par hauteur dans l'arbre
-            if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
-                VarsServerController.getInstance().init_varcontrollers_dag_depths();
             }
 
             let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_data.var_id];

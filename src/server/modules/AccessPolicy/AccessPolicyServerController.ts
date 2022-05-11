@@ -1077,7 +1077,7 @@ export default class AccessPolicyServerController {
                     AccessPolicyDeleteSessionBGThread.getInstance().name,
                     AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
                     session
-                );
+                ).then().catch((error) => ConsoleHandler.getInstance().error(error));
             }
         }
         return false;

@@ -3,7 +3,7 @@ import CommandeVO from '../../../Commande/vos/CommandeVO';
 import IAPIParamTranslator from '../../../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../../../API/interfaces/IAPIParamTranslatorStatic';
 
-export default class ProduitsParamLignesParamVO implements IAPIParamTranslator<ProduitsParamLignesParamVO>{
+export default class ProduitsParamLignesParamVO implements IAPIParamTranslator<ProduitsParamLignesParamVO> {
 
     public static fromParams(
         produitsParam: ProduitParamLigneParamVO[],

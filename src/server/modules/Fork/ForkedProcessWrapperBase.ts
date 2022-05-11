@@ -42,10 +42,11 @@ export default abstract class ForkedProcessWrapperBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.getInstance().log("Forked Process starting");
-        });
+        }).catch((error) => ConsoleHandler.getInstance().error(error));
 
         ModulesManager.getInstance().isServerSide = true;
 
@@ -102,7 +103,7 @@ export default abstract class ForkedProcessWrapperBase {
 
         process.on('message', async (msg: IForkMessage) => {
             msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
-            ForkMessageController.getInstance().message_handler(msg, process);
+            await ForkMessageController.getInstance().message_handler(msg, process);
         });
 
         // On prévient le process parent qu'on est ready

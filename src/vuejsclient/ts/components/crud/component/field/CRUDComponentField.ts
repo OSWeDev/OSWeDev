@@ -462,7 +462,7 @@ export default class CRUDComponentField extends VueComponentBase
         return input_value;
     }
 
-    private validateInput(input: any) {
+    private async validateInput(input: any) {
 
         if (this.inline_input_mode) {
             return;
@@ -474,7 +474,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.auto_update_field_value) {
-            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+            await this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
         if (this.field.onChange) {
@@ -506,7 +506,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
-    private validateToggle() {
+    private async validateToggle() {
 
         this.field_value = !this.field_value;
 
@@ -528,7 +528,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.auto_update_field_value) {
-            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+            await this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
         if (this.field.onChange) {
@@ -559,7 +559,7 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
 
-    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
+    private async changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
 
         if (!this.datatable) {
             vo[field.datatable_field_uid] = this.field.UpdateIHMToData(value, this.vo);
@@ -662,7 +662,7 @@ export default class CRUDComponentField extends VueComponentBase
                 }
 
                 if (newOptions.length > 0) {
-                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
+                    await field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
 
@@ -693,13 +693,13 @@ export default class CRUDComponentField extends VueComponentBase
                 }
 
                 if (newOptions.length > 0) {
-                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
+                    await field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
         }
     }
 
-    private updateDateRange(input: any) {
+    private async updateDateRange(input: any) {
 
         if (this.inline_input_mode) {
             return;
@@ -728,7 +728,7 @@ export default class CRUDComponentField extends VueComponentBase
             }
         }
 
-        this.inputValue(res);
+        await this.inputValue(res);
     }
 
     /**
@@ -1055,7 +1055,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.auto_update_field_value) {
-            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+            await this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
         if (this.field.onChange) {
@@ -1067,7 +1067,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
-    private inputValue(value: any) {
+    private async inputValue(value: any) {
 
         if (this.inline_input_mode) {
             return;
@@ -1078,7 +1078,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.auto_update_field_value) {
-            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+            await this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
         if (this.field.onChange) {

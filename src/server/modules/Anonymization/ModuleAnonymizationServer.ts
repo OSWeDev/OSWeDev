@@ -120,7 +120,7 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         postDeleteTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
 
         if (ForkServerController.getInstance().is_main_process) {
-            ServerAnonymizationController.getInstance().reload_conf();
+            await ServerAnonymizationController.getInstance().reload_conf();
         }
     }
 

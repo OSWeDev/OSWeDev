@@ -205,11 +205,12 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
          * On en profite pour bloquer les updates en bases
          *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
          */
-        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
-        setTimeout(VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache, readonly_maintenance_deadline);
-
         ConsoleHandler.getInstance().error('Maintenance programmée dans 10 minutes');
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
+
+        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
+        await ThreadHandler.getInstance().sleep(readonly_maintenance_deadline);
+        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
     }
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {

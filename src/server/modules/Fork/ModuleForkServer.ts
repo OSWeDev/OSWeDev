@@ -57,7 +57,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
     public async kill_process(throttle: number = 10) {
         this.is_killing = true;
-        VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
+        await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
 
         while (throttle > 0) {
             ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in " + throttle);
@@ -153,7 +153,7 @@ export default class ModuleForkServer extends ModuleServerBase {
             return true;
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
 
             let thrower = async (error) => {
                 if (msg.callback_id) {
@@ -170,7 +170,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 }
                 resolve(res);
             };
-            ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params);
+            await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(thrower, msg.bgthread, msg.message_content, resolver, ...msg.message_content_params);
         });
     }
 
@@ -190,7 +190,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (this.is_killing) {
             ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
-                ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
+                await ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
             } else {
                 throw new Error('KILLING TASK HANDLER');
             }
@@ -205,7 +205,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.callback_id) {
-            ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(res, msg.callback_id));
+            await ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(res, msg.callback_id));
         }
 
         return true;
