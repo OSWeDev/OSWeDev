@@ -35,7 +35,7 @@
                                         :inline_input_mode_semaphore='true'
                                         :show_insert_or_update_target='false'
                                     )
-                        .row 
+                        .row(v-if='show_firstname_field')
                             .col-md-12
                                 .my_account_firstname(v-tooltip='editable_firstname_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true")
@@ -52,7 +52,7 @@
                                         :inline_input_mode_semaphore='true'
                                         :show_insert_or_update_target='false'
                                     )
-                        .row 
+                        .row(v-if='show_lastname_field')
                             .col-md-12
                                 .my_account_lastname(v-tooltip='editable_lastname_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true" style='opacity:0')

@@ -78,6 +78,14 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
         return VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
     }
 
+    get show_firstname_field() {
+        return AccessPolicyMyAccountComponentController.getInstance().show_firstname_field;
+    }
+
+    get show_lastname_field() {
+        return AccessPolicyMyAccountComponentController.getInstance().show_lastname_field;
+    }
+
     get editable_login() {
         return new SimpleDatatableField('name').setModuleTable(this.user_moduletable);
     }
