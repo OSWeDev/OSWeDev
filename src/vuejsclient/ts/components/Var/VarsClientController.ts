@@ -81,11 +81,11 @@ export default class VarsClientController {
                 needs_registration[var_param.index] = var_param;
                 this.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
                 if (callbacks) {
-                    this.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    await this.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             } else {
                 if (callbacks) {
-                    this.registered_var_params[var_param.index].add_callbacks(callbacks);
+                    await this.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
                 this.registered_var_params[var_param.index].nb_registrations++;
             }
@@ -120,7 +120,7 @@ export default class VarsClientController {
      */
     public async registerParamsAndWait(var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<{ [index: string]: VarDataBaseVO }> {
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             let callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
             let res: { [index: string]: VarDataBaseVO } = {};
             let nb_waited_cbs: number = TypesHandler.getInstance().isArray(var_params) ? (var_params as VarDataBaseVO[]).length : Object.keys(var_params).length;
@@ -134,7 +134,7 @@ export default class VarsClientController {
             }, value_type);
             callbacks[callback.UID] = callback;
 
-            this.registerParams(var_params, callbacks);
+            await this.registerParams(var_params, callbacks);
         });
     }
 
@@ -146,13 +146,13 @@ export default class VarsClientController {
      */
     public async registerParamAndWait<T extends VarDataBaseVO>(var_param: T, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<T> {
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             let callback = VarUpdateCallback.newCallbackOnce(
                 async (varData: T) => { resolve(varData); },
                 value_type
             );
 
-            this.registerParams([var_param], { [callback.UID]: callback });
+            await this.registerParams([var_param], { [callback.UID]: callback });
         });
     }
 
@@ -283,8 +283,8 @@ export default class VarsClientController {
         let self = this;
 
         // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
-        setTimeout(() => {
-            self.check_invalid_valued_params_registration();
+        setTimeout(async () => {
+            await self.check_invalid_valued_params_registration();
         }, self.timeout_check_registrations);
     }
 

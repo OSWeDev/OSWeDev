@@ -38,9 +38,9 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
 
         if (!this.on_hidden_initialized) {
             this.on_hidden_initialized = true;
-            $("#crud_create_modal").on("hidden.bs.modal", () => {
+            $("#crud_create_modal").on("hidden.bs.modal", async () => {
                 if (this.onclose_callback) {
-                    this.onclose_callback();
+                    await this.onclose_callback();
                 }
             });
         }
@@ -59,7 +59,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
         }
 
         if (this.onclose_callback) {
-            this.onclose_callback();
+            await this.onclose_callback();
         }
     }
 }

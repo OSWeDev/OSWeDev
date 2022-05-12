@@ -145,7 +145,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             }
         };
 
-        VarsClientController.getInstance().registerParams([clone], {
+        await VarsClientController.getInstance().registerParams([clone], {
             [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackOnce(cb.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
         });
 
@@ -247,33 +247,33 @@ export default class VarDataRefComponent extends VueComponentBase {
         return this.getDescSelectedVarParam.index == this.var_param.index;
     }
 
-    private mounted() {
-        this.intersect_in();
+    private async mounted() {
+        await this.intersect_in();
     }
 
-    private destroyed() {
-        this.unregister();
+    private async destroyed() {
+        await this.unregister();
     }
 
-    private intersect_in() {
+    private async intersect_in() {
         this.entered_once = true;
-        this.register();
+        await this.register();
     }
 
-    private intersect_out() {
-        this.unregister();
+    private async intersect_out() {
+        await this.unregister();
     }
 
-    private register(var_param: VarDataBaseVO = null) {
+    private async register(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
         }
 
         if (var_param || this.var_param) {
-            VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
 
             if (this.show_import_aggregated) {
-                ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                await ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
                     for (let var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
                             this.aggregated_var_param = cloneDeep(datas[var_data_index]);
@@ -285,7 +285,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    private unregister(var_param: VarDataBaseVO = null) {
+    private async unregister(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
         }
@@ -293,12 +293,12 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.var_data = null;
 
         if (var_param || this.var_param) {
-            VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param], this.varUpdateCallbacks);
         }
     }
 
     @Watch('var_param')
-    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+    private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
@@ -306,11 +306,11 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            this.unregister(old_var_param);
+            await this.unregister(old_var_param);
         }
 
         if (new_var_param) {
-            this.register();
+            await this.register();
         }
     }
 

@@ -46,7 +46,7 @@ export default class ScreenshotComponent extends VueComponentBase {
 
             let { default: html2canvas } = await import(/* webpackChunkName: "html2canvas" */ 'html2canvas');
 
-            html2canvas(
+            await html2canvas(
                 document.getElementById("VueMain"),
                 {
                     ignoreElements: function (el: HTMLElement) {

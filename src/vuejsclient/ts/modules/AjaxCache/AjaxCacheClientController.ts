@@ -1,7 +1,5 @@
 import debounce from 'lodash/debounce';
 import { decode, encode } from 'messagepack';
-
-
 import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';
@@ -11,9 +9,7 @@ import RequestResponseCacheVO from '../../../../shared/modules/AjaxCache/vos/Req
 import RequestsCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestsCacheVO';
 import RequestsWrapperResult from '../../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 
@@ -259,16 +255,16 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
                 if ($.ajax) {
                     await $.ajax(options)
-                        .done((r) => {
-                            self.resolve_request(cache, r);
+                        .done(async (r) => {
+                            await self.resolve_request(cache, r);
                         })
-                        .fail((err) => {
-                            self.traitementFailRequest(err, cache);
+                        .fail(async (err) => {
+                            await self.traitementFailRequest(err, cache);
 
                             ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
                         });
                 } else {
-                    self.resolve_request(cache, null);
+                    await self.resolve_request(cache, null);
                 }
             }
         });
@@ -426,7 +422,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         this.debounced_processRequests();
     }
 
-    private traitementFailRequest(err, request: RequestResponseCacheVO) {
+    private async traitementFailRequest(err, request: RequestResponseCacheVO) {
         let self = this;
 
         if (401 == err.status) {
@@ -451,7 +447,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 let callback = async () => {
                     reject_callback(null);
                 };
-                callback();
+                await callback();
 
             }
         }
@@ -570,7 +566,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                         wrapped_request.index = correspondance[i];
 
-                        self.resolve_request(wrapped_request, results.requests_results[i]);
+                        await self.resolve_request(wrapped_request, results.requests_results[i]);
                     }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.
@@ -611,14 +607,14 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                             }
                         ).then(function (response) {
                             var reader = new FileReader();
-                            reader.onload = function (e) {
+                            reader.onload = async function (e) {
                                 var pack = decode(new Uint8Array(reader.result as ArrayBuffer));
-                                self.resolve_request(request, pack);
+                                await self.resolve_request(request, pack);
                             };
                             reader.readAsArrayBuffer(response.data);
-                        }).catch(function (error) {
+                        }).catch(async function (error) {
                             console.error(error);
-                            self.traitementFailRequest(error, request);
+                            await self.traitementFailRequest(error, request);
                         });
 
                     } else {
@@ -634,11 +630,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         if ($.get) {
                             $.get(
                                 request.url,
-                                (datas) => {
-                                    self.resolve_request(request, datas);
+                                async (datas) => {
+                                    await self.resolve_request(request, datas);
                                 })
-                                .fail((err) => {
-                                    self.traitementFailRequest(err, request);
+                                .fail(async (err) => {
+                                    await self.traitementFailRequest(err, request);
                                 });
                         } else {
                             let resolve_callback = request.resolve_callbacks.shift();
@@ -658,7 +654,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         request.dataType, request.contentType, request.processData, request.timeout,
                         true);
 
-                    this.resolve_request(request, res);
+                    await this.resolve_request(request, res);
                     break;
             }
         }
@@ -672,7 +668,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         // }), self.timerProcessRequests);
     }
 
-    private resolve_request(request: RequestResponseCacheVO, datas) {
+    private async resolve_request(request: RequestResponseCacheVO, datas) {
 
         if (request.type != RequestResponseCacheVO.API_TYPE_POST) {
             request.datas = datas;
@@ -687,7 +683,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let callback = async () => {
                 resolve_callback(datas);
             };
-            callback();
+            await callback();
         }
     }
 

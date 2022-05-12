@@ -76,6 +76,19 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     private autovalidate: boolean = false;
 
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
+    private dropzoneOptions: any = {
+
+        createImageThumbnails: false,
+        acceptedFiles: this.acceptedFiles,
+        timeout: 3600000,
+        error: (infos, error_message) => {
+            this.snotify.error(error_message);
+        },
+        accept: async (file, done) => {
+
+            await this.checkUnfinishedImportsAndReplacement(done);
+        }
+    };
 
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
@@ -86,7 +99,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
 
     @Watch("$route")
     public async onrouteChange() {
-        this.handle_modal_show_hide();
+        await this.handle_modal_show_hide();
     }
     public async on_show_modal() {
         await this.loadRawImportedDatas();
@@ -821,23 +834,6 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         return res;
     }
 
-    get dropzoneOptions(): any {
-
-        let self = this;
-        return {
-            createImageThumbnails: false,
-            acceptedFiles: self.acceptedFiles,
-            timeout: 3600000,
-            error: (infos, error_message) => {
-                self.snotify.error(error_message);
-            },
-            accept: (file, done) => {
-
-                this.checkUnfinishedImportsAndReplacement(done);
-            }
-        };
-    }
-
     private async checkUnfinishedImportsAndReplacement(done) {
         let self = this;
 
@@ -860,7 +856,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
                             }
                             await ModuleDAO.getInstance().insertOrUpdateVOs(unfinished_imports);
 
-                            this.checkReplaceExistingImport(done);
+                            await this.checkReplaceExistingImport(done);
                         },
                         bold: false
                     },
@@ -875,7 +871,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
             });
         } else {
 
-            this.checkReplaceExistingImport(done);
+            await this.checkReplaceExistingImport(done);
         }
     }
 

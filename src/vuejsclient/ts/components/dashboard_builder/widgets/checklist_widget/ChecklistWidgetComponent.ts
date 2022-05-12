@@ -259,7 +259,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
         }
 
-        this.update_visible_options();
+        await this.update_visible_options();
     }
 
     get has_checklistitems() {
@@ -280,7 +280,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         }
         e.id = res.id;
 
-        this.openmodal(e, null);
+        await this.openmodal(e, null);
     }
 
     private async deleteSelectedItem(item: ICheckListItem) {

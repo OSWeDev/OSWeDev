@@ -83,7 +83,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     }
 
     private async beforeDestroy() {
-        VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
+        await VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
         if (!!this.rendered) {
             // Issu de Bar
             this.$data._chart.destroy();
@@ -165,7 +165,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     }
 
     @Watch('var_dataset_descriptors', { immediate: true, deep: true })
-    private onChange_var_dataset_descriptor(new_datasets: VarsBarDataSetDescriptor[], old_datasets: VarsBarDataSetDescriptor[]) {
+    private async onChange_var_dataset_descriptor(new_datasets: VarsBarDataSetDescriptor[], old_datasets: VarsBarDataSetDescriptor[]) {
 
         let new_var_params = this.get_all_datas(new_datasets);
         let old_var_params = this.get_all_datas(old_datasets);
@@ -176,11 +176,11 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
         this.onchange_all_data_loaded();

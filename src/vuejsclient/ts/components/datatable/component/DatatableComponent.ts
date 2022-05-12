@@ -700,9 +700,9 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     @Watch('embed_filter', { immediate: true, deep: true })
-    private onFilterChange() {
+    private async onFilterChange() {
         if (!!this.embed_filter) {
-            this.debounced_update_datatable_data();
+            await this.debounced_update_datatable_data();
         }
     }
 

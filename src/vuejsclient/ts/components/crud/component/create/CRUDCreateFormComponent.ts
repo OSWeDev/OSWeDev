@@ -67,6 +67,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private is_only_readable: boolean = false;
 
     private crud_createDatatable_key: number = 0;
+    private crud: CRUD<any> = null;
 
     public update_key() {
         if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {
@@ -74,13 +75,17 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
     }
 
-    get crud(): CRUD<any> {
+    @Watch("api_type_id", { immediate: true })
+    private async onchange_api_type_id() {
         if (!this.api_type_id) {
-            return null;
+            if (this.crud) {
+                this.crud = null;
+            }
+            return;
         }
 
         if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id]) {
-            CRUDComponentManager.getInstance().registerCRUD(
+            await CRUDComponentManager.getInstance().registerCRUD(
                 this.api_type_id,
                 null,
                 null,
@@ -88,12 +93,14 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             );
         }
 
-        return CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
+            this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        }
     }
 
     @Watch("vo_init")
-    private on_change_vo_init() {
-        this.prepareNewVO();
+    private async on_change_vo_init() {
+        await this.prepareNewVO();
     }
 
     private async loaddatas() {
@@ -111,7 +118,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
          */
         await Promise.all(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.createDatatable, this.api_types_involved, this.storeDatas, true));
 
-        this.prepareNewVO();
+        await this.prepareNewVO();
 
         this.isLoading = false;
     }
@@ -123,9 +130,9 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
     }
 
-    private prepareNewVO() {
+    private async prepareNewVO() {
 
-        this.newVO = CRUDFormServices.getInstance().getNewVO(
+        this.newVO = await CRUDFormServices.getInstance().getNewVO(
             this.crud, this.vo_init, this.onChangeVO
         );
     }
@@ -265,7 +272,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 self.$emit(createdVO._type + '_create', createdVO);
                 await self.callCallbackFunctionCreate();
                 if (self.crud.reset_newvo_after_each_creation) {
-                    self.prepareNewVO();
+                    await self.prepareNewVO();
                 }
 
                 if (self.close_on_submit) {

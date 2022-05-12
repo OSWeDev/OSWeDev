@@ -149,8 +149,8 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     @Watch("vo_init")
-    private on_change_vo_init() {
-        this.prepareNewVO();
+    private async on_change_vo_init() {
+        await this.prepareNewVO();
     }
     // @Watch("embed_filter")
     // private on_change_filter() {
@@ -278,7 +278,7 @@ export default class CRUDComponent extends VueComponentBase {
         await Promise.all(this.loadDatasFromDatatable(this.crud.updateDatatable));
         this.nextLoadingStep();
 
-        this.prepareNewVO();
+        await this.prepareNewVO();
         this.nextLoadingStep();
         this.nextLoadingStep();
 
@@ -384,7 +384,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.$emit('hide-crud-modal', vo_type, action);
     }
 
-    private prepareNewVO() {
+    private async prepareNewVO() {
 
         let obj = {
             _type: this.crud.readDatatable.API_TYPE_ID,
@@ -427,7 +427,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
 
         if (!!this.crud.hook_prepare_new_vo_for_creation) {
-            this.crud.hook_prepare_new_vo_for_creation(this.newVO);
+            await this.crud.hook_prepare_new_vo_for_creation(this.newVO);
         }
 
         this.onChangeVO(this.newVO);
@@ -737,14 +737,14 @@ export default class CRUDComponent extends VueComponentBase {
                 if (self.embed) {
                     self.$emit(self.newVO._type + '_create', createdVO);
                     if (self.crud.reset_newvo_after_each_creation) {
-                        self.prepareNewVO();
+                        await self.prepareNewVO();
                     }
                     self.hideCrudModal(self.newVO._type, 'create');
                 } else {
                     self.$router.push(self.callback_route);
                     await self.callCallbackFunctionCreate();
                     if (CRUDComponentManager.getInstance().cruds_by_api_type_id[self.crud.api_type_id].reset_newvo_after_each_creation) {
-                        self.prepareNewVO();
+                        await self.prepareNewVO();
                     }
                 }
 

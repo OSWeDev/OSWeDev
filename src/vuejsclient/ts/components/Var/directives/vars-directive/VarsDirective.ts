@@ -51,7 +51,7 @@ export default class VarsDirective {
 
             VarsDirective.getInstance().callbacks[var_param.index] = VarsDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode);
 
-            VarsClientController.getInstance().registerParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
+            await VarsClientController.getInstance().registerParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
         }
     }
 
@@ -67,7 +67,7 @@ export default class VarsDirective {
             return;
         }
 
-        VarsClientController.getInstance().unRegisterParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
+        await VarsClientController.getInstance().unRegisterParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
     }
 
     private getVarUpdateCallbacks(el, binding, vnode): { [cb_uid: number]: VarUpdateCallback } {

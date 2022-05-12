@@ -25,7 +25,7 @@ export default class CRUDComponentManager {
     public inline_input_mode_semaphore: boolean = false;
     public inline_input_mode_semaphore_disable_cb: { [ii_id: number]: () => void } = {};
 
-    public registerCRUDs<T extends IDistantVOBase>(
+    public async registerCRUDs<T extends IDistantVOBase>(
         API_TYPE_IDs: string[],
         menuElts: MenuElementVO[],
         routes: RouteConfig[],
@@ -45,7 +45,7 @@ export default class CRUDComponentManager {
         }
 
         for (let i in API_TYPE_IDs) {
-            this.registerCRUD(API_TYPE_IDs[i], null, menuElts[i], routes, read_query ? read_query[i] : null, routes_meta ? routes_meta[i] : null);
+            await this.registerCRUD(API_TYPE_IDs[i], null, menuElts[i], routes, read_query ? read_query[i] : null, routes_meta ? routes_meta[i] : null);
         }
     }
 

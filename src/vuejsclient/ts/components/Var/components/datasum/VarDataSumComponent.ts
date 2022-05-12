@@ -139,43 +139,43 @@ export default class VarDataSumComponent extends VueComponentBase {
         return false;
     }
 
-    private destroyed() {
-        this.unregister(this.var_params);
+    private async destroyed() {
+        await this.unregister(this.var_params);
     }
 
-    private mounted() {
-        this.intersect_in();
+    private async mounted() {
+        await this.intersect_in();
     }
 
-    private intersect_in() {
-        this.register(this.var_params);
+    private async intersect_in() {
+        await this.register(this.var_params);
 
         this.entered_once = true;
     }
 
-    private intersect_out() {
+    private async intersect_out() {
         if (!this.entered_once) {
             return;
         }
 
-        this.unregister(this.var_params);
+        await this.unregister(this.var_params);
     }
 
-    private register(var_params: VarDataBaseVO[]) {
+    private async register(var_params: VarDataBaseVO[]) {
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
         }
     }
 
-    private unregister(var_params: VarDataBaseVO[]) {
+    private async unregister(var_params: VarDataBaseVO[]) {
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
         }
     }
 
 
     @Watch('var_params')
-    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
@@ -187,11 +187,11 @@ export default class VarDataSumComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            this.unregister(old_var_params);
+            await this.unregister(old_var_params);
         }
 
         if (new_var_params) {
-            this.register(new_var_params);
+            await this.register(new_var_params);
         }
     }
 

@@ -67,7 +67,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
     private accepted_types = ["string", "number"];
     //---
 
-    public mounted() {
+    public async mounted() {
         this.startLoading();
 
         this.reinitStoreValues();
@@ -76,7 +76,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
         this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_YEAR));
         this.setsegment_number(1);
 
-        this.setExport();
+        await this.setExport();
 
         this.stopLoading();
     }

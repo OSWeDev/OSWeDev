@@ -246,32 +246,32 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.deps_params);
     }
 
-    private destroyed() {
-        this.unregister(this.deps_params);
+    private async destroyed() {
+        await this.unregister(this.deps_params);
     }
 
-    private register(deps_params: { [dep_id: string]: VarDataBaseVO }) {
+    private async register(deps_params: { [dep_id: string]: VarDataBaseVO }) {
         if (!deps_params) {
             return;
         }
 
         if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
-            VarsClientController.getInstance().registerParams(Object.values(deps_params), this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
 
-    private unregister(deps_params: { [dep_id: string]: VarDataBaseVO }) {
+    private async unregister(deps_params: { [dep_id: string]: VarDataBaseVO }) {
         if (!deps_params) {
             return;
         }
 
         if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
-            VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(Object.values(deps_params), this.varUpdateCallbacks);
         }
     }
 
     @Watch('deps_params')
-    private onChangeVarParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
+    private async onChangeVarParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
@@ -283,11 +283,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         if (old_var_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(old_var_params)) {
-            this.unregister(old_var_params);
+            await this.unregister(old_var_params);
         }
 
         if (new_var_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(new_var_params)) {
-            this.register(new_var_params);
+            await this.register(new_var_params);
         }
     }
 }

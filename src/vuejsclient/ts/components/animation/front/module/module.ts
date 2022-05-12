@@ -139,7 +139,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             return;
         }
 
-        this.reloadAsyncDatasContinue();
+        await this.reloadAsyncDatasContinue();
     }
 
     private async reloadAsyncDatasContinue() {
@@ -194,7 +194,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        this.reloadAsyncDatas();
+        await this.reloadAsyncDatas();
     }
 
     private async closeModal(restart: boolean) {
@@ -212,7 +212,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
                 toDelete = toDelete.concat(user_qrs);
 
                 await ModuleDAO.getInstance().deleteVOs(toDelete);
-                this.reloadAsyncDatas();
+                await this.reloadAsyncDatas();
 
                 $(this.$refs.restartmodulemodal).modal('hide');
 
@@ -220,7 +220,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             }
         }
 
-        this.reloadAsyncDatasContinue();
+        await this.reloadAsyncDatasContinue();
 
         $(this.$refs.restartmodulemodal).modal('hide');
     }
@@ -254,7 +254,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         }
 
         if (this.current_qr.weight == this.qrs.length) {
-            this.show_recap_toggle();
+            await this.show_recap_toggle();
         }
     }
 

@@ -126,10 +126,10 @@ export default class CRUDFormServices {
         return res;
     }
 
-    public getNewVO(
+    public async getNewVO(
         crud: CRUD<any>,
         vo_init: IDistantVOBase,
-        onChangeVO: (vo: IDistantVOBase) => void): IDistantVOBase {
+        onChangeVO: (vo: IDistantVOBase) => void): Promise<IDistantVOBase> {
 
         let obj = {
             _type: crud.readDatatable.API_TYPE_ID,
@@ -174,7 +174,7 @@ export default class CRUDFormServices {
         let newVO = this.dataToIHM(obj, crud.createDatatable, false);
 
         if (!!crud.hook_prepare_new_vo_for_creation) {
-            crud.hook_prepare_new_vo_for_creation(newVO);
+            await crud.hook_prepare_new_vo_for_creation(newVO);
         }
 
         onChangeVO(newVO);

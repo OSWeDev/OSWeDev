@@ -21,7 +21,7 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
 
     private async mounted() {
 
-        this.load_logo_url();
+        await this.load_logo_url();
 
         let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
         if (!!logged_id) {

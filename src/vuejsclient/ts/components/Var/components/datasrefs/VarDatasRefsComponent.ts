@@ -125,35 +125,35 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         return false;
     }
 
-    private destroyed() {
-        this.unregister(this.var_params);
+    private async destroyed() {
+        await this.unregister(this.var_params);
     }
 
-    private mounted() {
-        this.intersect_in();
+    private async mounted() {
+        await this.intersect_in();
     }
 
-    private intersect_in() {
+    private async intersect_in() {
         this.entered_once = true;
 
-        this.register(this.var_params);
+        await this.register(this.var_params);
     }
 
-    private intersect_out() {
-        this.unregister(this.var_params);
+    private async intersect_out() {
+        await this.unregister(this.var_params);
     }
 
-    private register(var_params: VarDataBaseVO[]) {
+    private async register(var_params: VarDataBaseVO[]) {
         if (!this.entered_once) {
             return;
         }
 
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(var_params, this.varUpdateCallbacks);
         }
     }
 
-    private unregister(var_params: VarDataBaseVO[]) {
+    private async unregister(var_params: VarDataBaseVO[]) {
         if (!this.entered_once) {
             return;
         }
@@ -161,12 +161,12 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         this.var_datas = null;
 
         if (var_params && var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(var_params, this.varUpdateCallbacks);
         }
     }
 
     @Watch('var_params')
-    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;
@@ -178,11 +178,11 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            this.unregister(old_var_params);
+            await this.unregister(old_var_params);
         }
 
         if (new_var_params) {
-            this.register(new_var_params);
+            await this.register(new_var_params);
         }
     }
 

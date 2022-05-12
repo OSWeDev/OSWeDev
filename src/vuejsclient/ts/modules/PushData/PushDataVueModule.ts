@@ -101,15 +101,15 @@ export default class PushDataVueModule extends VueModuleBase {
         this.socket.on('connect', () => {
             if (!first) {
 
-                setTimeout(() => {
-                    VarsClientController.getInstance().registerAllParamsAgain();
+                setTimeout(async () => {
+                    await VarsClientController.getInstance().registerAllParamsAgain();
                 }, 10000);
             }
         });
 
         this.socket.on('reconnect', () => {
-            setTimeout(() => {
-                VarsClientController.getInstance().registerAllParamsAgain();
+            setTimeout(async () => {
+                await VarsClientController.getInstance().registerAllParamsAgain();
             }, 10000);
         });
 
@@ -184,27 +184,27 @@ export default class PushDataVueModule extends VueModuleBase {
         }
 
         if (TYPE_NOTIF_SIMPLE && TYPE_NOTIF_SIMPLE.length) {
-            this.notifications_handler_TYPE_NOTIF_SIMPLE(TYPE_NOTIF_SIMPLE);
+            await this.notifications_handler_TYPE_NOTIF_SIMPLE(TYPE_NOTIF_SIMPLE);
         }
 
         if (TYPE_NOTIF_DAO && TYPE_NOTIF_DAO.length) {
-            this.notifications_handler_TYPE_NOTIF_DAO(TYPE_NOTIF_DAO);
+            await this.notifications_handler_TYPE_NOTIF_DAO(TYPE_NOTIF_DAO);
         }
 
         if (TYPE_NOTIF_VARDATA && TYPE_NOTIF_VARDATA.length) {
-            this.notifications_handler_TYPE_NOTIF_VARDATA(TYPE_NOTIF_VARDATA);
+            await this.notifications_handler_TYPE_NOTIF_VARDATA(TYPE_NOTIF_VARDATA);
         }
 
         if (TYPE_NOTIF_TECH && TYPE_NOTIF_TECH.length) {
-            this.notifications_handler_TYPE_NOTIF_TECH(TYPE_NOTIF_TECH);
+            await this.notifications_handler_TYPE_NOTIF_TECH(TYPE_NOTIF_TECH);
         }
 
         if (TYPE_NOTIF_PROMPT && TYPE_NOTIF_PROMPT.length) {
-            this.notifications_handler_TYPE_NOTIF_PROMPT(TYPE_NOTIF_PROMPT);
+            await this.notifications_handler_TYPE_NOTIF_PROMPT(TYPE_NOTIF_PROMPT);
         }
 
         if (TYPE_NOTIF_REDIRECT && TYPE_NOTIF_REDIRECT.length) {
-            this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
+            await this.notifications_handler_TYPE_NOTIF_REDIRECT(TYPE_NOTIF_REDIRECT);
         }
     }
 
@@ -240,7 +240,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 unreads.push(notification);
             }
         }
-        VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+        await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
     }
 
 
@@ -272,7 +272,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 unreads.push(notification);
             }
         }
-        VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+        await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
     }
 
     private async notifications_handler_TYPE_NOTIF_REDIRECT(notifications: NotificationVO[]) {
@@ -303,7 +303,7 @@ export default class PushDataVueModule extends VueModuleBase {
                 unreads.push(notification);
             }
         }
-        VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+        await VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
     }
 
     /**
@@ -317,18 +317,18 @@ export default class PushDataVueModule extends VueModuleBase {
                 case NotificationVO.DAO_GET_VO_BY_ID:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                     let vo: IDistantVOBase = await ModuleDAO.getInstance().getVoById(notification.api_type_id, notification.dao_notif_vo_id);
-                    VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
+                    await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
                     console.debug("NotificationVO.DAO_GET_VO_BY_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
                     break;
                 case NotificationVO.DAO_GET_VOS:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                     let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos(notification.api_type_id);
-                    VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
+                    await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
                     console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);
                     break;
                 case NotificationVO.DAO_REMOVE_ID:
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                    VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
+                    await VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
                         API_TYPE_ID: notification.api_type_id,
                         id: notification.dao_notif_vo_id
                     });

@@ -448,31 +448,31 @@ export default class TableWidgetComponent extends VueComponentBase {
         return (this.widget_options && this.widget_options.delete_button);
     }
 
-    private sort_by(vo_field_ref: VOFieldRefVO) {
+    private async sort_by(vo_field_ref: VOFieldRefVO) {
         if (!vo_field_ref) {
             this.order_asc_on_id = null;
             this.order_desc_on_id = null;
-            this.update_visible_options();
+            await this.update_visible_options();
             return;
         }
 
         if ((this.order_asc_on_id != vo_field_ref.id) && (this.order_desc_on_id != vo_field_ref.id)) {
             this.order_asc_on_id = vo_field_ref.id;
             this.order_desc_on_id = null;
-            this.update_visible_options();
+            await this.update_visible_options();
             return;
         }
 
         if (this.order_asc_on_id != vo_field_ref.id) {
             this.order_asc_on_id = vo_field_ref.id;
             this.order_desc_on_id = null;
-            this.update_visible_options();
+            await this.update_visible_options();
             return;
         }
 
         this.order_desc_on_id = vo_field_ref.id;
         this.order_asc_on_id = null;
-        this.update_visible_options();
+        await this.update_visible_options();
         return;
     }
 

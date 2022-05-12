@@ -53,7 +53,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
         await DashboardBuilderWidgetsController.getInstance().initialize();
         this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
-        this.onchange_selected_widget();
+        await this.onchange_selected_widget();
 
         this.loading = false;
     }

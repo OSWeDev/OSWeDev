@@ -1657,7 +1657,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         };
 
         if (!this.program_plan_controller.confirm_before_rdv_deletion) {
-            onconfirmation(null);
+            await onconfirmation(null);
             return;
         }
 

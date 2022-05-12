@@ -83,8 +83,8 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
 
         await this.initialize_on_mount();
 
-        setTimeout(() => {
-            self.handle_modal_show_hide();
+        setTimeout(async () => {
+            await self.handle_modal_show_hide();
             $("#import_modal").on("hidden.bs.modal", function () {
 
                 self.closeModal();

@@ -39,7 +39,7 @@ export default class AccessPolicySigninComponent extends VueComponentBase {
         }
     }
     private async mounted() {
-        this.load_logo_url();
+        await this.load_logo_url();
         for (let j in this.$route.query) {
             if (j == 'redirect_to') {
                 this.redirect_to = this.$route.query[j];

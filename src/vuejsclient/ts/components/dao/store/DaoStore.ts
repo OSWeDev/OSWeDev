@@ -98,7 +98,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                 state.typeWatchers[watcher.API_TYPE_ID].push(watcher);
             },
 
-            storeData(state: IDAOState, vo: IDistantVOBase) {
+            async storeData(state: IDAOState, vo: IDistantVOBase) {
 
                 if ((!vo) || (!vo.id) || (!vo._type)) {
                     return;
@@ -109,7 +109,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                         [vo.id]: vo
                     });
                     if (state.typeWatchers[vo._type]) {
-                        callWatchers(state.typeWatchers[vo._type]);
+                        await callWatchers(state.typeWatchers[vo._type]);
                     }
                     return;
                 }
@@ -117,45 +117,45 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                 if (!state.storedDatasArray[vo._type][vo.id]) {
                     Vue.set(state.storedDatasArray[vo._type] as any, vo.id, vo);
                     if (state.typeWatchers[vo._type]) {
-                        callWatchers(state.typeWatchers[vo._type]);
+                        await callWatchers(state.typeWatchers[vo._type]);
                     }
                     return;
                 }
                 state.storedDatasArray[vo._type][vo.id] = vo;
                 if (state.typeWatchers[vo._type]) {
-                    callWatchers(state.typeWatchers[vo._type]);
+                    await callWatchers(state.typeWatchers[vo._type]);
                 }
             },
 
-            storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
+            async storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
 
                 Vue.set(state.storedDatasArray, infos.API_TYPE_ID, VOsTypesManager.getInstance().vosArray_to_vosByIds(infos.vos));
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
-                    callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
+                    await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
             },
 
-            storeDatasByIds(state: IDAOState, infos: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) {
+            async storeDatasByIds(state: IDAOState, infos: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) {
 
                 Vue.set(state.storedDatasArray, infos.API_TYPE_ID, infos.vos_by_ids);
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
-                    callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
+                    await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
             },
 
-            storeMultipleDatasByIds(state: IDAOState, infos: Array<{ API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }>) {
+            async storeMultipleDatasByIds(state: IDAOState, infos: Array<{ API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }>) {
 
                 for (let i in infos) {
                     let info = infos[i];
 
                     Vue.set(state.storedDatasArray, info.API_TYPE_ID, info.vos_by_ids);
                     if (state.typeWatchers[info.API_TYPE_ID]) {
-                        callWatchers(state.typeWatchers[info.API_TYPE_ID]);
+                        await callWatchers(state.typeWatchers[info.API_TYPE_ID]);
                     }
                 }
             },
 
-            removeData(state: IDAOState, infos: { API_TYPE_ID: string, id: number }) {
+            async removeData(state: IDAOState, infos: { API_TYPE_ID: string, id: number }) {
 
                 if (!infos.API_TYPE_ID || !state.storedDatasArray[infos.API_TYPE_ID]) {
                     return;
@@ -163,11 +163,11 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
                 Vue.delete(state.storedDatasArray[infos.API_TYPE_ID] as any, infos.id);
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
-                    callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
+                    await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
             },
 
-            updateData(state: IDAOState, vo: IDistantVOBase) {
+            async updateData(state: IDAOState, vo: IDistantVOBase) {
 
 
                 if ((!vo) || (!vo._type) || (!state.storedDatasArray[vo._type])) {
@@ -176,7 +176,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
                 state.storedDatasArray[vo._type][vo.id] = vo;
                 if (state.typeWatchers[vo._type]) {
-                    callWatchers(state.typeWatchers[vo._type]);
+                    await callWatchers(state.typeWatchers[vo._type]);
                 }
             },
         };

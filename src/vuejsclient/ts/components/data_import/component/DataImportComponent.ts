@@ -178,7 +178,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
     @Watch("$route")
     public async onrouteChange() {
-        this.handle_modal_show_hide();
+        await this.handle_modal_show_hide();
     }
     public async on_show_modal() {
 
@@ -1095,9 +1095,9 @@ export default class DataImportComponent extends DataImportComponentBase {
             error: (infos, error_message) => {
                 self.snotify.error(error_message);
             },
-            accept: (file, done) => {
+            accept: async (file, done) => {
 
-                this.checkReplaceExistingImport(null, done);
+                await this.checkReplaceExistingImport(null, done);
                 // this.checkUnfinishedImportsAndReplacement(null, done);
             },
         };
@@ -1124,9 +1124,9 @@ export default class DataImportComponent extends DataImportComponentBase {
                     error: (infos, error_message) => {
                         self.snotify.error(error_message);
                     },
-                    accept: (file, done) => {
+                    accept: async (file, done) => {
 
-                        this.checkReplaceExistingImport(segment_date_index, done);
+                        await this.checkReplaceExistingImport(segment_date_index, done);
                         // this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
                     },
                 };

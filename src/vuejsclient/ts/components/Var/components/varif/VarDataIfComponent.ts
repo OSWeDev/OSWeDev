@@ -44,16 +44,16 @@ export default class VarDataIfComponent extends VueComponentBase {
         this.var_data = VarsClientController.getInstance().cached_var_datas[this.var_param.index];
     }
 
-    private destroyed() {
+    private async destroyed() {
         if (!this.var_param) {
             return;
         }
 
-        VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
+        await VarsClientController.getInstance().unRegisterParams([this.var_param], this.varUpdateCallbacks);
     }
 
     @Watch('var_param', { immediate: true })
-    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
+    private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
@@ -61,11 +61,11 @@ export default class VarDataIfComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams([old_var_param], this.varUpdateCallbacks);
         }
 
         if (new_var_param) {
-            VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams([new_var_param], this.varUpdateCallbacks);
         }
     }
 

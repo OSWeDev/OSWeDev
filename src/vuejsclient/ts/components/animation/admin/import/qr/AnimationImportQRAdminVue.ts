@@ -64,7 +64,7 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
     private accepted_types = ["string", "number"];
     //---
 
-    public mounted() {
+    public async mounted() {
         this.startLoading();
 
         this.reinitStoreValues();
@@ -74,7 +74,7 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
         this.setsegment_number(1);
 
 
-        this.setExport();
+        await this.setExport();
 
         this.stopLoading();
     }

@@ -731,10 +731,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(this.dashboard);
     }
 
-    private mounted() {
+    private async mounted() {
 
         let self = this;
-        navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
+        await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
             if (result.state == "granted" || result.state == "prompt") {
                 self.can_use_clipboard = true;
             }

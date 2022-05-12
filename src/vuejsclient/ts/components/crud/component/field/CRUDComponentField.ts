@@ -255,7 +255,7 @@ export default class CRUDComponentField extends VueComponentBase
     //             break;
     //     }
 
-    public validateSimpleInput(input_value: any) {
+    public async validateSimpleInput(input_value: any) {
 
         if (this.inline_input_mode) {
             return;
@@ -271,7 +271,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -340,7 +340,7 @@ export default class CRUDComponentField extends VueComponentBase
             (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE))) {
 
             this.has_loaded_can_insert_or_update_target = true;
-            ModuleAccessPolicy.getInstance().testAccess(
+            await ModuleAccessPolicy.getInstance().testAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
                     (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
@@ -478,7 +478,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -532,7 +532,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -540,7 +540,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
-    private validateMultiInput(values: any[]) {
+    private async validateMultiInput(values: any[]) {
         if (this.inline_input_mode) {
             return;
         }
@@ -550,7 +550,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -600,7 +600,7 @@ export default class CRUDComponentField extends VueComponentBase
                 }
 
                 if (newOptions.length > 0) {
-                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
+                    await field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
 
@@ -631,7 +631,7 @@ export default class CRUDComponentField extends VueComponentBase
                 }
 
                 if (newOptions.length > 0) {
-                    field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
+                    await field_datatable.setSelectOptionsEnabled(newOptions.map((elem) => elem.id));
                 }
             }
 
@@ -1059,7 +1059,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -1082,7 +1082,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -1220,7 +1220,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.field.onChange) {
-            this.field.onChange(this.vo);
+            await this.field.onChange(this.vo);
             this.datatable.refresh();
         }
 
@@ -1322,7 +1322,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        this.validate_inline_input(null);
+        await this.validate_inline_input(null);
     }
 
     private async beforeDestroy() {

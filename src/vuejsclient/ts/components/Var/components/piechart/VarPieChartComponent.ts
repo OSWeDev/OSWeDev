@@ -78,9 +78,9 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
     }
 
-    private destroyed() {
+    private async destroyed() {
 
-        VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+        await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
     }
 
     get all_data_loaded(): boolean {
@@ -124,7 +124,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     @Watch('var_params', { immediate: true })
-    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
+    private async onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
@@ -132,11 +132,11 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params && old_var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(old_var_params, this.varUpdateCallbacks);
         }
 
         if (new_var_params && new_var_params.length) {
-            VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
         // this.set_datasets();
@@ -145,7 +145,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     @Watch('var_dataset_descriptor')
-    private onchange_descriptors(new_var_dataset_descriptor: VarPieDataSetDescriptor, old_var_dataset_descriptor: VarPieDataSetDescriptor) {
+    private async onchange_descriptors(new_var_dataset_descriptor: VarPieDataSetDescriptor, old_var_dataset_descriptor: VarPieDataSetDescriptor) {
 
         // On doit vérifier qu'ils sont bien différents
         new_var_dataset_descriptor = new_var_dataset_descriptor ? new_var_dataset_descriptor : null;
@@ -162,10 +162,10 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         // sur chaque dimension
         if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().unRegisterParams(this.var_params, this.varUpdateCallbacks);
         }
         if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
-            VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
+            await VarsClientController.getInstance().registerParams(this.var_params, this.varUpdateCallbacks);
         }
 
         // this.onchange_all_data_loaded();

@@ -47,7 +47,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
     }
 
     private async mounted() {
-        this.reloadAsyncDatas();
+        await this.reloadAsyncDatas();
     }
 
     private changeLikeVoteVeryGood() {

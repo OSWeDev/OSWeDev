@@ -46,10 +46,10 @@ export default class VueFilteredInputComponent extends VueComponentBase {
         });
     }
 
-    private onChangeHandler() {
+    private async onChangeHandler() {
         this.updateValue(event.target['value']);
         if (this.onchange) {
-            this.onchange();
+            await this.onchange();
         }
     }
 

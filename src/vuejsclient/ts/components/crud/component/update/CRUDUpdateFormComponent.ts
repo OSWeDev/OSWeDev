@@ -59,6 +59,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
     private crud_updateDatatable_key: number = 0;
     private dao_store_loaded: boolean = false;
+    private crud: CRUD<any> = null;
 
     public update_key() {
         if (this.crud && (this.crud_updateDatatable_key != this.crud.updateDatatable.key)) {
@@ -66,21 +67,27 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
         }
     }
 
-    get crud(): CRUD<any> {
+    @Watch("api_type_id", { immediate: true })
+    private async onchange_api_type_id() {
         if ((!this.selected_vo) || (!this.selected_vo._type)) {
-            return null;
+            if (this.crud) {
+                this.crud = null;
+            }
+            return;
         }
 
         if (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.selected_vo._type]) {
-            CRUDComponentManager.getInstance().registerCRUD(
-                this.selected_vo._type,
+            await CRUDComponentManager.getInstance().registerCRUD(
+                this.api_type_id,
                 null,
                 null,
                 null
             );
         }
 
-        return CRUDComponentManager.getInstance().cruds_by_api_type_id[this.selected_vo._type];
+        if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
+            this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+        }
     }
 
     private async loaddatas() {

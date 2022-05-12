@@ -13,10 +13,10 @@ export default class PWAController {
 
     public async initialize_pwa(sw_file: string) {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register(sw_file, { scope: '/' }).then((registration) => {
+            navigator.serviceWorker.register(sw_file, { scope: '/' }).then(async (registration) => {
                 console.log('SW registered: ', registration);
 
-                registration.update();
+                await registration.update();
             }).catch((registrationError) => {
                 console.log('SW registration failed: ', registrationError);
             });
