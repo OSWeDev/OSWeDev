@@ -387,6 +387,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             'fr-fr': 'Performances'
         }, 'menu.menuelements.admin.VarPerfVO.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher'
+        }, 'var_desc_explain.show_help_tooltip.visible.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Masquer'
+        }, 'var_desc_explain.show_help_tooltip.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Explication synthétique publique'
+        }, 'var_desc.public.___LABEL___'));
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_wait_for_computation_hole, this.wait_for_computation_hole.bind(this));

@@ -14,6 +14,8 @@ export interface IVarState {
     desc_registrations_opened: boolean;
     desc_funcstats_opened: boolean;
     desc_selected_var_param_historic_i: number;
+
+    show_public_tooltip: boolean;
 }
 
 
@@ -48,6 +50,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_deps_opened: false,
             desc_registrations_opened: false,
             desc_funcstats_opened: false,
+            show_public_tooltip: false,
         };
 
 
@@ -73,9 +76,16 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             get_desc_selected_var_param_historic_i(state: IVarState): number {
                 return state.desc_selected_var_param_historic_i;
             },
+            is_show_public_tooltip(state: IVarState): boolean {
+                return state.show_public_tooltip;
+            },
         };
 
         this.mutations = {
+
+            set_show_public_tooltip(state: IVarState, show_public_tooltip: boolean) {
+                state.show_public_tooltip = show_public_tooltip;
+            },
 
             setDescDepsOpened(state: IVarState, desc_deps_opened: boolean) {
                 state.desc_deps_opened = desc_deps_opened;
@@ -125,6 +135,11 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
 
         this.actions = {
+
+            set_show_public_tooltip(context: VarContext, show_public_tooltip: boolean) {
+                commit_set_show_public_tooltip(context, show_public_tooltip);
+            },
+
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
             },
@@ -159,3 +174,4 @@ export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutati
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
 export const commitSetDescSelectedVarParam = commit(VarStore.getInstance().mutations.setDescSelectedVarParam);
 export const commit_set_desc_selected_var_param_historic_i = commit(VarStore.getInstance().mutations.set_desc_selected_var_param_historic_i);
+export const commit_set_show_public_tooltip = commit(VarStore.getInstance().mutations.set_show_public_tooltip);

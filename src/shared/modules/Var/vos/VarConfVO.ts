@@ -19,6 +19,11 @@ export default class VarConfVO implements INamedVO {
     public ts_ranges_segment_type: number;
 
     /**
+     * Hide/Show tooltip to explain var to public users (via '?' button)
+     */
+    public show_help_tooltip: boolean;
+
+    /**
      * @param ts_ranges_segment_type Déprécié - utiliser segment_types - Pour toutes les vars qui sont segmentées sur le temps, on indique le segment_type directement dans la conf de la var. Si la var n'est pas segmentée, on indiquera null sur ce paramètre.
      * @param id Pour les tests unitaires en priorité, on a juste à set l'id pour éviter de chercher en bdd
      */

@@ -7,6 +7,7 @@ import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datat
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
@@ -29,6 +30,8 @@ export default class VarDataRefComponent extends VueComponentBase {
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
+    @ModuleVarGetter
+    public is_show_public_tooltip: boolean;
 
     @Prop()
     public var_param: VarDataBaseVO;
@@ -94,6 +97,42 @@ export default class VarDataRefComponent extends VueComponentBase {
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
     };
+
+    get var_conf() {
+        if ((!this.var_param) || (!this.var_param.var_id) ||
+            (!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
+            return null;
+        }
+
+        return VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
+    }
+
+    get public_tooltip() {
+        if ((!this.var_conf) || (!this.var_conf.show_help_tooltip)) {
+            return null;
+        }
+
+        return this.t(this.public_explaination_code_text);
+    }
+
+    get has_public_tooltip(): boolean {
+        if ((!this.var_param) || (!this.public_tooltip)) {
+            return null;
+        }
+
+        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_tooltip;
+    }
+
+    /**
+     * cf VarDescExplainComponent
+     */
+    get public_explaination_code_text(): string {
+        if (!this.var_param) {
+            return null;
+        }
+
+        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id);
+    }
 
     private aggregated_var_param: VarDataBaseVO = null;
 
@@ -350,15 +389,21 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     get var_data_value_tooltip() {
 
+        let res = null;
+
+        if (this.is_show_public_tooltip && this.has_public_tooltip) {
+            res = this.public_tooltip;
+        }
+
         if (!this.show_tooltip) {
-            return null;
+            return res;
         }
 
         if ((this.var_data == null) || (this.var_data_value == null)) {
-            return null;
+            return res;
         }
 
-        let res = this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
+        res = (res ? res + '<hr>' : '') + this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
 
         let formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
 

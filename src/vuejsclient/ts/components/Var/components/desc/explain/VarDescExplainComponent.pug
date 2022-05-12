@@ -1,10 +1,32 @@
 .var_desc_explain
+
+    template(v-if='var_conf != null')
+        .var_desc_explain_title(@click='opened_public=!opened_public') {{ label('var_desc.public') }}
+        .var_desc_explain_content(v-show='opened_public')
+            .row 
+                .col-md-12 
+                    toggle-button(
+                        @change="switch_show_help_tooltip" 
+                        :value="show_help_tooltip" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('var_desc_explain.show_help_tooltip.visible'), unchecked: label('var_desc_explain.show_help_tooltip.hidden')}")
+
+            .row(v-if='has_public_explaination')
+                .col-md-12        
+                    pre.var_desc_explaination {{ public_explaination }}
+            .row
+                .col-md-12        
+                    .var_desc_explaination 
+                        Inlinetranslatabletext(
+                            :code_text="public_explaination_code_text" :is_editable="true" :textarea="true")
+                            
     template(v-if='has_explaination || has_deps_params || ds_values_jsoned || is_aggregator')
         .var_desc_explain_title(@click='opened=!opened') {{ label('var_desc.explaination') }}
         .var_desc_explain_content(v-show='opened')
             .row(v-if='has_explaination')
                 .col-md-12        
-                    .var_desc_explaination {{ explaination }}
+                    pre.var_desc_explaination {{ explaination }}
             .row
                 .col-md-12        
                     .var_desc_explaination 

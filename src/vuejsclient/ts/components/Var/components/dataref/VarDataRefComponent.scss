@@ -2,8 +2,14 @@
     border-radius: 4px;
     opacity: 1;
 
-    &.is_being_updated{
+    &.is_being_updated {
         opacity: .5;
+    }
+
+    &.is_show_public_tooltip {
+        cursor: help;
+        background: rgba(0, 0, 0, 0.1);
+        min-height: 1em;
     }
 
     &.can_inline_edit.is_not_inline_editing {
@@ -62,16 +68,16 @@
         line-height: 1.4em;
     }
 
-    .inline_input_mode input[type=number]:focus{ 
-        outline:none
+    .inline_input_mode input[type=number]:focus {
+        outline: none
     }
 
-    .inline_input_mode input[type=number]::-webkit-inner-spin-button, 
-    .inline_input_mode input[type=number]::-webkit-outer-spin-button { 
+    .inline_input_mode input[type=number]::-webkit-inner-spin-button,
+    .inline_input_mode input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
-        margin: 0; 
+        margin: 0;
     }
 }
 
@@ -80,11 +86,10 @@
 .var_data_ref.selectable_var.selected_var.is_computing,
 .var_data_ref.selected_var.is_computing,
 .var_data_ref.selected_var_dependency.is_computing,
-.var_data_ref.selected_var_dependent.is_computing
-{
+.var_data_ref.selected_var_dependent.is_computing {
     background: none;
     -webkit-animation: color-change-3x-blue 2s linear infinite alternate both;
-	        animation: color-change-3x-blue 2s linear infinite alternate both;
+    animation: color-change-3x-blue 2s linear infinite alternate both;
 }
 
 .var_data_ref.denied,
@@ -92,69 +97,68 @@
 .var_data_ref.selectable_var.selected_var.denied,
 .var_data_ref.selected_var.denied,
 .var_data_ref.selected_var_dependency.denied,
-.var_data_ref.selected_var_dependent.denied
-{
+.var_data_ref.selected_var_dependent.denied {
     background: none;
     -webkit-animation: color-change-3x-red 2s linear infinite alternate both;
-	        animation: color-change-3x-red 2s linear infinite alternate both;
+    animation: color-change-3x-red 2s linear infinite alternate both;
 }
 
-.var_data_ref.selectable_var{
+.var_data_ref.selectable_var {
     cursor: pointer;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
     min-height: 1em;
 }
 
-.var_data_ref.selectable_var.dependencies_heatmap_lvl_0{
-    background: rgba(0,0,0,0.1);
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_0 {
+    background: rgba(0, 0, 0, 0.1);
 }
 
-.var_data_ref.selectable_var.dependencies_heatmap_lvl_1{
-    background: rgba(255,250,0,1);
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_1 {
+    background: rgba(255, 250, 0, 1);
     color: black;
 }
 
-.var_data_ref.selectable_var.dependencies_heatmap_lvl_2{
-    background: rgba(255,200,0,1);
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_2 {
+    background: rgba(255, 200, 0, 1);
     color: black;
 }
 
-.var_data_ref.selectable_var.dependencies_heatmap_lvl_3{
-    background: rgba(255,150,0,1);
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_3 {
+    background: rgba(255, 150, 0, 1);
     color: white;
 }
 
-.var_data_ref.selectable_var.dependencies_heatmap_lvl_4{
-    background: rgba(255,75,0,1);
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_4 {
+    background: rgba(255, 75, 0, 1);
     color: white;
 }
 
-.var_data_ref.selectable_var.dependencies_heatmap_lvl_5{
-    background: rgba(255,0,0,1);
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_5 {
+    background: rgba(255, 0, 0, 1);
     color: white;
 }
 
-.var_data_ref.selected_var{
+.var_data_ref.selected_var {
     background: royalblue !important;
     color: white;
     font-weight: bolder;
 }
 
-.var_data_ref.selected_var_dependency{
+.var_data_ref.selected_var_dependency {
     background: orangered !important;
     color: white;
     font-weight: bolder;
 }
 
-.var_data_ref.selected_var_dependent{
+.var_data_ref.selected_var_dependent {
     background: green !important;
     color: white;
     font-weight: bolder;
 }
 
 .var_data_transition-enter-active {
-    	-webkit-animation: color-change-3x-green 0.5s linear 1 alternate both;
-	        animation: color-change-3x-green 0.5s linear 1 alternate both;
+    -webkit-animation: color-change-3x-green 0.5s linear 1 alternate both;
+    animation: color-change-3x-green 0.5s linear 1 alternate both;
 }
 
 /* ----------------------------------------------
@@ -172,40 +176,48 @@
     color: white !important;
  */
 @-webkit-keyframes color-change-3x-blue {
-  0% {
-    background: transparent;
-  }
-  50% {
-    background: royalblue;
-  }
-  100% {
-    background: transparent;
-  }
+    0% {
+        background: transparent;
+    }
+
+    50% {
+        background: royalblue;
+    }
+
+    100% {
+        background: transparent;
+    }
 }
+
 @-webkit-keyframes color-change-3x-red {
-  0% {
-    background: transparent;
-  }
-  50% {
-    background: darkred;
-  }
-  100% {
-    background: transparent;
-  }
+    0% {
+        background: transparent;
+    }
+
+    50% {
+        background: darkred;
+    }
+
+    100% {
+        background: transparent;
+    }
 }
+
 @keyframes color-change-3x-blue {
-  0% {
-    background: transparent;
-    color:inherit;
-  }
-  50% {
-    background: royalblue;
-    color:white;
-  }
-  100% {
-    background: transparent;
-    color:inherit;
-  }
+    0% {
+        background: transparent;
+        color: inherit;
+    }
+
+    50% {
+        background: royalblue;
+        color: white;
+    }
+
+    100% {
+        background: transparent;
+        color: inherit;
+    }
 }
 
 /* ----------------------------------------------
@@ -221,30 +233,35 @@
  * ----------------------------------------
  */
 @-webkit-keyframes color-change-3x-green {
-  0% {
-    background: transparent;
-    color:inherit;
-  }
-  50% {
-    background: #5cb85c;
-    color:white;
-  }
-  100% {
-    background: transparent;
-    color:inherit;
-  }
+    0% {
+        background: transparent;
+        color: inherit;
+    }
+
+    50% {
+        background: #5cb85c;
+        color: white;
+    }
+
+    100% {
+        background: transparent;
+        color: inherit;
+    }
 }
+
 @keyframes color-change-3x-green {
-  0% {
-    background: transparent;
-    color:inherit;
-  }
-  50% {
-    background: #5cb85c;
-    color:white;
-  }
-  100% {
-    background: transparent;
-    color:inherit;
-  }
+    0% {
+        background: transparent;
+        color: inherit;
+    }
+
+    50% {
+        background: #5cb85c;
+        color: white;
+    }
+
+    100% {
+        background: transparent;
+        color: inherit;
+    }
 }

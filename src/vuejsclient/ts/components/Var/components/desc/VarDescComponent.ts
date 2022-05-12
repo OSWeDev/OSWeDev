@@ -10,6 +10,7 @@ import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdat
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../../VueComponentBase';
 import VarsClientController from '../../VarsClientController';
 import VarsDatasExplorerFiltersComponent from '../explorer/filters/VarsDatasExplorerFiltersComponent';
@@ -20,7 +21,8 @@ import './VarDescComponent.scss';
     components: {
         Vardesccontrollercomponent: () => import(/* webpackChunkName: "VarDescControllerComponent" */ './controller/VarDescControllerComponent'),
         Vardescparamfieldscomponent: () => import(/* webpackChunkName: "VarDescParamFieldsComponent" */ './param_fields/VarDescParamFieldsComponent'),
-        Vardescexplaincomponent: () => import(/* webpackChunkName: "VarDescExplainComponent" */ './explain/VarDescExplainComponent')
+        Vardescexplaincomponent: () => import(/* webpackChunkName: "VarDescExplainComponent" */ './explain/VarDescExplainComponent'),
+        Inlinetranslatabletext: InlineTranslatableText,
     }
 })
 export default class VarDescComponent extends VueComponentBase {
@@ -91,12 +93,20 @@ export default class VarDescComponent extends VueComponentBase {
         return this.var_param.var_id;
     }
 
-    get var_description(): string {
+    get var_description_code(): string {
         if (!this.var_param) {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id));
+        return VarsController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id);
+    }
+
+    get var_description(): string {
+        if (!this.var_description_code) {
+            return null;
+        }
+
+        return this.t(this.var_description_code);
     }
 
     private async update_var_data() {

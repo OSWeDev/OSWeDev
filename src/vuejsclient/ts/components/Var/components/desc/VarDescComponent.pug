@@ -5,8 +5,16 @@
                 Vardesccontrollercomponent(:var_id='var_id')
 
         .var_desc_body
-            p.var_controller_desc.card-text(v-if='var_description && (var_description.length > 1)') {{ var_description }}
-            
+            .var_controller_desc_wrapper
+                .row(v-if='var_description && (var_description.length > 1)')
+                    .col-md-12        
+                        pre.var_controller_desc.card-text {{ var_description }}
+                .row
+                    .col-md-12        
+                        .var_controller_desc 
+                            Inlinetranslatabletext(
+                                :code_text="var_description_code" :is_editable="true" :textarea="true")
+
             .var_data_label {{ label('var_desc.var_data_label') }}
                 var-data(:var_param='var_param' :show_tooltip='true' :show_import_aggregated='true' :show_import='true')
                 i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data')

@@ -1,9 +1,11 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../../../../../shared/modules/DataRender/interfaces/IRange';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import MainAggregateOperatorsHandlers from '../../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../../shared/modules/Var/vos/VarUpdateCallback';
@@ -35,9 +37,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private ds_values_jsoned: { [ds_name: string]: string } = null;
 
     private opened: boolean = true;
+    private opened_public: boolean = true;
 
     private var_data: VarDataValueResVO = null;
     private var_datas_deps: VarDataValueResVO[] = [];
+    private var_conf: VarConfVO = null;
 
     private aggregated_var_datas: { [var_data_index: string]: VarDataBaseVO } = {};
 
@@ -46,6 +50,24 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    private async switch_show_help_tooltip() {
+
+        if (!this.var_conf) {
+            return;
+        }
+
+        this.var_conf.show_help_tooltip = !this.var_conf.show_help_tooltip;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.var_conf);
+    }
+
+    get show_help_tooltip() {
+        if (!this.var_conf) {
+            return false;
+        }
+
+        return this.var_conf.show_help_tooltip;
+    }
 
     private async var_datas_updater() {
 
@@ -102,9 +124,11 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private async load_param_infos() {
 
         if ((!this.var_param) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
+            this.var_conf = null;
             return;
         }
 
+        this.var_conf = VarsController.getInstance().var_conf_by_id[this.var_param.var_id];
         this.deps_loading = true;
 
         let promises = [];
@@ -214,6 +238,14 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return res;
     }
 
+    get public_explaination_code_text(): string {
+        if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
+            return null;
+        }
+
+        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id);
+    }
+
     get explaination_code_text(): string {
         if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
             return null;
@@ -228,6 +260,22 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         return this.t(this.explaination_code_text, this.explaination_sample_param);
+    }
+
+    get public_explaination(): string {
+        if (!this.public_explaination_code_text) {
+            return null;
+        }
+
+        return this.t(this.public_explaination_code_text);
+    }
+
+    get has_public_explaination(): boolean {
+        if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
+            return false;
+        }
+
+        return VarsController.getInstance().get_translatable_public_explaination_by_var_id(this.var_param.var_id) != this.public_explaination;
     }
 
     get has_explaination(): boolean {

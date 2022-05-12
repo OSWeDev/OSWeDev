@@ -40,7 +40,10 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     private set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;
 
-
+    @ModuleVarGetter
+    private is_show_public_tooltip: boolean;
+    @ModuleVarAction
+    private set_show_public_tooltip: (show_public_tooltip: boolean) => void;
 
     @ModuleVarGetter
     private getDescSelectedVarParam: VarDataBaseVO;
@@ -73,6 +76,10 @@ export default class VarsManagerComponent extends VueComponentBase {
     private opened_var_desc: boolean = true;
 
     private has_access_desc_mode: boolean = false;
+
+    private switch_public_explaination() {
+        this.set_show_public_tooltip(!this.is_show_public_tooltip);
+    }
 
     public async mounted() {
         this.has_access_desc_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleVar.POLICY_DESC_MODE_ACCESS);

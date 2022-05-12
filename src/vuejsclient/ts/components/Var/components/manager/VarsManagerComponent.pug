@@ -1,8 +1,8 @@
 .vars_manager.hidden-print(v-if="has_access_desc_mode" :class="{'desc_mode': isDescMode}")
 
     .icons
-        i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'fa-2x': isDescMode}" @click='switchDescMode')
-
+        i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'active': isDescMode}" @click='switchDescMode')
+        i.fa.fa-question-circle.fa-fw(aria-hidden="true" :class="{'active': is_show_public_tooltip}" @click='switch_public_explaination')
 
     template(v-if='isDescMode')
         Draggablewindowcomponent(
