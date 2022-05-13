@@ -334,6 +334,6 @@ i.fa.fa-spin:before {
 /* Forcer les tooltips à interprêter aussi les retours à la ligne classiques */
 .tooltip {
     .tooltip-inner {
-        white-space: pre;
+        white-space: pre-line;
     }
 }
