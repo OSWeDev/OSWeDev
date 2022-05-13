@@ -77,12 +77,13 @@ export default class VarsManagerComponent extends VueComponentBase {
 
     private has_access_desc_mode: boolean = false;
 
-    private switch_public_explaination() {
-        this.set_show_public_tooltip(!this.is_show_public_tooltip);
-    }
 
     public async mounted() {
         this.has_access_desc_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleVar.POLICY_DESC_MODE_ACCESS);
+    }
+
+    private switch_public_explaination() {
+        this.set_show_public_tooltip(!this.is_show_public_tooltip);
     }
 
     private async switchDescMode() {
