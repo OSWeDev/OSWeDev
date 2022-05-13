@@ -1242,6 +1242,9 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     get api_type_id(): string {
+        if (!this.crud) {
+            return null;
+        }
         return this.crud.readDatatable.API_TYPE_ID;
     }
 

@@ -1,6 +1,5 @@
 import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
-import RangeHandler from "../../../tools/RangeHandler";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";

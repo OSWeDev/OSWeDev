@@ -3,15 +3,13 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -218,8 +216,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
-    private async query_update_visible_options(query: string) {
-        this.actual_query = query;
+    private async query_update_visible_options(query_: string) {
+        this.actual_query = query_;
         await this.throttled_update_visible_options();
     }
 
@@ -256,17 +254,33 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
         }
 
-        let query = new ContextQueryVO();
-        query.base_api_type_id = this.vo_field_ref.api_type_id;
-        query.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-        query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters));
-        query.limit = this.widget_options.max_visible_options;
-        query.offset = 0;
-        query.active_api_type_ids = this.dashboard.api_type_ids;
+        let query_ = query(this.vo_field_ref.api_type_id)
+            .field(this.vo_field_ref.field_id, 'label')
+            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)))
+            .set_limit(this.widget_options.max_visible_options)
+            .set_sort(new SortByVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, true))
+            .using(this.dashboard.api_type_ids);
         let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
-            query,
+            query_,
             this.actual_query);
+
+        if (this.is_translatable_type) {
+            tmp.sort((a: DataFilterOption, b: DataFilterOption) => {
+                let la = this.label(a.label);
+                let lb = this.label(b.label);
+
+                if (la < lb) {
+                    return -1;
+                }
+
+                if (lb < la) {
+                    return 1;
+                }
+
+                return 0;
+            });
+        }
 
         if (!tmp) {
             this.filter_visible_options = [];
