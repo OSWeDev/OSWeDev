@@ -146,6 +146,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('json_options', ModuleTableField.FIELD_TYPE_string, 'json_options', false),
 
             new ModuleTableField('background', ModuleTableField.FIELD_TYPE_string, 'background', true),
+
+            new ModuleTableField('hide', ModuleTableField.FIELD_TYPE_boolean, 'hide', true, true, false),
         ];
 
         this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));

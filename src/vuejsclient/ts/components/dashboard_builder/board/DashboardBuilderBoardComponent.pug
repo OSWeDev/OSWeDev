@@ -23,34 +23,35 @@
                 :key="'Gridlayout__' + dashboard_page.id"
             )
                 template(v-for="item in editable_dashboard_page.layout")
-                    //- @click="(event) => select_widget_and_stop(event, item)"
-                    .grid_item_wrapper(
-                        @click="select_widget(item)"
-                        :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name] : true }"
-                    )
-                        Griditem(
-                            :static="(!editable) || item.static"
-                            :x="item.x"
-                            :y="item.y"
-                            :w="item.w"
-                            :h="item.h"
-                            :i="item.i"
-                            @resized="resizedEvent"
-                            @moved="movedEvent"
-                            :style="'background:' + item.background"
-                            :key="'Griditem__' + item.id"
+                    template(v-if='!item.hide')
+                        //- @click="(event) => select_widget_and_stop(event, item)"
+                        .grid_item_wrapper(
+                            @click="select_widget(item)"
+                            :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name] : true }"
                         )
-                            Dashboardbuilderboarditemcomponent(
-                                :dashboard_page='dashboard_page'
-                                :dashboard_pages='dashboard_pages'
-                                :dashboard='dashboard'
-                                :page_widget='item'
-                                :is_edit_mode='editable'
-                                :is_selected='selected_widget && (item.i == selected_widget.i)'
-                                :key="'Dashboardbuilderboarditemcomponent__' + item.id"
-
-                                @delete_widget='delete_widget'
-                                @select_widget='select_widget'
-                                @select_page='select_page'
+                            Griditem(
+                                :static="(!editable) || item.static"
+                                :x="item.x"
+                                :y="item.y"
+                                :w="item.w"
+                                :h="item.h"
+                                :i="item.i"
+                                @resized="resizedEvent"
+                                @moved="movedEvent"
+                                :style="'background:' + item.background"
+                                :key="'Griditem__' + item.id"
                             )
-                    
+                                Dashboardbuilderboarditemcomponent(
+                                    :dashboard_page='dashboard_page'
+                                    :dashboard_pages='dashboard_pages'
+                                    :dashboard='dashboard'
+                                    :page_widget='item'
+                                    :is_edit_mode='editable'
+                                    :is_selected='selected_widget && (item.i == selected_widget.i)'
+                                    :key="'Dashboardbuilderboarditemcomponent__' + item.id"
+
+                                    @delete_widget='delete_widget'
+                                    @select_widget='select_widget'
+                                    @select_page='select_page'
+                                )
+                        

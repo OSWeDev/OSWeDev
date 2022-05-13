@@ -54,11 +54,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private filter_visible_options: DataFilterOption[] = [];
 
     private advanced_filters: boolean = false;
+    private force_filter_change: boolean = false;
     private advanced_string_filters: AdvancedStringFilter[] = [new AdvancedStringFilter()];
 
     private warn_existing_external_filters: boolean = false;
 
     private actual_query: string = null;
+
+    private utility_tested_on_type: string = null;
+    private utility_tested_on_field: string = null;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
@@ -189,6 +193,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private async switch_advanced_filters() {
         this.advanced_filters = !this.advanced_filters;
+        this.force_filter_change = true;
 
         this.tmp_filter_active_options = null;
         if (!!this.vo_field_ref) {
@@ -227,11 +232,35 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
+        // Marche pas à réfléchir... => il faut modifier le dashboard layout
+        /**
+         * On check d'abord si le filtre est utile. Sans aucun filtrage, si on a pas encore checké, est-ce qu'on a plus de 1 résultat ?
+         *  Sinon le filtre est inutile on peut décider de la cacher
+         */
+        if ((this.utility_tested_on_type != this.vo_field_ref.api_type_id) ||
+            (this.utility_tested_on_field != this.vo_field_ref.field_id)) {
+
+            this.utility_tested_on_type = this.vo_field_ref.api_type_id;
+            this.utility_tested_on_field = this.vo_field_ref.field_id;
+
+            let no_filters_count = await query(this.vo_field_ref.api_type_id)
+                .field(this.vo_field_ref.field_id, 'label').select_count();
+            if (no_filters_count <= 1) {
+                if (!this.page_widget.hide) {
+                    this.page_widget.hide = true;
+                }
+            } else {
+                if (this.page_widget.hide) {
+                    this.page_widget.hide = false;
+                }
+            }
+        }
+
         /**
          * Si le filtrage est vide, on repasse en filtrage normal si on était en avancé
          */
-        if ((!this.get_active_field_filters) || (!this.get_active_field_filters[this.vo_field_ref.api_type_id]) ||
-            (!this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id])) {
+        if ((!this.force_filter_change) && ((!this.get_active_field_filters) || (!this.get_active_field_filters[this.vo_field_ref.api_type_id]) ||
+            (!this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]))) {
 
             if (this.advanced_filters) {
                 this.advanced_filters = false;
@@ -239,6 +268,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             if (this.advanced_string_filters) {
                 this.advanced_string_filters = null;
             }
+        }
+
+        if (this.force_filter_change) {
+            this.force_filter_change = false;
         }
 
         /**
