@@ -5,6 +5,7 @@ import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilt
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import IEditableDashboardPage from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IEditableDashboardPage';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -36,6 +37,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+
+    @ModuleDashboardPageGetter
+    private get_widgets_invisibility: { [w_id: number]: boolean };
+    @ModuleDashboardPageAction
+    private set_widgets_invisibility: (widgets_invisibility: { [w_id: number]: boolean }) => void;
+    @ModuleDashboardPageAction
+    private set_widget_invisibility: (w_id: number) => void;
+    @ModuleDashboardPageAction
+    private set_widget_visibility: (w_id: number) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -232,29 +242,40 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
-        // Marche pas à réfléchir... => il faut modifier le dashboard layout
-        /**
-         * On check d'abord si le filtre est utile. Sans aucun filtrage, si on a pas encore checké, est-ce qu'on a plus de 1 résultat ?
-         *  Sinon le filtre est inutile on peut décider de la cacher
-         */
-        if ((this.utility_tested_on_type != this.vo_field_ref.api_type_id) ||
-            (this.utility_tested_on_field != this.vo_field_ref.field_id)) {
+        // // Marche mais pas si simple, ça bouge tout le rendu et suivant les widgets inutiles ça crée des trous, pas toujours les mêmes, ... compliqué
+        // /**
+        //  * On check d'abord si le filtre est utile. Sans aucun filtrage, si on a pas encore checké, est-ce qu'on a plus de 1 résultat ?
+        //  *  Sinon le filtre est inutile on peut décider de la cacher
+        //  */
+        // if ((this.utility_tested_on_type != this.vo_field_ref.api_type_id) ||
+        //     (this.utility_tested_on_field != this.vo_field_ref.field_id)) {
 
-            this.utility_tested_on_type = this.vo_field_ref.api_type_id;
-            this.utility_tested_on_field = this.vo_field_ref.field_id;
+        //     this.utility_tested_on_type = this.vo_field_ref.api_type_id;
+        //     this.utility_tested_on_field = this.vo_field_ref.field_id;
 
-            let no_filters_count = await query(this.vo_field_ref.api_type_id)
-                .field(this.vo_field_ref.field_id, 'label').select_count();
-            if (no_filters_count <= 1) {
-                if (!this.page_widget.hide) {
-                    this.page_widget.hide = true;
-                }
-            } else {
-                if (this.page_widget.hide) {
-                    this.page_widget.hide = false;
-                }
-            }
-        }
+        //     let no_filters_count = await query(this.vo_field_ref.api_type_id)
+        //         .field(this.vo_field_ref.field_id, 'label').select_count();
+        //     if (no_filters_count <= 1) {
+
+        //         let invisibility = this.get_widgets_invisibility;
+        //         if (!invisibility[this.page_widget.id]) {
+        //             this.set_widget_invisibility(this.page_widget.id);
+        //         }
+
+        //         // if (!this.page_widget.hide) {
+        //         //     this.dashboard_page.hide = true;
+        //         // }
+        //     } else {
+        //         let invisibility = this.get_widgets_invisibility;
+        //         if (invisibility[this.page_widget.id]) {
+        //             this.set_widget_visibility(this.page_widget.id);
+        //         }
+
+        //         // if (this.page_widget.hide) {
+        //         //     this.page_widget.hide = false;
+        //         // }
+        //     }
+        // }
 
         /**
          * Si le filtrage est vide, on repasse en filtrage normal si on était en avancé

@@ -10,8 +10,9 @@ import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/Dash
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../VueComponentBase';
-import { ModuleDashboardPageAction } from '../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
 import DashboardBuilderWidgetsController from '../widgets/DashboardBuilderWidgetsController';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
@@ -54,6 +55,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_Crudcreatemodalcomponent: (Crudcreatemodalcomponent: CRUDCreateModalComponent) => void;
 
+    @ModuleDashboardPageGetter
+    private get_widgets_invisibility: { [w_id: number]: boolean };
+
     @Prop()
     private dashboard_page: DashboardPageVO;
 
@@ -73,9 +77,11 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
     private max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
 
+    private widgets: DashboardPageWidgetVO[] = [];
+
     private editable_dashboard_page: IEditableDashboardPage = null;
 
-    private widgets: DashboardPageWidgetVO[] = [];
+    private throttled_rebuild_page_layout = ThrottleHelper.getInstance().declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         return VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
@@ -98,12 +104,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
         if ((!this.editable_dashboard_page) || (this.editable_dashboard_page.id != this.dashboard_page.id)) {
 
-            this.widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
-                DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
-
-            this.editable_dashboard_page = Object.assign({
-                layout: this.widgets
-            }, this.dashboard_page);
+            await this.throttled_rebuild_page_layout();
         }
     }
 
@@ -112,6 +113,24 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
+    }
+
+    @Watch('get_widgets_invisibility', { deep: true })
+    private async onchange_get_widgets_invisibility() {
+
+        this.throttled_rebuild_page_layout();
+    }
+
+    private async rebuild_page_layout() {
+        let widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
+            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
+
+        widgets = widgets ? widgets.filter((w) => !this.get_widgets_invisibility[w.id]) : null;
+        this.widgets = widgets;
+
+        this.editable_dashboard_page = Object.assign({
+            layout: this.widgets
+        }, this.dashboard_page);
     }
 
     private async add_widget_to_page(widget: DashboardWidgetVO) {
@@ -239,12 +258,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                         this.select_widget(null);
 
                         // On reload les widgets
-                        this.widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
-                            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
-
-                        this.editable_dashboard_page = Object.assign({
-                            layout: this.widgets
-                        }, this.dashboard_page);
+                        await this.throttled_rebuild_page_layout();
 
                         self.snotify.success(self.label('DashboardBuilderBoardComponent.delete_widget.ok'));
                     },

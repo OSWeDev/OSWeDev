@@ -133,7 +133,6 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
-            return;
         }
 
         let self = this;
@@ -324,6 +323,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
     get api_type_id(): string {
         if (!this.crud) {
+
+            if (this.selected_vo) {
+                return this.selected_vo._type;
+            }
             return null;
         }
         return this.crud.readDatatable.API_TYPE_ID;
