@@ -128,6 +128,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         this.set_page_widget(this.page_widget);
+        this.$emit('update_layout_widget', this.page_widget);
 
         let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];

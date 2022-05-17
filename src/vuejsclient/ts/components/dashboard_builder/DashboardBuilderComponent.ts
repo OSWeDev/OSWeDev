@@ -98,6 +98,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private async update_layout_widget(widget: DashboardPageWidgetVO) {
+        if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
+            return;
+        }
+
+        await ((this.$refs['Dashboardbuilderboardcomponent']) as DashboardBuilderBoardComponent).update_layout_widget(widget);
+    }
+
     private async paste_dashboard(import_on_vo: DashboardVO = null) {
 
         let self = this;
