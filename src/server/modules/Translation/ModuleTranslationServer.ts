@@ -16,6 +16,8 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
@@ -40,6 +42,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
      * Local thread cache -----
      */
     public policy_group: AccessPolicyGroupVO = null;
+    private flat_translations: { [code_text: string]: string } = null;
     /**
      * ----- Local thread cache
      */
@@ -54,13 +57,27 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     public async configure() {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
 
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+
+        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+
+        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO);
         preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO);
 
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang);
         preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang);
 
@@ -654,26 +671,64 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private async getALL_FLAT_LOCALE_TRANSLATIONS(code_lang: string): Promise<{ [code_text: string]: string }> {
 
+        if (this.flat_translations) {
+            return this.flat_translations;
+        }
+
         let res: { [code_text: string]: string } = {};
 
         /**
          * On intègre en premier lieu la langue demandée, puis on intègre la langue par défaut pour combler les trous
          */
-        await this.add_locale_flat_translations(code_lang, res);
-        await this.add_locale_flat_translations(ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE, res);
+        let promises = [];
+        let lang_translations: TranslationVO[] = null;
+        let default_translations: TranslationVO[] = null;
+        let translatableTexts: TranslatableTextVO[] = null;
 
+        promises.push((async () => {
+            lang_translations = await this.get_translations(code_lang);
+        })());
+        if (code_lang != ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE) {
+            promises.push((async () => {
+                default_translations = await this.get_translations(ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE);
+            })());
+        }
+
+        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
+        promises.push((async () => {
+            translatableTexts = await this.getTranslatableTexts();
+            translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        })());
+
+        await Promise.all(promises);
+
+
+        await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
+        await this.add_locale_flat_translations(translatableTexts_by_id, default_translations, res);
+
+        this.flat_translations = res;
         return res;
     }
 
-    private async add_locale_flat_translations(code_lang: string, res: { [code_text: string]: string }): Promise<{ [code_text: string]: string }> {
+    private async get_translations(code_lang: string): Promise<TranslationVO[]> {
 
         let lang = await this.getLang(code_lang);
         if (!lang) {
+            return null;
+        }
+        let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [lang.id]);
+
+        return translations;
+    }
+
+    private async add_locale_flat_translations(
+        translatableTexts_by_id: { [id: number]: TranslatableTextVO },
+        translations: TranslationVO[],
+        res: { [code_text: string]: string }): Promise<{ [code_text: string]: string }> {
+
+        if (!translations) {
             return res;
         }
-        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
-        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
-        let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [lang.id]);
 
         for (let i in translations) {
             let translation = translations[i];
@@ -770,5 +825,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }
 
         return true;
+    }
+
+    private async clear_flat_translations(any?) {
+        this.flat_translations = null;
     }
 }

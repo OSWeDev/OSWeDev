@@ -437,6 +437,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'ajout du composant'
         }, 'DashboardBuilderBoardComponent.add_widget_to_page.ko.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajout du composant en cours...'
+        }, 'DashboardBuilderBoardComponent.add_widget_to_page.start.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Composant ajouté'

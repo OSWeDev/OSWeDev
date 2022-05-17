@@ -108,6 +108,7 @@ export default class PageSwitchWidgetOptionsComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         this.set_page_widget(this.page_widget);
+        this.$emit('update_layout_widget', this.page_widget);
     }
 
     get title_name_code_text(): string {

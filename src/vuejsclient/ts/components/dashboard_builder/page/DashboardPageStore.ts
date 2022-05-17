@@ -24,6 +24,8 @@ export interface IDashboardPageState {
     page_history: DashboardPageVO[];
 
     custom_filters: string[];
+
+    widgets_invisibility: { [w_id: number]: boolean };
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -56,7 +58,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             page_history: [],
-            custom_filters: []
+            custom_filters: [],
+            widgets_invisibility: {}
         };
 
 
@@ -67,6 +70,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_page_history(state: IDashboardPageState): DashboardPageVO[] {
                 return state.page_history;
+            },
+
+            get_widgets_invisibility(state: IDashboardPageState): { [w_id: number]: boolean } {
+                return state.widgets_invisibility;
             },
 
             get_Checklistitemmodalcomponent(state: IDashboardPageState): ChecklistItemModalComponent {
@@ -93,6 +100,16 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.mutations = {
+            set_widgets_invisibility(state: IDashboardPageState, widgets_invisibility: { [w_id: number]: boolean }) {
+                state.widgets_invisibility = widgets_invisibility;
+            },
+
+            set_widget_invisibility(state: IDashboardPageState, w_id: number) {
+                Vue.set(state.widgets_invisibility, w_id, true);
+            },
+            set_widget_visibility(state: IDashboardPageState, w_id: number) {
+                Vue.set(state.widgets_invisibility, w_id, false);
+            },
 
             set_custom_filters(state: IDashboardPageState, custom_filters: string[]) {
                 state.custom_filters = custom_filters;
@@ -199,7 +216,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.actions = {
-
+            set_widget_invisibility(context: DashboardPageContext, w_id: number) {
+                commit_set_widget_invisibility(context, w_id);
+            },
+            set_widget_visibility(context: DashboardPageContext, w_id: number) {
+                commit_set_widget_visibility(context, w_id);
+            },
+            set_widgets_invisibility(context: DashboardPageContext, widgets_invisibility: { [w_id: number]: boolean }) {
+                commit_set_widgets_invisibility(context, widgets_invisibility);
+            },
             set_custom_filters(context: DashboardPageContext, custom_filters: string[]) {
                 commit_set_custom_filters(context, custom_filters);
             },
@@ -275,3 +300,6 @@ export const commit_add_page_history = commit(DashboardPageStoreInstance.mutatio
 export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);
 export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);
 export const commit_clear_active_field_filters = commit(DashboardPageStoreInstance.mutations.clear_active_field_filters);
+export const commit_set_widgets_invisibility = commit(DashboardPageStoreInstance.mutations.set_widgets_invisibility);
+export const commit_set_widget_invisibility = commit(DashboardPageStoreInstance.mutations.set_widget_invisibility);
+export const commit_set_widget_visibility = commit(DashboardPageStoreInstance.mutations.set_widget_visibility);

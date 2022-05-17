@@ -6,7 +6,7 @@
             :dashboard_page="dashboard_page"
         )
 
-    template(v-if='is_type_number')
+    template(v-else-if='is_type_number')
         Fieldvaluefilternumberwidgetcomponent(
             :page_widget="page_widget"
             :dashboard="dashboard"

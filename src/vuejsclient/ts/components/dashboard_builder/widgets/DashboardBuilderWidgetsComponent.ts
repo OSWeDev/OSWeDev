@@ -58,6 +58,10 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
         this.loading = false;
     }
 
+    private update_layout_widget(widget: DashboardPageWidgetVO) {
+        this.$emit('update_layout_widget', widget);
+    }
+
     private async add_widget_to_page(widget: DashboardWidgetVO) {
 
         if (!DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler) {

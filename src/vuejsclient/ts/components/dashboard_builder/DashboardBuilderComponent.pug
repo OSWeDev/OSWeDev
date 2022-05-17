@@ -129,17 +129,21 @@
                     Dashboardbuilderwidgetscomponent(
                         :dashboard='dashboard' :selected_widget='selected_widget'
                         :dashboard_page='page'
-                        :dashboard_pages='pages'                        
+                        :dashboard_pages='pages'   
+
+                        @update_layout_widget='update_layout_widget'
                     )
                     Droppablevofieldscomponent(:dashboard='dashboard')
             
             .row(v-if='show_build_page')
                 .col-md-12.builder_wrapper
                     Dashboardbuilderboardcomponent(
+                        ref='Dashboardbuilderboardcomponent'
                         :dashboard_page='page' 
                         :dashboard_pages='pages'
                         :dashboard='dashboard' 
                         :selected_widget='selected_widget' 
+
                         @select_widget='select_widget'
                         @select_page='select_page'
                     )
