@@ -1,5 +1,11 @@
 .checklist_widget_component {
 
+    .checklist_header {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
     >.row {
         height: -webkit-fill-available;
 
@@ -21,7 +27,7 @@
         left: 0;
         width: -webkit-fill-available;
         height: -webkit-fill-available;
-        background: rgba(0,0,0,0.2);
+        background: rgba(0, 0, 0, 0.2);
         text-align: center;
         z-index: 1000;
         padding-top: 9em;

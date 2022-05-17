@@ -9,6 +9,8 @@ include ../../../../../views/mixins/loading.pug
                 .is_busy
                     i.fa.fa-refresh.fa-spin(aria-hidden="true")
 
+            .checklist_header {{ checklist_header_title }}
+
             .upper_pagination
                 template(v-if='!!checklist')
                     .crud_actions.btn-group.d-print-none

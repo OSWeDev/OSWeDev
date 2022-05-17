@@ -24,7 +24,6 @@ import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import ExportDataToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
@@ -492,6 +491,14 @@ export default class TableWidgetComponent extends VueComponentBase {
             res[column.datatable_field_uid] = column;
         }
         return res;
+    }
+
+    get table_header_title(): string {
+        if ((!this.widget_options) || (!this.page_widget)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
     }
 
     get columns(): TableColumnDescVO[] {

@@ -742,25 +742,43 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
-        let langs: LangVO[] = await this.getLangs();
-        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
-        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        let promises = [];
+        let langs: LangVO[] = null;
+        let translatableTexts: TranslatableTextVO[] = null;
+        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
+
+        promises.push((async () => {
+            langs = await this.getLangs();
+        })());
+        promises.push((async () => {
+            translatableTexts = await this.getTranslatableTexts();
+            translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        })());
+
+        await Promise.all(promises);
+        promises = [];
+
         let res: { [code_lang: string]: any } = {};
 
         for (let i in langs) {
             let lang: LangVO = langs[i];
-            let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
 
-            for (let j in translations) {
-                let translation: TranslationVO = translations[j];
+            promises.push((async () => {
+                let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
 
-                if (!translation.text_id) {
-                    continue;
+                for (let j in translations) {
+                    let translation: TranslationVO = translations[j];
+
+                    if (!translation.text_id) {
+                        continue;
+                    }
+
+                    res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
                 }
-
-                res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
-            }
+            })());
         }
+        await Promise.all(promises);
+
         return res;
     }
 

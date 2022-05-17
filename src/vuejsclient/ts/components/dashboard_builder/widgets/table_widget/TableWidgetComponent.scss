@@ -1,5 +1,11 @@
 .table_widget_component {
 
+    .table_header {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
     >.row {
         height: -webkit-fill-available;
 

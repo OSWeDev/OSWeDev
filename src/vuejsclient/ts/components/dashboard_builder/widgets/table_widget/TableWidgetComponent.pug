@@ -8,6 +8,8 @@ include ../../../../../views/mixins/loading.pug
                 .is_busy 
                     i.fa.fa-refresh.fa-spin(aria-hidden="true")
 
+            .table_header {{ table_header_title }}
+
             .upper_pagination
                 template(v-if='!!crud_activated_api_type')
                     .crud_actions.btn-group.d-print-none

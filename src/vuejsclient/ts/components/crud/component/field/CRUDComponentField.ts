@@ -192,6 +192,7 @@ export default class CRUDComponentField extends VueComponentBase
     private is_readonly: boolean = false;
 
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
+    private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 100);
 
     public async mounted() {
 
@@ -275,7 +276,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.debounced_onchangevo_emitter();
     }
 
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
@@ -482,7 +483,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.debounced_onchangevo_emitter();
     }
 
     private validateEndOfInput(input: any) {
@@ -502,7 +503,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.debounced_onchangevo_emitter();
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
@@ -536,7 +537,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.debounced_onchangevo_emitter();
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
@@ -554,7 +555,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, values, this);
+        this.debounced_onchangevo_emitter();
         this.$emit('validatemultiinput', values, this.field, this.vo);
     }
 
@@ -1063,7 +1064,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.debounced_onchangevo_emitter();
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
@@ -1086,6 +1087,10 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
+        this.debounced_onchangevo_emitter();
+    }
+
+    private onchangevo_emitter() {
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
@@ -1224,7 +1229,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+        this.debounced_onchangevo_emitter();
 
         if (this.inline_input_mode_semaphore) {
             CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;

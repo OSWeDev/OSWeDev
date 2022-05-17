@@ -538,6 +538,14 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         });
     }
 
+    get checklist_header_title(): string {
+        if ((!this.widget_options) || (!this.page_widget)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_title_name_code_text(this.page_widget.id)];
+    }
+
     private async openmodal(selected_checklist_item: ICheckListItem, selected_checkpoint: ICheckPoint) {
         this.get_Checklistitemmodalcomponent.openmodal(this.checklist, selected_checklist_item, selected_checkpoint, this.ordered_checkpoints);
     }
