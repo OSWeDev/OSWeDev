@@ -42,6 +42,4 @@ export default class DashboardPageWidgetVO implements IDistantVOBase, IDashboard
     public json_options: string;
 
     public background: string;
-
-    public hide: boolean;
 }
