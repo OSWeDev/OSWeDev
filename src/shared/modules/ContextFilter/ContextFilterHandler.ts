@@ -231,7 +231,9 @@ export default class ContextFilterHandler {
     public clean_context_filters_for_request(get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
         let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(get_active_field_filters);
 
-        delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
+        if (res) {
+            delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
+        }
 
         return res;
     }
