@@ -131,7 +131,8 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         vo_update_handler.post_update_vo.version_edit_timestamp = Dates.now();
 
-        vo_update_handler.post_update_vo.version_num++;
+        vo_update_handler.post_update_vo.version_num = (typeof vo_update_handler.post_update_vo.version_num == 'number') ?
+            vo_update_handler.post_update_vo.version_num + 1 : 1;
 
         return true;
     }
