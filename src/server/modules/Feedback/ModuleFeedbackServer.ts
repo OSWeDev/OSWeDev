@@ -121,6 +121,15 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Utilisateur et email obligatoires.' },
             'FeedbackHandlerComponent.needs_user_and_email.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Merci de renseigner un téléphone pour être rappelé.' },
+            'FeedbackHandlerComponent.needs_phone.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Je souhaite être rappelé' },
+            'feedback_handler.wish_be_called.on.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Je souhaite être rappelé' },
+            'feedback_handler.wish_be_called.off.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fichiers' },
@@ -440,7 +449,15 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Impersonated from : Login : ' + Dates.format(feedback.impersonated_from_user_login_date, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
         }
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.email + '](mailto:' + feedback.email + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.phone + '](tel:' + feedback.phone + ')';
+
+        if (feedback.phone) {
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [' + feedback.phone + '](tel:' + feedback.phone + ')';
+        }
+
+        if (feedback.wish_be_called) {
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- **Souhaite être rappelé**';
+        }
+
         return res;
     }
 

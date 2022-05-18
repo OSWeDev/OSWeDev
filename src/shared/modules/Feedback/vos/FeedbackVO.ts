@@ -63,6 +63,8 @@ export default class FeedbackVO implements IVersionedVO {
     // Every console_logs we could get
     public console_logs: string[];
 
+    public wish_be_called: boolean;
+
     public parent_id: number;
     public trashed: boolean;
     public version_num: number;

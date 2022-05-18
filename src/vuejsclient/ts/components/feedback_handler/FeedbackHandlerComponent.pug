@@ -37,6 +37,15 @@
                     .col-md-12
                         input.form-control(type='text' name='feedback_phone' v-model="tmp_phone")
 
+                template(v-if="show_wish_be_called")
+                    toggle-button(
+                        @change="on_change_tmp_wish_be_called"
+                        :value="tmp_wish_be_called"
+                        :sync="true"
+                        :width="200"
+                        :labels="{checked: label('feedback_handler.wish_be_called.on'), unchecked: label('feedback_handler.wish_be_called.off')}"
+                    )
+
                 .spacer
 
                 .row

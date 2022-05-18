@@ -1,7 +1,7 @@
 
 
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
@@ -31,12 +31,16 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     @ModuleFeedbackAction
     public set_hidden: (hidden: boolean) => void;
 
+    @Prop({ default: false })
+    private show_wish_be_called;
+
     private tmp_user: string = null;
     private tmp_email: string = null;
     private tmp_phone: string = null;
     private tmp_type: string = null;
     private tmp_title: string = null;
     private tmp_message: string = null;
+    private tmp_wish_be_called: boolean = false;
 
     private tmp_capture_1_vo: FileVO = null;
     private tmp_capture_2_vo: FileVO = null;
@@ -63,6 +67,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
         this.tmp_message = null;
         this.tmp_title = null;
+        this.tmp_wish_be_called = false;
 
         this.tmp_start_date = Dates.now();
         this.tmp_start_url = this.$route.fullPath;
@@ -125,6 +130,12 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
             return;
         }
 
+        if (this.tmp_wish_be_called && !this.tmp_phone) {
+            this.snotify.error(this.label('FeedbackHandlerComponent.needs_phone'));
+            this.is_already_sending_feedback = false;
+            return;
+        }
+
         let feedback: FeedbackVO = new FeedbackVO();
 
         feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
@@ -146,6 +157,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         feedback.screen_capture_2_id = this.tmp_capture_2_vo ? this.tmp_capture_2_vo.id : null;
         feedback.screen_capture_3_id = this.tmp_capture_3_vo ? this.tmp_capture_3_vo.id : null;
         feedback.title = this.tmp_title;
+        feedback.wish_be_called = this.tmp_wish_be_called;
 
         if (!await ModuleFeedback.getInstance().feedback(feedback)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
@@ -180,6 +192,10 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private async uploadedCapture3(fileVo: FileVO) {
         this.tmp_capture_3_vo = fileVo;
+    }
+
+    private on_change_tmp_wish_be_called() {
+        this.tmp_wish_be_called = !this.tmp_wish_be_called;
     }
 
     private console_logs_tostring_array() {
