@@ -4,7 +4,9 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import CRUDComponentManager from '../crud/CRUDComponentManager';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
+import AccessPolicyVueController from './AccessPolicyVueController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
 import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
@@ -50,6 +52,16 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'id'
             ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
+    }
+
+    public async initializeAsync() {
+        await CRUDComponentManager.getInstance().registerCRUD(
+            UserVO.API_TYPE_ID,
+            null,
+            null,
+            this.routes
+        );
+        await AccessPolicyVueController.getInstance().conf_precreate_uservo_unicity();
     }
 
     /**

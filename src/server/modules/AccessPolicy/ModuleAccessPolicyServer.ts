@@ -742,6 +742,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Ouverture outil"
         }, 'userlog.log_type.csrf_request'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Le login, le mail et le téléphone doivent être uniques - il existe un compte avec le même login, mail ou téléphone."
+        }, 'AccessPolicyVueController.precreate_uservo_unicity.error.___LABEL___'));
+
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -757,6 +761,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_CHECK_ACCESS, this.checkAccess.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ADMIN, this.isAdmin.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ROLE, this.isRole.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_USER_ROLES, this.get_user_roles.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_MY_ROLES, this.getMyRoles.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS, this.beginRecoverSMS.bind(this));
@@ -1426,6 +1431,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         let uid: number = StackContext.getInstance().get('UID');
+
+        if (!uid) {
+            return null;
+        }
+
+        return await
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks().select_vos();
+    }
+
+    private async get_user_roles(uid: number): Promise<RoleVO[]> {
 
         if (!uid) {
             return null;

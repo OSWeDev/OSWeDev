@@ -263,6 +263,28 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasProxy.get_vars_to_compute_from_buffer_or_bdd:OUT");
                         }
 
+                        // FIXME DELETE debug temp
+                        let new_vars_datas = {};
+                        for (let i in vars_datas) {
+                            let vars_data = vars_datas[i];
+
+                            let var_conf = VarsController.getInstance().var_conf_by_id[vars_data.var_id];
+                            if (var_conf.disable_var) {
+
+                                if (vars_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+                                    continue;
+                                }
+
+                                vars_data.value = 0;
+                                vars_data.value_ts = Dates.now();
+                                vars_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+                                await ModuleDAO.getInstance().insertOrUpdateVO(vars_data);
+                                continue;
+                            }
+                            new_vars_datas[vars_data.index] = vars_data;
+                        }
+                        vars_datas = new_vars_datas;
+
                         if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
 
                             // /**

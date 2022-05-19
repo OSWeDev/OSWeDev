@@ -362,6 +362,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('ts_ranges_segment_type', ModuleTableField.FIELD_TYPE_int, 'Segment_type du ts_ranges', false, true, TimeSegment.TYPE_DAY),
             new ModuleTableField('segment_types', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
             new ModuleTableField('show_help_tooltip', ModuleTableField.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
+            new ModuleTableField('disable_var', ModuleTableField.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
 
         ];
 

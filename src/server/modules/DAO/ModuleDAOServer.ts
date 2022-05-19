@@ -394,6 +394,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_selectUsersForCheckUnicity, this.selectUsersForCheckUnicity.bind(this));
+
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_BY_IDS, this.deleteVOsByIds.bind(this));
 
@@ -1076,6 +1078,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     /**
      * Cas très spécifique du check d'unicité
+     * @returns true if uniq
      */
     public async selectUsersForCheckUnicity(name: string, email: string, phone: string, user_id: number): Promise<boolean> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
