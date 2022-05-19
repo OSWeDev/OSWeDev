@@ -87,7 +87,10 @@ export default class VarsClientController {
                 if (callbacks) {
                     await this.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
-                this.registered_var_params[var_param.index].nb_registrations++;
+
+                if (this.registered_var_params[var_param.index]) {
+                    this.registered_var_params[var_param.index].nb_registrations++;
+                }
             }
         }
 

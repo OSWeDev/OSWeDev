@@ -46,6 +46,7 @@ export default class DocumentVO implements IVersionedVO, INamedVO, IWeightedItem
 
     public file_id: number;
     public document_url: string;
+    public target_route_name: string;
 
     public parent_id: number;
     public trashed: boolean;
