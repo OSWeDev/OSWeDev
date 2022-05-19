@@ -95,6 +95,7 @@ export default class ModuleDocument extends Module {
             name,
             file_id,
             new ModuleTableField('document_url', ModuleTableField.FIELD_TYPE_string, 'URL', false),
+            new ModuleTableField('target_route_name', ModuleTableField.FIELD_TYPE_string, 'Page (route_name)', false),
             new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de document', true, true, DocumentVO.DOCUMENT_TYPE_OTHER).setEnumValues(DocumentVO.DOCUMENT_TYPE_LABELS),

@@ -24,8 +24,12 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
 
     @ModuleDocumentGetter
     private get_hidden: boolean;
+    @ModuleDocumentGetter
+    private get_only_routename: boolean;
     @ModuleDocumentAction
     private set_hidden: (hidden: boolean) => void;
+    @ModuleDocumentAction
+    private set_has_docs_route_name: (has_docs_route_name: { [route_name: string]: boolean }) => void;
 
     private loaded: boolean = false;
 
@@ -37,6 +41,9 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
 
     private dtgs_by_weight: DocumentTagGroupVO[] = [];
     private dts_by_weight: DocumentTagVO[] = [];
+    private all_d_by_ids: { [id: number]: DocumentVO } = {};
+    private all_dt_by_ids: { [id: number]: DocumentTagVO } = {};
+    private d_dts: DocumentDocumentTagVO[] = null;
 
     private classnames: string[] = [
         'XS',
@@ -50,116 +57,13 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
 
     private filter_tag_id: number = null;
 
-    public async mounted() {
-        let self = this;
-        this.$nextTick(async () => {
-
-            let promises: Array<Promise<any>> = [];
-
-            let tmp_d_by_ids: { [id: number]: DocumentVO } = {};
-            let tmp_dt_by_ids: { [id: number]: DocumentTagVO } = {};
-            let tmp_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = {};
-            let tmp_ds_by_dt_ids_and_by_ids: { [dt_id: number]: { [d_id: number]: DocumentVO } } = {};
-            let tmp_dts_by_dtg_ids: { [dtg_id: number]: DocumentTagVO[] } = {};
-
-            promises.push((async () => {
-                tmp_d_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_ds_by_user_lang());
-            })());
-            promises.push((async () => {
-                tmp_dt_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_dts_by_user_lang());
-            })());
-            let tmp_dtgs_by_weight: DocumentTagGroupVO[] = [];
-            promises.push((async () => {
-                tmp_dtgs_by_weight = await ModuleDocument.getInstance().get_dtgs_by_user_lang();
-                tmp_dtg_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(tmp_dtgs_by_weight);
-            })());
-
-            await Promise.all(promises);
-
-            promises = [];
-
-            let valid_d_by_ids: { [id: number]: DocumentVO } = {};
-            let valid_dt_by_ids: { [id: number]: DocumentTagVO } = {};
-            let valid_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = tmp_dtg_by_ids;
-
-            let dt_dtgs: DocumentTagDocumentTagGroupVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentTagDocumentTagGroupVO>(
-                DocumentTagDocumentTagGroupVO.API_TYPE_ID,
-                'dt_id', ObjectHandler.getInstance().getIdsList(tmp_dt_by_ids),
-                'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids)
-            );
-
-            tmp_dts_by_dtg_ids = {};
-
-            for (let i in dt_dtgs) {
-                let dt_dtg = dt_dtgs[i];
-
-                if (!tmp_dts_by_dtg_ids[dt_dtg.dtg_id]) {
-                    tmp_dts_by_dtg_ids[dt_dtg.dtg_id] = [];
-                }
-                tmp_dts_by_dtg_ids[dt_dtg.dtg_id].push(tmp_dt_by_ids[dt_dtg.dt_id]);
-
-                if (!valid_dt_by_ids[dt_dtg.dt_id]) {
-                    valid_dt_by_ids[dt_dtg.dt_id] = tmp_dt_by_ids[dt_dtg.dt_id];
-                }
-            }
-
-            let d_dts: DocumentDocumentTagVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentDocumentTagVO>(
-                DocumentDocumentTagVO.API_TYPE_ID,
-                'd_id', ObjectHandler.getInstance().getIdsList(tmp_d_by_ids),
-                'dt_id', ObjectHandler.getInstance().getIdsList(valid_dt_by_ids)
-            );
-            tmp_ds_by_dt_ids_and_by_ids = {};
-
-            let tmp_list: DocumentVO[] = [];
-            let tmp_dts_by_weight: DocumentTagVO[] = [];
-            let already_add_dts: { [dt_id: number]: boolean } = {};
-
-            for (let i in d_dts) {
-                let d_dt = d_dts[i];
-
-                if (!tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id]) {
-                    tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id] = {};
-                }
-
-                tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id][d_dt.d_id] = tmp_d_by_ids[d_dt.d_id];
-
-                if (!valid_d_by_ids[d_dt.d_id]) {
-                    valid_d_by_ids[d_dt.d_id] = tmp_d_by_ids[d_dt.d_id];
-                    tmp_list.push(tmp_d_by_ids[d_dt.d_id]);
-                }
-
-                if (!already_add_dts[d_dt.dt_id]) {
-                    already_add_dts[d_dt.dt_id] = true;
-                    tmp_dts_by_weight.push(tmp_dt_by_ids[d_dt.dt_id]);
-                }
-            }
-
-            WeightHandler.getInstance().sortByWeight(tmp_list);
-            WeightHandler.getInstance().sortByWeight(tmp_dtgs_by_weight);
-            WeightHandler.getInstance().sortByWeight(tmp_dts_by_weight);
-            self.list = tmp_list;
-            self.dtgs_by_weight = tmp_dtgs_by_weight;
-            self.dts_by_weight = tmp_dts_by_weight;
-
-            self.d_by_ids = valid_d_by_ids;
-            self.dt_by_ids = valid_dt_by_ids;
-            self.dtg_by_ids = valid_dtg_by_ids;
-
-            self.ds_by_dt_ids_and_by_ids = tmp_ds_by_dt_ids_and_by_ids;
-            self.dts_by_dtg_ids = tmp_dts_by_dtg_ids;
-
-            $("#document_handler_modal").on("hidden.bs.modal", function () {
-                self.set_hidden(true);
-            });
-        });
-    }
-
-    private switch_hidden() {
-        this.set_hidden(!this.get_hidden);
+    @Watch('get_only_routename')
+    public onchange_get_only_routename() {
+        this.reload_list();
     }
 
     @Watch('get_hidden')
-    private onchange_hidden() {
+    public onchange_hidden() {
 
         let self = this;
 
@@ -175,6 +79,135 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
             self.loaded = false;
             self.filter_tag_id = null;
         }
+    }
+
+    public async mounted() {
+        let self = this;
+        this.$nextTick(async () => {
+
+            let promises: Array<Promise<any>> = [];
+
+            let tmp_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = {};
+            let tmp_dts_by_dtg_ids: { [dtg_id: number]: DocumentTagVO[] } = {};
+
+            promises.push((async () => {
+                this.all_d_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_ds_by_user_lang());
+            })());
+            promises.push((async () => {
+                this.all_dt_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_dts_by_user_lang());
+            })());
+            let tmp_dtgs_by_weight: DocumentTagGroupVO[] = [];
+            promises.push((async () => {
+                tmp_dtgs_by_weight = await ModuleDocument.getInstance().get_dtgs_by_user_lang();
+                tmp_dtg_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(tmp_dtgs_by_weight);
+            })());
+
+            await Promise.all(promises);
+
+            promises = [];
+
+            let valid_dt_by_ids: { [id: number]: DocumentTagVO } = {};
+            let valid_dtg_by_ids: { [id: number]: DocumentTagGroupVO } = tmp_dtg_by_ids;
+
+            let dt_dtgs: DocumentTagDocumentTagGroupVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentTagDocumentTagGroupVO>(
+                DocumentTagDocumentTagGroupVO.API_TYPE_ID,
+                'dt_id', ObjectHandler.getInstance().getIdsList(this.all_dt_by_ids),
+                'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids)
+            );
+
+            tmp_dts_by_dtg_ids = {};
+
+            for (let i in dt_dtgs) {
+                let dt_dtg = dt_dtgs[i];
+
+                if (!tmp_dts_by_dtg_ids[dt_dtg.dtg_id]) {
+                    tmp_dts_by_dtg_ids[dt_dtg.dtg_id] = [];
+                }
+                tmp_dts_by_dtg_ids[dt_dtg.dtg_id].push(this.all_dt_by_ids[dt_dtg.dt_id]);
+
+                if (!valid_dt_by_ids[dt_dtg.dt_id]) {
+                    valid_dt_by_ids[dt_dtg.dt_id] = this.all_dt_by_ids[dt_dtg.dt_id];
+                }
+            }
+
+            this.d_dts = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentDocumentTagVO>(
+                DocumentDocumentTagVO.API_TYPE_ID,
+                'd_id', ObjectHandler.getInstance().getIdsList(this.all_d_by_ids),
+                'dt_id', ObjectHandler.getInstance().getIdsList(valid_dt_by_ids)
+            );
+
+            WeightHandler.getInstance().sortByWeight(tmp_dtgs_by_weight);
+            self.dtgs_by_weight = tmp_dtgs_by_weight;
+
+            self.dt_by_ids = valid_dt_by_ids;
+            self.dtg_by_ids = valid_dtg_by_ids;
+
+            self.dts_by_dtg_ids = tmp_dts_by_dtg_ids;
+
+            this.reload_list();
+
+            $("#document_handler_modal").on("hidden.bs.modal", function () {
+                self.set_hidden(true);
+            });
+        });
+    }
+
+    private switch_hidden() {
+        this.set_hidden(!this.get_hidden);
+    }
+
+    private reload_list() {
+        let tmp_ds_by_dt_ids_and_by_ids: { [dt_id: number]: { [d_id: number]: DocumentVO } } = {};
+        let tmp_list: DocumentVO[] = [];
+        let tmp_dts_by_weight: DocumentTagVO[] = [];
+        let valid_d_by_ids: { [id: number]: DocumentVO } = {};
+        let already_add_dts: { [dt_id: number]: boolean } = {};
+        let has_docs_route_name: { [route_name: string]: boolean } = {};
+
+        for (let i in this.d_dts) {
+            let d_dt = this.d_dts[i];
+
+            let doc: DocumentVO = this.all_d_by_ids[d_dt.d_id];
+
+            if (doc.target_route_name) {
+                has_docs_route_name[doc.target_route_name] = true;
+            }
+
+            // Si on est en only_routename, on cherche a afficher les docs de la route seulement
+            if (this.get_only_routename) {
+                if (!doc.target_route_name || (doc.target_route_name != this.$route.name)) {
+                    continue;
+                }
+            }
+
+            if (!tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id]) {
+                tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id] = {};
+            }
+
+            tmp_ds_by_dt_ids_and_by_ids[d_dt.dt_id][d_dt.d_id] = doc;
+
+            if (!valid_d_by_ids[d_dt.d_id]) {
+                valid_d_by_ids[d_dt.d_id] = doc;
+                tmp_list.push(doc);
+            }
+
+            if (!already_add_dts[d_dt.dt_id]) {
+                already_add_dts[d_dt.dt_id] = true;
+                tmp_dts_by_weight.push(this.all_dt_by_ids[d_dt.dt_id]);
+            }
+        }
+
+        WeightHandler.getInstance().sortByWeight(tmp_list);
+        WeightHandler.getInstance().sortByWeight(tmp_dts_by_weight);
+
+        this.list = tmp_list;
+        this.ds_by_dt_ids_and_by_ids = tmp_ds_by_dt_ids_and_by_ids;
+        this.dts_by_weight = tmp_dts_by_weight;
+        this.d_by_ids = valid_d_by_ids;
+
+        this.list = tmp_list;
+
+        this.set_has_docs_route_name(has_docs_route_name);
     }
 
     get options() {

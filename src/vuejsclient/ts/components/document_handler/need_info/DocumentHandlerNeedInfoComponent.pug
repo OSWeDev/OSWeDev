@@ -1,0 +1,4 @@
+.document_handler_need_info.hide_from_screenshot(v-if="get_has_docs_route_name && get_has_docs_route_name[routename]")
+    .document_handler_switcher(@click='switch_hidden')
+        i.fa.fa-question(aria-hidden="true")
+        span {{ label('document_handler.need_info') }}
