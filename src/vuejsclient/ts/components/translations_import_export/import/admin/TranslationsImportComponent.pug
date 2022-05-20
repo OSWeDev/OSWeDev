@@ -1,11 +1,13 @@
-.site_datas_import
-    .row
-        data_import_component(
-                key="translations_import"
+include ../../../../../../../dist/vuejsclient/views/mixins/loading.pug
+
+.translation_datas_import
+    +loading()
+        .row
+            data_import_component(
                 :title='label("import.translations.title")'
-                :import_overview_component='overview_component'
+                :api_type_ids="api_type_ids",
+                :route_path="route_path",
+                :modal_show="modal_show",
+                :import_overview_component='overview_component',
                 :import_param_component='param_component'
-                :api_type_ids="api_type_ids"
-                :route_path="route_path"
-                :modal_show="modal_show"
             )

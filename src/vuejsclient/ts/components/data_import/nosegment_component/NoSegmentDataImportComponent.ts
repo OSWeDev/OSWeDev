@@ -76,19 +76,6 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     private autovalidate: boolean = false;
 
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
-    private dropzoneOptions: any = {
-
-        createImageThumbnails: false,
-        acceptedFiles: this.acceptedFiles,
-        timeout: 3600000,
-        error: (infos, error_message) => {
-            this.snotify.error(error_message);
-        },
-        accept: async (file, done) => {
-
-            await this.checkUnfinishedImportsAndReplacement(done);
-        }
-    };
 
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
@@ -209,6 +196,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
 
         for (let j in this.import_historics) {
+            if (!this.previous_import_historics[j]) {
+                return true;
+            }
+
             if (this.check_change_import_historic(this.import_historics[j], this.previous_import_historics[j])) {
                 return true;
             }
@@ -795,7 +786,18 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     }
 
     get modal_dropzone_options(): any {
-        return this.dropzoneOptions;
+        return {
+            createImageThumbnails: false,
+            acceptedFiles: this.acceptedFiles,
+            timeout: 3600000,
+            error: (infos, error_message) => {
+                this.snotify.error(error_message);
+            },
+            accept: async (file, done) => {
+
+                await this.checkUnfinishedImportsAndReplacement(done);
+            }
+        };
     }
 
     get modal_dropzone_key(): string {

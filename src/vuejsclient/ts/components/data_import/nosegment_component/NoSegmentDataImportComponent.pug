@@ -14,7 +14,7 @@ include ../../../../views/mixins/loading.pug
                         .col-sm
                             i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
 
-                    fileinput(:muted="true" :options="dropzoneOptions" @uploaded="uploadedFile(null, ...arguments)")
+                    fileinput(:muted="true" :options="modal_dropzone_options" @uploaded="uploadedFile(null, ...arguments)")
 
         #import_modal.modal.fade
             .modal-dialog
