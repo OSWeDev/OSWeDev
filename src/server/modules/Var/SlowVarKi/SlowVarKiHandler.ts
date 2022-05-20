@@ -216,7 +216,7 @@ export default class SlowVarKiHandler {
 
             let computed_var = computed_vars[i];
 
-            let slowVar = await new SlowVarVO();
+            let slowVar = new SlowVarVO();
             slowVar.name = computed_var.index;
             slowVar.computation_ts = computation_ts;
             slowVar.var_id = computed_var.var_id;

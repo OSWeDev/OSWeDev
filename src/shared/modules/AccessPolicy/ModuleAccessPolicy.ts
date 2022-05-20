@@ -64,6 +64,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_TEST_ACCESS = "ACCESS_TEST_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
     public static APINAME_IS_ROLE = "IS_ROLE";
+    public static APINAME_GET_USER_ROLES = "GET_USER_ROLES";
     public static APINAME_GET_MY_ROLES = "GET_MY_ROLES";
     public static APINAME_ADD_ROLE_TO_USER = "ADD_ROLE_TO_USER";
     public static APINAME_BEGIN_RECOVER = "BEGIN_RECOVER";
@@ -153,6 +154,7 @@ export default class ModuleAccessPolicy extends Module {
     public isAdmin: () => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_IS_ADMIN);
     public isRole: (role_translatable_name: string) => Promise<boolean> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_IS_ROLE);
     public getMyRoles: () => Promise<RoleVO[]> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_MY_ROLES);
+    public get_user_roles: (uid: number) => Promise<RoleVO[]> = APIControllerWrapper.sah(ModuleAccessPolicy.APINAME_GET_USER_ROLES);
 
     private constructor() {
 
@@ -231,6 +233,13 @@ export default class ModuleAccessPolicy extends Module {
             ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
             [AccessPolicyVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID],
             BooleanParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, RoleVO[]>(
+            null,
+            ModuleAccessPolicy.APINAME_GET_USER_ROLES,
+            [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID],
+            NumberParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(

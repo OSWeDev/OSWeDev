@@ -2,6 +2,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import INamedVO from '../../interfaces/INamedVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -20,6 +21,7 @@ import APIDAOParamVO, { APIDAOParamVOStatic } from './vos/APIDAOParamVO';
 import APIDAORefFieldParamsVO, { APIDAORefFieldParamsVOStatic } from './vos/APIDAORefFieldParamsVO';
 import APIDAORefFieldsAndFieldsStringParamsVO, { APIDAORefFieldsAndFieldsStringParamsVOStatic } from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import APIDAORefFieldsParamsVO, { APIDAORefFieldsParamsVOStatic } from './vos/APIDAORefFieldsParamsVO';
+import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 
@@ -30,6 +32,8 @@ export default class ModuleDAO extends Module {
     public static POLICY_GROUP_OVERALL: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_OVERALL';
     public static POLICY_GROUP_DATAS: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_DATAS';
     public static POLICY_GROUP_MODULES_CONF: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_MODULES_CONF';
+
+    public static APINAME_selectUsersForCheckUnicity = "selectUsersForCheckUnicity";
 
     public static APINAME_truncate = "truncate";
     public static APINAME_delete_all_vos_triggers_ok = "delete_all_vos_triggers_ok";
@@ -80,6 +84,9 @@ export default class ModuleDAO extends Module {
     }
 
     private static instance: ModuleDAO = null;
+
+    public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
+        APIControllerWrapper.sah(ModuleDAO.APINAME_selectUsersForCheckUnicity);
 
     public getVosByRefFieldsIdsAndFieldsString: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
@@ -405,6 +412,13 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_GET_BASE_URL,
             []
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOselectUsersForCheckUnicityVO, boolean>(
+            null,
+            ModuleDAO.APINAME_selectUsersForCheckUnicity,
+            [UserVO.API_TYPE_ID],
+            APIDAOselectUsersForCheckUnicityVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(

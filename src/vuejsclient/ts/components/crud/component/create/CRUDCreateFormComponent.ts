@@ -231,9 +231,17 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
                     let id = res.id ? res.id : null;
                     self.newVO.id = id;
+                    apiokVo.id = id;
 
-                    createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
-                    if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
+                    let n_createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    createdVO = n_createdVO ? n_createdVO : apiokVo;
+                    /**
+                     * A SUIVRE en prod suivant les projets
+                     *  mais a priori si on a un res.id mais qu'on peut pas recharger le vo directement, c'est qu'on a pas le droit peut-etre
+                     *  par ce qu'il est pas complet. donc on le rempli quand même
+                     */
+
+                    if (n_createdVO && ((n_createdVO.id !== id) || (n_createdVO._type !== self.crud.readDatatable.API_TYPE_ID))) {
                         self.creating_vo = false;
                         reject({
                             body: self.label('crud.create.errors.create_failure'),

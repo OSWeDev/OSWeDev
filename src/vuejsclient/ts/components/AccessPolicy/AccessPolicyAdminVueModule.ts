@@ -22,6 +22,7 @@ import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import MenuController from '../menu/MenuController';
+import AccessPolicyVueController from './AccessPolicyVueController';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
 import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
@@ -52,6 +53,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     }
 
     public initialize() {
+
         TableWidgetController.getInstance().register_component(
             new ComponentDatatableField(
                 'impersonate',
@@ -110,6 +112,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 null,
                 false
             );
+            await AccessPolicyVueController.getInstance().conf_precreate_uservo_unicity();
 
             await CRUDComponentManager.getInstance().registerCRUD(
                 UserSessionVO.API_TYPE_ID,

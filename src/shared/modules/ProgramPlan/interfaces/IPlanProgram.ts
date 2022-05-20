@@ -14,7 +14,7 @@ export default interface IPlanProgram extends IDistantVOBase, IWeightedItem {
     days_by_target: number;
 
     /**
-     * Automatically calculated by triggers from the count(*) of program targets
+     * Automatically calculated by triggers from the count(1) of program targets
      */
     nb_targets: number;
 

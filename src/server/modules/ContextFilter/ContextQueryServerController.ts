@@ -186,7 +186,7 @@ export default class ContextQueryServerController {
     }
 
     /**
-     * Construit la requête pour un select count(*) from context_filters
+     * Construit la requête pour un select count(1) from context_filters
      */
     public async build_query_count(context_query: ContextQueryVO): Promise<string> {
 
@@ -199,7 +199,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        query = 'SELECT COUNT(*) c FROM (' +
+        query = 'SELECT COUNT(1) c FROM (' +
             query +
             ') as tocount';
 
