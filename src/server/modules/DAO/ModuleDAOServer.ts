@@ -2597,7 +2597,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return 0;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(*) a FROM ' + moduleTable.full_name + ' t WHERE ' + where_clause + ";");
+        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduleTable.full_name + ' t WHERE ' + where_clause + ";");
         return (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : 0;
     }
 
