@@ -21,6 +21,7 @@ import './CheckListComponent.scss';
 import CheckListControllerBase from './CheckListControllerBase';
 import CheckListItemComponent from './Item/CheckListItemComponent';
 import CheckListModalComponent from './modal/CheckListModalComponent';
+import Vue from 'vue';
 
 
 @Component({
@@ -71,18 +72,12 @@ export default class CheckListComponent extends VueComponentBase {
 
     private show_anyway: boolean = false;
 
+    private selected_checklist_item: ICheckListItem = null;
+
     // private checkpointsdeps: { [check_point_id: number]: number[] } = {};
     // private checklistitemcheckpoints: { [checklistitem_id: number]: { [checkpoint_id: number]: boolean } } = {};
 
     private debounced_loading = debounce(this.loading.bind(this), 100);
-
-    get selected_checklist_item() {
-        if ((!this.checklistitems) || (!this.item_id)) {
-            return null;
-        }
-
-        return this.checklistitems[this.item_id];
-    }
 
     get selected_checkpoint() {
         if ((!this.checkpoints) || (!this.step_id)) {
@@ -113,6 +108,10 @@ export default class CheckListComponent extends VueComponentBase {
     @Watch('checklist_id')
     @Watch('checklist_shared_module')
     private watchers() {
+        if (this.item_id && this.checklistitems) {
+            this.selected_checklist_item = this.checklistitems[this.item_id];
+        }
+
         this.debounced_loading();
     }
 
@@ -121,7 +120,11 @@ export default class CheckListComponent extends VueComponentBase {
         if (!vo) {
             return;
         }
-        this.checklistitems[vo.id] = await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id);
+
+        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+
+        this.selected_checklist_item = this.checklistitems[vo.id];
+
         if (this.checklistitems[vo.id].archived) {
             delete this.checklistitems[vo.id];
         }
@@ -276,6 +279,10 @@ export default class CheckListComponent extends VueComponentBase {
         self.checklist = checklist;
         self.checklistitems = checklistitems;
         self.checkpoints = checkpoints;
+
+        if (this.item_id) {
+            this.selected_checklist_item = this.checklistitems[this.item_id];
+        }
 
         await this.checklist_controller.component_hook_onAsyncLoading(
             this.getStoredDatas, this.storeDatas, this.checklist, this.checklistitems, this.checkpoints);

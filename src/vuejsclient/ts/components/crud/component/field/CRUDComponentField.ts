@@ -503,7 +503,12 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.debounced_onchangevo_emitter();
+        // Si je ne suis pas en inline edit, j'appelle le onchangevo
+        // Cette fonction sera appelé directement dans la fonction de sauvegarde du inline edit
+        if (!this.inline_input_mode) {
+            this.debounced_onchangevo_emitter();
+        }
+
         this.$emit('endofchange', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 

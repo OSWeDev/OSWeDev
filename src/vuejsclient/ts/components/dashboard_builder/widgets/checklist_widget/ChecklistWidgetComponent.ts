@@ -36,6 +36,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
+import Vue from 'vue';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -184,7 +185,11 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!vo) {
             return;
         }
-        this.checklistitems[vo.id] = await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id);
+
+        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+
+        this.get_Checklistitemmodalcomponent.change_selected_checklist_item(this.checklistitems[vo.id]);
+
         if (this.checklistitems[vo.id].archived) {
             delete this.checklistitems[vo.id];
         }

@@ -33,6 +33,10 @@ export default class ChecklistItemModalComponent extends VueComponentBase {
         $('#checklist_item_modal').modal('show');
     }
 
+    public change_selected_checklist_item(selected_checklist_item: ICheckListItem) {
+        this.selected_checklist_item = selected_checklist_item;
+    }
+
     public mounted() {
 
         if (!this.initialized) {

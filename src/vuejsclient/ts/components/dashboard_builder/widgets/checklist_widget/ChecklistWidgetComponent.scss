@@ -43,9 +43,11 @@
         float: right;
         margin-top: 6px;
         margin-bottom: 0.2em;
-
-        opacity: 0.5;
         transition: opacity 300ms ease-in-out;
+
+        .btn {
+            font-size: 14px;
+        }
 
         &:hover {
             opacity: 1;
