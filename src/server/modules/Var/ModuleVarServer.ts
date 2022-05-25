@@ -73,6 +73,8 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 export default class ModuleVarServer extends ModuleServerBase {
 
     public static TASK_NAME_getSimpleVarDataCachedValueFromParam = 'Var.getSimpleVarDataCachedValueFromParam';
+    public static TASK_NAME_delete_varconf_from_cache = 'Var.delete_varconf_from_cache';
+    public static TASK_NAME_update_varconf_from_cache = 'Var.update_varconf_from_cache';
     public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
     public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
@@ -96,6 +98,9 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public update_varcacheconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.update_varcacheconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
+
+    public update_varconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
     private constructor() {
         super(ModuleVar.getInstance().name);
@@ -203,6 +208,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCVarCacheConf);
         postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onUVarCacheConf);
         postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPostDVarCacheConf);
+
+        postCTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onCVarConf);
+        postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onUVarConf);
+        postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onPostDVarConf);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Calculée'
@@ -400,6 +409,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_wait_for_computation_hole, this.wait_for_computation_hole.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varconf_from_cache, this.delete_varconf_from_cache.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varconf_from_cache, this.update_varconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
@@ -992,29 +1003,46 @@ export default class ModuleVarServer extends ModuleServerBase {
         await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vo_update_handler.post_update_vo);
     }
 
+    private async onCVarConf(vcc: VarConfVO) {
+        if (!vcc) {
+            return;
+        }
+
+        await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varconf_from_cache, vcc);
+    }
+
+    private async onUVarConf(vo_update_handler: DAOUpdateVOHolder<VarConfVO>) {
+        await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varconf_from_cache, vo_update_handler.post_update_vo);
+    }
+
     private update_varcacheconf_from_cache_throttled(vccs: VarCacheConfVO[]) {
         for (let i in vccs) {
             let vcc = vccs[i];
-            VarsServerController.getInstance().varcacheconf_by_var_ids[vcc.var_id] = vcc;
-
-            if (!VarsServerController.getInstance().getVarConfById(vcc.var_id)) {
-                continue;
-            }
-
-            if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
-                VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
-            }
-            VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id] = vcc;
+            VarsServerController.getInstance().update_registered_varcacheconf(vcc.id, vcc);
         }
     }
 
     private delete_varcacheconf_from_cache(vcc: VarCacheConfVO) {
-        delete VarsServerController.getInstance().varcacheconf_by_var_ids[vcc.var_id];
+        VarsServerController.getInstance().delete_registered_varcacheconf(vcc.id);
+    }
 
-        if ((!!VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) &&
-            (!!VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id])) {
-            delete VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id];
+    private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {
+        for (let i in vcs) {
+            let vc = vcs[i];
+            VarsServerController.getInstance().update_registered_varconf(vc.id, vc);
         }
+    }
+
+    private delete_varconf_from_cache(vc: VarConfVO) {
+        VarsServerController.getInstance().delete_registered_varconf(vc.id);
+    }
+
+    private async onPostDVarConf(vc: VarConfVO) {
+        if (!vc) {
+            return;
+        }
+
+        await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_delete_varconf_from_cache, vc);
     }
 
     private async onPostDVarCacheConf(vcc: VarCacheConfVO) {

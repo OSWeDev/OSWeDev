@@ -2,6 +2,7 @@ import RoleVO from "../../../shared/modules/AccessPolicy/vos/RoleVO";
 import UserVO from "../../../shared/modules/AccessPolicy/vos/UserVO";
 import AnonymizationFieldConfVO from "../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO";
 import AnonymizationUserConfVO from "../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO";
+import ContextQueryFieldVO from "../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO";
 import ContextQueryVO from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IUserData from "../../../shared/modules/DAO/interface/IUserData";
 import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";
@@ -132,42 +133,127 @@ export default class ServerAnonymizationController {
         for (let i in vos) {
             let vo = vos[i];
 
+            if (!vo) {
+                continue;
+            }
+
             if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
                 for (let field_id in ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
-                    let anonymization_field_conf: AnonymizationFieldConfVO = ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type][field_id];
 
-                    if ((!vo[field_id]) || (!anonymization_field_conf)) {
-                        continue;
-                    }
-
-                    /**
-                     * On anonymise si le user_id est connecté par la conf à ce field
-                     */
-                    if ((!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
-                        (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
-                        continue;
-                    }
-
-                    /**
-                     * on doit chercher sur le mainthread les known values
-                     *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
-                     */
-                    let known_values_by_id: { [vo_id: number]: string } = ServerAnonymizationController.getInstance().registered_anonymization_values[vo._type][field_id];
-
-                    if (known_values_by_id && known_values_by_id[vo[field_id]]) {
-                        vo[field_id] = known_values_by_id[vo[field_id]];
-                        continue;
-                    }
-
-                    let before_anonymization = vo[field_id];
-                    known_values_by_id[before_anonymization] = ServerAnonymizationController.getInstance().anonymize(vo, anonymization_field_conf);
-                    vo[field_id] = known_values_by_id[before_anonymization];
+                    await this.anonymise_row_field(vo, vo._type, field_id, field_id, uid);
                 }
             }
             res.push(vo);
         }
 
         return res;
+    }
+
+    public async anonymise_context_filtered_rows<T>(rows: T[], fields: ContextQueryFieldVO[], uid: number): Promise<T[]> {
+
+        for (let i in rows) {
+            let row = rows[i];
+
+            await this.anonymise_context_filtered_row(row, fields, uid);
+        }
+
+        return rows;
+    }
+
+    public async anonymise_context_filtered_row<T>(row: T, fields: ContextQueryFieldVO[], uid: number): Promise<T> {
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            let api_type_id = field.api_type_id;
+            let field_id = field.field_id;
+
+            if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
+                ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
+                await this.anonymise_row_field(row, api_type_id, field_id, field.alias, uid);
+            }
+        }
+
+        return row;
+    }
+
+    public async get_unanonymised_row_field_value<T>(row_field_value: string, row_field_api_type_id: string, row_field_field_id: string, uid: number): Promise<string> {
+
+        if (!row_field_value) {
+            return row_field_value;
+        }
+
+        if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
+            ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
+
+            let anonymization_field_conf = ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
+
+            if (!anonymization_field_conf) {
+                return row_field_value;
+            }
+
+            /**
+             * On anonymise si le user_id est connecté par la conf à ce field
+             */
+            if ((!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
+                (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
+                return row_field_value;
+            }
+
+            /**
+             * on doit chercher sur le mainthread les known values
+             *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
+             */
+            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.getInstance().registered_anonymization_values[row_field_api_type_id][row_field_field_id];
+
+            if (known_values_by_id) {
+
+                for (let i in known_values_by_id) {
+                    let known_value = known_values_by_id[i];
+
+                    if (known_value == row_field_value) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return row_field_value;
+    }
+
+    public async anonymise_row_field<T>(row: T, row_field_api_type_id: string, row_field_field_id: string, alias: string, uid: number): Promise<T> {
+        if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
+            ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
+
+            let anonymization_field_conf = ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
+
+            if ((!row[alias]) || (!anonymization_field_conf)) {
+                return row;
+            }
+
+            /**
+             * On anonymise si le user_id est connecté par la conf à ce field
+             */
+            if ((!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id]) ||
+                (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_field_conf.id][uid])) {
+                return row;
+            }
+
+            /**
+             * on doit chercher sur le mainthread les known values
+             *  et donc  on récupère dans tous les cas du mainthread (qui a la conf aussi) la valeur à mettre dans le champs
+             */
+            let known_values_by_id: { [before_anonymization: string]: string } = ServerAnonymizationController.getInstance().registered_anonymization_values[row_field_api_type_id][row_field_field_id];
+
+            if (known_values_by_id && known_values_by_id[row[alias]]) {
+                row[alias] = known_values_by_id[row[alias]];
+                return row;
+            }
+
+            let before_anonymization = row[alias];
+            known_values_by_id[before_anonymization] = ServerAnonymizationController.getInstance().anonymize(row, anonymization_field_conf);
+            row[alias] = known_values_by_id[before_anonymization];
+        }
+        return row;
     }
 
     /**
@@ -192,7 +278,7 @@ export default class ServerAnonymizationController {
         }
     }
 
-    private anonymize(vo: IDistantVOBase, anonymization_field_conf: AnonymizationFieldConfVO) {
+    private anonymize<T>(vo: T, anonymization_field_conf: AnonymizationFieldConfVO) {
 
         switch (anonymization_field_conf.anonymizer_type) {
             case AnonymizationFieldConfVO.TYPE_ANONYMIZER_ADDRESS:

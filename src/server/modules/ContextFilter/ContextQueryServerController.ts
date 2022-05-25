@@ -24,6 +24,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { cloneDeep } from 'lodash';
+import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 
 export default class ContextQueryServerController {
 
@@ -88,6 +89,23 @@ export default class ContextQueryServerController {
         // On devrait plus avoir besoin de faire ça ici, on doit le faire dans la requête directement et sur tous les types rencontrés
         // return await ModuleDAOServer.getInstance().filterVOsAccess(moduletable, ModuleDAO.DAO_ACCESS_TYPE_READ, moduletable.forceNumerics(query_res));
 
+        // Anonymisation
+        let uid = await StackContext.getInstance().get('UID');
+        if (context_query.fields) {
+            await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        } else {
+            for (let j in query_res) {
+                let row = query_res[j];
+
+                let fields = moduletable.get_fields();
+                for (let i in fields) {
+                    let field = fields[i];
+
+                    await ServerAnonymizationController.getInstance().anonymise_row_field(row, moduletable.vo_type, field.field_id, field.field_id, uid);
+                }
+            }
+        }
+
         return moduletable.forceNumerics(query_res);
     }
 
@@ -113,6 +131,14 @@ export default class ContextQueryServerController {
         let query_res = await ModuleDAOServer.getInstance().query(query);
         if ((!query_res) || (!query_res.length)) {
             return null;
+        }
+
+        // Anonymisation
+        let uid = await StackContext.getInstance().get('UID');
+        if (context_query.fields) {
+            await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        } else {
+            throw new Error('Invalid anon');
         }
 
         return query_res;
@@ -172,6 +198,8 @@ export default class ContextQueryServerController {
         if ((!query_res) || (!query_res.length)) {
             return res;
         }
+
+        // Anonymisation déjà faite par le select_datatable_rows
 
         for (let i in query_res) {
             let res_field = query_res[i] ? query_res[i][field.alias] : null;

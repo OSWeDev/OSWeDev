@@ -47,6 +47,8 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleAnonymizationServer from '../Anonymization/ModuleAnonymizationServer';
+import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -927,6 +929,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let res: T[] = null;
+
         if (moduleTable.is_segmented) {
 
             // Si on est sur une table segmentée on adapte le comportement
@@ -964,15 +968,26 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             // On filtre les res suivant les droits d'accès
-            return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_res);
+            res = segmented_res;
+        } else {
+            res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
+                "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
+                (query ? query : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
         }
 
-        let res: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
-            "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
-            (query ? query : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
-
         // On filtre les res suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, res);
+        res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, res);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
@@ -983,6 +998,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let vo: T = null;
         if (moduleTable.is_segmented) {
 
             // Si on est sur une table segmentée on adapte le comportement
@@ -1022,14 +1038,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
             segmented_vo = moduleTable.forceNumeric(segmented_vo);
 
             // On filtre les vo suivant les droits d'accès
-            return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_vo);
+            vo = segmented_vo;
+        } else {
+            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
+            vo = moduleTable.forceNumeric(vo);
         }
 
-        let vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
-        vo = moduleTable.forceNumeric(vo);
-
         // On filtre suivant les droits d'accès
-        return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+        vo = await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+
+        if (!vo) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, [vo], uid, null);
+        }
+
+        return vo;
     }
 
     /**
@@ -2126,7 +2153,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+        vo = await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+
+        if (!vo) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, [vo], uid, null);
+        }
+
+        return vo;
     }
 
     private async getBaseUrl(): Promise<string> {
@@ -2267,7 +2305,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async getVosByRefFieldsIds<T extends IDistantVOBase>(
@@ -2320,7 +2369,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(
@@ -2460,7 +2520,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";", request_params) as T[]);
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async getVosByIds<T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]): Promise<T[]> {
@@ -2516,7 +2587,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         vos = moduleTable.forceNumerics(vos);
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async getVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<T[]> {
@@ -2558,7 +2640,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + where_clause + ";") as T[]);
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async countVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<number> {
@@ -2659,7 +2752,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(datatable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async filterVosByMatroids<T extends IDistantVOBase>(
@@ -2700,7 +2804,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(datatable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async getDAOsByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }, additional_condition: string): Promise<T[]> {
@@ -2968,7 +3083,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
     private async getVosByExactMatroid<T extends IDistantVOBase>(
@@ -3182,7 +3308,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+        let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+
+        if (!res) {
+            return null;
+        }
+
+        let uid = await StackContext.getInstance().get('UID');
+        if (uid) {
+            await ServerAnonymizationController.getInstance().anonymise(moduleTable, res, uid, null);
+        }
+
+        return res;
     }
 
 

@@ -6,6 +6,7 @@ import DateHandler from '../tools/DateHandler';
 import GeoPointHandler from '../tools/GeoPointHandler';
 import MatroidIndexHandler from '../tools/MatroidIndexHandler';
 import RangeHandler from '../tools/RangeHandler';
+import AnimationController from './Animation/AnimationController';
 import IRange from './DataRender/interfaces/IRange';
 import HourRange from './DataRender/vos/HourRange';
 import HourSegment from './DataRender/vos/HourSegment';

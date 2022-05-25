@@ -128,13 +128,13 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
             let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[i];
 
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.getInstance().anonymise);
+            // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.getInstance().anonymise.bind(ServerAnonymizationController.getInstance()));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait
-            ModuleDAOServer.getInstance().registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.getInstance().anonymiseContextAccessHook);
+            // ModuleDAOServer.getInstance().registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.getInstance().anonymiseContextAccessHook.bind(ServerAnonymizationController.getInstance()));
 
             // On doit refuser d'insérer/modifier des vos anonymisés
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController.getInstance().check_is_anonymise);
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController.getInstance().check_is_anonymise);
+            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController.getInstance().check_is_anonymise.bind(ServerAnonymizationController.getInstance()));
+            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController.getInstance().check_is_anonymise.bind(ServerAnonymizationController.getInstance()));
         }
     }
 }

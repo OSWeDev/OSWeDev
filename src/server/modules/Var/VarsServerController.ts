@@ -79,6 +79,68 @@ export default class VarsServerController {
         return this._varcontrollers_dag_depths;
     }
 
+    public update_registered_varconf(id: number, conf: VarConfVO) {
+        this._registered_vars_by_ids[id] = conf;
+        for (let i in this._registered_vars) {
+            let registered_var = this._registered_vars[i];
+
+            if (!registered_var) {
+                continue;
+            }
+
+            if (registered_var.id == id) {
+                this._registered_vars[i] = conf;
+                return;
+            }
+        }
+    }
+
+    public delete_registered_varconf(id: number) {
+        delete this._registered_vars_by_ids[id];
+
+        for (let i in this._registered_vars) {
+            let registered_var = this._registered_vars[i];
+
+            if (!registered_var) {
+                continue;
+            }
+
+            if (registered_var.id == id) {
+                delete this._registered_vars[i];
+                return;
+            }
+        }
+    }
+
+    public update_registered_varcacheconf(id: number, cacheconf: VarCacheConfVO) {
+        this._varcacheconf_by_var_ids[id] = cacheconf;
+
+        let conf = this.getVarConfById(cacheconf.var_id);
+        if (!conf) {
+            return;
+        }
+
+        if (!this.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
+            this.varcacheconf_by_api_type_ids[conf.var_data_vo_type] = {};
+        }
+        this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
+    }
+
+    public delete_registered_varcacheconf(id: number) {
+        let cacheconf = this._varcacheconf_by_var_ids[id];
+        delete this._varcacheconf_by_var_ids[id];
+
+        let conf = this.getVarConfById(cacheconf.var_id);
+        if (!conf) {
+            return;
+        }
+
+        if (!this.varcacheconf_by_api_type_ids[conf.var_data_vo_type]) {
+            return;
+        }
+        delete this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
+    }
+
     public async init_varcontrollers_dag_depths() {
 
         if ((!this._varcontrollers_dag_depths) && this.varcontrollers_dag) {

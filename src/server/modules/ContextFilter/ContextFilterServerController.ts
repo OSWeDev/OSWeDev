@@ -8,6 +8,8 @@ import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import StackContext from '../../StackContext';
+import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ContextQueryServerController from './ContextQueryServerController';
 import FieldPathWrapper from './vos/FieldPathWrapper';
@@ -57,6 +59,19 @@ export default class ContextFilterServerController {
          */
         let field_type = field_id ? (field ? field.field_type : ModuleTableField.FIELD_TYPE_int) : null;
 
+        // On tente de déanonymiser avant de construire la requête
+        let uid = await StackContext.getInstance().get('UID');
+        if (active_field_filter.param_text) {
+            active_field_filter.param_text = await ServerAnonymizationController.getInstance().get_unanonymised_row_field_value(active_field_filter.param_text, active_field_filter.vo_type, active_field_filter.field_id, uid);
+        }
+        if (active_field_filter.param_textarray) {
+            for (let i in active_field_filter.param_textarray) {
+                let param_text = active_field_filter.param_textarray[i];
+
+                active_field_filter.param_textarray[i] = await ServerAnonymizationController.getInstance().get_unanonymised_row_field_value(param_text, active_field_filter.vo_type, active_field_filter.field_id, uid);
+            }
+        }
+
         switch (active_field_filter.filter_type) {
 
             case ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL:
@@ -79,6 +94,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
+
                             where_conditions.push(field_id + " ILIKE '%" + text + "%'");
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
