@@ -165,13 +165,13 @@ i.fa.fa-spin:before {
 }
 
 .primary_theme_bg {
-    background-color: $button_primary_bg_color !important;
-    color: $button_text_color !important;
+    background-color: $button_primary_bg_color  !important;
+    color: $button_text_color  !important;
 }
 
 .primary_theme_light_bg {
-    background-color: $button_primary_active_bg_color !important;
-    color: $button_text_color !important;
+    background-color: $button_primary_active_bg_color  !important;
+    color: $button_text_color  !important;
 }
 
 .table_total_row td {
@@ -336,4 +336,11 @@ i.fa.fa-spin:before {
     .tooltip-inner {
         white-space: pre-line;
     }
+}
+
+.footer_fixed {
+    position: fixed;
+    bottom: 10px;
+    right: 5px;
+    z-index: 20000;
 }

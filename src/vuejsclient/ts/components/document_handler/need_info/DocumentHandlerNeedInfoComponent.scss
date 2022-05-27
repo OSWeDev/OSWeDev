@@ -1,16 +1,17 @@
 @import "skin-variables.scss";
 
 .document_handler_need_info {
-    position: fixed;
-    bottom: 10px;
-    right: 190px;
     background: $main_menu_active_bg_color;
     color: white;
-    padding: 4px 8px 5px;
+    padding: 4px 8px 3px;
     cursor: pointer;
     border-radius: 5px;
     font-weight: bold;
     font-size: 18px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px;
+    box-shadow: 1px 1px 3px #333;
 
     i {
         font-size: 24px;

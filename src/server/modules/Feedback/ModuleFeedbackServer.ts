@@ -207,6 +207,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
             'error_sending_feedback.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Nous contacter', 'es-es': 'Contáctenos' },
+            'feedback_handler.btn.title.___LABEL___')
+        );
     }
 
     public registerServerApiHandlers() {

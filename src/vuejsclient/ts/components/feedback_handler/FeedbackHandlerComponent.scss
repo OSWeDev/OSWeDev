@@ -1,19 +1,23 @@
 .feedback_handler {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px;
 
     .feedback_handler_switcher {
-        display: block;
-        position: fixed;
-        bottom: 10px;
-        right: 10px;
-        font-size: 1.5em;
         background: white;
-        border-radius: 20px;
-        padding: 6px 4px 6px 10px;
-        box-shadow: 1px 1px 3px;
-        z-index: 20000;
+        padding: 4px 8px 3px;
         cursor: pointer;
-    }
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 18px;
+        box-shadow: 1px 1px 3px #333;
 
+        &:hover {
+            background: #333;
+            color: white;
+            transition: all 0.3s;
+        }
+    }
 
     .feedback_handler_modal {
 

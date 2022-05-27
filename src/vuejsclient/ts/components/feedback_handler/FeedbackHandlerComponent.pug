@@ -1,9 +1,10 @@
 .feedback_handler.hide_from_screenshot(v-if="isActive")
-    .feedback_handler_switcher
+    .feedback_handler_switcher(@click='switch_hidden')
         template(v-if='get_hidden')
-            i.fa.fa-comment.fa-fw(aria-hidden="true" @click='switch_hidden')
+            i.fa.fa-comment.fa-fw(aria-hidden="true")
         template(v-else)
-            i.fa.fa-commenting.fa-fw(aria-hidden="true" @click='switch_hidden')
+            i.fa.fa-commenting.fa-fw(aria-hidden="true")
+        span {{ label('feedback_handler.btn.title') }}
 
     .feedback_handler_modal(:class='{"hidden": !!get_hidden}')
         .feedback_handler_modal_header {{ label('feedback_handler.header') }}
