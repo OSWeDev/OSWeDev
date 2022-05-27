@@ -194,6 +194,8 @@ export default class CRUDComponentField extends VueComponentBase
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
     private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 100);
 
+    private has_focus: boolean = false;
+
     public async mounted() {
 
         this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
@@ -312,16 +314,18 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let field_value: any = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
-
-        // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
-        if (!this.datatable) {
-            field_value = this.field.dataToUpdateIHM(field_value, this.vo);
+        /**
+         * Si on a le focus (donc probablement on est en train d'éditer) on laisse saisir la valeur
+         */
+        if (!this.has_focus) {
+            this.update_input_field_value_from_vo_field_value();
         }
 
-        if (this.field_value != field_value) {
-            this.field_value = field_value;
-        }
+        // let current_field_value = this.field.UpdateIHMToData(this.field_value, this.vo);
+
+        // if (current_field_value != field_value) {
+        //     this.field_value = field_value;
+        // }
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
         if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
@@ -1206,6 +1210,7 @@ export default class CRUDComponentField extends VueComponentBase
     private async change_inline_field_value() {
 
         this.inline_input_is_busy = true;
+        this.update_vo_field_value_from_input_field_value();
 
         if (this.auto_update_field_value) {
 
@@ -1384,9 +1389,53 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private on_focus($event) {
+        this.has_focus = true;
+    }
+
+    private on_focus_select($event) {
+        this.on_focus($event);
         if (this.inline_input_mode && this.force_input_is_editing) {
             $event.target.select();
         }
+    }
+
+    private on_blur($event) {
+        this.has_focus = false;
+
+        this.update_input_field_value_from_vo_field_value();
+        this.inline_input_is_editing = false;
+    }
+
+    private update_input_field_value_from_vo_field_value() {
+        let field_value: any = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
+
+        if (!this.datatable) {
+            field_value = this.field.dataToUpdateIHM(field_value, this.vo);
+        }
+
+        if (this.field_value != field_value) {
+            this.field_value = field_value;
+        }
+    }
+
+    private update_vo_field_value_from_input_field_value() {
+
+        if ((!this.vo) || (!this.field)) {
+            return;
+        }
+
+        let field_value: any = this.field_value;
+
+        field_value = this.field.UpdateIHMToData(field_value, this.vo);
+
+        if (this.vo[this.field.datatable_field_uid] != field_value) {
+            this.vo[this.field.datatable_field_uid] = field_value;
+        }
+    }
+
+    private on_blur_emit($event) {
+        this.on_blur($event);
+        this.$emit('blur', $event.target.value);
     }
 
     get targetModuleTable_count(): number {
