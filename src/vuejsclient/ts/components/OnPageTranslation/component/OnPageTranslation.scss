@@ -1,14 +1,19 @@
 @import "skin-variables.scss";
 
 .openclose_on_page_translation_module_wrapper {
-    position: fixed;
-    bottom: 10px;
-    right: 60px;
-    z-index: 20000;
+    .btn {
+        border-radius: 5px;
+        box-shadow: 1px 1px 3px #333;
+        padding: 5px 12px 4px;
+    }
 
-    .badge.badge-danger{
-        background-color: #b3003c;
-        color: white;
+    .badge {
+        margin-left: 5px;
+
+        &.badge-danger {
+            background-color: #b3003c;
+            color: white;
+        }
     }
 }
 
@@ -27,7 +32,11 @@
 }
 
 .on_page_translation {
-    .form-control{
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px;
+
+    .form-control {
         min-width: 600px;
     }
 
@@ -35,13 +44,13 @@
         background-color: #fcf8e3;
     }
 
-    .row.editable_translation{
+    .row.editable_translation {
         padding: 5px;
         margin-bottom: 5px;
-        border:solid 2px #DDD;
+        border: solid 2px #DDD;
         border-radius: 10px;
 
-        .vue-js-switch{
+        .vue-js-switch {
             margin-right: 5px;
         }
 
