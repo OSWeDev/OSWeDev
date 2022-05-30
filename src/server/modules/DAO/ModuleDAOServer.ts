@@ -1094,7 +1094,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
-            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) AND password = crypt($2, password)", [login.toLowerCase().trim(), password]) as UserVO;
+            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE LOWER(name) = $1 AND password = crypt($2, password)", [login.toLowerCase().trim(), password]) as UserVO;
+
+            if (!vo) {
+                vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE LOWER(email) = $1 AND password = crypt($2, password)", [login.toLowerCase().trim(), password]) as UserVO;
+
+                if (!vo) {
+                    vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE LOWER(phone) = $1 AND password = crypt($2, password)", [login.toLowerCase().trim(), password]) as UserVO;
+                }
+            }
             vo = datatable.forceNumeric(vo);
             return vo;
         } catch (error) {
@@ -1114,10 +1122,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vos: UserVO[] = await ModuleServiceBase.getInstance().db.query(
                 "SELECT t.* FROM " + datatable.full_name + " t " +
                 " WHERE " +
-                " (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) " + " OR " +
-                " (TRIM(LOWER(name)) = $2 OR TRIM(LOWER(email)) = $2 or TRIM(LOWER(phone)) = $2) " + (phone ? (" OR " +
-                    " (TRIM(LOWER(name)) = $3 OR TRIM(LOWER(email)) = $3 or TRIM(LOWER(phone)) = $3);") : ";"),
+                " (LOWER(name) = $1 OR LOWER(email) = $1 or LOWER(phone) = $1) " + " OR " +
+                " (LOWER(name) = $2 OR LOWER(email) = $2 or LOWER(phone) = $2) " + (phone ? (" OR " +
+                    " (LOWER(name) = $3 OR LOWER(email) = $3 or LOWER(phone) = $3);") : ";"),
                 [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO[];
+
             vos = datatable.forceNumerics(vos);
 
             if ((!vos) || (!vos[0])) {
@@ -1146,7 +1155,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
-            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE LOWER(name) = $1 and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+
+            if (!vo) {
+                vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE LOWER(email) = $1 and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+
+                if (!vo) {
+                    vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE LOWER(phone) = $1 and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+                }
+            }
+
             vo = datatable.forceNumeric(vo);
             return vo;
         } catch (error) {
