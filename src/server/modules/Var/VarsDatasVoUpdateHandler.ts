@@ -155,15 +155,11 @@ export default class VarsDatasVoUpdateHandler {
                 let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
                 let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
 
-                let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-
-                let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
-
                 limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
-                await this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+                let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
 
-                await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage, vos_create_or_delete_buffer, vos_update_buffer);
+                await this.invalidate_datas_and_parents(intersectors_by_index);
 
                 // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
                 this.throttled_update_param();
@@ -175,38 +171,57 @@ export default class VarsDatasVoUpdateHandler {
         );
     }
 
+    /**
+     * Update : Changement de méthode. On arrête de vouloir résoudre par niveau dans l'arbre des deps,
+     *  et on résoud simplement intersecteur par intersecteur. Donc on commence par identifier les intersecteurs (ensemble E)
+     *  déduis des vos, puis pour chacun (e) :
+     *      - On invalide les vars en appliquant e,
+     *      - On ajoute e dans F ensemble des intersecteurs résolus
+     *      - On charge les intersecteurs (E') déduis par dépendance à cet intersecteur. Pour chacun (e') :
+     *          - si e' dans E, on ignore
+     *          - si e' dans F, on ignore
+     *          - sinon on ajoute e' à E
+     *      - On supprime e de E et on continue de dépiler
+     * @param intersectors_by_index Ensemble E des intersecteurs en début de process, à dépiler
+     */
     public async invalidate_datas_and_parents(
-        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
-        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = null,
-        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = null,
-        vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = null
+        intersectors_by_index: { [index: string]: VarDataBaseVO }
     ) {
+
+        let solved_intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents],
             async () => {
 
-                // Si on veut juste invalider directement des vos, on a pas besoin de fournir le ctrls to update
-                if (!ctrls_to_update_1st_stage) {
-                    ctrls_to_update_1st_stage = {};
-                    for (let var_id_s in intersectors_by_var_id) {
-                        ctrls_to_update_1st_stage[var_id_s] = VarsServerController.getInstance().registered_vars_controller_[
-                            VarsController.getInstance().var_conf_by_id[var_id_s].name];
+                while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
+                    let intersector = intersectors_by_index[ObjectHandler.getInstance().getFirstAttributeName(intersectors_by_index)];
+
+                    await this.find_invalid_datas_and_push_for_update({
+                        [intersector.var_id]: {
+                            [intersector.index]: intersector
+                        }
+                    });
+
+                    solved_intersectors_by_index[intersector.index] = intersector;
+
+                    let deps_intersectors = await this.get_deps_intersectors(intersector);
+
+                    for (let j in deps_intersectors) {
+                        let dep_intersector = deps_intersectors[j];
+
+                        if (intersectors_by_index[dep_intersector.index]) {
+                            continue;
+                        }
+                        if (solved_intersectors_by_index[dep_intersector.index]) {
+                            continue;
+                        }
+
+                        intersectors_by_index[dep_intersector.index] = dep_intersector;
                     }
+
+                    delete intersectors_by_index[intersector.index];
                 }
-
-                /**
-                 * ALGO en photo... TODO FIXME a remettre au propre
-                 */
-                let markers: { [var_id: number]: number } = {};
-                await this.init_markers(ctrls_to_update_1st_stage, markers);
-                await this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id, vos_create_or_delete_buffer, vos_update_buffer);
-
-                /**
-                 * Une fois qu'on a tous les intercepteurs à appliquer, on charge tous les var_data correspondant de la base
-                 *  et on les enfilent dans le buffer de calcul / mise à jour des var_datas
-                 */
-                await this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
             },
             this
         );
@@ -660,6 +675,24 @@ export default class VarsDatasVoUpdateHandler {
         intersectors_by_var_id[Nx.var_controller.varConf.id] = intersectors;
     }
 
+    private async get_deps_intersectors(intersector: VarDataBaseVO): Promise<{ [index: string]: VarDataBaseVO }> {
+        let res: { [index: string]: VarDataBaseVO } = {};
+
+        let node = VarsServerController.getInstance().varcontrollers_dag.nodes[intersector.var_id];
+
+        for (let j in node.incoming_deps) {
+            let dep = node.incoming_deps[j];
+            let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
+
+            let tmp = await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, [intersector]);
+            if (tmp && tmp.length) {
+                tmp.forEach((e) => res[e.index] = e);
+            }
+        }
+
+        return res;
+    }
+
     /**
      * L'idée est de noter les noeuds de l'arbre en partant des noeuds de base (ctrls_to_update_1st_stage) et en remontant dans l'arbre en
      *  indiquant un +1 sur chaque noeud. Ce marqueur est utlisé par le suite pour savoir les dépendances en attente ou résolues
@@ -684,16 +717,13 @@ export default class VarsDatasVoUpdateHandler {
 
     /**
      * Pour chaque vo_type, on prend tous les varcontrollers concernés et on demande les intersecteurs en CD et en U
-     *  On combinera les intersecteurs en CD et U via une union quand on aura validé qu'on a pas une autre variable qui pourrait impacter celle-ci
      */
     private async init_leaf_intersectors(
         vo_types: string[],
-        intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } },
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
-        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
-        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }) {
+        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }): Promise<{ [index: string]: VarDataBaseVO }> {
 
-        // let promises = [];
+        let intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
 
         for (let i in vo_types) {
             let vo_type = vo_types[i];
@@ -701,52 +731,29 @@ export default class VarsDatasVoUpdateHandler {
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                let intersectors = intersectors_by_var_id[var_controller.varConf.id] ? intersectors_by_var_id[var_controller.varConf.id] : [];
-
                 for (let k in vos_create_or_delete_buffer[vo_type]) {
                     let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
 
-                    // if (promises && (promises.length >= 10)) {
-                    //     await Promise.all(promises);
-                    //     promises = [];
-                    // }
-                    // promises.push((async () => {
                     let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    tmp.forEach((e) => e ? intersectors[e.index] = e : null);
-                    // })());
+                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                 }
 
                 for (let k in vos_update_buffer[vo_type]) {
                     let vo_update_buffer = vos_update_buffer[vo_type][k];
 
-                    // if (promises && (promises.length >= 10)) {
-                    //     await Promise.all(promises);
-                    //     promises = [];
-                    // }
-
-                    // promises.push((async () => {
                     let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
                     if ((!tmp) || (!tmp.length)) {
-                        // return;
                         continue;
                     }
-                    tmp.forEach((e) => e ? intersectors[e.index] = e : null);
-                    // })());
-                }
-
-                if (intersectors && ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors)) {
-                    intersectors_by_var_id[var_controller.varConf.id] = ObjectHandler.getInstance().mapByStringFieldFromArray(
-                        MatroidController.getInstance().union(Object.values(intersectors)), 'index');
-                    ctrls_to_update_1st_stage[var_controller.varConf.id] = var_controller;
+                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                 }
             }
         }
-        // if (promises && promises.length) {
-        //     await Promise.all(promises);
-        // }
+
+        return intersectors_by_index;
     }
 
     /**

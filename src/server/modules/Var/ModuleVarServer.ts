@@ -668,7 +668,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 vos_by_type_id[vo._type].push(vo);
             }
 
-            let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+            let vos_by_index: { [index: string]: VarDataBaseVO } = {};
             for (let api_type_id in vos_by_type_id) {
                 let vos_type = vos_by_type_id[api_type_id];
 
@@ -679,15 +679,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                     for (let j in bdd_vos) {
                         let bdd_vo = bdd_vos[j];
 
-                        if (!vos_by_var_id[bdd_vo.var_id]) {
-                            vos_by_var_id[bdd_vo.var_id] = {};
-                        }
-                        vos_by_var_id[bdd_vo.var_id][bdd_vo.index] = bdd_vo;
+                        vos_by_index[bdd_vo.index] = bdd_vo;
                     }
                 }
             }
 
-            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
+            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_index);
             resolve(true);
         });
     }
@@ -718,18 +715,15 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return true;
             });
 
-            let vos_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+            let vos_by_index: { [index: string]: VarDataBaseVO } = {};
             for (let i in vos) {
                 let vo = vos[i];
 
-                if (!vos_by_var_id[vo.var_id]) {
-                    vos_by_var_id[vo.var_id] = {};
-                }
-                vos_by_var_id[vo.var_id][vo.index] = vo;
+                vos_by_index[vo.index] = vo;
             }
 
             // invalidate intersected && parents
-            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
+            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_index);
             resolve(true);
         });
     }
