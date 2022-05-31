@@ -627,7 +627,7 @@ export default abstract class ServerBase {
             let api_req: string[] = [];
             let uid: number = (session) ? session.uid : null;
             let sid: string = (session) ? session.sid : null;
-            let date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", false);
+            let date: string = Dates.format(Dates.now(), "DD/MM/YYYY HH:mm:ss", true);
 
             if (req.url == "/api_handler/requests_wrapper") {
                 for (let i in req.body) {
