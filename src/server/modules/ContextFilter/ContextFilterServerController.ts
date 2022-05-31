@@ -1235,7 +1235,11 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                        throw new Error('Not Implemented');
+                        /**
+                         * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
+                         */
+                        where_conditions.push(field_id + " is NULL");
+                        break;
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:

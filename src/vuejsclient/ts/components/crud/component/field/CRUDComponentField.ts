@@ -104,6 +104,9 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: true })
     private show_insert_or_update_target: boolean;
 
+    @Prop({ default: null })
+    private label_replacement: string;
+
     @Prop({ default: true })
     private show_title: boolean;
 
