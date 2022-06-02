@@ -298,6 +298,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async configure() {
 
+        await this.create_or_replace_function_ref_get_user();
+
         DAOServerController.getInstance().pre_update_trigger_hook = new DAOPreUpdateTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_update_trigger_hook);
         DAOServerController.getInstance().pre_create_trigger_hook = new DAOPreCreateTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
@@ -1094,7 +1096,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
-            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) AND password = crypt($2, password)", [login.toLowerCase().trim(), password]) as UserVO;
+            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
+                "select * from ref.get_user($1, $1, $1, $2, true);", [login.toLowerCase().trim(), password]) as UserVO;
             vo = datatable.forceNumeric(vo);
             return vo;
         } catch (error) {
@@ -1111,28 +1114,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
-            let vos: UserVO[] = await ModuleServiceBase.getInstance().db.query(
-                "SELECT t.* FROM " + datatable.full_name + " t " +
-                " WHERE " +
-                " (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) " + " OR " +
-                " (TRIM(LOWER(name)) = $2 OR TRIM(LOWER(email)) = $2 or TRIM(LOWER(phone)) = $2) " + (phone ? (" OR " +
-                    " (TRIM(LOWER(name)) = $3 OR TRIM(LOWER(email)) = $3 or TRIM(LOWER(phone)) = $3);") : ";"),
-                [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO[];
-            vos = datatable.forceNumerics(vos);
+            let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
+                "select * from ref.get_user($1, $2, $3, null, false);", [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO;
 
-            if ((!vos) || (!vos[0])) {
+            if (!vo) {
                 return true;
             }
 
-            if (vos.length > 1) {
-                return false;
-            }
-
-            if (vos[0].id != user_id) {
-                return false;
-            }
-
-            return true;
+            return vo.id == user_id;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -3895,5 +3884,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
         ConsoleHandler.getInstance().warn("global_update_blocker actif");
+    }
+
+    private async create_or_replace_function_ref_get_user() {
+        await this.query(
+            ' CREATE OR REPLACE FUNCTION ref.get_user(IN user_name text, IN user_email text, IN user_phone text, user_pwd text, check_pwd bool) RETURNS ref.user' +
+            ' AS $$' +
+            ' DECLARE' +
+            ' user_found ref."user"%rowtype;' +
+            ' BEGIN' +
+            ' ' +
+            ' for user_found IN (select * FROM ref."user" x WHERE ' +
+            ' LOWER(x.name) = user_name OR LOWER(x.email) = user_name OR LOWER(x.phone) = user_name OR' +
+            ' LOWER(x.name) = user_email OR LOWER(x.email) = user_email OR LOWER(x.phone) = user_email OR' +
+            ' LOWER(x.name) = user_phone OR LOWER(x.email) = user_phone OR LOWER(x.phone) = user_phone' +
+            ' )' +
+            ' LOOP' +
+            ' IF check_pwd = FALSE THEN' +
+            ' return user_found;' +
+            ' ELSEIF user_found.password = crypt(user_pwd, user_found.password) THEN' +
+            ' return user_found;' +
+            ' END IF;' +
+            ' END LOOP;' +
+            ' return null;' +
+            ' END;' +
+            ' $$' +
+            ' LANGUAGE plpgsql;');
     }
 }
