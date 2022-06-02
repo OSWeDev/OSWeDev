@@ -104,6 +104,7 @@ export default class ModuleFeedback extends Module {
 
             new ModuleTableField('console_logs', ModuleTableField.FIELD_TYPE_string_array, 'Console Logs', false).hide_from_datatable(),
             new ModuleTableField('wish_be_called', ModuleTableField.FIELD_TYPE_boolean, 'Je souhaite être rappelé', false).hide_from_datatable(),
+            new ModuleTableField('preferred_times_called', ModuleTableField.FIELD_TYPE_string, 'Horaires de préférence', false).hide_from_datatable(),
         ];
 
         let table = new ModuleTable(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');

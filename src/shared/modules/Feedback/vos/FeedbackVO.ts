@@ -64,6 +64,7 @@ export default class FeedbackVO implements IVersionedVO {
     public console_logs: string[];
 
     public wish_be_called: boolean;
+    public preferred_times_called: string;
 
     public parent_id: number;
     public trashed: boolean;

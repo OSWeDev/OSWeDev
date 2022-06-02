@@ -344,3 +344,15 @@ i.fa.fa-spin:before {
     right: 5px;
     z-index: 20000;
 }
+
+.vue-js-switch {
+    .v-switch-core {
+        background-color: black !important;
+    }
+
+    &.toggled {
+        .v-switch-core {
+            background-color: #3c763d !important;
+        }
+    }
+}
