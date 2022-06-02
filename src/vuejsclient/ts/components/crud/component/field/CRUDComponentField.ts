@@ -208,12 +208,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.$nextTick(() => self.$refs.input_elt['focus']());
         }
 
-        this.select_options_enabled_by_id = this.field.select_options_enabled ? {} : null;
-        for (let i in this.field.select_options_enabled) {
-            let option = this.field.select_options_enabled[i];
-
-            this.select_options_enabled_by_id[option] = option;
-        }
+        this.check_field_options_enabled();
         // (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
 
         /**
@@ -597,17 +592,12 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = OneToManyField.select_options_enabled ? {} : null;
-                for (let j in OneToManyField.select_options_enabled) {
-                    let option = OneToManyField.select_options_enabled[j];
-
-                    select_options_enabled_by_id[option] = option;
-                }
+                this.check_field_options_enabled();
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
+                    if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -628,17 +618,12 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = manyToManyField.select_options_enabled ? {} : null;
-                for (let j in manyToManyField.select_options_enabled) {
-                    let option = manyToManyField.select_options_enabled[j];
-
-                    select_options_enabled_by_id[option] = option;
-                }
+                this.check_field_options_enabled();
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
+                    if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -659,17 +644,12 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = manyToOneField.select_options_enabled ? {} : null;
-                for (let j in manyToOneField.select_options_enabled) {
-                    let option = manyToOneField.select_options_enabled[j];
-
-                    select_options_enabled_by_id[option] = option;
-                }
+                this.check_field_options_enabled();
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
+                    if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -690,17 +670,12 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let newOptions: IDistantVOBase[] = [];
 
-                let select_options_enabled_by_id = refrangesField.select_options_enabled ? {} : null;
-                for (let j in refrangesField.select_options_enabled) {
-                    let option = refrangesField.select_options_enabled[j];
-
-                    select_options_enabled_by_id[option] = option;
-                }
+                this.check_field_options_enabled();
 
                 for (let j in options) {
                     let option: IDistantVOBase = options[j];
 
-                    if ((!select_options_enabled_by_id) || (select_options_enabled_by_id[option.id] != null)) {
+                    if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                         newOptions.push(option);
                     }
                 }
@@ -804,6 +779,8 @@ export default class CRUDComponentField extends VueComponentBase
 
             //array car les maps (key, value) ordonne automatiquement en fonction des clés (problématique pour trier)
             let ordered_option_array: IDistantVOBase[] = this.field.triFiltrage(options);
+
+            this.check_field_options_enabled();
 
             let newOptions: number[] = [];
             for (let index in ordered_option_array) {
@@ -1540,5 +1517,39 @@ export default class CRUDComponentField extends VueComponentBase
             return null;
         }
         return this.option;
+    }
+
+    private check_field_options_enabled() {
+
+        let doit = false;
+        if ((!this.select_options_enabled_by_id) && this.field.select_options_enabled) {
+            doit = true;
+        } else if (this.select_options_enabled_by_id && !this.field.select_options_enabled) {
+            doit = true;
+        } else if (this.select_options_enabled_by_id && this.field.select_options_enabled) {
+            let a = Object.keys(this.select_options_enabled_by_id).length;
+            if (a != this.field.select_options_enabled.length) {
+                doit = true;
+            } else {
+
+                for (let i in this.field.select_options_enabled) {
+                    if (!this.select_options_enabled_by_id[i]) {
+                        doit = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!doit) {
+            return;
+        }
+
+        this.select_options_enabled_by_id = this.field.select_options_enabled ? {} : null;
+        for (let i in this.field.select_options_enabled) {
+            let option = this.field.select_options_enabled[i];
+
+            this.select_options_enabled_by_id[option] = option;
+        }
     }
 }

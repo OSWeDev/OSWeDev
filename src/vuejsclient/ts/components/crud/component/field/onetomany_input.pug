@@ -2,7 +2,7 @@
 
     Alertcomponent.datatable_field_alert.onetomany_datatable_field_alert(:path='alert_path')
 
-    label(v-if="show_title") {{ t(field.translatable_title) }}
+    label(v-if="show_title") {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
 

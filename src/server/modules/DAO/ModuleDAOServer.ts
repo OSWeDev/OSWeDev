@@ -1368,7 +1368,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            refuse = true;
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_numrange_array:
@@ -1378,12 +1377,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
                     }
 
+                    refuse = true;
                     let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
                     if (nb == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
                         refuse = false;
                     }
                     break;
                 default:
+                    refuse = true;
             }
 
             if (refuse) {

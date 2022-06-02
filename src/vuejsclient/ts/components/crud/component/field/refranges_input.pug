@@ -1,6 +1,6 @@
 .form-group(:class="{[field_type]:true, inline_input_mode:inline_input_mode, has_alert:(get_alerts && get_alerts[alert_path] && (get_alerts[alert_path].length > 0))}" @click='try_prepare_inline_input')
     Alertcomponent.datatable_field_alert.refranges_datatable_field_alert(:path='alert_path')
-    label {{ t(field.translatable_title) }}
+    label {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
 

@@ -8,7 +8,7 @@ include ../../../../../views/mixins/loading.pug
         template(v-show="!field.hidden")
 
             template(v-if="for_export")
-                label {{ t(field.translatable_title) }} :
+                label {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }} :
                 .field_value
                     template(v-if="(field.type == 'Simple') || (field.type == 'INPUT')")
                         template(v-if="field_type == 'enum'")

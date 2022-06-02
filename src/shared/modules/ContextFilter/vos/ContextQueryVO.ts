@@ -84,13 +84,17 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  cela permet de contrôler un minimum les chemins à privilégier
      * Une map des field_id par vo_type
      */
-    public discarded_field_paths: { [vo_type: string]: string };
+    public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
         }
-        this.discarded_field_paths[vo_type] = field_id;
+        if (!this.discarded_field_paths[vo_type]) {
+            this.discarded_field_paths[vo_type] = {};
+        }
+
+        this.discarded_field_paths[vo_type][field_id] = true;
 
         return this;
     }
