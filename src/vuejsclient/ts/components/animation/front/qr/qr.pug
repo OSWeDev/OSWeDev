@@ -109,7 +109,7 @@
                     .qr_file
                         template(v-if="reponse_file")
                             template(v-if="get_is_image(reponse_file)")
-                                img(:src="reponse_file.path", @click="showModal(true, reponse_file)")
+                                img.clickable(:src="reponse_file.path", @click="showModal(true, reponse_file)")
                             template(v-if="get_is_video(reponse_file)")
                                 video(controls)
                                     source(:src="reponse_file.path" type="video/mp4")
