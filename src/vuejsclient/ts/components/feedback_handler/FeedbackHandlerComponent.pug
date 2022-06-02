@@ -31,13 +31,6 @@
 
                 .spacer
 
-                .row
-                    .col-md-12
-                        label(for='feedback_phone') {{ label('feedback_handler.phone.label') }}
-                .row
-                    .col-md-12
-                        input.form-control(type='text' name='feedback_phone' v-model="tmp_phone")
-
                 template(v-if="show_wish_be_called")
                     toggle-button(
                         @change="on_change_tmp_wish_be_called"
@@ -46,6 +39,21 @@
                         :width="200"
                         :labels="{checked: label('feedback_handler.wish_be_called.on'), unchecked: label('feedback_handler.wish_be_called.off')}"
                     )
+
+                .row
+                    .col-md-12
+                        label(for='feedback_phone') {{ label('feedback_handler.phone.label') }}
+                .row
+                    .col-md-12
+                        input.form-control(type='text' name='feedback_phone' v-model="tmp_phone")
+
+                template(v-if="tmp_wish_be_called")
+                    .row
+                        .col-md-12
+                            label(for='feedback_preferred_times_called') {{ label('feedback_handler.preferred_times_called.label') }}
+                    .row
+                        .col-md-12
+                            textarea.form-control(name="feedback_preferred_times_called" cols="80" rows="10" v-model="tmp_preferred_times_called")
 
                 .spacer
 
