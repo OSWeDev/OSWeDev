@@ -64,7 +64,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             if (!!api.access_policy_name) {
                 if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(api.access_policy_name)) {
-                    ConsoleHandler.getInstance().error('Access denied to API:' + api.api_name + ':');
+                    ConsoleHandler.getInstance().error('Access denied to API:' + api.api_name + ': sessionID' + req.sessionID + ":");
                     this.respond_on_error(api, res);
                     return;
                 }
@@ -98,7 +98,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
                 returnvalue = await StackContext.getInstance().runPromise(
                     ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
-                    async () => await api.SERVER_HANDLER(...params));
+                    async () => await api.SERVER_HANDLER(...params, req));
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
                 this.respond_on_error(api, res);

@@ -40,6 +40,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     private tmp_type: string = null;
     private tmp_title: string = null;
     private tmp_message: string = null;
+    private tmp_preferred_times_called: string = null;
     private tmp_wish_be_called: boolean = false;
 
     private tmp_capture_1_vo: FileVO = null;
@@ -66,6 +67,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_type = '' + FeedbackVO.FEEDBACK_TYPE_NOT_SET;
 
         this.tmp_message = null;
+        this.tmp_preferred_times_called = null;
         this.tmp_title = null;
         this.tmp_wish_be_called = false;
 
@@ -130,7 +132,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
             return;
         }
 
-        if (this.tmp_wish_be_called && !this.tmp_phone) {
+        if (this.tmp_wish_be_called && (!this.tmp_phone || !this.tmp_preferred_times_called)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_phone'));
             this.is_already_sending_feedback = false;
             return;
@@ -150,6 +152,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         feedback.file_attachment_2_id = this.tmp_attachment_2_vo ? this.tmp_attachment_2_vo.id : null;
         feedback.file_attachment_3_id = this.tmp_attachment_3_vo ? this.tmp_attachment_3_vo.id : null;
         feedback.message = this.tmp_message;
+        feedback.preferred_times_called = this.tmp_preferred_times_called;
         feedback.name = this.tmp_user;
         feedback.phone = this.tmp_phone;
         feedback.routes_fullpaths = this.routes_log_tostring_array();

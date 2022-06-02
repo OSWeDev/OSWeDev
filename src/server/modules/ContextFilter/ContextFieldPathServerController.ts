@@ -230,6 +230,7 @@ export default class ContextFieldPathServerController {
          */
         let manytoone_fields = VOsTypesManager.getInstance().getManyToOneFields(moduletable.vo_type, Object.keys(deployed_deps_from));
         manytoone_fields = manytoone_fields.filter((field) =>
+            (!(context_query.discarded_field_paths && context_query.discarded_field_paths[field.module_table.vo_type] && context_query.discarded_field_paths[field.module_table.vo_type][field.field_id])) &&
             active_api_type_ids_by_name[field.manyToOne_target_moduletable.vo_type] &&
             (field.manyToOne_target_moduletable.vo_type != field.module_table.vo_type));
 
@@ -280,7 +281,9 @@ export default class ContextFieldPathServerController {
          * On passe aux onetomany. idem on charge toutes les refs et on filtres les types déjà connus (exclus) et les types actifs (inclus)
          */
         let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(moduletable.vo_type);
-        onetomany_fields = onetomany_fields.filter((ref) => active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
+        onetomany_fields = onetomany_fields.filter((ref) =>
+            (!(context_query.discarded_field_paths && context_query.discarded_field_paths[ref.module_table.vo_type] && context_query.discarded_field_paths[ref.module_table.vo_type][ref.field_id])) &&
+            active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
         onetomany_fields = onetomany_fields.filter((field) => !this.filter_technical_field(context_query, field));
 
         // onetomany_fields.sort((a, b) => {
@@ -325,6 +328,10 @@ export default class ContextFieldPathServerController {
 
             if (VOsTypesManager.getInstance().isManyToManyModuleTable(onetomany_field.module_table)) {
                 let second_field = VOsTypesManager.getInstance().getManyToManyOtherField(onetomany_field.module_table, onetomany_field);
+
+                if (context_query.discarded_field_paths && context_query.discarded_field_paths[second_field.module_table.vo_type] && context_query.discarded_field_paths[second_field.module_table.vo_type][second_field.field_id]) {
+                    continue;
+                }
 
                 if (from_types_by_name[second_field.manyToOne_target_moduletable.vo_type]) {
                     actual_path.push(new FieldPathWrapper(onetomany_field, false));

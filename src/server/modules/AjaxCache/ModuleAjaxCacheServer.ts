@@ -11,6 +11,7 @@ import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
+import IServerUserSession from '../../IServerUserSession';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -53,7 +54,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async requests_wrapper(requests: LightWeightSendableRequestVO[]): Promise<RequestsWrapperResult> {
+    public async requests_wrapper(requests: LightWeightSendableRequestVO[], response: Response, req: Request): Promise<RequestsWrapperResult> {
 
         let res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
@@ -76,13 +77,14 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 }
 
                 if (!apiDefinition) {
-                    ConsoleHandler.getInstance().error('API introuvable:' + wrapped_request.url + ':');
+                    ConsoleHandler.getInstance().error('API introuvable:' + wrapped_request.url);
                     return null;
                 }
 
                 if (!!apiDefinition.access_policy_name) {
                     if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(apiDefinition.access_policy_name)) {
-                        ConsoleHandler.getInstance().error('Access denied to API:' + apiDefinition.api_name + ':');
+                        let session: IServerUserSession = (req as any).session;
+                        ConsoleHandler.getInstance().error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
                         return null;
                     }
                 }

@@ -1098,6 +1098,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         try {
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
                 "select * from ref.get_user($1, $1, $1, $2, true);", [login.toLowerCase().trim(), password]) as UserVO;
+            vo = (vo && vo.id) ? vo : null;
             vo = datatable.forceNumeric(vo);
             return vo;
         } catch (error) {
@@ -1116,6 +1117,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         try {
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
                 "select * from ref.get_user($1, $2, $3, null, false);", [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO;
+            vo = (vo && vo.id) ? vo : null;
+            vo = datatable.forceNumeric(vo);
 
             if (!vo) {
                 return true;
@@ -1136,6 +1139,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         try {
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+
             vo = datatable.forceNumeric(vo);
             return vo;
         } catch (error) {
@@ -3906,7 +3910,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ' return user_found;' +
             ' END IF;' +
             ' END LOOP;' +
-            ' return null;' +
+            ' RETURN NULL;' +
             ' END;' +
             ' $$' +
             ' LANGUAGE plpgsql;');

@@ -41,6 +41,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     public static FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID';
     public static FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID';
     public static FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_NOT_SET_ID';
+    public static FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME: string = 'FEEDBACK_TRELLO_RAPPELER_ID';
 
     public static FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_API_LOG_LIMIT';
     public static FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_CONSOLE_LOG_LIMIT';
@@ -211,6 +212,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             { 'fr-fr': 'Nous contacter', 'es-es': 'Contáctenos' },
             'feedback_handler.btn.title.___LABEL___')
         );
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Horaires de préférence', 'es-es': 'Horas preferidas' },
+            'feedback_handler.preferred_times_called.label.___LABEL___')
+        );
     }
 
     public registerServerApiHandlers() {
@@ -246,6 +251,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID_PARAM_NAME);
             let FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID_PARAM_NAME);
             let FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
+            let FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
             }
@@ -275,7 +281,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Créer le Trello associé
             let response;
             let trello_api = await ModuleTrelloAPIServer.getInstance().getTrelloAPI();
-            let label_id = null;
+            let idLabels: string[] = [];
             let trello_message = feedback.message + '\x0A' + '\x0A';
 
             trello_message += await this.user_infos_to_string(feedback);
@@ -290,17 +296,24 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             switch (feedback.feedback_type) {
                 case FeedbackVO.FEEDBACK_TYPE_BUG:
-                    label_id = FEEDBACK_TRELLO_POSSIBLE_BUG_ID;
+                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_BUG_ID);
                     break;
                 case FeedbackVO.FEEDBACK_TYPE_INCIDENT:
-                    label_id = FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID;
+                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID);
                     break;
                 case FeedbackVO.FEEDBACK_TYPE_ENHANCEMENT_REQUEST:
-                    label_id = FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID;
+                    idLabels.push(FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID);
                     break;
                 case FeedbackVO.FEEDBACK_TYPE_NOT_SET:
-                    label_id = FEEDBACK_TRELLO_NOT_SET_ID;
+                    idLabels.push(FEEDBACK_TRELLO_NOT_SET_ID);
                     break;
+            }
+
+            let card_name: string = feedback.title;
+
+            if (feedback.wish_be_called && FEEDBACK_TRELLO_RAPPELER_ID) {
+                idLabels.push(FEEDBACK_TRELLO_RAPPELER_ID);
+                card_name += " (A RAPPELER)";
             }
 
             // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
@@ -317,11 +330,11 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
 
             response = await trello_api.card.create({
-                name: feedback.title,
+                name: card_name,
                 desc: trello_message,
                 pos: 'top',
                 idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
-                idLabels: [label_id],
+                idLabels: idLabels,
             });
 
             // Faire le lien entre le feedback en base et le Trello
@@ -460,6 +473,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
         if (feedback.wish_be_called) {
             res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- **Souhaite être rappelé**';
+        }
+
+        if (feedback.preferred_times_called) {
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- **Horaires de préférence : ' + feedback.preferred_times_called + '**';
         }
 
         return res;

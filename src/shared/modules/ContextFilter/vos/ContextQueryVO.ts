@@ -78,6 +78,24 @@ export default class ContextQueryVO implements IDistantVOBase {
     public use_technical_field_versioning: boolean;
 
     /**
+     * Pour exclure des fields pour réaliser les chemins (par exemple si on veut utiliser le field B et non A qui font référence au
+     *  même vo_type, on peut ajouter le field A pour indiquer qu'on refuse ce chemin)
+     * Cela ne permet pas d'avoir plusieurs chemins différents pour des types identiques au sein d'une même query, mais
+     *  cela permet de contrôler un minimum les chemins à privilégier
+     * Une map des field_id par vo_type
+     */
+    public discarded_field_paths: { [vo_type: string]: string };
+
+    public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+        if (!this.discarded_field_paths) {
+            this.discarded_field_paths = {};
+        }
+        this.discarded_field_paths[vo_type] = field_id;
+
+        return this;
+    }
+
+    /**
      * Autorise l'utilisation des fields techniques de type versioning pour les chemins
      */
     public use_tecpaths_versioning(): ContextQueryVO {
