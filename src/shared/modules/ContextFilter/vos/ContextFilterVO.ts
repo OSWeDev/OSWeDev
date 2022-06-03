@@ -142,6 +142,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_NUMERIC_EQUALS: number = 12;
     public static TYPE_NUMERIC_INCLUDES: number = 13;
     public static TYPE_NUMERIC_IS_INCLUDED_IN: number = 14;
+    public static TYPE_NUMERIC_NOT_EQUALS: number = 57;
 
     /**
      * On stocke la valeur dans param_numranges
@@ -495,7 +496,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
-     * Filtre par un nombre simple
+     * Filtre par un nombre simple ==
      * @param num le nombre à utiliser dans le filtre
      */
     public by_num_eq_alias(alias: string): ContextFilterVO {
@@ -505,11 +506,31 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
-     * Filtre par un nombre simple
+     * Filtre par un nombre simple ==
      * @param num le nombre à utiliser dans le filtre
      */
     public by_num_eq(num: number): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple !=
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_not_eq_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
+        this.param_alias = alias;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple !=
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_not_eq(num: number): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
         this.param_numeric = num;
         return this;
     }

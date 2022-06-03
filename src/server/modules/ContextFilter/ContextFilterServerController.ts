@@ -1210,6 +1210,56 @@ export default class ContextFilterServerController {
                 }
                 break;
 
+            case ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS:
+                switch (field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                        if (active_field_filter.param_alias != null) {
+                            where_conditions.push(field_id + " != " + active_field_filter.param_alias);
+                            break;
+                        }
+
+                        if (active_field_filter.param_numeric != null) {
+                            where_conditions.push(field_id + " != " + active_field_filter.param_numeric);
+                            break;
+                        }
+
+                        /**
+                         * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
+                         */
+                        where_conditions.push(field_id + " is not NULL");
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        throw new Error('Not Implemented');
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
             case ContextFilterVO.TYPE_NUMERIC_EQUALS:
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
