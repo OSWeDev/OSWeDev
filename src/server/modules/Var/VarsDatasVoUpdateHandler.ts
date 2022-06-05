@@ -440,29 +440,29 @@ export default class VarsDatasVoUpdateHandler {
                     let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
 
                     if (registered_var_datas && registered_var_datas.length) {
-                        registered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
-                            'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index));
+                        // registered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
+                        //     'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index));
                         // On supprime quand même en bdd ces vars sinon on rechargera la version de la bdd à moment donné
                         let bdd_vars_registered = registered_var_datas.filter((v) => (!!v.id) &&
                             (v.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (v.value_type != VarDataBaseVO.VALUE_TYPE_DENIED));
                         if (bdd_vars_registered && bdd_vars_registered.length) {
                             await ModuleDAOServer.getInstance().deleteVOsMulticonnections(bdd_vars_registered);
-                            ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:DELETED ' + bdd_vars_registered.length + ' vars from BDD cache.');
+                            // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:DELETED ' + bdd_vars_registered.length + ' vars from BDD cache.');
                         }
                         await VarsDatasProxy.getInstance().prepend_var_datas(registered_var_datas, true);
-                        ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
+                        // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
                     }
 
                     if (unregistered_var_datas && unregistered_var_datas.length) {
-                        unregistered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
-                            'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index));
+                        // unregistered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
+                        //     'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index));
                         if (delete_instead_of_invalidating_unregistered_var_datas) {
                             // On fait les suppressions en parallèle
                             await ModuleDAOServer.getInstance().deleteVOsMulticonnections(unregistered_var_datas);
-                            ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                            // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
                         } else {
                             await VarsDatasProxy.getInstance().append_var_datas(unregistered_var_datas);
-                            ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                            // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
                         }
                     }
                 }
