@@ -343,7 +343,6 @@ export default class ContextQueryServerController {
 
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
 
-        let res: string = null;
         let FROM: string = null;
 
         try {
@@ -394,61 +393,50 @@ export default class ContextQueryServerController {
             joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
 
             if (!context_query.fields) {
-                res = "SELECT " + tables_aliases_by_type[context_query.base_api_type_id] + ".* ";
-            } else {
 
-                res = "SELECT DISTINCT ";
-                let first = true;
+                let fields = base_moduletable.get_fields();
+                for (let i in fields) {
+                    let field = fields[i];
 
-                for (let i in context_query.fields) {
-                    let context_field = context_query.fields[i];
-
-                    let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_field.api_type_id];
-                    if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
-                        return null;
-                    }
-
-                    /**
-                     * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-                     */
-                    if (!tables_aliases_by_type[context_field.api_type_id]) {
-
-                        /**
-                         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
-                         */
-                        let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
-                            context_query,
-                            context_query.active_api_type_ids,
-                            Object.keys(joined_tables_by_vo_type),
-                            context_field.api_type_id);
-                        if (!path) {
-                            // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                            continue;
-                        }
-
-                        /**
-                         * On doit checker le trajet complet
-                         */
-                        if (!ContextAccessServerController.getInstance().check_access_to_fields(path, access_type)) {
-                            return null;
-                        }
-
-                        aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
-                            jointures, context_field.api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-                        // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
-                    }
-
-                    if (!first) {
-                        res += ', ';
-                    }
-                    first = false;
-
-                    res += tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id +
-                        (context_field.alias ? " as " + context_field.alias : '') + ' ';
+                    context_query.field(field.field_id);
                 }
             }
 
-            res += FROM;
+            let SELECT = "SELECT ";
+            let first = true;
+
+            for (let i in context_query.fields) {
+                let context_field = context_query.fields[i];
+
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_field.api_type_id];
+                if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
+                    return null;
+                }
+
+                /**
+                 * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+                 */
+                if (!tables_aliases_by_type[context_field.api_type_id]) {
+
+                    aliases_n = await this.join_api_type_id(
+                        context_query,
+                        aliases_n,
+                        context_field.api_type_id,
+                        jointures,
+                        joined_tables_by_vo_type,
+                        tables_aliases_by_type,
+                        access_type
+                    );
+                }
+
+                if (!first) {
+                    SELECT += ', ';
+                }
+                first = false;
+
+                SELECT += tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id +
+                    (context_field.alias ? " as " + context_field.alias : '') + ' ';
+            }
 
             /**
              * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
@@ -470,30 +458,111 @@ export default class ContextQueryServerController {
                 await ContextFilterServerController.getInstance().update_where_conditions(where_conditions, filter, tables_aliases_by_type);
             }
 
-            res += this.get_ordered_jointures(context_query, jointures);
-
             let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
             if (!context_query.is_access_hook_def) {
                 await this.add_context_access_hooks(context_query, tables_aliases_by_type_for_access_hooks, where_conditions);
             }
 
+            let WHERE = '';
             if (where_conditions && where_conditions.length) {
-                res += ' WHERE (' + where_conditions.join(') AND (') + ')';
+                WHERE += ' WHERE (' + where_conditions.join(') AND (') + ')';
             }
 
+            let GROUP_BY = ' GROUP BY ';
+            let group_bys = [];
+            for (let i in context_query.fields) {
+                let context_field = context_query.fields[i];
+
+                group_bys.push(context_field.alias ?
+                    context_field.alias :
+                    tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
+            }
+            GROUP_BY += group_bys.join(', ');
+
+            let SORT_BY = '';
             if (context_query.sort_by) {
 
-                res += ' ORDER BY ' + tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id +
-                    (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                let is_selected_field = false;
+                for (let i in context_query.fields) {
+                    let context_field = context_query.fields[i];
+
+                    if (context_field.api_type_id != context_query.sort_by.vo_type) {
+                        continue;
+                    }
+                    if (context_field.field_id != context_query.sort_by.field_id) {
+                        continue;
+                    }
+                    is_selected_field = true;
+                }
+
+                if (is_selected_field) {
+
+                    SORT_BY += ' ORDER BY ' + tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id +
+                        (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                } else {
+
+                    let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
+                    SORT_BY += ' ORDER BY ' + sort_alias + (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
+
+                    if (!tables_aliases_by_type[context_query.sort_by.vo_type]) {
+                        aliases_n = await this.join_api_type_id(
+                            context_query,
+                            aliases_n,
+                            context_query.sort_by.vo_type,
+                            jointures,
+                            joined_tables_by_vo_type,
+                            tables_aliases_by_type,
+                            access_type
+                        );
+                    }
+
+                    SELECT += ', ' + (context_query.sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
+                        tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id
+                        + ') as ' + sort_alias;
+                }
             }
 
-            res = this.add_limit(context_query, res);
+            let JOINTURES = this.get_ordered_jointures(context_query, jointures);
+            let LIMIT = this.get_limit(context_query);
 
-            return res;
+            return SELECT + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
         }
+    }
+
+    private async join_api_type_id(
+        context_query: ContextQueryVO,
+        aliases_n: number,
+        api_type_id: string,
+        jointures: string[],
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
+        tables_aliases_by_type: { [vo_type: string]: string },
+        access_type: string): Promise<number> {
+
+        /**
+         * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
+         */
+        let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+            context_query,
+            context_query.active_api_type_ids,
+            Object.keys(joined_tables_by_vo_type),
+            api_type_id);
+        if (!path) {
+            // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+            return aliases_n;
+        }
+
+        /**
+         * On doit checker le trajet complet
+         */
+        if (!ContextAccessServerController.getInstance().check_access_to_fields(path, access_type)) {
+            return aliases_n;
+        }
+
+        return await ContextFilterServerController.getInstance().updates_jointures(
+            jointures, api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     private async updates_jointures_from_filter(
@@ -687,20 +756,21 @@ export default class ContextQueryServerController {
         }
     }
 
-    private add_limit(context_query: ContextQueryVO, query_str: string): string {
+    private get_limit(context_query: ContextQueryVO): string {
 
-        if ((!query_str) || (!context_query)) {
-            return query_str;
+        if (!context_query) {
+            return '';
         }
 
+        let res = '';
         if (context_query.limit) {
-            query_str += ' LIMIT ' + context_query.limit;
+            res += ' LIMIT ' + context_query.limit;
 
             if (context_query.offset) {
-                query_str += ' OFFSET ' + context_query.offset;
+                res += ' OFFSET ' + context_query.offset;
             }
         }
 
-        return query_str;
+        return res;
     }
 }

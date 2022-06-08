@@ -252,7 +252,13 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
                 options = options ? new FieldValueFilterWidgetOptions(
                     options.vo_field_ref,
-                    options.can_select_multiple, options.max_visible_options) : null;
+                    options.vo_field_ref_lvl2,
+                    options.vo_field_sort,
+                    options.can_select_multiple,
+                    options.is_checkbox,
+                    options.max_visible_options,
+                    options.show_search_field,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

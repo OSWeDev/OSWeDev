@@ -23,13 +23,33 @@ export default class FieldValueFilterWidgetOptions {
 
         res[options.vo_field_ref.api_type_id][options.vo_field_ref.field_id] = true;
 
+        if (options.vo_field_sort && options.vo_field_sort.api_type_id && options.vo_field_sort.field_id) {
+            if (!res[options.vo_field_sort.api_type_id]) {
+                res[options.vo_field_sort.api_type_id] = {};
+            }
+
+            res[options.vo_field_sort.api_type_id][options.vo_field_sort.field_id] = true;
+        }
+
+        if (options.vo_field_ref_lvl2 && options.vo_field_ref_lvl2.api_type_id && options.vo_field_ref_lvl2.field_id) {
+            if (!res[options.vo_field_ref_lvl2.api_type_id]) {
+                res[options.vo_field_ref_lvl2.api_type_id] = {};
+            }
+
+            res[options.vo_field_ref_lvl2.api_type_id][options.vo_field_ref_lvl2.field_id] = true;
+        }
+
         return res;
     }
 
     public constructor(
         public vo_field_ref: VOFieldRefVO,
+        public vo_field_ref_lvl2: VOFieldRefVO,
+        public vo_field_sort: VOFieldRefVO,
         public can_select_multiple: boolean,
-        public max_visible_options: number
+        public is_checkbox: boolean,
+        public max_visible_options: number,
+        public show_search_field: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
