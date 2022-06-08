@@ -32,6 +32,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     private show_password: boolean = false;
 
+    private has_error_form: boolean = false;
+
     private async mounted() {
         let promises = [];
 
@@ -79,6 +81,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     // On log si possible, si oui on redirige
     private async login() {
 
+        this.has_error_form = false;
+
         let self = this;
         self.snotify.async(self.label('login.start'), () =>
             new Promise(async (resolve, reject) => {
@@ -97,6 +101,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
                             pauseOnHover: true,
                         },
                     });
+
+                    this.has_error_form = true;
                 } else {
                     resolve({
                         body: self.label('login.ok'),

@@ -1,13 +1,13 @@
 .login-page
     .login-box
-        .login-box-body
+        .login-box-body(:class="{error: has_error_form}")
             .login-logo(v-if='logo_url')
             h1.text-center(v-if='!logo_url') {{ label('login.title') }}
             h2.text-center.sub_title {{ label('login.sub_title') }}
             p.login-box-msg {{ label('login.msg') }}
             p.server-answer(v-if='message') {{ message }}
 
-            form(v-on:submit.prevent="login")
+            form(v-on:submit.prevent="login", :class="{error: has_error_form}")
                 .form-group.has-feedback
                     input.form-control(type='text', v-model='email', :placeholder='label("login.email_placeholder")')
                     i.fa.fa-id-card.pull-right.fa-fw(aria-hidden="true")

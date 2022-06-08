@@ -8,7 +8,7 @@ mixin var_data_content()
                 .var_data_ref(
                     @click='selectVar',
                     :class='{"is_show_public_tooltip": is_show_public_tooltip && !!var_data_value_tooltip, "is_inline_editing":is_inline_editing, "is_not_inline_editing":!is_inline_editing, "denied": var_data_value_is_denied, "is_computing": (var_data && var_data.is_computing), "selected_var":is_selected_var, "selectable_var":isDescMode, "is_being_updated":is_being_updated, "can_inline_edit":can_inline_edit}'
-                    :key='var_param.index + "__" + var_data_value'
+                    
                     v-tooltip='var_data_value_tooltip')
                     slot(v-bind:var_data="var_data")
                         template
@@ -20,7 +20,7 @@ mixin var_data_content()
                                     :vo="var_data"
                                     :inline_input_mode='true'
                                     :inline_input_read_value="var_data_value"
-                                    :key='"crudcomponentfield_inline_var_" + var_data.index'
+                                    :key='"crudcomponentfield_inline_var_" + var_param.index'
                                     :force_input_is_editing='true'
                                     :inline_input_mode_input_only='true'
                                 )
