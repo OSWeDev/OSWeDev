@@ -350,7 +350,6 @@ export default class VarsComputeController {
 
                     let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
-                    // TODO FIXME promises.length
                     if (promises.length >= max) {
                         await Promise.all(promises);
                         promises = [];

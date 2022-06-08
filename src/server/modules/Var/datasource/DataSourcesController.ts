@@ -63,19 +63,19 @@ export default class DataSourcesController {
                         promises = [];
                     }
 
-                    // TODO FIXME ne pas livrer !!!
-                    if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                    // // TODO FIXME ne pas livrer !!!
+                    // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
 
-                        let logger = (!this.is_first_log) ?
-                            createWriteStream('log.txt', {
-                                flags: 'a' // 'a' means appending (old data will be preserved)
-                            }) :
-                            createWriteStream('log.txt');
-                        this.is_first_log = false;
+                    //     let logger = (!this.is_first_log) ?
+                    //         createWriteStream('log.txt', {
+                    //             flags: 'a' // 'a' means appending (old data will be preserved)
+                    //         }) :
+                    //         createWriteStream('log.txt');
+                    //     this.is_first_log = false;
 
-                        logger.write(node.var_data.index + ':' + ds.name + ':' + (ObjectHandler.getInstance().hasAtLeastOneAttribute(ds_cache[ds.name]) ? 'has_cache' : 'no_cache') + '\n'); // append string to your file
-                        logger.close();
-                    }
+                    //     logger.write(node.var_data.index + ':' + ds.name + ':' + (ObjectHandler.getInstance().hasAtLeastOneAttribute(ds_cache[ds.name]) ? 'has_cache' : 'no_cache') + '\n'); // append string to your file
+                    //     logger.close();
+                    // }
 
                     // Si on est sur du perf monitoring on doit faire les appels séparément...
                     let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data];
