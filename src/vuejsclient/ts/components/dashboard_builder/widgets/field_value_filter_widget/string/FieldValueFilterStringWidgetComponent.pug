@@ -113,13 +113,14 @@
                                     template(v-else)
                                         label.option__title.ml-2(:for="'filter_opt_' + index") {{ opt.label }}
                                     
-                                    template(v-if="filter_visible_options_lvl2 && filter_visible_options_lvl2[opt.label]")
-                                        .container_filter_opt_lvl2.ml-3
-                                            template(v-for="(opt_lvl2, index_lvl2) in filter_visible_options_lvl2[opt.label]")
-                                                .filter_opt_lvl2
-                                                    input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="'filter_opt_' + index + '_lvl2_' + index_lvl2" name="filter_opt" @change="onchange_filter_opt_lvl2_input($event.target, opt_lvl2)")                            
-                                                    template(v-if='is_translatable_type')
-                                                        label.option__title.ml-2(:for="'filter_opt_' + index + '_lvl2_' + index_lvl2") {{ label(opt_lvl2.label) }}
-                                                    template(v-else)
-                                                        label.option__title.ml-2(:for="'filter_opt_' + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
+                                    template(v-if="!hide_lvl2_if_lvl1_not_selected || (active_option_lvl1[opt.label])")
+                                        template(v-if="filter_visible_options_lvl2 && filter_visible_options_lvl2[opt.label]")
+                                            .container_filter_opt_lvl2.ml-3
+                                                template(v-for="(opt_lvl2, index_lvl2) in filter_visible_options_lvl2[opt.label]")
+                                                    .filter_opt_lvl2
+                                                        input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="'filter_opt_' + index + '_lvl2_' + index_lvl2" name="filter_opt" @change="onchange_filter_opt_lvl2_input($event.target, opt_lvl2)")                            
+                                                        template(v-if='is_translatable_type')
+                                                            label.option__title.ml-2(:for="'filter_opt_' + index + '_lvl2_' + index_lvl2") {{ label(opt_lvl2.label) }}
+                                                        template(v-else)
+                                                            label.option__title.ml-2(:for="'filter_opt_' + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
 

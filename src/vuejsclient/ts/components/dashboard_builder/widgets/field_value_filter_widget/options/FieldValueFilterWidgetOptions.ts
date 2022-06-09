@@ -50,6 +50,7 @@ export default class FieldValueFilterWidgetOptions {
         public is_checkbox: boolean,
         public max_visible_options: number,
         public show_search_field: boolean,
+        public hide_lvl2_if_lvl1_not_selected: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

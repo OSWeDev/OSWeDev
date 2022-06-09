@@ -144,6 +144,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             },
 
             set_active_field_filter(state: IDashboardPageState, active_field_filter: ContextFilterVO) {
+                if (!active_field_filter) {
+                    return;
+                }
 
                 if (!state.active_field_filters[active_field_filter.vo_type]) {
                     Vue.set(state.active_field_filters, active_field_filter.vo_type, {

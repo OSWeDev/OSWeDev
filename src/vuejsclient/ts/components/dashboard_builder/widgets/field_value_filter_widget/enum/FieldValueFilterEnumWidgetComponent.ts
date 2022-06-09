@@ -258,6 +258,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.is_checkbox,
                     options.max_visible_options,
                     options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
                 ) : null;
             }
         } catch (error) {

@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -61,6 +62,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private tmp_filter_active_options: DataFilterOption[] = [];
     private tmp_filter_active_options_lvl2: DataFilterOption[] = [];
+    private active_option_lvl1: { [filter_opt_value: string]: boolean } = {};
 
     private filter_visible_options: DataFilterOption[] = [];
     private filter_visible_options_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
@@ -111,38 +113,101 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
-        let translated_active_options: ContextFilterVO = null;
-        let locale_tmp_filter_active_options: DataFilterOption[] = null;
+        // Si on a un lvl2, on va filtrer par leurs valeurs donc on va dans l'autre fonction
+        if (this.vo_field_ref_lvl2 && this.tmp_filter_active_options_lvl2 && (this.tmp_filter_active_options_lvl2.length > 0)) {
+            this.onchange_tmp_filter_active_options_lvl2();
+            return;
+        }
 
-        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
-            locale_tmp_filter_active_options = this.tmp_filter_active_options;
-        } else {
-            if (this.tmp_filter_active_options != null) {
-                locale_tmp_filter_active_options = this.tmp_filter_active_options;
+        this.set_active_field_filter(
+            this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options)
+        );
+    }
+
+    @Watch('tmp_filter_active_options_lvl2')
+    private onchange_tmp_filter_active_options_lvl2() {
+
+        if (!this.widget_options) {
+            return;
+        }
+
+        let vo_field_ref_context_filter: ContextFilterVO = this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options);
+        let vo_field_ref_lvl2_context_filter: ContextFilterVO = this.get_active_field_filter(this.vo_field_ref_lvl2, this.tmp_filter_active_options_lvl2);
+
+        let active_field_filter: ContextFilterVO = null;
+
+        if (vo_field_ref_context_filter) {
+            active_field_filter = vo_field_ref_context_filter;
+        }
+
+        if (vo_field_ref_lvl2_context_filter) {
+            if (!active_field_filter) {
+                active_field_filter = vo_field_ref_lvl2_context_filter;
+            } else {
+                active_field_filter = this.merge_ContextFilterVOs(active_field_filter, vo_field_ref_lvl2_context_filter);
             }
         }
 
-        // Si on a un lvl2, on va filtrer leurs valeurs
-        let vo_field_ref: VOFieldRefVO = this.vo_field_ref_lvl2 ? this.vo_field_ref_lvl2 : this.vo_field_ref;
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+        this.set_active_field_filter(active_field_filter);
+    }
+
+    private get_active_field_filter(vo_field_ref: VOFieldRefVO, tmp_filter_active_options: DataFilterOption[]): ContextFilterVO {
+        let res: ContextFilterVO = null;
+        let locale_tmp_filter_active_options: DataFilterOption[] = null;
+
+        if (TypesHandler.getInstance().isArray(tmp_filter_active_options)) {
+            locale_tmp_filter_active_options = tmp_filter_active_options;
+        } else {
+            if (tmp_filter_active_options != null) {
+                locale_tmp_filter_active_options = tmp_filter_active_options;
+            }
+        }
+
+        let check_lvl1_and_has_lvl2: boolean = false;
+
+        if (this.vo_field_ref_lvl2 && (vo_field_ref.api_type_id == this.vo_field_ref.api_type_id) && (vo_field_ref.field_id == this.vo_field_ref.field_id)) {
+            check_lvl1_and_has_lvl2 = true;
+            vo_field_ref = this.vo_field_ref_lvl2;
+        }
 
         if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
 
             if (!this.advanced_filters) {
                 this.remove_active_field_filter({ vo_type: vo_field_ref.api_type_id, field_id: vo_field_ref.field_id });
             }
-            return;
+            return res;
         }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
+        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         for (let i in locale_tmp_filter_active_options) {
             let active_option = locale_tmp_filter_active_options[i];
 
             let active_opts: DataFilterOption[] = [active_option];
 
-            if (this.vo_field_ref_lvl2) {
+            // Si j'ai lvl2 et qu'on demande le champ lvl1, on charge les bonnes données
+            if (check_lvl1_and_has_lvl2) {
+                active_opts = [];
+
                 if (this.filter_visible_options_lvl2[active_option.label] && (this.filter_visible_options_lvl2[active_option.label].length > 0)) {
                     active_opts = this.filter_visible_options_lvl2[active_option.label];
+                }
+
+                // Si on a déjà lvl2 sélectionné, on va regarder si on est pas déjà en train de filtrer le lvl2 pour ne pas prendre en compte le lvl1
+                if (this.tmp_filter_active_options_lvl2 && (this.tmp_filter_active_options_lvl2.length > 0) && (active_opts.length > 0)) {
+                    let is_lvl2_filter: boolean = false;
+
+                    for (let j in active_opts) {
+                        if (this.tmp_filter_active_options_lvl2.find((e) => e.label == active_opts[j].label)) {
+                            is_lvl2_filter = true;
+                            break;
+                        }
+                    }
+
+                    if (is_lvl2_filter) {
+                        active_opts = [];
+                    }
                 }
             }
 
@@ -153,62 +218,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     continue;
                 }
 
-                if (!translated_active_options) {
-                    translated_active_options = new_translated_active_options;
+                if (!res) {
+                    res = new_translated_active_options;
                 } else {
-                    translated_active_options = this.merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+                    res = this.merge_ContextFilterVOs(res, new_translated_active_options);
                 }
             }
         }
 
-        this.set_active_field_filter(translated_active_options);
-    }
-
-    @Watch('tmp_filter_active_options_lvl2')
-    private onchange_tmp_filter_active_options_lvl2() {
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        let translated_active_options: ContextFilterVO = null;
-        let locale_tmp_filter_active_options_lvl2 = null;
-
-        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options_lvl2)) {
-            locale_tmp_filter_active_options_lvl2 = this.tmp_filter_active_options_lvl2;
-        } else {
-            if (this.tmp_filter_active_options_lvl2 != null) {
-                locale_tmp_filter_active_options_lvl2 = [this.tmp_filter_active_options_lvl2];
-            }
-        }
-
-        if ((!locale_tmp_filter_active_options_lvl2) || (!locale_tmp_filter_active_options_lvl2.length)) {
-
-            if (!this.advanced_filters) {
-                this.remove_active_field_filter({ vo_type: this.vo_field_ref_lvl2.api_type_id, field_id: this.vo_field_ref_lvl2.field_id });
-            }
-            return;
-        }
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref_lvl2.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref_lvl2.field_id);
-
-        for (let i in locale_tmp_filter_active_options_lvl2) {
-            let active_option = locale_tmp_filter_active_options_lvl2[i];
-
-            let new_translated_active_options = this.get_ContextFilterVO_from_DataFilterOption(active_option, field, this.vo_field_ref_lvl2);
-
-            if (!new_translated_active_options) {
-                continue;
-            }
-
-            if (!translated_active_options) {
-                translated_active_options = new_translated_active_options;
-            } else {
-                translated_active_options = this.merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
-            }
-        }
-        this.set_active_field_filter(translated_active_options);
+        return res;
     }
 
     private filter_type_label(filter_type: number): string {
@@ -287,6 +305,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.force_filter_change = true;
 
         this.tmp_filter_active_options = null;
+        this.active_option_lvl1 = {};
         this.tmp_filter_active_options_lvl2 = null;
 
         if (!!this.vo_field_ref) {
@@ -380,23 +399,23 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
         }
 
-        /**
-         * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
-         */
-        if (this.vo_field_ref_lvl2 &&
-            this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref_lvl2.api_type_id] &&
-            this.get_active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id] &&
-            ((!this.tmp_filter_active_options_lvl2) || (!this.tmp_filter_active_options_lvl2.length))) {
+        // /**
+        //  * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
+        //  */
+        // if (this.vo_field_ref_lvl2 &&
+        //     this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref_lvl2.api_type_id] &&
+        //     this.get_active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id] &&
+        //     ((!this.tmp_filter_active_options_lvl2) || (!this.tmp_filter_active_options_lvl2.length))) {
 
-            /**
-             * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
-             */
-            let res: boolean = !this.try_apply_actual_active_filters_lvl2(this.get_active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]);
+        //     /**
+        //      * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
+        //      */
+        //     let res: boolean = !this.try_apply_actual_active_filters_lvl2(this.get_active_field_filters[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]);
 
-            if (!this.warn_existing_external_filters) {
-                this.warn_existing_external_filters = res;
-            }
-        }
+        //     if (!this.warn_existing_external_filters) {
+        //         this.warn_existing_external_filters = res;
+        //     }
+        // }
 
         let field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
 
@@ -503,6 +522,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             }
             if (this.tmp_filter_active_options) {
                 this.tmp_filter_active_options = null;
+                this.active_option_lvl1 = {};
             }
             if (this.advanced_string_filters) {
                 this.advanced_string_filters = null;
@@ -521,6 +541,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             }
             if (this.tmp_filter_active_options) {
                 this.tmp_filter_active_options = null;
+                this.active_option_lvl1 = {};
             }
             let advanced_filters: AdvancedStringFilter[] = [];
             this.try_apply_advanced_filters(filter, advanced_filters);
@@ -545,66 +566,69 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 );
                 datafilter.string_value = text;
                 tmp_filter_active_options.push(datafilter);
+
+                this.active_option_lvl1[datafilter.label] = true;
             }
+
             this.tmp_filter_active_options = tmp_filter_active_options;
         }
         return true;
     }
 
-    private try_apply_actual_active_filters_lvl2(filter: ContextFilterVO): boolean {
-        if (!filter) {
-            if (this.advanced_filters) {
-                this.advanced_filters = false;
-            }
-            if (this.tmp_filter_active_options_lvl2) {
-                this.tmp_filter_active_options_lvl2 = null;
-            }
-            if (this.advanced_string_filters) {
-                this.advanced_string_filters = null;
-            }
+    // private try_apply_actual_active_filters_lvl2(filter: ContextFilterVO): boolean {
+    //     if (!filter) {
+    //         if (this.advanced_filters) {
+    //             this.advanced_filters = false;
+    //         }
+    //         if (this.tmp_filter_active_options_lvl2) {
+    //             this.tmp_filter_active_options_lvl2 = null;
+    //         }
+    //         if (this.advanced_string_filters) {
+    //             this.advanced_string_filters = null;
+    //         }
 
-            return true;
-        }
+    //         return true;
+    //     }
 
-        /**
-         * si on a des filtres autres que simple, on doit passer en advanced
-         */
-        if (this.has_advanced_filter(filter)) {
+    //     /**
+    //      * si on a des filtres autres que simple, on doit passer en advanced
+    //      */
+    //     if (this.has_advanced_filter(filter)) {
 
-            if (!this.advanced_filters) {
-                this.advanced_filters = true;
-            }
-            if (this.tmp_filter_active_options_lvl2) {
-                this.tmp_filter_active_options_lvl2 = null;
-            }
-            let advanced_filters: AdvancedStringFilter[] = [];
-            this.try_apply_advanced_filters(filter, advanced_filters);
-            this.advanced_string_filters = advanced_filters;
-        } else {
+    //         if (!this.advanced_filters) {
+    //             this.advanced_filters = true;
+    //         }
+    //         if (this.tmp_filter_active_options_lvl2) {
+    //             this.tmp_filter_active_options_lvl2 = null;
+    //         }
+    //         let advanced_filters: AdvancedStringFilter[] = [];
+    //         this.try_apply_advanced_filters(filter, advanced_filters);
+    //         this.advanced_string_filters = advanced_filters;
+    //     } else {
 
-            if (this.advanced_filters) {
-                this.advanced_filters = false;
-            }
-            if (this.advanced_string_filters) {
-                this.advanced_string_filters = null;
-            }
+    //         if (this.advanced_filters) {
+    //             this.advanced_filters = false;
+    //         }
+    //         if (this.advanced_string_filters) {
+    //             this.advanced_string_filters = null;
+    //         }
 
-            let tmp_filter_active_options_lvl2: DataFilterOption[] = [];
+    //         let tmp_filter_active_options_lvl2: DataFilterOption[] = [];
 
-            for (let i in filter.param_textarray) {
-                let text = filter.param_textarray[i];
-                let datafilter = new DataFilterOption(
-                    DataFilterOption.STATE_SELECTED,
-                    text,
-                    parseInt(i.toString())
-                );
-                datafilter.string_value = text;
-                tmp_filter_active_options_lvl2.push(datafilter);
-            }
-            this.tmp_filter_active_options_lvl2 = tmp_filter_active_options_lvl2;
-        }
-        return true;
-    }
+    //         for (let i in filter.param_textarray) {
+    //             let text = filter.param_textarray[i];
+    //             let datafilter = new DataFilterOption(
+    //                 DataFilterOption.STATE_SELECTED,
+    //                 text,
+    //                 parseInt(i.toString())
+    //             );
+    //             datafilter.string_value = text;
+    //             tmp_filter_active_options_lvl2.push(datafilter);
+    //         }
+    //         this.tmp_filter_active_options_lvl2 = tmp_filter_active_options_lvl2;
+    //     }
+    //     return true;
+    // }
 
     private has_advanced_filter(filter: ContextFilterVO): boolean {
         if ((filter.filter_type == ContextFilterVO.TYPE_TEXT_EQUALS_ANY) && (filter.param_textarray != null) && (filter.param_textarray.length > 0)) {
@@ -617,25 +641,30 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private onchange_filter_opt_input(input: any, opt: DataFilterOption) {
         let tmp_filter_active_options: DataFilterOption[] = cloneDeep(this.tmp_filter_active_options);
 
-        if (!tmp_filter_active_options) {
+        if (!tmp_filter_active_options || !this.can_select_multiple) {
             tmp_filter_active_options = [];
         }
 
         let opt_index: number = tmp_filter_active_options.findIndex((e) => e.label == opt.label);
 
         if (opt_index >= 0) {
+            Vue.set(this.active_option_lvl1, opt.label, false);
             tmp_filter_active_options.splice(opt_index, 1);
         } else {
+            Vue.set(this.active_option_lvl1, opt.label, true);
             tmp_filter_active_options.push(opt);
         }
 
+        if (!this.can_select_multiple) {
+            this.tmp_filter_active_options_lvl2 = null;
+        }
         this.tmp_filter_active_options = tmp_filter_active_options;
     }
 
     private onchange_filter_opt_lvl2_input(input: any, opt: DataFilterOption) {
         let tmp_filter_active_options_lvl2: DataFilterOption[] = cloneDeep(this.tmp_filter_active_options_lvl2);
 
-        if (!tmp_filter_active_options_lvl2) {
+        if (!tmp_filter_active_options_lvl2 || !this.can_select_multiple) {
             tmp_filter_active_options_lvl2 = [];
         }
 
@@ -647,6 +676,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             tmp_filter_active_options_lvl2.push(opt);
         }
 
+        if (!this.can_select_multiple) {
+            this.tmp_filter_active_options = null;
+        }
         this.tmp_filter_active_options_lvl2 = tmp_filter_active_options_lvl2;
     }
 
@@ -1071,6 +1103,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return !!this.widget_options.is_checkbox;
     }
 
+    get hide_lvl2_if_lvl1_not_selected(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
+    }
+
     get vo_field_ref(): VOFieldRefVO {
         let options: FieldValueFilterWidgetOptions = this.widget_options;
 
@@ -1118,6 +1159,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.is_checkbox,
                     options.max_visible_options,
                     options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
                 ) : null;
             }
         } catch (error) {

@@ -66,7 +66,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(null, null, null, this.can_select_multiple, this.is_checkbox, 50, this.show_search_field);
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
         }
 
         this.next_update_options.can_select_multiple = !this.next_update_options.can_select_multiple;
@@ -78,7 +87,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(null, null, null, this.can_select_multiple, this.is_checkbox, 50, this.show_search_field);
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
         }
 
         this.next_update_options.is_checkbox = !this.next_update_options.is_checkbox;
@@ -90,10 +108,40 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(null, null, null, this.can_select_multiple, this.is_checkbox, 50, this.show_search_field);
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
         }
 
         this.next_update_options.show_search_field = !this.next_update_options.show_search_field;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_hide_lvl2_if_lvl1_not_selected() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
+        }
+
+        this.next_update_options.hide_lvl2_if_lvl1_not_selected = !this.next_update_options.hide_lvl2_if_lvl1_not_selected;
 
         await this.throttled_update_options();
     }
@@ -129,7 +177,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return false;
         }
 
-        return (this.widget_options.is_checkbox == null) || !!this.widget_options.is_checkbox;
+        return !!this.widget_options.is_checkbox;
     }
 
     get show_search_field(): boolean {
@@ -138,7 +186,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return false;
         }
 
-        return (this.widget_options.show_search_field == null) || !!this.widget_options.show_search_field;
+        return !!this.widget_options.show_search_field;
+    }
+
+    get hide_lvl2_if_lvl1_not_selected(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
     }
 
     get vo_field_ref(): VOFieldRefVO {
@@ -240,6 +297,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.is_checkbox,
                     options.max_visible_options,
                     options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
                 ) : null;
             }
         } catch (error) {
@@ -253,7 +311,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(null, null, null, this.can_select_multiple, this.is_checkbox, 50, this.show_search_field);
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
         }
 
         let vo_field_ref = new VOFieldRefVO();
@@ -270,7 +337,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(null, null, null, this.can_select_multiple, this.is_checkbox, 50, this.show_search_field);
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
         }
 
         let vo_field_ref_lvl2 = new VOFieldRefVO();
@@ -287,7 +363,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(null, null, null, this.can_select_multiple, this.is_checkbox, 50, this.show_search_field);
+            this.next_update_options = new FieldValueFilterWidgetOptions(
+                null,
+                null,
+                null,
+                this.can_select_multiple,
+                this.is_checkbox,
+                50,
+                this.show_search_field,
+                this.hide_lvl2_if_lvl1_not_selected
+            );
         }
 
         let vo_field_sort = new VOFieldRefVO();

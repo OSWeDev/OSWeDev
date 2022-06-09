@@ -423,6 +423,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.is_checkbox,
                     options.max_visible_options,
                     options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
                 ) : null;
             }
         } catch (error) {
