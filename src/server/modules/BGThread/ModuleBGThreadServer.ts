@@ -139,7 +139,14 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
                 if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
                     (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
-                    this.block_param_by_name[bgthread.name] = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
+
+                    let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
+
+                    if (new_param != this.block_param_by_name[bgthread.name]) {
+                        ConsoleHandler.getInstance().log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+                    }
+
+                    this.block_param_by_name[bgthread.name] = new_param;
                     this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
                 }
             } catch (error) {
