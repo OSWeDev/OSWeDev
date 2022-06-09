@@ -18,6 +18,7 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -194,33 +195,50 @@ export default class VarsDatasVoUpdateHandler {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents],
             async () => {
 
+                let promises = [];
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+
                 while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
-                    let intersector = intersectors_by_index[ObjectHandler.getInstance().getFirstAttributeName(intersectors_by_index)];
+                    for (let i in intersectors_by_index) {
+                        let intersector = intersectors_by_index[i];
 
-                    await this.find_invalid_datas_and_push_for_update({
-                        [intersector.var_id]: {
-                            [intersector.index]: intersector
-                        }
-                    });
+                        solved_intersectors_by_index[intersector.index] = intersector;
 
-                    solved_intersectors_by_index[intersector.index] = intersector;
-
-                    let deps_intersectors = await this.get_deps_intersectors(intersector);
-
-                    for (let j in deps_intersectors) {
-                        let dep_intersector = deps_intersectors[j];
-
-                        if (intersectors_by_index[dep_intersector.index]) {
-                            continue;
-                        }
-                        if (solved_intersectors_by_index[dep_intersector.index]) {
-                            continue;
+                        if (promises.length >= max) {
+                            await Promise.all(promises);
+                            promises = [];
                         }
 
-                        intersectors_by_index[dep_intersector.index] = dep_intersector;
+                        promises.push((async () => {
+
+                            await this.find_invalid_datas_and_push_for_update({
+                                [intersector.var_id]: {
+                                    [intersector.index]: intersector
+                                }
+                            });
+
+                            let deps_intersectors = await this.get_deps_intersectors(intersector);
+
+                            for (let j in deps_intersectors) {
+                                let dep_intersector = deps_intersectors[j];
+
+                                if (intersectors_by_index[dep_intersector.index]) {
+                                    continue;
+                                }
+                                if (solved_intersectors_by_index[dep_intersector.index]) {
+                                    continue;
+                                }
+
+                                intersectors_by_index[dep_intersector.index] = dep_intersector;
+                            }
+
+                            delete intersectors_by_index[intersector.index];
+                        })());
                     }
 
-                    delete intersectors_by_index[intersector.index];
+                    if (promises && promises.length) {
+                        await Promise.all(promises);
+                    }
                 }
             },
             this

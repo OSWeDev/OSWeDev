@@ -18,10 +18,12 @@ import ModuleForkServer from '../Fork/ModuleForkServer';
 import ForkMessageController from '../Fork/ForkMessageController';
 import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
     public static PARAM_kill_throttle_s: string = 'ModuleBGThreadServer.PARAM_kill_throttle_s';
+    public static PARAM_BLOCK_BGTHREAD_prefix: string = 'BLOCK_BGTHREAD___';
 
     public static TIMEOUT_COEF_LITTLE_BIT_SLOWER: number = 1.25;
     public static TIMEOUT_COEF_SLOWER: number = 2;
@@ -38,6 +40,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     public static DEFAULT_MAX_timeout: number = 30000;
     public static DEFAULT_MIN_timeout: number = 300;
 
+
     public static getInstance() {
         if (!ModuleBGThreadServer.instance) {
             ModuleBGThreadServer.instance = new ModuleBGThreadServer();
@@ -46,6 +49,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     }
 
     private static instance: ModuleBGThreadServer = null;
+
+    public block_param_reload_timeout_by_name: { [bgthread_name: string]: number } = {};
+    public block_param_by_name: { [bgthread_name: string]: boolean } = {};
 
     private constructor() {
         super(ModuleBGThread.getInstance().name);
@@ -125,6 +131,24 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         while (true) {
 
             await ThreadHandler.getInstance().sleep(bgthread.current_timeout);
+
+            /**
+             * On check le bloquage par param toutes les minutes
+             */
+            try {
+
+                if ((!this.block_param_reload_timeout_by_name[bgthread.name]) ||
+                    (this.block_param_reload_timeout_by_name[bgthread.name] < Dates.now())) {
+                    this.block_param_by_name[bgthread.name] = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
+                    this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
+                }
+            } catch (error) {
+                ConsoleHandler.getInstance().error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
+            }
+
+            if (!!this.block_param_by_name[bgthread.name]) {
+                continue;
+            }
 
             try {
 
