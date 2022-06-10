@@ -9,6 +9,7 @@ import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
 import ModuleTable from "../../../shared/modules/ModuleTable";
 import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
+import VarConfVO from "../../../shared/modules/Var/vos/VarConfVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import PushDataServerController from "../PushData/PushDataServerController";
 
@@ -164,6 +165,14 @@ export default class ServerAnonymizationController {
 
         for (let i in fields) {
             let field = fields[i];
+
+            if (field.aggregator != VarConfVO.NO_AGGREGATOR) {
+                /**
+                 * Si on a déjà aggrégé le résultat, compliqué de l'anonimiser à ce stade
+                 *  ou pas, à voir si il faut ?
+                 */
+                continue;
+            }
 
             let api_type_id = field.api_type_id;
             let field_id = field.field_id;

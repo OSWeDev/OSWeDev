@@ -352,6 +352,11 @@ export default class VarsDatasProxy {
                                         ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
                                     }
                                     let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+                                    /**
+                                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                                     */
+                                    this.check_or_update_var_buffer(handle_var);
+
                                     if ((!res) || (!res.id)) {
 
                                         // TODO FIXME TO DELETE
@@ -1177,4 +1182,30 @@ export default class VarsDatasProxy {
     //         return a.estimated_ms - b.estimated_ms;
     //     });
     // }
+
+    private check_or_update_var_buffer(handle_var: VarDataBaseVO) {
+
+        for (let i in this.vars_datas_buffer) {
+            let var_data_buffer = this.vars_datas_buffer[i];
+
+            if (var_data_buffer.var_data.index != handle_var.index) {
+                continue;
+            }
+
+            if (
+                (var_data_buffer.var_data.value != handle_var.value) ||
+                (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
+                (var_data_buffer.var_data.value_type != handle_var.value_type)) {
+                ConsoleHandler.getInstance().error(
+                    'check_or_update_var_buffer:incoherence - correction auto:' + var_data_buffer.var_data.index +
+                    ':var_data_buffer:' + var_data_buffer.var_data.value + ':' + var_data_buffer.var_data.value_ts + ':' + var_data_buffer.var_data.value_type + ':' +
+                    ':handle_var:' + handle_var.value + ':' + handle_var.value_ts + ':' + handle_var.value_type + ':'
+                );
+
+                var_data_buffer.var_data.value = handle_var.value;
+                var_data_buffer.var_data.value_ts = handle_var.value_ts;
+                var_data_buffer.var_data.value_type = handle_var.value_type;
+            }
+        }
+    }
 }

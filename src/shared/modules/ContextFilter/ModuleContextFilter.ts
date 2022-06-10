@@ -24,6 +24,7 @@ export default class ModuleContextFilter extends Module {
     public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleContextFilter.MODULE_NAME;
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleContextFilter.MODULE_NAME + ".BO_ACCESS";
 
+    public static APINAME_select: string = "select";
     public static APINAME_select_filter_visible_options: string = "select_filter_visible_options";
     public static APINAME_select_datatable_rows: string = "select_datatable_rows";
     public static APINAME_select_count: string = "select_count";
@@ -41,6 +42,14 @@ export default class ModuleContextFilter extends Module {
     }
 
     private static instance: ModuleContextFilter = null;
+
+    /**
+     * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
+     * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
+     */
+    public select: (
+        context_query: ContextQueryVO
+    ) => Promise<any[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select);
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
@@ -127,6 +136,13 @@ export default class ModuleContextFilter extends Module {
     }
 
     public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
+            null,
+            ModuleContextFilter.APINAME_select,
+            null,
+            SelectVosParamVOStatic
+        ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
             null,

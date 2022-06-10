@@ -32,6 +32,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_count, this.select_count.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_datatable_rows, this.select_datatable_rows.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_vos, this.select_vos.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select, this.select.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos, this.delete_vos.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
@@ -134,6 +135,15 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         context_query: ContextQueryVO
     ): Promise<T[]> {
         return await ContextQueryServerController.getInstance().select_vos(context_query);
+    }
+
+    /**
+     * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
+     * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
+     */
+    private async select(context_query: ContextQueryVO): Promise<any[]> {
+
+        return await ContextQueryServerController.getInstance().select(context_query);
     }
 
     /**

@@ -3,6 +3,7 @@ import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
+import VarConfVO from "../../Var/vos/VarConfVO";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
@@ -78,6 +79,11 @@ export default class ContextQueryVO implements IDistantVOBase {
     public use_technical_field_versioning: boolean;
 
     /**
+     * Force DISTINCT results (using GROUP BY instead of SELECT DISTINCT)
+     */
+    public distinct: boolean;
+
+    /**
      * Pour exclure des fields pour réaliser les chemins (par exemple si on veut utiliser le field B et non A qui font référence au
      *  même vo_type, on peut ajouter le field A pour indiquer qu'on refuse ce chemin)
      * Cela ne permet pas d'avoir plusieurs chemins différents pour des types identiques au sein d'une même query, mais
@@ -150,9 +156,9 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  Si on veut un vo complet il ne faut pas demander les fields
      * @param field_id l'id du field à ajouter.
      */
-    public field(field_id: string, alias: string = field_id, api_type_id: string = null): ContextQueryVO {
+    public field(field_id: string, alias: string = field_id, api_type_id: string = null, aggregator: number = VarConfVO.NO_AGGREGATOR): ContextQueryVO {
 
-        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias);
+        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator);
 
         if (!this.fields) {
             this.fields = [];
@@ -239,7 +245,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param num la valeur qu'on veut filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_num_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+    public filter_by_num_eq(field_id: string, num: number | NumRange | NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_eq(num)]);
     }
 
@@ -251,6 +257,36 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public filter_by_num_x_ranges(field_id: string, ranges: NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_x_ranges(ranges)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric included in ranges
+     * @param field_id le field qu'on veut filtrer
+     * @param ranges les valeurs qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_is_in_ranges(field_id: string, ranges: NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_is_in_ranges(ranges)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre date == ranges
+     * @param field_id le field qu'on veut filtrer
+     * @param ranges les valeurs qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_date_eq(field_id: string, date: number | TSRange | TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_eq(date)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre date included in ranges
+     * @param field_id le field qu'on veut filtrer
+     * @param ranges les valeurs qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_date_is_in_ranges(field_id: string, ranges: TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_is_in_ranges(ranges)]);
     }
 
     /**
@@ -292,12 +328,22 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text égal ANY
+     * @param field_id le field qu'on veut filtrer
+     * @param text le texte que l'on doit retrouver à l'identique en base
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_has(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has(text)]);
+    }
+
+    /**
      * Filtrer par text strictement égal
      * @param field_id le field qu'on veut filtrer
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_eq(field_id: string, text: string, API_TYPE_ID: string = null): ContextQueryVO {
+    public filter_by_text_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq(text)]);
     }
 
@@ -492,6 +538,36 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Faire la requête simplement et récupérer le résultat brut
+     */
+    public async select_all(): Promise<any[]> {
+        return await ModuleContextFilter.getInstance().select(this);
+    }
+
+    /**
+     * Faire la requête simplement et récupérer le résultat brut
+     */
+    public async select_one(): Promise<any> {
+        let res = await ModuleContextFilter.getInstance().select(this);
+        if (res && (res.length > 1)) {
+            throw new Error('Multiple results on select_one is not allowed');
+        }
+        return res ? res[0] : null;
+    }
+
+    /**
+     * Faire la requête en mode select_datatable_rows mais ligne unique
+     * @returns la ligne de datatable issue de la requête
+     */
+    public async select_datatable_row(): Promise<any> {
+        let res = await ModuleContextFilter.getInstance().select_datatable_rows(this);
+        if (res && (res.length > 1)) {
+            throw new Error('Multiple results on select_datatable_row is not allowed');
+        }
+        return res ? res[0] : null;
+    }
+
+    /**
      * Faire la requête en mode select_datatable_rows
      * @returns les lignes de datatable issues de la requête
      */
@@ -571,5 +647,6 @@ export const query = (API_TYPE_ID: string) => {
     res.query_tables_prefix = null;
     res.sort_by = null;
     res.use_technical_field_versioning = false;
+    res.distinct = false;
     return res;
 };

@@ -19,7 +19,7 @@
     "scripts": {
         "lint": "tslint --project tsconfig_tslint.json --config tslint_promises.json",
         "lint-global": "tslint --project tsconfig.json",
-        "check-deps": "depcruise --validate .dependency-cruiser.json src",
+        "check-deps": "depcruise --validate .dependency-cruiser.json src/**/*",
         "watch": "npm-watch",
         "test": "nyc mocha",
         "test-jenkins": "nyc mocha --require source-map-support/register -R xunit src/test/**/*.ts > test-reports.xml",
