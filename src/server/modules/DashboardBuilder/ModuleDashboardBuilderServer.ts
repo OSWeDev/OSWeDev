@@ -855,7 +855,29 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'adv_str_fltr.et'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'OU' },
-            'adv_str_fltr.ou'));
+            'adv_str_fltr.ou')
+        );
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le 2ème niveau si le niveau 1 n'est pas sélectionné" },
+            'field_value_filter_widget_component.hide_lvl2_if_lvl1_not_selected.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le filtre au format case à cocher" },
+            'field_value_filter_widget_component.is_checkbox.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le champ de recherche" },
+            'field_value_filter_widget_component.show_search_field.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ à afficher au 2ème niveau" },
+            'field_value_filter_widget_component.vo_field_ref_lvl2.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ pour trier l'affichage du filtre" },
+            'field_value_filter_widget_component.vo_field_sort.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
