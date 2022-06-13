@@ -6,7 +6,7 @@ import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
@@ -298,15 +298,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let query: ContextQueryVO = new ContextQueryVO();
-        query.base_api_type_id = null;
-        query.active_api_type_ids = this.dashboard.api_type_ids;
-        query.fields = [];
-        query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+        let query_: ContextQueryVO = query(this.widget_options.api_type_id).set_limit(this.widget_options.limit, this.pagination_offset);
+        query_.active_api_type_ids = this.dashboard.api_type_ids;
+        query_.fields = [];
+        query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
         );
-        query.limit = this.widget_options.limit;
-        query.offset = this.pagination_offset;
 
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -325,15 +322,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            if (!query.base_api_type_id) {
-                query.base_api_type_id = field.moduleTable.vo_type;
+            if (!query_.base_api_type_id) {
+                query_.base_api_type_id = field.moduleTable.vo_type;
             }
 
-            query.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
+            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
         }
 
 
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query);
+        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
 
         let data_rows = [];
         let promises = [];
@@ -355,9 +352,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        let context_query = cloneDeep(query);
-        context_query.limit = 0;
-        context_query.offset = 0;
+        let context_query = cloneDeep(query_);
+        context_query.set_limit(0, 0);
         context_query.sort_by = null;
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 

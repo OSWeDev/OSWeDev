@@ -333,9 +333,13 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text strictement égal
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
-    public by_text_eq(text: string): ContextFilterVO {
+    public by_text_eq(text: string | string[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
-        this.param_text = text;
+        if (isArray(text)) {
+            this.param_textarray = text;
+        } else {
+            this.param_text = text;
+        }
         return this;
     }
 
@@ -343,9 +347,13 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text égal (au moins une fois)
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
-    public by_text_has(text: string): ContextFilterVO {
+    public by_text_has(text: string | string[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-        this.param_text = text;
+        if (isArray(text)) {
+            this.param_textarray = text;
+        } else {
+            this.param_text = text;
+        }
         return this;
     }
 
@@ -509,9 +517,14 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtre par un nombre simple ==
      * @param num le nombre à utiliser dans le filtre
      */
-    public by_num_eq(num: number): ContextFilterVO {
+    public by_num_eq(num: number | NumRange | NumRange[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
-        this.param_numeric = num;
+        if (typeof num === "number") {
+            this.param_numeric = num;
+        } else {
+            this.param_numranges = isArray(num) ? num : (num ? [num] : null);
+        }
+
         return this;
     }
 
@@ -536,12 +549,46 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtre par == de date
+     * @param date
+     */
+    public by_date_eq(date: number | TSRange | TSRange[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
+        if (typeof date === "number") {
+            this.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(date, TimeSegment.TYPE_SECOND)];
+        } else {
+            this.param_tsranges = isArray(date) ? date : (date ? [date] : null);
+        }
+        return this;
+    }
+
+    /**
+     * Filtre par intersection de ts_ranges
+     * @param ranges
+     */
+    public by_date_is_in_ranges(ranges: TSRange[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN;
+        this.param_tsranges = ranges;
+        return this;
+    }
+
+    /**
      * Filtre par intersection de ts_ranges
      * @param ranges
      */
     public by_date_x_ranges(ranges: TSRange[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
         this.param_tsranges = ranges;
+        return this;
+    }
+
+    /**
+     * Filtre par inclusion de num_ranges
+     * @param ranges
+     */
+    public by_num_is_in_ranges(ranges: NumRange[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN;
+        this.param_numranges = ranges;
         return this;
     }
 

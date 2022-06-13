@@ -1022,7 +1022,7 @@ export default abstract class ServerBase {
 
                 await ServerBase.getInstance().hook_on_ready();
 
-                ForkServerController.getInstance().fork_threads();
+                await ForkServerController.getInstance().fork_threads();
                 BGThreadServerController.getInstance().server_ready = true;
 
                 if (ConfigurationService.getInstance().getNodeConfiguration().AUTO_END_MAINTENANCE_ON_START) {

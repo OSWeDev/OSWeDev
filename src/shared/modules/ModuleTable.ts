@@ -1,3 +1,4 @@
+import { isArray } from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import * as moment from 'moment';
 import ConsoleHandler from '../tools/ConsoleHandler';
@@ -685,7 +686,18 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 let trans_ = e ? JSON.parse(e) : null;
                 if ((!!trans_) && !!field.plain_obj_cstr) {
-                    trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+
+                    /**
+                     * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
+                     */
+                    if (isArray(trans_)) {
+                        for (let transi in trans_) {
+                            trans_[transi] = Object.assign(field.plain_obj_cstr(), trans_[transi]);
+                        }
+                    } else {
+
+                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                    }
                 }
                 if (trans_ && trans_._type) {
                     let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
@@ -837,8 +849,20 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 let trans_ = field_value ? JSON.parse(field_value) : null;
+
                 if ((!!trans_) && !!field.plain_obj_cstr) {
-                    trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+
+                    /**
+                     * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
+                     */
+                    if (isArray(trans_)) {
+                        for (let transi in trans_) {
+                            trans_[transi] = Object.assign(field.plain_obj_cstr(), trans_[transi]);
+                        }
+                    } else {
+
+                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                    }
                 }
                 if (trans_ && trans_._type) {
                     let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];

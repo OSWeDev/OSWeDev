@@ -104,8 +104,8 @@ export default class SlowVarKiHandler {
         query.base_api_type_id = SlowVarVO.API_TYPE_ID;
         query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
         query.filters = [filter];
-        query.limit = 0;
-        query.offset = 0;
+        query.query_limit = 0;
+        query.query_offset = 0;
 
         let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
 
@@ -138,8 +138,8 @@ export default class SlowVarKiHandler {
         query.base_api_type_id = SlowVarVO.API_TYPE_ID;
         query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
         query.filters = [filter];
-        query.limit = 1;
-        query.offset = 0;
+        query.query_limit = 1;
+        query.query_offset = 0;
         query.sort_by = new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false);
 
         let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);

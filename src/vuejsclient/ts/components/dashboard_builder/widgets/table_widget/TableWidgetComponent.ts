@@ -7,7 +7,7 @@ import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
@@ -755,22 +755,19 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
         }
 
-        let query: ContextQueryVO = new ContextQueryVO();
-        query.base_api_type_id = null;
-        query.active_api_type_ids = this.dashboard.api_type_ids;
-        query.fields = [];
-        query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+        let query_: ContextQueryVO = query(this.widget_options.crud_api_type_id ? this.widget_options.crud_api_type_id : null).set_limit(this.limit, this.pagination_offset);
+        query_.active_api_type_ids = this.dashboard.api_type_ids;
+        query_.fields = [];
+        query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
         );
-        query.limit = this.limit;
-        query.offset = this.pagination_offset;
-        query.sort_by = null;
+        query_.sort_by = null;
 
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
          */
         if (this.is_filtering_by && this.filtering_by_active_field_filter) {
-            query.filters = query.filters.filter((f) =>
+            query_.filters = query_.filters.filter((f) =>
                 (f.filter_type != this.filtering_by_active_field_filter.filter_type) ||
                 (f.vo_type != this.filtering_by_active_field_filter.vo_type) ||
                 (f.field_id != this.filtering_by_active_field_filter.field_id) ||
@@ -784,7 +781,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
             let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            query.sort_by = new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id);
+            query_.sort_by = new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id);
         }
 
 
@@ -805,15 +802,15 @@ export default class TableWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            if (!query.base_api_type_id) {
-                query.base_api_type_id = field.moduleTable.vo_type;
+            if (!query_.base_api_type_id) {
+                query_.base_api_type_id = field.moduleTable.vo_type;
             }
 
-            query.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
+            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
         }
 
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query);
-        this.actual_rows_query = cloneDeep(query);
+        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
+        this.actual_rows_query = cloneDeep(query_);
 
         let data_rows = [];
         let promises = [];
@@ -841,9 +838,8 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        let context_query = cloneDeep(query);
-        context_query.limit = 0;
-        context_query.offset = 0;
+        let context_query = cloneDeep(query_);
+        context_query.set_limit(0, 0);
         context_query.sort_by = null;
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 
@@ -1024,8 +1020,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         let context_query = cloneDeep(this.actual_rows_query);
         if (!limit_to_page) {
-            context_query.limit = 0;
-            context_query.offset = 0;
+            context_query.set_limit(0, 0);
         }
 
         let export_name = this.dashboard_page.translatable_name_code_text ?

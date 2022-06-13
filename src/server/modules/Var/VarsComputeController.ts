@@ -1,13 +1,21 @@
 
+import { cloneDeep } from 'lodash';
 import { performance } from 'perf_hooks';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarPixelFieldConfVO from '../../../shared/modules/Var/vos/VarPixelFieldConfVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
@@ -159,6 +167,14 @@ export default class VarsComputeController {
      *                  (et donc pour lesquels on sait qu'on a de valeur ni en base ni en buffer ni dans l'arbre)
      * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on ne peut pas vouloir donner un import complet en résultat, donc inutile de faire cette recherche
      *  par contre un import partiel oui
+     *
+     * Cas de la pixellisation :
+     *  - On ignore la première recherche dans le cache, puisqu'on ne trouvera pas le noeud à l'identique. Il aura été pixellisé
+     *  - On cherche les imports et on découpe si besoin
+     *  - On déclenche ensuite la pixellisation et la recherche de datas pré-calcs :
+     *      - on request count() et sum() [ou fonction d'aggrégat plus généralement] avec filtrage sur la var_id, le champ de segmentation en inclusif, et
+     *          les autres champs en excatement égal.
+     *      - Si le count est égal au cardinal de la dimension de pixellisation, on a le résultat, on met à jour la var et c'est terminé
      */
     public async deploy_deps(
         node: VarDAGNode,
@@ -166,6 +182,7 @@ export default class VarsComputeController {
         vars_datas: { [index: string]: VarDataBaseVO },
         ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
 
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__deploy_deps],
             async () => {
@@ -177,6 +194,7 @@ export default class VarsComputeController {
 
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", true);
                 let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+                let varconf = VarsController.getInstance().var_conf_by_id[node.var_data.var_id];
 
                 /**
                  * Cache step B : cache complet - inutile si on est sur un noeud du vars_datas
@@ -229,26 +247,171 @@ export default class VarsComputeController {
                 }
 
                 /**
-                 * Cache step C : cache partiel : uniquement si on a pas splitt sur import
+                 * Cas de la pixellisation qu'on sort des autres types de cache
                  */
-                if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
-                    (!node.is_aggregator) &&
-                    (VarsCacheController.getInstance().C_use_partial_cache(node))) {
+                if (varconf.pixel_activated) {
 
-                    VarsPerfsController.addPerfs(performance.now(), [
-                        "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
-                        node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
-                    ], true);
-                    await this.try_load_cache_partiel(node);
-                    node.has_try_load_cache_partiel_perf = true;
-                    VarsPerfsController.addPerfs(performance.now(), [
-                        "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
-                        node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
-                    ], false);
+                    /**
+                     * si on est sur un pixel, inutile de chercher on a déjà fait une recherche identique et on doit pas découper un pixel
+                     * sinon, on fait la fameuse requête de count + aggrégat et suivant que le count correspond bien au produit des cardinaux des dimensions
+                     *  pixellisées, on découpe en pixel, ou pas. (En chargeant du coup la liste des pixels)
+                     */
 
-                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
-                        return;
+                    let prod_cardinaux = 1;
+                    let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+                    for (let i in varconf.pixel_fields) {
+                        let pixel_field = varconf.pixel_fields[i];
+
+                        pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+                        let card = RangeHandler.getInstance().getCardinalFromArray(node.var_data[pixel_field.pixel_param_field_id]);
+                        prod_cardinaux *= card;
+                    }
+
+                    if (prod_cardinaux == 1) {
+                        // c'est un pixel, on ignore
+                        if (DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':is pixel == ignore cached pixels');
+                        }
+                    } else {
+
+                        let pixel_query = query(varconf.var_data_vo_type)
+                            .field('value', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
+                            .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
+
+                        /**
+                         * On ajoute les filtrages :
+                         *      sur champs pixellisés : on veut les valeurs contenues,
+                         *      sur les autres champs : on veut les valeurs exactes
+                         */
+                        let matroid_fields = MatroidController.getInstance().getMatroidFields(varconf.var_data_vo_type);
+                        for (let i in matroid_fields) {
+                            let matroid_field = matroid_fields[i];
+
+                            let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+
+                            switch (matroid_field.field_type) {
+                                case ModuleTableField.FIELD_TYPE_numrange_array:
+                                case ModuleTableField.FIELD_TYPE_refrange_array:
+                                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                                    if (pixellised) {
+                                        pixel_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                    } else {
+                                        pixel_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                    }
+                                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                                    if (pixellised) {
+                                        pixel_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                    } else {
+                                        pixel_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                    }
+                                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                                default:
+                                    throw new Error('Not implemented');
+                            }
+                        }
+
+                        let pixel_cache: { counter: number, aggregated_value: number } = await pixel_query.select_one();
+
+                        if (pixel_cache.counter == prod_cardinaux) {
+
+                            /**
+                             * Cas simple, on a la réponse complète tout va bien
+                             */
+                            node.var_data.value_ts = Dates.now();
+                            node.var_data.value = pixel_cache.aggregated_value;
+                            node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+
+                            if (DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':FULL OK');
+                            }
+                        } else {
+
+                            /**
+                             * Si on a pas tout, on doit identifier les pixels qui sont déjà connus pour pas les refaire
+                             *  et en déduire ceux qui manquent
+                             */
+                            let known_pixels_query = query(varconf.var_data_vo_type);
+                            // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
+                            //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
+                            for (let i in matroid_fields) {
+                                let matroid_field = matroid_fields[i];
+
+                                let pixellised = pixellised_fields_by_id[matroid_field.field_id];
+
+                                switch (matroid_field.field_type) {
+                                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                                        if (pixellised) {
+                                            known_pixels_query.filter_by_num_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                        } else {
+                                            known_pixels_query.filter_by_num_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                        }
+                                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                                        if (pixellised) {
+                                            known_pixels_query.filter_by_date_is_in_ranges(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                        } else {
+                                            known_pixels_query.filter_by_date_eq(matroid_field.field_id, node.var_data[matroid_field.field_id]);
+                                        }
+                                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                                    default:
+                                        throw new Error('Not implemented');
+                                }
+                            }
+
+                            let known_pixels: VarDataBaseVO[] = await known_pixels_query.select_vos<VarDataBaseVO>();
+                            let aggregated_datas: { [var_data_index: string]: VarDataBaseVO } = {};
+
+                            for (let i in known_pixels) {
+                                let known_pixel = known_pixels[i];
+
+                                aggregated_datas[known_pixel.index] = known_pixel;
+                            }
+
+                            this.populate_missing_pixels(
+                                aggregated_datas,
+                                varconf,
+                                node.var_data,
+                                pixellised_fields_by_id,
+                                cloneDeep(node.var_data)
+                            );
+
+                            let nb_known_pixels = known_pixels ? known_pixels.length : 0;
+                            let nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
+
+                            node.is_aggregator = true;
+                            node.aggregated_datas = aggregated_datas;
+
+                            if (DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':PIXELED:known:' + nb_known_pixels + ':' + nb_unknown_pixels + ':');
+                            }
+                        }
+                    }
+
+                } else {
+
+                    /**
+                     * Cache step C : cache partiel : uniquement si on a pas splitt sur import
+                     */
+                    if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
+                        (!node.is_aggregator) &&
+                        (VarsCacheController.getInstance().C_use_partial_cache(node))) {
+
+                        VarsPerfsController.addPerfs(performance.now(), [
+                            "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
+                            node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
+                        ], true);
+                        await this.try_load_cache_partiel(node);
+                        node.has_try_load_cache_partiel_perf = true;
+                        VarsPerfsController.addPerfs(performance.now(), [
+                            "__computing_bg_thread.compute.create_tree.try_load_cache_partiel",
+                            node.var_data.var_id + "__computing_bg_thread.compute.create_tree.deploy_deps.try_load_cache_partiel"
+                        ], false);
+
+                        if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                            return;
+                        }
                     }
                 }
 
@@ -1059,5 +1222,60 @@ export default class VarsComputeController {
                 ConsoleHandler.getInstance().error('Var pas notifiée:' + JSON.stringify(node.var_data));
             }
         }
+    }
+
+    /**
+     * On génère tous les pixels nécessaires, et à chaque fois, si on le trouve dans la liste des pixels connus, on ne crée pas le noeuds
+     *  puisque le résultat est déjà connu/inclut dans le aggregated_value
+     * On part en récursif, et à chaque fois on cherche un champs à pixellisé.
+     *      Si on en trouve plus (après le dernier champ pixellisé), on ajoute le pixel dans le aggregated_datas
+     *      Si on en trouve => on déploie cette dimension, et pour chaque valeur, si on la trouve dans le aggregated, on ignore,
+     *          sinon on recurse en clonant le var_data et en settant le field déployé
+     */
+    private populate_missing_pixels(
+        aggregated_datas: { [index: string]: VarDataBaseVO },
+        var_conf: VarConfVO,
+        var_data: VarDataBaseVO,
+        pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO },
+        cloned_var_data: VarDataBaseVO,
+        current_pixellised_field_id: string = null) {
+
+        let can_check_field = !current_pixellised_field_id;
+        for (let i in pixellised_fields_by_id) {
+            let pixellised_field = pixellised_fields_by_id[i];
+
+            if (!can_check_field) {
+                if (i == current_pixellised_field_id) {
+                    can_check_field = true;
+                    continue;
+                }
+            }
+
+            let field = VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_id);
+
+            RangeHandler.getInstance().foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
+
+                let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, true);
+                new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.getInstance().createNew(
+                    RangeHandler.getInstance().getRangeType(field),
+                    pixel_value, pixel_value, true, true, var_conf.segment_types[field.field_id])];
+                if (!aggregated_datas[new_var_data.index]) {
+                    this.populate_missing_pixels(
+                        aggregated_datas,
+                        var_conf,
+                        var_data,
+                        pixellised_fields_by_id,
+                        cloned_var_data,
+                        i
+                    );
+                }
+            });
+            return;
+        }
+
+        if (aggregated_datas[cloned_var_data.index]) {
+            return;
+        }
+        aggregated_datas[cloned_var_data.index] = cloned_var_data;
     }
 }

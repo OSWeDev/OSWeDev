@@ -1051,8 +1051,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         query.base_api_type_id = raw_api_type_id;
         query.active_api_type_ids = [raw_api_type_id];
         query.filters = [filter];
-        query.limit = batch_size;
-        query.offset = 0;
+        query.query_limit = batch_size;
+        query.query_offset = 0;
 
         return await ModuleContextFilterServer.getInstance().select_vos(query);
     }

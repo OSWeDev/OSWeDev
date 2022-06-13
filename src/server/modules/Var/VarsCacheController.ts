@@ -17,6 +17,7 @@ import VarsPerfMonServerController from './VarsPerfMonServerController';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import VarServerControllerBase from './VarServerControllerBase';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -48,7 +49,7 @@ export default class VarsCacheController {
     }
 
     /**
-     * Cas Insert Cache en BDD
+     * Cas insert en base d'un cache de var calculée et registered
      */
     public BDD_do_cache_param_data(var_data: VarDataBaseVO, controller: VarServerControllerBase<any>, is_requested_param: boolean): boolean {
 
@@ -62,12 +63,11 @@ export default class VarsCacheController {
             return false;
         }
 
-        let card = MatroidController.getInstance().get_cardinal(var_data);
-        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_bdd);
+        return this.do_cache(var_data, controller.var_cache_conf, 'cache_seuil_bdd');
     }
 
     /**
-     * Cas A
+     * Cas A - insert en base d'un cache de var calculé mais unregistered
      */
     public A_do_cache_param(node: VarDAGNode): boolean {
 
@@ -77,14 +77,13 @@ export default class VarsCacheController {
          *  si sup à un seuil => cache, sinon pas de cache
          */
 
-        let card = MatroidController.getInstance().get_cardinal(node.var_data);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_a);
+        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_a');
     }
 
     /**
-     * Cas B
+     * Cas B - chargement du cache exacte d'une var en cours de déploiement dans l'arbre
      */
     public B_use_cache(node: VarDAGNode): boolean {
 
@@ -93,14 +92,13 @@ export default class VarsCacheController {
          *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
          *  si sup à un seuil => on tente de charger le cache, sinon non
          */
-        let card = MatroidController.getInstance().get_cardinal(node.var_data);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_b);
+        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_b');
     }
 
     /**
-     * Cas C : globalement
+     * Cas C - doit-on chercher un cache partiel
      */
     public C_use_partial_cache(node: VarDAGNode): boolean {
 
@@ -109,14 +107,13 @@ export default class VarsCacheController {
          *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
          *  si sup à un seuil => on accepte d'utiliser ce shard, sinon non
          */
-        let card = MatroidController.getInstance().get_cardinal(node.var_data);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_c);
+        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_c');
     }
 
     /**
-     * Cas C : chaque élément
+     * Cas C : sur chaque élément du cache partiel, doit-on l'utiliser ?
      */
     public C_use_partial_cache_element(node: VarDAGNode, partial_cache: VarDataBaseVO): boolean {
 
@@ -125,10 +122,9 @@ export default class VarsCacheController {
          *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
          *  si sup à un seuil => on accepte d'utiliser ce shard, sinon non
          */
-        let card = MatroidController.getInstance().get_cardinal(partial_cache);
         let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-        return this.do_cache(card, controller.var_cache_conf, controller.var_cache_conf.cache_seuil_c_element);
+        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_c_element');
     }
 
     /**
@@ -162,6 +158,15 @@ export default class VarsCacheController {
 
                     let var_id = var_ids[this.partially_clean_bdd_cache_var_id_i];
                     let controller: VarConfVO = VarsController.getInstance().var_conf_by_id[var_id];
+
+                    /**
+                     * Cas des pixels qu'on ne veut pas toucher
+                     */
+                    if (controller.pixel_activated && controller.pixel_never_delete) {
+                        this.partially_clean_bdd_cache_offset = 0;
+                        this.partially_clean_bdd_cache_var_id_i++;
+                        continue;
+                    }
 
                     // On charge des packs de vars, et on test des conditions de suppression du cache (on parle bien de suppression)
                     //  On doit refuser de toucher des vars qui seraient en ce moment dans le cache du proxy
@@ -252,12 +257,38 @@ export default class VarsCacheController {
         );
     }
 
-    private do_cache(card: number, var_cache_conf: VarCacheConfVO, cache_seuil: number): boolean {
+    private do_cache(var_data: VarDataBaseVO, var_cache_conf: VarCacheConfVO, cache_seuil_field: string): boolean {
         switch (var_cache_conf.cache_startegy) {
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_CARDINAL:
-                return card >= cache_seuil;
+                let seuila = var_cache_conf[cache_seuil_field];
+                let carda = MatroidController.getInstance().get_cardinal(var_data);
+                return carda >= seuila;
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_ESTIMATED_TIME:
-                return (card * var_cache_conf.calculation_cost_for_1000_card / 1000) >= cache_seuil;
+                let seuilb = var_cache_conf[cache_seuil_field];
+                let cardb = MatroidController.getInstance().get_cardinal(var_data);
+                return (cardb * var_cache_conf.calculation_cost_for_1000_card / 1000) >= seuilb;
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
+
+                /**
+                 * En stratégie pixel, on stocke en bdd si card dimension pixellisée == 1.
+                 *  Du coup de la même manière, le cache exacte ne peut être demandé que si card dimension pixellisée == 1
+                 *  tout le reste est géré en amont, donc à ce niveau on doit refuser les cache C et C element
+                 */
+                let varconf = VarsController.getInstance().var_conf_by_id[var_cache_conf.var_id];
+                if (!varconf.pixel_activated) {
+                    ConsoleHandler.getInstance().error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
+                }
+
+                let is_pixel = true;
+                for (let i in varconf.pixel_fields) {
+                    let pixel_field = varconf.pixel_fields[i];
+
+                    if (RangeHandler.getInstance().getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]) != 1) {
+                        is_pixel = false;
+                        break;
+                    }
+                }
+                return ((cache_seuil_field == 'cache_seuil_b') || (cache_seuil_field == 'cache_seuil_a') || (cache_seuil_field == 'cache_seuil_bdd')) && is_pixel;
         }
     }
 }

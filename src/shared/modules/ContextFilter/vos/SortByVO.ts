@@ -12,9 +12,9 @@ export default class SortByVO implements IDistantVOBase {
     public sort_asc: boolean;
 
     public constructor(
-        vo_type: string,
-        field_id: string,
-        sort_asc: boolean
+        vo_type: string = null,
+        field_id: string = null,
+        sort_asc: boolean = true
     ) {
         this.vo_type = vo_type;
         this.field_id = field_id;
