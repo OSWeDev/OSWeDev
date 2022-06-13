@@ -847,23 +847,6 @@ export default class ContextQueryServerController {
         }
     }
 
-    private add_limit(context_query: ContextQueryVO, query_str: string): string {
-
-        if ((!query_str) || (!context_query)) {
-            return query_str;
-        }
-
-        if (context_query.query_limit) {
-            query_str += ' LIMIT ' + context_query.query_limit;
-
-            if (context_query.query_offset) {
-                query_str += ' OFFSET ' + context_query.query_offset;
-            }
-        }
-
-        return query_str;
-    }
-
     private get_limit(context_query: ContextQueryVO): string {
 
         if (!context_query) {

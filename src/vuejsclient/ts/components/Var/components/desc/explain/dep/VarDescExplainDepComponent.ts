@@ -1,4 +1,4 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VueComponentBase from '../../../../../VueComponentBase';
@@ -24,6 +24,12 @@ export default class VarDescExplainDepComponent extends VueComponentBase {
     private params: VarDataBaseVO[];
 
     private opened: boolean = true;
+    private limit_10: boolean = true;
+
+    @Watch('params', { deep: true, immediate: true })
+    private onchange_params() {
+        this.limit_10 = true;
+    }
 
     private async copy_dep_code() {
         await navigator.clipboard.writeText(this.dep_code);

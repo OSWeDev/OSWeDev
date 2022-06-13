@@ -313,10 +313,15 @@ export default class VarsDatasProxy {
                         let do_insert = false;
                         let do_delete_from_cache = false;
                         let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
+                        let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
+
+                        /**
+                         * Cas des pixels : on insere initialement, mais jamais ensuite. les infos de lecture on s'en fiche puisque le cache ne doit jamais être invalidé
+                         */
 
                         if (wrapper.needs_insert_or_update) {
                             do_insert = true;
-                        } else {
+                        } else if ((!conf.pixel_activated) || (!conf.pixel_never_delete)) {
 
                             if (!wrapper.nb_reads_since_last_insert_or_update) {
                                 if (Dates.now() > wrapper.timeout) {
@@ -569,6 +574,7 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd],
             async () => {
@@ -586,6 +592,10 @@ export default class VarsDatasProxy {
                 if (var_data.id) {
                     let e = await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
 
+                    if (DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('get_exact_param_from_buffer_or_bdd:e:' + (e ? JSON.stringify(e) : null) + ':');
+                    }
+
                     if (e) {
                         await this.filter_var_datas_by_indexes([e], false, false, true);
                         return e;
@@ -593,6 +603,10 @@ export default class VarsDatasProxy {
                 }
 
                 let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
+
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('get_exact_param_from_buffer_or_bdd:res:' + (res ? JSON.stringify(res) : null) + ':');
+                }
 
                 if (res && res.length) {
                     await this.filter_var_datas_by_indexes([res[0]], false, false, true);

@@ -355,6 +355,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'var_desc.pause.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Limité à 10 deps affichées. Cliquer pour les voir toutes...'
+        }, 'var_desc_explain_dep.limit_10.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable'
         }, 'var_desc.var_controller_label.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

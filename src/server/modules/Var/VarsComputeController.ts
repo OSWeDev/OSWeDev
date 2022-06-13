@@ -441,6 +441,10 @@ export default class VarsComputeController {
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
                         return;
                     }
+
+                    if (DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':dep:' + dep.index + ':');
+                    }
                 }
 
                 if (deps) {
@@ -494,6 +498,7 @@ export default class VarsComputeController {
     }
 
     private async load_nodes_datas(dag: DAG<VarDAGNode>, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        let env = ConfigurationService.getInstance().getNodeConfiguration();
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__load_nodes_datas],
             async () => {
@@ -506,6 +511,11 @@ export default class VarsComputeController {
 
                     // Si le noeud a une valeur on se fout de load les datas
                     if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+
+                        if (env.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log('load_nodes_datas:has_valid_value:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
+                        }
+
                         continue;
                     }
 
@@ -534,6 +544,9 @@ export default class VarsComputeController {
                                 node.var_data.var_id + "__computing_bg_thread.compute.load_nodes_datas"
                             ], false);
                         })());
+                    }
+                    if (env.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
                     }
                 }
 
@@ -579,60 +592,6 @@ export default class VarsComputeController {
         );
     }
 
-    /**
-     * Première étape du calcul, on génère l'arbre en commençant par les params:
-     *  - Si le noeud existe dans l'arbre, osef
-     *  - Sinon :
-     *      - Identifier les deps
-     *      - Déployer effectivement les deps identifiées
-     */
-    private async create_tree_old(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<DAG<VarDAGNode>> {
-
-        return await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__create_tree],
-            async () => {
-
-                let var_dag: DAG<VarDAGNode> = new DAG();
-                let deployed_vars_datas: { [index: string]: boolean } = {};
-
-                let vars_datas_as_array: VarDataBaseVO[] = Object.values(vars_datas);
-                let promises = [];
-                let i = 0;
-
-                let start_time = Dates.now();
-                let real_start_time = start_time;
-
-
-                while (i < vars_datas_as_array.length) {
-
-                    let actual_time = Dates.now();
-
-                    if (actual_time > (start_time + 60)) {
-                        start_time = actual_time;
-                        ConsoleHandler.getInstance().warn('VarsComputeController:create_tree:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-                    }
-
-                    /**
-                     * On fait des packs de 5 promises...
-                     */
-                    if (i >= 5) {
-                        await Promise.all(promises);
-                        promises = [];
-                    }
-
-                    promises.push(this.deploy_deps(VarDAGNode.getInstance(var_dag, vars_datas_as_array[i]), deployed_vars_datas, vars_datas, ds_cache));
-                    // await this.deploy_deps(VarDAGNode.getInstance(var_dag, vars_datas_as_array[i]), deployed_vars_datas, vars_datas, ds_cache);
-
-                    i++;
-                }
-                await Promise.all(promises);
-
-                return var_dag;
-            },
-            this
-        );
-    }
-
     private async handle_deploy_deps(
         node: VarDAGNode,
         deps: { [index: string]: VarDataBaseVO },
@@ -640,14 +599,17 @@ export default class VarsComputeController {
         vars_datas: { [index: string]: VarDataBaseVO },
         ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
 
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__handle_deploy_deps],
             async () => {
 
-                let deps_promises = [];
                 let deps_as_array = Object.values(deps);
                 let deps_ids_as_array = Object.keys(deps);
                 let deps_i = 0;
+
+                let deps_promises = [];
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
 
                 let start_time = Dates.now();
                 let real_start_time = start_time;
@@ -664,7 +626,7 @@ export default class VarsComputeController {
                     /**
                      * On fait des packs de 10 promises...
                      */
-                    if (deps_promises.length >= 50) {
+                    if (deps_promises.length >= max) {
                         await Promise.all(deps_promises);
                         deps_promises = [];
                     }
@@ -707,6 +669,12 @@ export default class VarsComputeController {
                             dep_node.var_data.value = existing_var_data.value;
                             dep_node.var_data.value_ts = existing_var_data.value_ts;
                             dep_node.var_data.value_type = existing_var_data.value_type;
+
+                            if (DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('handle_deploy_deps:existing_var_data:' + existing_var_data.index + ':' + existing_var_data.id + ':' + existing_var_data.value + ':' + existing_var_data.value_ts + ':');
+                            }
+                        } else {
+                            ConsoleHandler.getInstance().log('handle_deploy_deps:existing_var_data:' + null + ': mais dep_node.already_tried_load_cache_complet == true');
                         }
                     }
 
@@ -721,7 +689,10 @@ export default class VarsComputeController {
                     if (!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
 
                         await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([dep_node.var_data], true)]);
-                        deps_promises.push(this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache));
+                        deps_promises.push((async () => {
+                            await this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache);
+                        })());
+
                         // await this.deploy_deps(dep_node, deployed_vars_datas, vars_datas, ds_cache);
                     }
 
@@ -740,6 +711,7 @@ export default class VarsComputeController {
 
     private async try_load_cache_complet(node: VarDAGNode) {
 
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_complet],
             async () => {
@@ -748,6 +720,10 @@ export default class VarsComputeController {
                 let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data);
 
                 if (!cache_complet) {
+                    if (DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':aucun cache complet');
+                    }
+
                     return;
                 }
 
@@ -756,6 +732,9 @@ export default class VarsComputeController {
                 node.var_data.value = cache_complet.value;
                 node.var_data.value_ts = cache_complet.value_ts;
                 node.var_data.value_type = cache_complet.value_type;
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':OK:' + cache_complet.value + ':' + cache_complet.value_ts + ':' + cache_complet.id);
+                }
             },
             this,
             null,

@@ -1,4 +1,4 @@
-import { Cancelable, throttle, ThrottleSettings } from 'lodash';
+import { Cancelable, isArray, throttle, ThrottleSettings } from 'lodash';
 
 export default class ThrottleHelper {
 
@@ -67,8 +67,9 @@ export default class ThrottleHelper {
             func(params);
         }, wait_ms, options);
 
-        return (stackable_args: any[]) => {
-            ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stackable_args);
+        return (stackable_args: any | any[]) => {
+            let stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
+            ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stack);
         };
     }
 

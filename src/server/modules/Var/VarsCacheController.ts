@@ -277,6 +277,7 @@ export default class VarsCacheController {
                 let varconf = VarsController.getInstance().var_conf_by_id[var_cache_conf.var_id];
                 if (!varconf.pixel_activated) {
                     ConsoleHandler.getInstance().error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
+                    throw new Error('Not Implemented');
                 }
 
                 let is_pixel = true;

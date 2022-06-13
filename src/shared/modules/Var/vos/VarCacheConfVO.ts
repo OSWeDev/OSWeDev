@@ -22,7 +22,7 @@ export default class VarCacheConfVO implements IDistantVOBase {
     public cache_timeout_secs: number;
 
     public cache_startegy: number;
-    public cache_bdd_only_requested_params: number;
+    public cache_bdd_only_requested_params: boolean;
 
     public cache_seuil_a: number;
     public cache_seuil_b: number;
