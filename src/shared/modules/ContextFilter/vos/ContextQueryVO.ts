@@ -42,16 +42,18 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Pour limiter le nombre de résultats sur un select
      *  0 => no limit
+     * limit est un nom réservé, renommage en query_limit
      */
-    public limit: number;
+    public query_limit: number;
 
     /**
      * Pour décaler le curseur dans le cas d'un select
      *  0 => on renvoie dès le premier résultat
      *  10 => on renvoie à partir du 11ème résultat (on ignore les 10 premiers)
      * Pas d'offset sans limit (cf postgresql LIMIT)
+     * offset est un nom réservé, renommage en query_offset
      */
-    public offset: number;
+    public query_offset: number;
 
     /**
      * Pour ajouter un ordre à la requête : null pour garder l'ordre par défaut
@@ -80,8 +82,9 @@ export default class ContextQueryVO implements IDistantVOBase {
 
     /**
      * Force DISTINCT results (using GROUP BY instead of SELECT DISTINCT)
+     * distinct est un nom réservé, renommage en query_distinct
      */
-    public distinct: boolean;
+    public query_distinct: boolean;
 
     /**
      * Pour exclure des fields pour réaliser les chemins (par exemple si on veut utiliser le field B et non A qui font référence au
@@ -478,8 +481,8 @@ export default class ContextQueryVO implements IDistantVOBase {
         if ((!limit) && (!!offset)) {
             throw new Error('Cannot set offset with no limit');
         }
-        this.limit = limit;
-        this.offset = offset;
+        this.query_limit = limit;
+        this.query_offset = offset;
 
         return this;
     }
@@ -639,14 +642,14 @@ export const query = (API_TYPE_ID: string) => {
     let res = new ContextQueryVO();
     res.base_api_type_id = API_TYPE_ID;
     res.active_api_type_ids = [API_TYPE_ID];
-    res.limit = 0;
-    res.offset = 0;
+    res.query_limit = 0;
+    res.query_offset = 0;
     res.fields = null;
     res.filters = null;
     res.is_access_hook_def = false;
     res.query_tables_prefix = null;
     res.sort_by = null;
     res.use_technical_field_versioning = false;
-    res.distinct = false;
+    res.query_distinct = false;
     return res;
 };

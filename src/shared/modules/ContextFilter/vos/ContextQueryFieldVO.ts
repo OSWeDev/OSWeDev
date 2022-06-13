@@ -28,9 +28,9 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public aggregator: number;
 
     public constructor(
-        api_type_id: string,
-        field_id: string,
-        alias: string,
+        api_type_id: string = null,
+        field_id: string = null,
+        alias: string = null,
         aggregator: number = VarConfVO.NO_AGGREGATOR
     ) {
         this.api_type_id = api_type_id;

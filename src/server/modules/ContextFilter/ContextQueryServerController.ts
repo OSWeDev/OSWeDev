@@ -75,7 +75,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query.fields param');
         }
 
-        context_query.distinct = false;
+        context_query.query_distinct = false;
 
         let query = await this.build_select_query(context_query);
         if (!query) {
@@ -162,7 +162,7 @@ export default class ContextQueryServerController {
         }
 
         // On force des résultats distincts sur un datatable row
-        context_query.distinct = true;
+        context_query.query_distinct = true;
         let query = await this.build_select_query(context_query);
         if (!query) {
             throw new Error('Invalid query');
@@ -290,7 +290,7 @@ export default class ContextQueryServerController {
         /**
          * On a besoin d'utiliser les limit / offset et sortBy donc on refuse ces infos en amont
          */
-        if (context_query.limit || context_query.offset || context_query.sort_by) {
+        if (context_query.query_limit || context_query.query_offset || context_query.sort_by) {
             throw new Error('Invalid context_query param');
         }
 
@@ -299,8 +299,8 @@ export default class ContextQueryServerController {
          * et on sort by id desc pour éviter que l'ordre change pendant le process
          * au pire si on a des nouvelles lignes, elles nous forcerons à remodifier des lignes déjà updatées. probablement pas très grave
          */
-        context_query.offset = 0;
-        context_query.limit = 100;
+        context_query.query_offset = 0;
+        context_query.query_limit = 100;
         let might_have_more: boolean = true;
         context_query.sort_by = new SortByVO(context_query.base_api_type_id, 'id', false);
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
@@ -330,8 +330,8 @@ export default class ContextQueryServerController {
                 });
                 await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
 
-                might_have_more = (vos.length >= context_query.limit);
-                context_query.offset += change_offset ? context_query.limit : 0;
+                might_have_more = (vos.length >= context_query.query_limit);
+                context_query.query_offset += change_offset ? context_query.query_limit : 0;
             }
         }
     }
@@ -347,15 +347,15 @@ export default class ContextQueryServerController {
         /**
          * On a besoin d'utiliser les limit / offset et sortBy donc on refuse ces infos en amont
          */
-        if (context_query.limit || context_query.offset || context_query.sort_by) {
+        if (context_query.query_limit || context_query.query_offset || context_query.sort_by) {
             throw new Error('Invalid context_query param');
         }
 
         /**
          * On se fixe des paquets de 100 vos à delete
          */
-        context_query.offset = 0;
-        context_query.limit = 100;
+        context_query.query_offset = 0;
+        context_query.query_limit = 100;
         let might_have_more: boolean = true;
 
         while (might_have_more) {
@@ -368,7 +368,7 @@ export default class ContextQueryServerController {
 
             await ModuleDAO.getInstance().deleteVOs(vos);
 
-            might_have_more = (vos.length >= context_query.limit);
+            might_have_more = (vos.length >= context_query.query_limit);
         }
     }
 
@@ -435,7 +435,7 @@ export default class ContextQueryServerController {
 
             if (!context_query.fields) {
 
-                if (context_query.distinct) {
+                if (context_query.query_distinct) {
                     /**
                      * Aucun sens en fait de sélectionner des vos distincts
                      */
@@ -556,7 +556,7 @@ export default class ContextQueryServerController {
 
 
             let GROUP_BY = ' ';
-            if (context_query.distinct) {
+            if (context_query.query_distinct) {
 
                 GROUP_BY = ' GROUP BY ';
                 let group_bys = [];
@@ -586,7 +586,7 @@ export default class ContextQueryServerController {
                     is_selected_field = true;
                 }
 
-                if (is_selected_field || !context_query.distinct) {
+                if (is_selected_field || !context_query.query_distinct) {
 
                     SORT_BY += ' ORDER BY ' + tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id +
                         (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
@@ -853,11 +853,11 @@ export default class ContextQueryServerController {
             return query_str;
         }
 
-        if (context_query.limit) {
-            query_str += ' LIMIT ' + context_query.limit;
+        if (context_query.query_limit) {
+            query_str += ' LIMIT ' + context_query.query_limit;
 
-            if (context_query.offset) {
-                query_str += ' OFFSET ' + context_query.offset;
+            if (context_query.query_offset) {
+                query_str += ' OFFSET ' + context_query.query_offset;
             }
         }
 
@@ -871,11 +871,11 @@ export default class ContextQueryServerController {
         }
 
         let res = '';
-        if (context_query.limit) {
-            res += ' LIMIT ' + context_query.limit;
+        if (context_query.query_limit) {
+            res += ' LIMIT ' + context_query.query_limit;
 
-            if (context_query.offset) {
-                res += ' OFFSET ' + context_query.offset;
+            if (context_query.query_offset) {
+                res += ' OFFSET ' + context_query.query_offset;
             }
         }
 

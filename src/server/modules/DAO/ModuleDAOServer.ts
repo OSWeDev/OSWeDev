@@ -1583,8 +1583,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 query.base_api_type_id = vo._type;
                 query.active_api_type_ids = [vo._type];
                 query.filters = filters;
-                query.limit = 1;
-                query.offset = 0;
+                query.query_limit = 1;
+                query.query_offset = 0;
 
                 /**
                  * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base

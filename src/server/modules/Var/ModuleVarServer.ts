@@ -1581,8 +1581,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         query.base_api_type_id = SlowVarVO.API_TYPE_ID;
         query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
         query.filters = [filter];
-        query.limit = 0;
-        query.offset = 0;
+        query.query_limit = 0;
+        query.query_offset = 0;
 
         let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
 

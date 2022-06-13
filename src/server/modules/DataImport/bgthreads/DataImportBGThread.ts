@@ -390,8 +390,8 @@ export default class DataImportBGThread implements IBGThread {
         query.base_api_type_id = DataImportHistoricVO.API_TYPE_ID;
         query.active_api_type_ids = [DataImportHistoricVO.API_TYPE_ID];
         query.filters = [filter_state, filter_reimport_of_dih_id, filter_status_of_last_reimport, filter_last_up_date, filter_status_before_reimport];
-        query.limit = 0;
-        query.offset = 0;
+        query.query_limit = 0;
+        query.query_offset = 0;
 
         let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().select_vos<DataImportHistoricVO>(query);
 
