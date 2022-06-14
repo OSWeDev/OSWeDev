@@ -3,12 +3,18 @@
 .openclose_on_page_translation_module_wrapper {
     .btn {
         border-radius: 5px;
-        box-shadow: 1px 1px 3px #333;
         padding: 5px 12px 4px;
+        border: solid 1px #CCC;
+
+        &.btn-secondary {
+            background: white;
+        }
     }
 
     .badge {
         margin-left: 5px;
+
+        background-color: black;
 
         &.badge-danger {
             background-color: #b3003c;

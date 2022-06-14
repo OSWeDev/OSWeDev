@@ -119,7 +119,7 @@ export default class TableWidgetComponent extends VueComponentBase {
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
     private can_filter_by(column: TableColumnDescVO): boolean {
-        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by && column.readonly;
+        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by && column.readonly && (column.datatable_field_uid != '__crud_actions');
     }
 
     private is_filtering_by_col(column: TableColumnDescVO): boolean {

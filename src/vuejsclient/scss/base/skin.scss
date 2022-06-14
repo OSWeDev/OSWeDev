@@ -165,13 +165,13 @@ i.fa.fa-spin:before {
 }
 
 .primary_theme_bg {
-    background-color: $button_primary_bg_color  !important;
-    color: $button_text_color  !important;
+    background-color: $button_primary_bg_color !important;
+    color: $button_text_color !important;
 }
 
 .primary_theme_light_bg {
-    background-color: $button_primary_active_bg_color  !important;
-    color: $button_text_color  !important;
+    background-color: $button_primary_active_bg_color !important;
+    color: $button_text_color !important;
 }
 
 .table_total_row td {
@@ -355,4 +355,16 @@ i.fa.fa-spin:before {
             background-color: #3c763d !important;
         }
     }
+}
+
+#VueMain .snotify-leftBottom,
+#VueMain .snotify-rightBottom,
+#VueMain .snotify-centerBottom {
+    bottom: 46px;
+}
+
+#VueMain .snotify-rightTop,
+#VueMain .snotify-rightCenter,
+#VueMain .snotify-rightBottom {
+    right: 4px;
 }
