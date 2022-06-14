@@ -261,6 +261,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -357,6 +358,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tsrange:
@@ -752,6 +754,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_hour:
             case ModuleTableField.FIELD_TYPE_tstz:
                 dest_vo[field_id] = ConversionHandler.forceNumber(field_value);
+                break;
+
+            case ModuleTableField.FIELD_TYPE_float_array:
+                dest_vo[field_id] = field_value.map(Number);
                 break;
 
             case ModuleTableField.FIELD_TYPE_int_array:

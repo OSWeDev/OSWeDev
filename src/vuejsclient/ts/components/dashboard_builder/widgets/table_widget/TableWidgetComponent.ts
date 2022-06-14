@@ -199,6 +199,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_int_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -298,6 +299,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_file_field:
                 case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:

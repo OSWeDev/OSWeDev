@@ -113,6 +113,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -222,6 +223,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -327,6 +329,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -427,6 +430,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -527,6 +531,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -632,6 +637,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -737,6 +743,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -776,6 +783,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -876,6 +884,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -976,6 +985,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1070,6 +1080,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1111,6 +1122,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1152,6 +1164,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1193,6 +1206,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1243,6 +1257,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1293,6 +1308,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1327,6 +1343,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
 
                     case ModuleTableField.FIELD_TYPE_numrange:
@@ -1373,6 +1390,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tstz:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_tsrange:
@@ -1432,6 +1450,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1464,6 +1483,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1654,6 +1674,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1698,6 +1719,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:

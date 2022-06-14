@@ -526,6 +526,7 @@ export default class CRUDComponent extends VueComponentBase {
                 }
 
                 if ((simpleFieldType == ModuleTableField.FIELD_TYPE_tstz_array) ||
+                    (simpleFieldType == ModuleTableField.FIELD_TYPE_float_array) ||
                     (simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) ||
                     (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) ||
                     (simpleFieldType == ModuleTableField.FIELD_TYPE_html_array)) {

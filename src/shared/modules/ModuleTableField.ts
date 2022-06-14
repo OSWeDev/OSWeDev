@@ -44,6 +44,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_file_field: string = 'file';
     public static FIELD_TYPE_isoweekdays: string = 'isoweekdays';
     public static FIELD_TYPE_int_array: string = 'number[]';
+    public static FIELD_TYPE_float_array: string = 'float[]';
     public static FIELD_TYPE_string_array: string = 'text[]';
     public static FIELD_TYPE_prct: string = 'pct';
     public static FIELD_TYPE_hours_and_minutes_sans_limite: string = 'HourAndMinuteWithoutLimit';
@@ -500,6 +501,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_html_array:
                 return (db_type == "text[]") || (db_type == "ARRAY");
 
+            case ModuleTableField.FIELD_TYPE_float_array:
+                return (db_type == "float8[]") || (db_type == "ARRAY") || (db_type == "numeric[]");
+
             case ModuleTableField.FIELD_TYPE_int_array:
                 return (db_type == "bigint[]") || (db_type == "ARRAY");
 
@@ -600,6 +604,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_html_array:
                 return "text[]";
+
+            case ModuleTableField.FIELD_TYPE_float_array:
+                return "numeric[]";
 
             case ModuleTableField.FIELD_TYPE_int_array:
                 return "bigint[]";
@@ -718,6 +725,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:

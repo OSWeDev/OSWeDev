@@ -30,4 +30,5 @@ export default class VarCacheConfVO implements IDistantVOBase {
     public cache_seuil_c_element: number;
     public cache_seuil_bdd: number;
     public calculation_cost_for_1000_card: number;
+    public last_calculations_cost_for_1000_card: number[];
 }
