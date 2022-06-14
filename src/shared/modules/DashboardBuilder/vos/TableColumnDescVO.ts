@@ -21,6 +21,9 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public static TYPE_select_box: number = 3;
     public static TYPE_component: number = 4;
 
+    public static SORT_asc: number = 0;
+    public static SORT_desc: number = 1;
+
 
     public id: number;
     public _type: string = TableColumnDescVO.API_TYPE_ID;
@@ -28,6 +31,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public type: number;
 
     public column_width: number;
+    public default_sort_field: number;
 
     /**
      * On filtre par un droit d'accès (le nom du droit en l'occurrence)

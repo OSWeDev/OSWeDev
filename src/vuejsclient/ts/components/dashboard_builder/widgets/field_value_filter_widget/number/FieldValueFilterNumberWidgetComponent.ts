@@ -421,6 +421,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
+                    options.segmentation_type,
                 ) : null;
             }
         } catch (error) {

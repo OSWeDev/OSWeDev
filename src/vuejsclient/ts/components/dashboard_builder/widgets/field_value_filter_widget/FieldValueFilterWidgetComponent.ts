@@ -9,6 +9,7 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import FieldValueFilterBooleanWidgetComponent from './boolean/FieldValueFilterBooleanWidgetComponent';
+import FieldValueFilterDateWidgetComponent from './date/FieldValueFilterDateWidgetComponent';
 import FieldValueFilterEnumWidgetComponent from './enum/FieldValueFilterEnumWidgetComponent';
 import './FieldValueFilterWidgetComponent.scss';
 import FieldValueFilterNumberWidgetComponent from './number/FieldValueFilterNumberWidgetComponent';
@@ -21,6 +22,7 @@ import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStri
         Fieldvaluefilterstringwidgetcomponent: FieldValueFilterStringWidgetComponent,
         Fieldvaluefilterbooleanwidgetcomponent: FieldValueFilterBooleanWidgetComponent,
         Fieldvaluefilterenumwidgetcomponent: FieldValueFilterEnumWidgetComponent,
+        Fieldvaluefilterdatewidgetcomponent: FieldValueFilterDateWidgetComponent,
         Fieldvaluefilternumberwidgetcomponent: FieldValueFilterNumberWidgetComponent
     }
 })
@@ -70,6 +72,27 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_enum:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    get is_type_date(): boolean {
+
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
+            return false;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+        if (!field) {
+            return false;
+        }
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_tstz:
                 return true;
 
             default:
@@ -196,6 +219,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
+                    options.segmentation_type,
                 ) : null;
             }
         } catch (error) {

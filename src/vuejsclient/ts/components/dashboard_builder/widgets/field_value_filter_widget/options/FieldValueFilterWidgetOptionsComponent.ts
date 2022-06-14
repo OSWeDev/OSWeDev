@@ -3,6 +3,8 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -35,6 +37,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     private max_visible_options: number = null;
+    private tmp_segmentation_type: DataFilterOption = null;
 
     private next_update_options: FieldValueFilterWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -43,9 +46,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private onchange_widget_options() {
         if (!this.widget_options) {
             this.max_visible_options = null;
+            this.tmp_segmentation_type = null;
             return;
         }
         this.max_visible_options = this.widget_options.max_visible_options;
+        this.tmp_segmentation_type = !!this.widget_options.segmentation_type ? this.segmentation_type_options.find((e) => e.numeric_value == this.widget_options.segmentation_type) : null;
     }
 
     @Watch('max_visible_options')
@@ -57,6 +62,20 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         if (this.widget_options.max_visible_options != this.max_visible_options) {
             this.next_update_options = this.widget_options;
             this.next_update_options.max_visible_options = this.max_visible_options;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('tmp_segmentation_type')
+    private async onchange_tmp_segmentation_type() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.tmp_segmentation_type || (this.widget_options.segmentation_type != this.tmp_segmentation_type.numeric_value)) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.segmentation_type = this.tmp_segmentation_type ? this.tmp_segmentation_type.numeric_value : null;
 
             await this.throttled_update_options();
         }
@@ -74,7 +93,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -95,7 +115,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -116,7 +137,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -137,7 +159,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -196,6 +219,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         return !!this.widget_options.hide_lvl2_if_lvl1_not_selected;
+    }
+
+    get segmentation_type(): number {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.segmentation_type;
     }
 
     get vo_field_ref(): VOFieldRefVO {
@@ -298,6 +330,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
+                    options.segmentation_type,
                 ) : null;
             }
         } catch (error) {
@@ -319,7 +352,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -345,7 +379,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -371,7 +406,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.is_checkbox,
                 50,
                 this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected
+                this.hide_lvl2_if_lvl1_not_selected,
+                this.segmentation_type,
             );
         }
 
@@ -444,5 +480,41 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             default:
                 return false;
         }
+    }
+
+    get is_type_date(): boolean {
+
+        if ((!this.vo_field_ref) || (!this.vo_field_ref.api_type_id) || (!this.vo_field_ref.field_id)) {
+            return false;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+        if (!field) {
+            return false;
+        }
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_tstz:
+                return true;
+        }
+    }
+
+    get segmentation_type_options(): DataFilterOption[] {
+        let res: DataFilterOption[] = [];
+
+        for (let segmentation_type in TimeSegment.TYPE_NAMES_ENUM) {
+            let new_opt: DataFilterOption = new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
+                parseInt(segmentation_type)
+            );
+
+            new_opt.numeric_value = parseInt(segmentation_type);
+
+            res.push(new_opt);
+        }
+
+        return res;
     }
 }

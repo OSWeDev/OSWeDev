@@ -40,6 +40,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private column_width: number = 0;
     private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width, 800, { leading: false, trailing: true });
+
+    private default_sort_field: number = 0;
+    private throttled_update_default_sort_field = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_default_sort_field, 800, { leading: false, trailing: true });
+
     private throttled_update_enum_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_enum_colors, 800, { leading: false, trailing: true });
 
     private filter_by_access_options: string[] = [];
@@ -67,6 +71,36 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         return this.t(table.label.code_text) +
             ' > ' +
             this.t(field.field_label.code_text);
+    }
+
+    get default_sort_field_tooltip(): string {
+        if (!this.column) {
+            return null;
+        }
+
+        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
+        if (!table) {
+            return null;
+        }
+        let field = table.get_field_by_id(this.column.field_id);
+        if (!field) {
+            return null;
+        }
+
+        let res: string[] = [
+            this.t(table.label.code_text),
+            this.t(field.field_label.code_text)
+        ];
+
+        if (this.default_sort_field == TableColumnDescVO.SORT_asc) {
+            res.push(this.label('column.sort.asc'));
+        } else if (this.default_sort_field == TableColumnDescVO.SORT_desc) {
+            res.push(this.label('column.sort.desc'));
+        } else {
+            res.push(this.label('column.sort.no'));
+        }
+
+        return res.join(' > ');
     }
 
     private async update_enum_colors() {
@@ -132,6 +166,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     @Watch('column', { immediate: true })
     private onchange_column() {
         this.column_width = this.object_column ? this.object_column.column_width : 0;
+        this.default_sort_field = this.object_column ? this.object_column.default_sort_field : null;
 
         if (this.object_column && this.object_column.is_enum) {
             let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.object_column.api_type_id].getFieldFromId(this.object_column.field_id);
@@ -160,10 +195,23 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.throttled_update_column_width();
     }
 
+    @Watch('default_sort_field', { immediate: true })
+    private onchange_default_sort_field() {
+        this.throttled_update_default_sort_field();
+    }
+
     private async update_column_width() {
 
         if (this.object_column && (this.column_width != this.object_column.column_width)) {
             this.object_column.column_width = this.column_width;
+            this.$emit('update_column', this.object_column);
+        }
+    }
+
+    private async update_default_sort_field() {
+
+        if (this.object_column && (this.default_sort_field != this.object_column.default_sort_field)) {
+            this.object_column.default_sort_field = this.default_sort_field;
             this.$emit('update_column', this.object_column);
         }
     }
@@ -243,6 +291,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
         new_column.column_width = 0;
+        new_column.default_sort_field = null;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -270,6 +319,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
         new_column.column_width = 0;
+        new_column.default_sort_field = null;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -314,6 +364,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = true;
         new_column.column_width = 0;
+        new_column.default_sort_field = null;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -459,5 +510,23 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private remove_column() {
         this.$emit('remove_column', this.object_column);
+    }
+
+    private change_default_sort_field() {
+        if (this.default_sort_field == null) {
+            this.default_sort_field = this.sort_asc;
+        } else if (this.default_sort_field == this.sort_asc) {
+            this.default_sort_field = this.sort_desc;
+        } else if (this.default_sort_field == this.sort_desc) {
+            this.default_sort_field = null;
+        }
+    }
+
+    get sort_asc(): number {
+        return TableColumnDescVO.SORT_asc;
+    }
+
+    get sort_desc(): number {
+        return TableColumnDescVO.SORT_desc;
     }
 }

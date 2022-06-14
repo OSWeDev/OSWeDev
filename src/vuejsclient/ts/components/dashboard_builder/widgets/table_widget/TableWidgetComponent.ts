@@ -94,7 +94,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     private selected_rows: any[] = [];
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
-    private debounced_onchange_dashboard_vo_route_param = debounce(this.onchange_dashboard_vo_route_param, 10);
+    private debounced_onchange_dashboard_vo_route_param = debounce(this.onchange_dashboard_vo_route_param, 100);
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
@@ -863,6 +863,22 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+
+        // Si j'ai un tri par defaut, je l'applique au tableau
+        if (this.columns) {
+            this.order_asc_on_id = null;
+            this.order_desc_on_id = null;
+
+            for (let i in this.columns) {
+                if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_asc) {
+                    this.order_asc_on_id = this.columns[i].id;
+                    break;
+                } else if (this.columns[i].default_sort_field == TableColumnDescVO.SORT_desc) {
+                    this.order_desc_on_id = this.columns[i].id;
+                    break;
+                }
+            }
+        }
 
         let promises = [
             this.throttled_update_visible_options(),

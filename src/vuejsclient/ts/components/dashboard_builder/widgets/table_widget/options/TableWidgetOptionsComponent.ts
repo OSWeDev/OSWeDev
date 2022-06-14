@@ -238,13 +238,33 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
+        let old_column: TableColumnDescVO = null;
+
         let i = this.next_update_options.columns.findIndex((column) => {
-            return column.id == update_column.id;
+            if (column.id == update_column.id) {
+                old_column = column;
+                return true;
+            }
+
+            return false;
         });
 
         if (i < 0) {
             ConsoleHandler.getInstance().error('update_column failed');
             return null;
+        }
+
+        // Si on essaye de mettre à jour le tri par defaut, on réinitialise tous les autres pour en avoir qu'un seul actif
+        if (old_column.default_sort_field != update_column.default_sort_field) {
+            for (let i_col in this.next_update_options.columns) {
+                if (this.next_update_options.columns[i_col].id == old_column.id) {
+                    continue;
+                }
+
+                if (this.next_update_options.columns[i_col].default_sort_field != null) {
+                    this.next_update_options.columns[i_col].default_sort_field = null;
+                }
+            }
         }
 
         this.next_update_options.columns[i] = update_column;

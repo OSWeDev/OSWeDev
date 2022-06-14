@@ -66,6 +66,14 @@
             .remove_column(@click="remove_column" v-tooltip='vo_ref_tooltip')
                 i.fa.fa-trash(aria-hidden="true")
 
+            .default_sort_field(v-tooltip='default_sort_field_tooltip')
+                template(v-if="default_sort_field == sort_asc")
+                    i.fa.fa-sort-asc(@click="change_default_sort_field" aria-hidden="true")
+                template(v-else-if="default_sort_field == sort_desc")
+                    i.fa.fa-sort-desc(@click="change_default_sort_field" aria-hidden="true")
+                template(v-else)
+                    i.fa.fa-sort(@click="change_default_sort_field" aria-hidden="true")
+
             template(v-if='!show_options')
                 .show_options(@click="unhide_options")
                     i.fa.fa-plus(aria-hidden="true")
