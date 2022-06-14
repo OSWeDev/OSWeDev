@@ -29,6 +29,9 @@ export default class MultiInputComponent extends VueComponentBase {
     private disabled: boolean;
 
     @Prop({ default: null })
+    private input_step: number;
+
+    @Prop({ default: null })
     private value: any[];
 
     @Prop({ default: null })

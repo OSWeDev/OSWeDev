@@ -200,14 +200,26 @@
                 img.option__image(v-if="field.enumIdToHumanReadableImage(props.option) && show_option_image" :src="field.enumIdToHumanReadableImage(props.option)", :alt="field.enumIdToHumanReadable(props.option)")
                 .option__desc
                     span.option__label {{ field.enumIdToHumanReadable(props.option) }}
-
-    template(v-else-if="field_type == 'number[]'")
+    
+    template(v-else-if="field_type == 'float[]'")
         Multiinputcomponent(
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value", :id="input_elt_id" :vo="vo", :field="field",
             :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))",
             type_input="number", @input_with_infos="validateMultiInput")
+    template(v-else-if="field_type == 'number[]'")
+        Multiinputcomponent(
+            ref="input_elt"
+            :inline_input_mode='inline_input_mode'
+            v-model="field_value"
+            :id="input_elt_id"
+            vo="vo"
+            :field="field"
+            :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"
+            type_input="number"
+            input_step='any'
+            @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
         Multiinputcomponent(
             ref="input_elt"
