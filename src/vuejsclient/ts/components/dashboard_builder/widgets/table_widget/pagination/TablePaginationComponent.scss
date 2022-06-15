@@ -17,7 +17,7 @@
         .vue-slider.vue-slider-ltr {
             cursor: pointer;
         }
-        
+
         .custom-dot {
             margin-top: -50%;
             width: 300%;
@@ -30,14 +30,13 @@
             padding-top: .3em;
             border-radius: 10%;
         }
+
         .custom-dot:hover {
             border-radius: 25%;
         }
     }
 
     .pagination_form {
-        
-        text-align: right;
 
         form {
             display: inline-block;
