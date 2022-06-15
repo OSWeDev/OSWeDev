@@ -61,7 +61,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private dashboard_page: DashboardPageVO;
 
     private tmp_filter_active_options: DataFilterOption[] = [];
-    private tmp_filter_active_options_lvl2: DataFilterOption[] = [];
+    private tmp_filter_active_options_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
     private active_option_lvl1: { [filter_opt_value: string]: boolean } = {};
 
     private filter_visible_options: DataFilterOption[] = [];
@@ -113,8 +113,41 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
+        // Si on doit masquer le lvl2, on va désactiver tous les options lvl2 qui ne doivent plus être cochées
+        if (this.hide_lvl2_if_lvl1_not_selected) {
+            // Si plus d'optlvl1 actif, je désactive tous les lvl2
+            if (!this.tmp_filter_active_options || !this.tmp_filter_active_options.length) {
+                this.tmp_filter_active_options_lvl2 = {};
+                return;
+            }
+
+            // On regarde quelles optlvl1 est actif
+            let optlvl1_by_label: { [label: string]: boolean } = {};
+
+            for (let i in this.tmp_filter_active_options) {
+                optlvl1_by_label[this.tmp_filter_active_options[i].label] = true;
+            }
+
+            let has_changes: boolean = false;
+            let new_tmp_filter_active_options_lvl2 = {};
+            for (let filter_opt_value in this.tmp_filter_active_options_lvl2) {
+                if (optlvl1_by_label[filter_opt_value]) {
+                    // On garde le filtre car le lvl1 est actif
+                    new_tmp_filter_active_options_lvl2[filter_opt_value] = this.tmp_filter_active_options_lvl2[filter_opt_value];
+                    continue;
+                }
+
+                has_changes = true;
+            }
+
+            if (has_changes) {
+                this.tmp_filter_active_options_lvl2 = new_tmp_filter_active_options_lvl2;
+                return;
+            }
+        }
+
         // Si on a un lvl2, on va filtrer par leurs valeurs donc on va dans l'autre fonction
-        if (this.vo_field_ref_lvl2 && this.tmp_filter_active_options_lvl2 && (this.tmp_filter_active_options_lvl2.length > 0)) {
+        if (this.vo_field_ref_lvl2 && this.tmp_filter_active_options_lvl2 && (Object.keys(this.tmp_filter_active_options_lvl2).length > 0)) {
             this.onchange_tmp_filter_active_options_lvl2();
             return;
         }
@@ -131,24 +164,19 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
-        let vo_field_ref_context_filter: ContextFilterVO = this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options);
-        let vo_field_ref_lvl2_context_filter: ContextFilterVO = this.get_active_field_filter(this.vo_field_ref_lvl2, this.tmp_filter_active_options_lvl2);
+        this.set_active_field_filter(this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options));
 
-        let active_field_filter: ContextFilterVO = null;
+        let active_field_filter_lvl2: ContextFilterVO = null;
 
-        if (vo_field_ref_context_filter) {
-            active_field_filter = vo_field_ref_context_filter;
-        }
-
-        if (vo_field_ref_lvl2_context_filter) {
-            if (!active_field_filter) {
-                active_field_filter = vo_field_ref_lvl2_context_filter;
+        for (let i in this.tmp_filter_active_options_lvl2) {
+            if (!active_field_filter_lvl2) {
+                active_field_filter_lvl2 = this.get_active_field_filter(this.vo_field_ref_lvl2, this.tmp_filter_active_options_lvl2[i]);
             } else {
-                active_field_filter = this.merge_ContextFilterVOs(active_field_filter, vo_field_ref_lvl2_context_filter);
+                active_field_filter_lvl2 = this.merge_ContextFilterVOs(active_field_filter_lvl2, this.get_active_field_filter(this.vo_field_ref_lvl2, this.tmp_filter_active_options_lvl2[i]));
             }
         }
 
-        this.set_active_field_filter(active_field_filter);
+        this.set_active_field_filter(active_field_filter_lvl2);
     }
 
     private get_active_field_filter(vo_field_ref: VOFieldRefVO, tmp_filter_active_options: DataFilterOption[]): ContextFilterVO {
@@ -161,13 +189,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             if (tmp_filter_active_options != null) {
                 locale_tmp_filter_active_options = tmp_filter_active_options;
             }
-        }
-
-        let check_lvl1_and_has_lvl2: boolean = false;
-
-        if (this.vo_field_ref_lvl2 && (vo_field_ref.api_type_id == this.vo_field_ref.api_type_id) && (vo_field_ref.field_id == this.vo_field_ref.field_id)) {
-            check_lvl1_and_has_lvl2 = true;
-            vo_field_ref = this.vo_field_ref_lvl2;
         }
 
         if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
@@ -185,31 +206,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             let active_option = locale_tmp_filter_active_options[i];
 
             let active_opts: DataFilterOption[] = [active_option];
-
-            // Si j'ai lvl2 et qu'on demande le champ lvl1, on charge les bonnes données
-            if (check_lvl1_and_has_lvl2) {
-                active_opts = [];
-
-                if (this.filter_visible_options_lvl2[active_option.label] && (this.filter_visible_options_lvl2[active_option.label].length > 0)) {
-                    active_opts = this.filter_visible_options_lvl2[active_option.label];
-                }
-
-                // Si on a déjà lvl2 sélectionné, on va regarder si on est pas déjà en train de filtrer le lvl2 pour ne pas prendre en compte le lvl1
-                if (this.tmp_filter_active_options_lvl2 && (this.tmp_filter_active_options_lvl2.length > 0) && (active_opts.length > 0)) {
-                    let is_lvl2_filter: boolean = false;
-
-                    for (let j in active_opts) {
-                        if (this.tmp_filter_active_options_lvl2.find((e) => e.label == active_opts[j].label)) {
-                            is_lvl2_filter = true;
-                            break;
-                        }
-                    }
-
-                    if (is_lvl2_filter) {
-                        active_opts = [];
-                    }
-                }
-            }
 
             for (let j in active_opts) {
                 let new_translated_active_options = this.get_ContextFilterVO_from_DataFilterOption(active_opts[j], field, vo_field_ref);
@@ -306,7 +302,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         this.tmp_filter_active_options = null;
         this.active_option_lvl1 = {};
-        this.tmp_filter_active_options_lvl2 = null;
+        this.tmp_filter_active_options_lvl2 = {};
 
         if (!!this.vo_field_ref) {
             this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
@@ -656,24 +652,32 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         if (!this.can_select_multiple) {
-            this.tmp_filter_active_options_lvl2 = null;
+            this.tmp_filter_active_options_lvl2 = {};
         }
         this.tmp_filter_active_options = tmp_filter_active_options;
     }
 
-    private onchange_filter_opt_lvl2_input(input: any, opt: DataFilterOption) {
-        let tmp_filter_active_options_lvl2: DataFilterOption[] = cloneDeep(this.tmp_filter_active_options_lvl2);
+    private onchange_filter_opt_lvl2_input(input: any, opt: DataFilterOption, optlvl1: DataFilterOption) {
+        let tmp_filter_active_options_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = cloneDeep(this.tmp_filter_active_options_lvl2);
 
         if (!tmp_filter_active_options_lvl2 || !this.can_select_multiple) {
-            tmp_filter_active_options_lvl2 = [];
+            tmp_filter_active_options_lvl2 = {};
         }
 
-        let opt_index: number = tmp_filter_active_options_lvl2.findIndex((e) => e.label == opt.label);
+        let opt_index: number = -1;
+
+        if (tmp_filter_active_options_lvl2[optlvl1.label]) {
+            opt_index = tmp_filter_active_options_lvl2[optlvl1.label].findIndex((e) => e.label == opt.label);
+        }
 
         if (opt_index >= 0) {
-            tmp_filter_active_options_lvl2.splice(opt_index, 1);
+            tmp_filter_active_options_lvl2[optlvl1.label].splice(opt_index, 1);
         } else {
-            tmp_filter_active_options_lvl2.push(opt);
+            if (!tmp_filter_active_options_lvl2[optlvl1.label]) {
+                tmp_filter_active_options_lvl2[optlvl1.label] = [];
+            }
+
+            tmp_filter_active_options_lvl2[optlvl1.label].push(opt);
         }
 
         if (!this.can_select_multiple) {

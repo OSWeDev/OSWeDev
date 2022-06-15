@@ -50,7 +50,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return;
         }
         this.max_visible_options = this.widget_options.max_visible_options;
-        this.tmp_segmentation_type = !!this.widget_options.segmentation_type ? this.segmentation_type_options.find((e) => e.numeric_value == this.widget_options.segmentation_type) : null;
+        this.tmp_segmentation_type = !!this.widget_options.segmentation_type ? this.segmentation_type_options.find((e) => e.id == this.widget_options.segmentation_type) : null;
+
+        if (!this.tmp_segmentation_type && this.is_type_date) {
+            let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+
+            if (field && field.segmentation_type) {
+                this.tmp_segmentation_type = this.segmentation_type_options.find((e) => e.id == field.segmentation_type);
+            }
+        }
     }
 
     @Watch('max_visible_options')
@@ -73,9 +81,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return;
         }
 
-        if (!this.tmp_segmentation_type || (this.widget_options.segmentation_type != this.tmp_segmentation_type.numeric_value)) {
+        if (!this.tmp_segmentation_type || (this.widget_options.segmentation_type != this.tmp_segmentation_type.id)) {
             this.next_update_options = this.widget_options;
-            this.next_update_options.segmentation_type = this.tmp_segmentation_type ? this.tmp_segmentation_type.numeric_value : null;
+            this.next_update_options.segmentation_type = this.tmp_segmentation_type ? this.tmp_segmentation_type.id : null;
 
             await this.throttled_update_options();
         }
@@ -509,8 +517,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.t(TimeSegment.TYPE_NAMES_ENUM[segmentation_type]),
                 parseInt(segmentation_type)
             );
-
-            new_opt.numeric_value = parseInt(segmentation_type);
 
             res.push(new_opt);
         }

@@ -32,16 +32,6 @@
             )
     
     template(v-if="is_type_string")
-        .show_search_field 
-            .input_label {{ label('field_value_filter_widget_component.show_search_field') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_show_search_field" 
-                    :value="show_search_field" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
-
         .field_sort 
             .input_label {{ label('field_value_filter_widget_component.vo_field_sort') }}
             .input_wrapper
@@ -61,6 +51,16 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
         template(v-if="is_checkbox")
+            .show_search_field 
+                .input_label {{ label('field_value_filter_widget_component.show_search_field') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_show_search_field" 
+                        :value="show_search_field" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+                        
             .field_ref_lvl2
                 .input_label {{ label('field_value_filter_widget_component.vo_field_ref_lvl2') }}
                 .input_wrapper
@@ -96,9 +96,8 @@
 
                     :searchable="true"
                     :internal-search="false"
-                    :hide-selected="true"
 
-                    track-by="text_uid"
+                    track-by="id"
                                 
                     :select-label='label("multiselect.selectLabel")'
                     :select-group-label='label("multiselect.selectGroupLabel")'
