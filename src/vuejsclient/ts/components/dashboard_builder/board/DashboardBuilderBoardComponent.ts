@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { GridItem, GridLayout } from "vue-grid-layout";
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IEditableDashboardPage from '../../../../../shared/modules/DashboardBuilder/interfaces/IEditableDashboardPage';
@@ -77,6 +77,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private col_num: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
     private max_rows: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_ROWS;
 
+    private item_key: { [item_id: number]: number } = {};
+
     private widgets: DashboardPageWidgetVO[] = [];
 
     private editable_dashboard_page: IEditableDashboardPage = null;
@@ -102,12 +104,22 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }
 
         let i = this.editable_dashboard_page.layout.findIndex((w) => w['id'] == widget.id);
-        if (!i) {
+        if (i < 0) {
             await this.rebuild_page_layout();
             return;
         }
 
         this.editable_dashboard_page.layout[i] = widget;
+
+        let res_key: number = -1;
+
+        if (this.item_key[widget.id] != null) {
+            res_key = this.item_key[widget.id];
+        }
+
+        res_key++;
+
+        Vue.set(this.item_key, widget.id, res_key);
     }
 
     @Watch("dashboard_page", { immediate: true })
