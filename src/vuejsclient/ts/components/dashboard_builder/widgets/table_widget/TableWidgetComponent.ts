@@ -122,7 +122,7 @@ export default class TableWidgetComponent extends VueComponentBase {
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
     private can_filter_by(column: TableColumnDescVO): boolean {
-        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by && column.readonly;
+        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by && column.readonly && (column.datatable_field_uid != '__crud_actions');
     }
 
     private is_filtering_by_col(column: TableColumnDescVO): boolean {
@@ -202,6 +202,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_int_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -301,6 +302,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_file_field:
                 case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:

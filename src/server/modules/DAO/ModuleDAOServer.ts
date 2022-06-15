@@ -1248,6 +1248,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_int_array:
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
 
+            case ModuleTableField.FIELD_TYPE_float_array:
+                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numeric[])";
+
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
@@ -3365,6 +3368,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_hourrange:
                 throw new Error('Not implemented');
 
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
                 throw new Error('Not implemented');
@@ -3398,7 +3402,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return this.get_range_check_simple_field_type_valeur(field, filter_field_type, range, table_name);
         }
 
-        let ranges_query: string = this.get_range_translated_to_bdd_queryable_range(range, field, filter_field_type);
+        let ranges_query: string = DAOServerController.getInstance().get_range_translated_to_bdd_queryable_range(range, field, filter_field_type);
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:
@@ -3444,6 +3448,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 res += table_name + '.' + field.field_id + " <@ " + ranges_query;
                 break;
 
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
                 res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numeric[])";
@@ -3492,6 +3497,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -3510,7 +3516,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let res: string = '';
 
-        let ranges_query: string = this.get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type);
+        let ranges_query: string = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type);
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:
@@ -3549,6 +3555,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 break;
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
@@ -3624,7 +3631,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
          * A <@ ANY(ARRAY['[1,2)'::numrange])
          */
 
-        let ranges_query = 'ANY(' + this.get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type) + ')';
+        let ranges_query = 'ANY(' + DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type) + ')';
 
         /**
          * Dans le cas d'un champs de type range[]
@@ -3682,6 +3689,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -3723,95 +3731,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
-    private get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableField<any>, filter_field_type: string): string {
-        let ranges_query: string = 'ARRAY[';
-
-        let first_range: boolean = true;
-
-        for (let i in ranges) {
-            let range = ranges[i];
-
-            if (!first_range) {
-                ranges_query += ',';
-            }
-
-            first_range = false;
-
-            ranges_query += this.get_range_translated_to_bdd_queryable_range(range, field, filter_field_type);
-        }
-
-        ranges_query += ']';
-
-        return ranges_query;
-    }
-
-
-    private get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableField<any>, filter_field_type: string): string {
-
-        switch (field.field_type) {
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
-            case ModuleTableField.FIELD_TYPE_textarea:
-                if (filter_field_type == ModuleTableField.FIELD_TYPE_tsrange) {
-                    return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::tsrange';
-                }
-                break;
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_enum:
-            case ModuleTableField.FIELD_TYPE_file_ref:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_int_array:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-                if ((filter_field_type == ModuleTableField.FIELD_TYPE_refrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_numrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_isoweekdays)) {
-                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
-                } else if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
-                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
-                }
-                break;
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-            case ModuleTableField.FIELD_TYPE_hourrange:
-                if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
-                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::int8range';
-                }
-                break;
-            case ModuleTableField.FIELD_TYPE_date:
-            case ModuleTableField.FIELD_TYPE_day:
-            case ModuleTableField.FIELD_TYPE_month:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_tstz_array:
-            case ModuleTableField.FIELD_TYPE_tstz:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
-            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                // TODO FIXME
-                break;
-            case ModuleTableField.FIELD_TYPE_daterange:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
-            case ModuleTableField.FIELD_TYPE_tsrange:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
-            case ModuleTableField.FIELD_TYPE_numrange:
-                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min.toString() + "," + range.max.toString() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
-
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                throw new Error('Not implemented');
-                // TODO
-                break;
-        }
-
-        return null;
-    }
-
     private get_range_segment_value_to_bdd(field: ModuleTableField<any>, filter_field_type: string, segmented_value: any): string {
 
         switch (field.field_type) {
@@ -3834,6 +3753,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:

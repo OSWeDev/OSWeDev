@@ -4,7 +4,10 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import DateHandler from '../../../shared/tools/DateHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
@@ -76,6 +79,95 @@ export default class DAOServerController {
 
     private constructor() {
         ForkedTasksController.getInstance().register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, this.add_segmented_known_databases.bind(this));
+    }
+
+    public get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableField<any>, filter_field_type: string): string {
+        let ranges_query: string = 'ARRAY[';
+
+        let first_range: boolean = true;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if (!first_range) {
+                ranges_query += ',';
+            }
+
+            first_range = false;
+
+            ranges_query += this.get_range_translated_to_bdd_queryable_range(range, field, filter_field_type);
+        }
+
+        ranges_query += ']';
+
+        return ranges_query;
+    }
+
+    public get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableField<any>, filter_field_type: string): string {
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
+                if (filter_field_type == ModuleTableField.FIELD_TYPE_tsrange) {
+                    return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::tsrange';
+                }
+                break;
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_float_array:
+            case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+                if ((filter_field_type == ModuleTableField.FIELD_TYPE_refrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_numrange_array) || (filter_field_type == ModuleTableField.FIELD_TYPE_isoweekdays)) {
+                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+                } else if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
+                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+                }
+                break;
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                if (filter_field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
+                    return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::int8range';
+                }
+                break;
+            case ModuleTableField.FIELD_TYPE_date:
+            case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
+            case ModuleTableField.FIELD_TYPE_tstz:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                // TODO FIXME
+                break;
+            case ModuleTableField.FIELD_TYPE_daterange:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+            case ModuleTableField.FIELD_TYPE_numrange:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min.toString() + "," + range.max.toString() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                throw new Error('Not implemented');
+                // TODO
+                break;
+        }
+
+        return null;
     }
 
     /**

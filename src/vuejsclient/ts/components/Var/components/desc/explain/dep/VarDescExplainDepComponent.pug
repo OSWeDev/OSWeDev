@@ -11,6 +11,9 @@
     .row(v-show='opened')
         .col-md-12
             template(v-for='(param, i) in params')
-                Vardescexplaindepparamcomponent(:param='param')
-
+                template(v-if='(i >= 10) && limit_10')
+                template(v-else)
+                    Vardescexplaindepparamcomponent(:param='param')
+            template(v-if='params && (params.length > 10) && limit_10')
+                .var_controller_label(@click='limit_10 = false') {{ label('var_desc_explain_dep.limit_10') }}
                 

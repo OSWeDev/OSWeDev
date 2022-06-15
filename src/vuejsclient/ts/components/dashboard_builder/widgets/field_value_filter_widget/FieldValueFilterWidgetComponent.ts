@@ -140,6 +140,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
             case ModuleTableField.FIELD_TYPE_date:

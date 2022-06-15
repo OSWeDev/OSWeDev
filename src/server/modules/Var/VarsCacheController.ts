@@ -136,7 +136,7 @@ export default class VarsCacheController {
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsCacheController__partially_clean_bdd_cache],
             async () => {
 
-                let timeout = performance.now() + 1000;
+                let timeout = performance.now() + 500;
 
                 let max_earliest_read_days: number = 33;
                 let min_earliest_read_days: number = 8;
@@ -158,6 +158,13 @@ export default class VarsCacheController {
 
                     let var_id = var_ids[this.partially_clean_bdd_cache_var_id_i];
                     let controller: VarConfVO = VarsController.getInstance().var_conf_by_id[var_id];
+                    let var_cache_conf: VarCacheConfVO = VarsServerController.getInstance().varcacheconf_by_var_ids[var_id];
+
+                    if (!var_cache_conf.use_cache_read_ms_to_partial_clean) {
+                        this.partially_clean_bdd_cache_offset = 0;
+                        this.partially_clean_bdd_cache_var_id_i++;
+                        continue;
+                    }
 
                     /**
                      * Cas des pixels qu'on ne veut pas toucher
@@ -277,6 +284,7 @@ export default class VarsCacheController {
                 let varconf = VarsController.getInstance().var_conf_by_id[var_cache_conf.var_id];
                 if (!varconf.pixel_activated) {
                     ConsoleHandler.getInstance().error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
+                    throw new Error('Not Implemented');
                 }
 
                 let is_pixel = true;

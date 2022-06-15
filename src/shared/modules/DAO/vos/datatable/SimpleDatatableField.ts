@@ -227,6 +227,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return none_number ? '∞' : res_numrange.join(' - ');
 
                 case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 case ModuleTableField.FIELD_TYPE_geopoint:
@@ -385,6 +386,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_month:
                     return value ? DateHandler.getInstance().formatDayForSQL(moment(value).utc(true).startOf('month').unix()) : null;
 
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_int_array:
                     return '{' + value.join() + '}';
 

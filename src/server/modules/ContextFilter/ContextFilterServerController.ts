@@ -7,9 +7,11 @@ import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
+import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ContextQueryServerController from './ContextQueryServerController';
 import FieldPathWrapper from './vos/FieldPathWrapper';
@@ -113,6 +115,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -185,7 +188,78 @@ export default class ContextFilterServerController {
                 break;
 
             case ContextFilterVO.TYPE_DATE_EQUALS:
-                throw new Error('Not Implemented');
+                switch (field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                        if (active_field_filter.param_alias != null) {
+                            where_conditions.push(field_id + " = " + active_field_filter.param_alias);
+                            break;
+                        }
+
+                        if (active_field_filter.param_tsranges != null) {
+                            /**
+                             * On devrait renommer en equals_all, et donc si on a un cardinal de tsranges > 1, on a forcément aucun résultat
+                             */
+                            if (RangeHandler.getInstance().getCardinalFromArray(active_field_filter.param_tsranges) != 1) {
+                                where_conditions.push("false");
+                                break;
+                            }
+                            where_conditions.push(field_id + " = " + active_field_filter.param_tsranges[0].min);
+                            throw new Error('Not Implemented');
+                        }
+
+                        if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {
+
+                            /**
+                             * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
+                             */
+                            where_conditions.push(field_id + " is NULL");
+                            break;
+                        }
+
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        throw new Error('Not Implemented');
+
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+
+                        if (active_field_filter.param_tsranges && active_field_filter.param_tsranges.length) {
+
+                            let ranges_clause = null;
+                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_tsranges) + "'";
+                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+
+                            break;
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
+
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
 
             case ContextFilterVO.TYPE_TEXT_EQUALS_ALL:
                 switch (field_type) {
@@ -222,6 +296,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -327,6 +402,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -427,6 +503,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -527,6 +604,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -632,6 +710,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -737,6 +816,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -776,6 +856,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -876,6 +957,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -976,6 +1058,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1070,6 +1153,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1111,6 +1195,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1152,6 +1237,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1193,6 +1279,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1235,14 +1322,18 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                        /**
-                         * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
-                         */
-                        where_conditions.push(field_id + " is not NULL");
-                        break;
+                        if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {
+                            /**
+                             * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
+                             */
+                            where_conditions.push(field_id + " is not NULL");
+                            break;
+                        }
+                        throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1285,14 +1376,21 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                        /**
-                         * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
-                         */
-                        where_conditions.push(field_id + " is NULL");
-                        break;
+                        if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {
+
+                            /**
+                             * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
+                             */
+                            where_conditions.push(field_id + " is NULL");
+                            break;
+                        }
+
+                        throw new Error('Not Implemented');
+
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                         throw new Error('Not Implemented');
 
@@ -1303,7 +1401,17 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_refrange_array:
-                        throw new Error('Not Implemented');
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+
+                            let ranges_clause = null;
+                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_numranges) + "'";
+                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+
+                            break;
+                        } else {
+                            throw new Error('Not Implemented');
+                        }
 
                     default:
                         throw new Error('Not Implemented');
@@ -1327,6 +1435,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
 
                     case ModuleTableField.FIELD_TYPE_numrange:
@@ -1373,6 +1482,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tstz:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_tsrange:
@@ -1432,6 +1542,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1464,6 +1575,7 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1654,6 +1766,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1698,6 +1811,7 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1707,12 +1821,59 @@ export default class ContextFilterServerController {
                 }
                 break;
 
-            case ContextFilterVO.TYPE_FILTER_XOR:
-            case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN:
+                switch (field_type) {
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+
+                        let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                        let table_name = table.full_name.split('.')[1];
+                        let ranges_query = 'ANY(' + DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                            active_field_filter.param_numranges, field, field.field_type
+                        ) + ')';
+
+                        where_conditions.push(
+                            '(' +
+                            '  select count(1)' +
+                            '  from (' +
+                            '   select unnest(tempo2.' + field.field_id + ') a' +
+                            '  from ' + table.full_name + ' tempo2' +
+                            '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                            '  where tempo1.a <@ ' + ranges_query +
+                            '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
             case ContextFilterVO.TYPE_ID_INTERSECTS:
             case ContextFilterVO.TYPE_ID_EQUALS:
             case ContextFilterVO.TYPE_ID_INCLUDES:
+            case ContextFilterVO.TYPE_FILTER_XOR:
+            case ContextFilterVO.TYPE_NUMERIC_INCLUDES:
             case ContextFilterVO.TYPE_ID_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_HOUR_INTERSECTS:
             case ContextFilterVO.TYPE_HOUR_EQUALS:

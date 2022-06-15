@@ -42,6 +42,7 @@ import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
@@ -353,6 +354,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'StepByStep'
         }, 'var_desc.pause.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Limité à 10 deps affichées. Cliquer pour les voir toutes...'
+        }, 'var_desc_explain_dep.limit_10.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable'
@@ -1263,8 +1268,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             [param.index]: param
         };
         let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
+
         let node = VarDAGNode.getInstance(var_dag, param);
-        await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas, ds_cache);
+        // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas, ds_cache);
+        await VarsComputeController.getInstance().load_caches_and_imports_on_var_to_deploy(
+            param,
+            var_dag,
+            deployed_vars_datas,
+            vars_datas,
+            ds_cache,
+            true);
 
         return node.aggregated_datas;
     }
@@ -1272,6 +1285,27 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
         if (!param) {
             return null;
+        }
+
+        /**
+         * Si le calcul est pixellisé, et qu'on est pas sur un pixel, on refuse la demande
+         */
+        let varconf = VarsController.getInstance().var_conf_by_id[param.var_id];
+        if (varconf.pixel_activated) {
+            let is_pixel = true;
+            for (let i in varconf.pixel_fields) {
+                let pixel_field = varconf.pixel_fields[i];
+
+                if (RangeHandler.getInstance().getCardinalFromArray(param[pixel_field.pixel_param_field_id]) != 1) {
+                    is_pixel = false;
+                    break;
+                }
+            }
+
+            if (!is_pixel) {
+                ConsoleHandler.getInstance().warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+                return null;
+            }
         }
 
         /**

@@ -148,7 +148,14 @@ export default class VarsDatasProxy {
                     });
 
                     // On insère quand même dans le cache par ce qu'on veut stocker l'info du read
-                    await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                    for (let i in varsdata) {
+                        let vardata = varsdata[i];
+                        let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[vardata.var_id];
+
+                        if (var_cache_conf.use_cache_read_ms_to_partial_clean) {
+                            await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                        }
+                    }
                 }
 
                 if ((!varsdata) || (varsdata.length != params.length)) {
@@ -228,7 +235,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas)) {
+                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, does_not_need_insert_or_update)) {
                     return;
                 }
 
@@ -313,10 +320,15 @@ export default class VarsDatasProxy {
                         let do_insert = false;
                         let do_delete_from_cache = false;
                         let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
+                        let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
+
+                        /**
+                         * Cas des pixels : on insere initialement, mais jamais ensuite. les infos de lecture on s'en fiche puisque le cache ne doit jamais être invalidé
+                         */
 
                         if (wrapper.needs_insert_or_update) {
                             do_insert = true;
-                        } else {
+                        } else if ((!conf.pixel_activated) || (!conf.pixel_never_delete)) {
 
                             if (!wrapper.nb_reads_since_last_insert_or_update) {
                                 if (Dates.now() > wrapper.timeout) {
@@ -569,6 +581,7 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd],
             async () => {
@@ -586,6 +599,10 @@ export default class VarsDatasProxy {
                 if (var_data.id) {
                     let e = await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
 
+                    if (DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('get_exact_param_from_buffer_or_bdd:e:' + (e ? JSON.stringify(e) : null) + ':');
+                    }
+
                     if (e) {
                         await this.filter_var_datas_by_indexes([e], false, false, true);
                         return e;
@@ -593,6 +610,10 @@ export default class VarsDatasProxy {
                 }
 
                 let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
+
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('get_exact_param_from_buffer_or_bdd:res:' + (res ? JSON.stringify(res) : null) + ':');
+                }
 
                 if (res && res.length) {
                     await this.filter_var_datas_by_indexes([res[0]], false, false, true);
@@ -841,9 +862,10 @@ export default class VarsDatasProxy {
 
                 /**
                  * Si on fait les calculs depuis la Bdd, on mets les vardats dans la pile de mise en cache
+                 *  et on indique que le résultat devra être mis à jour
                  */
                 if (bdd_datas && ObjectHandler.getInstance().hasAtLeastOneAttribute(bdd_datas)) {
-                    await this.prepend_var_datas(Object.values(bdd_datas), true);
+                    await this.prepend_var_datas(Object.values(bdd_datas), false);
                 }
 
                 if (params.bg_nb_vars) {
@@ -1107,6 +1129,12 @@ export default class VarsDatasProxy {
     }
 
     private add_read_stat(var_data_wrapper: VarDataProxyWrapperVO<VarDataBaseVO>) {
+
+        let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id];
+        if (!var_cache_conf.use_cache_read_ms_to_partial_clean) {
+            return;
+        }
+
         var_data_wrapper.nb_reads_since_last_insert_or_update++;
         var_data_wrapper.nb_reads_since_last_check++;
         if (!var_data_wrapper.var_data.last_reads_ts) {

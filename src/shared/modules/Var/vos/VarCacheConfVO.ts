@@ -21,8 +21,19 @@ export default class VarCacheConfVO implements IDistantVOBase {
      */
     public cache_timeout_secs: number;
 
+    /**
+     * Est-ce qu'on utilise la fonction de last-reads pour partial clean du cache, ou on ignore complètement cette logique, ce qui permet de
+     *  réduire fortement les updates en bdd, mais incite à avoir un cache infini, dont le nettoyage est en plus beaucoup plus compliqué puisqu'on
+     *  a pas de trace d'usage de la donnée pour prendre une décision.
+     */
+    public use_cache_read_ms_to_partial_clean: boolean;
+
     public cache_startegy: number;
-    public cache_bdd_only_requested_params: number;
+
+    /**
+     * Define if we limit cache to registered params from users
+     */
+    public cache_bdd_only_requested_params: boolean;
 
     public cache_seuil_a: number;
     public cache_seuil_b: number;
@@ -30,4 +41,5 @@ export default class VarCacheConfVO implements IDistantVOBase {
     public cache_seuil_c_element: number;
     public cache_seuil_bdd: number;
     public calculation_cost_for_1000_card: number;
+    public last_calculations_cost_for_1000_card: number[];
 }

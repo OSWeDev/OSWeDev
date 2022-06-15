@@ -1,5 +1,6 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarPerfVO from '../../../../shared/modules/Var/vos/VarPerfVO';
@@ -14,6 +15,8 @@ import VarsServerController from '../VarsServerController';
  * Par convention on appel toujours __NAME ou [VAR_ID]__NAME les points de traking de perfs
  */
 export default class VarsPerfsController {
+
+    public static NB_MEAN_1000_CARD_CALCULATION_PARAM_NAME: string = 'VarsPerfsController.NB_MEAN_1000_CARD_CALCULATION';
 
     /**
      * Local thread cache ----- n'existe que sur le thread de calculs
@@ -86,6 +89,8 @@ export default class VarsPerfsController {
 
                 ConsoleHandler.getInstance().log('VarsPerfsController do_update_perfs_in_bdd start');
 
+                let nb_mean = await ModuleParams.getInstance().getParamValueAsInt(VarsPerfsController.NB_MEAN_1000_CARD_CALCULATION_PARAM_NAME, 5);
+
                 let mean_per_cardinal_1000_per_var_id: { [var_id: number]: number } = {};
 
                 /**
@@ -157,10 +162,61 @@ export default class VarsPerfsController {
                         continue;
                     }
 
-                    var_cache_conf.calculation_cost_for_1000_card =
-                        (!!var_cache_conf.calculation_cost_for_1000_card) ?
-                            (var_cache_conf.calculation_cost_for_1000_card * 9 + mean_per_cardinal_1000_per_var_id[var_id_s]) / 10 :
-                            mean_per_cardinal_1000_per_var_id[var_id_s];
+                    /**
+                     * On fait une moyenne sur les 5 dernieres valeurs, tout en mettant un poids de 0.1 à la plus grande et à la plus petite valeur
+                     *  donc on divise par 3 + 0.2 au final
+                     */
+
+                    /**
+                     * rétrocompatibilité, si on a aucun historique on le rempli avec la valeur du calculation_cost_for_1000_card actuel
+                     */
+                    if (!var_cache_conf.last_calculations_cost_for_1000_card) {
+                        var_cache_conf.last_calculations_cost_for_1000_card = [];
+
+                        let init_value = var_cache_conf.calculation_cost_for_1000_card ? var_cache_conf.calculation_cost_for_1000_card : mean_per_cardinal_1000_per_var_id[var_id_s];
+                        for (let ii = 0; ii < nb_mean; ii++) {
+                            var_cache_conf.last_calculations_cost_for_1000_card.push(init_value);
+                        }
+                    } else {
+                        var_cache_conf.last_calculations_cost_for_1000_card.push(mean_per_cardinal_1000_per_var_id[var_id_s]);
+                        var_cache_conf.last_calculations_cost_for_1000_card.shift();
+                    }
+
+                    let min_value = null;
+                    let max_value = null;
+                    let min_index = null;
+                    let max_index = null;
+
+                    for (let ij in var_cache_conf.last_calculations_cost_for_1000_card) {
+                        let cost_for_1000_card = var_cache_conf.last_calculations_cost_for_1000_card[ij];
+
+                        if ((min_value == null) || (min_value > cost_for_1000_card)) {
+                            min_value = cost_for_1000_card;
+                            min_index = ij;
+                        }
+
+                        if ((max_value == null) || (max_value > cost_for_1000_card)) {
+                            max_value = cost_for_1000_card;
+                            max_index = ij;
+                        }
+                    }
+
+                    let sum_ = 0;
+                    let coef = 0;
+                    for (let ij in var_cache_conf.last_calculations_cost_for_1000_card) {
+                        let cost_for_1000_card = var_cache_conf.last_calculations_cost_for_1000_card[ij];
+
+                        if ((ij == min_index) || (ij == max_index)) {
+                            sum_ += cost_for_1000_card * 0.1;
+                            coef += 0.1;
+                            continue;
+                        }
+
+                        sum_ += cost_for_1000_card;
+                        coef++;
+                    }
+
+                    var_cache_conf.calculation_cost_for_1000_card = sum_ / coef;
                     VarsServerController.getInstance().varcacheconf_by_var_ids[var_cache_conf.var_id].calculation_cost_for_1000_card = var_cache_conf.calculation_cost_for_1000_card;
                     await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
                 }

@@ -99,6 +99,7 @@ export default class ContextQueryFieldServerController {
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:

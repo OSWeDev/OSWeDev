@@ -206,6 +206,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                     throw new Error('Not Implemented');
 
                 case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_tstz_array:
                     throw new Error('Not Implemented');
 

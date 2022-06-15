@@ -26,6 +26,7 @@ import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarPerfVO from './vos/VarPerfVO';
+import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
 
 export default class ModuleVar extends Module {
 
@@ -113,6 +114,7 @@ export default class ModuleVar extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.initializeVarPixelFieldConfVO();
         this.initializeVarConfVO();
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
@@ -351,6 +353,21 @@ export default class ModuleVar extends Module {
         this.datatables.push(datatable);
     }
 
+    private initializeVarPixelFieldConfVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('pixel_vo_api_type_id', ModuleTableField.FIELD_TYPE_string, 'pixel_vo_api_type_id', false),
+            new ModuleTableField('pixel_vo_field_id', ModuleTableField.FIELD_TYPE_string, 'pixel_vo_field_id', false),
+            new ModuleTableField('pixel_param_field_id', ModuleTableField.FIELD_TYPE_string, 'pixel_param_field_id', false),
+            new ModuleTableField('pixel_range_type', ModuleTableField.FIELD_TYPE_int, 'pixel_range_type', false),
+            new ModuleTableField('pixel_segmentation_type', ModuleTableField.FIELD_TYPE_int, 'pixel_segmentation_type', false)
+        ];
+
+        let datatable = new ModuleTable(this, VarPixelFieldConfVO.API_TYPE_ID, () => new VarPixelFieldConfVO(), datatable_fields, null);
+        datatable.define_default_label_function((vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_id, null);
+        this.datatables.push(datatable);
+    }
+
     private initializeVarConfVO() {
 
         let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur');
@@ -367,7 +384,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
 
             new ModuleTableField('pixel_activated', ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
-            new ModuleTableField('pixel_field', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur le champs', false),
+            new ModuleTableField('pixel_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false).set_plain_obj_cstr(() => new VarPixelFieldConfVO()),
             new ModuleTableField('pixel_never_delete', ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
         ];
 
@@ -383,6 +400,7 @@ export default class ModuleVar extends Module {
 
             // new ModuleTableField('cache_timeout_ms', ModuleTableField.FIELD_TYPE_int, 'Timeout invalidation', true, true, 0),
             new ModuleTableField('cache_timeout_secs', ModuleTableField.FIELD_TYPE_int, 'Timeout invalidation', true, true, 0),
+            new ModuleTableField('use_cache_read_ms_to_partial_clean', ModuleTableField.FIELD_TYPE_boolean, 'Stocker lectures + clean auto', true, true, true),
 
             new ModuleTableField('cache_startegy', ModuleTableField.FIELD_TYPE_enum, 'Stratégie de mise en cache', true, true, 0).setEnumValues(VarCacheConfVO.VALUE_CACHE_STRATEGY_LABELS),
             new ModuleTableField('cache_bdd_only_requested_params', ModuleTableField.FIELD_TYPE_boolean, 'Cacher uniquement les params demandés', true, true, true),
@@ -392,7 +410,8 @@ export default class ModuleVar extends Module {
             new ModuleTableField('cache_seuil_c', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C', true, true, 1000),
             new ModuleTableField('cache_seuil_c_element', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C - élément', true, true, 1000),
             new ModuleTableField('cache_seuil_bdd', ModuleTableField.FIELD_TYPE_float, 'Seuil cache insert en BDD', true, true, 0),
-            new ModuleTableField('calculation_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float, 'Ms calcul pour 1000', true, true, 1000)
+            new ModuleTableField('calculation_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float, 'Ms calcul pour 1000', true, true, 1000),
+            new ModuleTableField('last_calculations_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float_array, 'Historique Ms calcul pour 1000', false),
         ];
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
