@@ -148,7 +148,14 @@ export default class VarsDatasProxy {
                     });
 
                     // On insère quand même dans le cache par ce qu'on veut stocker l'info du read
-                    await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                    for (let i in varsdata) {
+                        let vardata = varsdata[i];
+                        let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[vardata.var_id];
+
+                        if (var_cache_conf.use_cache_read_ms_to_partial_clean) {
+                            await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                        }
+                    }
                 }
 
                 if ((!varsdata) || (varsdata.length != params.length)) {
@@ -228,7 +235,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas)) {
+                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, does_not_need_insert_or_update)) {
                     return;
                 }
 
@@ -855,9 +862,10 @@ export default class VarsDatasProxy {
 
                 /**
                  * Si on fait les calculs depuis la Bdd, on mets les vardats dans la pile de mise en cache
+                 *  et on indique que le résultat devra être mis à jour
                  */
                 if (bdd_datas && ObjectHandler.getInstance().hasAtLeastOneAttribute(bdd_datas)) {
-                    await this.prepend_var_datas(Object.values(bdd_datas), true);
+                    await this.prepend_var_datas(Object.values(bdd_datas), false);
                 }
 
                 if (params.bg_nb_vars) {
@@ -1121,6 +1129,12 @@ export default class VarsDatasProxy {
     }
 
     private add_read_stat(var_data_wrapper: VarDataProxyWrapperVO<VarDataBaseVO>) {
+
+        let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id];
+        if (!var_cache_conf.use_cache_read_ms_to_partial_clean) {
+            return;
+        }
+
         var_data_wrapper.nb_reads_since_last_insert_or_update++;
         var_data_wrapper.nb_reads_since_last_check++;
         if (!var_data_wrapper.var_data.last_reads_ts) {

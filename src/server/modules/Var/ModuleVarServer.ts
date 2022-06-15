@@ -1276,7 +1276,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             var_dag,
             deployed_vars_datas,
             vars_datas,
-            ds_cache);
+            ds_cache,
+            true);
 
         return node.aggregated_datas;
     }

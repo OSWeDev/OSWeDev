@@ -265,7 +265,9 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('is_access_hook_def', ModuleTableField.FIELD_TYPE_boolean, 'is_access_hook_def', true, true, false),
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
-            new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false).set_plain_obj_cstr(() => { }),
+            new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false).set_plain_obj_cstr(() => {
+                return {};
+            }),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");

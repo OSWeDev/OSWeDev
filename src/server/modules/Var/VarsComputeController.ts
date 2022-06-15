@@ -182,7 +182,8 @@ export default class VarsComputeController {
         var_dag: DAG<VarDAGNode>,
         deployed_vars_datas: { [index: string]: boolean } = {},
         vars_datas: { [index: string]: VarDataBaseVO } = {},
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {}
+        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {},
+        limit_to_aggregated_datas: boolean = false
     ) {
 
         // on récupère le noeud de l'arbre
@@ -333,6 +334,12 @@ export default class VarsComputeController {
 
                         if (pixel_cache.counter == prod_cardinaux) {
 
+
+                            if (limit_to_aggregated_datas) {
+                                // On aura pas de données aggregées à ce stade
+                                return;
+                            }
+
                             /**
                              * Cas simple, on a la réponse complète tout va bien
                              */
@@ -343,6 +350,9 @@ export default class VarsComputeController {
                             if (DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':pixel_cache.counter:' + pixel_cache.counter + ':' + pixel_cache.aggregated_value + ':FULL OK');
                             }
+
+                            // On notifie puisqu'on a le résultat
+                            await this.notify_var_data_post_deploy(node);
                         } else {
 
                             /**
@@ -397,6 +407,20 @@ export default class VarsComputeController {
                                 cloneDeep(node.var_data)
                             );
 
+                            /**
+                             * On indique qu'on a déjà fait un chargement du cache complet pour les pixels
+                             */
+                            for (let depi in aggregated_datas) {
+                                let aggregated_data = aggregated_datas[depi];
+                                let dep_node = VarDAGNode.getInstance(node.dag, aggregated_data);
+
+                                dep_node.already_tried_load_cache_complet = true;
+
+                                if (VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
+                                    await this.notify_var_data_post_deploy(dep_node);
+                                }
+                            }
+
                             let nb_known_pixels = known_pixels ? known_pixels.length : 0;
                             let nb_unknown_pixels = Object.values(aggregated_datas).length - (known_pixels ? known_pixels.length : 0);
 
@@ -434,6 +458,11 @@ export default class VarsComputeController {
                             return;
                         }
                     }
+                }
+
+                if (limit_to_aggregated_datas) {
+                    // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
+                    return;
                 }
 
                 VarsPerfsController.addPerfs(performance.now(), [
@@ -1081,7 +1110,8 @@ export default class VarsComputeController {
                      * Plan A : on propage pas
                      * Plan B : on propage le deploy_dep au nouveau noeud
                      */
-                    if (!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
+                    if ((!VarsServerController.getInstance().has_valid_value(dep_node.var_data)) && (!dep_node.already_tried_load_cache_complet)) {
+
                         // Premier essai, on tente de trouver des datas en base / cache en cours de mise à jour
                         let existing_var_data: VarDataBaseVO = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(dep_node.var_data);
 
@@ -1095,11 +1125,16 @@ export default class VarsComputeController {
                             dep_node.var_data.value_ts = existing_var_data.value_ts;
                             dep_node.var_data.value_type = existing_var_data.value_type;
 
+                            await this.notify_var_data_post_deploy(dep_node);
+
                             if (DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('handle_deploy_deps:existing_var_data:' + existing_var_data.index + ':' + existing_var_data.id + ':' + existing_var_data.value + ':' + existing_var_data.value_ts + ':');
                             }
                         } else {
-                            ConsoleHandler.getInstance().log('handle_deploy_deps:existing_var_data:' + null + ': mais dep_node.already_tried_load_cache_complet == true');
+                            /**
+                             * On indique qu'on a fait une recherche qui renvoie null. si la recherche était inutile, on pouvait l'éviter en mettant already_tried_load_cache_complet = true
+                             */
+                            ConsoleHandler.getInstance().log('handle_deploy_deps:existing_var_data:' + null + ': si on savait avant cet instant que la cache n\'existait pas on pouvait éviter la requête en forçant already_tried_load_cache_complet = true sur le var_node');
                         }
                     }
 
@@ -1222,7 +1257,12 @@ export default class VarsComputeController {
                     let index = 0;
 
                     for (let i in node.aggregated_datas) {
-                        aggregated_deps['AGG_' + (index++)] = node.aggregated_datas[i];
+                        let data = node.aggregated_datas[i];
+                        aggregated_deps['AGG_' + (index++)] = data;
+
+                        // on peut essayer de notifier les deps issues des aggréagations qui auraient déjà une valeur valide
+                        let dep_node = VarDAGNode.getInstance(node.dag, data);
+                        await this.notify_var_data_post_deploy(dep_node);
                     }
                     return aggregated_deps;
                 }
@@ -1575,7 +1615,7 @@ export default class VarsComputeController {
                         var_conf,
                         var_data,
                         pixellised_fields_by_id,
-                        cloned_var_data,
+                        new_var_data,
                         i
                     );
                 }
