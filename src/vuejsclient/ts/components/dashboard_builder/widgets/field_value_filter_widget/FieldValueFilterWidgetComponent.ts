@@ -221,6 +221,11 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
                     options.segmentation_type,
+                    options.advanced_mode,
+                    options.default_advanced_string_filter_type,
+                    options.hide_btn_switch_advanced,
+                    options.hide_advanced_string_filter_type,
+                    options.vo_field_ref_multiple,
                 ) : null;
             }
         } catch (error) {

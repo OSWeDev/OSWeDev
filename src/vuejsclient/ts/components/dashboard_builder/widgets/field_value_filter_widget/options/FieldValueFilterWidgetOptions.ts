@@ -39,6 +39,20 @@ export default class FieldValueFilterWidgetOptions {
             res[options.vo_field_ref_lvl2.api_type_id][options.vo_field_ref_lvl2.field_id] = true;
         }
 
+        if (options.vo_field_ref_multiple && (options.vo_field_ref_multiple.length > 0)) {
+            for (let i in options.vo_field_ref_multiple) {
+                let field_ref: VOFieldRefVO = options.vo_field_ref_multiple[i];
+
+                if (field_ref.api_type_id && field_ref.field_id) {
+                    if (!res[field_ref.api_type_id]) {
+                        res[field_ref.api_type_id] = {};
+                    }
+
+                    res[field_ref.api_type_id][field_ref.field_id] = true;
+                }
+            }
+        }
+
         return res;
     }
 
@@ -52,6 +66,11 @@ export default class FieldValueFilterWidgetOptions {
         public show_search_field: boolean,
         public hide_lvl2_if_lvl1_not_selected: boolean,
         public segmentation_type: number,
+        public advanced_mode: boolean,
+        public default_advanced_string_filter_type: number,
+        public hide_btn_switch_advanced: boolean,
+        public hide_advanced_string_filter_type: boolean,
+        public vo_field_ref_multiple: VOFieldRefVO[],
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

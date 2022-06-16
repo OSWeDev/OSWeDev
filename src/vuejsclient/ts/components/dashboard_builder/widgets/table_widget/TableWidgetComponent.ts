@@ -66,7 +66,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
-    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -225,7 +225,12 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         }
 
-        this.set_active_field_filter(filtering_by_active_field_filter);
+        this.set_active_field_filter({
+            field_id: column.field_id,
+            vo_type: column.api_type_id,
+            active_field_filter: filtering_by_active_field_filter,
+        });
+
         this.filtering_by_active_field_filter = filtering_by_active_field_filter;
     }
 

@@ -28,7 +28,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
-    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -65,7 +65,11 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
-        this.set_active_field_filter(this.get_ContextFilterVO_from_DataFilterOption(this.ts_range, field));
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: this.get_ContextFilterVO_from_DataFilterOption(this.ts_range, field),
+        });
     }
 
     private get_ContextFilterVO_from_DataFilterOption(ts_range: TSRange, field: ModuleTableField<any>): ContextFilterVO {
@@ -212,6 +216,11 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
                     options.segmentation_type,
+                    options.advanced_mode,
+                    options.default_advanced_string_filter_type,
+                    options.hide_btn_switch_advanced,
+                    options.hide_advanced_string_filter_type,
+                    options.vo_field_ref_multiple,
                 ) : null;
             }
         } catch (error) {

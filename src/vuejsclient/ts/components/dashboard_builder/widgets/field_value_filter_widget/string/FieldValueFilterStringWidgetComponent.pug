@@ -2,44 +2,46 @@
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
         template(v-if="!is_checkbox")
-            .vo_field_ref_advanced
-                toggle-button(
-                    @change="switch_advanced_filters" 
-                    :value="advanced_filters" 
-                    :sync="true"
-                    :width="100"
-                    :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+            template(v-if="!hide_btn_switch_advanced")
+                .vo_field_ref_advanced
+                    toggle-button(
+                        @change="switch_advanced_filters" 
+                        :value="advanced_filters" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
 
         template(v-if='advanced_filters')
             .vo_field_advanced_string_filters
                 template(v-for='(advanced_string_filter, i) in advanced_string_filters')
                     .vo_field_advanced_string_filter
                         form(v-on:submit.prevent="validate_advanced_string_filter")
-                            .advanced_string_filter_type
-                                multiselect(
-                                    :preselect-first="true"
-                                    :multiple="false"
-                                    :close-on-select="true"
-                                    v-model="advanced_string_filter.filter_type"
-                                    :options="filter_type_options"
-                                    :custom-label="filter_type_label"
-                                    autocomplete="off"
+                            template(v-if="!hide_advanced_string_filter_type")
+                                .advanced_string_filter_type
+                                    multiselect(
+                                        :preselect-first="true"
+                                        :multiple="false"
+                                        :close-on-select="true"
+                                        v-model="advanced_string_filter.filter_type"
+                                        :options="filter_type_options"
+                                        :custom-label="filter_type_label"
+                                        autocomplete="off"
 
-                                    :show-labels="false"
-                                    :searchable="false"
-                                    :internal-search="false"
-                                    :hide-selected="false"
+                                        :show-labels="false"
+                                        :searchable="false"
+                                        :internal-search="false"
+                                        :hide-selected="false"
 
-                                    :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i" 
-                                    
-                                    :select-label='label("multiselect.selectLabel")'
-                                    :select-group-label='label("multiselect.selectGroupLabel")'
-                                    :selected-label='label("multiselect.selectedLabel")'
-                                    :deselect-label='label("multiselect.deselectLabel")'
-                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                                )
+                                        :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i" 
+                                        
+                                        :select-label='label("multiselect.selectLabel")'
+                                        :select-group-label='label("multiselect.selectGroupLabel")'
+                                        :selected-label='label("multiselect.selectedLabel")'
+                                        :deselect-label='label("multiselect.deselectLabel")'
+                                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    )
 
-                            .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]')
+                            .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]', :class="{hide_advanced_string_filter_type: hide_advanced_string_filter_type}")
                                 input(v-model='advanced_string_filter.filter_content')
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')

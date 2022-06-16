@@ -26,6 +26,14 @@
             margin-left: 1em;
         }
 
+        &.hide_advanced_string_filter_type {
+            width: 90%;
+
+            input {
+                margin-left: 0;
+            }
+        }
+
         margin-right: .3em;
     }
 

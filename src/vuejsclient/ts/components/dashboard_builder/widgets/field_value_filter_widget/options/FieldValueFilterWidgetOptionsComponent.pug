@@ -30,7 +30,74 @@
                 :vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref"
                 :page_widget_id='page_widget ? page_widget.id : null'
             )
-    
+
+    template(v-if="vo_field_ref")
+        .advanced_mode
+            .input_label {{ label('field_value_filter_widget_component.advanced_mode') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_advanced_mode" 
+                    :value="advanced_mode" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 
+
+        .default_advanced_string_filter_type
+            .input_label {{ label('field_value_filter_widget_component.default_advanced_string_filter_type') }}
+            .input_wrapper
+                multiselect(
+                    :preselect-first="true"
+                    :multiple="false"
+                    :close-on-select="true"
+                    v-model="tmp_default_advanced_string_filter_type"
+                    :options="filter_type_options"
+                    :custom-label="filter_type_label"
+                    autocomplete="off"
+
+                    :show-labels="false"
+                    :searchable="false"
+                    :internal-search="false"
+                    :hide-selected="false"
+                    
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )
+                
+        .hide_btn_switch_advanced
+            .input_label {{ label('field_value_filter_widget_component.hide_btn_switch_advanced') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_hide_btn_switch_advanced" 
+                    :value="hide_btn_switch_advanced" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 
+                
+        .hide_advanced_string_filter_type
+            .input_label {{ label('field_value_filter_widget_component.hide_advanced_string_filter_type') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_hide_advanced_string_filter_type" 
+                    :value="hide_advanced_string_filter_type" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                ) 
+
+        .vo_field_ref_multiple 
+            .input_label {{ label('field_value_filter_widget_component.vo_field_ref_multiple') }}
+            .input_wrapper
+                Multiplevofieldrefholdercomponent(
+                    :vo_field_ref="vo_field_ref"
+                    :vo_field_ref_multiple="vo_field_ref_multiple" @remove_field_ref="remove_field_ref_multiple" @add_field_ref="add_field_ref_multiple"
+                    :page_widget_id='page_widget ? page_widget.id : null'
+                )
+
     template(v-if="is_type_string")
         .field_sort 
             .input_label {{ label('field_value_filter_widget_component.vo_field_sort') }}
@@ -40,7 +107,7 @@
                     :page_widget_id='page_widget ? page_widget.id : null'
                 )
 
-        .is_checkbox 
+        .is_checkbox
             .input_label {{ label('field_value_filter_widget_component.is_checkbox') }}
             .input_wrapper
                 toggle-button(
@@ -48,7 +115,8 @@
                     :value="is_checkbox" 
                     :sync="false"
                     :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
 
         template(v-if="is_checkbox")
             .show_search_field 

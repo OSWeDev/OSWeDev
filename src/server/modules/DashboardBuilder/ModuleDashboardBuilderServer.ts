@@ -894,6 +894,30 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Tri descendant" },
             'column.sort.desc.___LABEL___'
         ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Mode avancé par défaut" },
+            'field_value_filter_widget_component.advanced_mode.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Type de recherche avancé par défaut" },
+            'field_value_filter_widget_component.default_advanced_string_filter_type.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le type de recherche avancé" },
+            'field_value_filter_widget_component.hide_advanced_string_filter_type.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le bouton avancé" },
+            'field_value_filter_widget_component.hide_btn_switch_advanced.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Liste des champs pour la recherche multiple" },
+            'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Glisser / Déposer les champs pour la recherche multiple" },
+            'multiple_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

@@ -26,7 +26,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
-    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -119,7 +119,11 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                         vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     });
                 } else {
-                    this.set_active_field_filter(new_root);
+                    this.set_active_field_filter({
+                        field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                        vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                        active_field_filter: new_root,
+                    });
                 }
             }
             return;
@@ -137,7 +141,11 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                         vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     });
                 } else {
-                    this.set_active_field_filter(new_root);
+                    this.set_active_field_filter({
+                        field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                        vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                        active_field_filter: new_root,
+                    });
                 }
             }
             return;

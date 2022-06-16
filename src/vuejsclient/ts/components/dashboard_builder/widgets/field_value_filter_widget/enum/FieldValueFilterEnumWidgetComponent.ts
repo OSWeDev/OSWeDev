@@ -34,7 +34,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
-    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -73,8 +73,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         await this.throttled_update_visible_options();
     }
 
-    private async query_update_visible_options(query: string) {
-        this.actual_query = query;
+    private async query_update_visible_options(queryStr: string) {
+        this.actual_query = queryStr;
         await this.throttled_update_visible_options();
     }
 
@@ -208,7 +208,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 translated_active_options = this.merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
             }
         }
-        this.set_active_field_filter(translated_active_options);
+
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: translated_active_options,
+        });
     }
 
     get placeholder(): string {
@@ -257,6 +262,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
                     options.segmentation_type,
+                    options.advanced_mode,
+                    options.default_advanced_string_filter_type,
+                    options.hide_btn_switch_advanced,
+                    options.hide_advanced_string_filter_type,
+                    options.vo_field_ref_multiple,
                 ) : null;
             }
         } catch (error) {

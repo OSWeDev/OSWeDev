@@ -143,19 +143,19 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 state.active_field_filters = active_field_filters;
             },
 
-            set_active_field_filter(state: IDashboardPageState, active_field_filter: ContextFilterVO) {
-                if (!active_field_filter) {
+            set_active_field_filter(state: IDashboardPageState, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+                if (!param.active_field_filter || !param.vo_type || !param.field_id) {
                     return;
                 }
 
-                if (!state.active_field_filters[active_field_filter.vo_type]) {
-                    Vue.set(state.active_field_filters, active_field_filter.vo_type, {
-                        [active_field_filter.field_id]: active_field_filter
+                if (!state.active_field_filters[param.vo_type]) {
+                    Vue.set(state.active_field_filters, param.vo_type, {
+                        [param.field_id]: param.active_field_filter
                     });
                     return;
                 }
 
-                Vue.set(state.active_field_filters[active_field_filter.vo_type], active_field_filter.field_id, active_field_filter);
+                Vue.set(state.active_field_filters[param.vo_type], param.field_id, param.active_field_filter);
             },
 
             remove_active_field_filter(state: IDashboardPageState, params: { vo_type: string, field_id: string }) {
@@ -255,8 +255,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 commit_set_active_field_filters(context, active_field_filters);
             },
 
-            set_active_field_filter(context: DashboardPageContext, active_field_filter: ContextFilterVO) {
-                commit_set_active_field_filter(context, active_field_filter);
+            set_active_field_filter(context: DashboardPageContext, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
+                commit_set_active_field_filter(context, param);
             },
 
             remove_active_field_filter(context: DashboardPageContext, params: { vo_type: string, field_id: string }) {
