@@ -71,10 +71,6 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        if (context_query.fields && context_query.fields.length) {
-            throw new Error('Invalid context_query.fields param');
-        }
-
         context_query.query_distinct = false;
 
         let query = await this.build_select_query(context_query);
@@ -147,10 +143,6 @@ export default class ContextQueryServerController {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
-        }
-
-        if ((!context_query.fields) || !context_query.fields.length) {
-            throw new Error('Invalid context_query.fields param');
         }
 
         // On force des résultats distincts sur un datatable row
