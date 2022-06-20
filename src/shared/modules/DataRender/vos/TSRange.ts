@@ -25,6 +25,10 @@ export default class TSRange implements IRange {
             }
         }
 
+        if (segment_type == null) {
+            return null;
+        }
+
         let res: TSRange = new TSRange();
 
         res.segment_type = segment_type;

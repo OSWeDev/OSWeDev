@@ -20,6 +20,10 @@ export default class HourRange implements IRange {
             }
         }
 
+        if (segment_type == null) {
+            return null;
+        }
+
         let res: HourRange = new HourRange();
 
         res.segment_type = segment_type;
