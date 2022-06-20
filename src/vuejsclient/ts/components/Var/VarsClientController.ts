@@ -77,6 +77,10 @@ export default class VarsClientController {
         for (let i in var_params) {
             let var_param = var_params[i];
 
+            if (!var_param) {
+                continue;
+            }
+
             if (!this.registered_var_params[var_param.index]) {
                 needs_registration[var_param.index] = var_param;
                 this.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);

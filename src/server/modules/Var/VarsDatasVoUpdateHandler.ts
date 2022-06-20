@@ -190,6 +190,7 @@ export default class VarsDatasVoUpdateHandler {
     ) {
 
         let solved_intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents],
@@ -202,6 +203,9 @@ export default class VarsDatasVoUpdateHandler {
                     for (let i in intersectors_by_index) {
                         let intersector = intersectors_by_index[i];
 
+                        if (DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
+                        }
                         solved_intersectors_by_index[intersector.index] = intersector;
 
                         if (promises.length >= max) {
@@ -229,9 +233,16 @@ export default class VarsDatasVoUpdateHandler {
                                     continue;
                                 }
 
+                                if (DEBUG_VARS) {
+                                    ConsoleHandler.getInstance().log('invalidate_datas_and_parents:' + intersector.index + '=>' + dep_intersector.index + ':');
+                                }
+
                                 intersectors_by_index[dep_intersector.index] = dep_intersector;
                             }
 
+                            if (DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
+                            }
                             delete intersectors_by_index[intersector.index];
                         })());
                     }

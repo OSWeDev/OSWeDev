@@ -71,10 +71,6 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        if (context_query.fields && context_query.fields.length) {
-            throw new Error('Invalid context_query.fields param');
-        }
-
         context_query.query_distinct = false;
 
         let query = await this.build_select_query(context_query);
@@ -112,18 +108,10 @@ export default class ContextQueryServerController {
         return moduletable.forceNumerics(query_res);
     }
 
-    /**
-     * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
-     * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
-     */
     public async select(context_query: ContextQueryVO): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
-        }
-
-        if ((!context_query.fields) || !context_query.fields.length) {
-            throw new Error('Invalid context_query.fields param');
         }
 
         let query = await this.build_select_query(context_query);
@@ -155,10 +143,6 @@ export default class ContextQueryServerController {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
-        }
-
-        if ((!context_query.fields) || !context_query.fields.length) {
-            throw new Error('Invalid context_query.fields param');
         }
 
         // On force des résultats distincts sur un datatable row

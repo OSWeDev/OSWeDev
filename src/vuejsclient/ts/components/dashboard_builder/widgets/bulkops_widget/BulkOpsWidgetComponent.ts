@@ -82,7 +82,15 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         }
 
         this.new_value = field_value;
-        this.editable_item[this.field_id_selected] = field_value;
+        this.editable_item[this.tablecolumn_field_id] = field_value;
+    }
+
+    get tablecolumn_field_id() {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.api_type_id + '___' + this.field_id_selected;
     }
 
     get field() {
@@ -95,6 +103,13 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     get editable_field() {
         return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable) : null;
+    }
+
+    get get_datatable_row_editable_field() {
+        /**
+         * on force l'id pour être conforme au tablecolumndesc qu'on a dans les dbtables du widget
+         */
+        return this.field ? CRUD.get_dt_field(this.field).setModuleTable(this.moduletable).setUID_for_readDuplicateOnly(this.tablecolumn_field_id) : null;
     }
 
     get moduletable(): ModuleTable<any> {
@@ -259,7 +274,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let cloned_raw = cloneDeep(row);
             let cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
-            await DatatableRowController.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.editable_field, null);
+            await DatatableRowController.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
             res.push(cloned_res);
         }
 

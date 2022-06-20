@@ -7,7 +7,7 @@ import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextF
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
@@ -760,7 +760,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-            let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+            let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
             if (moduletable_vardata.is_segmented) {
 
@@ -768,13 +768,13 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
                     let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
-                        query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+                        query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
                     await ModuleServiceBase.getInstance().db.query(request);
                 }, moduletable_vardata.table_segmented_field_segment_type);
 
             } else {
                 let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
-                    query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+                    query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
                 await ModuleServiceBase.getInstance().db.query(request);
             }
         }
@@ -795,7 +795,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-            let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+            let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
             if (moduletable_vardata.is_segmented) {
 
@@ -803,13 +803,13 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
                     let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
-                        query + ';';
+                        query_ + ';';
                     await ModuleServiceBase.getInstance().db.query(request);
                 }, moduletable_vardata.table_segmented_field_segment_type);
 
             } else {
                 let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
-                    query + ';';
+                    query_ + ';';
                 await ModuleServiceBase.getInstance().db.query(request);
             }
         }
@@ -1012,6 +1012,18 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async onUVarConf(vo_update_handler: DAOUpdateVOHolder<VarConfVO>) {
         await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varconf_from_cache, vo_update_handler.post_update_vo);
+
+        /**
+         * On invalide les caches si on pixellise la var
+         */
+        if (vo_update_handler && vo_update_handler.pre_update_vo && vo_update_handler.post_update_vo &&
+            ((!vo_update_handler.pre_update_vo.pixel_activated) && vo_update_handler.post_update_vo.pixel_activated)) {
+            let delete_cache_query = query(vo_update_handler.pre_update_vo.var_data_vo_type)
+                .filter_by_num_eq('var_id', vo_update_handler.pre_update_vo.id)
+                .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_COMPUTED);
+
+            await ContextQueryServerController.getInstance().delete_vos(delete_cache_query);
+        }
     }
 
     private update_varcacheconf_from_cache_throttled(vccs: VarCacheConfVO[]) {
