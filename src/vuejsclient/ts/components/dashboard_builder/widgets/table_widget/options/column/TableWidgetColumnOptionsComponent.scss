@@ -105,4 +105,18 @@
             text-align: center;
         }
     }
+
+    .bg_color_header,
+    .font_color_header {
+        .one-colorpicker {
+            border: 2px solid black;
+            vertical-align: middle;
+        }
+
+        .fa-times {
+            color: indianred;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+    }
 }

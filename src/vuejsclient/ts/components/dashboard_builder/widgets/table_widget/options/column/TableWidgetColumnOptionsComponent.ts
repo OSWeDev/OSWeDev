@@ -52,6 +52,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private enum_bg_colors: { [value: number]: string } = {};
     private enum_fg_colors: { [value: number]: string } = {};
 
+    private tmp_bg_color_header: string = null;
+    private tmp_font_color_header: string = null;
+
     private show_options: boolean = false;
 
     get vo_ref_tooltip(): string {
@@ -163,6 +166,28 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.object_column);
     }
 
+    @Watch('tmp_bg_color_header')
+    private async onchange_tmp_bg_color_header() {
+        if (!this.object_column) {
+            return;
+        }
+
+        this.object_column.bg_color_header = this.tmp_bg_color_header;
+
+        this.$emit('update_column', this.object_column);
+    }
+
+    @Watch('tmp_font_color_header')
+    private async onchange_tmp_font_color_header() {
+        if (!this.object_column) {
+            return;
+        }
+
+        this.object_column.font_color_header = this.tmp_font_color_header;
+
+        this.$emit('update_column', this.object_column);
+    }
+
     @Watch('column', { immediate: true })
     private onchange_column() {
         this.column_width = this.object_column ? this.object_column.column_width : 0;
@@ -188,6 +213,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
             }
         }
+
+        this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
+        this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
     }
 
     @Watch('column_width', { immediate: true })
@@ -216,7 +244,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
     }
 
+    private clear_tmp_bg_color_header() {
+        this.tmp_bg_color_header = null;
+    }
 
+    private clear_tmp_font_color_header() {
+        this.tmp_font_color_header = null;
+    }
 
     get vars_options(): string[] {
         return Object.keys(VarsController.getInstance().var_conf_by_name);
@@ -250,9 +284,24 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
-                    options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
-                    options.refresh_button, options.export_button, options.can_filter_by) : null;
+                    options.columns,
+                    options.is_focus_api_type_id,
+                    options.limit,
+                    options.crud_api_type_id,
+                    options.vocus_button,
+                    options.delete_button,
+                    options.delete_all_button,
+                    options.create_button,
+                    options.update_button,
+                    options.refresh_button,
+                    options.export_button,
+                    options.can_filter_by,
+                    options.show_pagination_resumee,
+                    options.show_pagination_slider,
+                    options.show_pagination_form,
+                    options.show_limit_selectable,
+                    options.limit_selectable
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

@@ -149,3 +149,16 @@
                             color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
                         .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
 
+                .bg_color_header.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
+                    color-picker.mr-2(v-model="tmp_bg_color_header")
+                    template(v-if="tmp_bg_color_header")
+                        i.fa.fa-times(@click="clear_tmp_bg_color_header")
+
+                .font_color_header.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
+                    color-picker.mr-2(v-model="tmp_font_color_header")
+                    template(v-if="tmp_font_color_header")
+                        i.fa.fa-times(@click="clear_tmp_font_color_header")

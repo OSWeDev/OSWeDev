@@ -918,6 +918,66 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Glisser / Déposer les champs pour la recherche multiple" },
             'multiple_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'
         ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Liste des valeurs sélectionnables (valeurs séparées par une virgule ',')" },
+            'table_widget_options_component.limit_selectable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher sélecteur nombre d'éléments" },
+            'table_widget_options_component.show_limit_selectable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_limit_selectable.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_limit_selectable.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le formulaire de pagination" },
+            'table_widget_options_component.show_pagination_form.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_form.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_form.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le résumé de pagination" },
+            'table_widget_options_component.show_pagination_resumee.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_resumee.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_resumee.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le slider de pagination" },
+            'table_widget_options_component.show_pagination_slider.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_slider.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_slider.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur de fond de l'entête" },
+            'table_widget_column_conf.editable_column.bg_color_header.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur du texte de l'entête" },
+            'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

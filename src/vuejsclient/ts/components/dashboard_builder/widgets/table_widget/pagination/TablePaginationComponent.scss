@@ -78,4 +78,19 @@
         padding: .2em .1em .2em .3em;
         cursor: pointer;
     }
+
+    .limit_selectable {
+        .multiselect__select {
+            height: 26px;
+        }
+
+        .multiselect__tags {
+            padding-top: 0.2em;
+            height: 26px;
+            min-height: auto;
+            padding-bottom: 0.2em;
+            border-radius: 20px;
+            text-align: center;
+        }
+    }
 }

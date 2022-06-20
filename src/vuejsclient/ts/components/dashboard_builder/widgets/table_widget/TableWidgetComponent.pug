@@ -30,7 +30,13 @@ include ../../../../../views/mixins/loading.pug
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'
                     :pagination_count='pagination_count'
+                    :show_limit_selectable='show_limit_selectable'
+                    :show_pagination_resumee='show_pagination_resumee'
+                    :show_pagination_slider='show_pagination_slider'
+                    :show_pagination_form='show_pagination_form'
+                    :limit_selectable='limit_selectable'
                     @change_offset='change_offset'
+                    @change_limit='change_limit'
                 )
 
             .table_wrapper
@@ -39,6 +45,7 @@ include ../../../../../views/mixins/loading.pug
                         th.table_header(
                             v-for='column in columns' 
                             :class="{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id }"
+                            :style="get_style_column(column)"
                             @click="sort_by(column)"
                             )
 
@@ -114,5 +121,11 @@ include ../../../../../views/mixins/loading.pug
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'
                     :pagination_count='pagination_count'
+                    :show_limit_selectable='show_limit_selectable'
+                    :show_pagination_resumee='show_pagination_resumee'
+                    :show_pagination_slider='show_pagination_slider'
+                    :show_pagination_form='show_pagination_form'
+                    :limit_selectable='limit_selectable'
                     @change_offset='change_offset'
+                    @change_limit='change_limit'
                 )

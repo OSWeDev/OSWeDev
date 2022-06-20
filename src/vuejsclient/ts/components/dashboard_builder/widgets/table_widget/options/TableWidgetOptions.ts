@@ -5,6 +5,8 @@ import DefaultTranslation from "../../../../../../../shared/modules/Translation/
 export default class TableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
+    public static DEFAULT_LIMIT: number = 100;
+    public static DEFAULT_LIMIT_SELECTABLE: string = "10,20,50,100";
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
@@ -43,7 +45,12 @@ export default class TableWidgetOptions {
         public update_button: boolean,
         public refresh_button: boolean,
         public export_button: boolean,
-        public can_filter_by: boolean
+        public can_filter_by: boolean,
+        public show_pagination_resumee: boolean,
+        public show_pagination_slider: boolean,
+        public show_pagination_form: boolean,
+        public show_limit_selectable: boolean,
+        public limit_selectable: string,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

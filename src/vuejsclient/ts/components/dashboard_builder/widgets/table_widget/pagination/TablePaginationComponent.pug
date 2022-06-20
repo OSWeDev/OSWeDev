@@ -2,42 +2,71 @@
     template(v-if='!!page')
         .row
             template(v-if='!compressed')
-                .col-md-3
-                    .pagination_resumee {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
-                template(v-if='max_page > 1')
-                    .col-md-3
-                        .pagination_slider
-                            v-slider(
-                                v-model="new_page" :min="1" :max="max_page" tooltip="none"
-                                :disabled="(max_page <= 2)" @change="throttled_change_offset" 
-                                :process-style="{ backgroundColor: 'dodgerblue' }"
+                template(v-if="show_limit_selectable && all_limit_selectable && (all_limit_selectable.length > 0)")
+                    .col-md-2
+                        .limit_selectable
+                            multiselect#selected_limit(
+                                :multiple="false"
+                                :close-on-select="true"
+                                v-model="selected_limit"
+                                :options="all_limit_selectable"
+                                autocomplete="off"
+
+                                :show-labels="false"
+                                :searchable="false"
+                                :internal-search="false"
+                                :hide-selected="false"
+                                :allow-empty="false",
+
+                                :select-label='label("multiselect.selectLabel")'
+                                :select-group-label='label("multiselect.selectGroupLabel")'
+                                :selected-label='label("multiselect.selectedLabel")'
+                                :deselect-label='label("multiselect.deselectLabel")'
+                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
                             )
-                                template(v-slot:dot="{ value }")
-                                    .custom-dot {{ value }}
-                    .col-md-6
-                        .pagination_form
-                            .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
-                                i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
+                
+                template(v-if="show_pagination_resumee")
+                    .col-md-2
+                        .pagination_resumee {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
+                template(v-if='max_page > 1')
+                    template(v-if="show_pagination_slider")
+                        .col-md-2
+                            .pagination_slider
+                                v-slider(
+                                    v-model="new_page" :min="1" :max="max_page" tooltip="none"
+                                    :disabled="(max_page <= 2)" @change="throttled_change_offset" 
+                                    :process-style="{ backgroundColor: 'dodgerblue' }"
+                                )
+                                    template(v-slot:dot="{ value }")
+                                        .custom-dot {{ value }}
+                                        
+                    template(v-if="show_pagination_form")
+                        .col-md-6
+                            .pagination_form
+                                .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
+                                    i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
 
-                            form(v-on:submit.prevent="change_page_str")
-                                input.pagination_input(type="number" min="1" :max="max_page" v-model="new_page_str")
+                                form(v-on:submit.prevent="change_page_str")
+                                    input.pagination_input(type="number" min="1" :max="max_page" v-model="new_page_str")
 
-                            .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
-                                i.fa.fa-chevron-right.fa-fw(aria-hidden="true")
-                    
-                            .pagination_submit(:class="{disabled : new_page == page}" @click="throttled_change_offset")
-                                i.fa.fa-check.fa-fw.btn_icon(aria-hidden="true")
+                                .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
+                                    i.fa.fa-chevron-right.fa-fw(aria-hidden="true")
+                        
+                                .pagination_submit(:class="{disabled : new_page == page}" @click="throttled_change_offset")
+                                    i.fa.fa-check.fa-fw.btn_icon(aria-hidden="true")
 
             template(v-else)
-                .col-md-3
-                    .pagination_resumee.compressed {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
-                template(v-if='max_page > 1')
+                template(v-if="show_pagination_resumee")
                     .col-md-3
-                        .pagination_slider.compressed
-                            v-slider(
-                                v-model="new_page" :min="1" :max="max_page" tooltip="none"
-                                :disabled="(max_page <= 2)" @change="throttled_change_offset" 
-                                :process-style="{ backgroundColor: 'dodgerblue' }"
-                            )
-                                template(v-slot:dot="{ value }")
-                                    .custom-dot {{ value }}
+                        .pagination_resumee.compressed {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
+                template(v-if='max_page > 1')
+                    template(v-if="show_pagination_slider")
+                        .col-md-3
+                            .pagination_slider.compressed
+                                v-slider(
+                                    v-model="new_page" :min="1" :max="max_page" tooltip="none"
+                                    :disabled="(max_page <= 2)" @change="throttled_change_offset" 
+                                    :process-style="{ backgroundColor: 'dodgerblue' }"
+                                )
+                                    template(v-slot:dot="{ value }")
+                                        .custom-dot {{ value }}

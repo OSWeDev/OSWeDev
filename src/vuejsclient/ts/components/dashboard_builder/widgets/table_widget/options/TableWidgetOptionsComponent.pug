@@ -43,6 +43,51 @@
                 v-model="limit"
             )
 
+    .show_pagination_resumee
+        .input_label {{ label('table_widget_options_component.show_pagination_resumee') }}
+        toggle-button(
+            @change="switch_show_pagination_resumee" 
+            :value="show_pagination_resumee" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_pagination_resumee.visible'), unchecked: label('table_widget_options_component.show_pagination_resumee.hidden')}")
+
+    .show_pagination_slider
+        .input_label {{ label('table_widget_options_component.show_pagination_slider') }}
+        toggle-button(
+            @change="switch_show_pagination_slider" 
+            :value="show_pagination_slider" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_pagination_slider.visible'), unchecked: label('table_widget_options_component.show_pagination_slider.hidden')}")
+
+    .show_pagination_form
+        .input_label {{ label('table_widget_options_component.show_pagination_form') }}
+        toggle-button(
+            @change="switch_show_pagination_form" 
+            :value="show_pagination_form" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_pagination_form.visible'), unchecked: label('table_widget_options_component.show_pagination_form.hidden')}")
+
+    .show_limit_selectable
+        .input_label {{ label('table_widget_options_component.show_limit_selectable') }}
+        toggle-button(
+            @change="switch_show_limit_selectable" 
+            :value="show_limit_selectable" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_limit_selectable.visible'), unchecked: label('table_widget_options_component.show_limit_selectable.hidden')}")
+    
+    template(v-if="show_limit_selectable")
+        .limit_selectable
+            .input_label {{ label('table_widget_options_component.limit_selectable') }}
+            .input_wrapper
+                input(
+                    type="text"
+                    v-model="limit_selectable"
+                )
+
     .create_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.create_button') }}
         
