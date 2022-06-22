@@ -26,9 +26,9 @@ import ContextFieldPathServerController from './ContextFieldPathServerController
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
+import ParameterizedWhereCondition from './vos/canceled-delete-ParameterizedWhereCondition';
 import FieldPathWrapper from './vos/FieldPathWrapper';
 import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
-import ParameterizedWhereCondition from './vos/ParameterizedWhereCondition';
 
 export default class ContextQueryServerController {
 
@@ -52,13 +52,13 @@ export default class ContextQueryServerController {
      */
     public async select_count(context_query: ContextQueryVO): Promise<number> {
 
-        let query_str = await this.build_query_count(context_query);
+        let query_wrapper = await this.build_query_count(context_query);
 
-        if (!query_str) {
+        if (!query_wrapper) {
             throw new Error('Invalid context_query param');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_str);
+        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
         c = c ? parseInt(c.toString()) : 0;
         return c;
@@ -76,12 +76,12 @@ export default class ContextQueryServerController {
 
         context_query.query_distinct = false;
 
-        let query = await this.build_select_query(context_query);
-        if (!query) {
+        let query_wrapper = await this.build_select_query(context_query);
+        if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query);
+        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -117,12 +117,12 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        let query = await this.build_select_query(context_query);
-        if (!query) {
+        let query_wrapper = await this.build_select_query(context_query);
+        if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query);
+        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -150,12 +150,12 @@ export default class ContextQueryServerController {
 
         // On force des résultats distincts sur un datatable row
         context_query.query_distinct = true;
-        let query = await this.build_select_query(context_query);
-        if (!query) {
+        let query_wrapper = await this.build_select_query(context_query);
+        if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query);
+        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -243,23 +243,23 @@ export default class ContextQueryServerController {
     /**
      * Construit la requête pour un select count(1) from context_filters
      */
-    public async build_query_count(context_query: ContextQueryVO): Promise<string> {
+    public async build_query_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
         }
 
 
-        let query = await this.build_select_query(context_query);
-        if (!query) {
+        let query_wrapper = await this.build_select_query(context_query);
+        if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
 
-        query = 'SELECT COUNT(1) c FROM (' +
-            query +
+        query_wrapper.query = 'SELECT COUNT(1) c FROM (' +
+            query_wrapper.query +
             ') as tocount';
 
-        return query;
+        return query_wrapper;
     }
 
     /**
@@ -545,7 +545,7 @@ export default class ContextQueryServerController {
             /**
              * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
              */
-            let where_conditions: ParameterizedWhereCondition[] = [];
+            let where_conditions: string[] = [];
 
             for (let i in context_query.filters) {
                 let filter = context_query.filters[i];
@@ -570,23 +570,12 @@ export default class ContextQueryServerController {
                 /**
                  * Check injection : TODO
                  */
-                await this.add_context_access_hooks(context_query, tables_aliases_by_type_for_access_hooks, where_conditions);
+                await this.add_context_access_hooks(context_query, query_result, tables_aliases_by_type_for_access_hooks, where_conditions);
             }
 
             let WHERE = '';
             if (where_conditions && where_conditions.length) {
-                WHERE += ' WHERE (';
-                let first_where_condition = true;
-                for (let i in where_conditions) {
-                    let where_condition = where_conditions[i];
-
-                    if (!first_where_condition) {
-                        WHERE += ') AND (';
-                    }
-                    first_where_condition = false;
-                    WHERE += where_condition.where_condition;
-                }
-                WHERE += ')';
+                WHERE += ' WHERE (' + where_conditions.join(') AND (') + ')';
             }
 
 
@@ -800,7 +789,11 @@ export default class ContextQueryServerController {
      * @param tables_aliases_by_type les tables utilisées et donc à vérifier
      * @param where_conditions les conditions actuelles et que l'on va amender
      */
-    private async add_context_access_hooks(context_query: ContextQueryVO, tables_aliases_by_type: { [vo_type: string]: string }, where_conditions: ParameterizedWhereCondition[]) {
+    private async add_context_access_hooks(
+        context_query: ContextQueryVO,
+        query_result: ParameterizedQueryWrapper,
+        tables_aliases_by_type: { [vo_type: string]: string },
+        where_conditions: string[]) {
 
         let context_access_hooks: { [alias: string]: ContextQueryVO[] } = {};
         let uid: number = null;
@@ -858,10 +851,10 @@ export default class ContextQueryServerController {
                 let query = querys[j];
 
                 let query_wrapper = await this.build_select_query(query);
-                where_conditions.push(
-                    new ParameterizedWhereCondition(
-                        alias + '.id in (' + query_wrapper.query + ')',
-                        query_wrapper.params));
+                where_conditions.push(alias + '.id in (' + query_wrapper.query + ')');
+                if (query_wrapper.params && query_wrapper.params.length) {
+                    query_result.params = query_result.params.concat(query_wrapper.params);
+                }
             }
         }
     }

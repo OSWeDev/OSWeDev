@@ -1,4 +1,5 @@
 import { isArray } from "lodash";
+import ParameterizedQueryWrapper from "../../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
@@ -512,7 +513,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Faire la requête en mode select
      */
-    public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
+    public async get_select_query_str<T extends IDistantVOBase>(): Promise<ParameterizedQueryWrapper> {
         return await ModuleContextFilter.getInstance().build_select_query(this);
     }
 

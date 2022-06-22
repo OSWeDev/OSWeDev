@@ -9,6 +9,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import DateHandler from '../../../shared/tools/DateHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
@@ -81,6 +82,13 @@ export default class DAOServerController {
         ForkedTasksController.getInstance().register_task(DAOServerController.TASK_NAME_add_segmented_known_databases, this.add_segmented_known_databases.bind(this));
     }
 
+    /**
+     * Check injection OK : get_range_translated_to_bdd_queryable_range est OK
+     * @param ranges
+     * @param field
+     * @param filter_field_type
+     * @returns
+     */
     public get_ranges_translated_to_bdd_queryable_ranges(ranges: IRange[], field: ModuleTableField<any>, filter_field_type: string): string {
         let ranges_query: string = 'ARRAY[';
 
@@ -103,7 +111,17 @@ export default class DAOServerController {
         return ranges_query;
     }
 
+    /**
+     * Check injection OK
+     * @param range
+     * @param field
+     * @param filter_field_type
+     * @returns
+     */
     public get_range_translated_to_bdd_queryable_range(range: IRange, field: ModuleTableField<any>, filter_field_type: string): string {
+
+        ContextQueryInjectionCheckHandler.assert_integer(range.min);
+        ContextQueryInjectionCheckHandler.assert_integer(range.max);
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:

@@ -29,6 +29,9 @@ export default class DateHandler {
         return moment.duration(Dates.diff(date, Dates.now()), 'seconds').humanize();
     }
 
+    /**
+     * Check injection OK
+     */
     public formatDayForIndex(date: number): string {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;

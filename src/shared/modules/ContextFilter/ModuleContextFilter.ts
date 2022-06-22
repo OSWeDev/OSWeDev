@@ -1,3 +1,4 @@
+import ParameterizedQueryWrapper from '../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -85,7 +86,7 @@ export default class ModuleContextFilter extends Module {
      * Créer la requête sur la base des filtres
      * @param context_query
      */
-    public build_select_query: (context_query: ContextQueryVO) => Promise<string> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query);
+    public build_select_query: (context_query: ContextQueryVO) => Promise<ParameterizedQueryWrapper> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_build_select_query);
 
     /**
      * Filtrer des vos avec les context filters
@@ -176,7 +177,7 @@ export default class ModuleContextFilter extends Module {
             QueryVOFromUniqueFieldContextFiltersParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, ParameterizedQueryWrapper>(
             null,
             ModuleContextFilter.APINAME_build_select_query,
             null,

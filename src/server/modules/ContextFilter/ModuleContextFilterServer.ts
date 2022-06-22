@@ -8,6 +8,7 @@ import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
+import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {
 
@@ -123,7 +124,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      */
     public async build_select_query(
         context_query: ContextQueryVO
-    ): Promise<string> {
+    ): Promise<ParameterizedQueryWrapper> {
         return await ContextQueryServerController.getInstance().build_select_query(context_query);
     }
 
