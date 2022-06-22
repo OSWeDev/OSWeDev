@@ -13,8 +13,10 @@ import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
 import ContextQueryServerController from './ContextQueryServerController';
 import FieldPathWrapper from './vos/FieldPathWrapper';
+import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
 export default class ContextFilterServerController {
 
@@ -32,11 +34,26 @@ export default class ContextFilterServerController {
     public async configure() {
     }
 
+    /**
+     * Check injection : TODO
+     * @param where_conditions
+     * @param active_field_filter
+     * @param tables_aliases_by_type
+     * @returns
+     */
     public async update_where_conditions(
+        query_result: ParameterizedQueryWrapper,
         where_conditions: string[],
         active_field_filter: ContextFilterVO,
         tables_aliases_by_type: { [vo_type: string]: string }
     ) {
+
+        ContextQueryInjectionCheckHandler.assert_api_type_id_format(active_field_filter.vo_type);
+        ContextQueryInjectionCheckHandler.assert_postgresql_name_format(active_field_filter.field_id);
+
+        if (active_field_filter.param_alias) {
+            ContextQueryInjectionCheckHandler.assert_postgresql_name_format(active_field_filter.param_alias);
+        }
 
         let field_id = active_field_filter.field_id ?
             tables_aliases_by_type[active_field_filter.vo_type] + '.' + active_field_filter.field_id :
@@ -100,17 +117,16 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
+                        let text_TYPE_TEXT_INCLUDES_ANY = null;
                         if (active_field_filter.param_numeric != null) {
-                            let text = active_field_filter.param_numeric.toString();
-
-                            where_conditions.push(field_id + "::text ILIKE '%" + text + "%'");
+                            text_TYPE_TEXT_INCLUDES_ANY = active_field_filter.param_numeric.toString();
                         } else if (active_field_filter.param_text != null) {
-                            let text = active_field_filter.param_text;
-
-                            where_conditions.push(field_id + "::text ILIKE '%" + text + "%'");
+                            text_TYPE_TEXT_INCLUDES_ANY = active_field_filter.param_text;
                         } else {
                             throw new Error('Not Implemented');
                         }
+                        query_result.params.push("%" + text_TYPE_TEXT_INCLUDES_ANY + "%");
+                        where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
                         break;
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -138,7 +154,8 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
 
-                            where_conditions.push(field_id + " ILIKE '%" + text + "%'");
+                            query_result.params.push("%" + text + "%");
+                            where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -147,7 +164,9 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'%" + text + "%'");
+
+                                query_result.params.push("%" + text + "%");
+                                like_array.push("$" + query_result.params.length);
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -162,7 +181,9 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push("'%" + text + "%' ILIKE ANY(" + field_id + ')');
+
+                            query_result.params.push("%" + text + "%");
+                            where_conditions.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -171,7 +192,9 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'%" + text + "%' ILIKE ANY(" + field_id + ')');
+
+                                query_result.params.push("%" + text + "%");
+                                like_array.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -203,6 +226,9 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tstz:
 
                         if (active_field_filter.param_alias != null) {
+                            /**
+                             * Check injection ok : field_id check ok et param_alias checké aussi
+                             */
                             where_conditions.push(field_id + " = " + active_field_filter.param_alias);
                             break;
                         }
@@ -215,6 +241,7 @@ export default class ContextFilterServerController {
                                 where_conditions.push("false");
                                 break;
                             }
+                            ContextQueryInjectionCheckHandler.assert_integer(active_field_filter.param_tsranges[0].min);
                             where_conditions.push(field_id + " = " + active_field_filter.param_tsranges[0].min);
                             throw new Error('Not Implemented');
                         }
@@ -246,6 +273,9 @@ export default class ContextFilterServerController {
 
                         if (active_field_filter.param_tsranges && active_field_filter.param_tsranges.length) {
 
+                            /**
+                             * Check injection ok : get_normalized_ranges ok
+                             */
                             let ranges_clause = null;
                             ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_tsranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
@@ -283,12 +313,15 @@ export default class ContextFilterServerController {
                         }
 
                         if (active_field_filter.param_numeric != null) {
+                            ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " = " + active_field_filter.param_numeric);
                             break;
                         }
 
                         if (active_field_filter.param_text != null) {
-                            where_conditions.push(field_id + " = " + parseFloat(active_field_filter.param_text));
+                            let param_text = parseFloat(active_field_filter.param_text);
+                            ContextQueryInjectionCheckHandler.assert_numeric(param_text);
+                            where_conditions.push(field_id + " = " + param_text);
                             break;
                         }
 
@@ -318,7 +351,8 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push(field_id + " = '" + text + "'");
+                            query_result.params.push(text);
+                            where_conditions.push(field_id + " = $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -327,7 +361,9 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'" + text + "'");
+
+                                query_result.params.push(text);
+                                like_array.push("$" + query_result.params.length);
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -341,17 +377,24 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
+
                         if (active_field_filter.param_text != null) {
+
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push("'" + active_field_filter.param_text + "' = ALL(" + field_id + ")");
+                            query_result.params.push(text);
+                            where_conditions.push("$" + query_result.params.length + " = ALL(" + field_id + ")");
+
                         } else if (active_field_filter.param_textarray != null) {
+
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
                                 let text = active_field_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
-                                like_array.push(text.replace(/'/g, "''"));
+
+                                query_result.params.push(text.replace(/'/g, "''"));
+                                like_array.push("$" + query_result.params.length);
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -389,12 +432,15 @@ export default class ContextFilterServerController {
                         }
 
                         if (active_field_filter.param_numeric != null) {
+                            ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " = " + active_field_filter.param_numeric);
                             break;
                         }
 
                         if (active_field_filter.param_text != null) {
-                            where_conditions.push(field_id + " = " + parseFloat(active_field_filter.param_text));
+                            let param_text = parseFloat(active_field_filter.param_text);
+                            ContextQueryInjectionCheckHandler.assert_numeric(param_text);
+                            where_conditions.push(field_id + " = " + param_text);
                             break;
                         }
 
@@ -424,7 +470,9 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push(field_id + " = '" + text + "'");
+
+                            query_result.params.push(text);
+                            where_conditions.push(field_id + " = $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -433,7 +481,8 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'" + text + "'");
+                                query_result.params.push(text);
+                                like_array.push("$" + query_result.params.length);
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -448,7 +497,8 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push("'" + active_field_filter.param_text + "' = ANY(" + field_id + ")");
+                            query_result.params.push(text);
+                            where_conditions.push("$" + query_result.params.length + " = ANY(" + field_id + ")");
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -457,7 +507,8 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'" + text + "' = ANY(" + field_id + ')');
+                                query_result.params.push(text);
+                                like_array.push("$" + query_result.params.length + " = ANY(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -491,11 +542,13 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric != null) {
                             let text = active_field_filter.param_numeric.toString();
 
-                            where_conditions.push(field_id + "::text ILIKE '" + text + "%'");
+                            query_result.params.push(text + "%");
+                            where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
                         } else if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            where_conditions.push(field_id + "::text ILIKE '" + text + "%'");
+                            query_result.params.push(text + "%");
+                            where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
                         } else {
                             throw new Error('Not Implemented');
                         }
@@ -525,7 +578,9 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push(field_id + " ILIKE '" + text + "%'");
+
+                            query_result.params.push(text + "%");
+                            where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -534,7 +589,8 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'" + text + "%'");
+                                query_result.params.push(text + "%");
+                                like_array.push("$" + query_result.params.length);
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -547,18 +603,26 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
+
                         if (active_field_filter.param_text != null) {
+
                             let text = active_field_filter.param_text.replace(/'/g, "''");
-                            where_conditions.push("'" + text + "%' ILIKE ANY(" + field_id + ')');
+                            query_result.params.push(text + "%");
+                            where_conditions.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+
                         } else if (active_field_filter.param_textarray != null) {
+
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
+
                                 let text = active_field_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
+
                                 text = text.replace(/'/g, "''");
-                                like_array.push("'" + text + "%' ILIKE ANY(" + field_id + ')');
+                                query_result.params.push(text + "%");
+                                like_array.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -1907,6 +1971,8 @@ export default class ContextFilterServerController {
      *              On doit faire un join path_i.field.moduletable m on m.[path_i.field.field_id] = alias[path_i.field.target_moduletable].id
      *
      * Par ailleurs tout dépend du type de champs qui fait la jointure. sur un ref_ranges il faut utiliser id::numeric <@ ANY(ref_ranges_field)
+     *
+     * Check Injection OK : Aucun insère de données depuis la query(pas en param) ou les filtres
      */
     public async updates_jointures(
         jointures: string[],
@@ -2014,6 +2080,8 @@ export default class ContextFilterServerController {
      * Fonction qui cherche à renvoyer un table full_name, même quand la table est segmentée
      *  Faire évoluer vers un tableau de full_names et gérer le tableau dans le context filter pour
      *  faire des requetes de context filter sur tables segmentées
+     *
+     * Check injection OK : get_segmented_full_name est ok et est le seul risque identifié
      */
     public async get_table_full_name(
         moduletable: ModuleTable<any>,

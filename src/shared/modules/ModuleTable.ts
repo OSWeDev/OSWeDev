@@ -1,6 +1,7 @@
 import { isArray } from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import * as moment from 'moment';
+import ContextQueryInjectionCheckHandler from '../../server/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
@@ -301,6 +302,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (!this.is_segmented) {
             return null;
         }
+
+        ContextQueryInjectionCheckHandler.assert_integer(segmented_value);
 
         return this.name + '_' + segmented_value.toString();
     }

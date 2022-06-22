@@ -25,7 +25,10 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
+import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
 import FieldPathWrapper from './vos/FieldPathWrapper';
+import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
+import ParameterizedWhereCondition from './vos/ParameterizedWhereCondition';
 
 export default class ContextQueryServerController {
 
@@ -360,11 +363,13 @@ export default class ContextQueryServerController {
      * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
      *  sur les fields passées dans le context_query
      */
-    public async build_select_query(context_query: ContextQueryVO): Promise<string> {
+    public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (!context_query) {
             throw new Error('Invalid query param');
         }
+
+        let query_result: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, []);
 
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
 
@@ -379,11 +384,25 @@ export default class ContextQueryServerController {
                 return null;
             }
 
+            /**
+             * Check injection : Checker le format du context_query.base_api_type_id qui soit bien que des lettres/chiffres sans espace
+             */
+            ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_query.base_api_type_id);
+
+            /**
+             * Check injection : Checker le format du context_query.query_tables_prefix qui soit bien que des lettres/chiffres sans espace
+             */
+            ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
+
             if (!ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query.base_api_type_id, context_query.fields, access_type)) {
                 return null;
             }
 
             let aliases_n: number = 0;
+
+            /**
+             * Check injection OK : context_query.base_api_type_id & context_query.query_tables_prefix checked
+             */
             let tables_aliases_by_type: { [vo_type: string]: string } = {
                 [context_query.base_api_type_id]: (context_query.query_tables_prefix ?
                     (context_query.query_tables_prefix + '_t' + (aliases_n++)) :
@@ -405,13 +424,16 @@ export default class ContextQueryServerController {
                 return null;
             }
 
+            /**
+             * Check injection OK : get_table_full_name is OK
+             */
             let full_name = await ContextFilterServerController.getInstance().get_table_full_name(base_moduletable, context_query.filters);
 
             /**
              * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
              */
             if (!full_name) {
-                return "SELECT NULL";
+                return query_result.set_query("SELECT NULL");
             }
 
             FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
@@ -446,6 +468,13 @@ export default class ContextQueryServerController {
                 if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
                     return null;
                 }
+
+                /**
+                 * Checker le format des champs qui sont bien que des lettres/chiffres sans espace
+                 */
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_field.api_type_id);
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
 
                 /**
                  * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
@@ -505,13 +534,18 @@ export default class ContextQueryServerController {
                         throw new Error('Not Implemented');
                 }
 
+                /**
+                 * Check injection OK :
+                 *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
+                 *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
+                 */
                 SELECT += aggregator_prefix + field_full_name + aggregator_suffix + field_alias + ' ';
             }
 
             /**
              * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
              */
-            let where_conditions: string[] = [];
+            let where_conditions: ParameterizedWhereCondition[] = [];
 
             for (let i in context_query.filters) {
                 let filter = context_query.filters[i];
@@ -525,17 +559,34 @@ export default class ContextQueryServerController {
                     aliases_n
                 );
 
-                await ContextFilterServerController.getInstance().update_where_conditions(where_conditions, filter, tables_aliases_by_type);
+                /**
+                 * Check injection : TODO
+                 */
+                await ContextFilterServerController.getInstance().update_where_conditions(query_result, where_conditions, filter, tables_aliases_by_type);
             }
 
             let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
             if (!context_query.is_access_hook_def) {
+                /**
+                 * Check injection : TODO
+                 */
                 await this.add_context_access_hooks(context_query, tables_aliases_by_type_for_access_hooks, where_conditions);
             }
 
             let WHERE = '';
             if (where_conditions && where_conditions.length) {
-                WHERE += ' WHERE (' + where_conditions.join(') AND (') + ')';
+                WHERE += ' WHERE (';
+                let first_where_condition = true;
+                for (let i in where_conditions) {
+                    let where_condition = where_conditions[i];
+
+                    if (!first_where_condition) {
+                        WHERE += ') AND (';
+                    }
+                    first_where_condition = false;
+                    WHERE += where_condition.where_condition;
+                }
+                WHERE += ')';
             }
 
 
@@ -547,6 +598,9 @@ export default class ContextQueryServerController {
                 for (let i in context_query.fields) {
                     let context_field = context_query.fields[i];
 
+                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
+
                     group_bys.push(context_field.alias ?
                         context_field.alias :
                         tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
@@ -556,6 +610,13 @@ export default class ContextQueryServerController {
 
             let SORT_BY = '';
             if (context_query.sort_by) {
+
+                /**
+                 * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
+                 *  context_query.sort_by.field_id && context_query.sort_by.vo_type doivent être testés
+                 */
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.sort_by.vo_type);
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.sort_by.field_id);
 
                 let is_selected_field = false;
                 for (let i in context_query.fields) {
@@ -600,13 +661,35 @@ export default class ContextQueryServerController {
             let JOINTURES = this.get_ordered_jointures(context_query, jointures);
             let LIMIT = this.get_limit(context_query);
 
-            return SELECT + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT;
+            /**
+             * TODO Check injection EN COURS :
+             *  - SELECT : Check OK
+             *  - FROM : Check OK
+             *  - JOINTURES : Check OK
+             *  - WHERE : Check TODO
+             *  - GROUP_BY : Check OK
+             *  - SORT_BY : Check OK
+             *  - LIMIT : Check OK
+             */
+            return query_result.set_query(SELECT + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT);
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
         }
     }
 
+    /**
+     * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
+     *
+     * @param context_query
+     * @param aliases_n
+     * @param api_type_id
+     * @param jointures
+     * @param joined_tables_by_vo_type
+     * @param tables_aliases_by_type
+     * @param access_type
+     * @returns
+     */
     private async join_api_type_id(
         context_query: ContextQueryVO,
         aliases_n: number,
@@ -640,6 +723,17 @@ export default class ContextQueryServerController {
             jointures, api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
+    /**
+     * Check injection OK : Pas de risque identifié
+     *
+     * @param filter
+     * @param context_query
+     * @param jointures
+     * @param joined_tables_by_vo_type
+     * @param tables_aliases_by_type
+     * @param aliases_n
+     * @returns
+     */
     private async updates_jointures_from_filter(
         filter: ContextFilterVO,
         context_query: ContextQueryVO,
@@ -699,11 +793,14 @@ export default class ContextQueryServerController {
     /**
      * On prend tous les types utilisés pour réaliser la requête (donc référencés dans tables_aliases_by_type)
      *  et pour chacun si on a un context_access_hook on rajoute la condition associée à la requête
+     *
+     * Check injection OK : Pas de risque identifié
+     *
      * @param context_query le contexte de requête actuel
      * @param tables_aliases_by_type les tables utilisées et donc à vérifier
      * @param where_conditions les conditions actuelles et que l'on va amender
      */
-    private async add_context_access_hooks(context_query: ContextQueryVO, tables_aliases_by_type: { [vo_type: string]: string }, where_conditions: string[]) {
+    private async add_context_access_hooks(context_query: ContextQueryVO, tables_aliases_by_type: { [vo_type: string]: string }, where_conditions: ParameterizedWhereCondition[]) {
 
         let context_access_hooks: { [alias: string]: ContextQueryVO[] } = {};
         let uid: number = null;
@@ -760,7 +857,11 @@ export default class ContextQueryServerController {
             for (let j in querys) {
                 let query = querys[j];
 
-                where_conditions.push(alias + '.id in (' + await this.build_select_query(query) + ')');
+                let query_wrapper = await this.build_select_query(query);
+                where_conditions.push(
+                    new ParameterizedWhereCondition(
+                        alias + '.id in (' + query_wrapper.query + ')',
+                        query_wrapper.params));
             }
         }
     }
@@ -831,6 +932,10 @@ export default class ContextQueryServerController {
         }
     }
 
+    /**
+     * Check injection OK :
+     *  - query_limit && query_offset: on a checké le format pur nombre entier de context_field.query_limit, context_field.query_offset
+     */
     private get_limit(context_query: ContextQueryVO): string {
 
         if (!context_query) {
@@ -839,9 +944,13 @@ export default class ContextQueryServerController {
 
         let res = '';
         if (context_query.query_limit) {
+
+            ContextQueryInjectionCheckHandler.assert_integer(context_query.query_limit);
             res += ' LIMIT ' + context_query.query_limit;
 
             if (context_query.query_offset) {
+
+                ContextQueryInjectionCheckHandler.assert_integer(context_query.query_offset);
                 res += ' OFFSET ' + context_query.query_offset;
             }
         }

@@ -84,6 +84,12 @@ export default class MatroidIndexHandler {
         return minus ? -res : res;
     }
 
+    /**
+     * Check injection ok : aucun risque détecté à ce niveau
+     * @param range
+     * @param is_matroid_index
+     * @returns
+     */
     public get_normalized_range(range: IRange, is_matroid_index: boolean = false): string {
 
         if (!range) {
@@ -134,6 +140,13 @@ export default class MatroidIndexHandler {
         }
     }
 
+    /**
+     * Check injection (usage dans les requêtes) ok : get_normalized_range ok
+     * 
+     * @param ranges
+     * @param is_matroid_index
+     * @returns
+     */
     public get_normalized_ranges(ranges: IRange[], is_matroid_index: boolean = false): string {
 
         if (!ranges || !ranges.length) {
