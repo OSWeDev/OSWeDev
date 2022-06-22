@@ -336,6 +336,8 @@ export default class ModuleTableDBService {
                     '    on kcu.constraint_name = tco.constraint_name ' +
                     '    and kcu.constraint_schema = tco.constraint_schema ' +
                     '    and kcu.constraint_name = tco.constraint_name ' +
+                    '    and kcu.table_name = tco.table_name ' +
+                    '    and kcu.table_schema = tco.table_schema ' +
                     '  where tco.constraint_type = \'FOREIGN KEY\' and kcu.column_name = \'' + field.field_id + '\' and kcu.table_name = \'' + table_name + '\' and kcu.table_schema = \'' + database_name + '\';');
             } catch (error) {
             }
