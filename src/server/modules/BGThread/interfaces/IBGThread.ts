@@ -8,17 +8,17 @@ export default interface IBGThread {
     exec_in_dedicated_thread?: boolean;
 
     /**
-     * Timeout before BGT first launch (see ModuleBGThreadServer.DEFAULT_initial_timeout for example)
+     * Timeout (ms) before BGT first launch (see ModuleBGThreadServer.DEFAULT_initial_timeout for example)
      */
     current_timeout: number;
 
     /**
-     * Max timeout possible for this BGT (see ModuleBGThreadServer.DEFAULT_MAX_timeout for example)
+     * Max timeout (ms) possible for this BGT (see ModuleBGThreadServer.DEFAULT_MAX_timeout for example)
      */
     MAX_timeout: number;
 
     /**
-     * Min timeout possible for this BGT (see ModuleBGThreadServer.DEFAULT_MIN_timeout for example)
+     * Min timeout (ms) possible for this BGT (see ModuleBGThreadServer.DEFAULT_MIN_timeout for example)
      */
     MIN_timeout: number;
 
