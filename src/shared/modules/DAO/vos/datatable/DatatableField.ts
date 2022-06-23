@@ -116,51 +116,51 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-    public hide(): DatatableField<T, U> {
+    public hide(): this {
         this.hidden = true;
         this.hidden_print = true;
 
         return this;
     }
 
-    public show(): DatatableField<T, U> {
+    public show(): this {
         this.hidden = false;
         this.hidden_print = false;
 
         return this;
     }
 
-    public set_tooltip(tooltip: string): DatatableField<T, U> {
+    public set_tooltip(tooltip: string): this {
         this.tooltip = tooltip;
 
         return this;
     }
 
-    public hide_print(): DatatableField<T, U> {
+    public hide_print(): this {
         this.hidden_print = true;
 
         return this;
     }
 
-    public hide_export(): DatatableField<T, U> {
+    public hide_export(): this {
         this.hiden_export = true;
 
         return this;
     }
 
 
-    public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): DatatableField<T, U> {
+    public setIsVisibleUpdateOrCreate<P extends IDistantVOBase>(isVisibleUpdateOrCreate: (vo: P) => boolean): this {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
         return this;
     }
 
-    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): DatatableField<T, U> {
+    public setOnChange<P extends IDistantVOBase>(onChange: (vo: P) => void): this {
         this.onChange = onChange;
 
         return this;
     }
 
-    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): DatatableField<T, U> {
+    public setOnEndOfChange<P extends IDistantVOBase>(onEndOfChange: (vo: P) => void): this {
         this.onEndOfChange = onEndOfChange;
 
         return this;
@@ -171,7 +171,7 @@ export default abstract class DatatableField<T, U> {
      * @param fonctionComparaison
      * @returns datatable avec la fonction de tri
      */
-    public setSort<P extends IDistantVOBase>(fonctionComparaison: (vo1: P, vo2: P) => number): DatatableField<T, U> {
+    public setSort<P extends IDistantVOBase>(fonctionComparaison: (vo1: P, vo2: P) => number): this {
         this.sort = (vos: P[]): P[] => vos.sort(fonctionComparaison);
 
         return this;
@@ -184,7 +184,7 @@ export default abstract class DatatableField<T, U> {
      * (ex: (vo) => vo_ids.includes(vo.id) ou (vo) => vo.id>10)
      * @returns datafield
      */
-    public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): DatatableField<T, U> {
+    public setSieveCondition<P extends IDistantVOBase>(condition: (vos: P) => boolean = null): this {
 
         this.sieve = (vos: P[]): P[] => vos.filter((elt) => true);
         this.sieveCondition = (e) => true;
@@ -219,13 +219,13 @@ export default abstract class DatatableField<T, U> {
         return optionsArray;
     }
 
-    public setValidator(validator: (data: any) => string): DatatableField<T, U> {
+    public setValidator(validator: (data: any) => string): this {
         this.validate = validator;
 
         return this;
     }
 
-    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): DatatableField<T, U> {
+    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): this {
         this.validate_input = validate_input;
 
         return this;
@@ -236,7 +236,7 @@ export default abstract class DatatableField<T, U> {
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
      * On create or update tables, let it same as module_table_field_id
      */
-    public setUID_for_readDuplicateOnly(datatable_field_uid: string): DatatableField<T, U> {
+    public setUID_for_readDuplicateOnly(datatable_field_uid: string): this {
         this.datatable_field_uid = datatable_field_uid;
 
         // TODO FIXME FORCE READONLY ???
@@ -246,7 +246,7 @@ export default abstract class DatatableField<T, U> {
     /**
      * Force required
      */
-    public required(): DatatableField<T, U> {
+    public required(): this {
         this.is_required = true;
         return this;
     }
@@ -254,7 +254,7 @@ export default abstract class DatatableField<T, U> {
     /**
      * Force readonly
      */
-    public readonly(): DatatableField<T, U> {
+    public readonly(): this {
         this.is_readonly = true;
         return this;
     }
@@ -262,7 +262,7 @@ export default abstract class DatatableField<T, U> {
     /**
      * @param code_text Code du translatable text associé
      */
-    public setPlaceholder(code_text: string): DatatableField<T, U> {
+    public setPlaceholder(code_text: string): this {
         this.translatable_place_holder = code_text;
         return this;
     }
@@ -350,7 +350,7 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): DatatableField<T, U> {
+    public setComputedValueFunc(computed_value: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any): this {
         DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 
         return this;

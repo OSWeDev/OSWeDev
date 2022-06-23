@@ -24,13 +24,17 @@ export default class WeightHandler {
      * Sorts the array given as parameter according to the weights
      * @param items array to sort
      */
-    public sortByWeight(items: IWeightedItem[]) {
+    public sortByWeight<T extends IWeightedItem>(items: T[]) {
         if (!items) {
             return null;
         }
-        items.sort((a: IWeightedItem, b: IWeightedItem) => {
+        items.sort(this.get_sort_by_weight_cb());
+    }
+
+    public get_sort_by_weight_cb<T extends IWeightedItem>() {
+        return (a: T, b: T) => {
             return a.weight - b.weight;
-        });
+        };
     }
 
     /**
