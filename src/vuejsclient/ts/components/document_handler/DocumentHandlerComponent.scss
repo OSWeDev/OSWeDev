@@ -1,69 +1,40 @@
 @import "skin-variables.scss";
 
-/** ATTENTION ce module nécessite de ne pas avoir de position au dessus de la modal, comme par exemple sur admin-lte sur main-header */
-.main-header {
-    position: unset;
-    
-    .navbar.navbar-static-top {
-        position: unset;
-    }
-}
+.document_handler_component {
 
-.document_handler {
+    .tag-groups {
+        margin-bottom: 20px;
 
-    margin-left: 10px;
-    font-size: 27px;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.3);
-    vertical-align: middle;
-    float: right;
+        .tag-group {
 
-    .modal-header {
-
-        h4 {
             color: #555;
-            font-size: 1em;
-            margin-bottom: 0.2em;
+            font-size: 1.3em;
+            margin-top: 0.5em;
+            margin-bottom: 0.1em;
         }
 
-        .tag-groups {
+        .tags {
 
-            .tag-group {
+            button.tag {
 
+                margin-right: 0.3em;
                 color: #555;
-                font-size: 0.7em;
-                margin-top: 0.5em;
-                margin-bottom: 0.1em;
+                background-color: #f0f0f0;
+                font-size: 1.3em;
             }
 
-            .tags {
+            button.tag:hover {
+                color: $button_text_color;
+                background-color: $button_primary_bg_color;
+                opacity: 0.5;
+            }
 
-                button.tag {
+            button.tag.is-checked {
 
-                    margin-right: 0.3em;
-                    color: #555;
-                    background-color: #f0f0f0;
-                    font-size: 0.7em;
-                }
-
-                button.tag:hover {
-                    color: $button_text_color;
-                    background-color: $button_primary_bg_color;
-                    opacity: 0.5;
-                }
-
-                button.tag.is-checked {
-
-                    color: $button_text_color;
-                    background-color: $button_primary_bg_color;
-                }
+                color: $button_text_color;
+                background-color: $button_primary_bg_color;
             }
         }
-    }
-
-    .document_handler_switcher {
-        cursor: pointer;
-        padding: 6px 10px;
     }
 
     .document.item {
@@ -80,83 +51,83 @@
             position: absolute;
             right: 0.2em;
         }
-    }
 
-    .document.item.XS {
-        color: #333;
-        background-color: #eee;
-        width: 100px;
-        height: 100px;
-        font-size: 0.5em;
+        &.XS {
+            color: #333;
+            background-color: #eee;
+            width: 100px;
+            height: 100px;
+            font-size: 0.9em;
 
-        .document_type {
+            .document_type {
 
-            font-size: 1em;
+                font-size: 1.5em;
+            }
         }
-    }
 
-    .document.item.S {
-        color: #333;
-        background-color: #eee;
-        width: 208px;
-        height: 100px;
-        font-size: 0.75em;
+        &.S {
+            color: #333;
+            background-color: #eee;
+            width: 208px;
+            height: 100px;
+            font-size: 1.4em;
 
-        .document_type {
+            .document_type {
 
+                font-size: 2em;
+            }
+        }
+
+        &.M {
+            color: #333;
+            background-color: #eee;
+            width: 208px;
+            height: 208px;
             font-size: 1.5em;
+
+            .document_type {
+
+                font-size: 2em;
+            }
         }
-    }
 
-    .document.item.M {
-        color: #333;
-        background-color: #eee;
-        width: 208px;
-        height: 208px;
-        font-size: 1em;
+        &.L {
+            color: $button_text_color;
+            background-color: $button_primary_bg_color;
+            width: 208px;
+            height: 208px;
+            font-size: 1.8em;
 
-        .document_type {
+            .document_type {
 
-            font-size: 2em;
+                font-size: 2em;
+            }
         }
-    }
 
-    .document.item.L {
-        color: $button_text_color;
-        background-color: $button_primary_bg_color;
-        width: 208px;
-        height: 208px;
-        font-size: 1em;
-        
-        .document_type {
+        &.XL {
+            color: #333;
+            background-color: #eee;
+            width: 424px;
+            height: 208px;
+            font-size: 2.3em;
 
-            font-size: 2em;
+            .document_type {
+
+                font-size: 3em;
+            }
         }
-    }
 
-    .document.item.XL {
-        color: #333;
-        background-color: #eee;
-        width: 424px;
-        height: 208px;
-        font-size: 1.25em;
-        
-        .document_type {
+        &.XXL {
+            color: $button_text_color;
+            background-color: $button_primary_bg_color;
+            width: 424px;
+            height: 208px;
+            font-size: 2.3em;
 
-            font-size: 2.5em;
-        }
-    }
+            .document_type {
 
-    .document.item.XXL {
-        color: $button_text_color;
-        background-color: $button_primary_bg_color;
-        width: 424px;
-        height: 208px;
-        font-size: 1.25em;
-        
-        .document_type {
-
-            font-size: 2.5em;
+                font-size: 3em;
+            }
         }
     }
 }
