@@ -560,7 +560,7 @@ export default class ContextQueryServerController {
                 );
 
                 /**
-                 * Check injection : TODO
+                 * Check injection : OK
                  */
                 await ContextFilterServerController.getInstance().update_where_conditions(query_result, where_conditions, filter, tables_aliases_by_type);
             }
@@ -568,7 +568,7 @@ export default class ContextQueryServerController {
             let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
             if (!context_query.is_access_hook_def) {
                 /**
-                 * Check injection : TODO
+                 * Check injection : OK
                  */
                 await this.add_context_access_hooks(context_query, query_result, tables_aliases_by_type_for_access_hooks, where_conditions);
             }
@@ -651,11 +651,11 @@ export default class ContextQueryServerController {
             let LIMIT = this.get_limit(context_query);
 
             /**
-             * TODO Check injection EN COURS :
+             * Check injection : OK
              *  - SELECT : Check OK
              *  - FROM : Check OK
              *  - JOINTURES : Check OK
-             *  - WHERE : Check TODO
+             *  - WHERE : Check OK
              *  - GROUP_BY : Check OK
              *  - SORT_BY : Check OK
              *  - LIMIT : Check OK

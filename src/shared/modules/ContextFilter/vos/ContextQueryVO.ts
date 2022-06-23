@@ -73,6 +73,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  si on identifie pas ce cas correctement on définit le access hook en renvoyer un contextquery,
      *  qui par définition va déclencher l'appel au contexte accesshook et ajouter une condition sur subquery... en boucle
      *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
+     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
+     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
      */
     public is_access_hook_def: boolean;
 
@@ -502,6 +504,8 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Ignorer les context access hooks => à utiliser si l'on est en train de déclarer un context access hook pour
      *  éviter une récursivité du hook
+     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
+     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
      */
     public ignore_access_hooks(): ContextQueryVO {
 
