@@ -369,7 +369,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         let context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
-        context_query.sort_by = null;
+        context_query.set_sort(null);
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 
         this.loaded_once = true;

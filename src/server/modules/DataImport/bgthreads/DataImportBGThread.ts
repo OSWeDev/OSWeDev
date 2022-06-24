@@ -12,12 +12,16 @@ import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
-import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
+import RangeHandler from '../../../../shared/tools/RangeHandler';
+import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -104,13 +108,41 @@ export default class DataImportBGThread implements IBGThread {
             }
 
             if (!dih) {
-                dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
-                    DataImportBGThread.request, [
-                    ModuleDataImport.IMPORTATION_STATE_UPLOADED,
-                    ModuleDataImport.IMPORTATION_STATE_FORMATTED,
-                    ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
-                    ModuleDataImport.IMPORTATION_STATE_IMPORTED
-                ]);
+                /**
+                 * 2eme tentative de continuer un import qui serait à mi-chemin mais pas dans le param (plantage du serveur par exemple)
+                 */
+                dih = await query(DataImportHistoricVO.API_TYPE_ID)
+                    .add_filters([
+                        filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
+                            [
+                                RangeHandler.getInstance().create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_IMPORTED, NumSegment.TYPE_INT),
+                                RangeHandler.getInstance().create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, NumSegment.TYPE_INT)
+                            ]
+                        ).or(
+                            filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
+                                ModuleDataImport.IMPORTATION_STATE_FORMATTED
+                            ).and(
+                                filter(DataImportHistoricVO.API_TYPE_ID, 'autovalidate').is_true()
+                            )
+                        )
+                    ])
+                    .set_limit(1)
+                    .select_vo();
+            }
+
+            if (!dih) {
+                /**
+                 * Sinon on tente d'entamer un nouvel import, dans un ordre basé en premier lieu sur le poids de l'import, puis sur l'ancienneté
+                 */
+                dih = await query(DataImportHistoricVO.API_TYPE_ID)
+                    .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_UPLOADED)
+                    .set_sorts([
+                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'weight', true),
+                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'start_date', true),
+                        new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'id', true)
+                    ])
+                    .set_limit(1)
+                    .select_vo();
             }
 
             if (!dih) {

@@ -289,7 +289,7 @@ export default class ContextQueryServerController {
         context_query.query_offset = 0;
         context_query.query_limit = 100;
         let might_have_more: boolean = true;
-        context_query.sort_by = new SortByVO(context_query.base_api_type_id, 'id', false);
+        context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
         let field = moduletable.get_field_by_id(update_field_id);
         let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
@@ -598,52 +598,64 @@ export default class ContextQueryServerController {
             }
 
             let SORT_BY = '';
-            if (context_query.sort_by) {
+            if (context_query.sort_by && context_query.sort_by.length) {
 
-                /**
-                 * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
-                 *  context_query.sort_by.field_id && context_query.sort_by.vo_type doivent être testés
-                 */
-                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.sort_by.vo_type);
-                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.sort_by.field_id);
+                SORT_BY += ' ORDER BY ';
+                let first_sort_by = true;
 
-                let is_selected_field = false;
-                for (let i in context_query.fields) {
-                    let context_field = context_query.fields[i];
+                for (let sort_byi in context_query.sort_by) {
+                    let sort_by = context_query.sort_by[sort_byi];
 
-                    if (context_field.api_type_id != context_query.sort_by.vo_type) {
-                        continue;
-                    }
-                    if (context_field.field_id != context_query.sort_by.field_id) {
-                        continue;
-                    }
-                    is_selected_field = true;
-                }
+                    /**
+                     * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
+                     *  context_query.sort_by.field_id && context_query.sort_by.vo_type doivent être testés
+                     */
+                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.vo_type);
+                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.field_id);
 
-                if (is_selected_field || !context_query.query_distinct) {
+                    let is_selected_field = false;
+                    for (let i in context_query.fields) {
+                        let context_field = context_query.fields[i];
 
-                    SORT_BY += ' ORDER BY ' + tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id +
-                        (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
-                } else {
-
-                    let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
-                    SORT_BY += ' ORDER BY ' + sort_alias + (context_query.sort_by.sort_asc ? ' ASC ' : ' DESC ');
-
-                    if (!tables_aliases_by_type[context_query.sort_by.vo_type]) {
-                        aliases_n = await this.join_api_type_id(
-                            context_query,
-                            aliases_n,
-                            context_query.sort_by.vo_type,
-                            jointures,
-                            joined_tables_by_vo_type,
-                            tables_aliases_by_type,
-                            access_type
-                        );
+                        if (context_field.api_type_id != sort_by.vo_type) {
+                            continue;
+                        }
+                        if (context_field.field_id != sort_by.field_id) {
+                            continue;
+                        }
+                        is_selected_field = true;
                     }
 
-                    SELECT += ', ' + (context_query.sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
-                        tables_aliases_by_type[context_query.sort_by.vo_type] + '.' + context_query.sort_by.field_id
-                        + ') as ' + sort_alias;
+                    if (!first_sort_by) {
+                        SORT_BY += ', ';
+                    }
+                    first_sort_by = false;
+
+                    if (is_selected_field || !context_query.query_distinct) {
+
+                        SORT_BY += tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id +
+                            (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                    } else {
+
+                        let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
+                        SORT_BY += sort_alias + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+
+                        if (!tables_aliases_by_type[sort_by.vo_type]) {
+                            aliases_n = await this.join_api_type_id(
+                                context_query,
+                                aliases_n,
+                                sort_by.vo_type,
+                                jointures,
+                                joined_tables_by_vo_type,
+                                tables_aliases_by_type,
+                                access_type
+                            );
+                        }
+
+                        SELECT += ', ' + (sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
+                            tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id
+                            + ') as ' + sort_alias;
+                    }
                 }
             }
 

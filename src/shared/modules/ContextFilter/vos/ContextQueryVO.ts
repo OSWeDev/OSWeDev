@@ -59,7 +59,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Pour ajouter un ordre à la requête : null pour garder l'ordre par défaut
      */
-    public sort_by: SortByVO;
+    public sort_by: SortByVO[];
 
     /**
      * Par défaut vide, mais doit être utilisé pour les sub queries
@@ -496,7 +496,22 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public set_sort(sort: SortByVO): ContextQueryVO {
 
-        this.sort_by = sort;
+        if (!sort) {
+            this.sort_by = null;
+        } else {
+            this.sort_by = [sort];
+        }
+
+        return this;
+    }
+
+    /**
+     * Fixer la fonction de sort
+     * @param sorts
+     */
+    public set_sorts(sorts: SortByVO[]): ContextQueryVO {
+
+        this.sort_by = sorts;
 
         return this;
     }

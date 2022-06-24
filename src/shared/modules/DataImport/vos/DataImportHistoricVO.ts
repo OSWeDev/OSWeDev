@@ -69,4 +69,9 @@ export default class DataImportHistoricVO implements IDistantVOBase {
      *  relativement faible
      */
     public use_fast_track: boolean;
+
+    /**
+     * On ajoute un poids aux imports pour prioriser les imports en attente
+     */
+    public weight: number;
 }

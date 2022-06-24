@@ -140,7 +140,7 @@ export default class SlowVarKiHandler {
         query.filters = [filter];
         query.query_limit = 1;
         query.query_offset = 0;
-        query.sort_by = new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false);
+        query.set_sort(new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false));
 
         let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
 
