@@ -1,4 +1,5 @@
 import { isArray } from "lodash";
+import ParameterizedQueryWrapper from "../../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
@@ -58,7 +59,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Pour ajouter un ordre à la requête : null pour garder l'ordre par défaut
      */
-    public sort_by: SortByVO;
+    public sort_by: SortByVO[];
 
     /**
      * Par défaut vide, mais doit être utilisé pour les sub queries
@@ -72,6 +73,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  si on identifie pas ce cas correctement on définit le access hook en renvoyer un contextquery,
      *  qui par définition va déclencher l'appel au contexte accesshook et ajouter une condition sur subquery... en boucle
      *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
+     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
+     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
      */
     public is_access_hook_def: boolean;
 
@@ -493,7 +496,22 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public set_sort(sort: SortByVO): ContextQueryVO {
 
-        this.sort_by = sort;
+        if (!sort) {
+            this.sort_by = null;
+        } else {
+            this.sort_by = [sort];
+        }
+
+        return this;
+    }
+
+    /**
+     * Fixer la fonction de sort
+     * @param sorts
+     */
+    public set_sorts(sorts: SortByVO[]): ContextQueryVO {
+
+        this.sort_by = sorts;
 
         return this;
     }
@@ -501,6 +519,8 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Ignorer les context access hooks => à utiliser si l'on est en train de déclarer un context access hook pour
      *  éviter une récursivité du hook
+     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
+     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
      */
     public ignore_access_hooks(): ContextQueryVO {
 
@@ -512,7 +532,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Faire la requête en mode select
      */
-    public async get_select_query_str<T extends IDistantVOBase>(): Promise<string> {
+    public async get_select_query_str<T extends IDistantVOBase>(): Promise<ParameterizedQueryWrapper> {
         return await ModuleContextFilter.getInstance().build_select_query(this);
     }
 

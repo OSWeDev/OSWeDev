@@ -144,6 +144,9 @@ export default class Dates {
         }
     }
 
+    /**
+     * Check injection OK
+     */
     public static format(date: number, formatstr: string, localized: boolean = true): string {
         if (!date) {
             return null;

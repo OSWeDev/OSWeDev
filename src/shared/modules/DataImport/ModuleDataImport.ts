@@ -352,6 +352,7 @@ export default class ModuleDataImport extends Module {
             }),
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Modification', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de fin', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Vo importé', false),
             new ModuleTableField('import_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import', true).setEnumValues({

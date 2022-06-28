@@ -49,6 +49,7 @@ import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAnonymizationServer from '../Anonymization/ModuleAnonymizationServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
+import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -1207,7 +1208,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vos;
     }
 
+    /**
+     * Check injection OK
+     * @param field_type
+     * @param field_id
+     * @param intersector_range
+     * @returns
+     */
     public getClauseWhereRangeIntersectsField(field_type: string, field_id: string, intersector_range: IRange): string {
+
+        ContextQueryInjectionCheckHandler.assert_integer(intersector_range.min);
+        ContextQueryInjectionCheckHandler.assert_integer(intersector_range.max);
+
         switch (field_type) {
 
             case ModuleTableField.FIELD_TYPE_email:

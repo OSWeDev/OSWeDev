@@ -1,4 +1,9 @@
 import IRange from "../modules/DataRender/interfaces/IRange";
+import HourSegment from "../modules/DataRender/vos/HourSegment";
+import NumRange from "../modules/DataRender/vos/NumRange";
+import NumSegment from "../modules/DataRender/vos/NumSegment";
+import TimeSegment from "../modules/DataRender/vos/TimeSegment";
+import TSRange from "../modules/DataRender/vos/TSRange";
 import MatroidController from "../modules/Matroid/MatroidController";
 import VarsController from "../modules/Var/VarsController";
 import VarDataBaseVO from "../modules/Var/vos/VarDataBaseVO";
@@ -79,6 +84,12 @@ export default class MatroidIndexHandler {
         return minus ? -res : res;
     }
 
+    /**
+     * Check injection ok : aucun risque détecté à ce niveau
+     * @param range
+     * @param is_matroid_index
+     * @returns
+     */
     public get_normalized_range(range: IRange, is_matroid_index: boolean = false): string {
 
         if (!range) {
@@ -89,7 +100,11 @@ export default class MatroidIndexHandler {
 
         // Toujours 1 caractère max
         // Inutile sur un index de matroid puisqu'on le retrouve sur le var_id
-        res += is_matroid_index ? '' : this.base_10_num_to_base_76_txt(range.segment_type);
+        if (!is_matroid_index) {
+            let segment_type = this.base_10_num_to_base_76_txt(range.segment_type);
+            res += (segment_type == null) ? ((range.range_type == NumRange.RANGE_TYPE) ? NumSegment.TYPE_INT :
+                ((range.range_type == TSRange.RANGE_TYPE) ? TimeSegment.TYPE_SECOND : HourSegment.TYPE_SECOND)) : segment_type;
+        }
 
         if (RangeHandler.getInstance().getCardinal(range) == 1) {
             res += this.base_10_num_to_base_76_txt(range.min);
@@ -125,6 +140,13 @@ export default class MatroidIndexHandler {
         }
     }
 
+    /**
+     * Check injection (usage dans les requêtes) ok : get_normalized_range ok
+     * 
+     * @param ranges
+     * @param is_matroid_index
+     * @returns
+     */
     public get_normalized_ranges(ranges: IRange[], is_matroid_index: boolean = false): string {
 
         if (!ranges || !ranges.length) {
@@ -138,7 +160,7 @@ export default class MatroidIndexHandler {
         let res: string = '';
 
         ranges.forEach((range) => {
-            res += (res.length > 0 ? '$' : '') + this.get_normalized_range(range, is_matroid_index);
+            res += ((res.length > 0) ? '$' : '') + this.get_normalized_range(range, is_matroid_index);
         });
         return res;
     }

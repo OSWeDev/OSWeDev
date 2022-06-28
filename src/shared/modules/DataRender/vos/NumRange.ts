@@ -37,6 +37,10 @@ export default class NumRange implements IRange {
             return null;
         }
 
+        if (segment_type == null) {
+            return null;
+        }
+
         let res: NumRange = new NumRange();
 
         res.segment_type = segment_type;

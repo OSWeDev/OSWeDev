@@ -797,7 +797,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
         );
-        query_.sort_by = null;
+        query_.set_sort(null);
 
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
@@ -817,7 +817,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
             let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            query_.sort_by = new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id);
+            query_.set_sort(new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id));
         }
 
 
@@ -876,7 +876,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         let context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
-        context_query.sort_by = null;
+        context_query.set_sort(null);
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 
         this.loaded_once = true;

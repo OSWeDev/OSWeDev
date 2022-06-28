@@ -43,7 +43,13 @@ export default class MaintenanceBGThread implements IBGThread {
             //  et on informe si c'est pas fait les utilisateurs
             let maintenance: MaintenanceVO = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
 
-            if (MaintenanceServerController.getInstance().planned_maintenance != maintenance) {
+            if ((MaintenanceServerController.getInstance().planned_maintenance != maintenance) ||
+                (MaintenanceServerController.getInstance().planned_maintenance && (
+                    (MaintenanceServerController.getInstance().planned_maintenance.broadcasted_msg1 != maintenance.broadcasted_msg1) ||
+                    (MaintenanceServerController.getInstance().planned_maintenance.broadcasted_msg2 != maintenance.broadcasted_msg2) ||
+                    (MaintenanceServerController.getInstance().planned_maintenance.broadcasted_msg3 != maintenance.broadcasted_msg3) ||
+                    (MaintenanceServerController.getInstance().planned_maintenance.end_ts != maintenance.end_ts) ||
+                    (MaintenanceServerController.getInstance().planned_maintenance.maintenance_over != maintenance.maintenance_over)))) {
                 await MaintenanceServerController.getInstance().set_planned_maintenance_vo(maintenance);
             }
 

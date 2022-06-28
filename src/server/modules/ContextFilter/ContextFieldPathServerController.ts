@@ -60,6 +60,8 @@ export default class ContextFieldPathServerController {
      * On peut simplifier l'algo en séparant une fonction intermédiaire qui doit savoir si on traite du manytone ou du onetomany en entrée pour faire varier
      *  entre field.target_moduletable et field.moduletable, et qui dans le cas onetomany check la possible relation N/N
      *
+     * Check Injection OK : Aucun risque identifié
+     *
      * @param active_api_type_ids liste des types valides pour la recherche. Un chemin qui passe par un autre api_type_id doit être ignoré
      * @param from_types liste des types déjà liés par des jointures, donc dès qu'on en trouve un on peut arrêter la recherche de chemin
      * @param to_type le type ciblé pour lequel on cherche le chemin
