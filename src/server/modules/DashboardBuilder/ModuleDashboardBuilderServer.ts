@@ -978,6 +978,46 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Couleur du texte de l'entête" },
             'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
         ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Période fixe (calendrier)" },
+            'adfd_desc.search_type.calendar'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Par rapport à aujourd'hui" },
+            'adfd_desc.search_type.last'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher un calendrier" },
+            'adfd_desc.search_type.custom'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Case à cocher" },
+            'advanced_date_filter_widget_component.is_checkbox.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'advanced_date_filter_widget_component.is_checkbox.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'advanced_date_filter_widget_component.is_checkbox.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Liste des options" },
+            'advanced_date_filter_widget_component.opts.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter une option" },
+            'advanced_date_filter_widget_component.opts.add.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ de référence" },
+            'advanced_date_filter_widget_component.vo_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtrer une date avec options" },
+            'dashboards.widgets.icons_tooltips.advanceddatefilter.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

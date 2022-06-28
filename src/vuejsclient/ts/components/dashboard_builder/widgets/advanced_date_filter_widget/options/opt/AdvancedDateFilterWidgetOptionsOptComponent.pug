@@ -1,0 +1,73 @@
+.advanced_date_filter_widget_opt
+    .row.advanced_date_filter_widget_opt_conf
+        .name.col-md-8
+            Crudcomponentfield(
+                :field="opt_name_editable_field"
+                :vo="object_opt"
+                @onchangevo='onchange_object_opt'
+                :auto_update_field_value='true'
+                :show_insert_or_update_target='false'
+                :show_title='false'
+            )
+
+        .remove_opt.col-md-2.text-center(@click="remove_opt")
+            i.fa.fa-trash(aria-hidden="true")
+
+        template(v-if='!show_options')
+            .show_options.col-md-2.text-center(@click="unhide_options")
+                i.fa.fa-cogs(aria-hidden="true")
+        template(v-else)
+            .hide_options.col-md-2.text-center(@click="hide_options")
+                i.fa.fa-cogs(aria-hidden="true")
+
+            .col-md-12.mt-2
+                .search_type
+                    Crudcomponentfield(
+                        :field="opt_search_type_editable_field"
+                        :vo="object_opt"
+                        @onchangevo='onchange_object_opt'
+                        :auto_update_field_value='true'
+                        :show_insert_or_update_target='false'
+                    )
+
+                template(v-if="is_search_type_last")
+                    .search_type_last.mt-2
+                        .row
+                            .value.col-md-6
+                                Crudcomponentfield(
+                                    :field="opt_value_editable_field"
+                                    :vo="object_opt"
+                                    @onchangevo='onchange_object_opt'
+                                    :auto_update_field_value='true'
+                                    :show_insert_or_update_target='false'
+                                )
+                            .segmentation_type.col-md-6
+                                Crudcomponentfield(
+                                    :field="opt_segmentation_type_editable_field"
+                                    :vo="object_opt"
+                                    @onchangevo='onchange_object_opt'
+                                    :auto_update_field_value='true'
+                                    :show_insert_or_update_target='false'
+                                )
+                        
+                template(v-if="is_search_type_calendar")
+                    .is_search_type_calendar.mt-2
+                        .ts_range
+                            Crudcomponentfield(
+                                :field="opt_ts_range_editable_field"
+                                :vo="object_opt"
+                                @onchangevo='onchange_object_opt'
+                                :auto_update_field_value='true'
+                                :show_insert_or_update_target='false'
+                            )
+                        
+                template(v-if="is_search_type_custom")
+                    .is_search_type_custom.mt-2
+                        .segmentation_type
+                            Crudcomponentfield(
+                                :field="opt_segmentation_type_editable_field"
+                                :vo="object_opt"
+                                @onchangevo='onchange_object_opt'
+                                :auto_update_field_value='true'
+                                :show_insert_or_update_target='false'
+                            )
