@@ -1018,6 +1018,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Filtrer une date avec options" },
             'dashboards.widgets.icons_tooltips.advanceddatefilter.___LABEL___'
         ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeurs par défaut du filtre" },
+            'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le filtre" },
+            'field_value_filter_widget_component.hide_filter.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

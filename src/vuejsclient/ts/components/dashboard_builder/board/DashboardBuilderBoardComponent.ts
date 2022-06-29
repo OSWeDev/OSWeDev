@@ -368,6 +368,22 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.$emit('select_page', page);
     }
 
+    private isHide(item: DashboardPageWidgetVO): boolean {
+        if (!item || !item.json_options) {
+            return false;
+        }
+
+        try {
+            let json_options: any = JSON.parse(item.json_options);
+
+            if (json_options && json_options.hide_filter) {
+                return true;
+            }
+        } catch { }
+
+        return false;
+    }
+
     // private select_widget_and_stop(event, page_widget) {
     //     event.stopPropagation();
 

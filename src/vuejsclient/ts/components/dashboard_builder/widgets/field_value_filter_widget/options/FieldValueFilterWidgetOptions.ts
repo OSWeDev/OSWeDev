@@ -1,5 +1,7 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import DataFilterOption from "../../../../../../../shared/modules/DataRender/vos/DataFilterOption";
+import TSRange from "../../../../../../../shared/modules/DataRender/vos/TSRange";
 
 export default class FieldValueFilterWidgetOptions {
 
@@ -71,6 +73,10 @@ export default class FieldValueFilterWidgetOptions {
         public hide_btn_switch_advanced: boolean,
         public hide_advanced_string_filter_type: boolean,
         public vo_field_ref_multiple: VOFieldRefVO[],
+        public default_filter_opt_values: DataFilterOption[],
+        public default_ts_range_values: TSRange,
+        public default_boolean_values: number[],
+        public hide_filter: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

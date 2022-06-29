@@ -119,6 +119,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     private filtering_by_active_field_filter: ContextFilterVO = null;
 
     private limit: number = null;
+    private update_cpt_live: number = 0;
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
@@ -744,12 +745,14 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private async update_visible_options() {
 
+        this.update_cpt_live++;
         this.is_busy = true;
 
         if (!this.widget_options) {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
+            this.update_cpt_live--;
             return;
         }
 
@@ -757,6 +760,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
+            this.update_cpt_live--;
             return;
         }
 
@@ -764,6 +768,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
+            this.update_cpt_live--;
             return;
         }
 
@@ -771,6 +776,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.data_rows = [];
             this.loaded_once = true;
             this.is_busy = false;
+            this.update_cpt_live--;
             return;
         }
 
@@ -835,6 +841,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 this.data_rows = [];
                 this.loaded_once = true;
                 this.is_busy = false;
+                this.update_cpt_live--;
                 return;
             }
 
@@ -881,6 +888,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         this.loaded_once = true;
         this.is_busy = false;
+        this.update_cpt_live--;
     }
 
     private async refresh() {

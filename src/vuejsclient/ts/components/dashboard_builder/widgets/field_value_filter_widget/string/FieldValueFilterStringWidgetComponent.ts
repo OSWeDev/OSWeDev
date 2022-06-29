@@ -79,6 +79,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private utility_tested_on_type: string = null;
     private utility_tested_on_field: string = null;
 
+    private is_init: boolean = true;
+
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private debounced_query_update_visible_options_checkbox = debounce(this.query_update_visible_options_checkbox.bind(this), 300);
 
@@ -98,6 +100,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        this.is_init = true;
         await this.throttled_update_visible_options();
     }
 
@@ -471,6 +474,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
             this.filter_visible_options_lvl2 = {};
+            return;
+        }
+
+        // Si on a des valeurs par défaut, on va faire l'init
+        if (this.is_init) {
+            this.is_init = false;
+            this.tmp_filter_active_options = this.default_values;
             return;
         }
 
@@ -1358,7 +1368,43 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return null;
         }
 
-        return cloneDeep(options.vo_field_ref_multiple);
+        let res: VOFieldRefVO[] = [];
+
+        for (let i in options.vo_field_ref_multiple) {
+            res.push(Object.assign(new VOFieldRefVO(), options.vo_field_ref_multiple[i]));
+        }
+
+        return res;
+    }
+
+    get default_values(): DataFilterOption[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
+            return null;
+        }
+
+        let res: DataFilterOption[] = [];
+
+        for (let i in options.default_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.default_filter_opt_values[i].select_state,
+                options.default_filter_opt_values[i].label,
+                options.default_filter_opt_values[i].id,
+                options.default_filter_opt_values[i].disabled_state_selected,
+                options.default_filter_opt_values[i].disabled_state_selectable,
+                options.default_filter_opt_values[i].disabled_state_unselectable,
+                options.default_filter_opt_values[i].img,
+                options.default_filter_opt_values[i].desc,
+                options.default_filter_opt_values[i].boolean_value,
+                options.default_filter_opt_values[i].numeric_value,
+                options.default_filter_opt_values[i].string_value,
+                options.default_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
     }
 
     get widget_options() {
@@ -1385,6 +1431,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.hide_btn_switch_advanced,
                     options.hide_advanced_string_filter_type,
                     options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
                 ) : null;
             }
         } catch (error) {

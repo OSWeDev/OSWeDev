@@ -4,11 +4,6 @@ export default class DataFilterOption {
     public static STATE_SELECTABLE: number = 2;
     public static STATE_UNSELECTABLE: number = 3;
 
-    public boolean_value: boolean = null;
-    public numeric_value: number = null;
-    public string_value: string = null;
-    public tstz_value: number = null;
-
     public text_uid: string = null;
 
     public constructor(
@@ -20,7 +15,16 @@ export default class DataFilterOption {
         public disabled_state_unselectable: boolean = false,
         public img: string = null,
         public desc: string = null,
-    ) { }
+        public boolean_value: boolean = null,
+        public numeric_value: number = null,
+        public string_value: string = null,
+        public tstz_value: number = null,
+        init: boolean = false,
+    ) {
+        if (init) {
+            this.init_text_uid();
+        }
+    }
 
     public init_text_uid() {
         if (this.id !== null) {

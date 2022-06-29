@@ -72,6 +72,11 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         });
     }
 
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        this.ts_range = this.default_values;
+    }
+
     private get_ContextFilterVO_from_DataFilterOption(ts_range: TSRange, field: ModuleTableField<any>): ContextFilterVO {
         let translated_active_options = new ContextFilterVO();
 
@@ -197,6 +202,16 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         return options ? options.segmentation_type : null;
     }
 
+    get default_values(): TSRange {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if (!options) {
+            return null;
+        }
+
+        return options.default_ts_range_values;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -221,6 +236,10 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.hide_btn_switch_advanced,
                     options.hide_advanced_string_filter_type,
                     options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
                 ) : null;
             }
         } catch (error) {

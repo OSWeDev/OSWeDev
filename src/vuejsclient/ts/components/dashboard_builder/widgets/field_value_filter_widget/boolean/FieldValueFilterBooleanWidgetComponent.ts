@@ -44,6 +44,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private boolean_filter_types: number[] = [];
+    private is_init: boolean = true;
 
     private filter_type_options: number[] = [
         BooleanFilter.FILTER_TYPE_TRUE,
@@ -80,6 +81,13 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     }
 
     private async update_visible_options() {
+        // Si on a des valeurs par défaut, on va faire l'init
+        if (this.is_init) {
+            this.is_init = false;
+            this.boolean_filter_types = this.default_values;
+            return;
+        }
+
         /**
          * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
          */
@@ -110,7 +118,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
+        this.is_init = true;
         await this.throttled_update_visible_options();
     }
 
@@ -153,6 +161,16 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
+    get default_values(): number[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.default_boolean_values) || (!options.default_boolean_values.length)) {
+            return null;
+        }
+
+        return options.default_boolean_values;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -177,6 +195,10 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.hide_btn_switch_advanced,
                     options.hide_advanced_string_filter_type,
                     options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
                 ) : null;
             }
         } catch (error) {

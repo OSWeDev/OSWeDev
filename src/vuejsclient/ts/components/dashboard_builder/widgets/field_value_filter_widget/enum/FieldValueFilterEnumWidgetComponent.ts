@@ -55,6 +55,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private filter_visible_options: DataFilterOption[] = [];
 
     private warn_existing_external_filters: boolean = false;
+    private is_init: boolean = true;
 
     private actual_query: string = null;
 
@@ -90,6 +91,13 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
+            return;
+        }
+
+        // Si on a des valeurs par défaut, on va faire l'init
+        if (this.is_init) {
+            this.is_init = false;
+            this.tmp_filter_active_options = this.default_values;
             return;
         }
 
@@ -163,7 +171,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
+        this.is_init = true;
         await this.throttled_update_visible_options();
     }
 
@@ -243,6 +251,36 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
+    get default_values(): DataFilterOption[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
+            return null;
+        }
+
+        let res: DataFilterOption[] = [];
+
+        for (let i in options.default_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.default_filter_opt_values[i].select_state,
+                options.default_filter_opt_values[i].label,
+                options.default_filter_opt_values[i].id,
+                options.default_filter_opt_values[i].disabled_state_selected,
+                options.default_filter_opt_values[i].disabled_state_selectable,
+                options.default_filter_opt_values[i].disabled_state_unselectable,
+                options.default_filter_opt_values[i].img,
+                options.default_filter_opt_values[i].desc,
+                options.default_filter_opt_values[i].boolean_value,
+                options.default_filter_opt_values[i].numeric_value,
+                options.default_filter_opt_values[i].string_value,
+                options.default_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -267,6 +305,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.hide_btn_switch_advanced,
                     options.hide_advanced_string_filter_type,
                     options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
                 ) : null;
             }
         } catch (error) {
