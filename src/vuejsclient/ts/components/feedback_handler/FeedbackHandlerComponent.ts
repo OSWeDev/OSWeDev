@@ -197,10 +197,6 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_capture_3_vo = fileVo;
     }
 
-    private on_change_tmp_wish_be_called() {
-        this.tmp_wish_be_called = !this.tmp_wish_be_called;
-    }
-
     private console_logs_tostring_array() {
         let res: string[] = [];
 

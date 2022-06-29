@@ -21,6 +21,21 @@ export default class TablePaginationComponent extends VueComponentBase {
     @Prop()
     private pagination_pagesize: number;
 
+    @Prop()
+    private show_limit_selectable: boolean;
+
+    @Prop({ default: true })
+    private show_pagination_resumee: boolean;
+
+    @Prop({ default: true })
+    private show_pagination_slider: boolean;
+
+    @Prop({ default: true })
+    private show_pagination_form: boolean;
+
+    @Prop()
+    private limit_selectable: string[];
+
     @Prop({ default: false })
     private compressed: boolean;
 
@@ -33,6 +48,9 @@ export default class TablePaginationComponent extends VueComponentBase {
 
     private new_page: number = 0;
     private new_page_str: string = "0";
+
+    private all_limit_selectable: number[] = null;
+    private selected_limit: number = null;
 
     get pagination_offset_end_page() {
         let res = this.pagination_offset + this.pagination_pagesize;
@@ -92,6 +110,50 @@ export default class TablePaginationComponent extends VueComponentBase {
     @Watch("pagination_pagesize", { immediate: true })
     private throttle_update_slider() {
         this.throttled_update_slider();
+    }
+
+    @Watch("selected_limit")
+    private onchange_selected_limit() {
+        if (!this.selected_limit || (this.selected_limit == this.pagination_pagesize)) {
+            return;
+        }
+
+        this.$emit('change_limit', this.selected_limit);
+    }
+
+    @Watch("limit_selectable", { immediate: true })
+    private onchange_limit_selectable() {
+        let all_limit_selectable: number[] = [];
+        let selected_limit: number = null;
+
+        if (this.limit_selectable && this.limit_selectable.length > 0) {
+            for (let i in this.limit_selectable) {
+                let val: number = parseInt(this.limit_selectable[i]);
+
+                if (val && !isNaN(val) && (val > 0) && !all_limit_selectable.includes(val)) {
+                    all_limit_selectable.push(val);
+                }
+            }
+
+            if (!all_limit_selectable.includes(this.pagination_pagesize)) {
+                all_limit_selectable.push(this.pagination_pagesize);
+            }
+
+            selected_limit = this.pagination_pagesize;
+
+            all_limit_selectable.sort((a: number, b: number) => {
+                if (a < b) {
+                    return -1;
+                }
+                if (a > b) {
+                    return 1;
+                }
+                return 0;
+            });
+        }
+
+        this.all_limit_selectable = all_limit_selectable;
+        this.selected_limit = selected_limit;
     }
 
     private update_slider() {

@@ -33,7 +33,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
-    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -57,6 +57,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private advanced_number_filters: AdvancedNumberFilter[] = [new AdvancedNumberFilter()];
 
     private warn_existing_external_filters: boolean = false;
+    private is_init: boolean = true;
 
     private actual_query: string = null;
 
@@ -141,7 +142,12 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             }
             previous_filter = advanced_filter;
         }
-        this.set_active_field_filter(translated_active_options);
+
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: translated_active_options,
+        });
     }
 
     get is_advanced_filter_valid(): boolean {
@@ -208,14 +214,21 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
-    private async query_update_visible_options(query: string) {
-        this.actual_query = query;
+    private async query_update_visible_options(queryStr: string) {
+        this.actual_query = queryStr;
         await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
+            return;
+        }
+
+        // Si on a des valeurs par défaut, on va faire l'init
+        if (this.is_init) {
+            this.is_init = false;
+            this.tmp_filter_active_options = this.default_values;
             return;
         }
 
@@ -328,7 +341,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
+        this.is_init = true;
         await this.throttled_update_visible_options();
     }
 
@@ -373,7 +386,12 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 translated_active_options = this.merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
             }
         }
-        this.set_active_field_filter(translated_active_options);
+
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: translated_active_options,
+        });
     }
 
     get placeholder(): string {
@@ -403,6 +421,36 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
     }
 
+    get default_values(): DataFilterOption[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
+            return null;
+        }
+
+        let res: DataFilterOption[] = [];
+
+        for (let i in options.default_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.default_filter_opt_values[i].select_state,
+                options.default_filter_opt_values[i].label,
+                options.default_filter_opt_values[i].id,
+                options.default_filter_opt_values[i].disabled_state_selected,
+                options.default_filter_opt_values[i].disabled_state_selectable,
+                options.default_filter_opt_values[i].disabled_state_unselectable,
+                options.default_filter_opt_values[i].img,
+                options.default_filter_opt_values[i].desc,
+                options.default_filter_opt_values[i].boolean_value,
+                options.default_filter_opt_values[i].numeric_value,
+                options.default_filter_opt_values[i].string_value,
+                options.default_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -414,7 +462,24 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
                 options = options ? new FieldValueFilterWidgetOptions(
                     options.vo_field_ref,
-                    options.can_select_multiple, options.max_visible_options) : null;
+                    options.vo_field_ref_lvl2,
+                    options.vo_field_sort,
+                    options.can_select_multiple,
+                    options.is_checkbox,
+                    options.max_visible_options,
+                    options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
+                    options.segmentation_type,
+                    options.advanced_mode,
+                    options.default_advanced_string_filter_type,
+                    options.hide_btn_switch_advanced,
+                    options.hide_advanced_string_filter_type,
+                    options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

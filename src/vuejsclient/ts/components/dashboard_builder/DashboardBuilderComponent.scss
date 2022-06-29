@@ -1,7 +1,7 @@
 @import '../../../scss/base/skin.scss';
 
 .dashboard_builder {
-    
+
     margin-bottom: 500px;
 
     >.row>.col-md-12>.header {
@@ -21,6 +21,7 @@
                 font-size: 1.5em;
             }
         }
+
         .delete_dashboard {
 
             text-align: center;
@@ -130,14 +131,17 @@
                 font-size: 1.2em;
             }
 
-            .back, .select, .hide_navigation.not_disabled, .delete {
+            .back,
+            .select,
+            .hide_navigation.not_disabled,
+            .delete {
                 transition: all ease-in-out 0.4s;
 
                 &:hover {
                     background-color: goldenrod;
                 }
             }
-            
+
             .back {
                 background: #333;
             }
@@ -165,7 +169,7 @@
                     float: right;
                     padding: 0.5em;
                 }
-                
+
                 .update_trad {
                     text-align: center;
                     vertical-align: middle;
@@ -217,19 +221,19 @@
         overflow-y: auto;
         padding: 0;
         box-shadow: 1px 1px 10px;
-        background: white; 
+        background: white;
         overflow-x: hidden;
         transition: width 0.5s ease-out;
 
-        &.collapsed{
+        &.collapsed {
             width: 0px;
         }
-    
+
         .collapsible_component_wrapper {
             width: 600px;
         }
     }
-    
+
     .collapse_fields_wrapper {
         padding: 0.2em;
         margin: 0em;
@@ -244,9 +248,9 @@
     }
 
     .steps {
-        
+
         margin: 1em 0em;
-        
+
         .step {
             background: #F5F5F5;
             border-radius: 2px;
@@ -263,6 +267,10 @@
             }
         }
     }
+
+    .grid_item_wrapper.hide {
+        opacity: 0.4 !important;
+    }
 }
 
 body.sidenav-toggled .navbar-sidenav {
@@ -272,4 +280,3 @@ body.sidenav-toggled .navbar-sidenav {
         padding-left: 1.6em !important;
     }
 }
-

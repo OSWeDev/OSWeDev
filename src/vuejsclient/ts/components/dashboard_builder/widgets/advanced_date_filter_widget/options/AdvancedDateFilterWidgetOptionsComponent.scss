@@ -1,0 +1,32 @@
+.advanced_date_filter_widget_component_options {
+    .nestable-handle {
+        i {
+            font-size: 20px;
+            cursor: pointer;
+            background: #212529;
+            color: #EEE;
+            padding: 0.2em;
+            border-radius: 2px;
+
+            &.fa-trash {
+                background: indianred;
+            }
+
+        }
+    }
+
+    .nested_field_refs {
+        padding: 10px 0;
+        background-color: white;
+
+        .nestable-item {
+            border-bottom: 1px solid;
+            padding-bottom: 10px;
+
+            &:last-child {
+                border-bottom: 0;
+                padding-bottom: 0;
+            }
+        }
+    }
+}

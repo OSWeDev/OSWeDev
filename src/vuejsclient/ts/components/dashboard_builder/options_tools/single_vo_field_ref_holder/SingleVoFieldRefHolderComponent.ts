@@ -42,6 +42,10 @@ export default class SingleVoFieldRefHolderComponent extends VueComponentBase {
     private drop(event) {
         event.preventDefault();
 
+        if (!this.allowDrop(event)) {
+            return;
+        }
+
         let api_type_id: string = event.dataTransfer.getData("api_type_id");
         let field_id: string = event.dataTransfer.getData("field_id");
 

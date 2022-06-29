@@ -1,7 +1,7 @@
 @import '../../../../scss/base/skin.scss';
 
 .dashboard_viewer {
-    
+
     margin-bottom: 5em;
 
     >.row>.col-md-12>.header {
@@ -10,7 +10,7 @@
 
         .name {
             font-size: 2em;
-            
+
             input {
                 border: none;
                 padding: 0.5em;
@@ -64,7 +64,8 @@
                 transition: all ease-in-out 0.4s;
             }
 
-            .back, .select {
+            .back,
+            .select {
                 &:hover {
                     background-color: goldenrod;
                 }
@@ -101,5 +102,8 @@
     .icon_success {
         color: $success_color;
     }
-}
 
+    .grid_item_wrapper.hide {
+        display: none !important;
+    }
+}

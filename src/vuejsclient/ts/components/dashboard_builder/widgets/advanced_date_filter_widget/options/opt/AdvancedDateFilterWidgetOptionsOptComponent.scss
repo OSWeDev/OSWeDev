@@ -1,0 +1,30 @@
+.advanced_date_filter_widget_opt {
+
+    .show_options,
+    .hide_options,
+    .remove_opt {
+        i {
+            font-size: 20px;
+            cursor: pointer;
+            background: #212529;
+            color: #EEE;
+            padding: 0.2em;
+            border-radius: 2px;
+
+            &.fa-trash {
+                background: indianred;
+            }
+
+        }
+    }
+
+    .field {
+        .form-group {
+            margin-bottom: 0;
+
+            label {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

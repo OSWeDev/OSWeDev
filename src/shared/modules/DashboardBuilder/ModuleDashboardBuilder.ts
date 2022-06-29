@@ -1,9 +1,11 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VOsTypesManager';
+import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
@@ -46,6 +48,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.init_DashboardPageWidgetVO(db_page, db_widget);
         this.init_VOFieldRefVO();
         this.init_TableColumnDescVO();
+        this.init_AdvancedDateFilterOptDescVO();
     }
 
     private init_DashboardVO(): ModuleTable<any> {
@@ -186,6 +189,20 @@ export default class ModuleDashboardBuilder extends Module {
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
 
         var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+    }
+
+    private init_AdvancedDateFilterOptDescVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false),
+            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_int, 'Valeur', false),
+            new ModuleTableField('ts_range', ModuleTableField.FIELD_TYPE_tsrange, 'Date', false).set_segmentation_type(TimeSegment.TYPE_DAY),
+
+            new ModuleTableField('search_type', ModuleTableField.FIELD_TYPE_enum, 'Type de recherche').setEnumValues(AdvancedDateFilterOptDescVO.SEARCH_TYPE_LABELS),
+            new ModuleTableField('segmentation_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment').setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
+        ];
+
+        this.datatables.push(new ModuleTable(this, AdvancedDateFilterOptDescVO.API_TYPE_ID, () => new AdvancedDateFilterOptDescVO(), datatable_fields, null, "Option filtre date avancé"));
     }
 
 }

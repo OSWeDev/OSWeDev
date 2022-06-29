@@ -52,8 +52,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private export_button: boolean = true;
     private update_button: boolean = true;
     private create_button: boolean = true;
+    private show_limit_selectable: boolean = false;
+    private show_pagination_resumee: boolean = true;
+    private show_pagination_slider: boolean = true;
+    private show_pagination_form: boolean = true;
     private can_filter_by: boolean = true;
-    private limit: string = '100';
+    private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
+    private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
 
     private editable_columns: TableColumnDescVO[] = null;
 
@@ -95,7 +100,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.can_filter_by) {
                 this.can_filter_by = true;
             }
-            this.limit = '100';
+            this.limit = TableWidgetOptions.DEFAULT_LIMIT.toString();
+            this.limit_selectable = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
             return;
         }
 
@@ -111,6 +117,18 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.create_button != this.widget_options.create_button) {
             this.create_button = this.widget_options.create_button;
+        }
+        if ((this.widget_options.show_limit_selectable != null) && (this.show_limit_selectable != this.widget_options.show_limit_selectable)) {
+            this.show_limit_selectable = this.widget_options.show_limit_selectable;
+        }
+        if ((this.widget_options.show_pagination_resumee != null) && (this.show_pagination_resumee != this.widget_options.show_pagination_resumee)) {
+            this.show_pagination_resumee = this.widget_options.show_pagination_resumee;
+        }
+        if ((this.widget_options.show_pagination_slider != null) && (this.show_pagination_slider != this.widget_options.show_pagination_slider)) {
+            this.show_pagination_slider = this.widget_options.show_pagination_slider;
+        }
+        if ((this.widget_options.show_pagination_form != null) && (this.show_pagination_form != this.widget_options.show_pagination_form)) {
+            this.show_pagination_form = this.widget_options.show_pagination_form;
         }
         if (this.export_button != this.widget_options.export_button) {
             this.export_button = this.widget_options.export_button;
@@ -128,7 +146,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.can_filter_by = this.widget_options.can_filter_by;
         }
 
-        this.limit = (this.widget_options.limit == null) ? '100' : this.widget_options.limit.toString();
+        this.limit = (this.widget_options.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT.toString() : this.widget_options.limit.toString();
+        this.limit_selectable = (this.widget_options.limit_selectable == null) ? TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE : this.widget_options.limit_selectable;
     }
 
     @Watch('limit')
@@ -137,10 +156,24 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return;
         }
 
-        let limit = (this.limit == null) ? 100 : parseInt(this.limit);
+        let limit = (this.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT : parseInt(this.limit);
         if (this.widget_options.limit != limit) {
             this.next_update_options = this.widget_options;
             this.next_update_options.limit = limit;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('limit_selectable')
+    private async onchange_limit_selectable() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.limit_selectable != this.limit_selectable) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.limit_selectable = this.limit_selectable;
 
             await this.throttled_update_options();
         }
@@ -194,6 +227,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.filter_by_access = null;
                 crud_actions_column.enum_bg_colors = null;
                 crud_actions_column.enum_fg_colors = null;
+                crud_actions_column.bg_color_header = null;
+                crud_actions_column.font_color_header = null;
                 crud_actions_column.can_filter_by = true;
                 crud_actions_column.column_width = 0;
                 await this.add_column(crud_actions_column);
@@ -238,13 +273,33 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
+        let old_column: TableColumnDescVO = null;
+
         let i = this.next_update_options.columns.findIndex((column) => {
-            return column.id == update_column.id;
+            if (column.id == update_column.id) {
+                old_column = column;
+                return true;
+            }
+
+            return false;
         });
 
         if (i < 0) {
             ConsoleHandler.getInstance().error('update_column failed');
             return null;
+        }
+
+        // Si on essaye de mettre à jour le tri par defaut, on réinitialise tous les autres pour en avoir qu'un seul actif
+        if (old_column.default_sort_field != update_column.default_sort_field) {
+            for (let i_col in this.next_update_options.columns) {
+                if (this.next_update_options.columns[i_col].id == old_column.id) {
+                    continue;
+                }
+
+                if (this.next_update_options.columns[i_col].default_sort_field != null) {
+                    this.next_update_options.columns[i_col].default_sort_field = null;
+                }
+            }
         }
 
         this.next_update_options.columns[i] = update_column;
@@ -278,7 +333,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -391,9 +446,24 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as TableWidgetOptions;
                 options = options ? new TableWidgetOptions(
-                    options.columns, options.is_focus_api_type_id, options.limit, options.crud_api_type_id,
-                    options.vocus_button, options.delete_button, options.delete_all_button, options.create_button, options.update_button,
-                    options.refresh_button, options.export_button, options.can_filter_by) : null;
+                    options.columns,
+                    options.is_focus_api_type_id,
+                    options.limit,
+                    options.crud_api_type_id,
+                    options.vocus_button,
+                    options.delete_button,
+                    options.delete_all_button,
+                    options.create_button,
+                    options.update_button,
+                    options.refresh_button,
+                    options.export_button,
+                    options.can_filter_by,
+                    options.show_pagination_resumee,
+                    options.show_pagination_slider,
+                    options.show_pagination_form,
+                    options.show_limit_selectable,
+                    options.limit_selectable,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -537,6 +607,70 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.create_button != this.create_button) {
             this.next_update_options.create_button = this.create_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_show_limit_selectable() {
+        this.show_limit_selectable = !this.show_limit_selectable;
+
+        if (this.show_limit_selectable) {
+            this.limit_selectable = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
+        }
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_limit_selectable != this.show_limit_selectable) {
+            this.next_update_options.show_limit_selectable = this.show_limit_selectable;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_show_pagination_resumee() {
+        this.show_pagination_resumee = !this.show_pagination_resumee;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_pagination_resumee != this.show_pagination_resumee) {
+            this.next_update_options.show_pagination_resumee = this.show_pagination_resumee;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_show_pagination_slider() {
+        this.show_pagination_slider = !this.show_pagination_slider;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_pagination_slider != this.show_pagination_slider) {
+            this.next_update_options.show_pagination_slider = this.show_pagination_slider;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_show_pagination_form() {
+        this.show_pagination_form = !this.show_pagination_form;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_pagination_form != this.show_pagination_form) {
+            this.next_update_options.show_pagination_form = this.show_pagination_form;
             await this.throttled_update_options();
         }
     }

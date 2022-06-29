@@ -1,5 +1,13 @@
 .dashboard_builder_board_item {
+    height: -webkit-fill-available;
 
+    .widget_component_wrapper {
+        height: -webkit-fill-available;
+
+        .field_value_filter_widget_component {
+            height: -webkit-fill-available;
+        }
+    }
 
     .widget_component {
         padding: 1em;

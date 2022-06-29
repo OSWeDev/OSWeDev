@@ -1579,4 +1579,12 @@ export default class CRUDComponentField extends VueComponentBase
 
         return res;
     }
+
+    get placeholder_string(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
+    }
 }

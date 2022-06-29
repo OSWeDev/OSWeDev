@@ -1,3 +1,4 @@
+import { RouteConfig } from 'vue-router';
 
 export default class DashboardBuilderController {
 
@@ -11,6 +12,11 @@ export default class DashboardBuilderController {
     public static VOFIELDREF_NAME_CODE_PREFIX: string = "dashboard.vofieldref.name.";
     public static TableColumnDesc_NAME_CODE_PREFIX: string = "dashboard.table_column_desc.name.";
 
+    public static DASHBOARD_VO_ACTION_ADD: string = "add";
+    public static DASHBOARD_VO_ACTION_EDIT: string = "edit";
+    public static DASHBOARD_VO_ACTION_DELETE: string = "delete";
+    public static DASHBOARD_VO_ACTION_VOCUS: string = "vocus";
+
     public static getInstance(): DashboardBuilderController {
         if (!DashboardBuilderController.instance) {
             DashboardBuilderController.instance = new DashboardBuilderController();
@@ -21,5 +27,23 @@ export default class DashboardBuilderController {
     private static instance: DashboardBuilderController = null;
 
     protected constructor() {
+    }
+
+    public addRouteForDashboard(path: string, name: string, component: any, crud: boolean): RouteConfig[] {
+        let routes = [{
+            path: path,
+            name: name,
+            component: component,
+        }];
+
+        if (crud) {
+            routes.push({
+                path: path + '/:dashboard_vo_action/:dashboard_vo_id',
+                name: name + '__CRUD',
+                component: component,
+            });
+        }
+
+        return routes;
     }
 }

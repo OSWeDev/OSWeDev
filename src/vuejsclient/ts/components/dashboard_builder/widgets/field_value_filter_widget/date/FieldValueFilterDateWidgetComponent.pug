@@ -1,0 +1,10 @@
+.field_value_filter_date_widget_component
+    template(v-if='vo_field_ref')
+        .vo_field_ref_label {{ vo_field_ref_label }}
+
+        .vo_field_ref_filter
+            Tsrangeinputcomponent(
+                v-model="ts_range"
+                :field="field_date"
+                :segmentation_type="segmentation_type"
+            )

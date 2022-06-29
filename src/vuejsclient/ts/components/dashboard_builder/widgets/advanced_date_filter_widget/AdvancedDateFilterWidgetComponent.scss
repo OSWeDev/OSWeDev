@@ -1,0 +1,18 @@
+@import '../../../../../scss/base/skin.scss';
+
+.advanced_date_filter_widget_component {
+    height: -webkit-fill-available;
+
+    .vo_field_ref_label {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    // .has_opt_custom,
+    // .type_custom {
+    //     width: 50%;
+    //     display: inline-block;
+    //     vertical-align: top;
+    // }
+}

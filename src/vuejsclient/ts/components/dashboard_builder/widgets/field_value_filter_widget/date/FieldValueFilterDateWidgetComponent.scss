@@ -1,0 +1,17 @@
+@import '../../../../../../scss/base/skin.scss';
+
+.field_value_filter_date_widget_component {
+
+    .vo_field_ref_label {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    .vo_field_ref_filter {
+        input[type="text"] {
+            padding: 0;
+            border: 0;
+        }
+    }
+}
