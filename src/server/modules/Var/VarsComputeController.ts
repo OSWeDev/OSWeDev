@@ -355,6 +355,9 @@ export default class VarsComputeController {
                              *  et en déduire ceux qui manquent
                              */
                             let known_pixels_query = query(varconf.var_data_vo_type);
+
+                            known_pixels_query.filter_by_num_eq('var_id', varconf.id);
+
                             // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
                             //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
                             for (let i in matroid_fields) {
