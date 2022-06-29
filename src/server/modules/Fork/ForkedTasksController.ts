@@ -88,7 +88,9 @@ export default class ForkedTasksController {
             );
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid));
+            if (!await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid))) {
+                ConsoleHandler.getInstance().error('exec_self_on_main_process_and_return_value:Un message n\'a pas pu être envoyé. Est-ce qu\'on ne devrait pas appeler le callback (thrower) du result_task_id ? est-ce que cela bloque l\'appli ? :' + task_uid + ':');
+            }
             return false;
         }
         return true;
@@ -157,17 +159,21 @@ export default class ForkedTasksController {
                     return false;
                 }
 
-                await ForkMessageController.getInstance().send(
+                if (!await ForkMessageController.getInstance().send(
                     new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
                     fork.child_process,
-                    fork);
+                    fork)) {
+                    ConsoleHandler.getInstance().error('exec_self_on_bgthread_and_return_value:1:Un message n\'a pas pu être envoyé. Est-ce qu\'on ne devrait pas appeler le callback (thrower) du result_task_id ? est-ce que cela bloque l\'appli ? :' + task_uid + ':');
+                }
 
                 return false;
             }
 
             // Si on est sur un bgthread (et donc pas le bon à ce stade) on envoie une demande au thread principal d'envoie de message au bgthread
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
-            await ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid));
+            if (!await ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid))) {
+                ConsoleHandler.getInstance().error('exec_self_on_bgthread_and_return_value:2:Un message n\'a pas pu être envoyé. Est-ce qu\'on ne devrait pas appeler le callback (thrower) du result_task_id ? est-ce que cela bloque l\'appli ? :' + task_uid + ':');
+            }
             return false;
         }
         return true;
