@@ -1265,7 +1265,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in predeps) {
                 let predep = predeps[i];
                 let cache = {};
-                await predep.get_data(param, cache);
                 await predep.load_node_data(varDAGNode, cache);
             }
         }
@@ -1348,7 +1347,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             let datasource_dep = datasources_deps[i];
 
             let cache = {};
-            await datasource_dep.get_data(param, cache);
             await datasource_dep.load_node_data(varDAGNode, cache);
             let data = varDAGNode.datasources[datasource_dep.name];
 

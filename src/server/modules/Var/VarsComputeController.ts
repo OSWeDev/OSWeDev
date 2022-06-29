@@ -956,7 +956,7 @@ export default class VarsComputeController {
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
                 for (let i in dag.nodes) {
                     let node = dag.nodes[i];
@@ -1061,7 +1061,7 @@ export default class VarsComputeController {
                 let deps_i = 0;
 
                 let deps_promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
                 let start_time = Dates.now();
                 let real_start_time = start_time;
@@ -1425,7 +1425,7 @@ export default class VarsComputeController {
         var_dag: DAG<VarDAGNode>) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
         for (let i in vars_to_deploy) {
 
@@ -1481,7 +1481,7 @@ export default class VarsComputeController {
     ) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];

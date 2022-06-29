@@ -197,7 +197,7 @@ export default class VarsDatasVoUpdateHandler {
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
                 let intersectors_by_var_id: {
                     [var_id: number]: {
                         [index: string]: VarDataBaseVO;
