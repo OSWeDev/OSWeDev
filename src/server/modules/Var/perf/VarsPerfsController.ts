@@ -195,7 +195,7 @@ export default class VarsPerfsController {
                             min_index = ij;
                         }
 
-                        if ((max_value == null) || (max_value > cost_for_1000_card)) {
+                        if ((max_value == null) || (max_value < cost_for_1000_card)) {
                             max_value = cost_for_1000_card;
                             max_index = ij;
                         }
@@ -207,7 +207,7 @@ export default class VarsPerfsController {
                         let cost_for_1000_card = var_cache_conf.last_calculations_cost_for_1000_card[ij];
 
                         if ((ij == min_index) || (ij == max_index)) {
-                            sum_ += cost_for_1000_card * 0.1;
+                            sum_ += (cost_for_1000_card * 0.1);
                             coef += 0.1;
                             continue;
                         }
