@@ -197,7 +197,12 @@ export default class VarsDatasVoUpdateHandler {
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+                let intersectors_by_var_id: {
+                    [var_id: number]: {
+                        [index: string]: VarDataBaseVO;
+                    };
+                } = {};
 
                 while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
                     for (let i in intersectors_by_index) {
@@ -207,6 +212,10 @@ export default class VarsDatasVoUpdateHandler {
                             ConsoleHandler.getInstance().log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
                         }
                         solved_intersectors_by_index[intersector.index] = intersector;
+                        if (!intersectors_by_var_id[intersector.var_id]) {
+                            intersectors_by_var_id[intersector.var_id] = {};
+                        }
+                        intersectors_by_var_id[intersector.var_id][intersector.index] = intersector;
 
                         if (promises.length >= max) {
                             await Promise.all(promises);
@@ -214,12 +223,6 @@ export default class VarsDatasVoUpdateHandler {
                         }
 
                         promises.push((async () => {
-
-                            await this.find_invalid_datas_and_push_for_update({
-                                [intersector.var_id]: {
-                                    [intersector.index]: intersector
-                                }
-                            });
 
                             let deps_intersectors = await this.get_deps_intersectors(intersector);
 
@@ -251,6 +254,8 @@ export default class VarsDatasVoUpdateHandler {
                         await Promise.all(promises);
                     }
                 }
+
+                await this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
             },
             this
         );

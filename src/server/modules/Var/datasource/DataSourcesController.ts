@@ -48,7 +48,7 @@ export default class DataSourcesController {
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
                 for (let i in dss) {
                     let ds = dss[i];

@@ -288,6 +288,7 @@ export default class VarsComputeController {
                     } else {
 
                         let pixel_query = query(varconf.var_data_vo_type)
+                            .filter_by_num_eq('var_id', varconf.id)
                             .field('value', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
                             .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
@@ -355,6 +356,9 @@ export default class VarsComputeController {
                              *  et en déduire ceux qui manquent
                              */
                             let known_pixels_query = query(varconf.var_data_vo_type);
+
+                            known_pixels_query.filter_by_num_eq('var_id', varconf.id);
+
                             // On pourrait vouloir récupérer que l'index et comparer à celui qu'on génère mais ça fourni pas toutes les infos propres
                             //      pour l'aggregated_datas .... .field('_bdd_only_index', 'index');
                             for (let i in matroid_fields) {
@@ -953,7 +957,7 @@ export default class VarsComputeController {
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
                 for (let i in dag.nodes) {
                     let node = dag.nodes[i];
@@ -1058,7 +1062,7 @@ export default class VarsComputeController {
                 let deps_i = 0;
 
                 let deps_promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
                 let start_time = Dates.now();
                 let real_start_time = start_time;
@@ -1422,7 +1426,7 @@ export default class VarsComputeController {
         var_dag: DAG<VarDAGNode>) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
         for (let i in vars_to_deploy) {
 
@@ -1478,7 +1482,7 @@ export default class VarsComputeController {
     ) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];

@@ -287,7 +287,7 @@ export default class VarsDatasProxy {
                     let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
                     let self = this;
                     let promises = [];
-                    let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                    let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
 
                     for (let i in indexes) {
                         let index = indexes[i];
@@ -775,55 +775,29 @@ export default class VarsDatasProxy {
                  */
 
                 /**
-                 * On commence par ordonner les vars par cardinal pour commencer par les plus petites, et aussi par celles qui sont en bas de l'arbre
+                 * On va présélectionner les vars_datas qui ont pas une valeur valide et qui sont issues du clients, puis celles sans valeur valide et issues d'ailleurs
                  */
-                if (this.vars_datas_buffer && this.vars_datas_buffer.length) {
-                    await this.order_vars_datas_buffer();
+
+                if (this.select_vars_from_buffer(
+                    (v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data),
+                    estimated_ms,
+                    client_request_estimated_ms_limit,
+                    nb_vars,
+                    client_request_min_nb_vars,
+                    res
+                )) {
+                    return res;
                 }
 
-                for (let i in this.vars_datas_buffer) {
-
-                    if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
-                        (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
-                        ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
-                        return res;
-                    }
-
-                    let var_data_wrapper = this.vars_datas_buffer[i];
-
-                    if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
-
-                        let estimated_ms_var = 0;
-
-                        if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id]) {
-                            estimated_ms_var = var_data_wrapper.estimated_ms;
-                        } else {
-                            // debug
-                            ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_wrapper.var_data.index + ':');
-                            try {
-                                ConsoleHandler.getInstance().warn(JSON.stringify(VarsServerController.getInstance().varcacheconf_by_var_ids));
-                            } catch (error) {
-                                ConsoleHandler.getInstance().error(error);
-                            }
-                        }
-
-                        // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
-                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
-                            continue;
-                        }
-
-                        nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
-                        res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
-                        estimated_ms += estimated_ms_var;
-                        var_data_wrapper.is_requested = true;
-
-                        // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
-                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
-                            break;
-                        }
-
-                        continue;
-                    }
+                if (this.select_vars_from_buffer(
+                    (v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data),
+                    estimated_ms,
+                    client_request_estimated_ms_limit,
+                    nb_vars,
+                    client_request_min_nb_vars,
+                    res
+                )) {
+                    return res;
                 }
 
                 /**
@@ -875,6 +849,61 @@ export default class VarsDatasProxy {
             },
             this
         );
+    }
+
+    private select_vars_from_buffer(
+        condition: (v: VarDataProxyWrapperVO<VarDataBaseVO>) => boolean,
+        estimated_ms: number,
+        client_request_estimated_ms_limit: number,
+        nb_vars: number,
+        client_request_min_nb_vars: number,
+        res: { [index: string]: VarDataBaseVO }
+    ) {
+
+        for (let i in this.vars_datas_buffer) {
+
+            if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
+                (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
+                ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
+                return true;
+            }
+
+            let var_data_wrapper = this.vars_datas_buffer[i];
+            if (!condition(var_data_wrapper)) {
+                continue;
+            }
+
+            let estimated_ms_var = 0;
+
+            if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id]) {
+                estimated_ms_var = var_data_wrapper.estimated_ms;
+            } else {
+                // debug
+                ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_wrapper.var_data.index + ':');
+                try {
+                    ConsoleHandler.getInstance().warn(JSON.stringify(VarsServerController.getInstance().varcacheconf_by_var_ids));
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                }
+            }
+
+            // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
+            if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
+                continue;
+            }
+
+            nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
+            res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
+            estimated_ms += estimated_ms_var;
+            var_data_wrapper.is_requested = true;
+
+            // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
+            if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1146,12 +1175,12 @@ export default class VarsDatasProxy {
         }
     }
 
-    private async order_vars_datas_buffer() {
+    private async order_vars_datas_buffer(vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>>) {
 
         let cardinaux: { [index: string]: number } = {};
 
-        for (let i in this.vars_datas_buffer) {
-            let var_wrapper = this.vars_datas_buffer[i];
+        for (let i in vars_datas_buffer) {
+            let var_wrapper = vars_datas_buffer[i];
             cardinaux[var_wrapper.var_data.index] = MatroidController.getInstance().get_cardinal(var_wrapper.var_data);
         }
 
@@ -1160,7 +1189,18 @@ export default class VarsDatasProxy {
             await VarsServerController.getInstance().init_varcontrollers_dag_depths();
         }
 
-        this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
+        vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
+
+            // On filtre en amont
+            // // En tout premier les params qui nécessitent un calcul
+            // let valida = VarsServerController.getInstance().has_valid_value(a.var_data);
+            // let validb = VarsServerController.getInstance().has_valid_value(b.var_data);
+            // if (valida && !validb) {
+            //     return -1;
+            // }
+            // if (validb && !valida) {
+            //     return 1;
+            // }
 
             // En priorité les demandes client
             if (a.is_client_var && !b.is_client_var) {
@@ -1176,6 +1216,9 @@ export default class VarsDatasProxy {
                 return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
             }
 
+            /**
+             * Par hauteur dans l'arbre
+             */
             let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_data.var_id];
             let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_data.var_id];
 
