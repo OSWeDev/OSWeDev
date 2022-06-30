@@ -288,6 +288,7 @@ export default class VarsComputeController {
                     } else {
 
                         let pixel_query = query(varconf.var_data_vo_type)
+                            .filter_by_num_eq('var_id', varconf.id)
                             .field('value', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
                             .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
