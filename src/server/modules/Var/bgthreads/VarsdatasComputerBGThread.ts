@@ -73,7 +73,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      * Par défaut, sans intervention extérieur, on a pas besoin de faire des calculs tellement souvent
      */
 
-    public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 1000, { leading: true, trailing: true });
+    public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 100, { leading: true, trailing: true });
     public semaphore: boolean = false;
 
     private timeout_calculation: number = 30;
@@ -212,12 +212,20 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", true);
 
+
+                        /**
+                         * On invalide les vars si des intersecteurs sont en attente
+                         */
+                        promises.push(VarsDatasVoUpdateHandler.getInstance().handle_invalidate_intersectors());
+                        await Promise.all(promises);
+                        promises = [];
+
                         if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
                             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasProxy.handle_buffer:IN");
                         }
 
                         /**
-                         * On commence par mettre à jour la bdd si nécessaire
+                         * On met à jour la bdd si nécessaire
                          */
                         promises.push(VarsDatasProxy.getInstance().handle_buffer());
 
@@ -449,6 +457,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 return;
             }
 
+            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:ASAP");
             this.run_asap = true;
 
             resolve(true);

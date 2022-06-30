@@ -45,6 +45,7 @@ export default class VarsDatasVoUpdateHandler {
     public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
     public static TASK_NAME_has_vos_cud: string = 'VarsDatasVoUpdateHandler.has_vos_cud';
+    public static TASK_NAME_push_invalidate_intersectors: string = 'VarsDatasVoUpdateHandler.push_invalidate_intersectors';
     public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
     public static TASK_NAME_filter_varsdatas_cache_by_matroids_intersection: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection';
 
@@ -74,12 +75,19 @@ export default class VarsDatasVoUpdateHandler {
      */
     private has_retrieved_vos_cud: boolean = false;
 
+    /**
+     * La liste des intersecteurs à appliquer pour invalider les vars en base
+     */
+    private invalidate_intersectors: VarDataBaseVO[] = [];
+
     private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false, trailing: true });
+    private throttle_push_invalidate_intersectors = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_push_invalidate_intersectors.bind(this), 1000, { leading: false, trailing: true });
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, this.has_vos_cud.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, this.filter_varsdatas_cache_by_matroids_intersection.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_intersectors, this.push_invalidate_intersectors.bind(this));
     }
 
     /**
@@ -198,11 +206,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 let promises = [];
                 let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
-                let intersectors_by_var_id: {
-                    [var_id: number]: {
-                        [index: string]: VarDataBaseVO;
-                    };
-                } = {};
+                let invalidate_intersectors: VarDataBaseVO[] = [];
 
                 while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
                     for (let i in intersectors_by_index) {
@@ -211,11 +215,11 @@ export default class VarsDatasVoUpdateHandler {
                         if (DEBUG_VARS) {
                             ConsoleHandler.getInstance().log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
                         }
-                        solved_intersectors_by_index[intersector.index] = intersector;
-                        if (!intersectors_by_var_id[intersector.var_id]) {
-                            intersectors_by_var_id[intersector.var_id] = {};
+                        if (solved_intersectors_by_index[intersector.index]) {
+                            continue;
                         }
-                        intersectors_by_var_id[intersector.var_id][intersector.index] = intersector;
+                        solved_intersectors_by_index[intersector.index] = intersector;
+                        invalidate_intersectors.push(intersector);
 
                         if (promises.length >= max) {
                             await Promise.all(promises);
@@ -255,7 +259,7 @@ export default class VarsDatasVoUpdateHandler {
                     }
                 }
 
-                await this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
+                await this.push_invalidate_intersectors(invalidate_intersectors);
             },
             this
         );
@@ -287,6 +291,38 @@ export default class VarsDatasVoUpdateHandler {
             },
             this
         );
+    }
+
+    public async handle_invalidate_intersectors() {
+        if (this.invalidate_intersectors && this.invalidate_intersectors.length) {
+            ConsoleHandler.getInstance().log('handle_invalidate_intersectors:IN:' + this.invalidate_intersectors.length);
+            let invalidate_intersectors = this.invalidate_intersectors;
+            this.invalidate_intersectors = [];
+            await this.find_invalid_datas_and_push_for_update(invalidate_intersectors);
+            ConsoleHandler.getInstance().log('handle_invalidate_intersectors:OUT:' + invalidate_intersectors.length + '=>' + this.invalidate_intersectors.length);
+        }
+    }
+
+    private async push_invalidate_intersectors(invalidate_intersectors: VarDataBaseVO[]): Promise<void> {
+        return new Promise(async (resolve, reject) => {
+
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_intersectors,
+                resolve,
+                invalidate_intersectors)) {
+                return;
+            }
+
+            this.throttle_push_invalidate_intersectors(invalidate_intersectors);
+            resolve();
+        });
+    }
+
+    private throttled_push_invalidate_intersectors(invalidate_intersectors: VarDataBaseVO[]) {
+        this.invalidate_intersectors = this.invalidate_intersectors.concat(invalidate_intersectors);
+        VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
 
     /**
@@ -383,14 +419,24 @@ export default class VarsDatasVoUpdateHandler {
 
     /**
      * Recherche en BDD et en cache par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
-     * @param intersectors_by_var_id
+     * @param invalidate_intersectors
      */
-    private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } }) {
+    private async find_invalid_datas_and_push_for_update(invalidate_intersectors: VarDataBaseVO[]) {
         let env = ConfigurationService.getInstance().getNodeConfiguration();
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update],
             async () => {
+
+                let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
+                for (let i in invalidate_intersectors) {
+                    let invalidate_intersector = invalidate_intersectors[i];
+
+                    if (!intersectors_by_var_id[invalidate_intersector.var_id]) {
+                        intersectors_by_var_id[invalidate_intersector.var_id] = {};
+                    }
+                    intersectors_by_var_id[invalidate_intersector.var_id][invalidate_intersector.index] = invalidate_intersector;
+                }
 
                 for (let var_id_s in intersectors_by_var_id) {
                     let intersectors = intersectors_by_var_id[var_id_s];
