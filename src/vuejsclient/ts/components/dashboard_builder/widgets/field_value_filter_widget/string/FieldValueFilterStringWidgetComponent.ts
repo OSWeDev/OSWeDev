@@ -539,7 +539,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         if (this.advanced_mode && !this.advanced_filters) {
-            this.switch_advanced_filters();
+            await this.switch_advanced_filters();
         }
 
         if (this.default_advanced_string_filter_type) {

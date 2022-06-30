@@ -142,7 +142,6 @@ export default class MatroidIndexHandler {
 
     /**
      * Check injection (usage dans les requêtes) ok : get_normalized_range ok
-     * 
      * @param ranges
      * @param is_matroid_index
      * @returns

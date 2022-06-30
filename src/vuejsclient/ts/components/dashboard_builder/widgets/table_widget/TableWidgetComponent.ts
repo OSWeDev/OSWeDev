@@ -407,7 +407,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     @Watch('dashboard_vo_action', { immediate: true })
     @Watch('dashboard_vo_id', { immediate: true })
     private async onchange_dashboard_vo_props() {
-        this.debounced_onchange_dashboard_vo_route_param();
+        await this.debounced_onchange_dashboard_vo_route_param();
     }
 
     @Watch('crud_activated_api_type', { immediate: true })

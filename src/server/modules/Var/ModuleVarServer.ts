@@ -1623,14 +1623,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
         filter.param_numeric = SlowVarVO.TYPE_DENIED;
 
-        let query: ContextQueryVO = new ContextQueryVO();
-        query.base_api_type_id = SlowVarVO.API_TYPE_ID;
-        query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
-        query.filters = [filter];
-        query.query_limit = 0;
-        query.query_offset = 0;
+        let query_context: ContextQueryVO = new ContextQueryVO();
+        query_context.base_api_type_id = SlowVarVO.API_TYPE_ID;
+        query_context.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
+        query_context.filters = [filter];
+        query_context.query_limit = 0;
+        query_context.query_offset = 0;
 
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query_context);
 
         VarsDatasProxy.getInstance().denied_slowvars = {};
         for (let i in items) {
