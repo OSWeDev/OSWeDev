@@ -95,7 +95,13 @@ export default class VarsPerfsController {
 
                 /**
                  * On charge les datas de mêmes noms issues de la bdd
+                 *
+                 * Cas spécifique de la stat de load_node_datas dont les appels sont //isés et donc on fait ça :
+                 *  - d'abord on calcule le temps moyen des appels sur chaque var_id du batch
+                 *  - ensuite on calcule pour chaque var_id le ratio entre le temps moyen par appel pour ce var_id et la somme des temps moyens de tous les var_id
+                 *  - enfin on prend le temps total des 
                  */
+                todo
                 for (let i in VarsPerfsController.current_batch_perfs) {
                     let current_batch_perf = VarsPerfsController.current_batch_perfs[i];
 
@@ -105,10 +111,11 @@ export default class VarsPerfsController {
 
                     let bdd_data = await ModuleDAO.getInstance().getNamedVoByName<VarPerfVO>(VarPerfVO.API_TYPE_ID, current_batch_perf.name);
 
+                    current_batch_perf.nb_calls = (current_batch_perf.nb_calls ? current_batch_perf.nb_calls : 0);
+                    current_batch_perf.nb_card = (current_batch_perf.nb_card ? current_batch_perf.nb_card : 0);
+                    current_batch_perf.sum_ms = (current_batch_perf.sum_ms ? current_batch_perf.sum_ms : 0);
+
                     if (!!bdd_data) {
-                        current_batch_perf.nb_calls = (current_batch_perf.nb_calls ? current_batch_perf.nb_calls : 0) + (bdd_data.nb_calls ? bdd_data.nb_calls : 0);
-                        current_batch_perf.nb_card = (current_batch_perf.nb_card ? current_batch_perf.nb_card : 0) + (bdd_data.nb_card ? bdd_data.nb_card : null);
-                        current_batch_perf.sum_ms = (current_batch_perf.sum_ms ? current_batch_perf.sum_ms : 0) + (bdd_data.sum_ms ? bdd_data.sum_ms : 0);
                         current_batch_perf.id = bdd_data.id;
                     }
 
@@ -118,17 +125,6 @@ export default class VarsPerfsController {
                         current_batch_perf.nb_calls = 0;
                         current_batch_perf.nb_card = 0;
                         current_batch_perf.sum_ms = 0;
-                    }
-
-                    if ((current_batch_perf.nb_calls > VarsPerfsController.max_nb_calls) || (current_batch_perf.nb_card > VarsPerfsController.max_nb_card) || (current_batch_perf.sum_ms > VarsPerfsController.max_sum_ms)) {
-                        // on fixe des limites arbitraires
-                        let coef_nb_calls = (current_batch_perf.nb_calls / VarsPerfsController.max_nb_calls) * 3;
-                        let coef_nb_card = (current_batch_perf.nb_card / VarsPerfsController.max_nb_card) * 3;
-                        let coef_sum_ms = (current_batch_perf.sum_ms / VarsPerfsController.max_sum_ms) * 3;
-                        let coef = Math.max(coef_nb_calls, coef_nb_card, coef_sum_ms);
-                        current_batch_perf.nb_calls = current_batch_perf.nb_calls / coef;
-                        current_batch_perf.nb_card = current_batch_perf.nb_card / coef;
-                        current_batch_perf.sum_ms = current_batch_perf.sum_ms / coef;
                     }
 
                     current_batch_perf.mean_per_call = current_batch_perf.nb_calls ? (current_batch_perf.sum_ms / current_batch_perf.nb_calls) : null;
