@@ -1,4 +1,5 @@
 import mxgraph from 'mxgraph';
+import { Graph } from './graph_tools/Graph';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -181,6 +182,9 @@ export default class TablesGraphComponent extends VueComponentBase {
             editor = new mxEditor();
             editor.setGraphContainer(container);
 
+            //Creating relative graph
+            const graph_layout: InstanceType<typeof Graph> = new Graph();
+            editor.graph_layout = graph_layout;
             // editor.graph.setConnectable(true);
             // editor.graph.setCellsDisconnectable(true);
             // editor.graph.setPanning(true);
@@ -299,7 +303,9 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private mounted() {
         this.init();
-        // this.initgraph();
+        const bite = new Graph();
+
+        bite.test();
     }
 
     @Watch('dashboard', { immediate: true })
@@ -325,6 +331,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private initcell(cell: DashboardGraphVORefVO) {
         let graph = editor.graph;
+        let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
         graph.stopEditing(false);
 
         let parent = graph.getDefaultParent();
@@ -347,6 +354,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
             v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
             v1.value.tables_graph_vo_type = cell.vo_type;
+            let node_v1: string = cell.vo_type;
 
             // On rajoute les liaisons depuis les autres vos
             let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
@@ -354,9 +362,11 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let reference = references[i];
                 let reference_cell = this.cells[reference.module_table.vo_type];
                 if (reference_cell) {
-                    graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
-                } else {
 
+                    graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
+                    graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
+                } else {
+                    //TODO-Rajouter dans la matrice d'adjacence, les liaisons n/n
                     if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
                         let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
                         for (let j in nn_fields) {
@@ -384,6 +394,8 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let reference_cell = this.cells[field.manyToOne_target_moduletable.vo_type];
                 if (reference_cell) {
                     graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
+                    graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
+
                 }
             }
 
