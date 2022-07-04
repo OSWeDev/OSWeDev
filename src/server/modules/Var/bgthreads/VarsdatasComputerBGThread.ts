@@ -217,6 +217,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                          * On invalide les vars si des intersecteurs sont en attente
                          */
                         promises.push(VarsDatasVoUpdateHandler.getInstance().handle_invalidate_intersectors());
+                        promises.push(VarsDatasVoUpdateHandler.getInstance().handle_invalidate_matroids());
                         await Promise.all(promises);
                         promises = [];
 

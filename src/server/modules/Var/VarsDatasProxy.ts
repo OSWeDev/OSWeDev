@@ -860,7 +860,10 @@ export default class VarsDatasProxy {
         res: { [index: string]: VarDataBaseVO }
     ) {
 
-        for (let i in this.vars_datas_buffer) {
+        let ordered_vars_datas_buffer = this.vars_datas_buffer.filter(condition);
+        this.order_vars_datas_buffer(ordered_vars_datas_buffer);
+
+        for (let i in ordered_vars_datas_buffer) {
 
             if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
                 (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
@@ -868,7 +871,7 @@ export default class VarsDatasProxy {
                 return true;
             }
 
-            let var_data_wrapper = this.vars_datas_buffer[i];
+            let var_data_wrapper = ordered_vars_datas_buffer[i];
             if (!condition(var_data_wrapper)) {
                 continue;
             }
