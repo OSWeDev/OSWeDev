@@ -95,7 +95,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_init) {
+        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
             this.is_init = false;
             this.tmp_filter_active_options = this.default_values;
             return;

@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -59,6 +60,13 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             })
         });
 
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
+            true,
+        ));
+
         url = "/dashboard_builder";
         main_route_name = 'DashboardBuilder';
 
@@ -74,14 +82,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         url = "/dashboard_builder" + "/:dashboard_id";
         main_route_name = 'DashboardBuilder_id';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            true,
+        ));
 
         await this.initializeDefaultWidgets();
     }

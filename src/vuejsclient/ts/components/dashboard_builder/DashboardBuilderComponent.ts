@@ -53,7 +53,16 @@ import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgets
 export default class DashboardBuilderComponent extends VueComponentBase {
 
     @Prop({ default: null })
-    private dashboard_id: number;
+    private dashboard_id: string;
+
+    @Prop({ default: null })
+    private dashboard_vo_action: string;
+
+    @Prop({ default: null })
+    private dashboard_vo_id: string;
+
+    @Prop({ default: null })
+    private api_type_id_action: string;
 
     @ModuleDashboardPageGetter
     private get_page_history: DashboardPageVO[];
@@ -97,6 +106,15 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private collapsed_fields_wrapper: boolean = true;
 
     private can_use_clipboard: boolean = false;
+
+    @Watch('dashboard_vo_action')
+    @Watch('dashboard_vo_id')
+    @Watch('api_type_id_action')
+    private onchange_props_route() {
+        console.log(this.dashboard_vo_action);
+        console.log(this.dashboard_vo_id);
+        console.log(this.api_type_id_action);
+    }
 
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
@@ -415,7 +433,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             return;
         }
 
-        this.dashboard = await ModuleDAO.getInstance().getVoById<DashboardVO>(DashboardVO.API_TYPE_ID, this.dashboard_id);
+        this.dashboard = await ModuleDAO.getInstance().getVoById<DashboardVO>(DashboardVO.API_TYPE_ID, parseInt(this.dashboard_id));
         await this.on_load_dashboard();
 
         this.loading = false;
@@ -424,6 +442,16 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     @Watch('dashboard')
     private async onchange_dashboard() {
         this.loading = true;
+
+        if (this.dashboard && this.dashboard.id) {
+            this.$router.push({
+                name: 'DashboardBuilder_id',
+                params: {
+                    dashboard_id: this.dashboard.id.toString()
+                }
+            });
+        }
+
         await this.on_load_dashboard();
         this.loading = false;
     }

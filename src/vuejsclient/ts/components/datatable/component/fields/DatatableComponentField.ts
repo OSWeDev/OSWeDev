@@ -1,6 +1,8 @@
+import { cloneDeep } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
@@ -34,7 +36,37 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private explicit_html: boolean;
 
+    @Prop({ default: false })
+    private is_dashboard_builder: boolean;
+
     public async mounted() { }
+
+    private get_crud_link(api_type_id: string, vo_id: number) {
+        if (this.is_dashboard_builder) {
+            let route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
+
+            route_name += DashboardBuilderController.ROUTE_NAME_CRUD + DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
+
+            let route_params = cloneDeep(this.$route.params);
+
+            if (vo_id) {
+                route_params.dashboard_vo_action = DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT;
+            } else {
+                route_params.dashboard_vo_action = DashboardBuilderController.DASHBOARD_VO_ACTION_ADD;
+            }
+
+            route_params.dashboard_vo_id = vo_id ? vo_id.toString() : null;
+
+            route_params.api_type_id_action = api_type_id;
+
+            return {
+                name: route_name,
+                params: route_params,
+            };
+        }
+
+        return this.getCRUDUpdateLink(api_type_id, vo_id);
+    }
 
     get simple_field(): SimpleDatatableField<any, any> {
         return (this.field as SimpleDatatableField<any, any>);

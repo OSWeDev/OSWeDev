@@ -218,7 +218,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 active_field_filter: ContextFilterVO.or(active_field_filter_lvl2),
             });
         } else {
-            this.remove_active_field_filter({ vo_type: this.vo_field_ref_lvl2.api_type_id, field_id: this.vo_field_ref_lvl2.field_id });
+            if (this.vo_field_ref_lvl2) {
+                this.remove_active_field_filter({ vo_type: this.vo_field_ref_lvl2.api_type_id, field_id: this.vo_field_ref_lvl2.field_id });
+            }
         }
 
         this.remove_active_field_filter({
@@ -478,7 +480,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_init) {
+        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
             this.is_init = false;
             this.tmp_filter_active_options = this.default_values;
             return;
