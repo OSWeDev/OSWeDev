@@ -599,41 +599,43 @@ export default class ModuleVarServer extends ModuleServerBase {
             return true;
         });
 
-        let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
-        for (let i in vos) {
-            let vo = vos[i];
+        await VarsDatasVoUpdateHandler.getInstance().push_invalidate_matroids(vos);
 
-            if (!vos_by_type_id[vo._type]) {
-                vos_by_type_id[vo._type] = [];
-            }
-            vos_by_type_id[vo._type].push(vo);
-        }
+        // let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
+        // for (let i in vos) {
+        //     let vo = vos[i];
 
-        for (let api_type_id in vos_by_type_id) {
-            let vos_type = vos_by_type_id[api_type_id];
+        //     if (!vos_by_type_id[vo._type]) {
+        //         vos_by_type_id[vo._type] = [];
+        //     }
+        //     vos_by_type_id[vo._type].push(vo);
+        // }
 
-            let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
+        // for (let api_type_id in vos_by_type_id) {
+        //     let vos_type = vos_by_type_id[api_type_id];
 
-            // Impossible d'invalider un import mais on accepte de recalculer à la demande manuelle un denied
-            bdd_vos = bdd_vos.filter((bdd_vo) => (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT));
+        //     let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
 
-            if (bdd_vos && bdd_vos.length) {
+        //     // Impossible d'invalider un import mais on accepte de recalculer à la demande manuelle un denied
+        //     bdd_vos = bdd_vos.filter((bdd_vo) => (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT));
 
-                for (let j in bdd_vos) {
-                    let bdd_vo = bdd_vos[j];
-                    bdd_vo.value_ts = null;
-                    if (bdd_vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
-                        bdd_vo.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-                        let slowvar: SlowVarVO = await ModuleDAO.getInstance().getNamedVoByName<SlowVarVO>(SlowVarVO.API_TYPE_ID, bdd_vo.index);
-                        if (slowvar) {
-                            await ModuleDAO.getInstance().deleteVOs([slowvar]);
-                        }
-                    }
-                }
-                await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
-                await VarsDatasProxy.getInstance().append_var_datas(bdd_vos);
-            }
-        }
+        //     if (bdd_vos && bdd_vos.length) {
+
+        //         for (let j in bdd_vos) {
+        //             let bdd_vo = bdd_vos[j];
+        //             bdd_vo.value_ts = null;
+        //             if (bdd_vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+        //                 bdd_vo.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+        //                 let slowvar: SlowVarVO = await ModuleDAO.getInstance().getNamedVoByName<SlowVarVO>(SlowVarVO.API_TYPE_ID, bdd_vo.index);
+        //                 if (slowvar) {
+        //                     await ModuleDAO.getInstance().deleteVOs([slowvar]);
+        //                 }
+        //             }
+        //         }
+        //         await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
+        //         await VarsDatasProxy.getInstance().append_var_datas(bdd_vos);
+        //     }
+        // }
     }
 
     public async invalidate_cache_exact_and_parents(vos: VarDataBaseVO[]): Promise<boolean> {
