@@ -1739,11 +1739,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         let rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, 'target_id', [this.selected_rdv.target_id]);
 
-        // @JNE pour on splice ? => JFE : pb pour autoprimo dans le doute j'ai augmenté la valeur de 5 à 15
-        if (rdvs.length > 15) {
-            rdvs.splice(15, rdvs.length);
-        }
-
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(rdvs);
         self.addRdvsByIds(rdvs_by_ids);
         let rdvs_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(rdvs_by_ids);
