@@ -2,10 +2,10 @@
 import { range } from "lodash";
 import { IGraphMatrix, IGraphNode, ISearchResult } from "./types";
 import { MatrixCtor } from 'mathjs';
+const math = require('mathjs');
 export class Graph {
     public matrix: IGraphMatrix = {}; //Matrix as a dictionnary type.
 
-    public adj_matrix: MatrixCtor; //Adj matrix representing matrix :IGraphMatrix used for computations with mathjs
     public display_matrix() {
         /*
         Return the displayed matrix
@@ -15,6 +15,12 @@ export class Graph {
 
     public update_matrix() {
         let size: number = Object.keys(this.matrix).length;
+        let adj_matrix: math.MathCollection = math.zeros(size);
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                math.subset(adj_matrix, math.index(i, j), this.matrix[i][j]);
+            }
+        }
         //TODO function which create the computable adj_matrix
     }
     public addEdge(i: string, j: string): void {
