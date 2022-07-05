@@ -460,6 +460,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         let route_params = cloneDeep(this.$route.params);
 
+        delete route_params.dashboard_vo_action;
+        delete route_params.dashboard_vo_id;
+        delete route_params.api_type_id_action;
+
         this.$router.push({
             name: route_name,
             params: route_params,
@@ -479,10 +483,9 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT) && (!!this.dashboard_vo_id)) {
-            let column: TableColumnDescVO = this.columns.find((c) => (c.type == 0) && !c.hide_from_table);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
 
-            if (column) {
-                let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : column.api_type_id;
+            if (api_type_id) {
                 await this.open_update(api_type_id, parseInt(this.dashboard_vo_id));
             }
 
@@ -490,10 +493,9 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_DELETE) && (!!this.dashboard_vo_id)) {
-            let column: TableColumnDescVO = this.columns.find((c) => (c.type == 0) && !c.hide_from_table);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
 
-            if (column) {
-                let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : column.api_type_id;
+            if (api_type_id) {
                 await this.confirm_delete(api_type_id, parseInt(this.dashboard_vo_id));
             }
 
@@ -501,10 +503,9 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_VOCUS) && (!!this.dashboard_vo_id)) {
-            let column: TableColumnDescVO = this.columns.find((c) => (c.type == 0) && !c.hide_from_table);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
 
-            if (column) {
-                let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : column.api_type_id;
+            if (api_type_id) {
                 this.open_vocus(api_type_id, parseInt(this.dashboard_vo_id));
             }
 

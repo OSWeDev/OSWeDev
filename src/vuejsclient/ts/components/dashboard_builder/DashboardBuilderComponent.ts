@@ -107,15 +107,6 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
-    @Watch('dashboard_vo_action')
-    @Watch('dashboard_vo_id')
-    @Watch('api_type_id_action')
-    private onchange_props_route() {
-        console.log(this.dashboard_vo_action);
-        console.log(this.dashboard_vo_id);
-        console.log(this.api_type_id_action);
-    }
-
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
             return;
