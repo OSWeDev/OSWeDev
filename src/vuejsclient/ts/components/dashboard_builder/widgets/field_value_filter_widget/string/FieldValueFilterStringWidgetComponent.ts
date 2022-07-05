@@ -1463,4 +1463,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         return field.field_type == ModuleTableField.FIELD_TYPE_translatable_text;
     }
+
+    get base_filter(): string {
+        return 'filter_opt_' + this.page_widget.id + '_';
+    }
 }

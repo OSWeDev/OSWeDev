@@ -207,7 +207,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.tmp_filter_active_opt = opt;
 
-        $('#filter_opt_' + old_id.toString()).click();
+        $('#' + this.base_filter + old_id.toString()).click();
     }
 
     get vo_field_ref_label(): string {
@@ -288,5 +288,9 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
     get field_date(): SimpleDatatableField<any, any> {
         return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+    }
+
+    get base_filter(): string {
+        return 'filter_opt_' + this.page_widget.id + '_';
     }
 }
