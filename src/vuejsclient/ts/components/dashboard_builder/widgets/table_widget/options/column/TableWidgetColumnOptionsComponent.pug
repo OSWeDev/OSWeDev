@@ -117,6 +117,14 @@
                         :width="100"
                         :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
+                .many_to_many_aggregate.mt-2
+                    toggle-button(
+                        @change="switch_many_to_many_aggregate" 
+                        :value="column.many_to_many_aggregate" 
+                        :sync="true"
+                        :width="160"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
+
                 .filter_by_access
                     multiselect(
                         :preselect-first="false"

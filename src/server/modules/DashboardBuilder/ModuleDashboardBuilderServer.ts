@@ -979,6 +979,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aggréger les données" },
+            'table_widget_column_conf.editable_column.many_to_many_aggregate.show'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aggréger les données" },
+            'table_widget_column_conf.editable_column.many_to_many_aggregate.hide'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Période fixe (calendrier)" },
             'adfd_desc.search_type.calendar'
         ));

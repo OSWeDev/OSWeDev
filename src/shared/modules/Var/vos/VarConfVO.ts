@@ -11,6 +11,7 @@ export default class VarConfVO implements INamedVO {
     public static AND_AGGREGATOR: number = 5;
     public static OR_AGGREGATOR: number = 6;
     public static XOR_AGGREGATOR: number = 7;
+    public static ARRAY_AGG_AGGREGATOR: number = 8;
     public static AGGREGATOR_LABELS: { [id: number]: string } = {
         [VarConfVO.NO_AGGREGATOR]: 'var_conf.aggregator.no',
         [VarConfVO.SUM_AGGREGATOR]: 'var_conf.aggregator.sum',
@@ -19,7 +20,8 @@ export default class VarConfVO implements INamedVO {
         [VarConfVO.MIN_AGGREGATOR]: 'var_conf.aggregator.min',
         [VarConfVO.AND_AGGREGATOR]: 'var_conf.aggregator.and',
         [VarConfVO.OR_AGGREGATOR]: 'var_conf.aggregator.or',
-        [VarConfVO.XOR_AGGREGATOR]: 'var_conf.aggregator.xor'
+        [VarConfVO.XOR_AGGREGATOR]: 'var_conf.aggregator.xor',
+        [VarConfVO.ARRAY_AGG_AGGREGATOR]: 'var_conf.aggregator.array_agg',
     };
 
     // Cas spécifique du count pour les requêtes qui se traduirait en sum dans une var probablement

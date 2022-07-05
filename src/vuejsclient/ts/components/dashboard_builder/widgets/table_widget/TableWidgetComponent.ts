@@ -29,6 +29,7 @@ import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/Da
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -849,8 +850,8 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let column_id in this.fields) {
+            let field = this.fields[column_id];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
@@ -871,7 +872,15 @@ export default class TableWidgetComponent extends VueComponentBase {
                 query_.base_api_type_id = field.moduleTable.vo_type;
             }
 
-            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
+            let column: TableColumnDescVO = this.columns_by_field_id[field.datatable_field_uid];
+
+            let aggregator: number = VarConfVO.NO_AGGREGATOR;
+
+            if (column && column.many_to_many_aggregate) {
+                aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR;
+            }
+
+            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator));
         }
 
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);

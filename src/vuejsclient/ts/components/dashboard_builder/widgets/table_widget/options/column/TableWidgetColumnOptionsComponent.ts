@@ -300,7 +300,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.show_pagination_slider,
                     options.show_pagination_form,
                     options.show_limit_selectable,
-                    options.limit_selectable
+                    options.limit_selectable,
                 ) : null;
             }
         } catch (error) {
@@ -443,6 +443,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.column.can_filter_by = !this.column.can_filter_by;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_many_to_many_aggregate() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.many_to_many_aggregate = !this.column.many_to_many_aggregate;
         this.$emit('update_column', this.column);
     }
 

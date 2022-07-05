@@ -508,6 +508,10 @@ export default class ContextQueryServerController {
                     case VarConfVO.NO_AGGREGATOR:
                         break;
 
+                    case VarConfVO.ARRAY_AGG_AGGREGATOR:
+                        aggregator_prefix = 'ARRAY_AGG(';
+                        aggregator_suffix = ')';
+                        break;
                     case VarConfVO.COUNT_AGGREGATOR:
                         aggregator_prefix = 'COUNT(';
                         aggregator_suffix = ')';
@@ -586,6 +590,11 @@ export default class ContextQueryServerController {
                 let group_bys = [];
                 for (let i in context_query.fields) {
                     let context_field = context_query.fields[i];
+
+                    // On ne rajoute pas dans le group by si on utilise l'aggregator ARRAY_AGG
+                    if (context_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) {
+                        continue;
+                    }
 
                     ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
                     ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
