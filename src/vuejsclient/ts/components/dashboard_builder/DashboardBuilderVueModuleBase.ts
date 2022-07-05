@@ -51,15 +51,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         let url: string = "/dashboard/view/:dashboard_id";
         let main_route_name: string = 'Dashboard View';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
-
         this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
             url,
             main_route_name,
