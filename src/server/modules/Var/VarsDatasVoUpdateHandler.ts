@@ -779,11 +779,11 @@ export default class VarsDatasVoUpdateHandler {
                 promises = [];
             }
 
-            promises.push(async () => {
+            promises.push((async () => {
                 let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
                 let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
                 await ModuleDAOServer.getInstance().query(request);
-            });
+            })());
         }
 
         if (!!promises.length) {
