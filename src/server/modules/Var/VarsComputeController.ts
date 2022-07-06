@@ -964,7 +964,8 @@ export default class VarsComputeController {
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+                let load_node_data_db_connect_coef_sum: number = 0;
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
 
                 for (let i in dag.nodes) {
                     let node = dag.nodes[i];
@@ -983,8 +984,9 @@ export default class VarsComputeController {
 
                     let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
-                    if (promises.length >= max) {
+                    if (load_node_data_db_connect_coef_sum >= max) {
                         await Promise.all(promises);
+                        load_node_data_db_connect_coef_sum = 0;
                         promises = [];
                     }
 
@@ -993,6 +995,12 @@ export default class VarsComputeController {
                     if (perfmon.is_active) {
                         await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
                     } else {
+
+                        for (let dssi in dss) {
+                            let ds = dss[dssi];
+                            load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
+                        }
+
                         promises.push((async () => {
 
                             VarsPerfsController.addPerfs(performance.now(), [
