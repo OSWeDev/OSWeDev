@@ -328,7 +328,14 @@ export default class VarsComputeController {
 
                         let pixel_cache: { counter: number, aggregated_value: number } = await pixel_query.select_one();
 
-                        if (pixel_cache.counter == prod_cardinaux) {
+                        if (!pixel_cache) {
+                            pixel_cache = {
+                                counter: 0,
+                                aggregated_value: 0
+                            };
+                        }
+
+                        if (pixel_cache && (pixel_cache.counter == prod_cardinaux)) {
 
 
                             if (limit_to_aggregated_datas) {
