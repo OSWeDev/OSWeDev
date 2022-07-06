@@ -1,3 +1,4 @@
+import VarsComputeController from '../../../../server/modules/Var/VarsComputeController';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
 import DAG from './dagbase/DAG';
 import DAGNodeBase from './dagbase/DAGNodeBase';
@@ -56,11 +57,14 @@ export default class VarDAGNode extends DAGNodeBase {
 
     public already_sent_result_to_subs: boolean = false;
 
+    public estimated_time: number = 0;
+
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public dag: DAG<VarDAGNode>, public var_data: VarDataBaseVO) {
         super();
+        this.estimated_time = VarsComputeController.getInstance().get_estimated_time(var_data);
     }
 
     /**
@@ -109,6 +113,8 @@ export default class VarDAGNode extends DAGNodeBase {
 
         this.dag.leafs[this.var_data.index] = this;
         this.dag.roots[this.var_data.index] = this;
+
+        this.dag.estimated_time += this.estimated_time;
 
         return this;
     }
