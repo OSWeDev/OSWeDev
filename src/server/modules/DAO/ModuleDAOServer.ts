@@ -863,6 +863,271 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
+    /**
+     * Attention, on appel aucun triggers de l'appli en faisant ça...
+     */
+    public async insertOrUpdateVOs_without_triggers(vos: IDistantVOBase[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un insert ou update
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
+
+        vos = vos.filter((vo) =>
+            (!!vo) && vo._type && VOsTypesManager.getInstance().moduleTables_by_voType[vo._type] &&
+            this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE));
+
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
+
+        // On ajoute un filtrage via hook
+        let tmp_vos = [];
+        for (let i in vos) {
+            let vo = vos[i];
+            let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+            if (!!tmp_vo) {
+                tmp_vos.push(tmp_vo);
+            }
+        }
+        if ((!tmp_vos) || (!tmp_vos.length)) {
+            return null;
+        }
+        vos = tmp_vos;
+
+        if (this.check_foreign_keys) {
+            vos = await this.filterByForeignKeys(vos);
+            if ((!vos) || (!vos.length)) {
+                return null;
+            }
+        }
+
+        let vos_by_vo_type_and_ids: { [vo_type: string]: { [id: number]: IDistantVOBase[] } } = {};
+
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+
+        let promises = [];
+
+        for (let i in vos) {
+            let vo: IDistantVOBase = vos[i];
+
+            let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+            if (!vos_by_vo_type_and_ids[vo._type]) {
+                vos_by_vo_type_and_ids[vo._type] = {};
+            }
+
+            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                let vo_id: number = !!vo.id ? vo.id : 0;
+
+                if (!vo_id) {
+                    vo.id = await this.check_uniq_indexes(vo, datatable);
+                    vo_id = vo.id;
+                }
+
+                if (!vos_by_vo_type_and_ids[vo._type][vo_id]) {
+                    vos_by_vo_type_and_ids[vo._type][vo_id] = [];
+                }
+
+                vos_by_vo_type_and_ids[vo._type][vo_id].push(vo);
+            })());
+        }
+
+        if (!!promises.length) {
+            await Promise.all(promises);
+        }
+
+        promises = [];
+
+        let res: InsertOrDeleteQueryResult[] = [];
+
+        for (let vo_type in vos_by_vo_type_and_ids) {
+            let tableFields: string[] = [];
+
+            let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type];
+
+            for (const f in moduleTable.get_fields()) {
+                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+
+                tableFields.push(field.field_id);
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    tableFields.push(field.field_id + '_ndx');
+                }
+            }
+
+            for (let vo_id in vos_by_vo_type_and_ids[vo_type]) {
+                let values = [];
+                let setters: any[] = [];
+                let is_update: boolean = false;
+                let cpt_field: number = 1;
+
+                let table_name: string = moduleTable.full_name;
+
+                for (let i in vos_by_vo_type_and_ids[vo_type][vo_id]) {
+                    let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_vo_type_and_ids[vo_type][vo_id][i]);
+
+                    if (moduleTable.is_segmented) {
+                        // Si on est sur une table segmentée on adapte le comportement
+                        table_name = moduleTable.get_segmented_full_name_from_vo(vo);
+                    }
+
+                    let vo_values = [];
+                    let setters_vo: any[] = [];
+                    let is_valid: boolean = true;
+                    let cpt_field_vo: number = cpt_field;
+
+                    for (const f in moduleTable.get_fields()) {
+                        let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+
+                        let fieldValue = vo[field.field_id];
+
+                        if (typeof fieldValue == "undefined") {
+                            if (field.has_default && typeof field.field_default == 'undefined') {
+                                fieldValue = field.field_default;
+                            } else {
+                                fieldValue = null;
+                            }
+                        }
+
+                        if ((fieldValue == null) && field.field_required) {
+                            ConsoleHandler.getInstance().error("Champ requis sans valeur, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + table_name + ' :vo:' + JSON.stringify(vo));
+                            is_valid = false;
+                            continue;
+                        }
+
+                        setters_vo.push(field.field_id + ' = $' + cpt_field_vo);
+                        cpt_field_vo++;
+
+                        vo_values.push(fieldValue);
+
+                        /**
+                         * Cas des ranges
+                         */
+                        if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                            setters.push(field.field_id + '_ndx = $' + cpt_field_vo);
+                            vo_values.push(vo[field.field_id + '_ndx']);
+
+                            cpt_field_vo++;
+                        }
+                    }
+
+                    if (!is_valid) {
+                        continue;
+                    }
+
+                    cpt_field = cpt_field_vo;
+                    setters = setters.concat(setters_vo);
+
+                    // Si on est sur un update, on va avoir que 1 vo à mettre à jour et on fait un traitement particulier
+                    if (!!vo.id) {
+                        is_update = true;
+                        vo_values.push(vo.id);
+                        values = vo_values;
+                    } else {
+                        values.push(vo_values);
+                    }
+                }
+
+                if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                    await Promise.all(promises);
+                    promises = [];
+                }
+
+                let sql: string = null;
+
+                if (is_update) {
+                    sql = "UPDATE " + table_name + " SET " + setters.join(', ') + " WHERE id = $" + cpt_field + " RETURNING ID;";
+                } else {
+                    sql = "INSERT INTO " + table_name + " (" + tableFields.join(', ') + ") VALUES ";
+
+                    let cpt: number = 1;
+                    let sql_values: string = '';
+                    let new_values: any[] = [];
+
+                    for (let i in values) {
+                        if (sql_values != '') {
+                            sql_values += ",";
+                        }
+
+                        sql_values += "(";
+                        let sub_sql: string = '';
+
+                        for (let j in values[i]) {
+                            if (sub_sql != '') {
+                                sub_sql += ',';
+                            }
+
+                            sub_sql += "$" + cpt;
+
+                            cpt++;
+                        }
+
+                        sql_values += sub_sql;
+
+                        sql_values += ")";
+
+                        new_values = new_values.concat(values[i]);
+                    }
+
+                    sql += sql_values;
+
+                    sql += " RETURNING ID;";
+
+                    values = new_values;
+                }
+
+                promises.push((async () => {
+                    let results = await ModuleServiceBase.getInstance().db.query(sql, values);
+
+                    for (let i in results) {
+                        let result = results[i];
+                        res.push(new InsertOrDeleteQueryResult((result && result.id) ? parseInt(result.id.toString()) : null));
+                    }
+                })());
+            }
+        }
+
+        if (!!promises.length) {
+            await Promise.all(promises);
+        }
+
+        return res;
+    }
+
     public async truncate_api(api_type_id: string) {
         await this.truncate(api_type_id);
     }

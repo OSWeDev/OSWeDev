@@ -285,9 +285,12 @@ export default class VarsDatasProxy {
                 try {
 
                     let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
+                    let do_delete_from_cache_indexes: { [index: string]: boolean } = {};
                     let self = this;
-                    let promises = [];
+                    // let promises = [];
                     let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+
+                    let to_insert: VarDataBaseVO[] = [];
 
                     for (let i in indexes) {
                         let index = indexes[i];
@@ -318,7 +321,6 @@ export default class VarsDatasProxy {
                          */
 
                         let do_insert = false;
-                        let do_delete_from_cache = false;
                         let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
                         let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
 
@@ -332,7 +334,7 @@ export default class VarsDatasProxy {
 
                             if (!wrapper.nb_reads_since_last_insert_or_update) {
                                 if (Dates.now() > wrapper.timeout) {
-                                    do_delete_from_cache = true;
+                                    do_delete_from_cache_indexes[index] = true;
                                 }
                             } else {
                                 if (Dates.now() > wrapper.timeout) {
@@ -340,7 +342,7 @@ export default class VarsDatasProxy {
                                 }
                             }
 
-                            if ((!do_delete_from_cache) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
+                            if ((!do_delete_from_cache_indexes[index]) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
                                 wrapper.nb_reads_since_last_check = 0;
                                 wrapper.update_timeout();
                             }
@@ -348,105 +350,108 @@ export default class VarsDatasProxy {
 
                         if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
 
+                            to_insert.push(handle_var);
+
                             /**
                              * On fait des packs de promises...
                              */
-                            if (promises.length >= max) {
-                                await Promise.all(promises);
-                                promises = [];
+                            // if (promises.length >= max) {
+                            //     await Promise.all(promises);
+                            //     promises = [];
+                            // }
+
+                            // promises.push((async (do_insert_: boolean, do_delete_from_cache_: boolean) => {
+
+                            // if (do_insert_) {
+
+                            if (env.DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
                             }
+                            // let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+                            // /**
+                            //  * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                            //  */
+                            // this.check_or_update_var_buffer(handle_var);
 
-                            promises.push((async (do_insert_: boolean, do_delete_from_cache_: boolean) => {
+                            // if ((!res) || (!res.id)) {
 
-                                if (do_insert_) {
+                            // TODO FIXME TO DELETE
+                            // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
+                            // On force la suppression du cache mais c'est sûrement gourmant...
+                            // DAOQueryCacheController.getInstance().clear_cache(true);
 
-                                    if (env.DEBUG_VARS) {
-                                        ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
-                                    }
-                                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                                    /**
-                                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
-                                     */
-                                    this.check_or_update_var_buffer(handle_var);
+                            //     /**
+                            //      * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
+                            //      *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
+                            //      */
+                            //     let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<VarDataBaseVO>(
+                            //         handle_var._type,
+                            //         null, null,
+                            //         '_bdd_only_index', [handle_var._bdd_only_index]);
 
-                                    if ((!res) || (!res.id)) {
+                            //     // DENIED ? si on arrive à le calculer même sur un glitch c'est au final une bonne info de le forcer en base non ?
+                            //     if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
+                            //         ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts < handle_var.value_ts)))) {
 
-                                        // TODO FIXME TO DELETE
-                                        // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
-                                        // On force la suppression du cache mais c'est sûrement gourmant...
-                                        DAOQueryCacheController.getInstance().clear_cache(true);
+                            //         ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
 
-                                        /**
-                                         * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
-                                         *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
-                                         */
-                                        let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<VarDataBaseVO>(
-                                            handle_var._type,
-                                            null, null,
-                                            '_bdd_only_index', [handle_var._bdd_only_index]);
+                            //         handle_var.id = datas[0].id;
+                            //         res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+                            //         if ((!res) || (!res.id)) {
+                            //             ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                            //         }
+                            //     } else {
+                            //         if ((!datas) || (!datas.length)) {
+                            //             /**
+                            //              * Dans ce cas on doit être en présence d'une var qui n'a plus lieu d'exister, on la supprime du cache,
+                            //              *  et on demande aux subscribers de recharger le navigateur pour éviter qu'ils la renvoie en boucle
+                            //              * => risque de recharger en boucle le front si on a une génération de var foireuse sur le front...
+                            //              */
+                            //             ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:NO_datas:index|' + handle_var._bdd_only_index + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
 
-                                        // DENIED ? si on arrive à le calculer même sur un glitch c'est au final une bonne info de le forcer en base non ?
-                                        if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
-                                            ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts < handle_var.value_ts)))) {
+                            //             // Retrait du rechargement pour le moment car le dashboard peut générer facilement des index trop grands pour être indéxées
+                            //             // await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
 
-                                            ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                            //             do_delete_from_cache_ = true;
+                            //         } else {
+                            //             ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo 2:index:" + handle_var.index + ":id:" + handle_var.id + ":");
+                            //         }
+                            //     }
+                            // }
+                            // }
 
-                                            handle_var.id = datas[0].id;
-                                            res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                                            if ((!res) || (!res.id)) {
-                                                ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                                            }
-                                        } else {
-                                            if ((!datas) || (!datas.length)) {
-                                                /**
-                                                 * Dans ce cas on doit être en présence d'une var qui n'a plus lieu d'exister, on la supprime du cache,
-                                                 *  et on demande aux subscribers de recharger le navigateur pour éviter qu'ils la renvoie en boucle
-                                                 * => risque de recharger en boucle le front si on a une génération de var foireuse sur le front...
-                                                 */
-                                                ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:NO_datas:index|' + handle_var._bdd_only_index + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
+                            // wrapper.nb_reads_since_last_insert_or_update = 0;
+                            // wrapper.nb_reads_since_last_check = 0;
+                            // wrapper.needs_insert_or_update_ = false;
+                            // wrapper.var_data_origin_value = wrapper.var_data.value;
+                            // wrapper.var_data_origin_type = wrapper.var_data.value_type;
+                            // wrapper.last_insert_or_update = Dates.now();
+                            // wrapper.update_timeout();
 
-                                                // Retrait du rechargement pour le moment car le dashboard peut générer facilement des index trop grands pour être indéxées
-                                                // await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
-
-                                                do_delete_from_cache_ = true;
-                                            } else {
-                                                ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo 2:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                                            }
-                                        }
-                                    }
-                                }
-
-                                wrapper.nb_reads_since_last_insert_or_update = 0;
-                                wrapper.nb_reads_since_last_check = 0;
-                                wrapper.needs_insert_or_update_ = false;
-                                wrapper.var_data_origin_value = wrapper.var_data.value;
-                                wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                                wrapper.last_insert_or_update = Dates.now();
-                                wrapper.update_timeout();
-
-                                if (do_delete_from_cache_) {
-                                    self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != handle_var.index);
-                                    delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
-                                }
-                            })(do_insert, do_delete_from_cache));
-                        } else {
-                            if (do_insert) {
-                                // cas d'une demande d'insert sans droit à cache en BDD
-                                // on simule juste la mise à jour du wrapper
-                                wrapper.nb_reads_since_last_insert_or_update = 0;
-                                wrapper.nb_reads_since_last_check = 0;
-                                wrapper.needs_insert_or_update_ = false;
-                                wrapper.var_data_origin_value = wrapper.var_data.value;
-                                wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                                wrapper.last_insert_or_update = Dates.now();
-                                wrapper.update_timeout();
-                            }
-
-                            if (do_delete_from_cache) {
-                                self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != handle_var.index);
-                                delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
-                            }
+                            // if (do_delete_from_cache_) {
+                            //     self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != handle_var.index);
+                            //     delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
+                            // }
+                            // })(do_insert, do_delete_from_cache_indexes[index]));
                         }
+                        // else {
+                        // if (do_insert) {
+                        //     // cas d'une demande d'insert sans droit à cache en BDD
+                        //     // on simule juste la mise à jour du wrapper
+                        //     wrapper.nb_reads_since_last_insert_or_update = 0;
+                        //     wrapper.nb_reads_since_last_check = 0;
+                        //     wrapper.needs_insert_or_update_ = false;
+                        //     wrapper.var_data_origin_value = wrapper.var_data.value;
+                        //     wrapper.var_data_origin_type = wrapper.var_data.value_type;
+                        //     wrapper.last_insert_or_update = Dates.now();
+                        //     wrapper.update_timeout();
+                        // }
+
+                        // if (do_delete_from_cache_indexes[index]) {
+                        //     self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != handle_var.index);
+                        //     delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
+                        // }
+                        // }
 
 
 
@@ -562,9 +567,45 @@ export default class VarsDatasProxy {
                         //     })());
                     }
 
-                    if (promises.length) {
-                        await Promise.all(promises);
+                    if (!!to_insert.length) {
+                        await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(to_insert);
+
+                        // TODO FIXME TO DELETE
+                        // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
+                        // On force la suppression du cache mais c'est sûrement gourmant...
+                        DAOQueryCacheController.getInstance().clear_cache(true);
+
+                        for (let i in to_insert) {
+                            let index: string = to_insert[i].index;
+                            let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+
+                            /**
+                             * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                             */
+                            this.check_or_update_var_buffer(to_insert[i]);
+
+                            if (!wrapper) {
+                                continue;
+                            }
+
+                            wrapper.nb_reads_since_last_insert_or_update = 0;
+                            wrapper.nb_reads_since_last_check = 0;
+                            wrapper.needs_insert_or_update_ = false;
+                            wrapper.var_data_origin_value = wrapper.var_data.value;
+                            wrapper.var_data_origin_type = wrapper.var_data.value_type;
+                            wrapper.last_insert_or_update = Dates.now();
+                            wrapper.update_timeout();
+
+                            if (do_delete_from_cache_indexes[index]) {
+                                self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != index);
+                                delete self.vars_datas_buffer_wrapped_indexes[index];
+                            }
+                        }
                     }
+
+                    // if (promises.length) {
+                    //     await Promise.all(promises);
+                    // }
 
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
