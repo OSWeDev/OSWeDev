@@ -54,8 +54,9 @@ export default class VarsComputeController {
     }
 
     public get_estimated_time(var_data: VarDataBaseVO): number {
-        return (MatroidController.getInstance().get_cardinal(var_data) / 1000)
+        let res = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
             * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
+        return res;
     }
 
     /**
