@@ -805,6 +805,7 @@ export default class VarsDatasProxy {
                 let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await SlowVarKiHandler.getInstance().handle_slow_var_ki_start() : null;
                 if (vardata_to_test) {
                     res[vardata_to_test.index] = vardata_to_test;
+                    ConsoleHandler.getInstance().log('get_vars_to_compute:1 SLOWVAR:' + vardata_to_test.index);
                     return res;
                 }
                 VarsDatasProxy.getInstance().can_load_vars_to_test = false;
@@ -819,33 +820,29 @@ export default class VarsDatasProxy {
                  * On va présélectionner les vars_datas qui ont pas une valeur valide et qui sont issues du clients, puis celles sans valeur valide et issues d'ailleurs
                  */
 
-                if (this.select_vars_from_buffer(
+                estimated_ms = this.select_vars_from_buffer(
                     (v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data),
                     estimated_ms,
                     client_request_estimated_ms_limit,
                     nb_vars,
                     client_request_min_nb_vars,
                     res
-                )) {
+                );
+                if (estimated_ms >= client_request_min_nb_vars) {
+                    ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + Object.keys(res).length + ':estimated_ms:' + estimated_ms + ':');
                     return res;
                 }
 
-                if (this.select_vars_from_buffer(
+                estimated_ms = this.select_vars_from_buffer(
                     (v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data),
                     estimated_ms,
                     client_request_estimated_ms_limit,
                     nb_vars,
                     client_request_min_nb_vars,
                     res
-                )) {
-                    return res;
-                }
-
-                /**
-                 * Si on a des datas en attente dans le buffer on commence par ça
-                 */
-                if (ObjectHandler.getInstance().hasAtLeastOneAttribute(res)) {
-                    ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
+                );
+                if (estimated_ms != null) {
+                    ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + Object.keys(res).length + ':estimated_ms:' + estimated_ms + ':');
                     return res;
                 }
 
@@ -892,6 +889,15 @@ export default class VarsDatasProxy {
         );
     }
 
+    /**
+     * @param condition
+     * @param estimated_ms
+     * @param client_request_estimated_ms_limit
+     * @param nb_vars
+     * @param client_request_min_nb_vars
+     * @param res
+     * @returns estimated_ms mis à jour si on a sélectionné des éléments, sinon null
+     */
     private select_vars_from_buffer(
         condition: (v: VarDataProxyWrapperVO<VarDataBaseVO>) => boolean,
         estimated_ms: number,
@@ -899,7 +905,7 @@ export default class VarsDatasProxy {
         nb_vars: number,
         client_request_min_nb_vars: number,
         res: { [index: string]: VarDataBaseVO }
-    ) {
+    ): number {
 
         let ordered_vars_datas_buffer = this.vars_datas_buffer.filter(condition);
         this.order_vars_datas_buffer(ordered_vars_datas_buffer);
@@ -909,7 +915,7 @@ export default class VarsDatasProxy {
             if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
                 (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
                 ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
-                return true;
+                return estimated_ms;
             }
 
             let var_data_wrapper = ordered_vars_datas_buffer[i];
@@ -917,19 +923,7 @@ export default class VarsDatasProxy {
                 continue;
             }
 
-            let estimated_ms_var = 0;
-
-            if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id]) {
-                estimated_ms_var = var_data_wrapper.estimated_ms;
-            } else {
-                // debug
-                ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_wrapper.var_data.index + ':');
-                try {
-                    ConsoleHandler.getInstance().warn(JSON.stringify(VarsServerController.getInstance().varcacheconf_by_var_ids));
-                } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
-                }
-            }
+            let estimated_ms_var = var_data_wrapper.estimated_ms;
 
             // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
             if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
@@ -943,11 +937,11 @@ export default class VarsDatasProxy {
 
             // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
             if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
-                return true;
+                return estimated_ms;
             }
         }
 
-        return false;
+        return estimated_ms;
     }
 
     /**

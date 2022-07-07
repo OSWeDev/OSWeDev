@@ -289,7 +289,8 @@ export default class VarsPerfsController {
 
                     var_cache_conf.calculation_cost_for_1000_card = sum_ / coef;
                     VarsServerController.getInstance().varcacheconf_by_var_ids[var_cache_conf.var_id].calculation_cost_for_1000_card = var_cache_conf.calculation_cost_for_1000_card;
-                    await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
+                    // TODO FIXME réactiver quand debug des estimations de temps de calcul
+                    // await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
                 }
 
 
