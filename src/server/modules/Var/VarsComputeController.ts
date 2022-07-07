@@ -8,6 +8,7 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -19,6 +20,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
+import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
@@ -53,9 +55,19 @@ export default class VarsComputeController {
     protected constructor() {
     }
 
-    public get_estimated_time(var_data: VarDataBaseVO): number {
+    public get_estimated_create_tree_1k_card(var_data: VarDataBaseVO): number {
         let res = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
-            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].calculation_cost_for_1000_card;
+            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_create_tree_1k_card;
+        return res;
+    }
+    public get_estimated_load_nodes_datas_1k_card(var_data: VarDataBaseVO): number {
+        let res = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
+            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_load_nodes_datas_1k_card;
+        return res;
+    }
+    public get_estimated_compute_node_1k_card(var_data: VarDataBaseVO): number {
+        let res = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
+            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_compute_node_1k_card;
         return res;
     }
 
@@ -83,14 +95,14 @@ export default class VarsComputeController {
                 let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
                 // let perf_old_start = performance.now();
-                // let dag: DAG<VarDAGNode> = await this.create_tree_old(vars_datas, ds_cache);
+                // let dag: VarDAG = await this.create_tree_old(vars_datas, ds_cache);
                 // let perf_old_end = performance.now();
 
                 // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", true);
                 let perf_new_start = performance.now();
-                let dag: DAG<VarDAGNode> = await this.create_tree(vars_datas, ds_cache);
+                let dag: VarDAG = await this.create_tree(vars_datas, ds_cache);
                 let perf_new_end = performance.now();
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", false);
 
@@ -180,7 +192,7 @@ export default class VarsComputeController {
      */
     public async load_caches_and_imports_on_var_to_deploy(
         var_to_deploy: VarDataBaseVO,
-        var_dag: DAG<VarDAGNode>,
+        var_dag: VarDAG,
         deployed_vars_datas: { [index: string]: boolean } = {},
         vars_datas: { [index: string]: VarDataBaseVO } = {},
         ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {},
@@ -920,7 +932,7 @@ export default class VarsComputeController {
     //     );
     // }
 
-    private update_cards_in_perfs(dag: DAG<VarDAGNode>) {
+    private update_cards_in_perfs(dag: VarDAG) {
         for (let i in dag.nodes) {
             let node = dag.nodes[i];
 
@@ -933,7 +945,7 @@ export default class VarsComputeController {
      * @param dag
      * @param vars_datas
      */
-    private async cache_datas(dag: DAG<VarDAGNode>, vars_datas: { [index: string]: VarDataBaseVO }) {
+    private async cache_datas(dag: VarDAG, vars_datas: { [index: string]: VarDataBaseVO }) {
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__cache_datas],
@@ -958,7 +970,7 @@ export default class VarsComputeController {
         );
     }
 
-    private async load_nodes_datas(dag: DAG<VarDAGNode>, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+    private async load_nodes_datas(dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
         let env = ConfigurationService.getInstance().getNodeConfiguration();
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__load_nodes_datas],
@@ -1319,13 +1331,13 @@ export default class VarsComputeController {
      *      à la fin de chaque calcul on envoie et on flag comme envoyé
      *      à la fin du process on peut checker que l'arbre complet a bien été envoyé (on devrait avoir tout envoyé déjà)
      */
-    private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<DAG<VarDAGNode>> {
+    private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__create_tree],
             async () => {
 
-                let var_dag: DAG<VarDAGNode> = new DAG();
+                let var_dag: VarDAG = new VarDAG(VarsdatasComputerBGThread.getInstance().current_batch_id);
 
                 /**
                  * On insère les noeuds du vars_datas dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
@@ -1381,7 +1393,7 @@ export default class VarsComputeController {
      * Organiser les vars datas par profondeur du controller (en sachant que plus le controller est haut dans l'arbre, plus sa profondeur est élevée)
      *  on se base directement sur l'arbre, et on prend en compte que les éléments pas encore déployé, et sans valeur valide
      */
-    private async get_vars_datas_by_controller_height(var_dag: DAG<VarDAGNode>): Promise<{ [height: number]: { [index: string]: VarDataBaseVO } }> {
+    private async get_vars_datas_by_controller_height(var_dag: VarDAG): Promise<{ [height: number]: { [index: string]: VarDataBaseVO } }> {
         let vars_datas_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = {};
 
         // Ensuite par hauteur dans l'arbre
@@ -1439,7 +1451,7 @@ export default class VarsComputeController {
      */
     private async load_caches_and_imports_on_vars_to_deploy(
         vars_to_deploy: { [index: string]: VarDataBaseVO },
-        var_dag: DAG<VarDAGNode>) {
+        var_dag: VarDAG) {
 
         let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
@@ -1476,7 +1488,7 @@ export default class VarsComputeController {
 
     }
 
-    private add_vars_datas_to_dag(var_dag: DAG<VarDAGNode>, vars_datas: { [index: string]: VarDataBaseVO }, force_already_tried_load_cache_complet: boolean = false) {
+    private add_vars_datas_to_dag(var_dag: VarDAG, vars_datas: { [index: string]: VarDataBaseVO }, force_already_tried_load_cache_complet: boolean = false) {
         for (let i in vars_datas) {
             let var_data = vars_datas[i];
 
@@ -1493,7 +1505,7 @@ export default class VarsComputeController {
      */
     private async deploy_deps_on_vars_to_deploy(
         vars_to_deploy: { [index: string]: VarDataBaseVO },
-        var_dag: DAG<VarDAGNode>,
+        var_dag: VarDAG,
         ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }
     ) {
 
@@ -1523,7 +1535,7 @@ export default class VarsComputeController {
 
     private async deploy_deps_on_var_to_deploy(
         var_dag_node: VarDAGNode,
-        var_dag: DAG<VarDAGNode>,
+        var_dag: VarDAG,
         ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }
     ) {
 
@@ -1567,7 +1579,7 @@ export default class VarsComputeController {
         }
     }
 
-    private async check_tree_notification(dag: DAG<VarDAGNode>) {
+    private async check_tree_notification(dag: VarDAG) {
         for (let i in dag.nodes) {
             let node = dag.nodes[i];
 

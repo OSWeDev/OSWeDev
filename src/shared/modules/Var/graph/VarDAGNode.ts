@@ -1,8 +1,9 @@
 import VarsComputeController from '../../../../server/modules/Var/VarsComputeController';
+import VarBatchNodePerfVO from '../vos/VarBatchNodePerfVO';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
-import DAG from './dagbase/DAG';
 import DAGNodeBase from './dagbase/DAGNodeBase';
 import DAGNodeDep from './dagbase/DAGNodeDep';
+import VarDAG from './VarDAG';
 
 export default class VarDAGNode extends DAGNodeBase {
 
@@ -11,13 +12,15 @@ export default class VarDAGNode extends DAGNodeBase {
      *  La value du noeud est celle du var_data passé en param, et donc si undefined le noeud est non calculé
      *  Le nom du noeud est l'index du var_data
      */
-    public static getInstance(dag: DAG<VarDAGNode>, var_data: VarDataBaseVO): VarDAGNode {
+    public static getInstance(dag: VarDAG, var_data: VarDataBaseVO): VarDAGNode {
         if (!!dag.nodes[var_data.index]) {
             return dag.nodes[var_data.index];
         }
 
         return new VarDAGNode(dag, var_data/*, is_registered*/).linkToDAG();
     }
+
+    public perfs: VarBatchNodePerfVO = new VarBatchNodePerfVO();
 
     /**
      * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
@@ -57,14 +60,12 @@ export default class VarDAGNode extends DAGNodeBase {
 
     public already_sent_result_to_subs: boolean = false;
 
-    public estimated_time: number = 0;
-
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
-    private constructor(public dag: DAG<VarDAGNode>, public var_data: VarDataBaseVO) {
+    private constructor(public dag: VarDAG, public var_data: VarDataBaseVO) {
         super();
-        this.estimated_time = VarsComputeController.getInstance().get_estimated_time(var_data);
+        this.init_perfs_estimates();
     }
 
     /**
@@ -114,8 +115,38 @@ export default class VarDAGNode extends DAGNodeBase {
         this.dag.leafs[this.var_data.index] = this;
         this.dag.roots[this.var_data.index] = this;
 
-        this.dag.estimated_time += this.estimated_time;
+        this.push_node_perfs_to_dag();
 
         return this;
+    }
+
+    private push_node_perfs_to_dag() {
+
+        if (this.perfs.compute_node.estimated_remaining_work_time) {
+            this.dag.perfs.compute_node.current_estimated_remaining_time += this.perfs.compute_node.estimated_remaining_work_time;
+        }
+        if (this.perfs.create_tree.estimated_remaining_work_time) {
+            this.dag.perfs.create_tree.current_estimated_remaining_time += this.perfs.create_tree.estimated_remaining_work_time;
+        }
+        if (this.perfs.load_nodes_datas.estimated_remaining_work_time) {
+            this.dag.perfs.load_nodes_datas.current_estimated_remaining_time += this.perfs.load_nodes_datas.estimated_remaining_work_time;
+        }
+    }
+
+    private init_perfs_estimates() {
+
+        if (var)
+        this.perfs.compute_node.initialestimated_work_time = VarsComputeController.getInstance().get_estimated_compute_node_1k_card(this.var_data);
+        this.perfs.compute_node.estimated_remaining_work_time = this.perfs.compute_node.initialestimated_work_time;
+        this.perfs.compute_node.skipped = false;
+
+        this.perfs.create_tree.initialestimated_work_time = VarsComputeController.getInstance().get_estimated_create_tree_1k_card(this.var_data);
+        this.perfs.load_nodes_datas.initialestimated_work_time = VarsComputeController.getInstance().get_estimated_load_nodes_datas_1k_card(this.var_data);
+        this.perfs.creation_time = performance.now();
+        this.perfs.compute_node.created_time = performance.now();
+        this.perfs.current_estimated_remaining_time = this.perfs.compute_node.initialestimated_work_time + this.perfs.create_tree.initialestimated_work_time + this.perfs.load_nodes_datas.initialestimated_work_time;
+
+        this.perfs.initial_estimated_time = VarsComputeController.getInstance().get_estimated_time(var_data);
+        this.perfs.current_estimated_remaining_time = VarsComputeController.getInstance().get_estimated_time(var_data);
     }
 }
