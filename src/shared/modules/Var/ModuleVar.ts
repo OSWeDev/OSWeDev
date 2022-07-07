@@ -19,12 +19,16 @@ import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from './vos/SlowVarVO';
+import VarBatchPerfVO from './vos/VarBatchPerfVO';
+import VarBatchVarPerfVO from './vos/VarBatchVarPerfVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarComputeTimeLearnBaseVO from './vos/VarComputeTimeLearnBaseVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
+import VarNodePerfElementVO from './vos/VarNodePerfElementVO';
+import VarPerfElementVO from './vos/VarPerfElementVO';
 import VarPerfVO from './vos/VarPerfVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
 
@@ -121,6 +125,9 @@ export default class ModuleVar extends Module {
         this.initializeVarPerfVO();
         this.initializeSlowVarVO();
         this.initializeVarComputeTimeLearnBaseVO();
+        this.VarBatchVarPerfVO();
+        this.VarBatchPerfVO();
+        this.initializeVarPerfElementVO();
 
         VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
         VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
@@ -365,6 +372,67 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarPixelFieldConfVO.API_TYPE_ID, () => new VarPixelFieldConfVO(), datatable_fields, null);
         datatable.define_default_label_function((vo: VarPixelFieldConfVO) => vo.pixel_vo_api_type_id + vo.pixel_vo_field_id, null);
+        this.datatables.push(datatable);
+    }
+
+    private VarBatchVarPerfVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_int, 'var_id', true),
+            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+        ];
+
+        let datatable = new ModuleTable(this, VarBatchVarPerfVO.API_TYPE_ID, () => new VarBatchVarPerfVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
+
+    private VarNodePerfElementVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('created_time', ModuleTableField.FIELD_TYPE_int, 'created_time', true, true, 0),
+            new ModuleTableField('estimated_work_time', ModuleTableField.FIELD_TYPE_int, 'estimated_work_time', true, true, 0),
+            new ModuleTableField('real_work_time', ModuleTableField.FIELD_TYPE_int, 'real_work_time', true, true, 0),
+            new ModuleTableField('skipped', ModuleTableField.FIELD_TYPE_boolean, 'skipped', true, true, false),
+            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_int, 'end_time', true, true, 0),
+        ];
+
+        let datatable = new ModuleTable(this, VarNodePerfElementVO.API_TYPE_ID, () => new VarNodePerfElementVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
+
+    private VarBatchPerfVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('batch_id', ModuleTableField.FIELD_TYPE_int, 'batch_id', true),
+            new ModuleTableField('var_perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'var_perfs', false).set_plain_obj_cstr(() => new VarBatchVarPerfVO()),
+            new ModuleTableField('get_vars_to_compute', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'get_vars_to_compute', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('cache_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'cache_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('update_cards_in_perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'update_cards_in_perfs', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('initial_estimated_time', ModuleTableField.FIELD_TYPE_int, 'initial_estimated_time', false),
+            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_int, 'start_time', false),
+            new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_int, 'current_estimated_remaining_time', false),
+            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_int, 'end_time', false),
+        ];
+
+        let datatable = new ModuleTable(this, VarBatchPerfVO.API_TYPE_ID, () => new VarBatchPerfVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
+
+    private initializeVarPerfElementVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('unfinished_perf_start_times', ModuleTableField.FIELD_TYPE_int_array, 'unfinished_perf_start_times', false),
+            new ModuleTableField('sum_ms', ModuleTableField.FIELD_TYPE_int, 'sum_ms', false),
+            new ModuleTableField('nb_card', ModuleTableField.FIELD_TYPE_int, 'nb_card', false),
+            new ModuleTableField('nb_calls', ModuleTableField.FIELD_TYPE_int, 'nb_calls', false),
+        ];
+
+        let datatable = new ModuleTable(this, VarPerfElementVO.API_TYPE_ID, () => new VarPerfElementVO(), datatable_fields, null);
         this.datatables.push(datatable);
     }
 
