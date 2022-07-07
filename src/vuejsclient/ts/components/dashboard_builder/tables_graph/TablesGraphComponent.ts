@@ -332,6 +332,8 @@ export default class TablesGraphComponent extends VueComponentBase {
     private initcell(cell: DashboardGraphVORefVO) {
         let graph = editor.graph;
         let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
+        graph_layout.reset();
+
         graph.stopEditing(false);
 
         let parent = graph.getDefaultParent();
@@ -362,7 +364,6 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let reference = references[i];
                 let reference_cell = this.cells[reference.module_table.vo_type];
                 if (reference_cell) {
-
                     graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                     graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                 } else {
@@ -398,7 +399,6 @@ export default class TablesGraphComponent extends VueComponentBase {
 
                 }
             }
-
             graph.addCell(v1, parent);
             // graph.setCellStyles('strokeColor', '#F5F5F5', [parent]);
             // graph.setCellStyles('fillColor', '#FFF', [parent]);
@@ -411,6 +411,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         } finally {
             model.endUpdate();
+            graph_layout.update_matrix();
         }
 
         this.cells[cell.vo_type] = v1;
