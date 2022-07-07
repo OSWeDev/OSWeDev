@@ -24,6 +24,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
@@ -1259,7 +1260,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let dag: DAG<VarDAGNode> = new DAG();
+        let dag: VarDAG = new VarDAG(null);
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
@@ -1275,7 +1276,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        let var_dag: DAG<VarDAGNode> = new DAG();
+        let var_dag: VarDAG = new VarDAG(null);
         let deployed_vars_datas: { [index: string]: boolean } = {};
         let vars_datas: { [index: string]: VarDataBaseVO } = {
             [param.index]: param
@@ -1342,7 +1343,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let datasources_deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        let dag: DAG<VarDAGNode> = new DAG();
+        let dag: VarDAG = new DAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
 
         for (let i in datasources_deps) {

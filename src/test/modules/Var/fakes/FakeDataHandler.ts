@@ -4,6 +4,7 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import DAG from '../../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsInitController from '../../../../shared/modules/Var/VarsInitController';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -28,8 +29,8 @@ export default class FakeDataHandler {
      *                        / \ / \
      *                       E  F G  H
      */
-    public static get_fake_triangular_dag(): DAG<VarDAGNode> {
-        let dag: DAG<VarDAGNode> = new DAG();
+    public static get_fake_triangular_dag(): VarDAG {
+        let dag: VarDAG = new VarDAG(null);
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A);

@@ -19,6 +19,7 @@ import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from './vos/SlowVarVO';
+import VarBatchNodePerfVO from './vos/VarBatchNodePerfVO';
 import VarBatchPerfVO from './vos/VarBatchPerfVO';
 import VarBatchVarPerfVO from './vos/VarBatchVarPerfVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
@@ -128,6 +129,8 @@ export default class ModuleVar extends Module {
         this.VarBatchVarPerfVO();
         this.VarBatchPerfVO();
         this.initializeVarPerfElementVO();
+        this.VarBatchNodePerfVO();
+        this.VarNodePerfElementVO();
 
         VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
         VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
@@ -388,14 +391,32 @@ export default class ModuleVar extends Module {
         this.datatables.push(datatable);
     }
 
+    private VarBatchNodePerfVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('index', ModuleTableField.FIELD_TYPE_string, 'index', true),
+            new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_int, 'var_id', false),
+            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('creation_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'creation_time (ms)', false),
+            new ModuleTableField('initial_estimated_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_time (ms)', false),
+            new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'current_estimated_remaining_time  (ms)', false),
+        ];
+
+        let datatable = new ModuleTable(this, VarBatchNodePerfVO.API_TYPE_ID, () => new VarBatchNodePerfVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
+
     private VarNodePerfElementVO() {
 
         let datatable_fields = [
-            new ModuleTableField('created_time', ModuleTableField.FIELD_TYPE_int, 'created_time', true, true, 0),
-            new ModuleTableField('estimated_work_time', ModuleTableField.FIELD_TYPE_int, 'estimated_work_time', true, true, 0),
-            new ModuleTableField('real_work_time', ModuleTableField.FIELD_TYPE_int, 'real_work_time', true, true, 0),
+            new ModuleTableField('created_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'created_time (ms)', true, true, 0),
+            new ModuleTableField('initialestimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initialestimated_work_time (ms)', true, true, 0),
+            new ModuleTableField('estimated_remaining_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_remaining_work_time (ms)', true, true, 0),
+            new ModuleTableField('real_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'real_work_time (ms)', true, true, 0),
             new ModuleTableField('skipped', ModuleTableField.FIELD_TYPE_boolean, 'skipped', true, true, false),
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_int, 'end_time', true, true, 0),
+            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'end_time (ms)', true, true, 0),
         ];
 
         let datatable = new ModuleTable(this, VarNodePerfElementVO.API_TYPE_ID, () => new VarNodePerfElementVO(), datatable_fields, null);
@@ -413,10 +434,10 @@ export default class ModuleVar extends Module {
             new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
             new ModuleTableField('cache_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'cache_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
             new ModuleTableField('update_cards_in_perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'update_cards_in_perfs', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('initial_estimated_time', ModuleTableField.FIELD_TYPE_int, 'initial_estimated_time', false),
-            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_int, 'start_time', false),
-            new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_int, 'current_estimated_remaining_time', false),
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_int, 'end_time', false),
+            new ModuleTableField('initial_estimated_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_time (ms)', false),
+            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', false),
+            new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'current_estimated_remaining_time (ms)', false),
+            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'end_time (ms)', false),
         ];
 
         let datatable = new ModuleTable(this, VarBatchPerfVO.API_TYPE_ID, () => new VarBatchPerfVO(), datatable_fields, null);
@@ -426,10 +447,10 @@ export default class ModuleVar extends Module {
     private initializeVarPerfElementVO() {
 
         let datatable_fields = [
-            new ModuleTableField('unfinished_perf_start_times', ModuleTableField.FIELD_TYPE_int_array, 'unfinished_perf_start_times', false),
-            new ModuleTableField('sum_ms', ModuleTableField.FIELD_TYPE_int, 'sum_ms', false),
-            new ModuleTableField('nb_card', ModuleTableField.FIELD_TYPE_int, 'nb_card', false),
-            new ModuleTableField('nb_calls', ModuleTableField.FIELD_TYPE_int, 'nb_calls', false),
+            new ModuleTableField('realised_sum_ms', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'realised_sum_ms (ms)', false),
+            new ModuleTableField('realised_nb_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'realised_nb_card (ms)', false),
+            new ModuleTableField('realised_nb_calls', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'realised_nb_calls (ms)', false),
+            new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'current_estimated_remaining_time (ms)', false),
         ];
 
         let datatable = new ModuleTable(this, VarPerfElementVO.API_TYPE_ID, () => new VarPerfElementVO(), datatable_fields, null);
@@ -478,8 +499,10 @@ export default class ModuleVar extends Module {
             new ModuleTableField('cache_seuil_c', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C', true, true, 1000),
             new ModuleTableField('cache_seuil_c_element', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C - élément', true, true, 1000),
             new ModuleTableField('cache_seuil_bdd', ModuleTableField.FIELD_TYPE_float, 'Seuil cache insert en BDD', true, true, 0),
-            new ModuleTableField('calculation_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float, 'Ms calcul pour 1000', true, true, 1000),
-            new ModuleTableField('last_calculations_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float_array, 'Historique Ms calcul pour 1000', false),
+
+            new ModuleTableField('estimated_create_tree_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_create_tree_1k_card', true, true, 10),
+            new ModuleTableField('estimated_load_nodes_datas_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_load_nodes_datas_1k_card', true, true, 10),
+            new ModuleTableField('estimated_compute_node_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_compute_node_1k_card', true, true, 10),
         ];
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);

@@ -2,6 +2,7 @@ import cloneDeep = require('lodash/cloneDeep');
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
@@ -221,7 +222,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param deps_values les valeurs des deps, par id de dep
      */
     private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
-        let dag: DAG<VarDAGNode> = new DAG();
+        let dag: VarDAG = new VarDAG(null);
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
 
         let deps = this.getParamDependencies(varDAGNode);
