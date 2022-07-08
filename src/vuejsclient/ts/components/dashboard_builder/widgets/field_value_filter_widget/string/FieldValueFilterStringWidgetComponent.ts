@@ -480,10 +480,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
-            this.tmp_filter_active_options = this.default_values;
-            return;
+        let old_is_init: boolean = this.is_init;
+
+        this.is_init = false;
+
+        if (old_is_init) {
+
+            if (this.default_values && (this.default_values.length > 0)) {
+                this.tmp_filter_active_options = this.default_values;
+                return;
+            }
         }
 
         // // Marche mais pas si simple, ça bouge tout le rendu et suivant les widgets inutiles ça crée des trous, pas toujours les mêmes, ... compliqué
@@ -544,9 +550,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             await this.switch_advanced_filters();
         }
 
-        if (this.default_advanced_string_filter_type) {
-            for (let i in this.advanced_string_filters) {
-                this.advanced_string_filters[i].filter_type = this.default_advanced_string_filter_type;
+        if (old_is_init) {
+            if (this.default_advanced_string_filter_type != null) {
+                for (let i in this.advanced_string_filters) {
+                    this.advanced_string_filters[i].filter_type = this.default_advanced_string_filter_type;
+                }
+
+                if (!this.has_content_filter_type[this.default_advanced_string_filter_type]) {
+                    this.validate_advanced_string_filter();
+                    return;
+                }
             }
         }
 
