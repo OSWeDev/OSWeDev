@@ -744,6 +744,14 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return null;
     }
 
+    private filter_visible_label(dfo: DataFilterOption): string {
+        if (this.is_type_enum) {
+            return this.t(this.field.enum_values[dfo.label]);
+        }
+
+        return dfo.label;
+    }
+
     get default_placeholder_translation(): string {
         return this.label('FieldValueFilterWidget.filter_placeholder');
     }

@@ -224,6 +224,10 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         });
     }
 
+    private filter_visible_label(dfo: DataFilterOption): string {
+        return this.t(this.field.enum_values[dfo.label]);
+    }
+
     get placeholder(): string {
         if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)])) {
             return null;
