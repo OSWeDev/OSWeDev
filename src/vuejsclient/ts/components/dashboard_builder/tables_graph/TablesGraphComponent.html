@@ -6,7 +6,10 @@
     </div>
     <div class="col-md-3 fields_wrapper">
       <div class="sidebar" ref="sidebar">
-        <div class="vo_field_ref_advanced"></div>
+        <h2>Toggle Switch</h2>
+        <label class="switch">
+          <input type="checkbox" id="myCheckbox" onchange="toggleCheck()" checked="checked"/><span class="slider round"></span>
+        </label>
         <Tablesgrapheditformcomponent ref="form" @delete_cell="delete_cell" :cell-data="current_cell"></Tablesgrapheditformcomponent>
       </div>
       <Droppablevoscomponent ref="droppables"></Droppablevoscomponent>

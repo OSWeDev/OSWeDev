@@ -5,5 +5,9 @@
     
         .col-md-3.fields_wrapper
             .sidebar(ref="sidebar")
+                h2 Toggle Switch
+                label(class="switch")
+                    input(type="checkbox" id="myCheckbox" onchange="toggleCheck()" checked)
+                    span(class="slider round")
                 Tablesgrapheditformcomponent(ref="form" @delete_cell="delete_cell" :cell-data="current_cell")
             Droppablevoscomponent(ref="droppables")

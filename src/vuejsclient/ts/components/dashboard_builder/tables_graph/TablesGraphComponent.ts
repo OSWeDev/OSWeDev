@@ -14,6 +14,7 @@ import DroppableVosComponent from '../droppable_vos/DroppableVosComponent';
 import TablesGraphEditFormComponent from './edit_form/TablesGraphEditFormComponent';
 import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
+import { watch } from 'fs';
 
 const graphConfig = {
     mxBasePath: '/mx/', //Specifies the path in mxClient.basePath.
@@ -74,7 +75,14 @@ export default class TablesGraphComponent extends VueComponentBase {
         let cell = editor.graph.getSelectionCell();
         this.$set(this, 'current_cell', cell);
     }
-
+    private toggleCheck() { //FIXME checked non reconnu
+        /* Toggle function to chose arrows to exclude from dashboard */
+        if (document.getElementById("myCheckbox").checked === true) {
+            document.getElementById("aLink").style.display = "block";
+        } else {
+            document.getElementById("aLink").style.display = "none";
+        }
+    }
     private async delete_cell(cellValue) {
 
         let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
@@ -328,8 +336,10 @@ export default class TablesGraphComponent extends VueComponentBase {
             this.initcell(cells[i]);
         }
     }
-
-    private initcell(cell: DashboardGraphVORefVO) {
+    private initcell(cell: DashboardGraphVORefVO, arrows_to_exclude: string[] = []) { //TODO Inclure les champs techniques dans arrows_to_exclude
+        /*
+        arrows_to_exclude , liste string de flèches à ne pas afficher
+        */
         let graph = editor.graph;
         let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
         graph_layout.reset();
@@ -363,10 +373,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             for (let i in references) {
                 let reference = references[i];
                 let reference_cell = this.cells[reference.module_table.vo_type];
-                if (reference_cell) {
+                let is_arrow_accepted: boolean = arrows_to_exclude.includes(this.t(reference.field_label.code_text)); //champs au dessus de la flèche
+                if (reference_cell && is_arrow_accepted == true) {
                     graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                     graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
-                } else {
+                } else { //chemin n/n
                     //TODO-Rajouter dans la matrice d'adjacence, les liaisons n/n
                     if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
                         let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
@@ -376,12 +387,12 @@ export default class TablesGraphComponent extends VueComponentBase {
                             if (nn_field.field_id == reference.field_id) {
                                 continue;
                             }
-
                             let nn_reference_cell = this.cells[nn_field.manyToOne_target_moduletable.vo_type];
-                            if (nn_reference_cell) {
+                            let is_arrow_accepted_field: boolean = arrows_to_exclude.includes(this.t(nn_field.field_label.code_text)); //champs au dessus de la flèche
+                            if (nn_reference_cell(is_arrow_accepted && is_arrow_accepted_field == true)) {
                                 // TODO FIXME pour le moment le N/N est fait avec 2 flèches dont une a un label pour les 2
                                 graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
-                                graph.insertEdge(parent, null, '', nn_reference_cell, v1);
+                                graph.insertEdge(parent, null, '', nn_reference_cell, v1); //Utile ?
                             }
                         }
                     }
@@ -393,7 +404,8 @@ export default class TablesGraphComponent extends VueComponentBase {
             for (let i in fields) {
                 let field = fields[i];
                 let reference_cell = this.cells[field.manyToOne_target_moduletable.vo_type];
-                if (reference_cell) {
+                let is_arrow_accepted: boolean = arrows_to_exclude.includes(this.t(field.field_label.code_text)); //champs au dessus de la flèche
+                if (reference_cell && is_arrow_accepted == true) {
                     graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
                     graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
 
