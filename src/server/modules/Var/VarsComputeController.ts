@@ -6,6 +6,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
@@ -13,6 +14,7 @@ import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import VarPixelFieldConfVO from '../../../shared/modules/Var/vos/VarPixelFieldConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -25,8 +27,10 @@ import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 import VarsPerfsController from './perf/VarsPerfsController';
+import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
 import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
+import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarsImportsHandler from './VarsImportsHandler';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
@@ -34,6 +38,9 @@ import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class VarsComputeController {
+
+    public static PARAM_NAME_estimated_tree_computation_time_target: string = 'VarsComputeController.estimated_tree_computation_time_target';
+    public static PARAM_NAME_estimated_tree_computation_time_limit: string = 'VarsComputeController.estimated_tree_computation_time_limit';
 
     /**
      * Multithreading notes :
@@ -49,8 +56,9 @@ export default class VarsComputeController {
 
     private static instance: VarsComputeController = null;
 
-    //TODO FIXME à packager propre
-    private perf_uid: number = 0;
+    private cached_estimated_tree_computation_time_target: number = null;
+    private cached_estimated_tree_computation_time_limit: number = null;
+    private last_update_estimated_tree_computation_time: number = null;
 
     protected constructor() {
     }
@@ -74,7 +82,7 @@ export default class VarsComputeController {
     /**
      * La fonction qui réalise les calculs sur un ensemble de var datas et qui met directement à jour la valeur et l'heure du calcul dans le var_data
      */
-    public async compute(vars_datas: { [index: string]: VarDataBaseVO }): Promise<void> {
+    public async compute(): Promise<void> {
 
         // TODO PerfMonServerController monitor_async add infos
         await PerfMonServerController.getInstance().monitor_async(
@@ -94,15 +102,11 @@ export default class VarsComputeController {
                  */
                 let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
-                // let perf_old_start = performance.now();
-                // let dag: VarDAG = await this.create_tree_old(vars_datas, ds_cache);
-                // let perf_old_end = performance.now();
-
                 // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", true);
                 let perf_new_start = performance.now();
-                let dag: VarDAG = await this.create_tree(vars_datas, ds_cache);
+                let dag: VarDAG = await this.create_tree(ds_cache);
                 let perf_new_end = performance.now();
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", false);
 
@@ -121,10 +125,9 @@ export default class VarsComputeController {
                  * Tous les noeuds dont le var_data !has_valid_value sont à calculer
                  */
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.visit_bottom_up_to_node", true);
-                for (let i in vars_datas) {
-                    let var_data = vars_datas[i];
+                for (let i in VarsdatasComputerBGThread.getInstance().current_batch_vardag.nodes) {
+                    let node = VarsdatasComputerBGThread.getInstance().current_batch_vardag.nodes[i];
 
-                    let node = dag.nodes[var_data.index];
                     if (!VarsServerController.getInstance().has_valid_value(node.var_data)) {
                         await DAGController.getInstance().visit_bottom_up_to_node(
                             node,
@@ -204,6 +207,9 @@ export default class VarsComputeController {
 
         // si le noeud est déjà chargé, on sort
         if (node.already_tried_loading_data_and_deploy) {
+            if (!node.successfully_deployed) {
+                node.successfully_deployed = true;
+            }
             return;
         }
         node.already_tried_loading_data_and_deploy = true;
@@ -214,9 +220,34 @@ export default class VarsComputeController {
             async () => {
 
                 if (deployed_vars_datas[node.var_data.index]) {
+                    if (!node.successfully_deployed) {
+                        node.successfully_deployed = true;
+                    }
                     return;
                 }
                 deployed_vars_datas[node.var_data.index] = true;
+
+                let estimated_tree_computation_time_limit = await this.get_estimated_tree_computation_time_limit();
+                if (var_dag.total_estimated_time > estimated_tree_computation_time_limit) {
+                    if (DEBUG_VARS) {
+                        ConsoleHandler.getInstance().error('BATCH remaining time estimation (' + var_dag.perfs.current_estimated_remaining_time + ') + elapsed time => [' + var_dag.total_estimated_time + '] > limit (' + estimated_tree_computation_time_limit + ')');
+
+                        /**
+                         * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
+                         */
+                        for (let i in var_dag.nodes) {
+                            let unsuccessfully_deployed_node = var_dag.nodes[i];
+
+                            if (!!unsuccessfully_deployed_node.successfully_deployed) {
+                                continue;
+                            }
+
+                            unsuccessfully_deployed_node.unlinkFromDAG();
+                        }
+
+                        return;
+                    }
+                }
 
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", true);
                 let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
@@ -241,6 +272,9 @@ export default class VarsComputeController {
 
                     if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        if (!node.successfully_deployed) {
+                            node.successfully_deployed = true;
+                        }
                         return;
                     }
                 }
@@ -268,6 +302,9 @@ export default class VarsComputeController {
 
                     if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        if (!node.successfully_deployed) {
+                            node.successfully_deployed = true;
+                        }
                         return;
                     }
                 }
@@ -353,6 +390,9 @@ export default class VarsComputeController {
 
                             if (limit_to_aggregated_datas) {
                                 // On aura pas de données aggregées à ce stade
+                                if (!node.successfully_deployed) {
+                                    node.successfully_deployed = true;
+                                }
                                 return;
                             }
 
@@ -474,6 +514,9 @@ export default class VarsComputeController {
 
                         if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
                             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                            if (!node.successfully_deployed) {
+                                node.successfully_deployed = true;
+                            }
                             return;
                         }
                     }
@@ -481,6 +524,9 @@ export default class VarsComputeController {
 
                 if (limit_to_aggregated_datas) {
                     // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
+                    if (!node.successfully_deployed) {
+                        node.successfully_deployed = true;
+                    }
                     return;
                 }
 
@@ -508,6 +554,9 @@ export default class VarsComputeController {
                         node.var_data.value = 0;
                         node.var_data.value_ts = Dates.now();
                         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
+                        if (!node.successfully_deployed) {
+                            node.successfully_deployed = true;
+                        }
                         return;
                     }
 
@@ -518,6 +567,10 @@ export default class VarsComputeController {
 
                 if (deps) {
                     await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
+                }
+
+                if (!node.successfully_deployed) {
+                    node.successfully_deployed = true;
                 }
 
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree.deploy_deps", false);
@@ -1331,50 +1384,121 @@ export default class VarsComputeController {
      *      à la fin de chaque calcul on envoie et on flag comme envoyé
      *      à la fin du process on peut checker que l'arbre complet a bien été envoyé (on devrait avoir tout envoyé déjà)
      */
-    private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
+    private async create_tree(ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
+
+        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__create_tree],
             async () => {
 
                 let var_dag: VarDAG = new VarDAG(VarsdatasComputerBGThread.getInstance().current_batch_id);
+                VarsdatasComputerBGThread.getInstance().current_batch_vardag = var_dag;
+
+                let estimated_tree_computation_time_limit = await this.get_estimated_tree_computation_time_target();
 
                 /**
-                 * On insère les noeuds du vars_datas dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
-                 *  puisque si on avait ce cache on demanderait pas un calcul à ce stade
+                 * Tant que le temps estimé global reste < à la limite principale (3 secondes par défaut) on continue de rajouter à l'arbre
                  */
-                this.add_vars_datas_to_dag(var_dag, vars_datas, true);
+                while (var_dag.total_estimated_time < estimated_tree_computation_time_limit) {
 
-                let vars_datas_to_deploy_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = await this.get_vars_datas_by_controller_height(var_dag);
-                let step = 1;
+                    /**
+                     * On commence par sélectionner la prochaine var, soit depuis les slow vars (si on est en position de le faire), soit depuis le cache
+                     */
+                    let selected_var_data: VarDataBaseVO = await this.get_slow_var();
 
-                while (Object.keys(vars_datas_to_deploy_by_controller_height).length) {
+                    /**
+                     * Piocher une var, l'ajouter à l'arbre, déployer ses deps :
+                     *  - Pendant le déploiement si on dépasse les 30 secondes estimées on coupe tout et on supprime les noeuds incomplets
+                     *      (qui n'avaient pas fini de déployer leurs deps)
+                     *  - A la fin du déploiement, si on est sous les 3 secondes estimées, on dépile à nouveau une var registered et on déploie
+                     *  - Si on a plus rien à dépiler ou si on est au dessus des 3 secondes (ou des 30 après avoir nettoyé l'arbre) on valide l'arbre pour calcul
+                     */
+                    let wrapped_select_var: VarDataProxyWrapperVO<VarDataBaseVO> = null;
+                    if (!selected_var_data) {
+                        wrapped_select_var = VarsDatasProxy.getInstance().select_var_from_buffer();
+                        selected_var_data = wrapped_select_var.var_data;
+                    }
 
-                    // On sélectionne les vars à déployer
-                    let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
+                    if (!selected_var_data) {
+                        // On a tout dépilé a priori
+                        return var_dag;
+                    }
 
-                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + Object.keys(vars_to_deploy).length + ' vars');
+                    let var_conf = VarsController.getInstance().var_conf_by_id[selected_var_data.var_id];
+                    if (var_conf.disable_var) {
 
-                    // on notifie du calcul en cours
-                    let vars_to_deploy_filtered_by_tab_subs = await VarsTabsSubsController.getInstance().filter_by_subs(Object.values(vars_to_deploy));
-                    await VarsTabsSubsController.getInstance().notify_vardatas(
-                        vars_to_deploy_filtered_by_tab_subs.map((vd) => new NotifVardatasParam([vd], true)));
+                        if (selected_var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+                            continue;
+                        }
 
-                    // On charge les caches pour ces noeuds
-                    //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
-                    await this.load_caches_and_imports_on_vars_to_deploy(vars_to_deploy, var_dag);
+                        selected_var_data.value = 0;
+                        selected_var_data.value_ts = Dates.now();
+                        selected_var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
 
-                    // On doit ensuite charger les ds pre deps
-                    await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag, ds_cache);
+                        if (DEBUG_VARS) {
+                            ConsoleHandler.getInstance().warn('Found disabled_var:' + selected_var_data.var_id + ':' + var_conf.name + ':' + selected_var_data.index + ':DENY in DB and continue');
+                        }
+                        await ModuleDAO.getInstance().insertOrUpdateVO(selected_var_data);
 
-                    vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
-                    step++;
+                        continue;
+                    }
+
+                    ConsoleHandler.getInstance().log('SELECTED VAR:' + selected_var_data.index + ':TotalEstimatedTime:' + var_dag.total_estimated_time + ':Remaining:' + var_dag.perfs.current_estimated_remaining_time + ':');
+
+                    /**
+                     * On insère le noeud dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
+                     *  puisque si on avait ce cache on demanderait pas un calcul à ce stade
+                     */
+                    this.add_vars_datas_to_dag(var_dag, { [selected_var_data.index]: selected_var_data }, true);
+
+                    let vars_datas_to_deploy_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = {
+                        [0]: { [selected_var_data.index]: selected_var_data }
+                    };
+                    let step = 1;
+
+                    while (Object.keys(vars_datas_to_deploy_by_controller_height).length) {
+
+                        // On sélectionne les vars à déployer
+                        let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
+
+                        ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + Object.keys(vars_to_deploy).length + ' vars');
+
+                        // on notifie du calcul en cours
+                        let vars_to_deploy_filtered_by_tab_subs = await VarsTabsSubsController.getInstance().filter_by_subs(Object.values(vars_to_deploy));
+                        await VarsTabsSubsController.getInstance().notify_vardatas(
+                            vars_to_deploy_filtered_by_tab_subs.map((vd) => new NotifVardatasParam([vd], true)));
+
+                        // On charge les caches pour ces noeuds
+                        //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
+                        await this.load_caches_and_imports_on_vars_to_deploy(vars_to_deploy, var_dag);
+
+                        // On doit ensuite charger les ds pre deps
+                        await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag, ds_cache);
+
+                        vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
+                        step++;
+                    }
                 }
 
                 return var_dag;
             },
             this
         );
+    }
+
+    /**
+     * Si c'est suite à un redémarrage on check si on a des vars en attente de test en BDD
+     *  Si c'est le cas on gère la première de ces vars, sinon on enlève le mode démarrage
+     */
+    private async get_slow_var(): Promise<VarDataBaseVO> {
+        let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await SlowVarKiHandler.getInstance().handle_slow_var_ki_start() : null;
+        if (vardata_to_test) {
+            ConsoleHandler.getInstance().log('get_vars_to_compute:1 SLOWVAR:' + vardata_to_test.index);
+            return vardata_to_test;
+        }
+        VarsDatasProxy.getInstance().can_load_vars_to_test = false;
+        return null;
     }
 
     // private pop_vars_to_deploy(vars_datas_to_deploy_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } }): { [index: string]: VarDataBaseVO } {
@@ -1659,5 +1783,34 @@ export default class VarsComputeController {
             return;
         }
         aggregated_datas[cloned_var_data.index] = cloned_var_data;
+    }
+
+    /**
+     * On demande de recharge le estimated_tree_computation_time_limit toutes les minutes au max
+     */
+    private async get_estimated_tree_computation_time_target(): Promise<number> {
+        await this.check_cached_estimated_tree_computation_time();
+        return this.cached_estimated_tree_computation_time_target;
+    }
+
+    private async get_estimated_tree_computation_time_limit(): Promise<number> {
+        await this.check_cached_estimated_tree_computation_time();
+        return this.cached_estimated_tree_computation_time_limit;
+    }
+
+    private async check_cached_estimated_tree_computation_time(): Promise<void> {
+        if ((!this.last_update_estimated_tree_computation_time) || (this.last_update_estimated_tree_computation_time < (Dates.now() - 60))) {
+
+            let promises = [];
+            let self = this;
+
+            promises.push((async () => {
+                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 30);
+            })());
+            promises.push((async () => {
+                self.cached_estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_target, 3);
+            })());
+            this.last_update_estimated_tree_computation_time = Dates.now();
+        }
     }
 }

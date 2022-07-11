@@ -8,6 +8,7 @@ import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import SlowVarVO from '../../../../shared/modules/Var/vos/SlowVarVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ForkMessageController from '../../Fork/ForkMessageController';
 import ReloadAsapForkMessage from '../../Fork/messages/ReloadAsapForkMessage';
 import ModuleForkServer from '../../Fork/ModuleForkServer';
@@ -179,16 +180,32 @@ export default class SlowVarKiHandler {
     private async handleSlowVarBatch() {
 
         ConsoleHandler.getInstance().error('handleSlowVarBatch:insertSlowVarBatchInBDD...');
-        await SlowVarKiHandler.getInstance().insertSlowVarBatchInBDD();
+        try {
+            await SlowVarKiHandler.getInstance().insertSlowVarBatchInBDD();
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
 
         ConsoleHandler.getInstance().error('handleSlowVarBatch:persistVOsCUD...');
-        await SlowVarKiHandler.getInstance().persistVOsCUD();
+        try {
+            await SlowVarKiHandler.getInstance().persistVOsCUD();
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
 
         ConsoleHandler.getInstance().error('handleSlowVarBatch:ReloadAsapForkMessage...');
-        await ForkMessageController.getInstance().send(new ReloadAsapForkMessage());
+        try {
+            await ForkMessageController.getInstance().send(new ReloadAsapForkMessage());
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
 
         ConsoleHandler.getInstance().error('handleSlowVarBatch:kill_process...');
-        await ModuleForkServer.getInstance().kill_process(0);
+        try {
+            await ModuleForkServer.getInstance().kill_process(0);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
     }
 
     /**
@@ -206,10 +223,11 @@ export default class SlowVarKiHandler {
 
         let computed_vars: { [index: string]: VarDataBaseVO } = VarsdatasComputerBGThread.getInstance().current_batch_params;
 
-        if (!computed_vars) {
+        if ((!computed_vars) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(computed_vars))) {
             return;
         }
 
+        let current_batch_vardag = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
         let is_single: boolean = Object.keys(computed_vars).length == 1;
         let computation_ts: number = Dates.now();
         for (let i in computed_vars) {
@@ -218,9 +236,16 @@ export default class SlowVarKiHandler {
 
             let slowVar = new SlowVarVO();
             slowVar.name = computed_var.index;
-            slowVar.computation_ts = computation_ts;
             slowVar.var_id = computed_var.var_id;
-            slowVar.estimated_calculation_time = VarsComputeController.getInstance().get_estimated_time(computed_var);
+
+            if (current_batch_vardag && current_batch_vardag.nodes[computed_var.index]) {
+                let node = current_batch_vardag.nodes[computed_var.index];
+                if (node.perfs && node.perfs.compute_node && node.perfs.create_tree && node.perfs.load_nodes_datas) {
+                    slowVar.compute_node = node.perfs.compute_node;
+                    slowVar.compute_node = node.perfs.compute_node;
+                    slowVar.compute_node = node.perfs.compute_node;
+                }
+            }
 
             // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
             if (is_single) {

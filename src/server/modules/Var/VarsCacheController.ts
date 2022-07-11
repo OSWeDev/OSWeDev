@@ -18,6 +18,8 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import VarServerControllerBase from './VarServerControllerBase';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -148,10 +150,10 @@ export default class VarsCacheController {
                 let min_third_earliest_read_days: number = 11;
 
                 let max_thourth_earliest_read_days: number = 36;
+                let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
 
                 while (performance.now() < timeout) {
 
-                    let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
                     if (this.partially_clean_bdd_cache_var_id_i > (var_ids.length - 1)) {
                         this.partially_clean_bdd_cache_var_id_i = 0;
                     }
@@ -249,7 +251,7 @@ export default class VarsCacheController {
                     }
 
                     if (invalidateds && invalidateds.length) {
-                        await ModuleDAO.getInstance().deleteVOs(invalidateds);
+                        await VarsDatasVoUpdateHandler.getInstance().delete_vars_pack_without_triggers(invalidateds);
                     }
 
                     if (go_to_next_table) {
@@ -273,7 +275,7 @@ export default class VarsCacheController {
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_ESTIMATED_TIME:
                 let seuilb = var_cache_conf[cache_seuil_field];
                 let cardb = MatroidController.getInstance().get_cardinal(var_data);
-                return (cardb * var_cache_conf.calculation_cost_for_1000_card / 1000) >= seuilb;
+                return (cardb * (var_cache_conf.estimated_compute_node_1k_card + var_cache_conf.estimated_create_tree_1k_card + var_cache_conf.estimated_load_nodes_datas_1k_card) / 1000) >= seuilb;
             case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
 
                 /**

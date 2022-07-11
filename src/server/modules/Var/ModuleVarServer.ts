@@ -1343,7 +1343,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let datasources_deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        let dag: VarDAG = new DAG();
+        let dag: VarDAG = new VarDAG(null);
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
 
         for (let i in datasources_deps) {

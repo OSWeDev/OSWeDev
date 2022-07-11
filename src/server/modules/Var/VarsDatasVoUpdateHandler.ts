@@ -235,6 +235,52 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     /**
+     * Opti de suppression des vars, sans triggers !
+     *  WARN ça signifie que les triggers sur suppression de vardata sont interdits à ce stade
+     */
+    public async delete_vars_pack_without_triggers(vars_to_delete: VarDataBaseVO[]) {
+
+        // on regroupe par type de var
+        let varindexes_by_api_type_id: { [api_type_id: string]: string[] } = {};
+
+        for (let i in vars_to_delete) {
+            let var_to_delete = vars_to_delete[i];
+
+            if (!varindexes_by_api_type_id[var_to_delete._type]) {
+                varindexes_by_api_type_id[var_to_delete._type] = [];
+            }
+
+            varindexes_by_api_type_id[var_to_delete._type].push(var_to_delete.index);
+        }
+
+        let promises = [];
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+
+        for (let api_type_id in varindexes_by_api_type_id) {
+            let indexes = varindexes_by_api_type_id[api_type_id];
+
+            if ((!indexes) || (!indexes.length)) {
+                continue;
+            }
+
+            if (promises.length >= max) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+                let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
+                await ModuleDAOServer.getInstance().query(request);
+            })());
+        }
+
+        if (!!promises.length) {
+            await Promise.all(promises);
+        }
+    }
+
+    /**
      * Update : Changement de méthode. On arrête de vouloir résoudre par niveau dans l'arbre des deps,
      *  et on résoud simplement intersecteur par intersecteur. Donc on commence par identifier les intersecteurs (ensemble E)
      *  déduis des vos, puis pour chacun (e) :
@@ -350,7 +396,8 @@ export default class VarsDatasVoUpdateHandler {
     public async handle_invalidate_intersectors() {
         if (this.invalidate_intersectors && this.invalidate_intersectors.length) {
             ConsoleHandler.getInstance().log('handle_invalidate_intersectors:IN:' + this.invalidate_intersectors.length);
-            let invalidate_intersectors = this.invalidate_intersectors;
+            let invalidate_intersectors = MatroidController.getInstance().union(this.invalidate_intersectors);
+            ConsoleHandler.getInstance().log('handle_invalidate_intersectors:UNION:' + invalidate_intersectors.length);
             this.invalidate_intersectors = [];
             await this.intersect_invalid_datas_and_push_for_update(invalidate_intersectors);
             ConsoleHandler.getInstance().log('handle_invalidate_intersectors:OUT:' + invalidate_intersectors.length + '=>' + this.invalidate_intersectors.length);
@@ -743,52 +790,6 @@ export default class VarsDatasVoUpdateHandler {
             },
             this
         );
-    }
-
-    /**
-     * Opti de suppression des vars, sans triggers !
-     *  WARN ça signifie que les triggers sur suppression de vardata sont interdits à ce stade
-     */
-    private async delete_vars_pack_without_triggers(vars_to_delete: VarDataBaseVO[]) {
-
-        // on regroupe par type de var
-        let varindexes_by_api_type_id: { [api_type_id: string]: string[] } = {};
-
-        for (let i in vars_to_delete) {
-            let var_to_delete = vars_to_delete[i];
-
-            if (!varindexes_by_api_type_id[var_to_delete._type]) {
-                varindexes_by_api_type_id[var_to_delete._type] = [];
-            }
-
-            varindexes_by_api_type_id[var_to_delete._type].push(var_to_delete.index);
-        }
-
-        let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
-
-        for (let api_type_id in varindexes_by_api_type_id) {
-            let indexes = varindexes_by_api_type_id[api_type_id];
-
-            if ((!indexes) || (!indexes.length)) {
-                continue;
-            }
-
-            if (promises.length >= max) {
-                await Promise.all(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
-                let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-                let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
-                await ModuleDAOServer.getInstance().query(request);
-            })());
-        }
-
-        if (!!promises.length) {
-            await Promise.all(promises);
-        }
     }
 
     private async compute_intersectors(

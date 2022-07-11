@@ -82,7 +82,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         res.cache_seuil_a = VarServerControllerBase.NAIVE_CACHE_A_SEUIL;
         res.cache_seuil_b = VarServerControllerBase.NAIVE_CACHE_B_SEUIL;
         res.cache_seuil_c = VarServerControllerBase.NAIVE_CACHE_C_SEUIL;
-        res.calculation_cost_for_1000_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
+        res.estimated_compute_node_1k_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
+        res.estimated_create_tree_1k_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
+        res.estimated_load_nodes_datas_1k_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
         return res;
     }
 

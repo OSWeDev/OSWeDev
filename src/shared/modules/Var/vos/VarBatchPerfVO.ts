@@ -27,4 +27,9 @@ export default class VarBatchPerfVO implements IDistantVOBase {
     public start_time: number;
     public current_estimated_remaining_time: number;
     public end_time: number;
+
+    /**
+     * Nombre de vars qu'on essaie vraiment de résoudre à la base
+     */
+    public nb_batch_vars: number;
 }
