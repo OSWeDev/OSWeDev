@@ -1358,12 +1358,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
      */
-    public async selectOneUser(login: string, password: string): Promise<UserVO> {
+    public async selectOneUser(login: string, password: string, check_pwd: boolean = true): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
-                "select * from ref.get_user($1, $1, $1, $2, true);", [login.toLowerCase().trim(), password]) as UserVO;
+                "select * from ref.get_user($1, $1, $1, $2, $3);", [login.toLowerCase().trim(), password, check_pwd]) as UserVO;
             vo = (vo && vo.id) ? vo : null;
             vo = datatable.forceNumeric(vo);
             return vo;
