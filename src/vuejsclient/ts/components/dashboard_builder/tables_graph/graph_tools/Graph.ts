@@ -58,7 +58,7 @@ export class Graph {
                 }
             }
         }
-        this.check_path();
+        //  this.check_path();
     }
 
     public breadthFirstSearch(i: string, j: string): ISearchResult {
@@ -161,7 +161,7 @@ export class Graph {
         */
 
         let size: number = Object.keys(this.matrix).length; //nombre de cellules connectée à v1
-        let A = this.adj_matrix.copy();
+        let A = math.clone(this.adj_matrix);
         let connected_cells = math.zeros(size, size);
         for (var puissance = 1; puissance < size; i++) { //Mise a puissance de la matrice.
             if (puissance > 1) { A = math.multiply(A, this.adj_matrix); }

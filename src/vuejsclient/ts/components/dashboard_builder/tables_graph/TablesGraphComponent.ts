@@ -54,7 +54,6 @@ window['CustomUserObject'] = function (name, type) {
         return mxUtils.clone(this);
     };
 };
-
 @Component({
     template: require('./TablesGraphComponent.pug'),
     components: {
@@ -66,25 +65,48 @@ window['CustomUserObject'] = function (name, type) {
 export default class TablesGraphComponent extends VueComponentBase {
 
     @Prop()
+
     private dashboard: DashboardVO;
 
     private current_cell = null;
+    private arrows_to_exclude: string[] = []; //bien initialiser sinon la valeur ne peut être lu dans une méthode.  , flèche non considérées  par défaut.
+    private link_couple: Array<[string, string]> = []; //bien initialiser sinon la valeur ne peut être lu dans une méthode, flèches non considérées après selection.
     private cells: { [api_type_id: string]: any } = {};
 
     private selectionChanged() {
         let cell = editor.graph.getSelectionCell();
         this.$set(this, 'current_cell', cell);
     }
-    private toggleCheck() { //FIXME checked non reconnu
+
+    private toggleCheck() {
         /* Toggle function to chose arrows to exclude from dashboard */
-        if (document.getElementById("myCheckbox").checked === true) {
-            document.getElementById("aLink").style.display = "block";
+        const input = document.getElementById("myCheckbox") as HTMLInputElement; //Assertion obligatoire
+
+        if (input.checked === true) {
+            this.arrows_to_exclude.push('User');
+            console.log("coché");
         } else {
-            document.getElementById("aLink").style.display = "none";
+            this.arrows_to_exclude = [];
+            console.log("décoché");
         }
     }
-    private async delete_cell(cellValue) {
 
+    private async delete_arrow(arrowValue: typeof mxCell) { //TODO être sûr que cette supression affecte les tables de widget.
+        /*Pour supprimer des flèches , est appelé via delete_cell*/
+        if (arrowValue.edge == false) { //Si ce n'est pas une flche.
+            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db arrow');
+            return;
+        }
+        editor.graph.removeCells([arrowValue]); //la flèche est supprimée également sur les attirbus edges des cellules connectée par celle-ci.
+        let couple: [string, string] = [arrowValue.source.value.tables_graph_vo_type, arrowValue.target.value.tables_graph_vo_type];
+        this.link_couple.push(couple);
+        this.initgraph();
+    }
+    private async delete_cell(cellValue: typeof mxCell) {
+        /*Pour supprimer des cellules (ou des flèches)*/
+        if (cellValue.edge == true) {
+            return this.delete_arrow(cellValue);
+        }
         let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
             DashboardGraphVORefVO.API_TYPE_ID,
             'dashboard_id',
@@ -311,9 +333,6 @@ export default class TablesGraphComponent extends VueComponentBase {
 
     private mounted() {
         this.init();
-        const bite = new Graph();
-
-        bite.test();
     }
 
     @Watch('dashboard', { immediate: true })
@@ -336,10 +355,12 @@ export default class TablesGraphComponent extends VueComponentBase {
             this.initcell(cells[i]);
         }
     }
-    private initcell(cell: DashboardGraphVORefVO, arrows_to_exclude: string[] = []) { //TODO Inclure les champs techniques dans arrows_to_exclude
+    private initcell(cell: DashboardGraphVORefVO) { //TODO Inclure les champs techniques dans arrows_to_exclude
         /*
         arrows_to_exclude , liste string de flèches à ne pas afficher
         */
+        let arrows_to_exclude: string[] = this.arrows_to_exclude;
+        let link_couple: Array<[string, string]> = this.link_couple; //TODO Faire en sorte de ne pas inclure les flèches dans link_couple.
         let graph = editor.graph;
         let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
         graph_layout.reset();
@@ -373,12 +394,12 @@ export default class TablesGraphComponent extends VueComponentBase {
             for (let i in references) {
                 let reference = references[i];
                 let reference_cell = this.cells[reference.module_table.vo_type];
-                let is_arrow_accepted: boolean = arrows_to_exclude.includes(this.t(reference.field_label.code_text)); //champs au dessus de la flèche
-                if (reference_cell && is_arrow_accepted == true) {
+                let is_arrow_unaccepted: boolean = arrows_to_exclude.includes(this.t(reference.field_label.code_text)); //champs au dessus de la flèche
+                if (reference_cell && (is_arrow_unaccepted == false)) {
                     graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                     graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                 } else { //chemin n/n
-                    //TODO-Rajouter dans la matrice d'adjacence, les liaisons n/n
+                    //TODO-Rajouter dans la matrice d'adjacence les liaisons n/n
                     if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
                         let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
                         for (let j in nn_fields) {
@@ -388,8 +409,8 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 continue;
                             }
                             let nn_reference_cell = this.cells[nn_field.manyToOne_target_moduletable.vo_type];
-                            let is_arrow_accepted_field: boolean = arrows_to_exclude.includes(this.t(nn_field.field_label.code_text)); //champs au dessus de la flèche
-                            if (nn_reference_cell(is_arrow_accepted && is_arrow_accepted_field == true)) {
+                            let is_nn_unaccepted: boolean = arrows_to_exclude.includes("nn_path"); //Si le chemin nn n'est pas accepté.
+                            if (nn_reference_cell && ((is_nn_unaccepted == false))) {
                                 // TODO FIXME pour le moment le N/N est fait avec 2 flèches dont une a un label pour les 2
                                 graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
                                 graph.insertEdge(parent, null, '', nn_reference_cell, v1); //Utile ?
@@ -404,8 +425,8 @@ export default class TablesGraphComponent extends VueComponentBase {
             for (let i in fields) {
                 let field = fields[i];
                 let reference_cell = this.cells[field.manyToOne_target_moduletable.vo_type];
-                let is_arrow_accepted: boolean = arrows_to_exclude.includes(this.t(field.field_label.code_text)); //champs au dessus de la flèche
-                if (reference_cell && is_arrow_accepted == true) {
+                let is_arrow_unaccepted: boolean = arrows_to_exclude.includes(this.t(field.field_label.code_text)); //champs au dessus de la flèche
+                if (reference_cell && (is_arrow_unaccepted == false)) {
                     graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
                     graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
 
