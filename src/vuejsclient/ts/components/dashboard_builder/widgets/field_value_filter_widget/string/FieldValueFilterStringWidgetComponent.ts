@@ -596,13 +596,17 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
 
-        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(
-            this.get_active_field_filters
-        );
+        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
-        if (this.vo_field_ref_lvl2) {
-            if (active_field_filters_query[this.vo_field_ref_lvl2.api_type_id] && active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]) {
-                delete active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
+        if (!this.no_inter_filter) {
+            active_field_filters_query = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+                this.get_active_field_filters
+            );
+
+            if (this.vo_field_ref_lvl2) {
+                if (active_field_filters_query[this.vo_field_ref_lvl2.api_type_id] && active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]) {
+                    delete active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
+                }
             }
         }
 
@@ -1372,6 +1376,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return this.widget_options.hide_btn_switch_advanced;
     }
 
+    get no_inter_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.no_inter_filter;
+    }
+
     get hide_advanced_string_filter_type(): boolean {
         return this.widget_options.hide_advanced_string_filter_type;
     }
@@ -1450,6 +1463,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.default_ts_range_values,
                     options.default_boolean_values,
                     options.hide_filter,
+                    options.no_inter_filter,
                 ) : null;
             }
         } catch (error) {

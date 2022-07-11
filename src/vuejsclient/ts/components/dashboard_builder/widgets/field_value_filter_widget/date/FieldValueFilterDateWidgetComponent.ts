@@ -240,6 +240,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.default_ts_range_values,
                     options.default_boolean_values,
                     options.hide_filter,
+                    options.no_inter_filter,
                 ) : null;
             }
         } catch (error) {

@@ -259,14 +259,22 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
         }
 
+        let active_field_filters = null;
+
+        if (!this.no_inter_filter) {
+            active_field_filters = this.get_active_field_filters;
+        }
+
         let query_ = query(this.vo_field_ref.api_type_id).set_limit(this.widget_options.max_visible_options, 0);
         query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
         query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters));
+            ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
         query_.active_api_type_ids = this.dashboard.api_type_ids;
+
         let tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
             query_,
-            this.actual_query);
+            this.actual_query
+        );
 
         if (!tmp) {
             this.filter_visible_options = [];
@@ -411,6 +419,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return !!this.widget_options.can_select_multiple;
     }
 
+    get no_inter_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.no_inter_filter;
+    }
+
     get vo_field_ref(): VOFieldRefVO {
         let options: FieldValueFilterWidgetOptions = this.widget_options;
 
@@ -479,6 +496,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.default_ts_range_values,
                     options.default_boolean_values,
                     options.hide_filter,
+                    options.no_inter_filter,
                 ) : null;
             }
         } catch (error) {
