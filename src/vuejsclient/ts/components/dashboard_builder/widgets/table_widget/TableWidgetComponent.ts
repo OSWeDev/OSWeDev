@@ -880,6 +880,10 @@ export default class TableWidgetComponent extends VueComponentBase {
                 aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR;
             }
 
+            if (column && column.is_nullable) {
+                aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
+            }
+
             query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator));
         }
 
