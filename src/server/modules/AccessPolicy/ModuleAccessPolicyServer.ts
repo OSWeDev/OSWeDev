@@ -872,7 +872,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session = Object.assign(session, session.impersonated_from);
-                // delete session.impersonated_from;
+                delete session.impersonated_from;
 
                 session.save((err) => {
                     if (err) {
