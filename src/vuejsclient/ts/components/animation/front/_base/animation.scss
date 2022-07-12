@@ -123,10 +123,11 @@
     }
 
     .inline_input_mode {
+        background: $animation_background;
 
         input,
         .html_field_inline_readonly_value {
-            background: none !important;
+            background: rgba(0, 0, 0, 0.2) !important;
             border: 1px solid white !important;
             color: white !important;
         }
