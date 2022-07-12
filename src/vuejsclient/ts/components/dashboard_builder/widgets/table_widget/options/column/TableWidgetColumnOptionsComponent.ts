@@ -463,6 +463,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async switch_show_tooltip() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.show_tooltip = !this.column.show_tooltip;
+        this.$emit('update_column', this.column);
+    }
+
     private async switch_hide_from_table() {
         if (!this.column) {
             return;

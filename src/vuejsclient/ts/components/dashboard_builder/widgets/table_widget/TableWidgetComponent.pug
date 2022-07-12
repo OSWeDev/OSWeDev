@@ -104,6 +104,7 @@ include ../../../../../views/mixins/loading.pug
                                                     :columns="columns"
                                                     :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                     :is_dashboard_builder="true"
+                                                    :show_tooltip="column.show_tooltip"
                                                 )
 
                                         template(v-else)
