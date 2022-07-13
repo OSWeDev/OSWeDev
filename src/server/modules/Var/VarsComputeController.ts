@@ -26,11 +26,9 @@ import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
-import VarsPerfsController from './perf/VarsPerfsController';
 import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
 import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
-import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarsImportsHandler from './VarsImportsHandler';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
@@ -104,20 +102,16 @@ export default class VarsComputeController {
 
                 // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", true);
-                let perf_new_start = performance.now();
-                let dag: VarDAG = await this.create_tree(ds_cache);
-                let perf_new_end = performance.now();
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", false);
+                let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree NEW OK (' + (perf_new_end - perf_new_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
+                await this.create_tree_perf_wrapper(var_dag, ds_cache);
+
+                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
 
                 /**
                  * On a l'arbre. On charge les données qui restent à charger
                  */
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.load_nodes_datas", true);
-                await this.load_nodes_datas(dag, ds_cache);
-                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.load_nodes_datas", false);
+                await this.load_nodes_datas_perf_wrapper(var_dag, ds_cache);
 
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - load_nodes_datas OK...');
 
@@ -143,7 +137,7 @@ export default class VarsComputeController {
                  * Mise en cache, suivant stratégie pour chaque param
                  */
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.cache_datas", true);
-                await this.cache_datas(dag, vars_datas);
+                await this.cache_datas(var_dag);
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.cache_datas", false);
 
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - cache_datas OK...');
@@ -152,13 +146,13 @@ export default class VarsComputeController {
                  * Mise à jour des indicateurs de performances
                  */
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.update_cards_in_perfs", true);
-                this.update_cards_in_perfs(dag);
+                this.update_cards_in_perfs(var_dag);
                 VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.update_cards_in_perfs", false);
 
                 /**
                  * On peut checker que l'arbre a bien été notifié
                  */
-                await this.check_tree_notification(dag);
+                await this.check_tree_notification(var_dag);
 
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - update_cards_in_perfs OK...');
             },
@@ -214,7 +208,7 @@ export default class VarsComputeController {
         }
         node.already_tried_loading_data_and_deploy = true;
 
-        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__deploy_deps],
             async () => {
@@ -708,7 +702,7 @@ export default class VarsComputeController {
     //     vars_datas: { [index: string]: VarDataBaseVO },
     //     ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
 
-    //     let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+    //     let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
     //     await PerfMonServerController.getInstance().monitor_async(
     //         PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__deploy_deps],
     //         async () => {
@@ -998,7 +992,7 @@ export default class VarsComputeController {
      * @param dag
      * @param vars_datas
      */
-    private async cache_datas(dag: VarDAG, vars_datas: { [index: string]: VarDataBaseVO }) {
+    private async cache_datas(dag: VarDAG) {
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__cache_datas],
@@ -1010,7 +1004,7 @@ export default class VarsComputeController {
                 for (let i in dag.nodes) {
                     let node = dag.nodes[i];
 
-                    if (vars_datas[node.var_data.index]) {
+                    if (node.is_batch_var) {
                         continue;
                     }
 
@@ -1024,14 +1018,14 @@ export default class VarsComputeController {
     }
 
     private async load_nodes_datas(dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
-        let env = ConfigurationService.getInstance().getNodeConfiguration();
+        let env = ConfigurationService.getInstance().node_configuration;
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__load_nodes_datas],
             async () => {
 
                 let promises = [];
                 let load_node_data_db_connect_coef_sum: number = 0;
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
                 for (let i in dag.nodes) {
                     let node = dag.nodes[i];
@@ -1133,7 +1127,7 @@ export default class VarsComputeController {
         vars_datas: { [index: string]: VarDataBaseVO },
         ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__handle_deploy_deps],
             async () => {
@@ -1143,7 +1137,7 @@ export default class VarsComputeController {
                 let deps_i = 0;
 
                 let deps_promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
                 let start_time = Dates.now();
                 let real_start_time = start_time;
@@ -1251,7 +1245,7 @@ export default class VarsComputeController {
 
     private async try_load_cache_complet(node: VarDAGNode) {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_complet],
             async () => {
@@ -1386,14 +1380,13 @@ export default class VarsComputeController {
      */
     private async create_tree(ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__create_tree],
             async () => {
 
-                let var_dag: VarDAG = new VarDAG(VarsdatasComputerBGThread.getInstance().current_batch_id);
-                VarsdatasComputerBGThread.getInstance().current_batch_vardag = var_dag;
+                let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
                 let estimated_tree_computation_time_limit = await this.get_estimated_tree_computation_time_target();
 
@@ -1450,7 +1443,9 @@ export default class VarsComputeController {
                      * On insère le noeud dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
                      *  puisque si on avait ce cache on demanderait pas un calcul à ce stade
                      */
-                    this.add_vars_datas_to_dag(var_dag, { [selected_var_data.index]: selected_var_data }, true);
+                    let var_dag_node = VarDAGNode.getInstance(var_dag, selected_var_data);
+                    var_dag_node.already_tried_load_cache_complet = true;
+                    var_dag_node.is_batch_var = true;
 
                     let vars_datas_to_deploy_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = {
                         [0]: { [selected_var_data.index]: selected_var_data }
@@ -1578,7 +1573,7 @@ export default class VarsComputeController {
         var_dag: VarDAG) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
         for (let i in vars_to_deploy) {
 
@@ -1634,7 +1629,7 @@ export default class VarsComputeController {
     ) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];
@@ -1813,4 +1808,17 @@ export default class VarsComputeController {
             this.last_update_estimated_tree_computation_time = Dates.now();
         }
     }
+
+    private async create_tree_perf_wrapper(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        var_dag.perfs.create_tree.start('create_tree');
+        await this.create_tree(ds_cache);
+        var_dag.perfs.create_tree.end('create_tree');
+    }
+
+    private async load_nodes_datas_perf_wrapper(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        var_dag.perfs.load_nodes_datas.start('load_nodes_datas');
+        await this.load_nodes_datas(var_dag, ds_cache);
+        var_dag.perfs.load_nodes_datas.end('load_nodes_datas');
+    }
+
 }
