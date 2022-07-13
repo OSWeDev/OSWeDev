@@ -397,6 +397,8 @@ export default class TablesGraphComponent extends VueComponentBase {
         /*
         targets_to_exclude , liste string de flèches à ne pas afficher
         */
+
+
         let targets_to_exclude: string[] = cell.targets_to_exclude;
         let sources_to_exclude: string[] = cell.sources_to_exclude;
         let graph = editor.graph;
@@ -415,11 +417,8 @@ export default class TablesGraphComponent extends VueComponentBase {
 
             // v1.style.strokeColor = '#F5F5F5';
             // v1.style.fillColor = '#FFF';
-
-            graph.setCellStyles('strokeColor', '#555', [v1]);
+            graph.setCellStyles('strokeColor', '#e00b0b', [v1]);
             graph.setCellStyles('fillColor', '#444', [v1]);
-
-
             v1.geometry.x = cell.x;
             v1.geometry.y = cell.y;
             // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
