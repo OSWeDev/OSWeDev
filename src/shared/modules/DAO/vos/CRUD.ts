@@ -109,10 +109,35 @@ export default class CRUD<T extends IDistantVOBase> {
                     VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                     dt_fields).setValidatInputFunc(field.validate_input);
             } else {
-                dt_field = new ManyToOneReferenceDatatableField<any>(
-                    field.field_id,
-                    VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                    dt_fields).setValidatInputFunc(field.validate_input);
+                if (VOsTypesManager.getInstance().isManyToManyModuleTable(field.module_table)) {
+                    if (field.manyToOne_target_moduletable.default_label_field) {
+                        dt_field = new ManyToManyReferenceDatatableField<any, any>(
+                            field.field_id,
+                            field.manyToOne_target_moduletable,
+                            field.module_table,
+                            [
+                                new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
+                            ]
+                        );
+                    }
+
+                    if (field.manyToOne_target_moduletable.table_label_function) {
+                        dt_field = new ManyToManyReferenceDatatableField<any, any>(
+                            field.field_id,
+                            field.manyToOne_target_moduletable,
+                            field.module_table,
+                            [
+                                new ComputedDatatableField(
+                                    field.manyToOne_target_moduletable.vo_type + '__' + field.field_id + '__target_label',
+                                    field.manyToOne_target_moduletable.table_label_function)
+                            ]);
+                    }
+                } else {
+                    dt_field = new ManyToOneReferenceDatatableField<any>(
+                        field.field_id,
+                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        dt_fields).setValidatInputFunc(field.validate_input);
+                }
             }
         } else {
             dt_field = new SimpleDatatableField(field.field_id).setValidatInputFunc(field.validate_input);

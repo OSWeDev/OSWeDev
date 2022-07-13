@@ -80,10 +80,10 @@ include ../../../../../views/mixins/loading.pug
                                                 .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
                                                     i.fa.fa-pencil
                                             template(v-if="can_open_vocus")
-                                                .btn.btn-xs.btn-secondary(@click="open_vocus(column, row.__crud_actions)")
+                                                .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions)")
                                                     i.fa.fa-search
                                             template(v-if="delete_button")
-                                                .btn.btn-sm.btn-danger(@click="confirm_delete(column, row.__crud_actions)")
+                                                .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions)")
                                                     i.fa.fa-trash
                                                         
                                     //- If it's a component
@@ -103,6 +103,8 @@ include ../../../../../views/mixins/loading.pug
                                                     :vo="row"
                                                     :columns="columns"
                                                     :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                    :is_dashboard_builder="true"
+                                                    :show_tooltip="column.show_tooltip"
                                                 )
 
                                         template(v-else)
@@ -115,6 +117,7 @@ include ../../../../../views/mixins/loading.pug
                                                 :inline_input_mode='true'
                                                 :inline_input_read_value="row[column.datatable_field_uid]"
                                                 :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
+                                                :is_dashboard_builder="true"
                                             )
 
             .lower_pagination 

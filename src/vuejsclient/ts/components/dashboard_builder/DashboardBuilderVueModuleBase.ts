@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
@@ -50,14 +51,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         let url: string = "/dashboard/view/:dashboard_id";
         let main_route_name: string = 'Dashboard View';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
+            true,
+        ));
 
         url = "/dashboard_builder";
         main_route_name = 'DashboardBuilder';
@@ -74,14 +73,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         url = "/dashboard_builder" + "/:dashboard_id";
         main_route_name = 'DashboardBuilder_id';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            true,
+        ));
 
         await this.initializeDefaultWidgets();
     }
@@ -194,7 +191,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.default_background = '#f5f5f5';
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false), FieldValueFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false), FieldValueFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));

@@ -64,6 +64,10 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         for (let i in requests) {
             let wrapped_request: LightWeightSendableRequestVO = requests[i];
 
+            if (!wrapped_request) {
+                continue;
+            }
+
             promises.push((async () => {
 
                 let apiDefinition: APIDefinition<any, any> = null;

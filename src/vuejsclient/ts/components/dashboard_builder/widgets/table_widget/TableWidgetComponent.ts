@@ -29,6 +29,7 @@ import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/Da
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -406,8 +407,9 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @Watch('dashboard_vo_action', { immediate: true })
     @Watch('dashboard_vo_id', { immediate: true })
+    @Watch('api_type_id_action', { immediate: true })
     private async onchange_dashboard_vo_props() {
-        this.debounced_onchange_dashboard_vo_route_param();
+        await this.debounced_onchange_dashboard_vo_route_param();
     }
 
     @Watch('crud_activated_api_type', { immediate: true })
@@ -450,8 +452,25 @@ export default class TableWidgetComponent extends VueComponentBase {
         let update_vo = await ModuleDAO.getInstance().getVoById(type, id);
 
         if (update_vo && update_vo.id) {
-            await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.update_visible_options.bind(this));
+            await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.onclose_modal.bind(this));
         }
+    }
+
+    private async onclose_modal() {
+        let route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
+
+        let route_params = cloneDeep(this.$route.params);
+
+        delete route_params.dashboard_vo_action;
+        delete route_params.dashboard_vo_id;
+        delete route_params.api_type_id_action;
+
+        this.$router.push({
+            name: route_name,
+            params: route_params,
+        });
+
+        await this.update_visible_options();
     }
 
     private async open_create() {
@@ -465,30 +484,30 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT) && (!!this.dashboard_vo_id)) {
-            let column: TableColumnDescVO = this.columns.find((c) => (c.type == 0) && !c.hide_from_table);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
 
-            if (column) {
-                await this.open_update(column.api_type_id, parseInt(this.dashboard_vo_id));
+            if (api_type_id) {
+                await this.open_update(api_type_id, parseInt(this.dashboard_vo_id));
             }
 
             return;
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_DELETE) && (!!this.dashboard_vo_id)) {
-            let column: TableColumnDescVO = this.columns.find((c) => (c.type == 0) && !c.hide_from_table);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
 
-            if (column) {
-                await this.confirm_delete(column, parseInt(this.dashboard_vo_id));
+            if (api_type_id) {
+                await this.confirm_delete(api_type_id, parseInt(this.dashboard_vo_id));
             }
 
             return;
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_VOCUS) && (!!this.dashboard_vo_id)) {
-            let column: TableColumnDescVO = this.columns.find((c) => (c.type == 0) && !c.hide_from_table);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
 
-            if (column) {
-                this.open_vocus(column, parseInt(this.dashboard_vo_id));
+            if (api_type_id) {
+                this.open_vocus(api_type_id, parseInt(this.dashboard_vo_id));
             }
 
             return;
@@ -510,6 +529,10 @@ export default class TableWidgetComponent extends VueComponentBase {
     get crud_activated_api_type(): string {
         if (!this.widget_options) {
             return null;
+        }
+
+        if (this.api_type_id_action) {
+            return this.api_type_id_action;
         }
 
         return this.widget_options.crud_api_type_id;
@@ -827,8 +850,8 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let column_id in this.fields) {
+            let field = this.fields[column_id];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
@@ -849,7 +872,19 @@ export default class TableWidgetComponent extends VueComponentBase {
                 query_.base_api_type_id = field.moduleTable.vo_type;
             }
 
-            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
+            let column: TableColumnDescVO = this.columns_by_field_id[field.datatable_field_uid];
+
+            let aggregator: number = VarConfVO.NO_AGGREGATOR;
+
+            if (column && column.many_to_many_aggregate) {
+                aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR;
+            }
+
+            if (column && column.is_nullable) {
+                aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
+            }
+
+            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator));
         }
 
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
@@ -985,12 +1020,12 @@ export default class TableWidgetComponent extends VueComponentBase {
         return options;
     }
 
-    private open_vocus(column: TableColumnDescVO, id: number) {
-        let routeData = this.$router.resolve({ path: this.getVocusLink(column.api_type_id, id) });
+    private open_vocus(api_type_id: string, id: number) {
+        let routeData = this.$router.resolve({ path: this.getVocusLink(api_type_id, id) });
         window.open(routeData.href, '_blank');
     }
 
-    private async confirm_delete(column: TableColumnDescVO, id: number) {
+    private async confirm_delete(api_type_id: string, id: number) {
         let self = this;
 
         // On demande confirmation avant toute chose.
@@ -1007,7 +1042,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TableWidgetComponent.confirm_delete.start'));
 
-                        let res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(column.api_type_id, [id]);
+                        let res: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOsByIds(api_type_id, [id]);
                         if ((!res) || (res.length != 1) || (!res[0].id)) {
                             self.snotify.error(self.label('TableWidgetComponent.confirm_delete.ko'));
                         } else {
@@ -1265,6 +1300,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     get dashboard_vo_id() {
         return this.$route.params.dashboard_vo_id;
+    }
+
+    get api_type_id_action() {
+        return this.$route.params.api_type_id_action;
     }
 
     // /**

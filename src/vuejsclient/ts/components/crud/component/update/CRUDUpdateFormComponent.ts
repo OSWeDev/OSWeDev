@@ -325,13 +325,14 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     }
 
     get api_type_id(): string {
-        if (!this.crud) {
+        if (this.selected_vo) {
+            return this.selected_vo._type;
+        }
 
-            if (this.selected_vo) {
-                return this.selected_vo._type;
-            }
+        if (!this.crud) {
             return null;
         }
+
         return this.crud.readDatatable.API_TYPE_ID;
     }
 

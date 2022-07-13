@@ -1,4 +1,4 @@
-import { cloneDeep } from "lodash";
+import { cloneDeep, isArray } from "lodash";
 import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import Datatable from "../../../../../shared/modules/DAO/vos/datatable/Datatable";
 import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/DatatableField";
@@ -413,25 +413,36 @@ export default class DatatableRowController {
 
                     resData[field.datatable_field_uid] = [];
 
-                    // for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
-                    //     let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
-
-                    //     if ((!!targetVo) && (targetVo[oneToManyField.destField.field_id] == raw_data.id)) {
-
+                    // if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
+                    //     for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
                     //         resData[field.datatable_field_uid].push({
                     //             id: oneToManyTargetId,
-                    //             label: oneToManyField.dataToHumanReadable(targetVo)
+                    //             label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
                     //         });
                     //     }
                     // }
 
-                    if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
-                        for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
-                            resData[field.datatable_field_uid].push({
-                                id: oneToManyTargetId,
-                                label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
-                            });
+                    if (!!raw_data[field.datatable_field_uid]) {
+                        let vo_ids: any[] = raw_data[field.datatable_field_uid];
+
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
                         }
+
+                        let promises = [];
+
+                        for (let i in vo_ids) {
+                            promises.push((async () => {
+                                let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToManyField.targetModuleTable.vo_type, vo_ids[i]);
+
+                                resData[field.datatable_field_uid].push({
+                                    id: ref_data.id,
+                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                });
+                            })());
+                        }
+
+                        await Promise.all(promises);
                     }
                     break;
 
@@ -439,32 +450,37 @@ export default class DatatableRowController {
                     let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
 
                     resData[field.datatable_field_uid] = [];
-                    // let dest_ids: number[] = [];
-                    // let interTargetRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                    // let interSrcRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
 
-                    // for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
-                    //     let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
-
-                    //     if (intervo && (intervo[interSrcRefField.field_id] == raw_data.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
-                    //         dest_ids.push(intervo[interTargetRefField.field_id]);
+                    // if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
+                    //     for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                    //         resData[field.datatable_field_uid].push({
+                    //             id: oneToManyTargetId,
+                    //             label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                    //         });
                     //     }
                     // }
 
-                    // for (let desti in dest_ids) {
-                    //     resData[field.datatable_field_uid].push({
-                    //         id: dest_ids[desti],
-                    //         label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
-                    //     });
-                    // }
+                    if (!!raw_data[field.datatable_field_uid]) {
+                        let vo_ids: any[] = raw_data[field.datatable_field_uid];
 
-                    if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
-                        for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
-                            resData[field.datatable_field_uid].push({
-                                id: oneToManyTargetId,
-                                label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
-                            });
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
                         }
+
+                        let promises = [];
+
+                        for (let i in vo_ids) {
+                            promises.push((async () => {
+                                let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToManyField.targetModuleTable.vo_type, vo_ids[i]);
+
+                                resData[field.datatable_field_uid].push({
+                                    id: ref_data.id,
+                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                });
+                            })());
+                        }
+
+                        await Promise.all(promises);
                     }
 
                     break;

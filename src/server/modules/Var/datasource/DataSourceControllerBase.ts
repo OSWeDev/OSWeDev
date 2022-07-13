@@ -4,6 +4,14 @@ import DataSourcesController from './DataSourcesController';
 
 export default abstract class DataSourceControllerBase {
 
+    /**
+     * Coef de connexion à la DB : par défaut 1
+     *  Utilisé pour indiquer qu'une requête se stack (avec d'autres sans préciser spécialement lesquelles)
+     *  Du coup on utilisera pas vraiment un slot vers la bdd par load mais moins.
+     *  Permet pas d'être précis dans la démarche mais de ne pas se limiter au nombre de connexion à la bdd pour ce data source
+     */
+    public load_node_data_db_connect_coef: number = 1;
+
     protected constructor(
         /**
          * Le nom [unique] du Datasource

@@ -18,7 +18,7 @@
                     li(v-for="value in field_value") {{ value }}
             
             template(v-else-if="field.moduleTableField.field_type == 'file'")
-                Filedatatablefieldcomponent(:file_path="field_value")
+                Filedatatablefieldcomponent(:file_path="field_value", :show_tooltip="show_tooltip")
 
             template(v-else-if="field.moduleTableField.field_type == 'text[]'")
                 ul.multi-input(v-if="field_value")
@@ -45,8 +45,8 @@
                 span {{ field_value }}
         template(v-else-if="field.type == 'ManyToOne'")
             template(v-if="field_value")
-                template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___']))")
-                    router-link.btn.btn-sm.btn-info.many_to_one(:to="getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___'])" target='_blank')
+                template(v-if="routeExists(get_crud_link(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___']))")
+                    router-link.btn.btn-sm.btn-info.many_to_one(:to="get_crud_link(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___'])" :target="!is_dashboard_builder ? '_blank' : ''")
                         img(src='/vuejsclient/public/img/many_to_one.svg')
                         | {{ field_value }}
 
@@ -55,8 +55,8 @@
         template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany') || (field.type == 'RefRanges')")
             template(v-if="field_value")
                 template(v-for="e in field_value")
-                    template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
-                        router-link.many-router-links.btn.btn-sm.btn-info(:class='["many_to_many", "one_to_many"][field.type == "ManyToMany" ? 0 : 1]' :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank')
+                    template(v-if="routeExists(get_crud_link(field.targetModuleTable.vo_type, e.id))")
+                        router-link.many-router-links.btn.btn-sm.btn-info(:class='["many_to_many", "one_to_many"][field.type == "ManyToMany" ? 0 : 1]' :to="get_crud_link(field.targetModuleTable.vo_type, e.id)" :target="!is_dashboard_builder ? '_blank' : ''")
                             img(:src='["/vuejsclient/public/img/many_to_many.svg", "/vuejsclient/public/img/one_to_many.svg"][field.type == "ManyToMany" ? 0 : 1]')
                             | {{ e.label }}
                     template(v-else)

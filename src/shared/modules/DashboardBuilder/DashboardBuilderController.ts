@@ -17,6 +17,9 @@ export default class DashboardBuilderController {
     public static DASHBOARD_VO_ACTION_DELETE: string = "delete";
     public static DASHBOARD_VO_ACTION_VOCUS: string = "vocus";
 
+    public static ROUTE_NAME_CRUD: string = "__CRUD";
+    public static ROUTE_NAME_CRUD_ALL: string = "__all";
+
     public static getInstance(): DashboardBuilderController {
         if (!DashboardBuilderController.instance) {
             DashboardBuilderController.instance = new DashboardBuilderController();
@@ -34,13 +37,26 @@ export default class DashboardBuilderController {
             path: path,
             name: name,
             component: component,
+            props: true,
         }];
 
         if (crud) {
+            name += DashboardBuilderController.ROUTE_NAME_CRUD;
+
             routes.push({
                 path: path + '/:dashboard_vo_action/:dashboard_vo_id',
-                name: name + '__CRUD',
+                name: name,
                 component: component,
+                props: true,
+            });
+
+            name += DashboardBuilderController.ROUTE_NAME_CRUD_ALL;
+
+            routes.push({
+                path: path + '/:dashboard_vo_action/:dashboard_vo_id/:api_type_id_action',
+                name: name,
+                component: component,
+                props: true,
             });
         }
 

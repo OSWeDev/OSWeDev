@@ -187,6 +187,9 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('filter_additional_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres filtre', false),
 
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('many_to_many_aggregate', ModuleTableField.FIELD_TYPE_boolean, 'Aggrégation des liens ManyToMany'),
+            new ModuleTableField('is_nullable', ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
+            new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));

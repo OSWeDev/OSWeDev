@@ -82,7 +82,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     private async update_visible_options() {
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_init) {
+        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
             this.is_init = false;
             this.boolean_filter_types = this.default_values;
             return;
@@ -199,6 +199,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.default_ts_range_values,
                     options.default_boolean_values,
                     options.hide_filter,
+                    options.no_inter_filter,
                 ) : null;
             }
         } catch (error) {
