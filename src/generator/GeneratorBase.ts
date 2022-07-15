@@ -68,7 +68,6 @@ export default abstract class GeneratorBase {
             Patch20220404UpdateDBBWidgetsDefaultSize.getInstance(),
             Patch20220401SetParamPushData.getInstance(),
             Patch20220713ChangeVarCacheType1To0.getInstance()
-            // Patch20211203ClearVarCaches.getInstance()
         ];
     }
 
