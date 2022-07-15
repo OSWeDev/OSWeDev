@@ -12,5 +12,6 @@ export default class DashboardGraphVORefVO implements IDistantVOBase {
     public dashboard_id: number;
     public targets_to_exclude: string[]; //flèches cibles à exclure.
     public sources_to_exclude: string[]; //flèches sources à exclure.
+    public values_to_exclude: string[]; //Champ à exclure.
 
 }

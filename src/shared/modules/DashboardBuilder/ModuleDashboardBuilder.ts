@@ -76,7 +76,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'hauteur', true),
             new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'VOType', true),
             new ModuleTableField('targets_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'Liens cibles à exclure'),
-            new ModuleTableField('sources_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'Liens sources à exclure')
+            new ModuleTableField('sources_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'Liens sources à exclure'),
+            new ModuleTableField('values_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'Nom des liens à exclure')
 
         ];
 

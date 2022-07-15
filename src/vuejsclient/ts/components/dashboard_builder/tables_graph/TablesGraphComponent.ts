@@ -68,6 +68,8 @@ export default class TablesGraphComponent extends VueComponentBase {
     private dashboard: DashboardVO;
 
     private current_cell = null;
+    private arrows_created: { [source: string]: { [target: string]: string[] } };
+    private graphic_cells: { [cellule: string]: typeof mxCell } = {};
     private cells: { [api_type_id: string]: any } = {};
 
     private selectionChanged() {
@@ -90,7 +92,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db arrow');
             return;
         }
-        editor.graph.removeCells([arrowValue]); //la flèche est supprimée également sur les attirbus edges des cellules connectée par celle-ci.
+        //  editor.graph.removeCells([arrowValue]); //la flèche est supprimée également sur les attirbus edges des cellules connectée par celle-ci.
 
         //Cellule source
         let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
@@ -106,38 +108,17 @@ export default class TablesGraphComponent extends VueComponentBase {
         }
 
         let db_cell_source = db_cells_source[0];
-        if (!db_cell_source.targets_to_exclude) {
-            db_cell_source.targets_to_exclude = [];
+
+        //Création des différents champs
+        if (!db_cell_source.values_to_exclude) {
+            db_cell_source.values_to_exclude = [];
         }
-        if (!db_cell_source.sources_to_exclude) {
-            db_cell_source.sources_to_exclude = [];
+        //Rajout des flèches à éliminer dans ces champs.
+        //On rajoute une cible à éliminer.
+        if (!db_cell_source.values_to_exclude.includes(arrowValue.value)) { //On évite les doublons
+            db_cell_source.values_to_exclude.push(arrowValue.value);
         }
-        db_cell_source.targets_to_exclude.push(arrowValue.target.value.tables_graph_vo_type); //On rajoute une cible à éliminer.
         await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
-
-        //Cellule cible
-        let db_cells_cible = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-            DashboardGraphVORefVO.API_TYPE_ID,
-            'dashboard_id',
-            [this.dashboard.id],
-            'vo_type',
-            [arrowValue.target.value.tables_graph_vo_type]
-        );
-        if ((!db_cells_cible) || (!db_cells_cible.length)) {
-            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
-            return;
-        }
-
-        let db_cell_cible = db_cells_cible[0];
-        if (!db_cell_cible.targets_to_exclude) {
-            db_cell_cible.targets_to_exclude = [];
-        }
-        if (!db_cell_cible.sources_to_exclude) {
-            db_cell_cible.sources_to_exclude = [];
-        }
-        //Cellule cible
-        db_cell_cible.sources_to_exclude.push(arrowValue.source.value.tables_graph_vo_type);
-        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_cible);
         this.initgraph(); //On relance le graphe.
     }
     private async delete_cell(cellValue: typeof mxCell) {
@@ -185,8 +166,30 @@ export default class TablesGraphComponent extends VueComponentBase {
             cell.vo_type = api_type_id;
             cell.dashboard_id = this.dashboard.id;
             await ModuleDAO.getInstance().insertOrUpdateVO(cell);
+            //Adding the cell graphically
 
-            let v1 = this.initcell(cell);
+            let parent = graph.getDefaultParent();
+            let model = graph.getModel();
+
+            let v1 = model.cloneCell(this.cell_prototype);
+            model.beginUpdate();
+            try {
+
+                // v1.style.strokeColor = '#F5F5F5';
+                // v1.style.fillColor = '#FFF';
+
+                editor.graph.setCellStyles('strokeColor', '#555', [v1]);
+                editor.graph.setCellStyles('fillColor', '#444', [v1]);
+                v1.geometry.x = cell.x;
+                v1.geometry.y = cell.y;
+                // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
+                v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
+                v1.value.tables_graph_vo_type = cell.vo_type;
+                editor.graph.addCell(v1, parent); //Adding the cell
+            } finally {
+                model.endUpdate();
+            }
+            v1 = this.initcell(cell, v1);
 
             graph.setSelectionCell(v1);
             this.$emit("add_api_type_id", api_type_id);
@@ -383,24 +386,57 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private async initgraph() {
+        this.arrows_created = {};
 
         if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
             editor.graph.removeCells(Object.values(this.cells));
         }
 
         let cells = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
-        for (let i in cells) {
-            this.initcell(cells[i]);
+        for (let i in cells) { //Adding cells to the model
+            let cell = cells[i];
+            editor.graph.stopEditing(false);
+
+            let parent = editor.graph.getDefaultParent();
+            let model = editor.graph.getModel();
+
+            let v1 = model.cloneCell(this.cell_prototype);
+            //  let v1 = this.cells[cell.vo_type];
+            model.beginUpdate();
+            try {
+
+                // v1.style.strokeColor = '#F5F5F5';
+                // v1.style.fillColor = '#FFF';
+
+                editor.graph.setCellStyles('strokeColor', '#555', [v1]);
+                editor.graph.setCellStyles('fillColor', '#444', [v1]);
+                v1.geometry.x = cell.x;
+                v1.geometry.y = cell.y;
+                // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
+                v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
+                v1.value.tables_graph_vo_type = cell.vo_type;
+                editor.graph.addCell(v1, parent); //Adding the cell
+            } finally {
+                model.endUpdate();
+                this.graphic_cells[cell.vo_type] = v1; // On enregistre la cellule dans un dictionnaire pour la réutiliser. C'est la cellule graphique.
+            }
+
+        }
+        //Adding links
+        let compteur: number = 0;
+        for (let cellule in this.graphic_cells) {
+            let v1: typeof mxCell = this.graphic_cells[cellule];
+            this.initcell(cells[compteur], v1);
+            compteur += 1;
         }
     }
-    private initcell(cell: DashboardGraphVORefVO) { //TODO Inclure les champs techniques dans targets_to_exclude
+    private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*
         targets_to_exclude , liste string de flèches à ne pas afficher
         */
 
 
-        let targets_to_exclude: string[] = cell.targets_to_exclude;
-        let sources_to_exclude: string[] = cell.sources_to_exclude;
+        let values_to_exclude: string[] = cell.values_to_exclude;
         let graph = editor.graph;
         let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
         graph_layout.reset();
@@ -410,38 +446,36 @@ export default class TablesGraphComponent extends VueComponentBase {
         let parent = graph.getDefaultParent();
         let model = graph.getModel();
 
-        let v1 = model.cloneCell(this.cell_prototype);
-
         model.beginUpdate();
         try {
 
             // v1.style.strokeColor = '#F5F5F5';
             // v1.style.fillColor = '#FFF';
-            graph.setCellStyles('strokeColor', '#e00b0b', [v1]);
+
+            graph.setCellStyles('strokeColor', '#555', [v1]);
             graph.setCellStyles('fillColor', '#444', [v1]);
-            v1.geometry.x = cell.x;
-            v1.geometry.y = cell.y;
-            // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
-            v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
-            v1.value.tables_graph_vo_type = cell.vo_type;
             let node_v1: string = cell.vo_type;
             let is_link_unccepted: boolean;
-
+            let does_exist: boolean;
             // On rajoute les liaisons depuis les autres vos
             let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
             for (let i in references) {
                 let reference = references[i];
-                let reference_cell = this.cells[reference.module_table.vo_type];
+                // let reference_cell = this.cells[reference.module_table.vo_type];
+                let reference_cell = this.graphic_cells[reference.module_table.vo_type];
+                //La flèche existe déjà ?
+
                 try {
-                    is_link_unccepted = Boolean(sources_to_exclude.includes(node_v1)); //Boolean obligatoire car si n'est pas inclu -> undefined.
+                    does_exist = Boolean(this.arrows_created[reference.module_table.vo_type][node_v1].includes(this.t(reference.field_label.code_text)));
                 } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
-                    is_link_unccepted = false; //La cible n'est pas interdite.
+                    does_exist = false; //La cible n'est pas interdite.
                 }
 
-                if (reference_cell && (is_link_unccepted == false)) {
+                if (reference_cell && (does_exist == false)) { //Il est possible que la flèche existe déjà dans l'autre sens, dans ce cas , on ne la réaffiche pas.
                     graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                     graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
-                } else { //chemin n/n
+
+                } else if (!reference_cell) { //chemin n/n
                     //TODO-Rajouter dans la matrice d'adjacence les liaisons n/n
                     if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
                         let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
@@ -451,16 +485,20 @@ export default class TablesGraphComponent extends VueComponentBase {
                             if (nn_field.field_id == reference.field_id) {
                                 continue;
                             }
-                            let nn_reference_cell = this.cells[nn_field.manyToOne_target_moduletable.vo_type];
-                            try {
-                                is_link_unccepted = Boolean(targets_to_exclude.includes(nn_field.manyToOne_target_moduletable.vo_type));
-                            } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
-                                is_link_unccepted = false; //La cible n'est pas interdite.
-                            }
-                            if (nn_reference_cell && ((is_link_unccepted == false))) {
+                            let nn_reference_cell = this.graphic_cells[nn_field.manyToOne_target_moduletable.vo_type];
+                            if (nn_reference_cell) {
+                                try {
+                                    is_link_unccepted = Boolean(values_to_exclude.includes(this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text)));
+                                } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
+                                    is_link_unccepted = false; //La cible n'est pas interdite.
+                                }
                                 // TODO FIXME pour le moment le N/N est fait avec 2 flèches dont une a un label pour les 2
-                                graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
-                                graph.insertEdge(parent, null, '', nn_reference_cell, v1); //Utile ?
+                                if (is_link_unccepted == true) {
+                                    graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell, 'strokeColor=red;strokeOacity=30');
+                                } else {
+                                    graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
+                                    graph.insertEdge(parent, null, '', nn_reference_cell, v1); //Utile ?
+                                }
                             }
                         }
                     }
@@ -471,20 +509,31 @@ export default class TablesGraphComponent extends VueComponentBase {
             let fields = VOsTypesManager.getInstance().getManyToOneFields(cell.vo_type, []);
             for (let i in fields) {
                 let field = fields[i];
-                let reference_cell = this.cells[field.manyToOne_target_moduletable.vo_type];
-                try {
-                    is_link_unccepted = Boolean(targets_to_exclude.includes(field.manyToOne_target_moduletable.vo_type));
-                } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
-                    is_link_unccepted = false; //La cible n'est pas interdite.
-                }
+                let reference_cell = this.graphic_cells[field.manyToOne_target_moduletable.vo_type];
+                if (field.manyToOne_target_moduletable.vo_type != node_v1) {
+                    try {
+                        is_link_unccepted = Boolean(values_to_exclude.includes(this.t(field.field_label.code_text)));
+                    } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
+                        is_link_unccepted = false; //La cible n'est pas interdite.
+                    }
 
-                if (reference_cell && (is_link_unccepted == false)) {
-                    graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
-                    graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
-
+                    if (reference_cell) {
+                        if (!this.arrows_created[node_v1]) {
+                            this.arrows_created[node_v1] = {};
+                        }
+                        if (!this.arrows_created[node_v1][field.manyToOne_target_moduletable.vo_type]) {
+                            this.arrows_created[node_v1][field.manyToOne_target_moduletable.vo_type] = [];
+                        }
+                        this.arrows_created[node_v1][field.manyToOne_target_moduletable.vo_type].push(this.t(field.field_label.code_text));
+                        if (is_link_unccepted == true) {
+                            graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell, 'strokeColor=red;strokeOpacity=30'); //Note that the source and target vertices should already have been inserted into the model.
+                        } else {
+                            graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
+                            graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
+                        }
+                    }
                 }
             }
-            graph.addCell(v1, parent);
             // graph.setCellStyles('strokeColor', '#F5F5F5', [parent]);
             // graph.setCellStyles('fillColor', '#FFF', [parent]);
             // var style = graph.getModel().getStyle(v1);
