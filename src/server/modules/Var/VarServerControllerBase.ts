@@ -19,21 +19,6 @@ import VarsServerController from './VarsServerController';
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
     /**
-     * Seuil naïf pour la décision de mise en cache cas A. 1000=1 seconde de calcul estimée
-     */
-    public static NAIVE_CACHE_A_SEUIL: number = 1000;
-
-    /**
-     * Seuil naïf pour la décision de chargement du cache cas B. 1000=1 seconde de calcul estimée
-     */
-    public static NAIVE_CACHE_B_SEUIL: number = 1000;
-
-    /**
-     * Seuil naïf pour la décision d'usage du cache partiel cas C. 1000=1 seconde de calcul estimée
-     */
-    public static NAIVE_CACHE_C_SEUIL: number = 1000;
-
-    /**
      * OPTIMISATION qui permet d'éviter complètement les questions de résolution des imports
      *  Par défaut on considère qu'on a aucun import sur les variables, et si jamais on doit en avoir on active cette option explicitement
      *  dans le constructeur de la Var
@@ -78,13 +63,14 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public getVarCacheConf(): VarCacheConfVO {
         let res: VarCacheConfVO = new VarCacheConfVO();
         res.var_id = this.varConf.id;
-        res.cache_timeout_secs = 0;
-        res.cache_seuil_a = VarServerControllerBase.NAIVE_CACHE_A_SEUIL;
-        res.cache_seuil_b = VarServerControllerBase.NAIVE_CACHE_B_SEUIL;
-        res.cache_seuil_c = VarServerControllerBase.NAIVE_CACHE_C_SEUIL;
-        res.estimated_compute_node_1k_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
-        res.estimated_create_tree_1k_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
-        res.estimated_load_nodes_datas_1k_card = 1000; // Par défaut on indique un coùt pour 1000 card à 1 seconde soit 1000 ms et une mise en cache donc
+
+        res.estimated_compute_node_1k_card = 1000;
+        res.estimated_ctree_ddeps_get_node_deps_1k_card = 1000;
+        res.estimated_ctree_ddeps_handle_pixellisation_1k_card = 1000;
+        res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 1000;
+        res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 1000;
+        res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 1000;
+        res.estimated_load_nodes_datas_1k_card = 1000;
         return res;
     }
 

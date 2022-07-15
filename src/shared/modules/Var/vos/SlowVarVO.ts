@@ -1,5 +1,5 @@
 import INamedVO from '../../../interfaces/INamedVO';
-import VarNodePerfElementVO from './VarNodePerfElementVO';
+import VarBatchNodePerfVO from './VarBatchNodePerfVO';
 
 export default class SlowVarVO implements INamedVO {
 
@@ -16,9 +16,7 @@ export default class SlowVarVO implements INamedVO {
     public name: string;
     public type: number;
 
-    public create_tree: VarNodePerfElementVO;
-    public load_nodes_datas: VarNodePerfElementVO;
-    public compute_node: VarNodePerfElementVO;
+    public perfs: VarBatchNodePerfVO;
 
     public var_id: number;
 }

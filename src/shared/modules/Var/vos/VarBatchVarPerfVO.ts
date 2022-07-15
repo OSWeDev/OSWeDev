@@ -1,6 +1,9 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import VarPerfElementVO from './VarPerfElementVO';
 
+/**
+ * TODO Fixme utile ou pas ? si non VarPerfElementVO non plus
+ */
 export default class VarBatchVarPerfVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "var_batch_var_perf";
 

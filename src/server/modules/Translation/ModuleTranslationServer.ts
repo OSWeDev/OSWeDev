@@ -688,9 +688,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         promises.push((async () => {
             lang_translations = await this.get_translations(code_lang);
         })());
-        if (code_lang != ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE) {
+        if (code_lang != ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE) {
             promises.push((async () => {
-                default_translations = await this.get_translations(ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE);
+                default_translations = await this.get_translations(ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE);
             })());
         }
 

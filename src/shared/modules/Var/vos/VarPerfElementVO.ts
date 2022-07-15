@@ -6,6 +6,9 @@ export default class VarPerfElementVO implements IDistantVOBase {
     public _type: string = VarPerfElementVO.API_TYPE_ID;
     public id: number;
 
+    /**
+     * TODO FIXME Utile ?
+     */
     public unfinished_perf_start_times: number[];
 
     public realised_sum_ms: number;

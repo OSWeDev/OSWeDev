@@ -254,7 +254,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
         for (let api_type_id in varindexes_by_api_type_id) {
             let indexes = varindexes_by_api_type_id[api_type_id];
@@ -298,14 +298,14 @@ export default class VarsDatasVoUpdateHandler {
     ) {
 
         let solved_intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
-        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents],
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
                 let invalidate_intersectors: VarDataBaseVO[] = [];
 
                 while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
@@ -610,7 +610,7 @@ export default class VarsDatasVoUpdateHandler {
         var_datas: VarDataBaseVO[],
         cached: VarDataBaseVO[],
     ) {
-        let env = ConfigurationService.getInstance().getNodeConfiguration();
+        let env = ConfigurationService.getInstance().node_configuration;
 
         /**
          * On ajoute les vars subs (front et back) et les vars en cache

@@ -15,6 +15,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
+import VarDAGNode from './graph/VarDAGNode';
 import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
@@ -70,7 +71,7 @@ export default class ModuleVar extends Module {
     public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
 
     public static MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache = 'force_empty_vars_datas_vo_update_cache';
-    public static MANUAL_TASK_NAME_switch_force_1_by_1_computation = 'switch_force_1_by_1_computation';
+    // public static MANUAL_TASK_NAME_switch_force_1_by_1_computation = 'switch_force_1_by_1_computation';
     public static MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base = 'switch_add_computation_time_to_learning_base';
 
     public static getInstance(): ModuleVar {
@@ -138,7 +139,7 @@ export default class ModuleVar extends Module {
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] = null;
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] = null;
+        // ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] = null;
     }
 
     public registerApis() {
@@ -354,9 +355,7 @@ export default class ModuleVar extends Module {
             labelField,
             var_id,
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, SlowVarVO.TYPE_NEEDS_TEST).setEnumValues(SlowVarVO.TYPE_LABELS),
-            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
-            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
-            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'perfs', false).set_plain_obj_cstr(() => new VarBatchNodePerfVO()),
         ];
 
         let datatable = new ModuleTable(this, SlowVarVO.API_TYPE_ID, () => new SlowVarVO(), datatable_fields, labelField);
@@ -397,9 +396,17 @@ export default class ModuleVar extends Module {
         let datatable_fields = [
             new ModuleTableField('index', ModuleTableField.FIELD_TYPE_string, 'index', true),
             new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_int, 'var_id', false),
-            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
+            new ModuleTableField('ctree_deploy_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_deploy_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_try_load_cache_complet', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_complet', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_load_imports_and_split_nodes', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_load_imports_and_split_nodes', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
             new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
             new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
             new ModuleTableField('creation_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'creation_time (ms)', false),
             new ModuleTableField('initial_estimated_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_time (ms)', false),
             new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'current_estimated_remaining_time  (ms)', false),
@@ -412,10 +419,10 @@ export default class ModuleVar extends Module {
     private VarNodePerfElementVO() {
 
         let datatable_fields = [
-            new ModuleTableField('created_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'created_time (ms)', true, true, 0),
-            new ModuleTableField('initialestimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initialestimated_work_time (ms)', true, true, 0),
-            new ModuleTableField('estimated_remaining_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_remaining_work_time (ms)', true, true, 0),
-            new ModuleTableField('real_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'real_work_time (ms)', true, true, 0),
+            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', true, true, 0),
+            new ModuleTableField('initial_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time (ms)', true, true, 0),
+            new ModuleTableField('updated_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time (ms)', true, true, 0),
+            new ModuleTableField('total_elapsed_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'total_elapsed_time (ms)', true, true, 0),
             new ModuleTableField('skipped', ModuleTableField.FIELD_TYPE_boolean, 'skipped', true, true, false),
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'end_time (ms)', true, true, 0),
         ];
@@ -429,12 +436,27 @@ export default class ModuleVar extends Module {
         let datatable_fields = [
             new ModuleTableField('batch_id', ModuleTableField.FIELD_TYPE_int, 'batch_id', true),
             new ModuleTableField('var_perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'var_perfs', false).set_plain_obj_cstr(() => new VarBatchVarPerfVO()),
-            new ModuleTableField('get_vars_to_compute', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'get_vars_to_compute', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('cache_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'cache_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('update_cards_in_perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'update_cards_in_perfs', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('computation_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'computation_wrapper', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
+            new ModuleTableField('handle_invalidate_intersectors', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_intersectors', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('handle_invalidate_matroids', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_matroids', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
+            new ModuleTableField('handle_buffer_varsdatasproxy', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasproxy', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('handle_buffer_varsdatasvoupdate', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasvoupdate', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
+            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_deploy_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_deploy_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_try_load_cache_complet', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_complet', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_load_imports_and_split_nodes', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_load_imports_and_split_nodes', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
+            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('compute_node_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node_wrapper', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
+
+            new ModuleTableField('cache_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'cache_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO()),
             new ModuleTableField('initial_estimated_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_time (ms)', false),
             new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', false),
             new ModuleTableField('current_estimated_remaining_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'current_estimated_remaining_time (ms)', false),
@@ -502,7 +524,12 @@ export default class ModuleVar extends Module {
             new ModuleTableField('cache_seuil_c_element', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C - élément', true, true, 1000),
             new ModuleTableField('cache_seuil_bdd', ModuleTableField.FIELD_TYPE_float, 'Seuil cache insert en BDD', true, true, 0),
 
-            new ModuleTableField('estimated_create_tree_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_create_tree_1k_card', true, true, 10),
+            new ModuleTableField('estimated_ctree_ddeps_try_load_cache_complet_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_try_load_cache_complet_1k_card', true, true, 10),
+            new ModuleTableField('estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card', true, true, 10),
+            new ModuleTableField('estimated_ctree_ddeps_try_load_cache_partiel_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_try_load_cache_partiel_1k_card', true, true, 10),
+            new ModuleTableField('estimated_ctree_ddeps_get_node_deps_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_get_node_deps_1k_card', true, true, 10),
+            new ModuleTableField('estimated_ctree_ddeps_handle_pixellisation_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_handle_pixellisation_1k_card', true, true, 10),
+
             new ModuleTableField('estimated_load_nodes_datas_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_load_nodes_datas_1k_card', true, true, 10),
             new ModuleTableField('estimated_compute_node_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_compute_node_1k_card', true, true, 10),
         ];

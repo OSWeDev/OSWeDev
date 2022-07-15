@@ -16,22 +16,16 @@ import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
-import PerfMonConfController from '../../PerfMon/PerfMonConfController';
-import PerfMonServerController from '../../PerfMon/PerfMonServerController';
-import NotifVardatasParam from '../notifs/NotifVardatasParam';
-import VarsPerfsController from '../perf/VarsPerfsController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
-import VarsPerfMonServerController from '../VarsPerfMonServerController';
-import VarsTabsSubsController from '../VarsTabsSubsController';
 
 export default class VarsdatasComputerBGThread implements IBGThread {
 
     public static TASK_NAME_force_run_asap: string = 'VarsdatasComputerBGThread.force_run_asap';
-    public static TASK_NAME_switch_force_1_by_1_computation: string = 'VarsdatasComputerBGThread.switch_force_1_by_1_computation';
+    // public static TASK_NAME_switch_force_1_by_1_computation: string = 'VarsdatasComputerBGThread.switch_force_1_by_1_computation';
     public static TASK_NAME_switch_add_computation_time_to_learning_base: string = 'VarsdatasComputerBGThread.switch_add_computation_time_to_learning_base';
 
     public static PARAM_NAME_client_request_estimated_ms_limit: string = 'VarsdatasComputerBGThread.client_request_estimated_ms_limit';
@@ -86,10 +80,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      */
     public run_asap: boolean = true;
 
-    /**
-     * Activate to force computation of 1 var at a time
-     */
-    public force_1_by_1_computation: boolean = false;
+    // /**
+    //  * Activate to force computation of 1 var at a time
+    //  */
+    // public force_1_by_1_computation: boolean = false;
     /**
      * Activate to save computation stats to the learning base
      */
@@ -108,31 +102,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private partial_clean_next_ms: number = 0;
 
     private constructor() {
-        ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, this.switch_force_1_by_1_computation.bind(this));
+        // ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, this.switch_force_1_by_1_computation.bind(this));
         ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, this.switch_add_computation_time_to_learning_base.bind(this));
         ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_force_run_asap, this.force_run_asap.bind(this));
-    }
-
-    public async switch_force_1_by_1_computation(): Promise<boolean> {
-
-        return new Promise(async (resolve, reject) => {
-
-            let thrower = (error) => {
-                //TODO fixme do something to inform user
-                ConsoleHandler.getInstance().error('failed switch_force_1_by_1_computation' + error);
-                resolve(true);
-            };
-
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                thrower,
-                VarsdatasComputerBGThread.getInstance().name,
-                VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, resolve)) {
-                return;
-            }
-
-            this.force_1_by_1_computation = !this.force_1_by_1_computation;
-            resolve(true);
-        });
     }
 
     public async switch_add_computation_time_to_learning_base(): Promise<boolean> {
@@ -205,232 +177,90 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             return;
         }
 
-        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:IN");
-        }
-
         try {
 
-            await PerfMonServerController.getInstance().monitor_async_root(
-                PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsdatasComputerBGThread__do_calculation_run],
-                async () => {
-                    try {
+            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:Starting...");
 
-                        ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:Starting...");
+            VarsdatasComputerBGThread.getInstance().current_batch_id++;
+            VarsdatasComputerBGThread.getInstance().is_computing = true;
+            VarsdatasComputerBGThread.getInstance().current_batch_params = {};
+            VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
 
-                        let promises = [];
-                        let client_request_estimated_ms_limit: number = 0;
-                        let bg_estimated_ms_limit: number = 0;
-                        let bg_min_nb_vars: number = 0;
-                        let client_request_min_nb_vars: number = 0;
+            let var_dag: VarDAG = new VarDAG(VarsdatasComputerBGThread.getInstance().current_batch_id);
+            VarsdatasComputerBGThread.getInstance().current_batch_vardag = var_dag;
 
-                        if (!this.force_1_by_1_computation) {
-                            promises.push((async () => client_request_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_estimated_ms_limit, 500))());
-                            promises.push((async () => bg_estimated_ms_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_estimated_ms_limit, 5000))());
-                            promises.push((async () => bg_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_bg_min_nb_vars, 75))());
-                            promises.push((async () => client_request_min_nb_vars = await ModuleParams.getInstance().getParamValueAsInt(VarsdatasComputerBGThread.PARAM_NAME_client_request_min_nb_vars, 15))());
-                        } else {
-                            client_request_estimated_ms_limit = 0.001;
-                            bg_estimated_ms_limit = 0.001;
-                            bg_min_nb_vars = 1;
-                            client_request_min_nb_vars = 1;
-                        }
+            var_dag.perfs.start();
 
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", true);
+            /**
+             * On invalide les vars si des intersecteurs sont en attente
+             */
+            await this.handle_invalidate_intersectors_perf_wrapper(var_dag);
+            await this.handle_invalidate_matroids_perf_wrapper(var_dag);
 
+            /**
+             * On met à jour la bdd si nécessaire
+             */
+            await this.varsdatas_proxy_handle_buffer_perf_wrapper(var_dag);
 
-                        /**
-                         * On invalide les vars si des intersecteurs sont en attente
-                         */
-                        promises.push(VarsDatasVoUpdateHandler.getInstance().handle_invalidate_intersectors());
-                        promises.push(VarsDatasVoUpdateHandler.getInstance().handle_invalidate_matroids());
-                        await Promise.all(promises);
-                        promises = [];
+            /**
+             * On dépile les CUD sur les VOs et faire les invalidations
+             */
 
-                        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasProxy.handle_buffer:IN");
-                        }
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasVoUpdateHandler.handle_buffer:IN");
+            }
 
-                        /**
-                         * On met à jour la bdd si nécessaire
-                         */
-                        promises.push(VarsDatasProxy.getInstance().handle_buffer());
+            let refuse_computation = await this.varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag);
 
-                        await Promise.all(promises);
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasVoUpdateHandler.handle_buffer:OUT");
+            }
 
-                        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasProxy.handle_buffer:OUT");
-                        }
+            /**
+             * Fonctionnement :
+             *  - On a sélectionné une liste de vars à calculer.
+             *  - On demande au VarsComputeController de faire les calculs et de renvoyer la data
+             *  - Une fois le calcul fait, on renvoie l'info aux sockets abonnés
+             *  - Et on met à jour la bdd asap => insert or update puisqu'on peut avoir des demandes qui sont en mémoires et pas en base
+             *      => attention pour sécuriser ce point il faudrait déclarer une clé unique sur les var datas et sécuriser le insert or update pour qu'en cas d'insertion ratée pour
+             *          clé dupliquée, on retrouve le vo avec la même clé unique et on le mette à jour du coup au lieu d'insérer
+             *      => La mise à jour asap est nécessaire uniquement si on a pas de cache de vars datas en mémoire en instance d'insertion en base, mais
+             *          on peut imaginer d'avoir un bgthread qui traite les insert or update de vars datas en base et que les calculs par exemple prenne en compte aussi cette stack en attente
+             *  - on libère le bgthread, en indiquant qu'on a eu des choses à gérer donc il faut revenir très rapidement
+             */
 
-                        /**
-                         * On dépile les CUD sur les VOs et faire les invalidations
-                         */
+            let did_something: boolean = false;
 
-                        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasVoUpdateHandler.handle_buffer:IN");
-                        }
+            if (!refuse_computation) {
+                did_something = await this.do_computation(var_dag);
+            }
 
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
-                        let refuse_computation = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(); // PERF OK
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", false);
+            if (refuse_computation || !did_something) {
 
-                        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasVoUpdateHandler.handle_buffer:OUT");
-                        }
+                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:refuse_computation:' + refuse_computation + ':or !did_something:' + !did_something + ':');
 
-                        /**
-                         * TODO FIXME REFONTE VARS à voir si on supprime ou pas le timeout suivant la stratégie de dépilage des vars à calculer au final
-                         *  soit on fait un batch par appel au bgthread soit on dépile x vars, soit on se donne x ms et on essaie d'estimer le temps de calcul en fonction des vars en attente, ...
-                         *  Dans tous les cas la plus grosse optimisation est certainement sur le choix des vars à grouper pour un calcul le plus efficace possible et dans la limite
-                         *      de temps par batch qu'on veut se donner (si le plus efficace c'est de calculer toute la base d'un coup mais que ça prend 1H on fera pas ça dans tous les cas)
-                         */
-
-                        // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        //     ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasProxy.get_vars_to_compute_from_buffer_or_bdd:IN");
-                        // }
-
-                        // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", true);
-                        // let vars_datas: { [index: string]: VarDataBaseVO } = refuse_computation ? null : await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(
-                        //     client_request_estimated_ms_limit, client_request_min_nb_vars, bg_estimated_ms_limit, bg_min_nb_vars); // PERF OK
-                        // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
-
-                        // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        //     ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasProxy.get_vars_to_compute_from_buffer_or_bdd:OUT");
-                        // }
-
-                        if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
-
-                            // /**
-                            //  * On dépile les CUD sur les VOs et faire les invalidations
-                            //  */
-                            // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
-                            // let has_done_something = await VarsDatasVoUpdateHandler.getInstance().handle_buffer();
-                            // VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"], false);
-                            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", false);
-
-                            if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
-
-                                await VarsPerfsController.update_perfs_in_bdd(); // PERF OK
-                            }
-
-                            if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
-                                this.run_asap = true;
-                                return;
-                            } else {
-
-                                // Si on fait rien c'est qu'on a le temps de nettoyer un peu la BDD
-                                if (performance.now() > this.partial_clean_next_ms) {
-                                    // On limite à un appel toutes les secondes
-                                    this.partial_clean_next_ms = performance.now() + 1000;
-                                    await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
-                                }
-                                return;
-                            }
-                        }
-
-                        // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        //     ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsTabsSubsController.notify_vardatas:IN");
-                        // }
-
-                        // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);
-                        // await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam(Object.values(vars_datas), true)]); // PERF OK
-                        // VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", false);
-
-                        // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                        //     ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsTabsSubsController.notify_vardatas:OUT");
-                        // }
-
-                        /**
-                         * Fonctionnement :
-                         *  - On a sélectionné une liste de vars à calculer.
-                         *  - On demande au VarsComputeController de faire les calculs et de renvoyer la data
-                         *  - Une fois le calcul fait, on renvoie l'info aux sockets abonnés
-                         *  - Et on met à jour la bdd asap => insert or update puisqu'on peut avoir des demandes qui sont en mémoires et pas en base
-                         *      => attention pour sécuriser ce point il faudrait déclarer une clé unique sur les var datas et sécuriser le insert or update pour qu'en cas d'insertion ratée pour
-                         *          clé dupliquée, on retrouve le vo avec la même clé unique et on le mette à jour du coup au lieu d'insérer
-                         *      => La mise à jour asap est nécessaire uniquement si on a pas de cache de vars datas en mémoire en instance d'insertion en base, mais
-                         *          on peut imaginer d'avoir un bgthread qui traite les insert or update de vars datas en base et que les calculs par exemple prenne en compte aussi cette stack en attente
-                         *  - on libère le bgthread, en indiquant qu'on a eu des choses à gérer donc il faut revenir très rapidement
-                         */
-
-                        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsComputeController.compute:IN");
-                        }
-
-                        /**
-                         * Avant de compute on lance le SlowVarKi
-                         */
-                        VarsdatasComputerBGThread.getInstance().current_batch_id++;
-                        VarsdatasComputerBGThread.getInstance().is_computing = true;
-                        VarsdatasComputerBGThread.getInstance().current_batch_params = {};
-                        VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
-                        await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
-
-                        let perf_tstz = Dates.now();
-                        let perf_start = performance.now();
-                        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
-
-                        Object.values(vars_datas).forEach((v) => ConsoleHandler.getInstance().log(
-                            '__computing_bg_thread:INDEXES:' + v.index));
-
-                        await VarsComputeController.getInstance().compute(); // PERF OK
-                        let indexes: string[] = [];
-                        let human_readable_indexes: string[] = [];
-                        if (this.add_computation_time_to_learning_base) {
-                            for (let i in this.current_batch_vardag) {
-                                let node = this.current_batch_vardag.nodes[i];
-                                let var_data = node.var_data;
-                                indexes.push(var_data.index);
-                                human_readable_indexes.push(MatroidIndexHandler.getInstance().get_human_readable_index(var_data));
-                            }
-                        }
-
-                        VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.compute"], false);
-                        let perf_end = performance.now();
-
-                        await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
-
-                        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsComputeController.compute:OUT");
-                        }
-
-                        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread perfs update asked');
-                        await VarsPerfsController.update_perfs_in_bdd(); // PERF OK
-                        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + VarsdatasComputerBGThread.getInstance().current_batch_vardag.perfs.nb_batch_vars + '/' + VarsdatasComputerBGThread.getInstance().current_batch_vardag.nb_nodes + ': vars : took [' +
-                            (Math.round(perf_end - perf_start) / 1000) + ' sec] computing / [' + Math.round(VarsdatasComputerBGThread.getInstance().current_batch_vardag.perfs.initial_estimated_time) / 1000 + ' sec] initially estimated');
-
-                        VarsdatasComputerBGThread.getInstance().is_computing = false;
-                        VarsdatasComputerBGThread.getInstance().current_batch_params = {};
-                        VarsdatasComputerBGThread.getInstance().current_batch_vardag = null;
-                        VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
-
-                        if (this.add_computation_time_to_learning_base) {
-                            let stat = new VarComputeTimeLearnBaseVO();
-                            stat.indexes = indexes;
-                            stat.human_readable_indexes = human_readable_indexes;
-                            stat.computation_start_time = perf_tstz;
-                            stat.computation_duration = perf_end - perf_start;
-                            await ModuleDAO.getInstance().insertOrUpdateVO(stat);
-                        }
-
-                    } catch (error) {
-                        console.error(error);
-                    }
-
+                if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
                     this.run_asap = true;
-                },
-                this
-            );
+                } else {
+
+                    // Si on fait rien c'est qu'on a le temps de nettoyer un peu la BDD
+                    if (performance.now() > this.partial_clean_next_ms) {
+                        // On limite à un appel toutes les secondes
+                        this.partial_clean_next_ms = performance.now() + 1000;
+                        await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
+                    }
+                }
+            }
+
+            var_dag.perfs.end();
+            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:Ended");
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        } finally {
-            this.semaphore = false;
+            console.error(error);
         }
 
-        if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:OUT");
-        }
+        this.run_asap = true;
+        this.semaphore = false;
     }
 
     private async force_run_asap_throttled(): Promise<boolean> {
@@ -455,5 +285,77 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             resolve(true);
         });
+    }
+
+    private async do_computation(var_dag: VarDAG): Promise<boolean> {
+
+        /**
+         * Avant de compute on lance le SlowVarKi
+         */
+
+        await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
+
+        var_dag.perfs.computation_wrapper.start('computation_wrapper');
+
+        await VarsComputeController.getInstance().compute(); // PERF OK
+        let indexes: string[] = [];
+        let human_readable_indexes: string[] = [];
+        if (this.add_computation_time_to_learning_base) {
+            for (let i in this.current_batch_vardag) {
+                let node = this.current_batch_vardag.nodes[i];
+                let var_data = node.var_data;
+                indexes.push(var_data.index);
+                human_readable_indexes.push(MatroidIndexHandler.getInstance().get_human_readable_index(var_data));
+            }
+        }
+
+        var_dag.perfs.computation_wrapper.end('computation_wrapper');
+
+        await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
+
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + var_dag.perfs.nb_batch_vars + '/' + var_dag.nb_nodes + ': vars : took [' +
+            (Math.round(var_dag.perfs.total_elapsed_time) / 1000) + ' sec] computing / [' + Math.round(var_dag.perfs.initial_estimated_time) / 1000 + ' sec] initially estimated');
+
+        let did_something = var_dag && (var_dag.nb_nodes > 0);
+        VarsdatasComputerBGThread.getInstance().is_computing = false;
+        VarsdatasComputerBGThread.getInstance().current_batch_params = {};
+        VarsdatasComputerBGThread.getInstance().current_batch_vardag = null;
+        VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
+
+        if (this.add_computation_time_to_learning_base) {
+            let stat = new VarComputeTimeLearnBaseVO();
+            stat.indexes = indexes;
+            stat.human_readable_indexes = human_readable_indexes;
+            stat.computation_start_time = var_dag.perfs.computation_wrapper.start_time;
+            stat.computation_duration = var_dag.perfs.computation_wrapper.total_elapsed_time;
+            await ModuleDAO.getInstance().insertOrUpdateVO(stat);
+        }
+
+        return did_something;
+    }
+
+    private async handle_invalidate_intersectors_perf_wrapper(var_dag: VarDAG) {
+        var_dag.perfs.handle_invalidate_intersectors.start('handle_invalidate_intersectors');
+        await VarsDatasVoUpdateHandler.getInstance().handle_invalidate_intersectors();
+        var_dag.perfs.handle_invalidate_intersectors.end('handle_invalidate_intersectors');
+    }
+
+    private async handle_invalidate_matroids_perf_wrapper(var_dag: VarDAG) {
+        var_dag.perfs.handle_invalidate_matroids.start('handle_invalidate_matroids');
+        await VarsDatasVoUpdateHandler.getInstance().handle_invalidate_matroids();
+        var_dag.perfs.handle_invalidate_matroids.end('handle_invalidate_matroids');
+    }
+
+    private async varsdatas_proxy_handle_buffer_perf_wrapper(var_dag: VarDAG) {
+        var_dag.perfs.handle_buffer_varsdatasproxy.start('handle_buffer_varsdatasproxy');
+        await VarsDatasProxy.getInstance().handle_buffer();
+        var_dag.perfs.handle_buffer_varsdatasproxy.end('handle_buffer_varsdatasproxy');
+    }
+
+    private async varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag: VarDAG): Promise<boolean> {
+        var_dag.perfs.handle_buffer_varsdatasvoupdate.start('handle_buffer_varsdatasvoupdate');
+        let refuse_computation = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(); // PERF OK
+        var_dag.perfs.handle_buffer_varsdatasvoupdate.end('handle_buffer_varsdatasvoupdate');
+        return refuse_computation;
     }
 }

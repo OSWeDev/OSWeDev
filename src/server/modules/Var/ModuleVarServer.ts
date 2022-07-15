@@ -294,6 +294,16 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Tout en cache/pas de chunks'
+        }, 'var_cache_conf.cache_strategy.cache_all_never_load_chunks'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Rien en cache'
+        }, 'var_cache_conf.cache_strategy.cache_none'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pixel'
+        }, 'var_cache_conf.cache_strategy.pixel'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable invalidée, calcul en cours...'
         }, 'var.desc_mode.update_var_data.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -461,8 +471,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache;
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] =
             VarsdatasComputerBGThread.getInstance().switch_add_computation_time_to_learning_base;
-        ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] =
-            VarsdatasComputerBGThread.getInstance().switch_force_1_by_1_computation;
+        // ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_force_1_by_1_computation] =
+        //     VarsdatasComputerBGThread.getInstance().switch_force_1_by_1_computation;
 
         await ModuleVarServer.getInstance().load_slowvars();
     }
@@ -921,11 +931,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             let start_time = Dates.now();
             let real_start_time = start_time;
             while (
+                VarsdatasComputerBGThread.getInstance().semaphore ||
                 ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
                 ||
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(1, 1, 1, 1))
+                (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.getInstance().sleep(10000);
+                await ThreadHandler.getInstance().sleep(1000);
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
@@ -943,7 +954,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      * Fonction ayant pour but d'être appelée sur le thread de computation des vars
      * FIXME : POURQUOI ? await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve
      */
-    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 10000, timeout_ms: number = 60000): Promise<boolean> {
+    public async exec_in_computation_hole(cb: () => {}, interval_sleep_ms: number = 1000, timeout_ms: number = 60000): Promise<boolean> {
 
         return new Promise(async (resolve, reject) => {
 
@@ -968,7 +979,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 VarsdatasComputerBGThread.getInstance().semaphore ||
                 ObjectHandler.getInstance().hasAtLeastOneAttribute(VarsDatasVoUpdateHandler.getInstance().ordered_vos_cud)
                 ||
-                ObjectHandler.getInstance().hasAtLeastOneAttribute(await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(1, 1, 1, 1))
+                (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
                 await ThreadHandler.getInstance().sleep(interval_sleep_ms);
                 let actual_time = Dates.now();

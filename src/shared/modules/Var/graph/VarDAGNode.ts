@@ -31,7 +31,7 @@ export default class VarDAGNode extends DAGNodeBase {
     /**
      * Savoir si le noeud fait partie des questions qu'on tente de résoudre
      */
-    public is_batch_var: boolean;
+    public is_batch_var: boolean = false;
 
     /**
      * CAS A : On a une noeud de calcul - qui utilise la fonction compute du VarController : Les dépendances descendantes :
@@ -49,16 +49,16 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     public datasources: { [ds_name: string]: any } = {};
 
-    /**
-     * Indicateurs de performance
-     */
-    public has_try_load_cache_complet_perf: boolean = false;
-    public has_load_imports_and_split_nodes_perf: boolean = false;
-    public has_try_load_cache_partiel_perf: boolean = false;
-    public has_is_aggregator_perf: boolean = false;
-    public has_ds_cache_perf: boolean = false;
-    public has_compute_node_perf: boolean = false;
-    public has_load_nodes_datas_perf: boolean = false;
+    // /**
+    //  * Indicateurs de performance
+    //  */
+    // public has_try_load_cache_complet_perf: boolean = false;
+    // public has_load_imports_and_split_nodes_perf: boolean = false;
+    // public has_try_load_cache_partiel_perf: boolean = false;
+    // public has_is_aggregator_perf: boolean = false;
+    // public has_ds_cache_perf: boolean = false;
+    // public has_compute_node_perf: boolean = false;
+    // public has_load_nodes_datas_perf: boolean = false;
 
     public successfully_deployed: boolean = false;
 
@@ -72,7 +72,6 @@ export default class VarDAGNode extends DAGNodeBase {
      */
     private constructor(public dag: VarDAG, public var_data: VarDataBaseVO) {
         super();
-        this.init_perfs_estimates();
     }
 
     /**
@@ -168,24 +167,24 @@ export default class VarDAGNode extends DAGNodeBase {
             this.dag.perfs.nb_batch_vars++;
         }
 
-        if (this.perfs.compute_node.initialestimated_work_time) {
-            this.dag.perfs.initial_estimated_time += this.perfs.compute_node.initialestimated_work_time;
-        }
-        if (this.perfs.create_tree.initialestimated_work_time) {
-            this.dag.perfs.initial_estimated_time += this.perfs.create_tree.initialestimated_work_time;
-        }
-        if (this.perfs.load_nodes_datas.initialestimated_work_time) {
-            this.dag.perfs.initial_estimated_time += this.perfs.load_nodes_datas.initialestimated_work_time;
-        }
+        this.perfs.init_estimated_work_time_compute_node(VarsComputeController.getInstance().get_estimated_compute_node(this.var_data), this.dag);
+        this.perfs.init_estimated_work_time_load_nodes_datas(VarsComputeController.getInstance().get_estimated_load_nodes_datas(this.var_data), this.dag);
+        this.perfs.init_estimated_work_time_ctree_ddeps_get_node_deps(VarsComputeController.getInstance().get_estimated_ctree_ddeps_get_node_deps(this.var_data), this.dag);
+        this.perfs.init_estimated_work_time_ctree_ddeps_load_imports_and_split_nodes(VarsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this.var_data), this.dag);
+        this.perfs.init_estimated_work_time_ctree_ddeps_try_load_cache_complet(VarsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this.var_data), this.dag);
+        this.perfs.init_estimated_work_time_ctree_ddeps_try_load_cache_partiel(VarsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_partiel(this.var_data), this.dag);
 
-        if (this.perfs.compute_node.estimated_remaining_work_time) {
-            this.dag.perfs.compute_node.current_estimated_remaining_time += this.perfs.compute_node.estimated_remaining_work_time;
-        }
-        if (this.perfs.create_tree.estimated_remaining_work_time) {
-            this.dag.perfs.create_tree.current_estimated_remaining_time += this.perfs.create_tree.estimated_remaining_work_time;
-        }
-        if (this.perfs.load_nodes_datas.estimated_remaining_work_time) {
-            this.dag.perfs.load_nodes_datas.current_estimated_remaining_time += this.perfs.load_nodes_datas.estimated_remaining_work_time;
+        if (!!this.var_data.value_ts) {
+
+            /**
+             * Si on a déjà une valeur, on peut directement skip toutes les étapes
+             */
+            this.perfs.skip_compute_node(this.dag);
+            this.perfs.skip_load_nodes_datas(this.dag);
+            this.perfs.skip_ctree_ddeps_get_node_deps(this.dag);
+            this.perfs.skip_ctree_ddeps_load_imports_and_split_nodes(this.dag);
+            this.perfs.skip_ctree_ddeps_try_load_cache_complet(this.dag);
+            this.perfs.skip_ctree_ddeps_try_load_cache_partiel(this.dag);
         }
     }
 
@@ -194,65 +193,12 @@ export default class VarDAGNode extends DAGNodeBase {
         if (this.is_batch_var) {
             this.dag.perfs.nb_batch_vars--;
         }
-        if (this.perfs.compute_node.estimated_remaining_work_time) {
-            this.dag.perfs.compute_node.current_estimated_remaining_time -= this.perfs.compute_node.estimated_remaining_work_time;
-        }
-        if (this.perfs.create_tree.estimated_remaining_work_time) {
-            this.dag.perfs.create_tree.current_estimated_remaining_time -= this.perfs.create_tree.estimated_remaining_work_time;
-        }
-        if (this.perfs.load_nodes_datas.estimated_remaining_work_time) {
-            this.dag.perfs.load_nodes_datas.current_estimated_remaining_time -= this.perfs.load_nodes_datas.estimated_remaining_work_time;
-        }
-    }
 
-    private init_perfs_estimates() {
-
-        this.perfs.compute_node.created_time = performance.now();
-        this.perfs.create_tree.created_time = this.perfs.compute_node.created_time;
-        this.perfs.load_nodes_datas.created_time = this.perfs.compute_node.created_time;
-        this.perfs.creation_time = this.perfs.compute_node.created_time;
-        this.perfs.index = this.var_data.index;
-        this.perfs.var_id = this.var_data.var_id;
-
-        if (!this.var_data.value_ts) {
-            this.perfs.create_tree.initialestimated_work_time = VarsComputeController.getInstance().get_estimated_create_tree_1k_card(this.var_data);
-            this.perfs.create_tree.estimated_remaining_work_time = this.perfs.create_tree.initialestimated_work_time;
-            this.perfs.create_tree.real_work_time = null;
-            this.perfs.create_tree.skipped = false;
-            this.perfs.create_tree.end_time = null;
-
-            this.perfs.load_nodes_datas.initialestimated_work_time = VarsComputeController.getInstance().get_estimated_load_nodes_datas_1k_card(this.var_data);
-            this.perfs.load_nodes_datas.estimated_remaining_work_time = this.perfs.load_nodes_datas.initialestimated_work_time;
-            this.perfs.load_nodes_datas.real_work_time = null;
-            this.perfs.load_nodes_datas.skipped = false;
-            this.perfs.load_nodes_datas.end_time = null;
-
-            this.perfs.compute_node.initialestimated_work_time = VarsComputeController.getInstance().get_estimated_compute_node_1k_card(this.var_data);
-            this.perfs.compute_node.estimated_remaining_work_time = this.perfs.compute_node.initialestimated_work_time;
-            this.perfs.compute_node.real_work_time = null;
-            this.perfs.compute_node.skipped = false;
-            this.perfs.compute_node.end_time = null;
-        } else {
-            this.perfs.create_tree.end_time = this.perfs.create_tree.created_time;
-            this.perfs.create_tree.estimated_remaining_work_time = 0;
-            this.perfs.create_tree.initialestimated_work_time = 0;
-            this.perfs.create_tree.real_work_time = 0;
-            this.perfs.create_tree.skipped = true;
-
-            this.perfs.load_nodes_datas.end_time = this.perfs.load_nodes_datas.created_time;
-            this.perfs.load_nodes_datas.estimated_remaining_work_time = 0;
-            this.perfs.load_nodes_datas.initialestimated_work_time = 0;
-            this.perfs.load_nodes_datas.real_work_time = 0;
-            this.perfs.load_nodes_datas.skipped = true;
-
-            this.perfs.compute_node.end_time = this.perfs.compute_node.created_time;
-            this.perfs.compute_node.estimated_remaining_work_time = 0;
-            this.perfs.compute_node.initialestimated_work_time = 0;
-            this.perfs.compute_node.real_work_time = 0;
-            this.perfs.compute_node.skipped = true;
-        }
-
-        this.perfs.current_estimated_remaining_time = this.perfs.compute_node.initialestimated_work_time + this.perfs.create_tree.initialestimated_work_time + this.perfs.load_nodes_datas.initialestimated_work_time;
-        this.perfs.initial_estimated_time = this.perfs.current_estimated_remaining_time;
+        this.perfs.update_estimated_work_time_compute_node(0, this.dag);
+        this.perfs.update_estimated_work_time_load_nodes_datas(0, this.dag);
+        this.perfs.update_estimated_work_time_ctree_ddeps_get_node_deps(0, this.dag);
+        this.perfs.update_estimated_work_time_ctree_ddeps_load_imports_and_split_nodes(0, this.dag);
+        this.perfs.update_estimated_work_time_ctree_ddeps_try_load_cache_complet(0, this.dag);
+        this.perfs.update_estimated_work_time_ctree_ddeps_try_load_cache_partiel(0, this.dag);
     }
 }

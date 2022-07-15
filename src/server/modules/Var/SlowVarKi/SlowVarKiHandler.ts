@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -240,10 +241,8 @@ export default class SlowVarKiHandler {
 
             if (current_batch_vardag && current_batch_vardag.nodes[computed_var.index]) {
                 let node = current_batch_vardag.nodes[computed_var.index];
-                if (node.perfs && node.perfs.compute_node && node.perfs.create_tree && node.perfs.load_nodes_datas) {
-                    slowVar.compute_node = node.perfs.compute_node;
-                    slowVar.compute_node = node.perfs.compute_node;
-                    slowVar.compute_node = node.perfs.compute_node;
+                if (node.perfs) {
+                    slowVar.perfs = cloneDeep(node.perfs);
                 }
             }
 

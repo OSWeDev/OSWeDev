@@ -36,7 +36,6 @@ export default class FakeVarControllerCyclB extends VarServerControllerBase<Fake
         let res: VarCacheConfVO = new VarCacheConfVO();
         res.id = 11;
         res.var_id = this.varConf.id;
-        res.cache_timeout_secs = 0;
         return res;
     }
 

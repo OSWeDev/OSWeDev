@@ -119,7 +119,7 @@ export default class VarsDatasProxy {
     }
 
     public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
-        let env = ConfigurationService.getInstance().getNodeConfiguration();
+        let env = ConfigurationService.getInstance().node_configuration;
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread],
@@ -263,144 +263,137 @@ export default class VarsDatasProxy {
             return;
         }
 
-        let env = ConfigurationService.getInstance().getNodeConfiguration();
+        let env = ConfigurationService.getInstance().node_configuration;
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__handle_buffer],
-            async () => {
+        let start_time = Dates.now();
+        let real_start_time = start_time;
 
-                let start_time = Dates.now();
-                let real_start_time = start_time;
+        while (this.semaphore_handle_buffer) {
+            let actual_time = Dates.now();
 
-                while (this.semaphore_handle_buffer) {
-                    let actual_time = Dates.now();
+            if (actual_time > (start_time + 60)) {
+                start_time = actual_time;
+                ConsoleHandler.getInstance().warn('VarsDatasProxy:handle_buffer:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
 
-                    if (actual_time > (start_time + 60)) {
-                        start_time = actual_time;
-                        ConsoleHandler.getInstance().warn('VarsDatasProxy:handle_buffer:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-                    }
+            await ThreadHandler.getInstance().sleep(9);
+        }
+        this.semaphore_handle_buffer = true;
 
-                    await ThreadHandler.getInstance().sleep(9);
+        try {
+
+            let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
+            let do_delete_from_cache_indexes: { [index: string]: boolean } = {};
+            let self = this;
+
+            let to_insert: VarDataBaseVO[] = [];
+
+            for (let i in indexes) {
+                let index = indexes[i];
+                let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+
+                if (!wrapper) {
+                    continue;
                 }
-                this.semaphore_handle_buffer = true;
 
-                try {
+                let handle_var = wrapper.var_data;
 
-                    let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
-                    let do_delete_from_cache_indexes: { [index: string]: boolean } = {};
-                    let self = this;
+                // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage => surtout pas sinon on tourne en boucle
+                if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
+                    continue;
+                }
 
-                    let to_insert: VarDataBaseVO[] = [];
+                /**
+                 * Si on a besoin d'updater la bdd, on le fait, et on laisse dans le cache pour des reads éventuels
+                 *
+                 * Sinon :
+                 *      - si on a       0  read depuis le dernier insert et TIMEOUT, on supprime du cache
+                 *      - sinon si on a 0  read depuis le dernier insert et !TIMEOUT, on attend
+                 *      - sinon si on a 1+ read depuis le dernier insert et TIMEOUT, on push en BDD
+                 *      - sinon si on a 1+ read depuis le dernier insert et !TIMEOUT, on patiente
+                 *
+                 *      - si on a au moins 1 read depuis le dernier check on prolonge le timing
+                 */
 
-                    for (let i in indexes) {
-                        let index = indexes[i];
-                        let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+                let do_insert = false;
+                let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
+                let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
 
-                        if (!wrapper) {
-                            continue;
+                /**
+                 * Cas des pixels : on insere initialement, mais jamais ensuite. les infos de lecture on s'en fiche puisque le cache ne doit jamais être invalidé
+                 */
+
+                if (wrapper.needs_insert_or_update) {
+                    do_insert = true;
+                } else if ((!conf.pixel_activated) || (!conf.pixel_never_delete)) {
+
+                    if (!wrapper.nb_reads_since_last_insert_or_update) {
+                        if (Dates.now() > wrapper.timeout) {
+                            do_delete_from_cache_indexes[index] = true;
                         }
-
-                        let handle_var = wrapper.var_data;
-
-                        // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage => surtout pas sinon on tourne en boucle
-                        if (!VarsServerController.getInstance().has_valid_value(handle_var)) {
-                            continue;
-                        }
-
-                        /**
-                         * Si on a besoin d'updater la bdd, on le fait, et on laisse dans le cache pour des reads éventuels
-                         *
-                         * Sinon :
-                         *      - si on a       0  read depuis le dernier insert et TIMEOUT, on supprime du cache
-                         *      - sinon si on a 0  read depuis le dernier insert et !TIMEOUT, on attend
-                         *      - sinon si on a 1+ read depuis le dernier insert et TIMEOUT, on push en BDD
-                         *      - sinon si on a 1+ read depuis le dernier insert et !TIMEOUT, on patiente
-                         *
-                         *      - si on a au moins 1 read depuis le dernier check on prolonge le timing
-                         */
-
-                        let do_insert = false;
-                        let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
-                        let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
-
-                        /**
-                         * Cas des pixels : on insere initialement, mais jamais ensuite. les infos de lecture on s'en fiche puisque le cache ne doit jamais être invalidé
-                         */
-
-                        if (wrapper.needs_insert_or_update) {
+                    } else {
+                        if (Dates.now() > wrapper.timeout) {
                             do_insert = true;
-                        } else if ((!conf.pixel_activated) || (!conf.pixel_never_delete)) {
-
-                            if (!wrapper.nb_reads_since_last_insert_or_update) {
-                                if (Dates.now() > wrapper.timeout) {
-                                    do_delete_from_cache_indexes[index] = true;
-                                }
-                            } else {
-                                if (Dates.now() > wrapper.timeout) {
-                                    do_insert = true;
-                                }
-                            }
-
-                            if ((!do_delete_from_cache_indexes[index]) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
-                                wrapper.nb_reads_since_last_check = 0;
-                                wrapper.update_timeout();
-                            }
-                        }
-
-                        if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
-
-                            to_insert.push(handle_var);
-
-                            if (env.DEBUG_VARS) {
-                                ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
-                            }
                         }
                     }
 
-                    if (!!to_insert.length) {
-                        await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(to_insert);
-
-                        // TODO FIXME TO DELETE
-                        // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
-                        // On force la suppression du cache mais c'est sûrement gourmant...
-                        DAOQueryCacheController.getInstance().clear_cache(true);
-
-                        for (let i in to_insert) {
-                            let index: string = to_insert[i].index;
-                            let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
-
-                            /**
-                             * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
-                             */
-                            this.check_or_update_var_buffer(to_insert[i]);
-
-                            if (!wrapper) {
-                                continue;
-                            }
-
-                            wrapper.nb_reads_since_last_insert_or_update = 0;
-                            wrapper.nb_reads_since_last_check = 0;
-                            wrapper.needs_insert_or_update_ = false;
-                            wrapper.var_data_origin_value = wrapper.var_data.value;
-                            wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                            wrapper.last_insert_or_update = Dates.now();
-                            wrapper.update_timeout();
-
-                            if (do_delete_from_cache_indexes[index]) {
-                                self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != index);
-                                delete self.vars_datas_buffer_wrapped_indexes[index];
-                            }
-                        }
+                    if ((!do_delete_from_cache_indexes[index]) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
+                        wrapper.nb_reads_since_last_check = 0;
+                        wrapper.update_timeout();
                     }
-
-                } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
-                } finally {
-                    this.semaphore_handle_buffer = false;
                 }
-            },
-            this
-        );
+
+                if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
+
+                    to_insert.push(handle_var);
+
+                    if (env.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
+                    }
+                }
+            }
+
+            if (!!to_insert.length) {
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(to_insert);
+
+                // TODO FIXME TO DELETE
+                // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
+                // On force la suppression du cache mais c'est sûrement gourmant...
+                DAOQueryCacheController.getInstance().clear_cache(true);
+
+                for (let i in to_insert) {
+                    let index: string = to_insert[i].index;
+                    let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+
+                    /**
+                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                     */
+                    this.check_or_update_var_buffer(to_insert[i]);
+
+                    if (!wrapper) {
+                        continue;
+                    }
+
+                    wrapper.nb_reads_since_last_insert_or_update = 0;
+                    wrapper.nb_reads_since_last_check = 0;
+                    wrapper.needs_insert_or_update_ = false;
+                    wrapper.var_data_origin_value = wrapper.var_data.value;
+                    wrapper.var_data_origin_type = wrapper.var_data.value_type;
+                    wrapper.last_insert_or_update = Dates.now();
+                    wrapper.update_timeout();
+
+                    if (do_delete_from_cache_indexes[index]) {
+                        self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != index);
+                        delete self.vars_datas_buffer_wrapped_indexes[index];
+                    }
+                }
+            }
+
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        } finally {
+            this.semaphore_handle_buffer = false;
+        }
     }
 
     /**
@@ -408,7 +401,7 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd],
             async () => {
@@ -460,7 +453,7 @@ export default class VarsDatasProxy {
      */
     public async get_exact_params_from_buffer_or_bdd<T extends VarDataBaseVO>(var_datas: T[]): Promise<T[]> {
 
-        let env = ConfigurationService.getInstance().getNodeConfiguration();
+        let env = ConfigurationService.getInstance().node_configuration;
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd],
@@ -534,6 +527,14 @@ export default class VarsDatasProxy {
             },
             this
         );
+    }
+
+    /**
+     * @returns true if there's at least one vardata waiting to be computed (having no valid value)
+     */
+    public has_vardata_waiting_for_computation(): boolean {
+        let vars_datas_buffer = this.vars_datas_buffer.filter((v) => !VarsServerController.getInstance().has_valid_value(v.var_data));
+        return (!!vars_datas_buffer) && (vars_datas_buffer.length > 0);
     }
 
     /**

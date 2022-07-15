@@ -149,7 +149,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On doit déclarer les access policies de tous les VO
         let lang: LangVO = await ModuleTranslation.getInstance().getLang(DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION);
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
@@ -769,8 +769,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -799,8 +799,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -913,7 +913,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let vos_by_vo_type_and_ids: { [vo_type: string]: { [id: number]: IDistantVOBase[] } } = {};
 
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         let promises = [];
 
@@ -1575,7 +1575,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let res: T[] = [];
         let promises = [];
 
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 10));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 10));
 
         for (let i in vos) {
             let vo = vos[i];
@@ -2442,7 +2442,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getBaseUrl(): Promise<string> {
-        return ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+        return ConfigurationService.getInstance().node_configuration.BASE_URL;
     }
 
     private async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {
