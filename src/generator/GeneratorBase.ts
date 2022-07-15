@@ -27,6 +27,7 @@ import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
+import Patch20220713ChangeVarCacheType1To0 from './patchs/postmodules/Patch20220713ChangeVarCacheType1To0';
 
 export default abstract class GeneratorBase {
 
@@ -66,6 +67,7 @@ export default abstract class GeneratorBase {
             Patch20220222MigrationCodesTradsDB.getInstance(),
             Patch20220404UpdateDBBWidgetsDefaultSize.getInstance(),
             Patch20220401SetParamPushData.getInstance(),
+            Patch20220713ChangeVarCacheType1To0.getInstance()
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }
