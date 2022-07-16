@@ -7,7 +7,7 @@
             .sidebar(ref="sidebar")
                 h2 Affichage de flèches par défaut
                 label(class="switch")
-                    input(type="checkbox" id="myCheckbox" @change="toggleCheck" unchecked)
+                    input(type="checkbox" id="myCheckbox" @change="toggleCheck" unchecked :cell-data="current_cell")
                     span(class="slider round")
                     
                 Tablesgrapheditformcomponent(ref="form" @delete_cell="delete_cell" :cell-data="current_cell")
