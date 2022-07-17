@@ -68,7 +68,7 @@ export default class TablesGraphComponent extends VueComponentBase {
     private dashboard: DashboardVO;
 
     private current_cell = null;
-    private graphic_cells: { [cellule: string]: typeof mxCell } = {};
+    private graphic_cells: { [cellule: string]: typeof mxCell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
     private cells: { [api_type_id: string]: any } = {};
 
     private selectionChanged() {
@@ -80,7 +80,8 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private async toggleCheck() { //TODO A l'avenir , il ne faudrait plus utiliser le bouton supprimer mais simplement l'interupteur.
-        /* Toggle function to chose arrows to exclude from dashboard
+        /* Toggle function
+            Permet de réactiver une flèche supprimée.
             After delete_arrow.
         */
         const input = document.getElementById("myCheckbox") as HTMLInputElement; //Assertion obligatoire
@@ -115,7 +116,7 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private async delete_arrow(arrowValue: typeof mxCell) { //TODO être sûr que cette supression affecte les tables de widget.
-        /*Pour supprimer des flèches , est appelé via delete_cell*/
+        /*Pour supprimer des flèches en les selectionnant, est appelé via delete_cell*/
         if (arrowValue.edge == false) { //Si ce n'est pas une flche.
             ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db arrow');
             return;
@@ -175,7 +176,7 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private check_doublon(source: string, target: string, field: string) {
-        //Supprime la flèche en question , si elle existe
+        //Supprime la flèche en question de champs field allant de source vers target , si elle existe.
         let number_arrows: number;
         try {
             number_arrows = this.cells[source].edges.length;
@@ -430,7 +431,7 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private async initgraph() {
-        this.graphic_cells = {}; //Réinitialisation.
+        this.graphic_cells = {}; //Réinitialisation des cellules à afficher.
         if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
             editor.graph.removeCells(Object.values(this.cells));
         }
@@ -475,12 +476,13 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
     private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*
-        targets_to_exclude , liste string de flèches à ne pas afficher
+         Incorpore la cellule cell dans le graphique et dessine les flèches qui partent de celle-ci ainsi que celle qui viennent.
+         On évite de redessiner les flèches déjà construite.
         */
 
-        //On récupère les flèches à ne pas prendre en compte.
+        //On récupère les flèches à ne pas prendre en compte car supprimées.
         this.cells[cell.vo_type] = v1;
-        let values_to_exclude: string[];
+        let values_to_exclude: string[]; //Voici la liste des flèches à ne pas afficher.
         if (cell.values_to_exclude) {
             values_to_exclude = cell.values_to_exclude;
         } else { values_to_exclude = []; }
@@ -510,10 +512,9 @@ export default class TablesGraphComponent extends VueComponentBase {
             let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
             for (let i in references) {
                 let reference = references[i];
-                // let reference_cell = this.cells[reference.module_table.vo_type];
                 let reference_cell = this.graphic_cells[reference.module_table.vo_type];
                 //La flèche existe déjà ?
-
+                //Il est possible que la flèche existe déjà dans l'autre sens, dans ce cas , on ne la réaffiche pas.
                 try {
                     let number_arrows: number = this.cells[reference.module_table.vo_type].edges.length;
                     if (number_arrows > 0) {
@@ -523,11 +524,11 @@ export default class TablesGraphComponent extends VueComponentBase {
                             }
                         }
                     }
-                } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
-                    does_exist = false; //La cible n'est pas interdite.
+                } catch (error) {
+                    does_exist = false; //La flèche n'existe pas.
                 }
 
-                if (reference_cell && (does_exist == false)) { //Il est possible que la flèche existe déjà dans l'autre sens, dans ce cas , on ne la réaffiche pas.
+                if (reference_cell && (does_exist == false)) {
                     graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                     graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
 
@@ -541,14 +542,14 @@ export default class TablesGraphComponent extends VueComponentBase {
                             if (nn_field.field_id == reference.field_id) {
                                 continue;
                             }
-                            let nn_reference_cell = this.graphic_cells[nn_field.manyToOne_target_moduletable.vo_type];
+                            let nn_reference_cell = this.graphic_cells[nn_field.manyToOne_target_moduletable.vo_type]; //On rajoute cette flèche dans les flèches crées
                             if (nn_reference_cell) {
                                 try {
                                     is_link_unccepted = Boolean(values_to_exclude.includes(this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text)));
                                 } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
                                     is_link_unccepted = false; //La cible n'est pas interdite.
                                 }
-                                try { //Peut exister dans le sens inverse.
+                                try { //La relation n/n peut exister dans le sens inverse, on vérifie que ça n'est pas le cas.
                                     let number_arrows: number = this.cells[nn_field.manyToOne_target_moduletable.vo_type].edges.length;
                                     if (number_arrows > 0) {
                                         for (let cellules of this.cells[nn_field.manyToOne_target_moduletable.vo_type].edges) {
@@ -557,8 +558,8 @@ export default class TablesGraphComponent extends VueComponentBase {
                                             }
                                         }
                                     }
-                                } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
-                                    does_exist = false; //La cible n'est pas interdite.
+                                } catch (error) {
+                                    does_exist = false;
                                 }
                                 if (does_exist == false) {
                                     //TODO Faire en sorte de  conserver la fléche qui  va dans le même sens que les autres flèches reliant les deux cellules en question.
@@ -589,14 +590,14 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let field = fields[i];
                 let reference_cell = this.graphic_cells[field.manyToOne_target_moduletable.vo_type];
                 if (field.manyToOne_target_moduletable.vo_type != node_v1) {
-                    try {
+                    try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
                         is_link_unccepted = Boolean(values_to_exclude.includes(this.t(field.field_label.code_text)));
                     } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
                         is_link_unccepted = false; //La cible n'est pas interdite.
                     }
 
                     if (reference_cell) {
-
+                        //On vérifie que la flèche n'a pas été traçée dans l'autre sens précédement.
                         this.check_doublon(node_v1, field.manyToOne_target_moduletable.vo_type, this.t(field.field_label.code_text)); //Supprime la flèche si celle-ci existe
 
                         if (is_link_unccepted == true) {
