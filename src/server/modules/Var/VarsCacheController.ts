@@ -1,25 +1,22 @@
 import { performance } from 'perf_hooks';
-import * as  moment from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ConfigurationService from '../../env/ConfigurationService';
-import VarsDatasProxy from './VarsDatasProxy';
-import VarsServerController from './VarsServerController';
-import PerfMonServerController from '../PerfMon/PerfMonServerController';
-import PerfMonConfController from '../PerfMon/PerfMonConfController';
-import VarsPerfMonServerController from './VarsPerfMonServerController';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import VarServerControllerBase from './VarServerControllerBase';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ConfigurationService from '../../env/ConfigurationService';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
+import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
+import VarServerControllerBase from './VarServerControllerBase';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
+import VarsServerController from './VarsServerController';
 
 /**
  * On se fixe 3 stratégies de cache :

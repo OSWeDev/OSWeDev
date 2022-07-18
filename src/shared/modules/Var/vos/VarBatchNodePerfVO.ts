@@ -22,10 +22,6 @@ export default class VarBatchNodePerfVO implements IDistantVOBase {
     public load_nodes_datas: VarNodePerfElementVO = new VarNodePerfElementVO();
     public compute_node: VarNodePerfElementVO = new VarNodePerfElementVO();
 
-    public creation_time: number = null;
-    public initial_estimated_time: number = 0;
-    public current_estimated_remaining_time: number = 0;
-
     public skip_ctree_ddeps_try_load_cache_complet(var_dag: VarDAG) {
         this.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(this.get_parents_ctree_ddeps_try_load_cache_complet(var_dag));
     }
@@ -99,25 +95,25 @@ export default class VarBatchNodePerfVO implements IDistantVOBase {
     }
 
     private get_parents_ctree_ddeps_try_load_cache_complet(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_try_load_cache_complet, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_try_load_cache_complet, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.batch_wrapper];
     }
     private get_parents_ctree_ddeps_load_imports_and_split_nodes(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_load_imports_and_split_nodes, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_load_imports_and_split_nodes, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.batch_wrapper];
     }
     private get_parents_ctree_ddeps_try_load_cache_partiel(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_try_load_cache_partiel, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_try_load_cache_partiel, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.batch_wrapper];
     }
     private get_parents_ctree_ddeps_get_node_deps(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_get_node_deps, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_get_node_deps, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.batch_wrapper];
     }
     private get_parents_ctree_ddeps_handle_pixellisation(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_handle_pixellisation, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [this.ctree_deploy_deps, var_dag.perfs.ctree_ddeps_handle_pixellisation, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.batch_wrapper];
     }
 
     private get_parents_load_nodes_datas(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.load_nodes_datas, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [var_dag.perfs.load_nodes_datas, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
     }
     private get_parents_compute_node(var_dag: VarDAG) {
-        return [this.ctree_deploy_deps, var_dag.perfs.compute_node, var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree];
+        return [var_dag.perfs.compute_node, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
     }
 }

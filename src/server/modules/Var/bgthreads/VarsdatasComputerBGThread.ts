@@ -1,13 +1,18 @@
 import { performance } from 'perf_hooks';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
+import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
+import VarBatchNodePerfVO from '../../../../shared/modules/Var/vos/VarBatchNodePerfVO';
 import VarBatchPerfVO from '../../../../shared/modules/Var/vos/VarBatchPerfVO';
+import VarBatchVarPerfVO from '../../../../shared/modules/Var/vos/VarBatchVarPerfVO';
 import VarComputeTimeLearnBaseVO from '../../../../shared/modules/Var/vos/VarComputeTimeLearnBaseVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
+import VarNodePerfElementVO from '../../../../shared/modules/Var/vos/VarNodePerfElementVO';
+import VarPerfElementVO from '../../../../shared/modules/Var/vos/VarPerfElementVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../../shared/tools/MatroidIndexHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -15,8 +20,10 @@ import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
+import VarDagPerfsServerController from '../VarDagPerfsServerController';
 import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
@@ -179,8 +186,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         try {
 
-            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:Starting...");
-
             VarsdatasComputerBGThread.getInstance().current_batch_id++;
             VarsdatasComputerBGThread.getInstance().is_computing = true;
             VarsdatasComputerBGThread.getInstance().current_batch_params = {};
@@ -189,7 +194,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             let var_dag: VarDAG = new VarDAG(VarsdatasComputerBGThread.getInstance().current_batch_id);
             VarsdatasComputerBGThread.getInstance().current_batch_vardag = var_dag;
 
-            var_dag.perfs.start();
+            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
 
             /**
              * On invalide les vars si des intersecteurs sont en attente
@@ -206,15 +211,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              * On dépile les CUD sur les VOs et faire les invalidations
              */
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasVoUpdateHandler.handle_buffer:IN");
-            }
-
             let refuse_computation = await this.varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag);
-
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:VarsDatasVoUpdateHandler.handle_buffer:OUT");
-            }
 
             /**
              * Fonctionnement :
@@ -235,9 +232,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 did_something = await this.do_computation(var_dag);
             }
 
-            if (refuse_computation || !did_something) {
+            if (!did_something) {
 
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:refuse_computation:' + refuse_computation + ':or !did_something:' + !did_something + ':');
+                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something:refuse_computation:' + refuse_computation + ':');
 
                 if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
                     this.run_asap = true;
@@ -252,15 +249,96 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 }
             }
 
-            var_dag.perfs.end();
-            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread.do_calculation_run:Ended");
-
+            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
+            await this.save_last_dag_perfs(var_dag);
         } catch (error) {
             console.error(error);
         }
 
         this.run_asap = true;
         this.semaphore = false;
+    }
+
+    /**
+     * Objectif : on prend le dernier var_dag et on save en base les perfs pour que
+     *  le cron en charge de recalculer les params des varconfs/varcacheconf puisse le faire tranquillement par la suite
+     * Quand le batch est en cours, on construit les infos de chaque noeuds. à la fin on déduis de ces noeuds les varperfs
+     *  pour chaque var_id impliqué dans l'arbre (qui a des stats). Donc à la fin on sauvegarde à la fois le batch perfs et les vars perfs qui
+     *  font référence au batch perf
+     * Ensuite c'est un cron/bgthread (le cron a l'avantage d'être lançable à la main rapidement quand on a besoin) qui recalcule les
+     *  params des varconf et varcacheconf, en utilisant les x derniers varperfs qui sont liées à chaque var_id
+     */
+    private async save_last_dag_perfs(var_dag: VarDAG) {
+
+        let vardag_perfs = var_dag.perfs;
+        let vardag_perfs_res = await ModuleDAO.getInstance().insertOrUpdateVO(vardag_perfs);
+        if ((!vardag_perfs_res) || (!vardag_perfs_res.id)) {
+            ConsoleHandler.getInstance().error('Failed insert vardag_perfs_res:save_last_dag_perfs');
+            return;
+        }
+
+        vardag_perfs.id = vardag_perfs_res.id;
+
+        let all_var_perfs: { [var_id: number]: VarBatchVarPerfVO } = {};
+        for (let i in var_dag.nodes) {
+            let node = var_dag.nodes[i];
+
+            if ((!node) || (!node.perfs) || (!node.var_data)) {
+                continue;
+            }
+
+            let this_var_perfs = all_var_perfs[node.var_data.var_id];
+            if (!this_var_perfs) {
+                this_var_perfs = this.init_new_var_batch_var_perf_element(vardag_perfs.id, node.var_data.var_id);
+            }
+            this.add_var_node_perfs(node.perfs, this_var_perfs, node);
+        }
+
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(Object.values(all_var_perfs));
+    }
+
+    private init_new_var_batch_var_perf_element(var_batch_perf_id: number, var_id: number): VarBatchVarPerfVO {
+        let res = new VarBatchVarPerfVO();
+
+        res.var_batch_perf_id = var_batch_perf_id;
+        res.var_id = var_id;
+
+        res.ctree_ddeps_try_load_cache_complet = new VarPerfElementVO();
+        res.ctree_ddeps_load_imports_and_split_nodes = new VarPerfElementVO();
+        res.ctree_ddeps_try_load_cache_partiel = new VarPerfElementVO();
+        res.ctree_ddeps_get_node_deps = new VarPerfElementVO();
+        res.ctree_ddeps_handle_pixellisation = new VarPerfElementVO();
+
+        res.load_nodes_datas = new VarPerfElementVO();
+        res.compute_node = new VarPerfElementVO();
+        return res;
+    }
+
+    private add_var_node_perfs(add_this: VarBatchNodePerfVO, into: VarBatchVarPerfVO, node: VarDAGNode) {
+        this.add_var_node_perf_element(add_this.ctree_ddeps_get_node_deps, into.ctree_ddeps_get_node_deps, node);
+        this.add_var_node_perf_element(add_this.ctree_ddeps_handle_pixellisation, into.ctree_ddeps_handle_pixellisation, node);
+        this.add_var_node_perf_element(add_this.ctree_ddeps_load_imports_and_split_nodes, into.ctree_ddeps_load_imports_and_split_nodes, node);
+        this.add_var_node_perf_element(add_this.ctree_ddeps_try_load_cache_complet, into.ctree_ddeps_try_load_cache_complet, node);
+        this.add_var_node_perf_element(add_this.ctree_ddeps_try_load_cache_partiel, into.ctree_ddeps_try_load_cache_partiel, node);
+
+        this.add_var_node_perf_element(add_this.load_nodes_datas, into.load_nodes_datas, node);
+        this.add_var_node_perf_element(add_this.compute_node, into.compute_node, node);
+    }
+
+    private add_var_node_perf_element(add_this: VarNodePerfElementVO, into: VarPerfElementVO, node: VarDAGNode) {
+        if (into.realised_nb_calls == null) {
+            into.realised_nb_calls = 0;
+        }
+        if (into.realised_nb_card == null) {
+            into.realised_nb_card = 0;
+        }
+        if (into.realised_sum_ms == null) {
+            into.realised_sum_ms = 0;
+        }
+
+        into.realised_nb_calls++;
+        into.realised_nb_card += MatroidController.getInstance().get_cardinal(node.var_data);
+        into.realised_sum_ms += add_this.total_elapsed_time;
     }
 
     private async force_run_asap_throttled(): Promise<boolean> {
@@ -295,7 +373,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
 
-        var_dag.perfs.computation_wrapper.start('computation_wrapper');
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
 
         await VarsComputeController.getInstance().compute(); // PERF OK
         let indexes: string[] = [];
@@ -309,12 +387,12 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             }
         }
 
-        var_dag.perfs.computation_wrapper.end('computation_wrapper');
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
 
         await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
 
         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + var_dag.perfs.nb_batch_vars + '/' + var_dag.nb_nodes + ': vars : took [' +
-            (Math.round(var_dag.perfs.total_elapsed_time) / 1000) + ' sec] computing / [' + Math.round(var_dag.perfs.initial_estimated_time) / 1000 + ' sec] initially estimated');
+            (Math.round(var_dag.perfs.computation_wrapper.total_elapsed_time) / 1000) + ' sec] computing / [' + Math.round(var_dag.perfs.computation_wrapper.initial_estimated_work_time) / 1000 + ' sec] initially estimated');
 
         let did_something = var_dag && (var_dag.nb_nodes > 0);
         VarsdatasComputerBGThread.getInstance().is_computing = false;
@@ -335,27 +413,27 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     }
 
     private async handle_invalidate_intersectors_perf_wrapper(var_dag: VarDAG) {
-        var_dag.perfs.handle_invalidate_intersectors.start('handle_invalidate_intersectors');
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_invalidate_intersectors, 'handle_invalidate_intersectors');
         await VarsDatasVoUpdateHandler.getInstance().handle_invalidate_intersectors();
-        var_dag.perfs.handle_invalidate_intersectors.end('handle_invalidate_intersectors');
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_invalidate_intersectors, 'handle_invalidate_intersectors');
     }
 
     private async handle_invalidate_matroids_perf_wrapper(var_dag: VarDAG) {
-        var_dag.perfs.handle_invalidate_matroids.start('handle_invalidate_matroids');
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_invalidate_matroids, 'handle_invalidate_matroids');
         await VarsDatasVoUpdateHandler.getInstance().handle_invalidate_matroids();
-        var_dag.perfs.handle_invalidate_matroids.end('handle_invalidate_matroids');
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_invalidate_matroids, 'handle_invalidate_matroids');
     }
 
     private async varsdatas_proxy_handle_buffer_perf_wrapper(var_dag: VarDAG) {
-        var_dag.perfs.handle_buffer_varsdatasproxy.start('handle_buffer_varsdatasproxy');
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_buffer_varsdatasproxy, 'handle_buffer_varsdatasproxy');
         await VarsDatasProxy.getInstance().handle_buffer();
-        var_dag.perfs.handle_buffer_varsdatasproxy.end('handle_buffer_varsdatasproxy');
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_buffer_varsdatasproxy, 'handle_buffer_varsdatasproxy');
     }
 
     private async varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag: VarDAG): Promise<boolean> {
-        var_dag.perfs.handle_buffer_varsdatasvoupdate.start('handle_buffer_varsdatasvoupdate');
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_buffer_varsdatasvoupdate, 'handle_buffer_varsdatasvoupdate');
         let refuse_computation = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(); // PERF OK
-        var_dag.perfs.handle_buffer_varsdatasvoupdate.end('handle_buffer_varsdatasvoupdate');
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_buffer_varsdatasvoupdate, 'handle_buffer_varsdatasvoupdate');
         return refuse_computation;
     }
 }

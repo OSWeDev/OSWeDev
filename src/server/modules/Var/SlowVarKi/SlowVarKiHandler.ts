@@ -1,8 +1,7 @@
 import { cloneDeep } from 'lodash';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
@@ -15,7 +14,6 @@ import ReloadAsapForkMessage from '../../Fork/messages/ReloadAsapForkMessage';
 import ModuleForkServer from '../../Fork/ModuleForkServer';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import NotifVardatasParam from '../notifs/NotifVardatasParam';
-import VarsComputeController from '../VarsComputeController';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
 import VarsServerCallBackSubsController from '../VarsServerCallBackSubsController';
 import VarsTabsSubsController from '../VarsTabsSubsController';
@@ -102,14 +100,14 @@ export default class SlowVarKiHandler {
         filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
         filter.param_numeric = SlowVarVO.TYPE_TESTING;
 
-        let query: ContextQueryVO = new ContextQueryVO();
-        query.base_api_type_id = SlowVarVO.API_TYPE_ID;
-        query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
-        query.filters = [filter];
-        query.query_limit = 0;
-        query.query_offset = 0;
+        let query_: ContextQueryVO = new ContextQueryVO();
+        query_.base_api_type_id = SlowVarVO.API_TYPE_ID;
+        query_.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
+        query_.filters = [filter];
+        query_.query_limit = 0;
+        query_.query_offset = 0;
 
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
+        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query_);
 
         if (items && items.length) {
 
@@ -129,22 +127,10 @@ export default class SlowVarKiHandler {
          * 2 on trouve le premier totest en attente
          */
 
-
-        let filter = new ContextFilterVO();
-        filter.field_id = 'type';
-        filter.vo_type = SlowVarVO.API_TYPE_ID;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
-        filter.param_numeric = SlowVarVO.TYPE_NEEDS_TEST;
-
-        let query: ContextQueryVO = new ContextQueryVO();
-        query.base_api_type_id = SlowVarVO.API_TYPE_ID;
-        query.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
-        query.filters = [filter];
-        query.query_limit = 1;
-        query.query_offset = 0;
-        query.set_sort(new SortByVO(SlowVarVO.API_TYPE_ID, 'computation_ts', false));
-
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query);
+        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID)
+            .filter_by_num_eq('type', SlowVarVO.TYPE_NEEDS_TEST)
+            .set_limit(1)
+            .select_vos<SlowVarVO>();
 
         if (items && items.length) {
             let slow_var: SlowVarVO = items[0];

@@ -1,7 +1,5 @@
-import ConfigurationService from '../../../../server/env/ConfigurationService';
-import ConsoleHandler from '../../../tools/ConsoleHandler';
 import IDistantVOBase from '../../IDistantVOBase';
-import VarBatchVarPerfVO from './VarBatchVarPerfVO';
+import VarDAG from '../graph/VarDAG';
 import VarNodePerfElementVO from './VarNodePerfElementVO';
 
 export default class VarBatchPerfVO implements IDistantVOBase {
@@ -12,16 +10,16 @@ export default class VarBatchPerfVO implements IDistantVOBase {
 
     public batch_id: number;
 
-    public computation_wrapper: VarNodePerfElementVO;
-
-    public var_perfs: VarBatchVarPerfVO[];
-
+    public batch_wrapper: VarNodePerfElementVO;
+    //+ batch_wrapper
     public handle_invalidate_intersectors: VarNodePerfElementVO;
     public handle_invalidate_matroids: VarNodePerfElementVO;
 
     public handle_buffer_varsdatasproxy: VarNodePerfElementVO;
     public handle_buffer_varsdatasvoupdate: VarNodePerfElementVO;
 
+    public computation_wrapper: VarNodePerfElementVO;
+    //+ computation_wrapper
     public create_tree: VarNodePerfElementVO;
     public ctree_deploy_deps: VarNodePerfElementVO;
     public ctree_ddeps_try_load_cache_complet: VarNodePerfElementVO;
@@ -33,36 +31,169 @@ export default class VarBatchPerfVO implements IDistantVOBase {
     public load_nodes_datas: VarNodePerfElementVO;
     public compute_node_wrapper: VarNodePerfElementVO;
     public compute_node: VarNodePerfElementVO;
+    //- computation_wrapper
 
     public cache_datas: VarNodePerfElementVO;
-
-    // Les estimations concernent la partie centrale, les vars : create_tree + load_nodes_datas + compute_node
-
-    public initial_estimated_time: number;
-    public start_time: number;
-    public current_estimated_remaining_time: number;
-    public total_elapsed_time: number;
-    public end_time: number;
+    //- batch_wrapper
 
     /**
      * Nombre de vars qu'on essaie vraiment de résoudre à la base
      */
     public nb_batch_vars: number;
 
-    public start() {
-        this.start_time = performance.now();
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread:VarBatchPerfVO:start");
-        }
+    public skip_handle_invalidate_intersectors(var_dag: VarDAG) {
+        this.handle_invalidate_intersectors.skip_and_update_parents_perfs(this.get_parents_handle_invalidate_intersectors(var_dag));
+    }
+    public init_estimated_work_time_handle_invalidate_intersectors(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_invalidate_intersectors.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_invalidate_intersectors(var_dag));
+    }
+    public update_estimated_work_time_handle_invalidate_intersectors(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_invalidate_intersectors.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_invalidate_intersectors(var_dag));
+    }
+    public skip_handle_invalidate_matroids(var_dag: VarDAG) {
+        this.handle_invalidate_matroids.skip_and_update_parents_perfs(this.get_parents_handle_invalidate_matroids(var_dag));
+    }
+    public init_estimated_work_time_handle_invalidate_matroids(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_invalidate_matroids.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_invalidate_matroids(var_dag));
+    }
+    public update_estimated_work_time_handle_invalidate_matroids(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_invalidate_matroids.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_invalidate_matroids(var_dag));
     }
 
-    public end() {
-        this.end_time = performance.now();
-        this.total_elapsed_time = this.end_time - this.start_time;
+    public skip_handle_buffer_varsdatasproxy(var_dag: VarDAG) {
+        this.handle_buffer_varsdatasproxy.skip_and_update_parents_perfs(this.get_parents_handle_buffer_varsdatasproxy(var_dag));
+    }
+    public init_estimated_work_time_handle_buffer_varsdatasproxy(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_buffer_varsdatasproxy.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_buffer_varsdatasproxy(var_dag));
+    }
+    public update_estimated_work_time_handle_buffer_varsdatasproxy(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_buffer_varsdatasproxy.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_buffer_varsdatasproxy(var_dag));
+    }
+    public skip_handle_buffer_varsdatasvoupdate(var_dag: VarDAG) {
+        this.handle_buffer_varsdatasvoupdate.skip_and_update_parents_perfs(this.get_parents_handle_buffer_varsdatasvoupdate(var_dag));
+    }
+    public init_estimated_work_time_handle_buffer_varsdatasvoupdate(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_buffer_varsdatasvoupdate.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_buffer_varsdatasvoupdate(var_dag));
+    }
+    public update_estimated_work_time_handle_buffer_varsdatasvoupdate(estimated_work_time: number, var_dag: VarDAG) {
+        this.handle_buffer_varsdatasvoupdate.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_handle_buffer_varsdatasvoupdate(var_dag));
+    }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log("VarsdatasComputerBGThread:VarBatchPerfVO:end");
-        }
+
+    public skip_ctree_ddeps_try_load_cache_complet(var_dag: VarDAG) {
+        this.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(this.get_parents_ctree_ddeps_try_load_cache_complet(var_dag));
+    }
+    public init_estimated_work_time_ctree_ddeps_try_load_cache_complet(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_try_load_cache_complet.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_try_load_cache_complet(var_dag));
+    }
+    public update_estimated_work_time_ctree_ddeps_try_load_cache_complet(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_try_load_cache_complet.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_try_load_cache_complet(var_dag));
+    }
+
+    public skip_ctree_ddeps_load_imports_and_split_nodes(var_dag: VarDAG) {
+        this.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(this.get_parents_ctree_ddeps_load_imports_and_split_nodes(var_dag));
+    }
+    public init_estimated_work_time_ctree_ddeps_load_imports_and_split_nodes(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_load_imports_and_split_nodes.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_load_imports_and_split_nodes(var_dag));
+    }
+    public update_estimated_work_time_ctree_ddeps_load_imports_and_split_nodes(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_load_imports_and_split_nodes.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_load_imports_and_split_nodes(var_dag));
+    }
+
+    public skip_ctree_ddeps_try_load_cache_partiel(var_dag: VarDAG) {
+        this.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(this.get_parents_ctree_ddeps_try_load_cache_partiel(var_dag));
+    }
+    public init_estimated_work_time_ctree_ddeps_try_load_cache_partiel(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_try_load_cache_partiel.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_try_load_cache_partiel(var_dag));
+    }
+    public update_estimated_work_time_ctree_ddeps_try_load_cache_partiel(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_try_load_cache_partiel.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_try_load_cache_partiel(var_dag));
+    }
+
+    public skip_ctree_ddeps_get_node_deps(var_dag: VarDAG) {
+        this.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(this.get_parents_ctree_ddeps_get_node_deps(var_dag));
+    }
+    public init_estimated_work_time_ctree_ddeps_get_node_deps(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_get_node_deps.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_get_node_deps(var_dag));
+    }
+    public update_estimated_work_time_ctree_ddeps_get_node_deps(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_get_node_deps.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_get_node_deps(var_dag));
+    }
+
+    public skip_ctree_ddeps_handle_pixellisation(var_dag: VarDAG) {
+        this.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(this.get_parents_ctree_ddeps_handle_pixellisation(var_dag));
+    }
+    public init_estimated_work_time_ctree_ddeps_handle_pixellisation(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_handle_pixellisation.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_handle_pixellisation(var_dag));
+    }
+    public update_estimated_work_time_ctree_ddeps_handle_pixellisation(estimated_work_time: number, var_dag: VarDAG) {
+        this.ctree_ddeps_handle_pixellisation.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_ctree_ddeps_handle_pixellisation(var_dag));
+    }
+
+
+
+    public skip_load_nodes_datas(var_dag: VarDAG) {
+        this.load_nodes_datas.skip_and_update_parents_perfs(this.get_parents_load_nodes_datas(var_dag));
+    }
+    public init_estimated_work_time_load_nodes_datas(estimated_work_time: number, var_dag: VarDAG) {
+        this.load_nodes_datas.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_load_nodes_datas(var_dag));
+    }
+    public update_estimated_work_time_load_nodes_datas(estimated_work_time: number, var_dag: VarDAG) {
+        this.load_nodes_datas.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_load_nodes_datas(var_dag));
+    }
+
+    public skip_compute_node(var_dag: VarDAG) {
+        this.compute_node.skip_and_update_parents_perfs(this.get_parents_compute_node(var_dag));
+    }
+    public init_estimated_work_time_compute_node(estimated_work_time: number, var_dag: VarDAG) {
+        this.compute_node.init_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_compute_node(var_dag));
+    }
+    public update_estimated_work_time_compute_node(estimated_work_time: number, var_dag: VarDAG) {
+        this.compute_node.update_estimated_work_time_and_update_parents_perfs(estimated_work_time, this.get_parents_compute_node(var_dag));
+    }
+
+
+
+
+
+
+
+    private get_parents_handle_invalidate_intersectors(var_dag: VarDAG) {
+        return [var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_handle_invalidate_matroids(var_dag: VarDAG) {
+        return [var_dag.perfs.batch_wrapper];
+    }
+
+    private get_parents_handle_buffer_varsdatasproxy(var_dag: VarDAG) {
+        return [var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_handle_buffer_varsdatasvoupdate(var_dag: VarDAG) {
+        return [var_dag.perfs.batch_wrapper];
+    }
+
+
+    private get_parents_ctree_ddeps_try_load_cache_complet(var_dag: VarDAG) {
+        return [var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_ctree_ddeps_load_imports_and_split_nodes(var_dag: VarDAG) {
+        return [var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_ctree_ddeps_try_load_cache_partiel(var_dag: VarDAG) {
+        return [var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_ctree_ddeps_get_node_deps(var_dag: VarDAG) {
+        return [var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_ctree_ddeps_handle_pixellisation(var_dag: VarDAG) {
+        return [var_dag.perfs.ctree_deploy_deps, var_dag.perfs.create_tree, var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
+    }
+
+    private get_parents_load_nodes_datas(var_dag: VarDAG) {
+        return [var_dag.perfs.computation_wrapper, var_dag.perfs.batch_wrapper];
+    }
+    private get_parents_compute_node(var_dag: VarDAG) {
+        return [var_dag.perfs.computation_wrapper, var_dag.perfs.compute_node_wrapper, var_dag.perfs.batch_wrapper];
     }
 }
