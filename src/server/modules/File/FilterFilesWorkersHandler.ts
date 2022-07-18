@@ -6,8 +6,8 @@ import ModuleCronServer from "../Cron/ModuleCronServer";
 
 export default class FilterFilesWorkersHandler {
 
-    public static getInstance(){
-        if(!FilterFilesWorkersHandler.instance){
+    public static getInstance() {
+        if (!FilterFilesWorkersHandler.instance) {
             FilterFilesWorkersHandler.instance = new FilterFilesWorkersHandler();
         }
         return FilterFilesWorkersHandler.instance
@@ -15,18 +15,18 @@ export default class FilterFilesWorkersHandler {
 
     private static instance: FilterFilesWorkersHandler = null;
 
-    private constructor(){
+    private constructor() {
 
         ModuleCronServer.getInstance().registerCronWorker(FilterFilesCronWorker.getInstance());
 
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
         planCronWorker.date_heure_planifiee = null;
-        planCronWorker.intervale_recurrence = 0;
+        planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = FilterFilesCronWorker.getInstance().worker_uid;
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_MINUTES;
         planCronWorker.worker_uid = FilterFilesCronWorker.getInstance().worker_uid;
 
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error)=> ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
     }
 }
