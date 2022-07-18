@@ -127,6 +127,8 @@ export default class VarsDatasProxy {
 
                 if (varsdata) {
 
+                    let vars_data_to_prepend: VarDataBaseVO[] = [];
+
                     varsdata.forEach((vardata) => {
                         if (VarsServerController.getInstance().has_valid_value(vardata)) {
 
@@ -145,16 +147,16 @@ export default class VarsDatasProxy {
                                 );
                             }
                         }
-                    });
 
-                    // On insère quand même dans le cache par ce qu'on veut stocker l'info du read
-                    for (let i in varsdata) {
-                        let vardata = varsdata[i];
                         let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[vardata.var_id];
 
                         if (var_cache_conf.use_cache_read_ms_to_partial_clean) {
-                            await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                            vars_data_to_prepend.push(vardata);
                         }
+                    });
+
+                    if (vars_data_to_prepend.length > 0) {
+                        await VarsDatasProxy.getInstance().prepend_var_datas(vars_data_to_prepend, true);
                     }
                 }
 
