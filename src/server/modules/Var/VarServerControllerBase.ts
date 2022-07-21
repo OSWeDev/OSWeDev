@@ -12,6 +12,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
+import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
@@ -211,15 +212,23 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
         let dag: VarDAG = new VarDAG(null);
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController);
+
+        if (!varDAGNode) {
+            return null;
+        }
 
         let deps = this.getParamDependencies(varDAGNode);
 
         for (let i in deps) {
-            let dep = deps[i];
             let dep_value = deps_values ? deps_values[i] : undefined;
 
-            varDAGNode.addOutgoingDep(i, VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value })));
+            let var_dag_node_dep = VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController);
+            if (!var_dag_node_dep) {
+                return null;
+            }
+
+            varDAGNode.addOutgoingDep(i, var_dag_node_dep);
         }
 
         varDAGNode.datasources = datasources;

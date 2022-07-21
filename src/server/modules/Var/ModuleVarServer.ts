@@ -1272,7 +1272,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let dag: VarDAG = new VarDAG(null);
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController);
+
+        if (!varDAGNode) {
+            return null;
+        }
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
         if (predeps) {
@@ -1294,7 +1298,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         };
         let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
-        let node = VarDAGNode.getInstance(var_dag, param);
+        let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController);
+
+        if (!node) {
+            return null;
+        }
+
         // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas, ds_cache);
         await VarsComputeController.getInstance().load_caches_and_imports_on_var_to_deploy(
             param,
@@ -1355,7 +1364,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
         let dag: VarDAG = new VarDAG(null);
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController);
+
+        if (!varDAGNode) {
+            return null;
+        }
 
         for (let i in datasources_deps) {
             let datasource_dep = datasources_deps[i];

@@ -247,15 +247,19 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
                     }
                 }
+            } else {
+                this.run_asap = true;
             }
 
             VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
+
+            this.log_perfs(var_dag);
+
             await this.save_last_dag_perfs(var_dag);
         } catch (error) {
             console.error(error);
         }
 
-        this.run_asap = true;
         this.semaphore = false;
     }
 
@@ -391,9 +395,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
 
-        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + var_dag.perfs.nb_batch_vars + '/' + var_dag.nb_nodes + ': vars : took [' +
-            (Math.round(var_dag.perfs.computation_wrapper.total_elapsed_time) / 1000) + ' sec] computing / [' + Math.round(var_dag.perfs.computation_wrapper.initial_estimated_work_time) / 1000 + ' sec] initially estimated');
-
         let did_something = var_dag && (var_dag.nb_nodes > 0);
         VarsdatasComputerBGThread.getInstance().is_computing = false;
         VarsdatasComputerBGThread.getInstance().current_batch_params = {};
@@ -435,5 +436,49 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         let refuse_computation = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(); // PERF OK
         VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_buffer_varsdatasvoupdate, 'handle_buffer_varsdatasvoupdate');
         return refuse_computation;
+    }
+
+    private log_perfs(var_dag: VarDAG) {
+        let batch_wrapper_total_elapsed_time = Math.round(var_dag.perfs.batch_wrapper.total_elapsed_time ? var_dag.perfs.batch_wrapper.total_elapsed_time : 0) / 1000;
+        let batch_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.batch_wrapper.initial_estimated_work_time ? var_dag.perfs.batch_wrapper.initial_estimated_work_time : 0) / 1000;
+
+        let handle_invalidate_intersectors_total_elapsed_time = Math.round(var_dag.perfs.handle_invalidate_intersectors.total_elapsed_time ? var_dag.perfs.handle_invalidate_intersectors.total_elapsed_time : 0) / 1000;
+        let handle_invalidate_intersectors_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidate_intersectors.initial_estimated_work_time ? var_dag.perfs.handle_invalidate_intersectors.initial_estimated_work_time : 0) / 1000;
+
+        let handle_invalidate_matroids_total_elapsed_time = Math.round(var_dag.perfs.handle_invalidate_matroids.total_elapsed_time ? var_dag.perfs.handle_invalidate_matroids.total_elapsed_time : 0) / 1000;
+        let handle_invalidate_matroids_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidate_matroids.initial_estimated_work_time ? var_dag.perfs.handle_invalidate_matroids.initial_estimated_work_time : 0) / 1000;
+
+        let handle_buffer_varsdatasproxy_total_elapsed_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.total_elapsed_time ? var_dag.perfs.handle_buffer_varsdatasproxy.total_elapsed_time : 0) / 1000;
+        let handle_buffer_varsdatasproxy_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time ? var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time : 0) / 1000;
+
+        let handle_buffer_varsdatasvoupdate_total_elapsed_time = Math.round(var_dag.perfs.handle_buffer_varsdatasvoupdate.total_elapsed_time ? var_dag.perfs.handle_buffer_varsdatasvoupdate.total_elapsed_time : 0) / 1000;
+        let handle_buffer_varsdatasvoupdate_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasvoupdate.initial_estimated_work_time ? var_dag.perfs.handle_buffer_varsdatasvoupdate.initial_estimated_work_time : 0) / 1000;
+
+        let computation_wrapper_total_elapsed_time = Math.round(var_dag.perfs.computation_wrapper.total_elapsed_time ? var_dag.perfs.computation_wrapper.total_elapsed_time : 0) / 1000;
+        let computation_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.computation_wrapper.initial_estimated_work_time ? var_dag.perfs.computation_wrapper.initial_estimated_work_time : 0) / 1000;
+
+        let create_tree_total_elapsed_time = Math.round(var_dag.perfs.create_tree.total_elapsed_time ? var_dag.perfs.create_tree.total_elapsed_time : 0) / 1000;
+        let create_tree_initial_estimated_work_time = Math.round(var_dag.perfs.create_tree.initial_estimated_work_time ? var_dag.perfs.create_tree.initial_estimated_work_time : 0) / 1000;
+
+        let load_nodes_datas_total_elapsed_time = Math.round(var_dag.perfs.load_nodes_datas.total_elapsed_time ? var_dag.perfs.load_nodes_datas.total_elapsed_time : 0) / 1000;
+        let load_nodes_datas_initial_estimated_work_time = Math.round(var_dag.perfs.load_nodes_datas.initial_estimated_work_time ? var_dag.perfs.load_nodes_datas.initial_estimated_work_time : 0) / 1000;
+
+        let compute_node_wrapper_total_elapsed_time = Math.round(var_dag.perfs.compute_node_wrapper.total_elapsed_time ? var_dag.perfs.compute_node_wrapper.total_elapsed_time : 0) / 1000;
+        let compute_node_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.compute_node_wrapper.initial_estimated_work_time ? var_dag.perfs.compute_node_wrapper.initial_estimated_work_time : 0) / 1000;
+
+        let cache_datas_total_elapsed_time = Math.round(var_dag.perfs.cache_datas.total_elapsed_time ? var_dag.perfs.cache_datas.total_elapsed_time : 0) / 1000;
+        let cache_datas_initial_estimated_work_time = Math.round(var_dag.perfs.cache_datas.initial_estimated_work_time ? var_dag.perfs.cache_datas.initial_estimated_work_time : 0) / 1000;
+
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed : [' + var_dag.perfs.nb_batch_vars + '] registered / [' + var_dag.nb_nodes + '] all vars - took :');
+        ConsoleHandler.getInstance().log('    [' + batch_wrapper_total_elapsed_time + ' sec] globally' + (batch_wrapper_initial_estimated_work_time ? ' / [' + batch_wrapper_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + handle_invalidate_intersectors_total_elapsed_time + ' sec] invalidating by intersectors' + (handle_invalidate_intersectors_initial_estimated_work_time ? ' / [' + handle_invalidate_intersectors_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + handle_invalidate_matroids_total_elapsed_time + ' sec] invalidating matroids' + (handle_invalidate_matroids_initial_estimated_work_time ? ' / [' + handle_invalidate_matroids_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + handle_buffer_varsdatasproxy_total_elapsed_time + ' sec] saving cache to bdd' + (handle_buffer_varsdatasproxy_initial_estimated_work_time ? ' / [' + handle_buffer_varsdatasproxy_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + handle_buffer_varsdatasvoupdate_total_elapsed_time + ' sec] invalidating datas (generates intersectors)' + (handle_buffer_varsdatasvoupdate_initial_estimated_work_time ? ' / [' + handle_buffer_varsdatasvoupdate_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + computation_wrapper_total_elapsed_time + ' sec] building tree & computing' + (computation_wrapper_initial_estimated_work_time ? ' / [' + computation_wrapper_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('        [' + create_tree_total_elapsed_time + ' sec] building tree' + (create_tree_initial_estimated_work_time ? ' / [' + create_tree_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('        [' + load_nodes_datas_total_elapsed_time + ' sec] loading datas' + (load_nodes_datas_initial_estimated_work_time ? ' / [' + load_nodes_datas_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('        [' + compute_node_wrapper_total_elapsed_time + ' sec] computing' + (compute_node_wrapper_initial_estimated_work_time ? ' / [' + compute_node_wrapper_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + cache_datas_total_elapsed_time + ' sec] caching datas' + (cache_datas_initial_estimated_work_time ? ' / [' + cache_datas_initial_estimated_work_time + ' sec] initially estimated' : ''));
     }
 }

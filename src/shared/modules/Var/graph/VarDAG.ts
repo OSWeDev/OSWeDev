@@ -1,4 +1,5 @@
 import VarBatchPerfVO from "../vos/VarBatchPerfVO";
+import VarNodeParentPerfVO from "../vos/VarNodeParentPerfVO";
 import VarNodePerfElementVO from "../vos/VarNodePerfElementVO";
 import DAG from "./dagbase/DAG";
 import VarDAGNode from "./VarDAGNode";
@@ -14,24 +15,20 @@ export default class VarDAG extends DAG<VarDAGNode> {
         this.perfs = new VarBatchPerfVO();
         this.perfs.batch_id = batch_id;
 
-        this.perfs.batch_wrapper = new VarNodePerfElementVO();
+        this.perfs.batch_wrapper = new VarNodePerfElementVO(null, 'batch_wrapper', this);
 
-        this.perfs.computation_wrapper = new VarNodePerfElementVO();
+        this.perfs.handle_invalidate_intersectors = new VarNodePerfElementVO(null, 'handle_invalidate_intersectors', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
+        this.perfs.handle_invalidate_matroids = new VarNodePerfElementVO(null, 'handle_invalidate_matroids', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
+        this.perfs.handle_buffer_varsdatasproxy = new VarNodePerfElementVO(null, 'handle_buffer_varsdatasproxy', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
+        this.perfs.handle_buffer_varsdatasvoupdate = new VarNodePerfElementVO(null, 'handle_buffer_varsdatasvoupdate', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
 
-        this.perfs.handle_invalidate_intersectors = new VarNodePerfElementVO();
-        this.perfs.handle_invalidate_matroids = new VarNodePerfElementVO();
-        this.perfs.handle_buffer_varsdatasproxy = new VarNodePerfElementVO();
-        this.perfs.handle_buffer_varsdatasvoupdate = new VarNodePerfElementVO();
-        this.perfs.create_tree = new VarNodePerfElementVO();
-        this.perfs.ctree_deploy_deps = new VarNodePerfElementVO();
-        this.perfs.ctree_ddeps_try_load_cache_complet = new VarNodePerfElementVO();
-        this.perfs.ctree_ddeps_load_imports_and_split_nodes = new VarNodePerfElementVO();
-        this.perfs.ctree_ddeps_try_load_cache_partiel = new VarNodePerfElementVO();
-        this.perfs.ctree_ddeps_get_node_deps = new VarNodePerfElementVO();
-        this.perfs.ctree_ddeps_handle_pixellisation = new VarNodePerfElementVO();
-        this.perfs.load_nodes_datas = new VarNodePerfElementVO();
-        this.perfs.compute_node = new VarNodePerfElementVO();
-        this.perfs.cache_datas = new VarNodePerfElementVO();
+        this.perfs.computation_wrapper = new VarNodePerfElementVO(null, 'computation_wrapper', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
+
+        this.perfs.create_tree = new VarNodePerfElementVO(null, 'create_tree', this, VarNodeParentPerfVO.create_new(null, 'computation_wrapper'));
+        this.perfs.load_nodes_datas = new VarNodePerfElementVO(null, 'load_nodes_datas', this, VarNodeParentPerfVO.create_new(null, 'computation_wrapper'));
+        this.perfs.compute_node_wrapper = new VarNodePerfElementVO(null, 'compute_node_wrapper', this, VarNodeParentPerfVO.create_new(null, 'computation_wrapper'));
+
+        this.perfs.cache_datas = new VarNodePerfElementVO(null, 'cache_datas', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
 
         this.perfs.nb_batch_vars = 0;
     }

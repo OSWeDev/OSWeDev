@@ -92,6 +92,46 @@ export default class SlowVarKiHandler {
         }
     }
 
+    /**
+     * Récupérer la liste des vars qui devaient être calculées et les stocker en base comme slow var à tester,
+     *  ou si une seule comme slow var denied
+     */
+    public async insertSlowVarsBatchInBDD(select_vars: VarDataBaseVO[] = null) {
+
+        select_vars = select_vars ? select_vars : (VarsdatasComputerBGThread.getInstance().current_batch_params ? Object.values(VarsdatasComputerBGThread.getInstance().current_batch_params) : null);
+
+        if ((!select_vars) || (!select_vars.length)) {
+            return;
+        }
+
+        let current_batch_vardag = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
+        let is_single: boolean = select_vars.length == 1;
+        let computation_ts: number = Dates.now();
+        for (let i in select_vars) {
+
+            let computed_var = select_vars[i];
+
+            let slowVar = new SlowVarVO();
+            slowVar.name = computed_var.index;
+            slowVar.var_id = computed_var.var_id;
+
+            if (current_batch_vardag && current_batch_vardag.nodes[computed_var.index]) {
+                let node = current_batch_vardag.nodes[computed_var.index];
+                if (node.perfs) {
+                    slowVar.perfs = cloneDeep(node.perfs);
+                }
+            }
+
+            // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
+            if (is_single) {
+                await this.deny_slow_var(slowVar, computed_var, computation_ts);
+            } else {
+                slowVar.type = SlowVarVO.TYPE_NEEDS_TEST;
+                await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
+            }
+        }
+    }
+
     private async handle_stuck_slow_vars(): Promise<void> {
 
         let filter = new ContextFilterVO();
@@ -168,7 +208,7 @@ export default class SlowVarKiHandler {
 
         ConsoleHandler.getInstance().error('handleSlowVarBatch:insertSlowVarBatchInBDD...');
         try {
-            await SlowVarKiHandler.getInstance().insertSlowVarBatchInBDD();
+            await SlowVarKiHandler.getInstance().insertSlowVarsBatchInBDD();
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -200,46 +240,6 @@ export default class SlowVarKiHandler {
      */
     private async persistVOsCUD() {
         await VarsDatasVoUpdateHandler.getInstance().update_param();
-    }
-
-    /**
-     * Récupérer la liste des vars qui devaient être calculées et les stocker en base comme slow var à tester,
-     *  ou si une seule comme slow var denied
-     */
-    private async insertSlowVarBatchInBDD() {
-
-        let computed_vars: { [index: string]: VarDataBaseVO } = VarsdatasComputerBGThread.getInstance().current_batch_params;
-
-        if ((!computed_vars) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(computed_vars))) {
-            return;
-        }
-
-        let current_batch_vardag = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
-        let is_single: boolean = Object.keys(computed_vars).length == 1;
-        let computation_ts: number = Dates.now();
-        for (let i in computed_vars) {
-
-            let computed_var = computed_vars[i];
-
-            let slowVar = new SlowVarVO();
-            slowVar.name = computed_var.index;
-            slowVar.var_id = computed_var.var_id;
-
-            if (current_batch_vardag && current_batch_vardag.nodes[computed_var.index]) {
-                let node = current_batch_vardag.nodes[computed_var.index];
-                if (node.perfs) {
-                    slowVar.perfs = cloneDeep(node.perfs);
-                }
-            }
-
-            // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
-            if (is_single) {
-                await this.deny_slow_var(slowVar, computed_var, computation_ts);
-            } else {
-                slowVar.type = SlowVarVO.TYPE_NEEDS_TEST;
-                await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
-            }
-        }
     }
 
     private async deny_slow_var(slowVar: SlowVarVO, computed_var: VarDataBaseVO, computation_ts: number) {
