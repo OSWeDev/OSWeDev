@@ -1,4 +1,5 @@
 import { identity } from 'lodash';
+import ConfigurationService from '../../../../server/env/ConfigurationService';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import MatroidController from '../../Matroid/MatroidController';
 import VarBatchNodePerfVO from '../vos/VarBatchNodePerfVO';
@@ -15,16 +16,45 @@ export default class VarDAGNode extends DAGNodeBase {
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
      *  La value du noeud est celle du var_data passé en param, et donc si undefined le noeud est non calculé
      *  Le nom du noeud est l'index du var_data
+     * @param is_batch_var par défaut false, il faut mettre true uniquement pour indiquer que c'est une var demandée par soit le serveur soit le client. et normalement
+     *  c'est géré dans OSWedev
+     * @returns {VarDAGNode}
      */
-    public static getInstance(dag: VarDAG, var_data: VarDataBaseVO, varsComputeController): VarDAGNode {
-        if (!!dag.nodes[var_data.index]) {
-            return dag.nodes[var_data.index];
+    public static getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, varsComputeController, is_batch_var: boolean, already_tried_load_cache_complet: boolean = is_batch_var): VarDAGNode {
+
+        if (!!var_dag.nodes[var_data.index]) {
+            let res = var_dag.nodes[var_data.index];
+
+            let old_already_tried_load_cache_complet = res.already_tried_load_cache_complet;
+
+            // Le but est de savoir si on était un batch var ne serait-ce qu'une fois parmi les demandes de calcul de cette var
+            if (is_batch_var && !res.is_batch_var) {
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
+                        var_data.index + ': et qui n\'était pas un batch var, mais qui le devient');
+                }
+
+                // on a donc déjà checké en base de données si on pouvait trouver la var
+                res.already_tried_load_cache_complet = true;
+                res.is_batch_var = true;
+            }
+
+            // Si on a déjà enregistré les performances, on les conserve
+            if ((!old_already_tried_load_cache_complet) && already_tried_load_cache_complet && res.perfs &&
+                res.perfs.ctree_ddeps_try_load_cache_complet && (res.perfs.ctree_ddeps_try_load_cache_complet.end_time == null)) {
+
+                res.already_tried_load_cache_complet = true;
+                res.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(var_dag);
+            }
+
+            return res;
         }
 
         /**
          * Si on time out sur la création de l'arbre on refuse d'ajouter de nouveaux éléments
          */
-        if (dag.timed_out) {
+        if (var_dag.timed_out) {
             return null;
         }
 
@@ -36,7 +66,7 @@ export default class VarDAGNode extends DAGNodeBase {
             return null;
         }
 
-        return new VarDAGNode(dag, var_data/*, is_registered*/).linkToDAG(varsComputeController);
+        return (new VarDAGNode(var_dag, var_data/*, is_registered*/, is_batch_var)).linkToDAG(varsComputeController);
     }
 
     public perfs: VarBatchNodePerfVO = new VarBatchNodePerfVO();
@@ -89,8 +119,14 @@ export default class VarDAGNode extends DAGNodeBase {
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
-    private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO) {
+    private constructor(public var_dag: VarDAG, public var_data: VarDataBaseVO, is_batch_var: boolean) {
         super();
+
+        this.is_batch_var = is_batch_var;
+        if (is_batch_var) {
+            // on a donc déjà checké en base de données si on pouvait trouver la var
+            this.already_tried_load_cache_complet = true;
+        }
 
         this.perfs = new VarBatchNodePerfVO();
 
@@ -199,12 +235,12 @@ export default class VarDAGNode extends DAGNodeBase {
             this.var_dag.perfs.nb_batch_vars++;
         }
 
-        this.perfs.compute_node.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_compute_node(this.var_data), this.var_dag);
-        this.perfs.load_nodes_datas.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_load_nodes_datas(this.var_data), this.var_dag);
-        this.perfs.ctree_ddeps_get_node_deps.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_get_node_deps(this.var_data), this.var_dag);
-        this.perfs.ctree_ddeps_load_imports_and_split_nodes.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this.var_data), this.var_dag);
-        this.perfs.ctree_ddeps_try_load_cache_complet.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this.var_data), this.var_dag);
-        this.perfs.ctree_ddeps_try_load_cache_partiel.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_partiel(this.var_data), this.var_dag);
+        this.perfs.compute_node.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_compute_node(this), this.var_dag);
+        this.perfs.load_nodes_datas.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_load_nodes_datas(this), this.var_dag);
+        this.perfs.ctree_ddeps_get_node_deps.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_get_node_deps(this), this.var_dag);
+        this.perfs.ctree_ddeps_load_imports_and_split_nodes.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this), this.var_dag);
+        this.perfs.ctree_ddeps_try_load_cache_complet.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this), this.var_dag);
+        this.perfs.ctree_ddeps_try_load_cache_partiel.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_partiel(this), this.var_dag);
 
         if (!!this.var_data.value_ts) {
 

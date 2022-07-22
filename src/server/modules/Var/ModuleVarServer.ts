@@ -1272,7 +1272,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let dag: VarDAG = new VarDAG(null);
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController);
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
@@ -1298,7 +1298,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         };
         let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
-        let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController);
+        let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
 
         if (!node) {
             return null;
@@ -1364,7 +1364,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
         let dag: VarDAG = new VarDAG(null);
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController);
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;

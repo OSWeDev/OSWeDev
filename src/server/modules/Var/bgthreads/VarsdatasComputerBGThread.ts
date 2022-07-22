@@ -294,6 +294,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             let this_var_perfs = all_var_perfs[node.var_data.var_id];
             if (!this_var_perfs) {
                 this_var_perfs = this.init_new_var_batch_var_perf_element(vardag_perfs.id, node.var_data.var_id);
+                all_var_perfs[node.var_data.var_id] = this_var_perfs;
             }
             this.add_var_node_perfs(node.perfs, this_var_perfs, node);
         }

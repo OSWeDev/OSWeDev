@@ -40,7 +40,10 @@ export default class VarDagPerfsServerController {
             return res;
         }
 
-        return Math.max(0, ((!!nodeperfelement.updated_estimated_work_time && !!nodeperfelement.start_time) ? (nodeperfelement.start_time + nodeperfelement.updated_estimated_work_time) - performance.now() : 0));
+        return Math.max(0, (
+            ((!!nodeperfelement.updated_estimated_work_time) && !!nodeperfelement.start_time) ?
+                (nodeperfelement.start_time + nodeperfelement.updated_estimated_work_time) - performance.now() :
+                ((!!nodeperfelement.updated_estimated_work_time) ? nodeperfelement.updated_estimated_work_time : 0)));
     }
 
     public start_nodeperfelement(nodeperfelement: VarNodePerfElementVO, log_perf_name: string = null) {
@@ -48,8 +51,10 @@ export default class VarDagPerfsServerController {
 
         if (log_perf_name && ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread:VarNodePerfElementVO:" + log_perf_name + ":start" +
-                (nodeperfelement.initial_estimated_work_time != null ? ':initialestimated_work_time:' +
-                    (Math.round((nodeperfelement.initial_estimated_work_time ? nodeperfelement.initial_estimated_work_time : 0) * 100) / 100) + ' ms' : ''));
+                (nodeperfelement.initial_estimated_work_time != null ? ':initial_estimated_work_time:' +
+                    (Math.round((nodeperfelement.initial_estimated_work_time ? nodeperfelement.initial_estimated_work_time : 0) * 100) / 100) + ' ms' : '') +
+                (nodeperfelement.updated_estimated_work_time != null ? ':updated_estimated_work_time:' +
+                    (Math.round((nodeperfelement.updated_estimated_work_time ? nodeperfelement.updated_estimated_work_time : 0) * 100) / 100) + ' ms' : ''));
         }
     }
 
@@ -60,8 +65,11 @@ export default class VarDagPerfsServerController {
 
         if (log_perf_name && ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
             ConsoleHandler.getInstance().log("VarsdatasComputerBGThread:VarNodePerfElementVO:" + log_perf_name + ":end:elapsed:" +
-                (Math.round(nodeperfelement.total_elapsed_time * 100) / 100) + ' ms' + (nodeperfelement.initial_estimated_work_time != null ? ':initialestimated_work_time:' +
-                    (Math.round((nodeperfelement.initial_estimated_work_time ? nodeperfelement.initial_estimated_work_time : 0) * 100) / 100) + ' ms' : ''));
+                (Math.round(nodeperfelement.total_elapsed_time * 100) / 100) + ' ms' +
+                (nodeperfelement.initial_estimated_work_time != null ? ':initial_estimated_work_time:' +
+                    (Math.round((nodeperfelement.initial_estimated_work_time ? nodeperfelement.initial_estimated_work_time : 0) * 100) / 100) + ' ms' : '') +
+                (nodeperfelement.updated_estimated_work_time != null ? ':updated_estimated_work_time:' +
+                    (Math.round((nodeperfelement.updated_estimated_work_time ? nodeperfelement.updated_estimated_work_time : 0) * 100) / 100) + ' ms' : ''));
         }
     }
 }

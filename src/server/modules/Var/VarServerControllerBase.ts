@@ -212,7 +212,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
         let dag: VarDAG = new VarDAG(null);
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController);
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
@@ -223,7 +223,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         for (let i in deps) {
             let dep_value = deps_values ? deps_values[i] : undefined;
 
-            let var_dag_node_dep = VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController);
+            let var_dag_node_dep = VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
             if (!var_dag_node_dep) {
                 return null;
             }

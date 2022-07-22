@@ -21,7 +21,7 @@ describe('DAG', () => {
         let dag: VarDAG = new VarDAG(null);
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController);
+        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800,1577923200)]");
         expect(dagnodeA.aggregated_datas).to.deep.equal({});
@@ -39,7 +39,7 @@ describe('DAG', () => {
         expect(dag.roots).to.deep.equal({ "1_[[1577836800,1577923200)]": dagnodeA });
 
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController);
+        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200,1583020800)]");
         expect(dagnodeB.aggregated_datas).to.deep.equal({});
@@ -56,7 +56,7 @@ describe('DAG', () => {
         expect(dag.leafs).to.deep.equal({ "1_[[1577836800,1577923200)]": dagnodeA, "2_[[1580515200,1583020800)]": dagnodeB });
         expect(dag.roots).to.deep.equal({ "1_[[1577836800,1577923200)]": dagnodeA, "2_[[1580515200,1583020800)]": dagnodeB });
 
-        let dagnodeA_bis: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController);
+        let dagnodeA_bis: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         expect(dagnodeA_bis).to.equal(dagnodeA);
 
@@ -73,11 +73,11 @@ describe('DAG', () => {
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 
-        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController);
+        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
 
-        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController);
+        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
         expect(dag.nb_nodes).to.equal(2);
         expect(dag.nodes).to.deep.equal({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });

@@ -124,9 +124,11 @@ export default class SlowVarKiHandler {
 
             // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
             if (is_single) {
+                ConsoleHandler.getInstance().error('DENY SLOW VAR - ' + computed_var.index);
                 await this.deny_slow_var(slowVar, computed_var, computation_ts);
             } else {
                 slowVar.type = SlowVarVO.TYPE_NEEDS_TEST;
+                ConsoleHandler.getInstance().error('NEW SLOW VAR TO TEST - ' + computed_var.index);
                 await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
             }
         }

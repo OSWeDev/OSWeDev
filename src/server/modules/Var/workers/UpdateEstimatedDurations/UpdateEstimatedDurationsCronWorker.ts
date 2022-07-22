@@ -76,7 +76,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             ConsoleHandler.getInstance().warn('TODO:A supprimer ? Est-ce normal ? Comment éviter ? set_mean_estimation:' + mean_estimation + ':' + perf_name + ':' + JSON.stringify(last_x_perfs[0]));
             return;
         }
-        varcacheconf['estimated_' + perf_name + '_1k_card'] = mean_estimation;
+        varcacheconf['estimated_' + perf_name + '_1k_card'] = mean_estimation * 1000;
     }
 
     private get_mean_estimation(last_x_perfs: VarBatchVarPerfVO[], perf_name: string): number {

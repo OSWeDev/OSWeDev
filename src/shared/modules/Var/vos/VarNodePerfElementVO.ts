@@ -106,7 +106,12 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
             }
         }
 
+        this.sum_card = 0;
+        this.nb_calls = 0;
         this.updated_estimated_work_time = 0;
+        this.total_elapsed_time = 0;
+        this.start_time = null;
+        this.end_time = null;
         this.skipped = true;
     }
 
