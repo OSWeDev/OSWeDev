@@ -77,6 +77,7 @@ export default class FieldValueFilterWidgetOptions {
         public default_ts_range_values: TSRange,
         public default_boolean_values: number[],
         public hide_filter: boolean,
+        public no_inter_filter: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

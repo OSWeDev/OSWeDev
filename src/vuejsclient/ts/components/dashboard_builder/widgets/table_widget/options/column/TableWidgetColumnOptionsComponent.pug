@@ -125,6 +125,22 @@
                         :width="160"
                         :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
 
+                .is_nullable.mt-2
+                    toggle-button(
+                        @change="switch_is_nullable" 
+                        :value="column.is_nullable" 
+                        :sync="true"
+                        :width="320"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.is_nullable.show'), unchecked: label('table_widget_column_conf.editable_column.is_nullable.hide')}")
+
+                .show_tooltip.mt-2
+                    toggle-button(
+                        @change="switch_show_tooltip" 
+                        :value="column.show_tooltip" 
+                        :sync="true"
+                        :width="160"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
+
                 .filter_by_access
                     multiselect(
                         :preselect-first="false"

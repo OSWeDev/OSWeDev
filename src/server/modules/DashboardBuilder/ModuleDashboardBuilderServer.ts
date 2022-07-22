@@ -980,11 +980,27 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Aggréger les données" },
-            'table_widget_column_conf.editable_column.many_to_many_aggregate.show'
+            'table_widget_column_conf.editable_column.many_to_many_aggregate.show.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Aggréger les données" },
-            'table_widget_column_conf.editable_column.many_to_many_aggregate.hide'
+            'table_widget_column_conf.editable_column.many_to_many_aggregate.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
+            'table_widget_column_conf.editable_column.is_nullable.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
+            'table_widget_column_conf.editable_column.is_nullable.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher la popup" },
+            'table_widget_column_conf.editable_column.show_tooltip.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher la popup" },
+            'table_widget_column_conf.editable_column.show_tooltip.hide.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Période fixe (calendrier)" },
@@ -1040,6 +1056,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'au'
         }, 'ts_range_input.placeholder.date_fin.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Le filtre n'utilise pas le filtrage actif" },
+            'field_value_filter_widget_component.no_inter_filter.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

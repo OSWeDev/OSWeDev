@@ -19,8 +19,14 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import VarsCacheController from '../Var/VarsCacheController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import NotifVardatasParam from './notifs/NotifVardatasParam';
+import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
+import VarsComputeController from './VarsComputeController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
+import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
+import VarsTabsSubsController from './VarsTabsSubsController';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -53,7 +59,6 @@ export default class VarsDatasProxy {
     /**
      * Version liste pour prioriser les demandes
      */
-    public vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
     public vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     /**
@@ -97,8 +102,8 @@ export default class VarsDatasProxy {
                 return;
             }
 
-            for (let i in this.vars_datas_buffer) {
-                let var_data_wrapper = this.vars_datas_buffer[i];
+            for (let i in this.vars_datas_buffer_wrapped_indexes) {
+                let var_data_wrapper = this.vars_datas_buffer_wrapped_indexes[i];
 
                 if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
                     resolve(true);
@@ -129,6 +134,8 @@ export default class VarsDatasProxy {
 
                 if (varsdata) {
 
+                    let vars_data_to_prepend: VarDataBaseVO[] = [];
+
                     varsdata.forEach((vardata) => {
                         if (VarsServerController.getInstance().has_valid_value(vardata)) {
 
@@ -147,16 +154,16 @@ export default class VarsDatasProxy {
                                 );
                             }
                         }
-                    });
 
-                    // On insère quand même dans le cache par ce qu'on veut stocker l'info du read
-                    for (let i in varsdata) {
-                        let vardata = varsdata[i];
                         let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[vardata.var_id];
 
                         if (var_cache_conf.use_cache_read_ms_to_partial_clean) {
-                            await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                            vars_data_to_prepend.push(vardata);
                         }
+                    });
+
+                    if (vars_data_to_prepend.length > 0) {
+                        await VarsDatasProxy.getInstance().prepend_var_datas(vars_data_to_prepend, true);
                     }
                 }
 
@@ -368,6 +375,17 @@ export default class VarsDatasProxy {
                     /**
                      * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
                      */
+                    let to_notify: boolean = this.check_or_update_var_buffer(to_insert[i]);
+
+                    if (to_notify) {
+                        await VarsTabsSubsController.getInstance().notify_vardatas(
+                            [new NotifVardatasParam([to_insert[i]])]);
+                        await VarsServerCallBackSubsController.getInstance().notify_vardatas([to_insert[i]]);
+                    }
+
+                    /**
+                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                     */
                     this.check_or_update_var_buffer(to_insert[i]);
 
                     if (!wrapper) {
@@ -383,7 +401,6 @@ export default class VarsDatasProxy {
                     wrapper.update_timeout();
 
                     if (do_delete_from_cache_indexes[index]) {
-                        self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != index);
                         delete self.vars_datas_buffer_wrapped_indexes[index];
                     }
                 }
@@ -533,7 +550,7 @@ export default class VarsDatasProxy {
      * @returns true if there's at least one vardata waiting to be computed (having no valid value)
      */
     public has_vardata_waiting_for_computation(): boolean {
-        let vars_datas_buffer = this.vars_datas_buffer.filter((v) => !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes).filter((v) => !VarsServerController.getInstance().has_valid_value(v.var_data));
         return (!!vars_datas_buffer) && (vars_datas_buffer.length > 0);
     }
 
@@ -559,147 +576,14 @@ export default class VarsDatasProxy {
         );
     }
 
-    // Changement de logique, on construit l'arbre et petit à petit on dépile des vars en attente de calcul jusqu'à avoir épuisé le temps restant estimé acceptable
-    // /**
-    //  * On charge en priorité depuis le buffer, puisque si le client demande des calculs on va les mettre en priorité ici, avant de calculer puis les remettre en attente d'insertion en base
-    //  *  (dont en fait elles partent juste jamais)
-    //  * On utilise l'extimation de coût pour 1000 card pour se limiter au temps imposé (la dernière var prise dépasse du temps imposé)
-    //  * @param client_request_estimated_ms_limit poids de calcul autorisé (en ms estimées) pour des demandes issues du client
-    //  * @param bg_estimated_ms_limit poids de calcul autorisé (en ms estimées) pour des demandes issues d'une invalidation en bdd
-    //  */
-    // public async get_vars_to_compute_from_buffer_or_bdd(
-    //     client_request_estimated_ms_limit: number,
-    //     client_request_min_nb_vars: number,
-    //     bg_estimated_ms_limit: number,
-    //     bg_min_nb_vars: number
-    // ): Promise<{ [index: string]: VarDataBaseVO }> {
-
-    //     if (!BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
-    //         return;
-    //     }
-
-    //     return await PerfMonServerController.getInstance().monitor_async(
-    //         PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd],
-    //         async () => {
-
-    //             let res: { [index: string]: VarDataBaseVO } = {};
-    //             let estimated_ms: number = 0;
-    //             let nb_vars: number = 0;
-
-    //             /**
-    //              * Si c'est suite à un redémarrage on check si on a des vars en attente de test en BDD
-    //              *  Si c'est le cas on gère la première de ces vars, sinon on enlève le mode démarrage
-    //              */
-    //             let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await SlowVarKiHandler.getInstance().handle_slow_var_ki_start() : null;
-    //             if (vardata_to_test) {
-    //                 res[vardata_to_test.index] = vardata_to_test;
-    //                 ConsoleHandler.getInstance().log('get_vars_to_compute:1 SLOWVAR:' + vardata_to_test.index);
-    //                 return res;
-    //             }
-    //             VarsDatasProxy.getInstance().can_load_vars_to_test = false;
-
-    //             /**
-    //              * On commence par collecter le max de datas depuis le buffer : Les conditions de sélection d'un var :
-    //              *  - est-ce que la data a une valeur undefined ? oui => sélectionnée
-    //              *  - est-ce que la data peut expirer et a expiré ? oui => sélectionnée
-    //              */
-
-    //             /**
-    //              * On va présélectionner les vars_datas qui ont pas une valeur valide et qui sont issues du clients, puis celles sans valeur valide et issues d'ailleurs
-    //              */
-
-    //             estimated_ms = this.select_vars_from_buffer(
-    //                 (v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data),
-    //                 estimated_ms,
-    //                 client_request_estimated_ms_limit,
-    //                 nb_vars,
-    //                 client_request_min_nb_vars,
-    //                 res
-    //             );
-    //             if (estimated_ms >= client_request_min_nb_vars) {
-    //                 ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + Object.keys(res).length + ':estimated_ms:' + estimated_ms + ':');
-    //                 return res;
-    //             }
-
-    //             estimated_ms = this.select_vars_from_buffer(
-    //                 (v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data),
-    //                 estimated_ms,
-    //                 client_request_estimated_ms_limit,
-    //                 nb_vars,
-    //                 client_request_min_nb_vars,
-    //                 res
-    //             );
-
-    //             ConsoleHandler.getInstance().log(
-    //                 'get_vars_to_compute:buffer:nb:' + ((estimated_ms != null) ? Object.keys(res).length : 0) + ':estimated_ms:' + estimated_ms + ':');
-    //             return res;
-    //         },
-    //         this
-    //     );
-    // }
-
-    // /**
-    //  * @param condition
-    //  * @param estimated_ms
-    //  * @param client_request_estimated_ms_limit
-    //  * @param nb_vars
-    //  * @param client_request_min_nb_vars
-    //  * @param res
-    //  * @returns estimated_ms mis à jour si on a sélectionné des éléments, sinon null
-    //  */
-    // private select_vars_from_buffer(
-    //     condition: (v: VarDataProxyWrapperVO<VarDataBaseVO>) => boolean,
-    //     estimated_ms: number,
-    //     client_request_estimated_ms_limit: number,
-    //     nb_vars: number,
-    //     client_request_min_nb_vars: number,
-    //     res: { [index: string]: VarDataBaseVO }
-    // ): number {
-
-    //     let ordered_vars_datas_buffer = this.vars_datas_buffer.filter(condition);
-    //     this.order_vars_datas_buffer(ordered_vars_datas_buffer);
-
-    //     for (let i in ordered_vars_datas_buffer) {
-
-    //         if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
-    //             (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
-    //             ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
-    //             return estimated_ms;
-    //         }
-
-    //         let var_data_wrapper = ordered_vars_datas_buffer[i];
-    //         if (!condition(var_data_wrapper)) {
-    //             continue;
-    //         }
-
-    //         let estimated_ms_var = var_data_wrapper.estimated_ms;
-
-    //         // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
-    //         if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
-    //             continue;
-    //         }
-
-    //         nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
-    //         res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
-    //         estimated_ms += estimated_ms_var;
-    //         var_data_wrapper.is_requested = true;
-
-    //         // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
-    //         if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
-    //             return estimated_ms;
-    //         }
-    //     }
-
-    //     return estimated_ms;
-    // }
-
     private prepare_current_batch_ordered_pick_list() {
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
 
-        let ordered_client_vars_datas_buffer = this.vars_datas_buffer.filter((v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes);
+        let ordered_client_vars_datas_buffer = vars_datas_buffer.filter((v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_client_vars_datas_buffer);
 
-        let ordered_non_client_vars_datas_buffer = this.vars_datas_buffer.filter((v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let ordered_non_client_vars_datas_buffer = vars_datas_buffer.filter((v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_non_client_vars_datas_buffer);
 
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = ordered_client_vars_datas_buffer.concat(ordered_non_client_vars_datas_buffer);
@@ -766,7 +650,6 @@ export default class VarsDatasProxy {
                                 }
                                 wrapper.var_data = var_data;
                                 this.add_read_stat(wrapper);
-                                this.vars_datas_buffer[this.vars_datas_buffer.findIndex((e) => e.var_data.index == var_data.index)] = wrapper;
                                 // On push pas puisque c'était déjà en attente d'action
 
                                 // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
@@ -796,21 +679,6 @@ export default class VarsDatasProxy {
                         VarsdatasComputerBGThread.getInstance().force_run_asap();
                     }
                 }
-
-                if ((!donot_insert_if_absent) && res && res.length) {
-
-                    if (prepend) {
-                        this.vars_datas_buffer.unshift(...res);
-                    } else {
-                        this.vars_datas_buffer = this.vars_datas_buffer.concat(res);
-                    }
-                }
-
-                // } catch (error) {
-                //     ConsoleHandler.getInstance().error(error);
-                // } finally {
-                //     this.semaphore_handle_buffer = false;
-                // }
 
                 return res;
             },
@@ -907,37 +775,38 @@ export default class VarsDatasProxy {
         });
     }
 
-    // private order_vars_datas_buffer() {
+    private check_or_update_var_buffer(handle_var: VarDataBaseVO): boolean {
+        let var_data_buffer = this.vars_datas_buffer_wrapped_indexes[handle_var.index];
 
-    //     this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
-
-    //         return a.estimated_ms - b.estimated_ms;
-    //     });
-    // }
-
-    private check_or_update_var_buffer(handle_var: VarDataBaseVO) {
-
-        for (let i in this.vars_datas_buffer) {
-            let var_data_buffer = this.vars_datas_buffer[i];
-
-            if (var_data_buffer.var_data.index != handle_var.index) {
-                continue;
-            }
-
-            if (
-                (var_data_buffer.var_data.value != handle_var.value) ||
-                (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
-                (var_data_buffer.var_data.value_type != handle_var.value_type)) {
-                ConsoleHandler.getInstance().error(
-                    'check_or_update_var_buffer:incoherence - correction auto:' + var_data_buffer.var_data.index +
-                    ':var_data_buffer:' + var_data_buffer.var_data.value + ':' + var_data_buffer.var_data.value_ts + ':' + var_data_buffer.var_data.value_type + ':' +
-                    ':handle_var:' + handle_var.value + ':' + handle_var.value_ts + ':' + handle_var.value_type + ':'
-                );
-
-                var_data_buffer.var_data.value = handle_var.value;
-                var_data_buffer.var_data.value_ts = handle_var.value_ts;
-                var_data_buffer.var_data.value_type = handle_var.value_type;
-            }
+        if (!var_data_buffer) {
+            return false;
         }
+        if (
+            (var_data_buffer.var_data.value != handle_var.value) ||
+            (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
+            (var_data_buffer.var_data.value_type != handle_var.value_type)) {
+            ConsoleHandler.getInstance().error(
+                'check_or_update_var_buffer:incoherence - correction auto:' + var_data_buffer.var_data.index +
+                ':var_data_buffer:' + var_data_buffer.var_data.value + ':' + var_data_buffer.var_data.value_ts + ':' + var_data_buffer.var_data.value_type + ':' +
+                ':handle_var:' + handle_var.value + ':' + handle_var.value_ts + ':' + handle_var.value_type + ':'
+            );
+
+            var_data_buffer.var_data.value = handle_var.value;
+            var_data_buffer.var_data.value_ts = handle_var.value_ts;
+            var_data_buffer.var_data.value_type = handle_var.value_type;
+
+            /**
+             * Dans le doute d'une notif qui serait pas encore partie (a priori c'est régulier dans ce contexte)
+             *  pour indiquer un calcul terminé, on check le statut de la var et si c'est utile (has valid value)
+             *  on envoie les notifs. Aucun moyen de savoir si c'est déjà fait à ce niveau l'arbre n'existe plus, et
+             *  au pire on envoie une deuxième notif à un watcher permanent. Cela dit la nouvelle notif viendra en plus
+             *  probablement corriger une mauvaise valeur affichée à la base.
+             * A creuser pourquoi on arrive là
+             */
+
+            return true;
+        }
+
+        return false;
     }
 }

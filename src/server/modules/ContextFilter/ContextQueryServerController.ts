@@ -3,6 +3,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
@@ -26,7 +27,6 @@ import ContextFieldPathServerController from './ContextFieldPathServerController
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
 import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
-import ParameterizedWhereCondition from './vos/canceled-delete-ParameterizedWhereCondition';
 import FieldPathWrapper from './vos/FieldPathWrapper';
 import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
@@ -505,6 +505,7 @@ export default class ContextQueryServerController {
                 let field_alias = (context_field.alias ? " as " + context_field.alias : '');
 
                 switch (context_field.aggregator) {
+                    case VarConfVO.IS_NULLABLE_AGGREGATOR:
                     case VarConfVO.NO_AGGREGATOR:
                         break;
 
@@ -865,6 +866,18 @@ export default class ContextQueryServerController {
             await Promise.all(promises);
         }
 
+        let context_query_fields_by_api_type_id: { [api_type_id: string]: ContextQueryFieldVO[] } = {};
+
+        for (let i in context_query.fields) {
+            let field = context_query.fields[i];
+
+            if (!context_query_fields_by_api_type_id[field.api_type_id]) {
+                context_query_fields_by_api_type_id[field.api_type_id] = [];
+            }
+
+            context_query_fields_by_api_type_id[field.api_type_id].push(field);
+        }
+
         for (let alias in context_access_hooks) {
             let querys = context_access_hooks[alias];
 
@@ -872,7 +885,40 @@ export default class ContextQueryServerController {
                 let query = querys[j];
 
                 let query_wrapper = await this.build_select_query(query);
-                where_conditions.push(alias + '.id in (' + query_wrapper.query + ')');
+                let WHERE: string[] = [alias + '.id in (' + query_wrapper.query + ')'];
+
+                let is_nullable_aggregator: boolean = false;
+
+                if (query && query.fields && (query.fields.length > 0)) {
+                    for (let k in query.fields) {
+                        let cq_fields: ContextQueryFieldVO[] = null;
+
+                        if (context_query_fields_by_api_type_id[query.fields[k].api_type_id] &&
+                            (context_query_fields_by_api_type_id[query.fields[k].api_type_id].length > 0)) {
+                            cq_fields = context_query_fields_by_api_type_id[query.fields[k].api_type_id];
+                        }
+
+                        if (cq_fields && (cq_fields.length > 0)) {
+                            for (let l in cq_fields) {
+                                if (cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) {
+                                    is_nullable_aggregator = true;
+                                    break;
+                                }
+                            }
+
+                            if (is_nullable_aggregator) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (is_nullable_aggregator) {
+                    WHERE.push(alias + '.id IS NULL');
+                }
+
+                where_conditions.push("(" + WHERE.join(') OR (') + ")");
+
                 if (query_wrapper.params && query_wrapper.params.length) {
                     query_result.params = query_result.params.concat(query_wrapper.params);
                 }

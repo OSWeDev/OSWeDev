@@ -480,10 +480,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
-            this.tmp_filter_active_options = this.default_values;
-            return;
+        let old_is_init: boolean = this.is_init;
+
+        this.is_init = false;
+
+        if (old_is_init) {
+
+            if (this.default_values && (this.default_values.length > 0)) {
+                this.tmp_filter_active_options = this.default_values;
+                return;
+            }
         }
 
         // // Marche mais pas si simple, ça bouge tout le rendu et suivant les widgets inutiles ça crée des trous, pas toujours les mêmes, ... compliqué
@@ -544,9 +550,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             await this.switch_advanced_filters();
         }
 
-        if (this.default_advanced_string_filter_type) {
-            for (let i in this.advanced_string_filters) {
-                this.advanced_string_filters[i].filter_type = this.default_advanced_string_filter_type;
+        if (old_is_init) {
+            if (this.default_advanced_string_filter_type != null) {
+                for (let i in this.advanced_string_filters) {
+                    this.advanced_string_filters[i].filter_type = this.default_advanced_string_filter_type;
+                }
+
+                if (!this.has_content_filter_type[this.default_advanced_string_filter_type]) {
+                    this.validate_advanced_string_filter();
+                    return;
+                }
             }
         }
 
@@ -583,13 +596,17 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let field_sort: VOFieldRefVO = this.vo_field_sort ? this.vo_field_sort : this.vo_field_ref;
 
-        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(
-            this.get_active_field_filters
-        );
+        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
-        if (this.vo_field_ref_lvl2) {
-            if (active_field_filters_query[this.vo_field_ref_lvl2.api_type_id] && active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]) {
-                delete active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
+        if (!this.no_inter_filter) {
+            active_field_filters_query = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+                this.get_active_field_filters
+            );
+
+            if (this.vo_field_ref_lvl2) {
+                if (active_field_filters_query[this.vo_field_ref_lvl2.api_type_id] && active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id]) {
+                    delete active_field_filters_query[this.vo_field_ref_lvl2.api_type_id][this.vo_field_ref_lvl2.field_id];
+                }
             }
         }
 
@@ -1359,6 +1376,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return this.widget_options.hide_btn_switch_advanced;
     }
 
+    get no_inter_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.no_inter_filter;
+    }
+
     get hide_advanced_string_filter_type(): boolean {
         return this.widget_options.hide_advanced_string_filter_type;
     }
@@ -1437,6 +1463,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.default_ts_range_values,
                     options.default_boolean_values,
                     options.hide_filter,
+                    options.no_inter_filter,
                 ) : null;
             }
         } catch (error) {

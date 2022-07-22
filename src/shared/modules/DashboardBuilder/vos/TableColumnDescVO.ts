@@ -93,6 +93,8 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public font_color_header: string;
 
     public many_to_many_aggregate: boolean;
+    public is_nullable: boolean;
+    public show_tooltip: boolean;
 
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {

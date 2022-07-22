@@ -39,6 +39,9 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private is_dashboard_builder: boolean;
 
+    @Prop({ default: true })
+    private show_tooltip: boolean;
+
     public async mounted() { }
 
     private get_crud_link(api_type_id: string, vo_id: number) {
