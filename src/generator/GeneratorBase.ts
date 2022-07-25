@@ -71,6 +71,7 @@ import Patch20220222MigrationCodesTradsDB from './patchs/postmodules/Patch202202
 import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
+import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch20220725DashboardWidgetUpdate';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 
@@ -158,6 +159,7 @@ export default abstract class GeneratorBase {
             Patch20220222MigrationCodesTradsDB.getInstance(),
             Patch20220404UpdateDBBWidgetsDefaultSize.getInstance(),
             Patch20220401SetParamPushData.getInstance(),
+            Patch20220725DashboardWidgetUpdate.getInstance(),
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }

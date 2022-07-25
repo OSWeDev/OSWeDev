@@ -11,6 +11,7 @@ import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vo
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
+import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
@@ -28,7 +29,8 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
-        Checklistitemmodalcomponent: ChecklistItemModalComponent
+        Checklistitemmodalcomponent: ChecklistItemModalComponent,
+        Inlinetranslatabletext: InlineTranslatableText,
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {

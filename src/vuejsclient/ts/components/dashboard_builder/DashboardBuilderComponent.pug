@@ -97,6 +97,18 @@
                                             i.fa.fa-eye.fa-fw.btn_icon(aria-hidden="true" @click="switch_hide_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_click_to_hide_navigation")')
                                     template(v-else)
                                         i.fa.fa-eye.fa-fw.btn_icon.disabled(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_cannot_hide_navigation")')
+
+                                .group_filters(v-if="page_", :key="'group_filters_' + page_.id")
+                                    .input_label {{ label('dashboard_viewer.group_filters') }}
+                                    .input_wrapper
+                                        toggle-button(
+                                            @change="switch_group_filters(page_)" 
+                                            :value="page_.group_filters" 
+                                            :sync="false"
+                                            :width="60"
+                                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                        )
+
                                 .delete 
                                     i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_delete_page")')
 
