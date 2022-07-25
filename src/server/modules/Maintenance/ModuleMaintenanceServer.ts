@@ -175,7 +175,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async start_maintenance(validation_code: string): Promise<void> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance, validation_code)) {
             return;
         }
 

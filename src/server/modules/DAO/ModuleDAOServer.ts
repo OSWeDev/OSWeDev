@@ -1066,28 +1066,30 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * DONT USE : N'utiliser que en cas de force majeure => exemple upgrade de format de BDD
      * @param query
      */
-    public async query(query: string = null, values: any = null): Promise<any> {
-
-        if (this.global_update_blocker) {
-            let uid: number = StackContext.getInstance().get('UID');
-            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
-            if (uid && CLIENT_TAB_ID) {
-                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+    public async query(query: string = null, values: any = null, on_dashboard_builder: boolean = false): Promise<any> {
+        if (!on_dashboard_builder) {
+            if (this.global_update_blocker) {
+                let uid: number = StackContext.getInstance().get('UID');
+                let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+                if (uid && CLIENT_TAB_ID) {
+                    this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+                }
+                return null;
             }
-            return null;
+
+            // On vérifie qu'on peut faire des modifs de table modules
+            if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleDAO.DAO_ACCESS_QUERY)) {
+                return null;
+            }
+
+            if (!!values) {
+
+                return await ModuleServiceBase.getInstance().db.query(query, values);
+            } else {
+                return await ModuleServiceBase.getInstance().db.query(query);
+            }
         }
 
-        // On vérifie qu'on peut faire des modifs de table modules
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleDAO.DAO_ACCESS_QUERY)) {
-            return null;
-        }
-
-        if (!!values) {
-
-            return await ModuleServiceBase.getInstance().db.query(query, values);
-        } else {
-            return await ModuleServiceBase.getInstance().db.query(query);
-        }
     }
 
     /**
