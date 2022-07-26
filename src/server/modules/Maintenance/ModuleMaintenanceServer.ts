@@ -14,6 +14,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
@@ -143,6 +144,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         maintenance.maintenance_over = true;
         maintenance.end_ts = Dates.now();
+
+        ModuleDAOServer.getInstance().global_update_blocker = false;
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
