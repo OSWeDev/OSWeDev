@@ -3,12 +3,14 @@
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -289,7 +291,7 @@ export default class VarsDatasProxy {
             let do_delete_from_cache_indexes: { [index: string]: boolean } = {};
             let self = this;
 
-            let to_insert: VarDataBaseVO[] = [];
+            let to_insert_by_type: { [api_type_id: string]: VarDataBaseVO[] } = {};
 
             for (let i in indexes) {
                 let index = indexes[i];
@@ -348,7 +350,10 @@ export default class VarsDatasProxy {
 
                 if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
 
-                    to_insert.push(handle_var);
+                    if (!to_insert_by_type[handle_var._type]) {
+                        to_insert_by_type[handle_var._type] = [];
+                    }
+                    to_insert_by_type[handle_var._type].push(handle_var);
 
                     if (env.DEBUG_VARS) {
                         ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
@@ -356,48 +361,62 @@ export default class VarsDatasProxy {
                 }
             }
 
-            if (!!to_insert.length) {
-                await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(to_insert);
+            if (ObjectHandler.getInstance().hasAtLeastOneAttribute(to_insert_by_type)) {
+
+                let promises = [];
+                for (let i in to_insert_by_type) {
+                    let to_insert = to_insert_by_type[i];
+
+                    promises.push((async () => {
+                        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(to_insert);
+                    })());
+                }
+                await Promise.all(promises);
 
                 // TODO FIXME TO DELETE
                 // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
                 // On force la suppression du cache mais c'est sûrement gourmant...
                 DAOQueryCacheController.getInstance().clear_cache(true);
 
-                for (let i in to_insert) {
-                    let index: string = to_insert[i].index;
-                    let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+                for (let i in to_insert_by_type) {
+                    let to_insert = to_insert_by_type[i];
 
-                    /**
-                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
-                     */
-                    let to_notify: boolean = this.check_or_update_var_buffer(to_insert[i]);
+                    for (let j in to_insert) {
+                        let inserted_var_data = to_insert[j];
+                        let index: string = inserted_var_data.index;
+                        let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
 
-                    if (to_notify) {
-                        await VarsTabsSubsController.getInstance().notify_vardatas(
-                            [new NotifVardatasParam([to_insert[i]])]);
-                        await VarsServerCallBackSubsController.getInstance().notify_vardatas([to_insert[i]]);
-                    }
+                        /**
+                         * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                         */
+                        let to_notify: boolean = this.check_or_update_var_buffer(inserted_var_data);
 
-                    /**
-                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
-                     */
-                    this.check_or_update_var_buffer(to_insert[i]);
+                        if (to_notify) {
+                            await VarsTabsSubsController.getInstance().notify_vardatas(
+                                [new NotifVardatasParam([inserted_var_data])]);
+                            await VarsServerCallBackSubsController.getInstance().notify_vardatas([inserted_var_data]);
+                        }
 
-                    if (!wrapper) {
-                        continue;
-                    }
+                        /**
+                         * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                         */
+                        this.check_or_update_var_buffer(inserted_var_data);
 
-                    wrapper.nb_reads_since_last_insert_or_update = 0;
-                    wrapper.nb_reads_since_last_check = 0;
-                    wrapper.needs_insert_or_update_ = false;
-                    wrapper.var_data_origin_value = wrapper.var_data.value;
-                    wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                    wrapper.last_insert_or_update = Dates.now();
-                    wrapper.update_timeout();
+                        if (!wrapper) {
+                            continue;
+                        }
 
-                    if (do_delete_from_cache_indexes[index]) {
-                        delete self.vars_datas_buffer_wrapped_indexes[index];
+                        wrapper.nb_reads_since_last_insert_or_update = 0;
+                        wrapper.nb_reads_since_last_check = 0;
+                        wrapper.needs_insert_or_update_ = false;
+                        wrapper.var_data_origin_value = wrapper.var_data.value;
+                        wrapper.var_data_origin_type = wrapper.var_data.value_type;
+                        wrapper.last_insert_or_update = Dates.now();
+                        wrapper.update_timeout();
+
+                        if (do_delete_from_cache_indexes[index]) {
+                            delete self.vars_datas_buffer_wrapped_indexes[index];
+                        }
                     }
                 }
             }
@@ -429,27 +448,14 @@ export default class VarsDatasProxy {
                     }
                 }
 
-                if (var_data.id) {
-                    let e = await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
-
-                    if (DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('get_exact_param_from_buffer_or_bdd:e:' + (e ? JSON.stringify(e) : null) + ':');
-                    }
-
-                    if (e) {
-                        let cached_e = await this.filter_var_datas_by_indexes([e], false, false, true);
-                        return cached_e[0];
-                    }
-                }
-
-                let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
+                let res: T = await ModuleVar.getInstance().get_var_data_by_index<T>(var_data._type, var_data.index);
 
                 if (DEBUG_VARS) {
                     ConsoleHandler.getInstance().log('get_exact_param_from_buffer_or_bdd:res:' + (res ? JSON.stringify(res) : null) + ':');
                 }
 
-                if (res && res.length) {
-                    let cached_res = await this.filter_var_datas_by_indexes([res[0]], false, false, true);
+                if (!!res) {
+                    let cached_res = await this.filter_var_datas_by_indexes([res], false, false, true);
                     return cached_res[0];
                 }
                 return null;
@@ -473,7 +479,8 @@ export default class VarsDatasProxy {
             async () => {
 
                 let res: T[] = [];
-                let check_in_bdd_per_type: { [type: string]: T[] } = {};
+                let promises = [];
+
                 for (let i in var_datas) {
                     let var_data = var_datas[i];
 
@@ -508,32 +515,23 @@ export default class VarsDatasProxy {
                             continue;
                         }
 
-                        if (!check_in_bdd_per_type[var_data._type]) {
-                            check_in_bdd_per_type[var_data._type] = [];
-                        }
-                        check_in_bdd_per_type[var_data._type].push(var_data);
+                        promises.push((async () => {
+                            let bdd_res: T = await ModuleVar.getInstance().get_var_data_by_index<T>(var_data._type, var_data.index);
+
+                            if (!!bdd_res) {
+
+                                if (env.DEBUG_VARS) {
+                                    ConsoleHandler.getInstance().log(
+                                        'get_exact_params_from_buffer_or_bdd:bdd_res:index|' + bdd_res._bdd_only_index + ":value|" + bdd_res.value + ":value_ts|" + bdd_res.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[bdd_res.value_type]
+                                    );
+                                }
+
+                                res.push(bdd_res);
+                            }
+                        })());
                     }
                 }
 
-                let promises = [];
-                for (let _type in check_in_bdd_per_type) {
-                    let check_in_bdd = check_in_bdd_per_type[_type];
-
-                    promises.push((async () => {
-                        let bdd_res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(_type, check_in_bdd, null);
-
-                        if (bdd_res && bdd_res.length) {
-
-                            if (env.DEBUG_VARS) {
-                                ConsoleHandler.getInstance().log(
-                                    'get_exact_params_from_buffer_or_bdd:bdd_res:index|' + bdd_res[0]._bdd_only_index + ":value|" + bdd_res[0].value + ":value_ts|" + bdd_res[0].value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[bdd_res[0].value_type]
-                                );
-                            }
-
-                            res = (res && res.length) ? res.concat(bdd_res) : bdd_res;
-                        }
-                    })());
-                }
                 await Promise.all(promises);
 
                 return res;

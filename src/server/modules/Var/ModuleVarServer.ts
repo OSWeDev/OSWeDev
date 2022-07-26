@@ -2,10 +2,11 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
@@ -45,6 +46,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
+import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -62,6 +64,7 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
+import ThrottleGetVarDatasByIndex from './throttle_params/ThrottleGetVarDatasByIndex';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -103,6 +106,10 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public update_varconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.update_varconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
+
+    private throttled_get_var_data_by_index_params: ThrottleGetVarDatasByIndex[] = [];
+
+    private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 50, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleVar.getInstance().name);
@@ -640,29 +647,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return true;
             });
 
-            let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
+            let vos_by_index: { [index: string]: VarDataBaseVO } = {};
             for (let i in vos) {
                 let vo = vos[i];
+                let bdd_vo: VarDataBaseVO = await ModuleVar.getInstance().get_var_data_by_index(vo._type, vo.index);
 
-                if (!vos_by_type_id[vo._type]) {
-                    vos_by_type_id[vo._type] = [];
-                }
-                vos_by_type_id[vo._type].push(vo);
-            }
-
-            let vos_by_index: { [index: string]: VarDataBaseVO } = {};
-            for (let api_type_id in vos_by_type_id) {
-                let vos_type = vos_by_type_id[api_type_id];
-
-                let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
-
-                if (bdd_vos && bdd_vos.length) {
-
-                    for (let j in bdd_vos) {
-                        let bdd_vo = bdd_vos[j];
-
-                        vos_by_index[bdd_vo.index] = bdd_vo;
-                    }
+                if (!!bdd_vo) {
+                    vos_by_index[bdd_vo.index] = bdd_vo;
                 }
             }
 
@@ -801,6 +792,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
@@ -1148,19 +1140,19 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let filter = false;
+            let filter_ = false;
             for (let j in matroid_fields) {
                 let matroid_field = matroid_fields[j];
 
                 if ((!param[matroid_field.field_id]) || (!(param[matroid_field.field_id] as IRange[]).length) ||
                     ((param[matroid_field.field_id] as IRange[]).indexOf(null) >= 0)) {
-                    filter = true;
+                    filter_ = true;
                     ConsoleHandler.getInstance().error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
                     break;
                 }
             }
 
-            if (filter) {
+            if (filter_) {
                 continue;
             }
 
@@ -1606,16 +1598,16 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async load_slowvars() {
-        let filter = new ContextFilterVO();
-        filter.field_id = 'type';
-        filter.vo_type = SlowVarVO.API_TYPE_ID;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
-        filter.param_numeric = SlowVarVO.TYPE_DENIED;
+        let filter_ = new ContextFilterVO();
+        filter_.field_id = 'type';
+        filter_.vo_type = SlowVarVO.API_TYPE_ID;
+        filter_.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter_.param_numeric = SlowVarVO.TYPE_DENIED;
 
         let query_: ContextQueryVO = new ContextQueryVO();
         query_.base_api_type_id = SlowVarVO.API_TYPE_ID;
         query_.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
-        query_.filters = [filter];
+        query_.filters = [filter_];
         query_.query_limit = 0;
         query_.query_offset = 0;
 
@@ -1627,5 +1619,124 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             VarsDatasProxy.getInstance().denied_slowvars[item.name] = item;
         }
+    }
+
+    /**
+     * On propose une version ultra optimisée du chargement de vardatas depuis la bdd, avec un throttle minimal mais qui devrait permettre de balancer
+     *  des requetes groupées avec l'index
+     * On regroupe les demandes par var_data_api_type_id
+     */
+    private async throttled_get_var_data_by_index() {
+        if (this.throttled_get_var_data_by_index_params && this.throttled_get_var_data_by_index_params.length) {
+
+            // On regroupe d'abord les params par api_type_id
+            let params_by_api_type_id: { [api_type_id: string]: { [var_data_index: string]: ThrottleGetVarDatasByIndex[] } } = {};
+            for (let i in this.throttled_get_var_data_by_index_params) {
+                let param = this.throttled_get_var_data_by_index_params[i];
+
+                if (param.semaphore) {
+                    continue;
+                }
+                param.semaphore = true;
+
+                if (!params_by_api_type_id[param.var_data_api_type_id]) {
+                    params_by_api_type_id[param.var_data_api_type_id] = {};
+                }
+                if (!params_by_api_type_id[param.var_data_api_type_id][param.var_data_index]) {
+                    params_by_api_type_id[param.var_data_api_type_id][param.var_data_index] = [];
+                }
+
+                params_by_api_type_id[param.var_data_api_type_id][param.var_data_index].push(param);
+            }
+
+            /**
+             * Une requete par api_type_id
+             */
+            let promises = [];
+            let calledback_indexes: { [index: number]: boolean } = {};
+            for (let api_type_id in params_by_api_type_id) {
+                let params_by_var_data_index = params_by_api_type_id[api_type_id];
+
+                promises.push((async () => {
+
+                    let indexes: string[] = [];
+                    for (let var_data_index in params_by_var_data_index) {
+                        indexes.push(var_data_index);
+                    }
+
+                    let query_wrapper: ParameterizedQueryWrapper = await (await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str());
+                    let results: VarDataBaseVO[] = await ModuleServiceBase.getInstance().db.query(query_wrapper.query, query_wrapper.params);
+
+                    for (let i in results) {
+                        let result = results[i];
+
+                        /**
+                         * On doit faire un appel au force_numeric du type de l'objet
+                         *  et ensuite on recherche le bon param pour cet index
+                         */
+
+                        // On a pas le type dans l'objet issu de la base à ce stade, donc on retrouve le type par la var
+                        let var_data_type = VarsServerController.getInstance().getVarConfById(result.var_id).var_data_vo_type;
+                        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[var_data_type];
+                        let vo: VarDataBaseVO = moduletable.forceNumeric(result);
+
+                        let params = params_by_api_type_id[vo._type][vo.index];
+                        for (let j in params) {
+                            let param = params[j];
+                            param.cb(vo);
+                            calledback_indexes[param.index] = true;
+                        }
+                    }
+                })());
+            }
+
+            await Promise.all(promises);
+
+            /**
+             * On appelle les callbacks qui n'ont pas été appelés
+             */
+            for (let i in params_by_api_type_id) {
+                let params_by_var_data_index = params_by_api_type_id[i];
+
+                for (let var_data_index in params_by_var_data_index) {
+                    let params = params_by_var_data_index[var_data_index];
+
+                    for (let j in params) {
+                        let param = params[j];
+                        if (!calledback_indexes[param.index]) {
+                            param.cb(null);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Méthode pour récupérer une var_data en base de données avec l'index, et le type de données
+     * @param var_data_api_type_id le type de la var_data attendue
+     * @param var_data_index l'index
+     * @returns la var_data
+     */
+    private async get_var_data_by_index<T extends VarDataBaseVO>(var_data_api_type_id: string, var_data_index: string): Promise<T> {
+
+        if ((!var_data_api_type_id) || (!var_data_index)) {
+            return null;
+        }
+
+        return new Promise(async (accept, resolve) => {
+
+            let cb = (v) => {
+                accept(v);
+            };
+
+            let param = new ThrottleGetVarDatasByIndex(
+                var_data_api_type_id,
+                var_data_index,
+                cb
+            );
+            this.throttled_get_var_data_by_index_params.push(param);
+            await this.throttle_get_var_data_by_index();
+        });
     }
 }

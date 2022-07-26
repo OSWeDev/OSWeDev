@@ -25,7 +25,7 @@ export default class VarsServerCallBackSubsController {
     private static instance: VarsServerCallBackSubsController = null;
 
     public notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 20, { leading: true, trailing: true });
+        this.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
 
     /**
      * Les callbacks à appeler dès que possible

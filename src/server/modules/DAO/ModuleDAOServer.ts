@@ -1,3 +1,5 @@
+import { Readable } from 'stream';
+import { from as copyFrom } from 'pg-copy-streams';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -47,7 +49,6 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleAnonymizationServer from '../Anonymization/ModuleAnonymizationServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
 import ModuleServerBase from '../ModuleServerBase';
@@ -66,8 +67,12 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import { Pool } from 'pg';
 
 export default class ModuleDAOServer extends ModuleServerBase {
+
+    public static PARAM_NAME_insert_without_triggers_using_COPY: string = 'ModuleDAOServer.insert_without_triggers_using_COPY';
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
 
@@ -81,8 +86,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     public check_foreign_keys: boolean = true;
-
     public global_update_blocker: boolean = false;
+
+    private copy_dedicated_pool = null;
+
     private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
     private constructor() {
@@ -994,7 +1001,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     if (moduleTable.is_segmented) {
                         // Si on est sur une table segmentée on adapte le comportement
-                        table_name = moduleTable.get_segmented_full_name_from_vo(vo);
+                        table_name = moduleTable.get_segmented_full_name_from_vo(vo); // TODO FIXME MDE => ça marche pas ça c'est (comme) un type de vo différent en fait
                     }
 
                     let vo_values = [];
@@ -1018,7 +1025,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         if ((fieldValue == null) && field.field_required) {
                             ConsoleHandler.getInstance().error("Champ requis sans valeur, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + table_name + ' :vo:' + JSON.stringify(vo));
                             is_valid = false;
-                            continue;
+                            break;
                         }
 
                         setters_vo.push(field.field_id + ' = $' + cpt_field_vo);
@@ -1126,6 +1133,207 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    /**
+     * Insert de masse sans trigger / sans check de cohérence, en utilisant la fonction COPY => un fichier qui contient les inserts à faire
+     * On ne renvoie rien
+     *
+     * Attention :
+     *  - on utilise donc aucun trigger,
+     *  - on ne check pas les foreign keys non plus,
+     *  - on ne check pas les doublons non plus,
+     *  - on considère que les vos sont tous du même type,
+     *  - on ne check pas les vos qui ont déjà un id ou une clé unique en base (un index déjà en base par exemple),
+     *  - on ne fait que des inserts, pas d'update avec un COPY
+     *  - on ne gère pas les segmentations
+     */
+    public async insert_without_triggers_using_COPY(vos: IDistantVOBase[]): Promise<void> {
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un insert ou update
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
+
+        vos = vos.filter((vo) =>
+            (!!vo) && vo._type && VOsTypesManager.getInstance().moduleTables_by_voType[vo._type] &&
+            this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE));
+
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
+
+        // On ajoute un filtrage via hook
+        let tmp_vos = [];
+        for (let i in vos) {
+            let vo = vos[i];
+            let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+            if (!!tmp_vo) {
+                tmp_vos.push(tmp_vo);
+            }
+        }
+        if ((!tmp_vos) || (!tmp_vos.length)) {
+            return null;
+        }
+        vos = tmp_vos;
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type];
+        let table_name: string = moduleTable.full_name;
+
+        if (moduleTable.is_segmented) {
+            throw new Error('Not implemented');
+        }
+
+        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, true);
+
+        if (debug_insert_without_triggers_using_COPY) {
+            ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:start');
+        }
+
+        let tableFields: string[] = [];
+        let fields = moduleTable.get_fields();
+
+        for (let i in fields) {
+            let field: ModuleTableField<any> = fields[i];
+
+            tableFields.push(field.field_id);
+
+            /**
+             * Cas des ranges
+             */
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                tableFields.push(field.field_id + '_ndx');
+            }
+        }
+
+        // Comportement en cas de valeur null du stringify
+        let null_replacer = (key, value) => (value == null) ? 'NULL' : value;
+
+        let lines: string[] = [];
+        for (let i in vos) {
+            let vo: IDistantVOBase = moduleTable.get_bdd_version(vos[i]);
+
+            let setters: any[] = [];
+            let is_valid: boolean = true;
+
+            for (let f in fields) {
+                let field: ModuleTableField<any> = fields[f];
+
+                let fieldValue = vo[field.field_id];
+                if ((!!fieldValue) && (typeof fieldValue == 'string')) {
+                    fieldValue = fieldValue.replace(/;/g, '\\;');
+                }
+
+                if (typeof fieldValue == "undefined") {
+                    if (field.has_default && typeof field.field_default == 'undefined') {
+                        fieldValue = field.field_default;
+                    } else {
+                        fieldValue = null;
+                    }
+                }
+
+                if ((fieldValue == null) && field.field_required) {
+                    ConsoleHandler.getInstance().error("Champ requis sans valeur et !has_default, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + table_name + ' :vo:' + JSON.stringify(vo));
+                    is_valid = false;
+                    break;
+                }
+
+                setters.push(JSON.stringify(fieldValue, null_replacer));
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    let fieldValue_ndx = vo[field.field_id + '_ndx'];
+                    if ((!!fieldValue_ndx) && (typeof fieldValue_ndx == 'string')) {
+                        fieldValue_ndx = fieldValue_ndx.replace(/;/g, '\\;');
+                    }
+
+                    setters.push(JSON.stringify(fieldValue_ndx, null_replacer));
+                }
+            }
+
+            if (!is_valid) {
+                continue;
+            }
+
+
+            let line = setters.join(';');
+            if (debug_insert_without_triggers_using_COPY) {
+                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:line:' + line);
+            }
+            lines.push(line);
+        }
+
+        if ((!lines) || (!lines.length)) {
+            if (debug_insert_without_triggers_using_COPY) {
+                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
+            }
+            return;
+        }
+
+        if (!this.copy_dedicated_pool) {
+            this.copy_dedicated_pool = new Pool({
+                connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
+                max: 1,
+            });
+        }
+
+        return new Promise(async (resolve, reject) => {
+
+            this.copy_dedicated_pool.connect(function (err, client, done) {
+
+                let cb = () => {
+                    if (debug_insert_without_triggers_using_COPY) {
+                        ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
+                    }
+                    done();
+                    resolve();
+                };
+
+                let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (DELIMITER ';', NULL 'NULL')";
+                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                var stream = client.query(copyFrom(query_string));
+                var rs = new Readable();
+
+                for (let i in lines) {
+                    let line: string = lines[i];
+                    rs.push(line);
+                }
+                rs.push(null);
+                rs.on('error', cb);
+
+                rs.pipe(stream).on('finish', cb).on('error', function (error) {
+                    ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:' + error);
+                    cb();
+                });
+            });
+        });
     }
 
     public async truncate_api(api_type_id: string) {

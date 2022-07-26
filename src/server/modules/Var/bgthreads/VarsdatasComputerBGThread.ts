@@ -100,7 +100,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      * Par défaut, sans intervention extérieur, on a pas besoin de faire des calculs tellement souvent
      */
 
-    public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 100, { leading: true, trailing: true });
+    public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 10, { leading: true, trailing: true });
     public semaphore: boolean = false;
 
     private timeout_calculation: number = 30;
@@ -299,7 +299,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             this.add_var_node_perfs(node.perfs, this_var_perfs, node);
         }
 
-        await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(Object.values(all_var_perfs));
+        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(Object.values(all_var_perfs));
     }
 
     private init_new_var_batch_var_perf_element(var_batch_perf_id: number, var_id: number): VarBatchVarPerfVO {

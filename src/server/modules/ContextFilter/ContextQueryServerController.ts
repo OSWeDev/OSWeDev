@@ -240,6 +240,23 @@ export default class ContextQueryServerController {
         return res;
     }
 
+    // /**
+    //  * TODO JNE ou pas, le seul endroit où je voulais utiliser ça, en fait c'est pas compatible par ce qu'on passe pas par des fields .....
+    //  * On prend toutes les requetes et on les fait en une seule requete via un UNION ALL
+    //  *  ça nécessite que tous les fields soient identiques entre les requetes (même alias / nom) et même type de données
+    //  * On vérifie aussi que ce ne sont que des selects
+    //  * On renvoie les résultats dans l'ordre des requetes
+    //  * @param context_queries les requetes à union
+    //  * @returns {Promise<any[]>}
+    //  */
+    // public async union_all(context_queries: ContextQueryVO[]): Promise<any[]> {
+
+    //     if (!context_query) {
+    //         throw new Error('Invalid context_query param');
+    //     }
+
+    // }
+
     /**
      * Construit la requête pour un select count(1) from context_filters
      */
@@ -460,6 +477,14 @@ export default class ContextQueryServerController {
 
             let SELECT = "SELECT ";
             let first = true;
+
+            /**
+             * Ajout du request_id dans la requête pour le cas des UNION ALL typiquement
+             */
+            if (!!context_query.request_id) {
+                SELECT += context_query.request_id + " as request_id";
+                first = false;
+            }
 
             for (let i in context_query.fields) {
                 let context_field = context_query.fields[i];

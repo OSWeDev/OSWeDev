@@ -1022,6 +1022,16 @@ export default abstract class ServerBase {
 
                 await ServerBase.getInstance().hook_on_ready();
 
+                // //TODO DELETE TEST JNE
+                // let fake_file: FileVO = new FileVO();
+                // fake_file.file_access_policy_name = null;
+                // fake_file.path = 'test.txt';
+                // fake_file.is_secured = false;
+
+                // await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY([
+                //     fake_file
+                // ]);
+
                 await ForkServerController.getInstance().fork_threads();
                 BGThreadServerController.getInstance().server_ready = true;
 

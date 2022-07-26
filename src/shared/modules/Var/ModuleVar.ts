@@ -15,6 +15,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
+import APIGetVarDataByIndexParamVO from './params/APIGetVarDataByIndexParamVO';
 import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
@@ -53,6 +54,8 @@ export default class ModuleVar extends Module {
     public static APINAME_get_var_id_by_names: string = 'get_var_id_by_names';
     public static APINAME_register_params: string = 'register_params';
     public static APINAME_unregister_params: string = 'unregister_params';
+
+    public static APINAME_get_var_data_by_index: string = 'get_var_data_by_index';
 
     public static APINAME_getVarControllerVarsDeps: string = 'getVarControllerVarsDeps';
     public static APINAME_getParamDependencies: string = 'getParamDependencies';
@@ -101,6 +104,8 @@ export default class ModuleVar extends Module {
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
+
+    public get_var_data_by_index: <T extends VarDataBaseVO>(var_data_api_type_id: string, var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data_by_index);
 
     public getVarParamFromContextFilters: (
         var_name: string,
@@ -205,6 +210,12 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_id_by_names,
             [VarConfVO.API_TYPE_ID]
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<APIGetVarDataByIndexParamVO, VarConfIds>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_get_var_data_by_index,
+            ((param: APIGetVarDataByIndexParamVO) => [param.api_type_id])
         ));
 
         // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
