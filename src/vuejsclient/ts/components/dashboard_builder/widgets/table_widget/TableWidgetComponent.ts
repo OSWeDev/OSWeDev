@@ -841,12 +841,12 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if (this.fields && (
-            (this.order_asc_on_id && this.fields[this.order_asc_on_id]) ||
-            (this.order_desc_on_id && this.fields[this.order_desc_on_id]))) {
+            ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
+            ((this.order_desc_on_id != null) && this.fields[this.order_desc_on_id]))) {
 
-            let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
+            let field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            query_.set_sort(new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id));
+            query_.set_sort(new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, (this.order_asc_on_id != null)));
         }
 
 
