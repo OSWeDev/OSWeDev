@@ -391,7 +391,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
             new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
             new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('load_node_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_node_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
             new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
         ];
 
@@ -414,7 +414,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
             new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
 
-            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('load_node_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_node_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
             new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
         ];
 

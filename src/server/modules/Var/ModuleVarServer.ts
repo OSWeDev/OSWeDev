@@ -611,42 +611,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         });
 
         await VarsDatasVoUpdateHandler.getInstance().push_invalidate_matroids(vos);
-
-        // let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
-        // for (let i in vos) {
-        //     let vo = vos[i];
-
-        //     if (!vos_by_type_id[vo._type]) {
-        //         vos_by_type_id[vo._type] = [];
-        //     }
-        //     vos_by_type_id[vo._type].push(vo);
-        // }
-
-        // for (let api_type_id in vos_by_type_id) {
-        //     let vos_type = vos_by_type_id[api_type_id];
-
-        //     let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
-
-        //     // Impossible d'invalider un import mais on accepte de recalculer à la demande manuelle un denied
-        //     bdd_vos = bdd_vos.filter((bdd_vo) => (bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT));
-
-        //     if (bdd_vos && bdd_vos.length) {
-
-        //         for (let j in bdd_vos) {
-        //             let bdd_vo = bdd_vos[j];
-        //             bdd_vo.value_ts = null;
-        //             if (bdd_vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
-        //                 bdd_vo.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-        //                 let slowvar: SlowVarVO = await ModuleDAO.getInstance().getNamedVoByName<SlowVarVO>(SlowVarVO.API_TYPE_ID, bdd_vo.index);
-        //                 if (slowvar) {
-        //                     await ModuleDAO.getInstance().deleteVOs([slowvar]);
-        //                 }
-        //             }
-        //         }
-        //         await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
-        //         await VarsDatasProxy.getInstance().append_var_datas(bdd_vos);
-        //     }
-        // }
     }
 
     public async invalidate_cache_exact_and_parents(vos: VarDataBaseVO[]): Promise<boolean> {

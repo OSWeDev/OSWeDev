@@ -314,7 +314,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         res.ctree_ddeps_get_node_deps = new VarPerfElementVO();
         res.ctree_ddeps_handle_pixellisation = new VarPerfElementVO();
 
-        res.load_nodes_datas = new VarPerfElementVO();
+        res.load_node_datas = new VarPerfElementVO();
         res.compute_node = new VarPerfElementVO();
         return res;
     }
@@ -326,7 +326,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         this.add_var_node_perf_element(add_this.ctree_ddeps_try_load_cache_complet, into.ctree_ddeps_try_load_cache_complet, node);
         this.add_var_node_perf_element(add_this.ctree_ddeps_try_load_cache_partiel, into.ctree_ddeps_try_load_cache_partiel, node);
 
-        this.add_var_node_perf_element(add_this.load_nodes_datas, into.load_nodes_datas, node);
+        this.add_var_node_perf_element(add_this.load_node_datas, into.load_node_datas, node);
         this.add_var_node_perf_element(add_this.compute_node, into.compute_node, node);
     }
 

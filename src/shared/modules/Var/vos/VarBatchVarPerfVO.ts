@@ -16,6 +16,6 @@ export default class VarBatchVarPerfVO implements IDistantVOBase {
     public ctree_ddeps_get_node_deps: VarPerfElementVO;
     public ctree_ddeps_handle_pixellisation: VarPerfElementVO;
 
-    public load_nodes_datas: VarPerfElementVO;
+    public load_node_datas: VarPerfElementVO;
     public compute_node: VarPerfElementVO;
 }

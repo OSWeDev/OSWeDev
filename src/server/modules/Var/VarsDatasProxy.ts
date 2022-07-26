@@ -248,11 +248,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                let filtered = await this.filter_var_datas_by_indexes(var_datas, true, false, does_not_need_insert_or_update);
-
-                if ((!filtered) || (!filtered.length)) {
-                    return;
-                }
+                await this.filter_var_datas_by_indexes(var_datas, true, false, does_not_need_insert_or_update);
             },
             this
         );
@@ -441,8 +437,8 @@ export default class VarsDatasProxy {
                     }
 
                     if (e) {
-                        await this.filter_var_datas_by_indexes([e], false, false, true);
-                        return e;
+                        let cached_e = await this.filter_var_datas_by_indexes([e], false, false, true);
+                        return cached_e[0];
                     }
                 }
 
@@ -453,8 +449,8 @@ export default class VarsDatasProxy {
                 }
 
                 if (res && res.length) {
-                    await this.filter_var_datas_by_indexes([res[0]], false, false, true);
-                    return res[0];
+                    let cached_res = await this.filter_var_datas_by_indexes([res[0]], false, false, true);
+                    return cached_res[0];
                 }
                 return null;
             },
@@ -595,30 +591,15 @@ export default class VarsDatasProxy {
      * On met à jour la map des indexs au passage
      * On doit s'assurer par contre de pas rentrer en conflit avec un handle du buffer
      * @param var_datas
+     * @returns list of var_datas, as found (or added) in the cache. if not on primary thread, might return less elements than the input list
      */
-    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<Array<VarDataProxyWrapperVO<VarDataBaseVO>>> {
+    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes],
             async () => {
 
-                // let start_time = Dates.now();
-                // let real_start_time = start_time;
-
-                // while (this.semaphore_handle_buffer) {
-                //     let actual_time = Dates.now();
-
-                //     if (actual_time > (start_time + 60)) {
-                //         start_time = actual_time;
-                //         ConsoleHandler.getInstance().warn('VarsDatasProxy:filter_var_datas_by_indexes:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-                //     }
-
-                //     await ThreadHandler.getInstance().sleep(9);
-                // }
-                // this.semaphore_handle_buffer = true;
-                let res: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
-
-                // try {
+                let res: VarDataBaseVO[] = [];
 
                 for (let i in var_datas) {
                     let var_data = var_datas[i];
@@ -627,6 +608,7 @@ export default class VarsDatasProxy {
                         if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
                             let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
+                            res.push(wrapper.var_data);
 
                             /**
                              * Si ça existe déjà dans la liste d'attente on l'ajoute pas mais on met à jour pour intégrer les calculs faits le cas échéant
@@ -671,7 +653,7 @@ export default class VarsDatasProxy {
                     if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
                         this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, prepend, !just_been_loaded_from_db, 0);
                         this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
-                        res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
+                        res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index].var_data);
                     }
 
                     // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement

@@ -137,7 +137,7 @@ export default class VarDAGNode extends DAGNodeBase {
         this.perfs.ctree_ddeps_get_node_deps = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_get_node_deps', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
         this.perfs.ctree_ddeps_handle_pixellisation = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_handle_pixellisation', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
 
-        this.perfs.load_nodes_datas = new VarNodePerfElementVO(var_data.index, 'load_nodes_datas', var_dag, VarNodeParentPerfVO.create_new(null, 'load_nodes_datas'));
+        this.perfs.load_node_datas = new VarNodePerfElementVO(var_data.index, 'load_nodes_datas', var_dag, VarNodeParentPerfVO.create_new(null, 'load_nodes_datas'));
 
         this.perfs.compute_node = new VarNodePerfElementVO(var_data.index, 'compute_node', var_dag, VarNodeParentPerfVO.create_new(null, 'compute_node_wrapper'));
     }
@@ -236,7 +236,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         this.perfs.compute_node.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_compute_node(this), this.var_dag);
-        this.perfs.load_nodes_datas.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_load_nodes_datas(this), this.var_dag);
+        this.perfs.load_node_datas.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_load_nodes_datas(this), this.var_dag);
         this.perfs.ctree_ddeps_get_node_deps.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_get_node_deps(this), this.var_dag);
         this.perfs.ctree_ddeps_load_imports_and_split_nodes.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this), this.var_dag);
         this.perfs.ctree_ddeps_try_load_cache_complet.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this), this.var_dag);
@@ -248,7 +248,7 @@ export default class VarDAGNode extends DAGNodeBase {
              * Si on a déjà une valeur, on peut directement skip toutes les étapes
              */
             this.perfs.compute_node.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.load_nodes_datas.skip_and_update_parents_perfs(this.var_dag);
+            this.perfs.load_node_datas.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(this.var_dag);
@@ -263,7 +263,7 @@ export default class VarDAGNode extends DAGNodeBase {
         }
 
         this.perfs.compute_node.delete_this_perf(this.var_dag);
-        this.perfs.load_nodes_datas.delete_this_perf(this.var_dag);
+        this.perfs.load_node_datas.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_get_node_deps.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_load_imports_and_split_nodes.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_try_load_cache_complet.delete_this_perf(this.var_dag);
