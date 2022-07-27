@@ -1067,7 +1067,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param query
      */
     public async query(query: string = null, values: any = null): Promise<any> {
-        if (this.global_update_blocker && !/^[ s | S]/.test(query)) {
+        if (this.global_update_blocker && !/^select|^SELECT/.test(query)) {
             let uid: number = StackContext.getInstance().get('UID');
             let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {

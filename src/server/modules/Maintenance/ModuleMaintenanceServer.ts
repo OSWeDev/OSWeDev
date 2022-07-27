@@ -1,4 +1,5 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -112,6 +113,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO);
 
+        // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads
+        //  ça se mettra à jour dans les 30 secondes
+
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
@@ -143,6 +147,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, num);
 
         maintenance.maintenance_over = true;
+        // maintenance.broadcasted_msg3 = true;
         maintenance.end_ts = Dates.now();
 
         ModuleDAOServer.getInstance().global_update_blocker = false;
@@ -217,17 +222,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     }
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
-        let maintenances: MaintenanceVO[] = await ModuleDAO.getInstance().getVos<MaintenanceVO>(MaintenanceVO.API_TYPE_ID);
-
-        for (let i in maintenances) {
-            let maintenance = maintenances[i];
-
-            if (!maintenance.maintenance_over) {
-                return maintenance;
-            }
-        }
-
-        return null;
+        let maintenances: MaintenanceVO[] = await query(MaintenanceVO.API_TYPE_ID)
+            .filter_is_false('maintenance_over')
+            .select_vos<MaintenanceVO>();
+        return (maintenances && maintenances.length) ? maintenances[0] : null;
     }
 
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {
