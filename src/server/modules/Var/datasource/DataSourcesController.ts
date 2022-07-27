@@ -10,6 +10,7 @@ import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import VarsPerfMonServerController from '../VarsPerfMonServerController';
+import ModuleVarServer from '../ModuleVarServer'; // TEMP DEBUG JFE
 
 export default class DataSourcesController {
 
@@ -77,6 +78,13 @@ export default class DataSourcesController {
                     //     logger.close();
                     // }
 
+                    // TEMP DEBUG JFE - start
+                    // if (!ModuleVarServer.getInstance().cpt_for_datasources[ds.name]) {
+                    //     ModuleVarServer.getInstance().cpt_for_datasources[ds.name] = 0;
+                    // }
+                    // ModuleVarServer.getInstance().cpt_for_datasources[ds.name]++;
+                    // TEMP DEBUG JFE - end
+
                     // Si on est sur du perf monitoring on doit faire les appels séparément...
                     let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data];
                     if (perfmon.is_active) {
@@ -95,6 +103,9 @@ export default class DataSourcesController {
                 if (promises && promises.length) {
                     await Promise.all(promises);
                 }
+
+                // TEMP DEBUG JFE :
+                // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(ModuleVarServer.getInstance().cpt_for_datasources));
             },
             this,
             null,

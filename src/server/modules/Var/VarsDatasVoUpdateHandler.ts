@@ -1,5 +1,6 @@
 
 
+import { cloneDeep } from 'lodash';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -354,9 +355,10 @@ export default class VarsDatasVoUpdateHandler {
             // On va faire l'union de tous les invalidate_intersectors pour avoir un ensemble de tous les intersecteurs à invalider
             // On regroupe par var_id
             let invalidate_intersectors_by_var_id: { [var_id: string]: VarDataBaseVO[] } = {};
+            let old_invalidate_intersectors = cloneDeep(this.invalidate_intersectors);
 
-            for (let i in this.invalidate_intersectors) {
-                let invalidate_intersector = this.invalidate_intersectors[i];
+            for (let i in old_invalidate_intersectors) {
+                let invalidate_intersector = old_invalidate_intersectors[i];
 
                 if (!invalidate_intersectors_by_var_id[invalidate_intersector.var_id]) {
                     invalidate_intersectors_by_var_id[invalidate_intersector.var_id] = [];
@@ -368,14 +370,29 @@ export default class VarsDatasVoUpdateHandler {
             let invalidate_intersectors = [];
 
             for (let i in invalidate_intersectors_by_var_id) {
+                if (!invalidate_intersectors_by_var_id[i]) {
+                    continue;
+                }
+
+                // TEMP DEBUG JFE :
+                // for (let j in invalidate_intersectors_by_var_id[i]) {
+                //     console.log('avant union;' + invalidate_intersectors_by_var_id[i][j].var_id + ';' + invalidate_intersectors_by_var_id[i][j]._bdd_only_index);
+                // }
+
                 let res = MatroidController.getInstance().union(invalidate_intersectors_by_var_id[i]);
 
                 if (res && (res.length > 0)) {
                     invalidate_intersectors.push(...res);
+
+                    // TEMP DEBUG JFE :
+                    // for (let k in res) {
+                    //     console.log('apres union;' + res[k].var_id + ';' + res[k]._bdd_only_index);
+                    // }
                 }
             }
 
             ConsoleHandler.getInstance().log('handle_invalidate_intersectors:UNION:' + invalidate_intersectors.length);
+
             this.invalidate_intersectors = [];
             await this.intersect_invalid_datas_and_push_for_update(invalidate_intersectors);
             ConsoleHandler.getInstance().log('handle_invalidate_intersectors:OUT:' + invalidate_intersectors.length + '=>' + this.invalidate_intersectors.length);
