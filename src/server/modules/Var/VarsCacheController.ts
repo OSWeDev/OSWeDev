@@ -160,10 +160,20 @@ export default class VarsCacheController {
                     let controller: VarConfVO = VarsController.getInstance().var_conf_by_id[var_id];
                     let var_cache_conf: VarCacheConfVO = VarsServerController.getInstance().varcacheconf_by_var_ids[var_id];
 
+                    // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log
+                    if (!var_cache_conf) {
+                        ConsoleHandler.getInstance().error('partially_clean_bdd_cache:no var_cache_conf for var_id:' + var_id);
+                    }
+
                     if (var_cache_conf && !var_cache_conf.use_cache_read_ms_to_partial_clean) {
                         this.partially_clean_bdd_cache_offset = 0;
                         this.partially_clean_bdd_cache_var_id_i++;
                         continue;
+                    }
+
+                    // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log
+                    if (!controller) {
+                        ConsoleHandler.getInstance().error('partially_clean_bdd_cache:no controller for var_id:' + var_id);
                     }
 
                     /**
