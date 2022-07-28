@@ -1,6 +1,7 @@
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import WeightHandler from '../../../../tools/WeightHandler';
 
 export default abstract class ReferenceDatatableField<Target extends IDistantVOBase> extends DatatableField<number, number> {
 
@@ -17,10 +18,21 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             sortedTargetFields[i].setModuleTable(this.targetModuleTable);
         }
 
-        let self = this;
+        let has_weight: boolean = false;
 
-        //par defaut on trie par id
-        this.setSort((vo1, vo2) => vo1.id - vo2.id);
+        for (let i in targetModuleTable.get_fields()) {
+            if (targetModuleTable.get_fields()[i].field_id == "weight") {
+                has_weight = true;
+                break;
+            }
+        }
+
+        //par defaut on trie par id sauf si on a un champ de weight
+        if (!has_weight) {
+            this.setSort((vo1, vo2) => vo1.id - vo2.id);
+        } else {
+            this.setSort(WeightHandler.getInstance().get_sort_by_weight_cb.bind(this));
+        }
     }
 
     public voIdToHumanReadable: (id: number) => string = (id: number) => {
