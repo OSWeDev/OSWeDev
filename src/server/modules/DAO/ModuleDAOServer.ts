@@ -1223,9 +1223,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        // Comportement en cas de valeur null du stringify
-        let null_replacer = (key, value) => (value == null) ? 'NULL' : value;
-
         let lines: string[] = [];
         for (let i in vos) {
             let vo: IDistantVOBase = moduleTable.get_bdd_version(vos[i]);
@@ -1237,9 +1234,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let field: ModuleTableField<any> = fields[f];
 
                 let fieldValue = vo[field.field_id];
-                if ((!!fieldValue) && (typeof fieldValue == 'string')) {
-                    fieldValue = fieldValue.replace(/;/g, '\\;');
-                }
 
                 if (typeof fieldValue == "undefined") {
                     if (field.has_default && typeof field.field_default == 'undefined') {
@@ -1255,7 +1249,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     break;
                 }
 
-                setters.push(JSON.stringify(fieldValue, null_replacer));
+                let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
+                if ((!!stringified) && (typeof fieldValue == 'string')) {
+                    if (stringified.length == 2) {
+                        stringified = "''";
+                    } else {
+                        stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"') + "'";
+                    }
+                }
+                setters.push(stringified);
 
                 /**
                  * Cas des ranges
@@ -1270,11 +1272,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
 
                     let fieldValue_ndx = vo[field.field_id + '_ndx'];
-                    if ((!!fieldValue_ndx) && (typeof fieldValue_ndx == 'string')) {
-                        fieldValue_ndx = fieldValue_ndx.replace(/;/g, '\\;');
-                    }
 
-                    setters.push(JSON.stringify(fieldValue_ndx, null_replacer));
+                    stringified = (fieldValue_ndx == null) ? '' : JSON.stringify(fieldValue_ndx);
+                    if ((!!stringified) && (typeof fieldValue_ndx == 'string')) {
+                        if (stringified.length == 2) {
+                            stringified = "''";
+                        } else {
+                            stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"') + "'";
+                        }
+                    }
+                    setters.push(stringified);
                 }
             }
 
@@ -1316,14 +1323,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     resolve();
                 };
 
-                let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (DELIMITER ';', NULL 'NULL')";
+                let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
                 ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
                 var stream = client.query(copyFrom(query_string));
                 var rs = new Readable();
 
                 for (let i in lines) {
                     let line: string = lines[i];
-                    rs.push(line);
+                    rs.push(line + "\n");
                 }
                 rs.push(null);
                 rs.on('error', cb);
