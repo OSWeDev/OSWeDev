@@ -4,6 +4,7 @@ import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/Dat
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
 
 export default abstract class DataImportComponentBase extends VueComponentBase {
@@ -71,13 +72,8 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
                 vos: await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID)
             });
         })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID)
-            });
-        })());
-        await Promise.all(promises);
+
+        await all_promises(promises);
 
         this.nextLoadingStep();
 
