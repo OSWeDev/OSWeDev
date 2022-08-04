@@ -699,7 +699,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                let date = src_vo[field_id] ? new Date(src_vo[field_id] * 1000) : null;
+                let date = src_vo[field_id] ? Dates.format(src_vo[field_id], "DD/MM/YYYY HH:mm:ss", false) : null;
                 dest_vo[field_id] = date;
                 break;
 
