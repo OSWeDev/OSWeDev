@@ -1531,7 +1531,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
+                return "(numrange(" + intersector_range.min + ", " + intersector_range.max + ", '" + (intersector_range.min_inclusiv ? "[" : "(") + (intersector_range.max_inclusiv ? "]" : ")") + "') && " + field_id + ")";
 
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_day:
@@ -1552,13 +1552,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
+                return "(numrange(" + intersector_range.min + ", " + intersector_range.max + ", '" + (intersector_range.min_inclusiv ? "[" : "(") + (intersector_range.max_inclusiv ? "]" : ")") + "') && " + field_id + ")";
 
             case ModuleTableField.FIELD_TYPE_hourrange:
                 return field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return "'" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field_id + "::numrange[])";
+                return "(numrange(" + intersector_range.min + ", " + intersector_range.max + ", '" + (intersector_range.min_inclusiv ? "[" : "(") + (intersector_range.max_inclusiv ? "]" : ")") + "') && " + field_id + ")";
 
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:

@@ -1,3 +1,4 @@
+import { IDatabase } from 'pg-promise';
 import { ResetPwdParamVOStatic } from '../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
@@ -212,6 +213,34 @@ export default class ModuleTableDBService {
                 await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);
             }
         }
+    }
+
+    /**
+     * Migration pg14 : Nouveau type de champ multirange
+     * @param db Connecteur base de données
+     * @param table_full_name Nom de la table
+     * @param column_name Nom de la colonne
+     * @param new_column_type Nouveau type multirange
+     */
+    public async migrate_column_to_multirange(
+        db: IDatabase<any>,
+        table_full_name: string,
+        column_name: string,
+        new_column_type: string,
+    ) {
+        let column_name_tmp: string = column_name + "__tmp__";
+
+        // On créé la colonne temporaire
+        await db.none("ALTER TABLE " + table_full_name + " ADD COLUMN " + column_name_tmp + " " + new_column_type + ";");
+
+        // On update les données
+        await db.none("UPDATE " + table_full_name + " SET " + column_name_tmp + " = REPLACE(" + column_name + "::text, '\"', '')::" + new_column_type + ";");
+
+        // On supprime l'ancienne colonne
+        await db.none("ALTER TABLE " + table_full_name + " DROP COLUMN " + column_name + ";");
+
+        // On renomme la colonne temporaire avec le bon nom
+        await db.none("ALTER TABLE " + table_full_name + " RENAME COLUMN " + column_name_tmp + " to " + column_name + ";");
     }
 
     private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {

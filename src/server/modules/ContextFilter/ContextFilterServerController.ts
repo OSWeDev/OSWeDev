@@ -1822,15 +1822,15 @@ export default class ContextFilterServerController {
 
                     switch (field_type) {
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field_id + "::numrange[]))";
+                            where_clause_date_intersects += "(numrange(" + tsrange.min + "," + tsrange.max + ", '[)') && " + field_id + ')';
                             break;
 
                         case ModuleTableField.FIELD_TYPE_tsrange:
-                            where_clause_date_intersects += '(' + field_id + " && '[" + tsrange.min + "," + tsrange.max + ")'::numrange)";
+                            where_clause_date_intersects += '(' + field_id + " && numrange(" + tsrange.min + "," + tsrange.max + ", '[)'))";
                             break;
 
                         case ModuleTableField.FIELD_TYPE_tstz_array:
-                            where_clause_date_intersects += "('[" + tsrange.min + "," + tsrange.max + ")'::numrange && ANY (" + field_id + "::numeric[]))";
+                            where_clause_date_intersects += "(numrange(" + tsrange.min + "," + tsrange.max + ", '[)') && ANY (" + field_id + "::numeric[]))";
                             break;
 
                         case ModuleTableField.FIELD_TYPE_tstz:

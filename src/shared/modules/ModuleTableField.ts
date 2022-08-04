@@ -39,7 +39,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_numrange: string = 'numrange';
-    public static FIELD_TYPE_numrange_array: string = 'numrange[]';
+    public static FIELD_TYPE_numrange_array: string = 'nummultirange';
     public static FIELD_TYPE_refrange_array: string = 'refrange[]';
     public static FIELD_TYPE_file_field: string = 'file';
     public static FIELD_TYPE_isoweekdays: string = 'isoweekdays';
@@ -416,7 +416,18 @@ export default class ModuleTableField<T> {
             return null;
         }
 
-        return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + "(" + this.field_id + " ASC NULLS LAST);";
+        let using: string = "btree";
+
+        switch (this.field_type) {
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                using = "gist";
+                break;
+        }
+
+        return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + " USING " + using + " (" + this.field_id + " ASC NULLS LAST);";
     }
 
     public get_index_name(table_name: string): string {
@@ -528,11 +539,11 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
-                return (db_type == "numrange[]") || (db_type == "ARRAY");
+                return (db_type == "nummultirange") || (db_type == "ARRAY");
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             //     return db_type == "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return (db_type == "numrange[]") || (db_type == "ARRAY");
+                return (db_type == "nummultirange") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_numrange:
@@ -545,7 +556,7 @@ export default class ModuleTableField<T> {
                 return db_type == "int8range";
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return (db_type == "int8range[]") || (db_type == "ARRAY");
+                return (db_type == "int8multirange") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return db_type == "time without time zone";
@@ -635,11 +646,11 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
-                return "numrange[]";
+                return "nummultirange";
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             //     return "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return "numrange[]";
+                return "nummultirange";
 
             case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_tsrange:
@@ -649,7 +660,7 @@ export default class ModuleTableField<T> {
                 return "int8range";
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return "int8range[]";
+                return "int8multirange";
 
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return "time without time zone";

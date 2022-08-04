@@ -1463,9 +1463,9 @@ export default class RangeHandler {
                 res += ',';
             }
 
-            res += '"';
+            // res += '"';
             res += this.translate_range_to_bdd(range);
-            res += '"';
+            // res += '"';
         }
         res += '}';
 
