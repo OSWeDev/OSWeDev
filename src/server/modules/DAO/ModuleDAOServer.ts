@@ -3727,16 +3727,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
                 res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numeric[])";
                 break;
 
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             default:
-                res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numrange[])";
+                res += ranges_query + " @> " + table_name + '.' + field.field_id;
                 break;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
@@ -3968,12 +3968,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tstz_array:
             case ModuleTableField.FIELD_TYPE_float_array:
             case ModuleTableField.FIELD_TYPE_int_array:
-            case ModuleTableField.FIELD_TYPE_isoweekdays:
-            case ModuleTableField.FIELD_TYPE_refrange_array:
-            case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_hourrange_array:
-            default:
                 /**
                  * Dans le cas d'un champs de type []
                  * (
@@ -3999,6 +3993,38 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     '  where t2.id = t.id) t1' +
                     '  where t1.a <@ ' + ranges_query +
                     '  ) = array_length(' + table_name + '.' + field.field_id + ',1) ';
+                break;
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+            default:
+                /**
+                 * Dans le cas d'un champs de type multirange
+                 * (
+                 *   select count(1)
+                 *   from (
+                 *     select unnest(A) a
+                 *     from dt.t t2
+                 *     where t2.id=t1.id
+                 *   ) t
+                 *   where t.a <@ ANY(ARRAY['[1,2)'::numrange])
+                 * ) = (SELECT GREATEST(COUNT(t3), 1) FROM (SELECT UNNEST(A)) t3);
+                 *
+                 * Dans le cas d'un field non ARRAY
+                 * A <@ ANY(ARRAY['[1,2)'::numrange])
+                 */
+
+                res +=
+                    '(' +
+                    '  select count(1)' +
+                    '  from (' +
+                    '   select unnest(' + table_name + '.' + field.field_id + ') a' +
+                    '  from ' + full_name + ' t2' +
+                    '  where t2.id = t.id) t1' +
+                    '  where t1.a <@ ' + ranges_query +
+                    '  ) = (SELECT GREATEST(COUNT(t3), 1) FROM (SELECT UNNEST(' + table_name + '.' + field.field_id + ')) t3)';
                 break;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:

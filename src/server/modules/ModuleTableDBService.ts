@@ -2,6 +2,7 @@ import { IDatabase } from 'pg-promise';
 import { ResetPwdParamVOStatic } from '../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
+import Module from '../../shared/modules/Module';
 import ModuleTable from '../../shared/modules/ModuleTable';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
@@ -218,29 +219,53 @@ export default class ModuleTableDBService {
     /**
      * Migration pg14 : Nouveau type de champ multirange
      * @param db Connecteur base de données
-     * @param table_full_name Nom de la table
+     * @param module Module
      * @param column_name Nom de la colonne
      * @param new_column_type Nouveau type multirange
      */
     public async migrate_column_to_multirange(
-        db: IDatabase<any>,
+        module_name: string,
         table_full_name: string,
-        column_name: string,
+        columns_name: string[],
         new_column_type: string,
     ) {
-        let column_name_tmp: string = column_name + "__tmp__";
+        ConsoleHandler.getInstance().log('Migration multirange : (module_name:' + module_name + ') (table_full_name:' + table_full_name + ') (columns_name:' + columns_name.join(',') + ') (new_column_type:' + new_column_type + ')');
 
-        // On créé la colonne temporaire
-        await db.none("ALTER TABLE " + table_full_name + " ADD COLUMN " + column_name_tmp + " " + new_column_type + ";");
+        if (!(await this.isModuleActif(this.db, module_name))) {
+            ConsoleHandler.getInstance().log('Migration multirange : Module non actif, on ne fait rien');
+            return;
+        }
 
-        // On update les données
-        await db.none("UPDATE " + table_full_name + " SET " + column_name_tmp + " = REPLACE(" + column_name + "::text, '\"', '')::" + new_column_type + ";");
+        for (let j in columns_name) {
+            let column_name: string = columns_name[j];
 
-        // On supprime l'ancienne colonne
-        await db.none("ALTER TABLE " + table_full_name + " DROP COLUMN " + column_name + ";");
+            let column_name_tmp: string = column_name + "__tmp__";
 
-        // On renomme la colonne temporaire avec le bon nom
-        await db.none("ALTER TABLE " + table_full_name + " RENAME COLUMN " + column_name_tmp + " to " + column_name + ";");
+            // On créé la colonne temporaire
+            await this.db.none("ALTER TABLE " + table_full_name + " ADD COLUMN " + column_name_tmp + " " + new_column_type + ";");
+
+            // On update les données
+            await this.db.none("UPDATE " + table_full_name + " SET " + column_name_tmp + " = REPLACE(" + column_name + "::text, '\"', '')::" + new_column_type + ";");
+
+            // On supprime l'ancienne colonne
+            await this.db.none("ALTER TABLE " + table_full_name + " DROP COLUMN " + column_name + ";");
+
+            // On renomme la colonne temporaire avec le bon nom
+            await this.db.none("ALTER TABLE " + table_full_name + " RENAME COLUMN " + column_name_tmp + " to " + column_name + ";");
+        }
+
+        ConsoleHandler.getInstance().log('Migration multirange : Migration terminée');
+    }
+
+    private async isModuleActif(db: IDatabase<any>, module_name: string): Promise<boolean> {
+
+        let res = await db.query("SELECT * FROM admin.modules WHERE name IN ('" + module_name + "') AND actif=TRUE;");
+
+        if (!res || res.length != 1) {
+            return false;
+        }
+
+        return true;
     }
 
     private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {

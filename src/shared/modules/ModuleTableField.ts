@@ -417,6 +417,7 @@ export default class ModuleTableField<T> {
         }
 
         let using: string = "btree";
+        let using_params: string[] = [];
 
         switch (this.field_type) {
             case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -425,9 +426,12 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 using = "gist";
                 break;
+            default:
+                using_params.push("NULLS", "LAST", "ASC");
+                break;
         }
 
-        return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + " USING " + using + " (" + this.field_id + " ASC NULLS LAST);";
+        return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + " USING " + using + " (" + this.field_id + " " + using_params.join(" ") + ");";
     }
 
     public get_index_name(table_name: string): string {

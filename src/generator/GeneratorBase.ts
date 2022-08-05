@@ -73,6 +73,7 @@ import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
+import Patch20220804MigrationPG14 from './patchs/premodules/Patch20220804MigrationPG14';
 
 export default abstract class GeneratorBase {
 
@@ -119,7 +120,8 @@ export default abstract class GeneratorBase {
             Patch20211004ChangeLang.getInstance(),
             Patch20220111LocalizeCRONDate.getInstance(),
             Patch20220222RemoveVorfieldreffrombdd.getInstance(),
-            Patch20220223Adduniqtranslationconstraint.getInstance()
+            Patch20220223Adduniqtranslationconstraint.getInstance(),
+            Patch20220804MigrationPG14.getInstance(),
         ];
 
         this.post_modules_workers = [
