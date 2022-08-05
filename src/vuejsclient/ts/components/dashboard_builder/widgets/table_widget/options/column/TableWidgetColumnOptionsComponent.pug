@@ -1,8 +1,8 @@
 .table_widget_column
     template(v-if='!column')
-        .new_column_select_type 
+        .new_column_select_type
             .new_column_select_type_label {{ label('table_widget_column.new_column_select_type_label') }}
-        
+
             .new_column_select_type_vo_field_ref
                 .vo_ref_field_receiver(@dragover="allowDrop" @drop="drop")
                     .vo_ref_field_receiver_placeholder {{ label('single_vo_field_ref_holder.vo_ref_field_receiver_placeholder') }}
@@ -58,8 +58,8 @@
     template(v-else)
         .table_widget_column_conf
             .column_label(v-if='!!translatable_name_code_text')
-                Inlinetranslatabletext(                    
-                    :code_text="translatable_name_code_text" 
+                Inlinetranslatabletext(
+                    :code_text="translatable_name_code_text"
                     :is_editable="true"
                     :default_translation="default_column_label")
 
@@ -87,56 +87,64 @@
 
                 .editable_column(v-if='can_be_editable')
                     toggle-button(
-                        @change="switch_readonly" 
-                        :value="!column.readonly" 
+                        @change="switch_readonly"
+                        :value="!column.readonly"
                         :sync="true"
                         :width="100"
                         :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
 
                 .exportable_column
                     toggle-button(
-                        @change="switch_exportable" 
-                        :value="column.exportable" 
+                        @change="switch_exportable"
+                        :value="column.exportable"
                         :sync="true"
                         :width="105"
                         :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
 
                 .hide_from_table_column
                     toggle-button(
-                        @change="switch_hide_from_table" 
-                        :value="!column.hide_from_table" 
+                        @change="switch_hide_from_table"
+                        :value="!column.hide_from_table"
                         :sync="true"
                         :width="75"
                         :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
 
                 .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")')
                     toggle-button(
-                        @change="switch_can_filter_by" 
-                        :value="column.can_filter_by" 
+                        @change="switch_can_filter_by"
+                        :value="column.can_filter_by"
                         :sync="true"
                         :width="100"
                         :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
+                .is_sticky_column
+                    toggle-button(
+                        @change="switch_is_sticky"
+                        :value="column.is_sticky"
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.is_sticky'), unchecked: label('table_widget_column_conf.editable_column.is_not_sticky')}")
+
                 .many_to_many_aggregate.mt-2
                     toggle-button(
-                        @change="switch_many_to_many_aggregate" 
-                        :value="column.many_to_many_aggregate" 
+                        @change="switch_many_to_many_aggregate"
+                        :value="column.many_to_many_aggregate"
                         :sync="true"
                         :width="160"
                         :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
 
                 .is_nullable.mt-2
                     toggle-button(
-                        @change="switch_is_nullable" 
-                        :value="column.is_nullable" 
+                        @change="switch_is_nullable"
+                        :value="column.is_nullable"
                         :sync="true"
                         :width="320"
                         :labels="{checked: label('table_widget_column_conf.editable_column.is_nullable.show'), unchecked: label('table_widget_column_conf.editable_column.is_nullable.hide')}")
 
                 .show_tooltip.mt-2
                     toggle-button(
-                        @change="switch_show_tooltip" 
-                        :value="column.show_tooltip" 
+                        @change="switch_show_tooltip"
+                        :value="column.show_tooltip"
                         :sync="true"
                         :width="160"
                         :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
@@ -165,7 +173,7 @@
                     )
 
                 //- template(v-if='column.is_enum')
-                .enum_color_options 
+                .enum_color_options
                     .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
                         .enum_bg_color
                             color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')

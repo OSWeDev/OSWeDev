@@ -122,6 +122,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private limit: number = null;
     private update_cpt_live: number = 0;
 
+    private sticky_left_by_col_id: { [col_id: number]: number } = {};
+
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
@@ -615,6 +617,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         let res: TableColumnDescVO[] = [];
+        let sticky_left: number = 0;
         for (let i in options.columns) {
 
             let column = options.columns[i];
@@ -624,6 +627,10 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
             if (column.column_width == null) {
                 column.column_width = 0;
+            }
+            if (column.is_sticky) {
+                this.sticky_left_by_col_id[column.id] = sticky_left;
+                sticky_left += parseInt(column.column_width.toString());
             }
 
             /**
@@ -1276,7 +1283,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
     }
 
-    private get_style_column(column: TableColumnDescVO) {
+    private get_style_th(column: TableColumnDescVO) {
         let res = {};
 
         if (!column) {
@@ -1289,6 +1296,40 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         if (column.font_color_header) {
             res['color'] = column.font_color_header;
+        }
+
+        if (column.is_sticky) {
+            res['minWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['maxWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['left'] = this.sticky_left_by_col_id
+                ? (this.sticky_left_by_col_id[column.id]
+                    ? (this.sticky_left_by_col_id[column.id] + 0.4) + "rem"
+                    : 0 + "rem")
+                : null;
+            res['backgroundColor'] = column.bg_color_header ? column.bg_color_header : 'white';
+            res['zIndex'] = 1000;
+        }
+
+        return res;
+    }
+
+    private get_style_td(column: TableColumnDescVO) {
+        let res = {};
+
+        if (!column) {
+            return res;
+        }
+
+        if (column.is_sticky) {
+            res['minWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['maxWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['left'] = this.sticky_left_by_col_id
+                ? (this.sticky_left_by_col_id[column.id]
+                    ? (this.sticky_left_by_col_id[column.id] + 0.4) + "rem"
+                    : 0 + "rem")
+                : null;
+            res['backgroundColor'] = column.bg_color_header ? column.bg_color_header : 'white';
+            res['zIndex'] = 500;
         }
 
         return res;
