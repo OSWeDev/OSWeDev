@@ -85,6 +85,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private editable_dashboard_page: IEditableDashboardPage = null;
 
+    private is_filtres_deplie: boolean = true;
+
     private throttled_rebuild_page_layout = ThrottleHelper.getInstance().declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
@@ -384,6 +386,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         } catch { }
 
         return false;
+    }
+
+    private change_is_filtres_deplie() {
+        this.is_filtres_deplie = !this.is_filtres_deplie;
     }
 
     // private select_widget_and_stop(event, page_widget) {

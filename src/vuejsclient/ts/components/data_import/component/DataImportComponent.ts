@@ -1,13 +1,14 @@
 
 import * as moment from 'moment';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
@@ -21,6 +22,9 @@ import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './DataImportComponent.scss';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -31,9 +35,6 @@ import './DataImportComponent.scss';
 export default class DataImportComponent extends DataImportComponentBase {
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
-
-    @ModuleDAOAction
-    public updateData: (vo: IDistantVOBase) => void;
 
     @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
@@ -119,15 +120,9 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: true })
     public show_multiple_segments: boolean;
 
-    get show_overview(): boolean {
-        return this.force_show_overview;
-    }
-
     public show_new_import: boolean = false;
 
     private selected_segment: TimeSegment = null;
-
-    private previous_import_historics: { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } = {};
 
     private autovalidate: boolean = false;
 
@@ -137,6 +132,75 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments: boolean = false;
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
+
+    @Watch("$route")
+    public async onrouteChange() {
+        await this.handle_modal_show_hide();
+    }
+
+    @Watch('getOptions')
+    public onChangeOptions() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('autovalidate')
+    public onChangeAutovalidate() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('lower_selected_date_index')
+    public onChangeLowerSelectedDateIndex() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('upper_selected_date_index')
+    public onChangeUpperSelectedDateIndex() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('valid_api_type_ids', { immediate: true })
+    @Watch('getsegments')
+    public async onchange_getsegments() {
+        await this.reload_datas();
+    }
+
+    @Watch('import_historics')
+    public async loadRawImportedDatasSelected_segment(timeSegment: TimeSegment) {
+        await this.loadRawImportedDatas(this.selected_segment);
+    }
+
+    @Watch('selected_segment')
+    public async onchange_selected_segment() {
+        if (this.selected_segment && this.import_historics) {
+            this.show_new_import = (!this.import_historics[this.selected_segment.index]) ? true : false;
+        }
+    }
+
+    @Watch('selected_import_is_finished')
+    public async onselected_import_is_finished() {
+        if (!this.importing_multiple_segments) {
+            return;
+        }
+
+        if (!this.selected_import_is_finished) {
+            return;
+        }
+
+        // On attend un peu pour lancer potentiellement le suivant, il y a des délais de mise à jour des historiques parfois, il faut les prendre en compte
+        setTimeout(this.continue_multiple_importation.bind(this), 1000);
+    }
 
     public toggleShowNewImport(): void {
         this.show_new_import = !this.show_new_import;
@@ -176,10 +240,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
     }
 
-    @Watch("$route")
-    public async onrouteChange() {
-        await this.handle_modal_show_hide();
-    }
     public async on_show_modal() {
 
         this.selected_segment = null;
@@ -198,41 +258,297 @@ export default class DataImportComponent extends DataImportComponentBase {
         await this.select_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type));
     }
 
-    @Watch('getOptions')
-    public onChangeOptions() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
+    public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
+        return this.getHistoricOptionsTester(historic, this.getOptions);
+    }
+
+    protected async mounted() {
+        await this.on_mount();
+    }
+
+    private define_lower_selection(segment: TimeSegment) {
+        this.lower_selected_date_index = segment.dateIndex;
+    }
+
+    private define_upper_selection(segment: TimeSegment) {
+        this.upper_selected_date_index = segment.dateIndex;
+    }
+
+    private async select_segment(segment: TimeSegment) {
+        await this.loadRawImportedDatas(segment);
+        this.selected_segment = segment;
+    }
+
+    private async loadRawImportedDatas(timeSegment: TimeSegment) {
+        let promises: Array<Promise<any>> = [];
+        let files_ids: number[] = [];
+
+        if ((!this.import_historics) || (!timeSegment) || (!this.import_historics[timeSegment.index])) {
+            return;
+        }
+
+        ConsoleHandler.getInstance().log('loadRawImportedDatas:' + timeSegment.index);
+
+        for (let i in this.import_historics[timeSegment.index]) {
+
+            let historic: DataImportHistoricVO = this.import_historics[timeSegment.index][i];
+            this.pushPromisesToLoadDataFromHistoric(historic, files_ids, promises);
+        }
+
+        await all_promises(promises);
+    }
+
+    private async continue_importation(api_type_id: string) {
+        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
+            return;
+        }
+
+        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
+            return;
+        }
+
+        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
+
+        this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
+    }
+
+    private async cancel_importation(api_type_id: string) {
+        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
+            return;
+        }
+
+        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
+            return;
+        }
+
+        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
+
+        this.storeData(this.import_historics[this.selected_segment.index][api_type_id]);
+    }
+
+    private async checkReplaceExistingImport(segment_date_index: number, done) {
+        let self = this;
+
+        if (((!!segment_date_index) && ((!!this.import_historics) && (!!this.import_historics[segment_date_index]))) ||
+            ((!segment_date_index) && this.has_imports_on_selected_segments)) {
+            self.snotify.confirm(self.label('import.new_historic_confirmation.body'), self.label('import.new_historic_confirmation.title'), {
+                timeout: 10000,
+                showProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                buttons: [
+                    {
+                        text: self.t('YES'),
+                        action: (toast) => {
+                            done();
+                            self.$snotify.remove(toast.id);
+                            self.snotify.info(self.label('import.upload_started'));
+                        },
+                        bold: false
+                    },
+                    {
+                        text: self.t('NO'),
+                        action: (toast) => {
+                            done(self.label('import.new_historic_confirmation.cancelled'));
+                            self.$snotify.remove(toast.id);
+                        }
+                    }
+                ]
+            });
+        } else {
+            done();
+            self.snotify.info(self.label('import.upload_started'));
         }
     }
 
-    @Watch('autovalidate')
-    public onChangeAutovalidate() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
+    private async continue_multiple_importation() {
+        if (!this.importing_multiple_segments) {
+            return;
         }
+
+        if (!this.selected_import_is_finished) {
+            return;
+        }
+
+        // On est en import multiple, soit on passe au suivant, soit c'est terminé
+        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
+        if (this.upper_selected_segment.index < this.importing_multiple_segments_current_segment.index) {
+            this.importing_multiple_segments = false;
+            return;
+        }
+        await this.importSegment(this.importing_multiple_segments_current_segment.index, this.importing_multiple_segments_filevo_id);
     }
 
-    @Watch('lower_selected_date_index')
-    public onChangeLowerSelectedDateIndex() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
+    private async planif_reimport(segment: TimeSegment) {
+        if ((!this.import_historics) || (!this.import_historics[segment.index])) {
+            return;
         }
+
+        for (let i in this.import_historics[segment.index]) {
+            let historic: DataImportHistoricVO = this.import_historics[segment.index][i];
+
+            while (!!historic.reimport_of_dih_id) {
+                historic = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, historic.reimport_of_dih_id);
+            }
+
+            await ModuleDataImport.getInstance().reimportdih(historic);
+        }
+
+        this.snotify.info(this.label('imports.reimport.planified'));
     }
 
-    @Watch('upper_selected_date_index')
-    public onChangeUpperSelectedDateIndex() {
-        if (this.importing_multiple_segments) {
-            this.snotify.info(this.label('imports.stop_imports_multiples'));
-            this.importing_multiple_segments = false;
+    private async importSegment(segment_date_index: number, filevo_id: number) {
+        let importHistorics: DataImportHistoricVO[] = [];
+        for (let i in this.valid_api_type_ids) {
+            let api_type_id: string = this.valid_api_type_ids[i];
+
+            let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
+            importHistoric.api_type_id = api_type_id;
+            importHistoric.file_id = filevo_id;
+            importHistoric.autovalidate = this.autovalidate;
+            importHistoric.segment_type = this.getsegment_type;
+            importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
+            importHistoric.params = JSON.stringify(this.getOptions);
+            importHistoric.segment_date_index = segment_date_index;
+            importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
+            importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
+
+            importHistorics.push(importHistoric);
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            importHistoric.id = res.id;
+
+            this.storeData(importHistoric);
         }
+
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
+
+        this.openModalDateIndex(segment_date_index);
+    }
+
+    private openModalDateIndex(segment_date_index: number) {
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
+    }
+
+    private openModal(segment: TimeSegment) {
+        this.openModalDateIndex(segment.index);
+    }
+
+    private getRaw_datas_path(import_state: string): { [api_type_id: string]: string } {
+        let res: { [api_type_id: string]: string } = {};
+
+        if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.index])) {
+            return res;
+        }
+
+        for (let i in this.import_historics[this.selected_segment.index]) {
+            let historic: DataImportHistoricVO = this.import_historics[this.selected_segment.index][i];
+
+            res[historic.api_type_id] = this.getCRUDLink(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id)) + (import_state ? "?FILTER__importation_state=" + import_state : '');
+        }
+        return res;
+    }
+
+    private async reload_datas() {
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
+
+        if (!this.getsegments || !this.getsegments.length || !this.valid_api_type_ids || !this.valid_api_type_ids.length) {
+            return;
+        }
+
+        let num_ranges: NumRange[] = [];
+
+        for (let i in this.getsegments) {
+            let segment: TimeSegment = this.getsegments[i];
+
+            num_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
+        }
+
+        let dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
+            .filter_by_text_including('api_type_id', this.valid_api_type_ids)
+            .filter_by_num_x_ranges('segment_date_index', num_ranges)
+            .select_vos<DataImportHistoricVO>();
+
+        this.storeDatas({
+            API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
+            vos: dihs
+        });
+    }
+
+    get import_historics(): { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } {
+        let res: { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } = {};
+
+        for (let i in this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID]) {
+            let dih: DataImportHistoricVO = this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID][i] as DataImportHistoricVO;
+
+            if (!this.hasSelectedOptions(dih)) {
+                continue;
+            }
+
+            if (!res[dih.segment_date_index]) {
+                res[dih.segment_date_index] = {};
+            }
+
+            if (res[dih.segment_date_index][dih.api_type_id] && (res[dih.segment_date_index][dih.api_type_id].start_date > dih.start_date)) {
+                continue;
+            }
+
+            res[dih.segment_date_index][dih.api_type_id] = dih;
+        }
+
+        return res;
+    }
+
+    get selected_import_is_finished(): boolean {
+
+        if ((!this.selected_segment) || (!this.valid_api_type_ids) || (!this.posttreated)) {
+            return false;
+        }
+
+        for (let i in this.valid_api_type_ids) {
+            if (!this.posttreated[this.valid_api_type_ids[i]]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    get logs_path(): { [api_type_id: string]: string } {
+        let res: { [api_type_id: string]: string } = {};
+
+        if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.index])) {
+            return res;
+        }
+
+        for (let i in this.import_historics[this.selected_segment.index]) {
+            let historic: DataImportHistoricVO = this.import_historics[this.selected_segment.index][i];
+
+            res[historic.api_type_id] = this.getCRUDLink(DataImportLogVO.API_TYPE_ID) + "?FILTER__data_import_historic_id=" + historic.id;
+        }
+        return res;
+    }
+
+    get raw_datas_path(): { [api_type_id: string]: string } {
+        return this.getRaw_datas_path(null); //'import.state.ready_to_import');
+    }
+
+    get modal_historics(): { [api_type_id: string]: DataImportHistoricVO; } {
+        return this.import_historics[this.selected_segment.index];
+    }
+
+    get modal_dropzone_options(): any {
+        return this.dropzoneOptions[this.selected_segment.index];
+    }
+
+    get modal_dropzone_key(): string {
+        return 'fileinput_' + this.selected_segment.index;
     }
 
     get lower_selected_segment(): TimeSegment {
         return this.lower_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
     }
+
     get upper_selected_segment(): TimeSegment {
         return this.upper_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
     }
@@ -281,53 +597,8 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
-    public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
-        return this.getHistoricOptionsTester(historic, this.getOptions);
-    }
-
-    protected async mounted() {
-        await this.on_mount();
-    }
-
-    private check_change_import_historics(): boolean {
-        if (!this.import_historics) {
-            return !!this.previous_import_historics;
-        }
-
-        for (let segment_date_index in this.import_historics) {
-            if (!this.import_historics[segment_date_index]) {
-
-                if (this.previous_import_historics[segment_date_index]) {
-                    return true;
-                }
-                continue;
-            }
-
-            if (!this.previous_import_historics[segment_date_index]) {
-                return true;
-            }
-
-            for (let j in this.import_historics[segment_date_index]) {
-                if (this.check_change_import_historic(this.import_historics[segment_date_index][j], this.previous_import_historics[segment_date_index][j])) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private define_lower_selection(segment: TimeSegment) {
-        this.lower_selected_date_index = segment.dateIndex;
-    }
-
-    private define_upper_selection(segment: TimeSegment) {
-        this.upper_selected_date_index = segment.dateIndex;
-    }
-
-    private async select_segment(segment: TimeSegment) {
-        await this.loadRawImportedDatas(segment);
-        this.selected_segment = segment;
+    get show_overview(): boolean {
+        return this.force_show_overview;
     }
 
     get valid_api_type_ids(): string[] {
@@ -407,7 +678,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
-
     get api_types_ids_states(): { [segment_date_index: number]: { [api_type_id: string]: string } } {
         let res: { [segment_date_index: number]: { [api_type_id: string]: string } } = {};
 
@@ -477,42 +747,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
-    @Watch('import_historics')
-    private async loadRawImportedDatasSelected_segment(timeSegment: TimeSegment) {
-        if (!this.check_change_import_historics()) {
-            return;
-        }
-        this.previous_import_historics = Object.assign({}, this.import_historics);
-        await this.loadRawImportedDatas(this.selected_segment);
-    }
-
-    @Watch('selected_segment')
-    private async onchange_selected_segment() {
-        if (this.selected_segment && this.import_historics) {
-            this.show_new_import = (!this.import_historics[this.selected_segment.index]) ? true : false;
-        }
-    }
-
-    private async loadRawImportedDatas(timeSegment: TimeSegment) {
-        let promises: Array<Promise<any>> = [];
-        let self = this;
-        let files_ids: number[] = [];
-
-        if ((!this.import_historics) || (!timeSegment) || (!this.import_historics[timeSegment.index])) {
-            return;
-        }
-
-        ConsoleHandler.getInstance().log('loadRawImportedDatas:' + timeSegment.index);
-
-        for (let i in this.import_historics[timeSegment.index]) {
-
-            let historic: DataImportHistoricVO = this.import_historics[timeSegment.index][i];
-            this.pushPromisesToLoadDataFromHistoric(historic, files_ids, promises);
-        }
-
-        await Promise.all(promises);
-    }
-
     get imported_file(): FileVO {
 
         if ((!this.getStoredDatas) || (!this.getStoredDatas[FileVO.API_TYPE_ID]) || (!this.import_historics)) {
@@ -552,52 +786,6 @@ export default class DataImportComponent extends DataImportComponentBase {
                 res[format.api_type_id] = [];
             }
             res[format.api_type_id].push(format);
-        }
-
-        return res;
-    }
-
-    get import_historics(): { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } {
-        let res: { [segment_date_index: number]: { [api_type_id: string]: DataImportHistoricVO } } = {};
-
-        if ((!this.getStoredDatas) || (!this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID])) {
-            return res;
-        }
-
-        for (let i in this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID]) {
-            let historic: DataImportHistoricVO = this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID][i] as DataImportHistoricVO;
-
-            if (!historic) {
-                continue;
-            }
-
-            if (!this.hasSelectedOptions(historic)) {
-                continue;
-            }
-
-            if ((!this.valid_api_type_ids) || (this.valid_api_type_ids.indexOf(historic.api_type_id) < 0)) {
-                continue;
-            }
-
-            let api_type_id = historic.api_type_id;
-
-            for (let j in this.getsegments) {
-                let segment: TimeSegment = this.getsegments[j];
-
-                if (historic.segment_date_index != segment.index) {
-                    continue;
-                }
-
-                if (!res[segment.index]) {
-                    res[segment.index] = {};
-                }
-
-                if (res[segment.index][api_type_id] && (res[segment.index][api_type_id].start_date > historic.start_date)) {
-                    continue;
-                }
-
-                res[segment.index][api_type_id] = historic;
-            }
         }
 
         return res;
@@ -797,34 +985,6 @@ export default class DataImportComponent extends DataImportComponentBase {
             }
         }
         return res;
-    }
-
-    private async continue_importation(api_type_id: string) {
-        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
-            return;
-        }
-
-        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
-            return;
-        }
-
-        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
-        this.updateData(this.import_historics[this.selected_segment.index][api_type_id]);
-    }
-
-    private async cancel_importation(api_type_id: string) {
-        if ((!this.selected_segment) || (!this.import_historics) || (!this.import_historics[this.selected_segment.index])) {
-            return;
-        }
-
-        if (this.import_historics[this.selected_segment.index][api_type_id].state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) {
-            return;
-        }
-
-        this.import_historics[this.selected_segment.index][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.index][api_type_id]);
-        this.updateData(this.import_historics[this.selected_segment.index][api_type_id]);
     }
 
     get imported(): { [api_type_id: string]: boolean } {
@@ -1049,38 +1209,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res ? res.join(',') : "";
     }
 
-    get unfinished_imports(): DataImportHistoricVO[] {
-        let res: DataImportHistoricVO[] = [];
-
-        for (let i in this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID]) {
-            let historic: DataImportHistoricVO = this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID][i] as DataImportHistoricVO;
-
-            if (!historic) {
-                continue;
-            }
-
-            switch (historic.state) {
-                case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
-                case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
-                case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
-                case ModuleDataImport.IMPORTATION_STATE_IMPORTING:
-                case ModuleDataImport.IMPORTATION_STATE_POSTTREATING:
-                case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
-                case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
-                    res.push(historic);
-                    break;
-
-                case ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION:
-                case ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT:
-                case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
-                case ModuleDataImport.IMPORTATION_STATE_POSTTREATED:
-                default:
-            }
-        }
-
-        return res;
-    }
-
     get dropzoneOptions_multiple(): any {
         let self = this;
         return {
@@ -1135,51 +1263,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
-    // private async checkUnfinishedImportsAndReplacement(segment_date_index: number, done) {
-    //     let self = this;
-
-    //     if (self.unfinished_imports && (self.unfinished_imports.length > 0)) {
-    //         self.snotify.confirm(self.label('import.cancel_unfinished_imports.body'), self.label('import.cancel_unfinished_imports.title'), {
-    //             timeout: 10000,
-    //             showProgressBar: true,
-    //             closeOnClick: false,
-    //             pauseOnHover: true,
-    //             buttons: [
-    //                 {
-    //                     text: self.t('YES'),
-    //                     action: async (toast) => {
-    //                         self.$snotify.remove(toast.id);
-    //                         self.snotify.info(self.label('import.cancel_unfinished_imports.cancelling'));
-
-    //                         let unfinished_imports = self.unfinished_imports;
-    //                         for (let i in unfinished_imports) {
-    //                             unfinished_imports[i].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-    //                         }
-    //                         await ModuleDAO.getInstance().insertOrUpdateVOs(unfinished_imports);
-
-    //                         for (let i in unfinished_imports) {
-    //                             this.updateData(unfinished_imports[i]);
-    //                         }
-
-    //                         this.checkReplaceExistingImport(segment_date_index, done);
-    //                     },
-    //                     bold: false
-    //                 },
-    //                 {
-    //                     text: self.t('NO'),
-    //                     action: (toast) => {
-    //                         self.$snotify.remove(toast.id);
-    //                         done(self.label('import.new_historic_confirmation.cancelled'));
-    //                     }
-    //                 }
-    //             ]
-    //         });
-    //     } else {
-
-    //         this.checkReplaceExistingImport(segment_date_index, done);
-    //     }
-    // }
-
     get has_imports_on_selected_segments(): boolean {
         let segment: TimeSegment = this.lower_selected_segment;
         while (segment.index <= this.upper_selected_segment.index) {
@@ -1190,194 +1273,5 @@ export default class DataImportComponent extends DataImportComponentBase {
             segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, this.getsegment_type, -1);
         }
         return false;
-    }
-
-    private async checkReplaceExistingImport(segment_date_index: number, done) {
-        let self = this;
-
-        if (((!!segment_date_index) && ((!!this.import_historics) && (!!this.import_historics[segment_date_index]))) ||
-            ((!segment_date_index) && this.has_imports_on_selected_segments)) {
-            self.snotify.confirm(self.label('import.new_historic_confirmation.body'), self.label('import.new_historic_confirmation.title'), {
-                timeout: 10000,
-                showProgressBar: true,
-                closeOnClick: false,
-                pauseOnHover: true,
-                buttons: [
-                    {
-                        text: self.t('YES'),
-                        action: (toast) => {
-                            done();
-                            self.$snotify.remove(toast.id);
-                            self.snotify.info(self.label('import.upload_started'));
-                        },
-                        bold: false
-                    },
-                    {
-                        text: self.t('NO'),
-                        action: (toast) => {
-                            done(self.label('import.new_historic_confirmation.cancelled'));
-                            self.$snotify.remove(toast.id);
-                        }
-                    }
-                ]
-            });
-        } else {
-            done();
-            self.snotify.info(self.label('import.upload_started'));
-        }
-    }
-
-    get selected_import_is_finished(): boolean {
-
-        if ((!this.selected_segment) || (!this.valid_api_type_ids) || (!this.posttreated)) {
-            return false;
-        }
-
-        for (let i in this.valid_api_type_ids) {
-            if (!this.posttreated[this.valid_api_type_ids[i]]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Watch('selected_import_is_finished')
-    private async onselected_import_is_finished() {
-        if (!this.importing_multiple_segments) {
-            return;
-        }
-
-        if (!this.selected_import_is_finished) {
-            return;
-        }
-
-        // On attend un peu pour lancer potentiellement le suivant, il y a des délais de mise à jour des historiques parfois, il faut les prendre en compte
-        setTimeout(this.continue_multiple_importation.bind(this), 1000);
-    }
-
-    private async continue_multiple_importation() {
-        if (!this.importing_multiple_segments) {
-            return;
-        }
-
-        if (!this.selected_import_is_finished) {
-            return;
-        }
-
-        // On est en import multiple, soit on passe au suivant, soit c'est terminé
-        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
-        if (this.upper_selected_segment.index < this.importing_multiple_segments_current_segment.index) {
-            this.importing_multiple_segments = false;
-            return;
-        }
-        await this.importSegment(this.importing_multiple_segments_current_segment.index, this.importing_multiple_segments_filevo_id);
-    }
-
-    private async planif_reimport(segment: TimeSegment) {
-        if ((!this.import_historics) || (!this.import_historics[segment.index])) {
-            return;
-        }
-
-        for (let i in this.import_historics[segment.index]) {
-            let historic: DataImportHistoricVO = this.import_historics[segment.index][i];
-
-            while (!!historic.reimport_of_dih_id) {
-                historic = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, historic.reimport_of_dih_id);
-            }
-
-            await ModuleDataImport.getInstance().reimportdih(historic);
-        }
-
-        this.snotify.info(this.label('imports.reimport.planified'));
-    }
-
-    private async importSegment(segment_date_index: number, filevo_id: number) {
-        let importHistorics: DataImportHistoricVO[] = [];
-        for (let i in this.valid_api_type_ids) {
-            let api_type_id: string = this.valid_api_type_ids[i];
-
-            let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
-            importHistoric.api_type_id = api_type_id;
-            importHistoric.file_id = filevo_id;
-            importHistoric.autovalidate = this.autovalidate;
-            importHistoric.segment_type = this.getsegment_type;
-            importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
-            importHistoric.params = JSON.stringify(this.getOptions);
-            importHistoric.segment_date_index = segment_date_index;
-            importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
-            importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
-
-            this.storeData(importHistoric);
-            importHistorics.push(importHistoric);
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
-            importHistoric.id = res.id;
-        }
-
-        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
-
-        this.openModalDateIndex(segment_date_index);
-    }
-
-    private openModalDateIndex(segment_date_index: number) {
-        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
-    }
-
-    private openModal(segment: TimeSegment) {
-        this.openModalDateIndex(segment.index);
-    }
-
-    get logs_path(): { [api_type_id: string]: string } {
-        let res: { [api_type_id: string]: string } = {};
-
-        if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.index])) {
-            return res;
-        }
-
-        for (let i in this.import_historics[this.selected_segment.index]) {
-            let historic: DataImportHistoricVO = this.import_historics[this.selected_segment.index][i];
-
-            res[historic.api_type_id] = this.getCRUDLink(DataImportLogVO.API_TYPE_ID) + "?FILTER__data_import_historic_id=" + historic.id;
-        }
-        return res;
-    }
-
-    get raw_datas_path(): { [api_type_id: string]: string } {
-        return this.getRaw_datas_path(null); //'import.state.ready_to_import');
-    }
-
-    private getRaw_datas_path(import_state: string): { [api_type_id: string]: string } {
-        let res: { [api_type_id: string]: string } = {};
-
-        if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.index])) {
-            return res;
-        }
-
-        for (let i in this.import_historics[this.selected_segment.index]) {
-            let historic: DataImportHistoricVO = this.import_historics[this.selected_segment.index][i];
-
-            res[historic.api_type_id] = this.getCRUDLink(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id)) + (import_state ? "?FILTER__importation_state=" + import_state : '');
-        }
-        return res;
-    }
-
-    private async reload_datas() {
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-
-        this.storeDatas({
-            API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
-            vos: await ModuleDAO.getInstance().getVos<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID)
-        });
-    }
-
-    get modal_historics(): { [api_type_id: string]: DataImportHistoricVO; } {
-        return this.import_historics[this.selected_segment.index];
-    }
-
-    get modal_dropzone_options(): any {
-        return this.dropzoneOptions[this.selected_segment.index];
-    }
-
-    get modal_dropzone_key(): string {
-        return 'fileinput_' + this.selected_segment.index;
     }
 }

@@ -122,6 +122,10 @@ export default class ModuleTableField<T> {
      */
     public segmentation_type: number = null;
 
+    public boolean_icon_true: string = "fa-check-circle";
+    public boolean_icon_false: string = "fa-times-circle";
+    public boolean_invert_colors: boolean = false;
+
     /**
      * Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
      */
@@ -225,6 +229,27 @@ export default class ModuleTableField<T> {
 
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
         this.segmentation_type = segmentation_type;
+        return this;
+    }
+
+    /**
+     * Permet de définir les icones à utiliser pour les booleans
+     * @param boolean_icon_true FontAwesome icon name pour true
+     * @param boolean_icon_false FontAwesome icon name pour false
+     * @returns
+     */
+    public set_boolean_default_icons(boolean_icon_true: string, boolean_icon_false: string): ModuleTableField<T> {
+        this.boolean_icon_true = boolean_icon_true;
+        this.boolean_icon_false = boolean_icon_false;
+        return this;
+    }
+
+    /**
+     * Permet de définir si les couleurs doivent être inversées pour les booleans
+     * @returns
+     */
+    public set_boolean_invert_colors(): ModuleTableField<T> {
+        this.boolean_invert_colors = true;
         return this;
     }
 

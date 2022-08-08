@@ -39,4 +39,21 @@
             box-shadow: 1px 1px 20px #888;
         }
     }
+
+    .filters-bloc {
+        .header-filters-bloc {
+            background-color: lightgrey;
+
+            .chevron {
+                position: absolute;
+                right: 5px;
+                top: 15px;
+                cursor: pointer;
+            }
+
+            .translated_text {
+                font-weight: bold;
+            }
+        }
+    }
 }

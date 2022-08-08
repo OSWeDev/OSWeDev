@@ -611,6 +611,24 @@ export default class VarsDatasVoUpdateHandler {
         registered_var_datas = (registered_var_datas && registered_var_datas.length) ?
             ((cached && cached.length) ? registered_var_datas.concat(cached) : registered_var_datas) : cached;
 
+        let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
+
+        /**
+         * Tout sauf les imports et les denied
+         */
+        let var_datas_no_denied_and_no_import: VarDataBaseVO[] = [];
+
+        for (let i in var_datas) {
+            let var_data = var_datas[i];
+            var_data_by_index[var_data.index] = var_data;
+
+            if ((var_data.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (var_data.value_type != VarDataBaseVO.VALUE_TYPE_DENIED)) {
+                delete var_data.value;
+                var_data.value_ts = null;
+                var_datas_no_denied_and_no_import.push(var_data);
+            }
+        }
+
         // Si on retrouve les mêmes qu'en bdd on ignore, on est déjà en train de les invalider
         for (let i in registered_var_datas) {
             let registered_var_data = registered_var_datas[i];
@@ -624,31 +642,24 @@ export default class VarsDatasVoUpdateHandler {
             delete registered_var_data.value;
             registered_var_data.value_ts = null;
 
-            if (var_datas.find((v) => v.index == registered_var_data.index)) {
+            if (var_data_by_index[registered_var_data.index]) {
                 continue;
             }
-            var_datas.push(registered_var_data);
+
+            var_data_by_index[registered_var_data.index] = registered_var_data;
+
+            if ((registered_var_data.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (registered_var_data.value_type != VarDataBaseVO.VALUE_TYPE_DENIED)) {
+                delete registered_var_data.value;
+                registered_var_data.value_ts = null;
+                var_datas_no_denied_and_no_import.push(registered_var_data);
+            }
         }
 
-        /**
-         * Tout sauf les imports et les denied
-         */
-        var_datas = var_datas.filter((vd: VarDataBaseVO) => (vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (vd.value_type != VarDataBaseVO.VALUE_TYPE_DENIED));
-
-        if (var_datas && var_datas.length) {
-            var_datas.forEach((vd: VarDataBaseVO) => {
-                delete vd.value;
-                vd.value_ts = null;
-
-                // ConsoleHandler.getInstance().log(vd.index);
-            });
-        }
-
-        if ((!var_datas) || (!var_datas.length)) {
+        if ((!var_datas_no_denied_and_no_import) || (!var_datas_no_denied_and_no_import.length)) {
             return;
         }
 
-        let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas, registered_var_datas);
+        let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas_no_denied_and_no_import, registered_var_datas);
 
         let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
 
@@ -742,6 +753,13 @@ export default class VarsDatasVoUpdateHandler {
                     intersectors_by_var_id[invalidate_intersector.var_id][invalidate_intersector.index] = invalidate_intersector;
                 }
 
+                let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
+                let cached_by_index: { [index: string]: VarDataBaseVO } = {};
+
+                let promises = [];
+
+                let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+
                 for (let var_id_s in intersectors_by_var_id) {
                     let intersectors = intersectors_by_var_id[var_id_s];
 
@@ -751,11 +769,44 @@ export default class VarsDatasVoUpdateHandler {
 
                     let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
                     let list = Object.values(intersectors);
-                    let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
-                    let cached = await this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null);
 
-                    await this.handle_invalidation(var_datas, cached);
+                    if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                        await Promise.all(promises);
+                        promises = [];
+                    }
+
+                    promises.push((async () => {
+                        let tmp_var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
+
+                        if (tmp_var_datas && (tmp_var_datas.length > 0)) {
+                            for (let i in tmp_var_datas) {
+                                let var_data = tmp_var_datas[i];
+                                var_datas_by_index[var_data.index] = var_data;
+                            }
+                        }
+                    })());
+
+                    promises.push((async () => {
+                        let tmp_cached: VarDataBaseVO[] = await this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null);
+
+                        if (tmp_cached && (tmp_cached.length > 0)) {
+                            for (let i in tmp_cached) {
+                                let var_data = tmp_cached[i];
+                                cached_by_index[var_data.index] = var_data;
+                            }
+                        }
+                    })());
                 }
+
+                if (promises.length > 0) {
+                    await Promise.all(promises);
+                    promises = [];
+                }
+
+                await this.handle_invalidation(
+                    Object.values(var_datas_by_index),
+                    Object.values(cached_by_index),
+                );
             },
             this
         );
