@@ -1043,8 +1043,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboards.widgets.icons_tooltips.advanceddatefilter.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Choisir des valeurs par défaut (sinon à exclure)" },
+            'field_value_filter_widget_component.default_value_or_exclude.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valeurs par défaut du filtre" },
             'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeurs à exclure du filtre" },
+            'field_value_filter_widget_component.exclude_filter_opt_values.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer le filtre" },

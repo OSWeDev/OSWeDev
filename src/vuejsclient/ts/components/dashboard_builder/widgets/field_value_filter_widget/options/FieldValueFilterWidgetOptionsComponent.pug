@@ -233,65 +233,114 @@
                         :deselect-label='label("multiselect.deselectLabel")'
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
-                
-        .default_filter_opt_values 
-            .input_label {{ label('field_value_filter_widget_component.default_filter_opt_values') }}
+
+        .field_is_default_values_mode
+            .input_label {{ label('field_value_filter_widget_component.default_value_or_exclude') }}
             .input_wrapper
-                template(v-if="is_type_string || is_type_number || is_type_enum")
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="can_select_multiple"
-                        :close-on-select="false"
-                        v-model="tmp_default_filter_opt_values"
-                        :options="filter_visible_options"
-                        :custom-label="filter_visible_label"
-                        autocomplete="off"
+                toggle-button(
+                    @change="switch_is_default_values_mode" 
+                    :value="is_default_values_mode" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
 
-                        :searchable="true"
-                        :internal-search="false"
-                        :hide-selected="true"
+        template(v-if="is_default_values_mode")
+            .default_filter_opt_values 
+                .input_label {{ label('field_value_filter_widget_component.default_filter_opt_values') }}
+                .input_wrapper
+                    template(v-if="is_type_string || is_type_number || is_type_enum")
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="can_select_multiple"
+                            :close-on-select="false"
+                            v-model="tmp_default_filter_opt_values"
+                            :options="filter_visible_options"
+                            :custom-label="filter_visible_label"
+                            autocomplete="off"
 
-                        track-by="text_uid"
+                            :searchable="true"
+                            :internal-search="false"
+                            :hide-selected="true"
+
+                            track-by="text_uid"
+                            
+                            :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                            
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                            @search-change="query_update_visible_options"
+                        )
                         
-                        :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                    template(v-if="is_type_date")
+                        Tsrangeinputcomponent(
+                            v-model="tmp_default_ts_range_values"
+                            :field="field"
+                            :segmentation_type="segmentation_type"
+                        )
                         
-                        :select-label='label("multiselect.selectLabel")'
-                        :select-group-label='label("multiselect.selectGroupLabel")'
-                        :selected-label='label("multiselect.selectedLabel")'
-                        :deselect-label='label("multiselect.deselectLabel")'
-                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    template(v-if="is_type_boolean")
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="true"
+                            :close-on-select="false"
+                            v-model="tmp_default_boolean_values"
+                            :options="boolean_filter_type_options"
+                            :custom-label="boolean_filter_type_label"
 
-                        @search-change="query_update_visible_options"
-                    )
-                    
-                template(v-if="is_type_date")
-                    Tsrangeinputcomponent(
-                        v-model="tmp_default_ts_range_values"
-                        :field="field"
-                        :segmentation_type="segmentation_type"
-                    )
-                    
-                template(v-if="is_type_boolean")
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="true"
-                        :close-on-select="false"
-                        v-model="tmp_default_boolean_values"
-                        :options="boolean_filter_type_options"
-                        :custom-label="boolean_filter_type_label"
+                            autocomplete="off"
 
-                        autocomplete="off"
+                            :show-labels="false"
+                            :searchable="false"
+                            :internal-search="false"
+                            :hide-selected="true"
 
-                        :show-labels="false"
-                        :searchable="false"
-                        :internal-search="false"
-                        :hide-selected="true"
+                            :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                            
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+        template(v-else)
+            .exclude_filter_opt_values 
+                .input_label {{ label('field_value_filter_widget_component.exclude_filter_opt_values') }}
+                .input_wrapper
+                    template(v-if="is_type_string || is_type_number || is_type_enum")
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="can_select_multiple"
+                            :close-on-select="false"
+                            v-model="tmp_exclude_filter_opt_values"
+                            :options="filter_visible_options"
+                            :custom-label="filter_visible_label"
+                            autocomplete="off"
 
-                        :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                            :searchable="true"
+                            :internal-search="false"
+                            :hide-selected="true"
+
+                            track-by="text_uid"
+                            
+                            :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                            
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                            @search-change="query_update_visible_options"
+                        )
                         
-                        :select-label='label("multiselect.selectLabel")'
-                        :select-group-label='label("multiselect.selectGroupLabel")'
-                        :selected-label='label("multiselect.selectedLabel")'
-                        :deselect-label='label("multiselect.deselectLabel")'
-                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                    )
+                    template(v-if="is_type_date")
+                        Tsrangeinputcomponent(
+                            v-model="tmp_exclude_ts_range_values"
+                            :field="field"
+                            :segmentation_type="segmentation_type"
+                        )

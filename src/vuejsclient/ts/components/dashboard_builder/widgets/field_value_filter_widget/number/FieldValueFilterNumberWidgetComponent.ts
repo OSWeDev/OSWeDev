@@ -226,10 +226,18 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
-            this.tmp_filter_active_options = this.default_values;
-            return;
+        if (this.is_default_values_mode) {
+            if (this.is_init && this.default_values && (this.default_values.length > 0)) {
+                this.is_init = false;
+                this.tmp_filter_active_options = this.default_values;
+                return;
+            }
+        } else {
+            if (this.is_init && this.exclude_values && (this.exclude_values.length > 0)) {
+                this.is_init = false;
+                this.tmp_filter_active_options = this.exclude_values;
+                return;
+            }
         }
 
         /**
@@ -439,6 +447,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return !!this.widget_options.has_other_ref_api_type_id;
     }
 
+    get is_default_values_mode(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_default_values_mode;
+    }
+
     get other_ref_api_type_id(): string {
 
         if (!this.widget_options) {
@@ -488,6 +505,36 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return res;
     }
 
+    get exclude_values(): DataFilterOption[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.exclude_filter_opt_values) || (!options.exclude_filter_opt_values.length)) {
+            return null;
+        }
+
+        let res: DataFilterOption[] = [];
+
+        for (let i in options.exclude_filter_opt_values) {
+            res.push(new DataFilterOption(
+                options.exclude_filter_opt_values[i].select_state,
+                options.exclude_filter_opt_values[i].label,
+                options.exclude_filter_opt_values[i].id,
+                options.exclude_filter_opt_values[i].disabled_state_selected,
+                options.exclude_filter_opt_values[i].disabled_state_selectable,
+                options.exclude_filter_opt_values[i].disabled_state_unselectable,
+                options.exclude_filter_opt_values[i].img,
+                options.exclude_filter_opt_values[i].desc,
+                options.exclude_filter_opt_values[i].boolean_value,
+                options.exclude_filter_opt_values[i].numeric_value,
+                options.exclude_filter_opt_values[i].string_value,
+                options.exclude_filter_opt_values[i].tstz_value,
+                true,
+            ));
+        }
+
+        return res;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -519,6 +566,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.no_inter_filter,
                     options.has_other_ref_api_type_id,
                     options.other_ref_api_type_id,
+                    options.exclude_filter_opt_values,
+                    options.exclude_ts_range_values,
+                    options.is_default_values_mode,
                 ) : null;
             }
         } catch (error) {

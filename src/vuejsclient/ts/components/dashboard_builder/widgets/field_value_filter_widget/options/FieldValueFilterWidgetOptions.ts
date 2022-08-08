@@ -80,6 +80,9 @@ export default class FieldValueFilterWidgetOptions {
         public no_inter_filter: boolean,
         public has_other_ref_api_type_id: boolean,
         public other_ref_api_type_id: string,
+        public exclude_filter_opt_values: DataFilterOption[],
+        public exclude_ts_range_values: TSRange,
+        public is_default_values_mode: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
