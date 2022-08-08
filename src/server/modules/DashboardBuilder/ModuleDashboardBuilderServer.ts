@@ -1061,6 +1061,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.no_inter_filter.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Le filtre dépend d'un autre objet" },
+            'field_value_filter_widget_component.has_other_ref_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Objet interdépendant" },
+            'field_value_filter_widget_component.other_ref_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },
             'dashboard_viewer.group_filters.___LABEL___'
         ));

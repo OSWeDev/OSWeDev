@@ -231,6 +231,8 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.default_boolean_values,
                     options.hide_filter,
                     options.no_inter_filter,
+                    options.has_other_ref_api_type_id,
+                    options.other_ref_api_type_id,
                 ) : null;
             }
         } catch (error) {

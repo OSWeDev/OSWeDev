@@ -43,6 +43,44 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
+        .field_has_other_ref_api_type_id
+                .input_label {{ label('field_value_filter_widget_component.has_other_ref_api_type_id') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_has_other_ref_api_type_id" 
+                        :value="has_other_ref_api_type_id" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+        
+        template(v-if='has_other_ref_api_type_id')
+            .field_other_ref_api_type_id 
+                .input_label {{ label('field_value_filter_widget_component.other_ref_api_type_id') }}
+                .crud_api_type_id_select
+                    .input_wrapper
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="crud_api_type_id_selected"
+                            :placeholder="label('table_widget_options_component.crud_api_type_id_select')"
+                            :options="crud_api_type_id_select_options"
+                            :custom-label="crud_api_type_id_select_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            id="crud_api_type_id_select"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            )
+
         .field_no_inter_filter
             .input_label {{ label('field_value_filter_widget_component.no_inter_filter') }}
             .input_wrapper
