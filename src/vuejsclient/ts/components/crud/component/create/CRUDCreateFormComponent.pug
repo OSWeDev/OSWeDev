@@ -18,9 +18,11 @@ include ../../../../../views/mixins/loading.pug
                             :vo="newVO",
                             :datatable="crud.createDatatable",
                             :auto_update_field_value="true",
+                            :show_placeholder="show_placeholder",
                             @uploadedfile="uploadedFile_",
                             @onchangevo="onChangeVO",
                             :show_insert_or_update_target='show_insert_or_update_target'
+                            :is_dashboard_builder="true"
                         )
 
                 template(v-else)

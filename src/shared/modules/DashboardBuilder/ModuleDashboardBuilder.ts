@@ -1,9 +1,11 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VOsTypesManager';
+import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
@@ -46,6 +48,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.init_DashboardPageWidgetVO(db_page, db_widget);
         this.init_VOFieldRefVO();
         this.init_TableColumnDescVO();
+        this.init_AdvancedDateFilterOptDescVO();
     }
 
     private init_DashboardVO(): ModuleTable<any> {
@@ -88,6 +91,7 @@ export default class ModuleDashboardBuilder extends Module {
             dashboard_id,
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField('hide_navigation', ModuleTableField.FIELD_TYPE_boolean, 'Cacher la navigation', true, true, false),
+            new ModuleTableField('group_filters', ModuleTableField.FIELD_TYPE_boolean, 'Grouper les filtres', false, true, false),
         ];
 
         let res = new ModuleTable(this, DashboardPageVO.API_TYPE_ID, () => new DashboardPageVO(), datatable_fields, null, "Pages de Dashboard");
@@ -109,6 +113,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('default_width', ModuleTableField.FIELD_TYPE_int, 'Largeur par défaut', true, true, 106),
             new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30),
             new ModuleTableField('default_background', ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
+            new ModuleTableField('is_filter', ModuleTableField.FIELD_TYPE_boolean, 'is_filter'),
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
@@ -181,11 +186,28 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('filter_additional_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres filtre', false),
 
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('many_to_many_aggregate', ModuleTableField.FIELD_TYPE_boolean, 'Aggrégation des liens ManyToMany'),
+            new ModuleTableField('is_nullable', ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
+            new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));
 
         var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+    }
+
+    private init_AdvancedDateFilterOptDescVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false),
+            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_int, 'Valeur', false),
+            new ModuleTableField('ts_range', ModuleTableField.FIELD_TYPE_tsrange, 'Date', false).set_segmentation_type(TimeSegment.TYPE_DAY),
+
+            new ModuleTableField('search_type', ModuleTableField.FIELD_TYPE_enum, 'Type de recherche').setEnumValues(AdvancedDateFilterOptDescVO.SEARCH_TYPE_LABELS),
+            new ModuleTableField('segmentation_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment').setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
+        ];
+
+        this.datatables.push(new ModuleTable(this, AdvancedDateFilterOptDescVO.API_TYPE_ID, () => new AdvancedDateFilterOptDescVO(), datatable_fields, null, "Option filtre date avancé"));
     }
 
 }

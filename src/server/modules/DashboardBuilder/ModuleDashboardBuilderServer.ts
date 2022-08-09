@@ -855,7 +855,215 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'adv_str_fltr.et'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'OU' },
-            'adv_str_fltr.ou'));
+            'adv_str_fltr.ou')
+        );
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le 2ème niveau si le niveau 1 n'est pas sélectionné" },
+            'field_value_filter_widget_component.hide_lvl2_if_lvl1_not_selected.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le filtre au format case à cocher" },
+            'field_value_filter_widget_component.is_checkbox.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le champ de recherche" },
+            'field_value_filter_widget_component.show_search_field.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ à afficher au 2ème niveau" },
+            'field_value_filter_widget_component.vo_field_ref_lvl2.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ pour trier l'affichage du filtre" },
+            'field_value_filter_widget_component.vo_field_sort.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Granularité" },
+            'field_value_filter_widget_component.segmentation_type.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Pas de tri" },
+            'column.sort.no.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Tri ascendant" },
+            'column.sort.asc.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Tri descendant" },
+            'column.sort.desc.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Mode avancé par défaut" },
+            'field_value_filter_widget_component.advanced_mode.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Type de recherche avancé par défaut" },
+            'field_value_filter_widget_component.default_advanced_string_filter_type.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le type de recherche avancé" },
+            'field_value_filter_widget_component.hide_advanced_string_filter_type.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le bouton avancé" },
+            'field_value_filter_widget_component.hide_btn_switch_advanced.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Liste des champs pour la recherche multiple" },
+            'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Glisser / Déposer les champs pour la recherche multiple" },
+            'multiple_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Liste des valeurs sélectionnables (valeurs séparées par une virgule ',')" },
+            'table_widget_options_component.limit_selectable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher sélecteur nombre d'éléments" },
+            'table_widget_options_component.show_limit_selectable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_limit_selectable.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_limit_selectable.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le formulaire de pagination" },
+            'table_widget_options_component.show_pagination_form.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_form.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_form.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le résumé de pagination" },
+            'table_widget_options_component.show_pagination_resumee.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_resumee.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_resumee.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le slider de pagination" },
+            'table_widget_options_component.show_pagination_slider.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_slider.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_slider.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur de fond de l'entête" },
+            'table_widget_column_conf.editable_column.bg_color_header.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur du texte de l'entête" },
+            'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aggréger les données" },
+            'table_widget_column_conf.editable_column.many_to_many_aggregate.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Aggréger les données" },
+            'table_widget_column_conf.editable_column.many_to_many_aggregate.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
+            'table_widget_column_conf.editable_column.is_nullable.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
+            'table_widget_column_conf.editable_column.is_nullable.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher la popup" },
+            'table_widget_column_conf.editable_column.show_tooltip.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher la popup" },
+            'table_widget_column_conf.editable_column.show_tooltip.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Période fixe (calendrier)" },
+            'adfd_desc.search_type.calendar'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Par rapport à aujourd'hui" },
+            'adfd_desc.search_type.last'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher un calendrier" },
+            'adfd_desc.search_type.custom'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Case à cocher" },
+            'advanced_date_filter_widget_component.is_checkbox.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'advanced_date_filter_widget_component.is_checkbox.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'advanced_date_filter_widget_component.is_checkbox.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Liste des options" },
+            'advanced_date_filter_widget_component.opts.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter une option" },
+            'advanced_date_filter_widget_component.opts.add.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ de référence" },
+            'advanced_date_filter_widget_component.vo_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtrer une date avec options" },
+            'dashboards.widgets.icons_tooltips.advanceddatefilter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeurs par défaut du filtre" },
+            'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le filtre" },
+            'field_value_filter_widget_component.hide_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Du'
+        }, 'ts_range_input.placeholder.date_debut.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'au'
+        }, 'ts_range_input.placeholder.date_fin.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Le filtre n'utilise pas le filtrage actif" },
+            'field_value_filter_widget_component.no_inter_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Grouper les filtres" },
+            'dashboard_viewer.group_filters.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);

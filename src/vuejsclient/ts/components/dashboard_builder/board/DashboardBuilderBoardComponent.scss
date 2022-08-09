@@ -22,7 +22,7 @@
                 >.widget_component_wrapper {
                     height: -webkit-fill-available;
 
-                    >.widget_component{
+                    >.widget_component {
                         height: -webkit-fill-available;
                     }
                 }
@@ -37,6 +37,23 @@
         &.selected .vue-grid-item {
             z-index: 1;
             box-shadow: 1px 1px 20px #888;
+        }
+    }
+
+    .filters-bloc {
+        .header-filters-bloc {
+            background-color: lightgrey;
+
+            .chevron {
+                position: absolute;
+                right: 5px;
+                top: 15px;
+                cursor: pointer;
+            }
+
+            .translated_text {
+                font-weight: bold;
+            }
         }
     }
 }

@@ -1,17 +1,11 @@
 
 
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarsCacheController from '../Var/VarsCacheController';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -27,12 +21,16 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
+import VarsCacheController from '../Var/VarsCacheController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import NotifVardatasParam from './notifs/NotifVardatasParam';
 import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
 import VarsComputeController from './VarsComputeController';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
+import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
+import VarsTabsSubsController from './VarsTabsSubsController';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -65,7 +63,6 @@ export default class VarsDatasProxy {
     /**
      * Version liste pour prioriser les demandes
      */
-    public vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = [];
     public vars_datas_buffer_wrapped_indexes: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
 
     /**
@@ -95,8 +92,8 @@ export default class VarsDatasProxy {
                 return;
             }
 
-            for (let i in this.vars_datas_buffer) {
-                let var_data_wrapper = this.vars_datas_buffer[i];
+            for (let i in this.vars_datas_buffer_wrapped_indexes) {
+                let var_data_wrapper = this.vars_datas_buffer_wrapped_indexes[i];
 
                 if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
                     resolve(true);
@@ -127,6 +124,8 @@ export default class VarsDatasProxy {
 
                 if (varsdata) {
 
+                    let vars_data_to_prepend: VarDataBaseVO[] = [];
+
                     varsdata.forEach((vardata) => {
                         if (VarsServerController.getInstance().has_valid_value(vardata)) {
 
@@ -145,16 +144,16 @@ export default class VarsDatasProxy {
                                 );
                             }
                         }
-                    });
 
-                    // On insère quand même dans le cache par ce qu'on veut stocker l'info du read
-                    for (let i in varsdata) {
-                        let vardata = varsdata[i];
                         let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[vardata.var_id];
 
                         if (var_cache_conf.use_cache_read_ms_to_partial_clean) {
-                            await VarsDatasProxy.getInstance().prepend_var_datas(varsdata, true);
+                            vars_data_to_prepend.push(vardata);
                         }
+                    });
+
+                    if (vars_data_to_prepend.length > 0) {
+                        await VarsDatasProxy.getInstance().prepend_var_datas(vars_data_to_prepend, true);
                     }
                 }
 
@@ -285,9 +284,12 @@ export default class VarsDatasProxy {
                 try {
 
                     let indexes = Object.keys(this.vars_datas_buffer_wrapped_indexes);
+                    let do_delete_from_cache_indexes: { [index: string]: boolean } = {};
                     let self = this;
-                    let promises = [];
-                    let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+                    // let promises = [];
+                    let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+
+                    let to_insert: VarDataBaseVO[] = [];
 
                     for (let i in indexes) {
                         let index = indexes[i];
@@ -318,7 +320,6 @@ export default class VarsDatasProxy {
                          */
 
                         let do_insert = false;
-                        let do_delete_from_cache = false;
                         let controller = VarsServerController.getInstance().getVarControllerById(handle_var.var_id);
                         let conf = VarsController.getInstance().var_conf_by_id[handle_var.var_id];
 
@@ -332,7 +333,7 @@ export default class VarsDatasProxy {
 
                             if (!wrapper.nb_reads_since_last_insert_or_update) {
                                 if (Dates.now() > wrapper.timeout) {
-                                    do_delete_from_cache = true;
+                                    do_delete_from_cache_indexes[index] = true;
                                 }
                             } else {
                                 if (Dates.now() > wrapper.timeout) {
@@ -340,7 +341,7 @@ export default class VarsDatasProxy {
                                 }
                             }
 
-                            if ((!do_delete_from_cache) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
+                            if ((!do_delete_from_cache_indexes[index]) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
                                 wrapper.nb_reads_since_last_check = 0;
                                 wrapper.update_timeout();
                             }
@@ -348,223 +349,58 @@ export default class VarsDatasProxy {
 
                         if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
 
-                            /**
-                             * On fait des packs de promises...
-                             */
-                            if (promises.length >= max) {
-                                await Promise.all(promises);
-                                promises = [];
-                            }
+                            to_insert.push(handle_var);
 
-                            promises.push((async (do_insert_: boolean, do_delete_from_cache_: boolean) => {
-
-                                if (do_insert_) {
-
-                                    if (env.DEBUG_VARS) {
-                                        ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
-                                    }
-                                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                                    /**
-                                     * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
-                                     */
-                                    this.check_or_update_var_buffer(handle_var);
-
-                                    if ((!res) || (!res.id)) {
-
-                                        // TODO FIXME TO DELETE
-                                        // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
-                                        // On force la suppression du cache mais c'est sûrement gourmant...
-                                        DAOQueryCacheController.getInstance().clear_cache(true);
-
-                                        /**
-                                         * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
-                                         *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
-                                         */
-                                        let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<VarDataBaseVO>(
-                                            handle_var._type,
-                                            null, null,
-                                            '_bdd_only_index', [handle_var._bdd_only_index]);
-
-                                        // DENIED ? si on arrive à le calculer même sur un glitch c'est au final une bonne info de le forcer en base non ?
-                                        if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
-                                            ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts < handle_var.value_ts)))) {
-
-                                            ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-
-                                            handle_var.id = datas[0].id;
-                                            res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                                            if ((!res) || (!res.id)) {
-                                                ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                                            }
-                                        } else {
-                                            if ((!datas) || (!datas.length)) {
-                                                /**
-                                                 * Dans ce cas on doit être en présence d'une var qui n'a plus lieu d'exister, on la supprime du cache,
-                                                 *  et on demande aux subscribers de recharger le navigateur pour éviter qu'ils la renvoie en boucle
-                                                 * => risque de recharger en boucle le front si on a une génération de var foireuse sur le front...
-                                                 */
-                                                ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:NO_datas:index|' + handle_var._bdd_only_index + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
-
-                                                // Retrait du rechargement pour le moment car le dashboard peut générer facilement des index trop grands pour être indéxées
-                                                // await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
-
-                                                do_delete_from_cache_ = true;
-                                            } else {
-                                                ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo 2:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                                            }
-                                        }
-                                    }
-                                }
-
-                                wrapper.nb_reads_since_last_insert_or_update = 0;
-                                wrapper.nb_reads_since_last_check = 0;
-                                wrapper.needs_insert_or_update_ = false;
-                                wrapper.var_data_origin_value = wrapper.var_data.value;
-                                wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                                wrapper.last_insert_or_update = Dates.now();
-                                wrapper.update_timeout();
-
-                                if (do_delete_from_cache_) {
-                                    self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != handle_var.index);
-                                    delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
-                                }
-                            })(do_insert, do_delete_from_cache));
-                        } else {
-                            if (do_insert) {
-                                // cas d'une demande d'insert sans droit à cache en BDD
-                                // on simule juste la mise à jour du wrapper
-                                wrapper.nb_reads_since_last_insert_or_update = 0;
-                                wrapper.nb_reads_since_last_check = 0;
-                                wrapper.needs_insert_or_update_ = false;
-                                wrapper.var_data_origin_value = wrapper.var_data.value;
-                                wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                                wrapper.last_insert_or_update = Dates.now();
-                                wrapper.update_timeout();
-                            }
-
-                            if (do_delete_from_cache) {
-                                self.vars_datas_buffer = self.vars_datas_buffer.filter((v) => v.var_data.index != handle_var.index);
-                                delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
+                            if (env.DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
                             }
                         }
-
-
-
-
-                        //     // Si on a pas de modif à gérer et que le dernier accès date, on nettoie
-                        //     if ((!wrapper.needs_insert_or_update) && (!wrapper.nb_reads_since_last_insert_or_update) && (wrapper.last_insert_or_update && (wrapper.last_insert_or_update < Dates.add(Dates.now(), -15, TimeSegment.TYPE_SECOND)))) {
-                        //         // if (env.DEBUG_VARS) {
-                        //         //     ConsoleHandler.getInstance().log(
-                        //         //         'handle_buffer:pas de modif à gérer et que le dernier accès date:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
-                        //         //         ":wrapper:needs_insert_or_update|" + wrapper.needs_insert_or_update + ":nb_reads_since_last_insert_or_update|" + wrapper.nb_reads_since_last_insert_or_update + ":last_insert_or_update|" + wrapper.last_insert_or_update
-                        //         //     );
-                        //         // }
-                        //         this.vars_datas_buffer.splice(this.vars_datas_buffer.findIndex((e) => e.var_data.index == index), 1);
-                        //         delete this.vars_datas_buffer_wrapped_indexes[index];
-                        //         continue;
-                        //     }
-
-                        //     // Si on a pas de modif à gérer && (pas assez de read à mettre à jour en base ou pas assez anciens) on ignore
-                        //     if (
-                        //         (!wrapper.needs_insert_or_update) &&
-                        //         (!(
-                        //             (wrapper.nb_reads_since_last_insert_or_update >= 10) ||
-                        //             (wrapper.nb_reads_since_last_insert_or_update && ((!wrapper.last_insert_or_update) || (wrapper.last_insert_or_update < Dates.add(Dates.now(), -5, TimeSegment.TYPE_SECOND))))))) {
-
-                        //         // if (env.DEBUG_VARS) {
-                        //         //     ConsoleHandler.getInstance().log(
-                        //         //         'handle_buffer:pas de modif à gérer:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
-                        //         //         ":wrapper:needs_insert_or_update|" + wrapper.needs_insert_or_update + ":nb_reads_since_last_insert_or_update|" + wrapper.nb_reads_since_last_insert_or_update + ":last_insert_or_update|" + wrapper.last_insert_or_update
-                        //         //     );
-                        //         // }
-                        //         continue;
-                        //     }
-
-                        //     /**
-                        //      * On fait des packs de 10 promises...
-                        //      */
-                        //     if (promises.length >= 50) {
-                        //         await Promise.all(promises);
-                        //         promises = [];
-                        //     }
-
-                        //     promises.push((async () => {
-
-                        //         if (env.DEBUG_VARS) {
-                        //             ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
-                        //         }
-                        //         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                        //         if ((!res) || (!res.id)) {
-
-                        //             // TODO FIXME TO DELETE
-                        //             // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
-                        //             // On force la suppression du cache mais c'est sûrement gourmant...
-                        //             DAOQueryCacheController.getInstance().clear_cache(true);
-
-                        //             /**
-                        //              * Si l'insère/update échoue c'est très probablement par ce qu'on a déjà une data en base sur cet index,
-                        //              *  dans ce cas on résoud le conflit en forçant la nouvelle valeur sur l'ancien index
-                        //              */
-                        //             let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<VarDataBaseVO>(
-                        //                 handle_var._type,
-                        //                 null, null,
-                        //                 '_bdd_only_index', [handle_var._bdd_only_index]);
-
-                        //             // DENIED ? si on arrive à le calculer même sur un glitch c'est au final une bonne info de le forcer en base non ?
-                        //             if (datas && datas.length && datas[0] && (datas[0].value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) &&
-                        //                 ((!datas[0].value_ts) || (handle_var.value_ts && (datas[0].value_ts < handle_var.value_ts)))) {
-
-                        //                 ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-
-                        //                 handle_var.id = datas[0].id;
-                        //                 res = await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
-                        //                 if ((!res) || (!res.id)) {
-                        //                     ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED SECOND update vo:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                        //                 }
-                        //             } else {
-                        //                 if ((!datas) || (!datas.length)) {
-                        //                     /**
-                        //                      * Dans ce cas on doit être en présence d'une var qui n'a plus lieu d'exister, on la supprime du cache,
-                        //                      *  et on demande aux subscribers de recharger le navigateur pour éviter qu'ils la renvoie en boucle
-                        //                      * => risque de recharger en boucle le front si on a une génération de var foireuse sur le front...
-                        //                      */
-                        //                     ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:NO_datas:index|' + handle_var._bdd_only_index + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
-
-                        //                     // Retrait du rechargement pour le moment car le dashboard peut générer facilement des index trop grands pour être indéxées
-                        //                     // await PushDataServerController.getInstance().notifyVarsTabsReload(handle_var.index);
-
-                        //                     self.vars_datas_buffer.splice(self.vars_datas_buffer.findIndex((e) => e.var_data.index == index), 1);
-                        //                     delete self.vars_datas_buffer_wrapped_indexes[index];
-                        //                     return;
-                        //                 } else {
-                        //                     ConsoleHandler.getInstance().error("VarsDatasProxy:handle_buffer:FAILED update vo 2:index:" + handle_var.index + ":id:" + handle_var.id + ":");
-                        //                 }
-                        //             }
-                        //         }
-
-                        //         wrapper.nb_reads_since_last_insert_or_update = 0;
-                        //         wrapper.needs_insert_or_update_ = false;
-                        //         wrapper.var_data_origin_value = wrapper.var_data.value;
-                        //         wrapper.var_data_origin_type = wrapper.var_data.value_type;
-                        //         wrapper.last_insert_or_update = Dates.now();
-
-                        //         // let index_to_delete: number = -1;
-                        //         // for (let buffered_i in self.vars_datas_buffer) {
-
-                        //         //     if (self.vars_datas_buffer[buffered_i].index == handle_var.index) {
-                        //         //         index_to_delete = parseInt(buffered_i.toString());
-                        //         //         break;
-                        //         //     }
-                        //         // }
-
-                        //         // self.vars_datas_buffer.splice(index_to_delete, 1);
-                        //         // delete self.vars_datas_buffer_wrapped_indexes[handle_var.index];
-                        //     })());
                     }
 
-                    if (promises.length) {
-                        await Promise.all(promises);
+                    if (!!to_insert.length) {
+                        await ModuleDAOServer.getInstance().insertOrUpdateVOs_without_triggers(to_insert);
+
+                        // TODO FIXME TO DELETE
+                        // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
+                        // On force la suppression du cache mais c'est sûrement gourmant...
+                        DAOQueryCacheController.getInstance().clear_cache(true);
+
+                        for (let i in to_insert) {
+                            let index: string = to_insert[i].index;
+                            let wrapper = this.vars_datas_buffer_wrapped_indexes[index];
+
+                            /**
+                             * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
+                             */
+                            let to_notify: boolean = this.check_or_update_var_buffer(to_insert[i]);
+
+                            if (to_notify) {
+                                await VarsTabsSubsController.getInstance().notify_vardatas(
+                                    [new NotifVardatasParam([to_insert[i]])]);
+                                await VarsServerCallBackSubsController.getInstance().notify_vardatas([to_insert[i]]);
+                            }
+
+                            if (!wrapper) {
+                                continue;
+                            }
+
+                            wrapper.nb_reads_since_last_insert_or_update = 0;
+                            wrapper.nb_reads_since_last_check = 0;
+                            wrapper.needs_insert_or_update_ = false;
+                            wrapper.var_data_origin_value = wrapper.var_data.value;
+                            wrapper.var_data_origin_type = wrapper.var_data.value_type;
+                            wrapper.last_insert_or_update = Dates.now();
+                            wrapper.update_timeout();
+
+                            if (do_delete_from_cache_indexes[index]) {
+                                delete self.vars_datas_buffer_wrapped_indexes[index];
+                            }
+                        }
                     }
+
+                    // if (promises.length) {
+                    //     await Promise.all(promises);
+                    // }
 
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
@@ -764,6 +600,7 @@ export default class VarsDatasProxy {
                 let vardata_to_test: VarDataBaseVO = VarsDatasProxy.getInstance().can_load_vars_to_test ? await SlowVarKiHandler.getInstance().handle_slow_var_ki_start() : null;
                 if (vardata_to_test) {
                     res[vardata_to_test.index] = vardata_to_test;
+                    ConsoleHandler.getInstance().log('get_vars_to_compute:1 SLOWVAR:' + vardata_to_test.index);
                     return res;
                 }
                 VarsDatasProxy.getInstance().can_load_vars_to_test = false;
@@ -775,62 +612,32 @@ export default class VarsDatasProxy {
                  */
 
                 /**
-                 * On commence par ordonner les vars par cardinal pour commencer par les plus petites, et aussi par celles qui sont en bas de l'arbre
+                 * On va présélectionner les vars_datas qui ont pas une valeur valide et qui sont issues du clients, puis celles sans valeur valide et issues d'ailleurs
                  */
-                if (this.vars_datas_buffer && this.vars_datas_buffer.length) {
-                    await this.order_vars_datas_buffer();
+
+                estimated_ms = this.select_vars_from_buffer(
+                    (v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data),
+                    estimated_ms,
+                    client_request_estimated_ms_limit,
+                    nb_vars,
+                    client_request_min_nb_vars,
+                    res
+                );
+                if (estimated_ms >= client_request_min_nb_vars) {
+                    ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + Object.keys(res).length + ':estimated_ms:' + estimated_ms + ':');
+                    return res;
                 }
 
-                for (let i in this.vars_datas_buffer) {
-
-                    if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
-                        (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
-                        ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
-                        return res;
-                    }
-
-                    let var_data_wrapper = this.vars_datas_buffer[i];
-
-                    if (!VarsServerController.getInstance().has_valid_value(var_data_wrapper.var_data)) {
-
-                        let estimated_ms_var = 0;
-
-                        if (VarsServerController.getInstance().varcacheconf_by_var_ids[var_data_wrapper.var_data.var_id]) {
-                            estimated_ms_var = var_data_wrapper.estimated_ms;
-                        } else {
-                            // debug
-                            ConsoleHandler.getInstance().warn('get_vars_to_compute:DEBUG:not found in varcacheconf_by_var_ids:' + var_data_wrapper.var_data.index + ':');
-                            try {
-                                ConsoleHandler.getInstance().warn(JSON.stringify(VarsServerController.getInstance().varcacheconf_by_var_ids));
-                            } catch (error) {
-                                ConsoleHandler.getInstance().error(error);
-                            }
-                        }
-
-                        // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
-                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
-                            continue;
-                        }
-
-                        nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
-                        res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
-                        estimated_ms += estimated_ms_var;
-                        var_data_wrapper.is_requested = true;
-
-                        // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
-                        if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
-                            break;
-                        }
-
-                        continue;
-                    }
-                }
-
-                /**
-                 * Si on a des datas en attente dans le buffer on commence par ça
-                 */
-                if (ObjectHandler.getInstance().hasAtLeastOneAttribute(res)) {
-                    ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
+                estimated_ms = this.select_vars_from_buffer(
+                    (v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data),
+                    estimated_ms,
+                    client_request_estimated_ms_limit,
+                    nb_vars,
+                    client_request_min_nb_vars,
+                    res
+                );
+                if (estimated_ms != null) {
+                    ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + Object.keys(res).length + ':estimated_ms:' + estimated_ms + ':');
                     return res;
                 }
 
@@ -875,6 +682,61 @@ export default class VarsDatasProxy {
             },
             this
         );
+    }
+
+    /**
+     * @param condition
+     * @param estimated_ms
+     * @param client_request_estimated_ms_limit
+     * @param nb_vars
+     * @param client_request_min_nb_vars
+     * @param res
+     * @returns estimated_ms mis à jour si on a sélectionné des éléments, sinon null
+     */
+    private select_vars_from_buffer(
+        condition: (v: VarDataProxyWrapperVO<VarDataBaseVO>) => boolean,
+        estimated_ms: number,
+        client_request_estimated_ms_limit: number,
+        nb_vars: number,
+        client_request_min_nb_vars: number,
+        res: { [index: string]: VarDataBaseVO }
+    ): number {
+
+        let ordered_vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes).filter(condition);
+        this.order_vars_datas_buffer(ordered_vars_datas_buffer);
+
+        for (let i in ordered_vars_datas_buffer) {
+
+            if (((estimated_ms >= client_request_estimated_ms_limit) && (nb_vars >= client_request_min_nb_vars)) ||
+                (estimated_ms >= client_request_estimated_ms_limit * 10000)) {
+                ConsoleHandler.getInstance().log('get_vars_to_compute:buffer:nb:' + nb_vars + ':estimated_ms:' + estimated_ms + ':');
+                return estimated_ms;
+            }
+
+            let var_data_wrapper = ordered_vars_datas_buffer[i];
+            if (!condition(var_data_wrapper)) {
+                continue;
+            }
+
+            let estimated_ms_var = var_data_wrapper.estimated_ms;
+
+            // cas spécifique isolement d'une var trop gourmande : on ne l'ajoute pas si elle est délirante et qu'il y a déjà des vars en attente par ailleurs
+            if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars > 0)) {
+                continue;
+            }
+
+            nb_vars += res[var_data_wrapper.var_data.index] ? 0 : 1;
+            res[var_data_wrapper.var_data.index] = var_data_wrapper.var_data;
+            estimated_ms += estimated_ms_var;
+            var_data_wrapper.is_requested = true;
+
+            // cas spécifique isolement d'une var trop gourmande : si elle a été ajoutée mais seule, on skip la limite minimale de x vars pour la traiter seule
+            if ((estimated_ms_var > (client_request_estimated_ms_limit * 10000)) && (nb_vars == 1)) {
+                return estimated_ms;
+            }
+        }
+
+        return estimated_ms;
     }
 
     /**
@@ -1076,7 +938,6 @@ export default class VarsDatasProxy {
                                 }
                                 wrapper.var_data = var_data;
                                 this.add_read_stat(wrapper);
-                                this.vars_datas_buffer[this.vars_datas_buffer.findIndex((e) => e.var_data.index == var_data.index)] = wrapper;
                                 // On push pas puisque c'était déjà en attente d'action
 
                                 // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
@@ -1107,21 +968,6 @@ export default class VarsDatasProxy {
                     }
                 }
 
-                if ((!donot_insert_if_absent) && res && res.length) {
-
-                    if (prepend) {
-                        this.vars_datas_buffer.unshift(...res);
-                    } else {
-                        this.vars_datas_buffer = this.vars_datas_buffer.concat(res);
-                    }
-                }
-
-                // } catch (error) {
-                //     ConsoleHandler.getInstance().error(error);
-                // } finally {
-                //     this.semaphore_handle_buffer = false;
-                // }
-
                 return res;
             },
             this
@@ -1146,12 +992,12 @@ export default class VarsDatasProxy {
         }
     }
 
-    private async order_vars_datas_buffer() {
+    private async order_vars_datas_buffer(vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>>) {
 
         let cardinaux: { [index: string]: number } = {};
 
-        for (let i in this.vars_datas_buffer) {
-            let var_wrapper = this.vars_datas_buffer[i];
+        for (let i in vars_datas_buffer) {
+            let var_wrapper = vars_datas_buffer[i];
             cardinaux[var_wrapper.var_data.index] = MatroidController.getInstance().get_cardinal(var_wrapper.var_data);
         }
 
@@ -1160,7 +1006,18 @@ export default class VarsDatasProxy {
             await VarsServerController.getInstance().init_varcontrollers_dag_depths();
         }
 
-        this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
+        vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
+
+            // On filtre en amont
+            // // En tout premier les params qui nécessitent un calcul
+            // let valida = VarsServerController.getInstance().has_valid_value(a.var_data);
+            // let validb = VarsServerController.getInstance().has_valid_value(b.var_data);
+            // if (valida && !validb) {
+            //     return -1;
+            // }
+            // if (validb && !valida) {
+            //     return 1;
+            // }
 
             // En priorité les demandes client
             if (a.is_client_var && !b.is_client_var) {
@@ -1176,6 +1033,9 @@ export default class VarsDatasProxy {
                 return cardinaux[a.var_data.index] - cardinaux[b.var_data.index];
             }
 
+            /**
+             * Par hauteur dans l'arbre
+             */
             let depth_a = VarsServerController.getInstance().varcontrollers_dag_depths[a.var_data.var_id];
             let depth_b = VarsServerController.getInstance().varcontrollers_dag_depths[b.var_data.var_id];
 
@@ -1203,37 +1063,38 @@ export default class VarsDatasProxy {
         });
     }
 
-    // private order_vars_datas_buffer() {
+    private check_or_update_var_buffer(handle_var: VarDataBaseVO): boolean {
+        let var_data_buffer = this.vars_datas_buffer_wrapped_indexes[handle_var.index];
 
-    //     this.vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {
-
-    //         return a.estimated_ms - b.estimated_ms;
-    //     });
-    // }
-
-    private check_or_update_var_buffer(handle_var: VarDataBaseVO) {
-
-        for (let i in this.vars_datas_buffer) {
-            let var_data_buffer = this.vars_datas_buffer[i];
-
-            if (var_data_buffer.var_data.index != handle_var.index) {
-                continue;
-            }
-
-            if (
-                (var_data_buffer.var_data.value != handle_var.value) ||
-                (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
-                (var_data_buffer.var_data.value_type != handle_var.value_type)) {
-                ConsoleHandler.getInstance().error(
-                    'check_or_update_var_buffer:incoherence - correction auto:' + var_data_buffer.var_data.index +
-                    ':var_data_buffer:' + var_data_buffer.var_data.value + ':' + var_data_buffer.var_data.value_ts + ':' + var_data_buffer.var_data.value_type + ':' +
-                    ':handle_var:' + handle_var.value + ':' + handle_var.value_ts + ':' + handle_var.value_type + ':'
-                );
-
-                var_data_buffer.var_data.value = handle_var.value;
-                var_data_buffer.var_data.value_ts = handle_var.value_ts;
-                var_data_buffer.var_data.value_type = handle_var.value_type;
-            }
+        if (!var_data_buffer) {
+            return false;
         }
+        if (
+            (var_data_buffer.var_data.value != handle_var.value) ||
+            (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
+            (var_data_buffer.var_data.value_type != handle_var.value_type)) {
+            ConsoleHandler.getInstance().error(
+                'check_or_update_var_buffer:incoherence - correction auto:' + var_data_buffer.var_data.index +
+                ':var_data_buffer:' + var_data_buffer.var_data.value + ':' + var_data_buffer.var_data.value_ts + ':' + var_data_buffer.var_data.value_type + ':' +
+                ':handle_var:' + handle_var.value + ':' + handle_var.value_ts + ':' + handle_var.value_type + ':'
+            );
+
+            var_data_buffer.var_data.value = handle_var.value;
+            var_data_buffer.var_data.value_ts = handle_var.value_ts;
+            var_data_buffer.var_data.value_type = handle_var.value_type;
+
+            /**
+             * Dans le doute d'une notif qui serait pas encore partie (a priori c'est régulier dans ce contexte)
+             *  pour indiquer un calcul terminé, on check le statut de la var et si c'est utile (has valid value)
+             *  on envoie les notifs. Aucun moyen de savoir si c'est déjà fait à ce niveau l'arbre n'existe plus, et
+             *  au pire on envoie une deuxième notif à un watcher permanent. Cela dit la nouvelle notif viendra en plus
+             *  probablement corriger une mauvaise valeur affichée à la base.
+             * A creuser pourquoi on arrive là
+             */
+
+            return true;
+        }
+
+        return false;
     }
 }

@@ -25,7 +25,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
-    private set_active_field_filter: (active_field_filter: ContextFilterVO) => void;
+    private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -44,6 +44,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private boolean_filter_types: number[] = [];
+    private is_init: boolean = true;
 
     private filter_type_options: number[] = [
         BooleanFilter.FILTER_TYPE_TRUE,
@@ -80,6 +81,13 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     }
 
     private async update_visible_options() {
+        // Si on a des valeurs par défaut, on va faire l'init
+        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
+            this.is_init = false;
+            this.boolean_filter_types = this.default_values;
+            return;
+        }
+
         /**
          * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
          */
@@ -110,7 +118,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
+        this.is_init = true;
         await this.throttled_update_visible_options();
     }
 
@@ -136,7 +144,11 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
             return;
         }
 
-        this.set_active_field_filter(this.get_ContextFilterVO_from_boolean_filter_types());
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: this.get_ContextFilterVO_from_boolean_filter_types(),
+        });
     }
 
     get vo_field_ref(): VOFieldRefVO {
@@ -147,6 +159,16 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         }
 
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get default_values(): number[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.default_boolean_values) || (!options.default_boolean_values.length)) {
+            return null;
+        }
+
+        return options.default_boolean_values;
     }
 
     get widget_options() {
@@ -160,7 +182,25 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
                 options = options ? new FieldValueFilterWidgetOptions(
                     options.vo_field_ref,
-                    options.can_select_multiple, options.max_visible_options) : null;
+                    options.vo_field_ref_lvl2,
+                    options.vo_field_sort,
+                    options.can_select_multiple,
+                    options.is_checkbox,
+                    options.max_visible_options,
+                    options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
+                    options.segmentation_type,
+                    options.advanced_mode,
+                    options.default_advanced_string_filter_type,
+                    options.hide_btn_switch_advanced,
+                    options.hide_advanced_string_filter_type,
+                    options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
+                    options.no_inter_filter,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

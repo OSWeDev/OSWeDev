@@ -14,7 +14,7 @@
         v-model="field_value",
         :custom-label="field.voIdToHumanReadable",
         :options="select_options",
-        :placeholder="t(field.translatable_place_holder)",
+        :placeholder="t(placeholder_string)",
         :loading="isLoadingOptions",
         autocomplete="off"
         :id="field.datatable_field_uid",

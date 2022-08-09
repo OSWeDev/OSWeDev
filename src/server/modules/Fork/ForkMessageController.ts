@@ -82,6 +82,11 @@ export default class ForkMessageController {
             let sendHandle = (!child_process) ? process : child_process;
             let self = this;
 
+            if ((!sendHandle) || (!sendHandle.send)) {
+                resolve(false);
+                return;
+            }
+
             res = sendHandle.send(msg, (error: Error) => {
                 if (!!error) {
                     self.handle_send_error({

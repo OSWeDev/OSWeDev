@@ -114,6 +114,22 @@ export default class VOsTypesManager {
                 continue;
             }
 
+            /**
+             * Gestion des tables versionnées N/N
+             */
+            if (moduleTable.is_versioned) {
+                switch (field.field_id) {
+                    case 'parent_id':
+                    case 'trashed':
+                    case 'version_num':
+                    case 'version_author_id':
+                    case 'version_timestamp':
+                    case 'version_edit_author_id':
+                    case 'version_edit_timestamp':
+                        continue;
+                }
+            }
+
             // On défini une table many to many comme une table ayant 2 fields, de type manyToOne vers 2 moduletables différents
             if (!field.manyToOne_target_moduletable) {
                 isManyToMany = false;

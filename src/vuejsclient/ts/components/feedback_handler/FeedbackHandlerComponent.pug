@@ -32,13 +32,19 @@
                 .spacer
 
                 template(v-if="show_wish_be_called")
-                    toggle-button(
-                        @change="on_change_tmp_wish_be_called"
-                        :value="tmp_wish_be_called"
-                        :sync="true"
-                        :width="200"
-                        :labels="{checked: label('feedback_handler.wish_be_called.on'), unchecked: label('feedback_handler.wish_be_called.off')}"
-                    )
+                    .row
+                        .col-md-12
+                            label(for='feedback_wish_be_called') {{ label('feedback_handler.wish_be_called.label') }}
+                    .row.mt-1
+                        .col-md-12
+                            input.mt-0(type="radio" id="feedback_wish_be_called_oui" :value='true' v-model="tmp_wish_be_called")
+                            label.valign-middle.mt-1.mb-0.feedback_wish_be_called.ml-1(for="feedback_wish_be_called_oui") {{ t('YES') }}
+                    .row.mt-1
+                        .col-md-12
+                            input.mt-0(type="radio" id="feedback_wish_be_called_non" :value='false' v-model="tmp_wish_be_called")
+                            label.valign-middle.mt-1.mb-0.feedback_wish_be_called.ml-1(for="feedback_wish_be_called_non") {{ t('NO') }}
+
+                .spacer
 
                 .row
                     .col-md-12

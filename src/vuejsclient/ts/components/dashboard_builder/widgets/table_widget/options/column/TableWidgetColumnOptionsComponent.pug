@@ -66,6 +66,14 @@
             .remove_column(@click="remove_column" v-tooltip='vo_ref_tooltip')
                 i.fa.fa-trash(aria-hidden="true")
 
+            .default_sort_field(v-tooltip='default_sort_field_tooltip')
+                template(v-if="default_sort_field == sort_asc")
+                    i.fa.fa-sort-asc(@click="change_default_sort_field" aria-hidden="true")
+                template(v-else-if="default_sort_field == sort_desc")
+                    i.fa.fa-sort-desc(@click="change_default_sort_field" aria-hidden="true")
+                template(v-else)
+                    i.fa.fa-sort(@click="change_default_sort_field" aria-hidden="true")
+
             template(v-if='!show_options')
                 .show_options(@click="unhide_options")
                     i.fa.fa-plus(aria-hidden="true")
@@ -109,6 +117,30 @@
                         :width="100"
                         :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
+                .many_to_many_aggregate.mt-2
+                    toggle-button(
+                        @change="switch_many_to_many_aggregate" 
+                        :value="column.many_to_many_aggregate" 
+                        :sync="true"
+                        :width="160"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
+
+                .is_nullable.mt-2
+                    toggle-button(
+                        @change="switch_is_nullable" 
+                        :value="column.is_nullable" 
+                        :sync="true"
+                        :width="320"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.is_nullable.show'), unchecked: label('table_widget_column_conf.editable_column.is_nullable.hide')}")
+
+                .show_tooltip.mt-2
+                    toggle-button(
+                        @change="switch_show_tooltip" 
+                        :value="column.show_tooltip" 
+                        :sync="true"
+                        :width="160"
+                        :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
+
                 .filter_by_access
                     multiselect(
                         :preselect-first="false"
@@ -141,3 +173,16 @@
                             color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
                         .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
 
+                .bg_color_header.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
+                    color-picker.mr-2(v-model="tmp_bg_color_header")
+                    template(v-if="tmp_bg_color_header")
+                        i.fa.fa-times(@click="clear_tmp_bg_color_header")
+
+                .font_color_header.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
+                    color-picker.mr-2(v-model="tmp_font_color_header")
+                    template(v-if="tmp_font_color_header")
+                        i.fa.fa-times(@click="clear_tmp_font_color_header")

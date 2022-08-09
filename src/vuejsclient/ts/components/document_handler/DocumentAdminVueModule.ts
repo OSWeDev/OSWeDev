@@ -88,4 +88,12 @@ export default class DocumentAdminVueModule extends VueModuleBase {
                 this.routes);
         }
     }
+
+    public initialize() {
+        this.routes.push({
+            path: '/documents',
+            name: 'documents',
+            component: () => import(/* webpackChunkName: "DocumentHandlerComponent" */ './DocumentHandlerComponent')
+        });
+    }
 }

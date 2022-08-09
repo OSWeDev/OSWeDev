@@ -26,6 +26,7 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
 
     private file: FileVO = null;
     private loaded: boolean = false;
+    private path: string = null;
 
     private throttled_load_file = ThrottleHelper.getInstance().declare_throttle_without_args(this.load_file.bind(this), 100);
 
@@ -39,6 +40,7 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
     }
 
     private async load_file() {
+        this.path = null;
 
         if ((!this.file_id) && (!this.file_path)) {
             this.file = null;
@@ -49,6 +51,12 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
         this.file = this.file_id ?
             await query(FileVO.API_TYPE_ID).filter_by_id(this.file_id).select_vo() :
             await query(FileVO.API_TYPE_ID).filter_by_text_eq('path', this.file_path).set_sort(new SortByVO(FileVO.API_TYPE_ID, 'id', false)).set_limit(1).select_vo();
+
+        if (this.file) {
+            this.path = this.file.path;
+        } else {
+            this.path = this.file_path;
+        }
 
         if (!this.loaded) {
             this.loaded = true;

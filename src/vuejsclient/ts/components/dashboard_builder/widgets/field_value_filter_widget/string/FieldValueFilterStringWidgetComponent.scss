@@ -1,6 +1,7 @@
 @import '../../../../../../scss/base/skin.scss';
 
 .field_value_filter_string_widget_component {
+    height: -webkit-fill-available;
 
     .vo_field_ref_label {
         font-size: 1.2em;
@@ -23,6 +24,14 @@
             padding: .5em;
             border: none;
             margin-left: 1em;
+        }
+
+        &.hide_advanced_string_filter_type {
+            width: 90%;
+
+            input {
+                margin-left: 0;
+            }
         }
 
         margin-right: .3em;
@@ -81,17 +90,40 @@
         }
     }
 
-    .vo_field_ref_filter .multiselect .pill_wrapper {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 6px;
-        font-size: smaller;
-        margin-right: 0.5rem;
-        color: white;
+    .vo_field_ref_filter {
+        height: -webkit-fill-available;
 
-        i.fa.fa-times {
-            cursor: pointer;
-            margin-left: 8px;
+        .multiselect .pill_wrapper {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: smaller;
+            margin-right: 0.5rem;
+            color: white;
+
+            i.fa.fa-times {
+                cursor: pointer;
+                margin-left: 8px;
+            }
+        }
+
+        .container_filter_opt {
+            height: 100%;
+            overflow-x: auto;
+
+            // On enlève la hauteur du nom du champ
+            &.has_search_field {
+                height: calc(100% - 38px - 0.5em);
+            }
+
+            &.has_vo_field_ref_label {
+                height: calc(100% - 17px);
+
+                // On enlève la hauteur du input de filtre
+                &.has_search_field {
+                    height: calc(100% - 17px - 38px - 0.5em);
+                }
+            }
         }
     }
 }

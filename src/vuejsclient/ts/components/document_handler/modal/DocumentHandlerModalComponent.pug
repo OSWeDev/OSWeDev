@@ -16,7 +16,7 @@
 
                 .modal-body
                     template(v-if='loaded')
-                        isotope.documents_wrapper(ref="isotope" :options='options' :list="list" @filter="filterOption=arguments[0]" @sort="sortOption=arguments[0]")
+                        isotope.documents_wrapper(ref="isotope" :options='options' :list="list")
                             .document.grid-item(v-for="d in list" :key="d.id" @click="open_document(d.document_url)" target='_blank' v-tooltip.top="d.description" :class='classnames[d.importance]')
                                 .document_name {{ d.name }}
 

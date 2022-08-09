@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ObjectHandler from '../../../../tools/ObjectHandler';
+import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
@@ -207,9 +208,11 @@ export default abstract class DatatableField<T, U> {
         //transforme les options en arrays pour le tri
         let optionsArray: IDistantVOBase[] = Object.values(options);
 
-        //tri
+        // tri en fonction de la fonction de tri, Sinon on va trier par weight si c'est un objet avec un weight
         if (this.sort && optionsArray) {
             this.sort(optionsArray);
+        } else if (optionsArray && optionsArray[0] && optionsArray[0]['weight']) {
+            optionsArray = WeightHandler.getInstance().sortByWeight(optionsArray as any);
         }
 
         //s'il y a une fonction de filtrage on filtre

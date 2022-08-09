@@ -63,8 +63,6 @@ export default class ImportTypeXMLHandler {
 
             let res: XmlNode = XmlReader.parseSync(xml_string);
 
-            console.log(res);
-
             resolve(ImportTypeXMLHandler.getInstance().importRawsData(dataImportFormat, dataImportColumns, historic, res));
         });
     }

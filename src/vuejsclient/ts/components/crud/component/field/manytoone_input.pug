@@ -20,10 +20,10 @@
     //- template(v-else)
     .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
         template(v-if="field_value")
-            a.btn.btn-sm.btn-primary(:href="'/admin#' + getCRUDUpdateLink(field.targetModuleTable.vo_type, field_value)" target='_blank')
+            a.btn.btn-sm.btn-primary(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
                 i.fa.fa-pencil
         template
-        a.btn.btn-sm.btn-success(:href="'/admin#' + getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+        a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
             i.fa.fa-plus-circle
 
     multiselect(
@@ -31,7 +31,7 @@
         :custom-label="field.voIdToHumanReadable",
         :options="select_options",
         autocomplete="off"
-        :placeholder="t(field.translatable_place_holder)",
+        :placeholder="t(placeholder_string)",
         :loading="isLoadingOptions",
         :id="field.datatable_field_uid",
         :searchable="searchable",

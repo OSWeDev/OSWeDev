@@ -1,0 +1,59 @@
+.advanced_date_filter_widget_component_options
+    .vo_field_ref
+        .input_label {{ label('advanced_date_filter_widget_component.vo_field_ref') }}
+        .input_wrapper
+            Singlevofieldrefholdercomponent(
+                :vo_field_ref="vo_field_ref" @remove_field_ref="remove_field_ref" @add_field_ref="add_field_ref"
+                :page_widget_id='page_widget ? page_widget.id : null'
+            )
+
+    template(v-if="vo_field_ref")
+        .is_checkbox.mt-2
+            .input_label {{ label('advanced_date_filter_widget_component.is_checkbox') }}
+            
+            toggle-button(
+                @change="switch_is_checkbox" 
+                :value="is_checkbox" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('advanced_date_filter_widget_component.is_checkbox.visible'), unchecked: label('advanced_date_filter_widget_component.is_checkbox.hidden')}"
+            )
+
+        .opts.mt-2
+            .opts_label {{ label('advanced_date_filter_widget_component.opts') }}
+            template(v-if='editable_opts && (editable_opts.length > 1)')
+                Vuenestable.nested_field_refs(
+                    v-model="editable_opts" 
+                    @change="changed_opts"
+                    key-prop="id"
+                    :max-depth="1"
+                    children-prop="children"
+                )
+                    template(slot-scope="{ item }")
+
+                        .row
+                            .col-md-2.text-center
+                                Vuenestablehandle(:item="item")
+                                    i.fa.fa-bars.fa-fw(aria-hidden="true")
+                        
+                            .item_content.col-md-8
+                                Advanceddatefilterwidgetoptionsoptcomponent(
+                                    :opt="item"
+                                    @remove_opt="remove_opt" 
+                                    @update_opt="update_opt"
+                                    :page_widget="page_widget"
+                                )
+
+            template(v-if='editable_opts && (editable_opts.length == 1)')
+                .item_content
+                    Advanceddatefilterwidgetoptionsoptcomponent(
+                        :opt="editable_opts[0]"
+                        @remove_opt="remove_opt" 
+                        @update_opt="update_opt"
+                        :page_widget="page_widget"
+                    )
+
+            .opt_wrapper.mt-2.text-center
+                .btn.btn-success.btn-sm(@click="add_opt(null)") 
+                    i.fa.fa-plus.mr-1
+                    span {{ label('advanced_date_filter_widget_component.opts.add') }}

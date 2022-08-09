@@ -216,6 +216,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             { 'fr-fr': 'Horaires de préférence', 'es-es': 'Horas preferidas' },
             'feedback_handler.preferred_times_called.label.___LABEL___')
         );
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Je souhaite être rappelé' },
+            'feedback_handler.wish_be_called.label.___LABEL___')
+        );
     }
 
     public registerServerApiHandlers() {

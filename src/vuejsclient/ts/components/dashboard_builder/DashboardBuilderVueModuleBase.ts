@@ -1,13 +1,15 @@
 import Vue from 'vue';
+import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
-import DashboardPageWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
 import ChecklistWidgetOptions from './widgets/checklist_widget/options/ChecklistWidgetOptions';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
 import DOWFilterWidgetOptions from './widgets/dow_filter_widget/options/DOWFilterWidgetOptions';
 import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
@@ -49,14 +51,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         let url: string = "/dashboard/view/:dashboard_id";
         let main_route_name: string = 'Dashboard View';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
+            true,
+        ));
 
         url = "/dashboard_builder";
         main_route_name = 'DashboardBuilder';
@@ -73,14 +73,12 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         url = "/dashboard_builder" + "/:dashboard_id";
         main_route_name = 'DashboardBuilder_id';
 
-        this.routes.push({
-            path: url,
-            name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
-            props: (route) => ({
-                dashboard_id: parseInt(route.params.dashboard_id),
-            })
-        });
+        this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
+            url,
+            main_route_name,
+            () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            true,
+        ));
 
         await this.initializeDefaultWidgets();
     }
@@ -91,6 +89,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_DOWFilter();
         await this.initializeWidget_MonthFilter();
         await this.initializeWidget_YearFilter();
+        await this.initializeWidget_AdvancedDateFilter();
 
         await this.initializeWidget_Checklist();
 
@@ -154,7 +153,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -173,7 +172,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -192,7 +191,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.default_background = '#f5f5f5';
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, true, 50), FieldValueFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false), FieldValueFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
@@ -235,6 +234,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Monthfilterwidgetcomponent', () => import(/* webpackChunkName: "MonthFilterWidgetComponent" */ './widgets/month_filter_widget/MonthFilterWidgetComponent'));
         Vue.component('Monthfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "MonthFilterWidgetOptionsComponent" */ './widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
         Vue.component('Monthfilterwidgeticoncomponent', () => import(/* webpackChunkName: "MonthFilterWidgetIconComponent" */ './widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_AdvancedDateFilter() {
+        let AdvancedDateFilter = new DashboardWidgetVO();
+
+        AdvancedDateFilter.default_height = 5;
+        AdvancedDateFilter.default_width = 3;
+        AdvancedDateFilter.name = 'advanceddatefilter';
+        AdvancedDateFilter.widget_component = 'Advanceddatefilterwidgetcomponent';
+        AdvancedDateFilter.options_component = 'Advanceddatefilterwidgetoptionscomponent';
+        AdvancedDateFilter.weight = 4;
+        AdvancedDateFilter.default_background = '#f5f5f5';
+        AdvancedDateFilter.icon_component = 'Advanceddatefilterwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(null, null, false), AdvancedDateFilterWidgetOptions.get_selected_fields);
+
+        Vue.component('Advanceddatefilterwidgetcomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetComponent" */ './widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
+        Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetOptionsComponent" */ './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
+        Vue.component('Advanceddatefilterwidgeticoncomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetIconComponent" */ './widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_YearFilter() {

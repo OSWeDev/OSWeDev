@@ -17,6 +17,7 @@ import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/da
 import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -175,6 +176,9 @@ export default class CRUDComponentField extends VueComponentBase
     // Permet de définir si on veut que le champ fasse des propositions
     @Prop({ default: true })
     private autocomplete_input: boolean;
+
+    @Prop({ default: false })
+    private is_dashboard_builder: boolean;
 
     private this_CRUDComp_UID: number = null;
 
@@ -1442,6 +1446,32 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('blur', $event.target.value);
     }
 
+    private get_crud_link(api_type_id: string, vo_id: number): string {
+        if (this.is_dashboard_builder) {
+            let res: string = this.$route.path;
+
+            if (res.charAt(res.length - 1) != '/') {
+                res += '/';
+            }
+
+            if (vo_id) {
+                res += DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT;
+            } else {
+                res += DashboardBuilderController.DASHBOARD_VO_ACTION_ADD;
+            }
+
+            res += '/' + vo_id + '/' + api_type_id;
+
+            return res;
+        }
+
+        if (!vo_id) {
+            return '/admin#' + this.getCRUDCreateLink(api_type_id, false);
+        }
+
+        return '/admin#' + this.getCRUDUpdateLink(api_type_id, vo_id);
+    }
+
     get targetModuleTable_count(): number {
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
         if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
@@ -1578,5 +1608,13 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         return res;
+    }
+
+    get placeholder_string(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
     }
 }

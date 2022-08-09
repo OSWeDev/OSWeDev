@@ -1,44 +1,47 @@
 .field_value_filter_string_widget_component
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
-        .vo_field_ref_advanced
-            toggle-button(
-                @change="switch_advanced_filters" 
-                :value="advanced_filters" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+        template(v-if="!is_checkbox")
+            template(v-if="!hide_btn_switch_advanced")
+                .vo_field_ref_advanced
+                    toggle-button(
+                        @change="switch_advanced_filters" 
+                        :value="advanced_filters" 
+                        :sync="true"
+                        :width="100"
+                        :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
 
         template(v-if='advanced_filters')
             .vo_field_advanced_string_filters
                 template(v-for='(advanced_string_filter, i) in advanced_string_filters')
                     .vo_field_advanced_string_filter
                         form(v-on:submit.prevent="validate_advanced_string_filter")
-                            .advanced_string_filter_type
-                                multiselect(
-                                    :preselect-first="true"
-                                    :multiple="false"
-                                    :close-on-select="true"
-                                    v-model="advanced_string_filter.filter_type"
-                                    :options="filter_type_options"
-                                    :custom-label="filter_type_label"
-                                    autocomplete="off"
+                            template(v-if="!hide_advanced_string_filter_type")
+                                .advanced_string_filter_type
+                                    multiselect(
+                                        :preselect-first="true"
+                                        :multiple="false"
+                                        :close-on-select="true"
+                                        v-model="advanced_string_filter.filter_type"
+                                        :options="filter_type_options"
+                                        :custom-label="filter_type_label"
+                                        autocomplete="off"
 
-                                    :show-labels="false"
-                                    :searchable="false"
-                                    :internal-search="false"
-                                    :hide-selected="false"
+                                        :show-labels="false"
+                                        :searchable="false"
+                                        :internal-search="false"
+                                        :hide-selected="false"
 
-                                    :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i" 
-                                    
-                                    :select-label='label("multiselect.selectLabel")'
-                                    :select-group-label='label("multiselect.selectGroupLabel")'
-                                    :selected-label='label("multiselect.selectedLabel")'
-                                    :deselect-label='label("multiselect.deselectLabel")'
-                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                                )
+                                        :key="'advanced_string_filter_type' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id + '__' + i" 
+                                        
+                                        :select-label='label("multiselect.selectLabel")'
+                                        :select-group-label='label("multiselect.selectGroupLabel")'
+                                        :selected-label='label("multiselect.selectedLabel")'
+                                        :deselect-label='label("multiselect.deselectLabel")'
+                                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                    )
 
-                            .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]')
+                            .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]', :class="{hide_advanced_string_filter_type: hide_advanced_string_filter_type}")
                                 input(v-model='advanced_string_filter.filter_content')
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
@@ -55,45 +58,71 @@
 
         template(v-else)
             .vo_field_ref_filter
-                multiselect(
-                    :preselect-first="false"
-                    :multiple="can_select_multiple"
-                    :close-on-select="false"
-                    v-model="tmp_filter_active_options"
-                    :placeholder="placeholder"
-                    :options="filter_visible_options"
-                    label="label"
-                    autocomplete="off"
+                template(v-if="!is_checkbox")
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="can_select_multiple"
+                        :close-on-select="false"
+                        v-model="tmp_filter_active_options"
+                        :placeholder="placeholder"
+                        :options="filter_visible_options"
+                        label="label"
+                        autocomplete="off"
 
-                    :searchable="true"
-                    :internal-search="false"
-                    :hide-selected="true"
+                        :searchable="true"
+                        :internal-search="false"
+                        :hide-selected="true"
 
-                    track-by="text_uid"
-                    
-                    :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                    
-                    :select-label='label("multiselect.selectLabel")'
-                    :select-group-label='label("multiselect.selectGroupLabel")'
-                    :selected-label='label("multiselect.selectedLabel")'
-                    :deselect-label='label("multiselect.deselectLabel")'
-                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        track-by="text_uid"
+                        
+                        :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                        
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
 
-                    @search-change="query_update_visible_options"
-                )
-                    
-                    span(slot="noOptions") -
+                        @search-change="query_update_visible_options"
+                    )
+                        
+                        span(slot="noOptions") -
 
-                    template(slot="option", slot-scope="props")
-                        template(v-if='is_translatable_type')
-                            span.option__title {{ label(props.option.label) }}
-                        template(v-else)
-                            span.option__title {{ props.option.label }}
-
-                    template(slot="tag", slot-scope="props")
-                        .pill_wrapper.bg-success
+                        template(slot="option", slot-scope="props")
                             template(v-if='is_translatable_type')
-                                span.option__tag {{ label(props.option.label) }}
+                                span.option__title {{ label(props.option.label) }}
                             template(v-else)
-                                span.option__tag {{ props.option.label }}
-                            i.fa.fa-times(@click='props.remove(props.option)')
+                                span.option__title {{ props.option.label }}
+
+                        template(slot="tag", slot-scope="props")
+                            .pill_wrapper.bg-success
+                                template(v-if='is_translatable_type')
+                                    span.option__tag {{ label(props.option.label) }}
+                                template(v-else)
+                                    span.option__tag {{ props.option.label }}
+                                i.fa.fa-times(@click='props.remove(props.option)')
+                
+                template(v-else)
+                    template(v-if="show_search_field")
+                        .search_field.mb-2
+                            input.form-control(type="text" v-model="search_field_checkbox" @input="debounced_query_update_visible_options_checkbox")
+                    .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: vo_field_ref_label}")
+                        template(v-for="(opt, index) in filter_visible_options")
+                            .filter_opt
+                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + index" name="filter_opt" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                template(v-if='is_translatable_type')
+                                    label.option__title.ml-2(:for="base_filter + index") {{ label(opt.label) }}
+                                template(v-else)
+                                    label.option__title.ml-2(:for="base_filter + index") {{ opt.label }}
+                                
+                                template(v-if="!hide_lvl2_if_lvl1_not_selected || (active_option_lvl1[opt.label])")
+                                    template(v-if="filter_visible_options_lvl2 && filter_visible_options_lvl2[opt.label]")
+                                        .container_filter_opt_lvl2.ml-3
+                                            template(v-for="(opt_lvl2, index_lvl2) in filter_visible_options_lvl2[opt.label]")
+                                                .filter_opt_lvl2
+                                                    input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + index + '_lvl2_' + index_lvl2" name="filter_opt" @change="onchange_filter_opt_lvl2_input($event.target, opt_lvl2, opt)")
+                                                    template(v-if='is_translatable_type')
+                                                        label.option__title.ml-2(:for="base_filter + index + '_lvl2_' + index_lvl2") {{ label(opt_lvl2.label) }}
+                                                    template(v-else)
+                                                        label.option__title.ml-2(:for="base_filter + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
+
