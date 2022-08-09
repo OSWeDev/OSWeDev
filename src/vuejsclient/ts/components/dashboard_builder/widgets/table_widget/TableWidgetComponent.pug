@@ -40,7 +40,7 @@ include ../../../../../views/mixins/loading.pug
                 )
 
             .table_wrapper
-                table.table-striped.table-hover
+                table.table-striped.table-hover(:class='{"has_sticky_cols": has_sticky_cols}')
                     thead
                         th.table_header(
                             v-for='column in columns'

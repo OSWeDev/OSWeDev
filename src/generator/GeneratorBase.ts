@@ -72,6 +72,7 @@ import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch2022
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
 import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch20220725DashboardWidgetUpdate';
+import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809ChangeDbbTrad';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 
@@ -160,6 +161,7 @@ export default abstract class GeneratorBase {
             Patch20220404UpdateDBBWidgetsDefaultSize.getInstance(),
             Patch20220401SetParamPushData.getInstance(),
             Patch20220725DashboardWidgetUpdate.getInstance(),
+            Patch20220809ChangeDbbTrad.getInstance(),
             // Patch20211203ClearVarCaches.getInstance()
         ];
     }

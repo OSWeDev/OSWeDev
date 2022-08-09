@@ -123,6 +123,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private update_cpt_live: number = 0;
 
     private sticky_left_by_col_id: { [col_id: number]: number } = {};
+    private has_sticky_cols: boolean = false;
+    private last_sticky_col_id: number = null;
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
@@ -631,6 +633,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             if (column.is_sticky) {
                 this.sticky_left_by_col_id[column.id] = sticky_left;
                 sticky_left += parseInt(column.column_width.toString());
+                this.has_sticky_cols = true;
+                this.last_sticky_col_id = column.id;
             }
 
             /**
@@ -1306,8 +1310,10 @@ export default class TableWidgetComponent extends VueComponentBase {
                     ? (this.sticky_left_by_col_id[column.id] + 0.4) + "rem"
                     : 0 + "rem")
                 : null;
-            res['backgroundColor'] = column.bg_color_header ? column.bg_color_header : 'white';
-            res['zIndex'] = 1000;
+
+            if (this.last_sticky_col_id == column.id) {
+                res['borderRight'] = 'solid 1px rgb(185, 185, 185)';
+            }
         }
 
         return res;
@@ -1328,12 +1334,15 @@ export default class TableWidgetComponent extends VueComponentBase {
                     ? (this.sticky_left_by_col_id[column.id] + 0.4) + "rem"
                     : 0 + "rem")
                 : null;
-            res['backgroundColor'] = column.bg_color_header ? column.bg_color_header : 'white';
-            res['zIndex'] = 500;
+
+            if (this.last_sticky_col_id == column.id) {
+                res['borderRight'] = 'solid 1px rgb(185, 185, 185)';
+            }
         }
 
         return res;
     }
+
 
     get dashboard_vo_action() {
         return this.$route.params.dashboard_vo_action;
