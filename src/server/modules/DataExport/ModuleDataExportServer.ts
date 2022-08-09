@@ -723,7 +723,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 if ((src_vo[field_id] === null) || (typeof src_vo[field_id] === 'undefined')) {
                     dest_vo[field_id] = src_vo[field_id];
                 } else {
-                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => this.format_date_utc(ts * 1000));
+                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
                 }
                 break;
 
