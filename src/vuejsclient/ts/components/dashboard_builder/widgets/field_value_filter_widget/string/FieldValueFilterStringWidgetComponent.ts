@@ -79,6 +79,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private utility_tested_on_type: string = null;
     private utility_tested_on_field: string = null;
 
+    private excludes_values_labels: { [label: string]: boolean } = {};
+
     private is_init: boolean = true;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
@@ -494,16 +496,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             } else {
                 if (this.exclude_values && (this.exclude_values.length > 0)) {
 
-                    let obj: DataFilterOption[] = [];
-                    for (let i in this.filter_visible_options) {
-                        let fvo = this.filter_visible_options[i];
-
-                        if (!this.exclude_values.includes(fvo)) {
-                            obj.push(fvo);
-                        }
-                    }
-
-                    this.tmp_filter_active_options = obj;
+                    this.tmp_filter_active_options = await this.all_field_ref_vo_options_without_exclude_values();
                     return;
                 }
             }
@@ -628,19 +621,33 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             }
         }
 
-        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+        let tmp: DataFilterOption[] = [];
 
-        let query_ = query(query_api_type_id)
-            .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
-            .set_limit(this.widget_options.max_visible_options)
-            .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-            .using(this.dashboard.api_type_ids);
+        if (this.widget_options.is_default_values_mode && this.default_values) {
 
-        let tmp: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
-            query_,
-            this.actual_query,
-        );
+            tmp = this.default_values;
+        } else {
+
+            if (!this.widget_options.is_default_values_mode && this.exclude_values) {
+
+                tmp = await this.all_field_ref_vo_options_without_exclude_values();
+            } else {
+
+                let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+
+                let query_ = query(query_api_type_id)
+                    .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
+                    .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
+                    .set_limit(this.widget_options.max_visible_options)
+                    .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
+                    .using(this.dashboard.api_type_ids);
+
+                tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                    query_,
+                    this.actual_query,
+                );
+            }
+        }
 
         // Si on cherche à faire du multi-filtrage, on charge toutes les données
         if (this.vo_field_ref_multiple && (this.vo_field_ref_multiple.length > 0)) {
@@ -1255,6 +1262,40 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         advanced_filters.push(advanced_filter);
+    }
+
+    private async all_field_ref_vo_options(): Promise<DataFilterOption[]> {
+        let query_options = query(this.vo_field_ref.api_type_id)
+            .field(this.vo_field_ref.field_id, 'label')
+            .using(this.dashboard.api_type_ids);
+
+        let options: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            query_options,
+            this.actual_query,
+        );
+
+        return options;
+    }
+
+    private async all_field_ref_vo_options_without_exclude_values(): Promise<DataFilterOption[]> {
+        let active_options: DataFilterOption[] = [];
+        let options: DataFilterOption[] = await this.all_field_ref_vo_options();
+
+        // Traitement sur le text-uid car pas d'id rempli dans le traitement de l'objet. Est-ce vraiment secure ?
+        for (let j in this.exclude_values) {
+
+            this.excludes_values_labels[this.exclude_values[j].text_uid] = true;
+        }
+
+        for (let i in options) {
+            let opt: DataFilterOption = options[i];
+
+            if (!this.excludes_values_labels[opt.text_uid]) {
+                active_options.push(opt);
+            }
+        }
+
+        return active_options;
     }
 
     get has_content_filter_type(): { [filter_type: number]: boolean } {
