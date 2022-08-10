@@ -436,6 +436,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.exclude_filter_opt_values,
                     options.exclude_ts_range_values,
                     options.is_default_values_mode,
+                    options.placeholder_advanced_mode,
                 ) : null;
             }
         } catch (error) {

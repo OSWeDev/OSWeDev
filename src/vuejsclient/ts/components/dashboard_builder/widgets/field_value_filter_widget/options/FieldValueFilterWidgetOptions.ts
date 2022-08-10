@@ -83,6 +83,7 @@ export default class FieldValueFilterWidgetOptions {
         public exclude_filter_opt_values: DataFilterOption[],
         public exclude_ts_range_values: TSRange,
         public is_default_values_mode: boolean,
+        public placeholder_advanced_mode: string,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

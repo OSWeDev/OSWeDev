@@ -911,6 +911,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.hide_btn_switch_advanced.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Placeholder pour le champs de recherche" },
+            'field_value_filter_widget_component.placeholder_advanced_string_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Liste des champs pour la recherche multiple" },
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));

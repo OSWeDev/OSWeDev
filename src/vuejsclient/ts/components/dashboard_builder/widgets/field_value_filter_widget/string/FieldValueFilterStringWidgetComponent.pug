@@ -42,7 +42,7 @@
                                     )
 
                             .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]', :class="{hide_advanced_string_filter_type: hide_advanced_string_filter_type}")
-                                input(v-model='advanced_string_filter.filter_content')
+                                input(v-model='advanced_string_filter.filter_content' :placeholder='widget_options.placeholder_advanced_mode')
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
                                 //-     i.fa.fa-plus-circle.fa-lg.btn_icon
