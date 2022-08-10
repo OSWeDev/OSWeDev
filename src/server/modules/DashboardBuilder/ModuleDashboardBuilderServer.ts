@@ -619,6 +619,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboards.widgets.icons_tooltips.dowfilter.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton de validation des fitlres'
+        }, 'dashboards.widgets.icons_tooltips.validationfilters.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nom du filtre personnalisé'
         }, 'dow_filter_widget_component.custom_filter_name.___LABEL___'));
 

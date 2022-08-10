@@ -101,6 +101,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_DataTable();
 
         await this.initializeWidget_PageSwitch();
+
+        await this.initializeWidget_ValidationFilters();
     }
 
     private async initializeWidget_BulkOps() {
@@ -272,6 +274,25 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
         Vue.component('Yearfilterwidgeticoncomponent', () => import(/* webpackChunkName: "YearFilterWidgetIconComponent" */ './widgets/year_filter_widget/icon/YearFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_ValidationFilters() {
+        let ValidationFilters = new DashboardWidgetVO();
+
+        ValidationFilters.default_height = 5;
+        ValidationFilters.default_width = 2;
+        ValidationFilters.name = 'validationfilters';
+        ValidationFilters.widget_component = 'Validationfilterswidgetcomponent';
+        ValidationFilters.options_component = 'Validationfilterswidgetoptionscomponent';
+        ValidationFilters.weight = 3;
+        ValidationFilters.default_background = '#f5f5f5';
+        ValidationFilters.icon_component = 'Validationfilterswidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(ValidationFilters, null, null);
+
+        Vue.component('Validationfilterswidgetcomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetComponent" */ './widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
+        Vue.component('Validationfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetOptionsComponent" */ './widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
+        Vue.component('Validationfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetIconComponent" */ './widgets/validation_filters_widget/icon/ValidationFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {
