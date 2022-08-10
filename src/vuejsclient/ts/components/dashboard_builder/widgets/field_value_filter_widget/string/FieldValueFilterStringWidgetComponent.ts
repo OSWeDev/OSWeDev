@@ -1284,13 +1284,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         // Traitement sur le text-uid car pas d'id rempli dans le traitement de l'objet. Est-ce vraiment secure ?
         for (let j in this.exclude_values) {
 
-            this.excludes_values_labels[this.exclude_values[j].text_uid] = true;
+            this.excludes_values_labels[this.exclude_values[j].string_value] = true;
         }
 
         for (let i in options) {
             let opt: DataFilterOption = options[i];
 
-            if (!this.excludes_values_labels[opt.text_uid]) {
+            if (!this.excludes_values_labels[opt.string_value]) {
                 active_options.push(opt);
             }
         }

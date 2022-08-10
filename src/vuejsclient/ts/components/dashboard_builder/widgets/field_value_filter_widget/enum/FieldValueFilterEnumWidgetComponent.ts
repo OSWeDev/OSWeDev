@@ -55,6 +55,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private filter_visible_options: DataFilterOption[] = [];
 
     private warn_existing_external_filters: boolean = false;
+
+    private excludes_values_labels: { [label: string]: boolean } = {};
+
     private is_init: boolean = true;
 
     private actual_query: string = null;
@@ -98,6 +101,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         if (this.is_default_values_mode) {
             if (this.is_init && this.default_values && (this.default_values.length > 0)) {
                 this.is_init = false;
+
                 this.tmp_filter_active_options = this.default_values;
                 return;
             }
@@ -105,16 +109,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             if (this.is_init && this.exclude_values && (this.exclude_values.length > 0)) {
                 this.is_init = false;
 
-                let obj: DataFilterOption[] = [];
-                for (let i in this.filter_visible_options) {
-                    let fvo = this.filter_visible_options[i];
-
-                    if (!this.exclude_values.includes(fvo)) {
-                        obj.push(fvo);
-                    }
-                }
-
-                this.tmp_filter_active_options = obj;
+                this.tmp_filter_active_options = await this.all_field_ref_vo_options_without_exclude_values();
                 return;
             }
         }
@@ -138,18 +133,32 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             active_field_filters = this.get_active_field_filters;
         }
 
-        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+        let tmp: DataFilterOption[] = [];
 
-        let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
-        query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-        query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
-        query_.active_api_type_ids = this.dashboard.api_type_ids;
+        if (this.widget_options.is_default_values_mode && this.default_values) {
 
-        let tmp: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
-            query_,
-            this.actual_query
-        );
+            tmp = this.default_values;
+        } else {
+
+            if (!this.widget_options.is_default_values_mode && this.exclude_values) {
+
+                tmp = await this.all_field_ref_vo_options_without_exclude_values();
+            } else {
+
+                let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+
+                let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
+                query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
+                query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                    ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
+                query_.active_api_type_ids = this.dashboard.api_type_ids;
+
+                tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                    query_,
+                    this.actual_query
+                );
+            }
+        }
 
         if (!tmp) {
             this.filter_visible_options = [];
@@ -254,6 +263,40 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private filter_visible_label(dfo: DataFilterOption): string {
         return this.t(this.field.enum_values[dfo.label]);
+    }
+
+    private async all_field_ref_vo_options(): Promise<DataFilterOption[]> {
+        let query_options = query(this.vo_field_ref.api_type_id)
+            .field(this.vo_field_ref.field_id, 'label')
+            .using(this.dashboard.api_type_ids);
+
+        let options: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            query_options,
+            this.actual_query,
+        );
+
+        return options;
+    }
+
+    private async all_field_ref_vo_options_without_exclude_values(): Promise<DataFilterOption[]> {
+        let active_options: DataFilterOption[] = [];
+        let options: DataFilterOption[] = await this.all_field_ref_vo_options();
+
+        // Traitement sur le text-uid car pas d'id rempli dans le traitement de l'objet. Est-ce vraiment secure ?
+        for (let j in this.exclude_values) {
+
+            this.excludes_values_labels[this.exclude_values[j].string_value] = true;
+        }
+
+        for (let i in options) {
+            let opt: DataFilterOption = options[i];
+
+            if (!this.excludes_values_labels[opt.string_value]) {
+                active_options.push(opt);
+            }
+        }
+
+        return active_options;
     }
 
     get placeholder(): string {
