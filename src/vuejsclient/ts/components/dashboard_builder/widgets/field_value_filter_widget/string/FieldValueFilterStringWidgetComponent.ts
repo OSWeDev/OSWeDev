@@ -24,6 +24,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
+import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -82,6 +83,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private excludes_values_labels: { [label: string]: boolean } = {};
 
     private is_init: boolean = true;
+
+    private semaphore: boolean = true;
+    private last_calculation_unix: number = null;
+    private timeout_calculation: number = 40;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private debounced_query_update_visible_options_checkbox = debounce(this.query_update_visible_options_checkbox.bind(this), 300);
@@ -475,9 +480,23 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
 
     private async update_visible_options() {
+
+        if (!this.semaphore) {
+            this.last_calculation_unix = Dates.now();
+            return;
+        }
+
+        if (Dates.now() < (this.last_calculation_unix + this.timeout_calculation)) {
+            return;
+        }
+
+        this.last_calculation_unix = Dates.now();
+        this.semaphore = false;
+
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
             this.filter_visible_options_lvl2 = {};
+            this.semaphore = true;
             return;
         }
 
@@ -487,16 +506,18 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.is_init = false;
 
         if (old_is_init) {
-            // Si on a des valeurs par défaut, on va faire l'init
+            // Si on a des valeurs par défaut ou à exclure, on va faire l'init
             if (this.is_default_values_mode) {
                 if (this.default_values && (this.default_values.length > 0)) {
                     this.tmp_filter_active_options = this.default_values;
+                    this.semaphore = true;
                     return;
                 }
             } else {
                 if (this.exclude_values && (this.exclude_values.length > 0)) {
 
                     this.tmp_filter_active_options = await this.all_field_ref_vo_options_without_exclude_values();
+                    this.semaphore = true;
                     return;
                 }
             }
@@ -569,6 +590,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                 if (!this.has_content_filter_type[this.default_advanced_string_filter_type]) {
                     this.validate_advanced_string_filter();
+                    this.semaphore = true;
                     return;
                 }
             }
@@ -682,13 +704,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 let lb = this.label(b.label);
 
                 if (la < lb) {
+                    this.semaphore = true;
                     return -1;
                 }
 
                 if (lb < la) {
+                    this.semaphore = true;
                     return 1;
                 }
 
+                this.semaphore = true;
                 return 0;
             });
         }
@@ -753,6 +778,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.filter_visible_options = tmp;
             this.filter_visible_options_lvl2 = tmp_lvl2;
         }
+        this.semaphore = true;
     }
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
@@ -1264,6 +1290,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         advanced_filters.push(advanced_filter);
     }
 
+    // Retourne toutes les options du champs principal traité par le filtre
     private async all_field_ref_vo_options(): Promise<DataFilterOption[]> {
         let query_options = query(this.vo_field_ref.api_type_id)
             .field(this.vo_field_ref.field_id, 'label')
@@ -1277,6 +1304,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return options;
     }
 
+    // Retourne toutes les options du filtre sans les valeurs exclues
     private async all_field_ref_vo_options_without_exclude_values(): Promise<DataFilterOption[]> {
         let active_options: DataFilterOption[] = [];
         let options: DataFilterOption[] = await this.all_field_ref_vo_options();
