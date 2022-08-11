@@ -357,6 +357,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         return this.widget_options && this.widget_options.show_pagination_form;
     }
 
+    get show_pagination_list(): boolean {
+        return this.widget_options && this.widget_options.show_pagination_list;
+    }
+
     get limit_selectable(): string[] {
         return (this.widget_options && this.widget_options.limit_selectable) ? this.widget_options.limit_selectable.split(",") : null;
     }
@@ -1011,6 +1015,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.show_pagination_form,
                     options.show_limit_selectable,
                     options.limit_selectable,
+                    options.show_pagination_list,
                 ) : null;
             }
         } catch (error) {

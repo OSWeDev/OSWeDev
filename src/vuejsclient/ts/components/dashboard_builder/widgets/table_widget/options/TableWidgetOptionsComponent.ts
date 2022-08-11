@@ -56,6 +56,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_resumee: boolean = true;
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
+    private show_pagination_list: boolean = true;
     private can_filter_by: boolean = true;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
@@ -333,7 +334,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -463,6 +464,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.show_pagination_form,
                     options.show_limit_selectable,
                     options.limit_selectable,
+                    options.show_pagination_list,
                 ) : null;
             }
         } catch (error) {
@@ -671,6 +673,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.show_pagination_form != this.show_pagination_form) {
             this.next_update_options.show_pagination_form = this.show_pagination_form;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_show_pagination_list() {
+        this.show_pagination_list = !this.show_pagination_list;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_pagination_list != this.show_pagination_list) {
+            this.next_update_options.show_pagination_list = this.show_pagination_list;
             await this.throttled_update_options();
         }
     }

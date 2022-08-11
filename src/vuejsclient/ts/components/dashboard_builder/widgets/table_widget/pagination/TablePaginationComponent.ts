@@ -33,6 +33,9 @@ export default class TablePaginationComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_pagination_form: boolean;
 
+    @Prop({ default: false })
+    private show_pagination_list: boolean;
+
     @Prop()
     private limit_selectable: string[];
 
@@ -49,6 +52,8 @@ export default class TablePaginationComponent extends VueComponentBase {
     private new_page: number = 0;
     private new_page_str: string = "0";
 
+    private current_page_and_around: { [index: number]: number };
+
     private all_limit_selectable: number[] = null;
     private selected_limit: number = null;
 
@@ -60,6 +65,20 @@ export default class TablePaginationComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    private mounted() {
+        if (this.max_page < 5) {
+            for (let i = 0; i <= this.max_page; i++) {
+
+                this.current_page_and_around[i] = i;
+            }
+        } else {
+            for (let i = 0; i <= 4; i++) {
+
+                this.current_page_and_around[i] = i;
+            }
+        }
     }
 
     @Watch('new_page_str')
@@ -80,6 +99,18 @@ export default class TablePaginationComponent extends VueComponentBase {
             if (new_page_num < 1) {
                 new_page_num = 1;
                 this.new_page_str = new_page_num.toString();
+            }
+
+
+            for (let i = 1; i < 6; i++) {
+                this.current_page_and_around[i] = i;
+            }
+
+            for (let i = (this.max_page - 5); i <= this.max_page; i++) {
+                this.current_page_and_around[i] = i;
+            }
+            if (new_page_num == (this.max_page - 1)) {
+
             }
         } catch (error) {
             this.new_page_str = this.new_page.toString();
@@ -177,6 +208,22 @@ export default class TablePaginationComponent extends VueComponentBase {
             return;
         }
         this.new_page--;
+        this.throttled_change_offset();
+    }
+
+    private goto_first() {
+        if (this.new_page <= 1) {
+            return;
+        }
+        this.new_page = 1;
+        this.throttled_change_offset();
+    }
+
+    private goto_last() {
+        if (this.new_page >= this.max_page) {
+            return;
+        }
+        this.new_page = this.max_page;
         this.throttled_change_offset();
     }
 

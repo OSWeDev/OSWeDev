@@ -300,6 +300,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.show_pagination_form,
                     options.show_limit_selectable,
                     options.limit_selectable,
+                    options.show_pagination_list
                 ) : null;
             }
         } catch (error) {

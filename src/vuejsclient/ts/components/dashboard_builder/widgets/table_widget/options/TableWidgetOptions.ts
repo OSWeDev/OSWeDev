@@ -51,6 +51,7 @@ export default class TableWidgetOptions {
         public show_pagination_form: boolean,
         public show_limit_selectable: boolean,
         public limit_selectable: string,
+        public show_pagination_list: boolean,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

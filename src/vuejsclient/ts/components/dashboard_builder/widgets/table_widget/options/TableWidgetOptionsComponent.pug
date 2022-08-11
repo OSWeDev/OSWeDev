@@ -69,6 +69,15 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_pagination_form.visible'), unchecked: label('table_widget_options_component.show_pagination_form.hidden')}")
+    
+    .show_pagination_list
+        .input_label {{ label('table_widget_options_component.show_pagination_list') }}
+        toggle-button(
+            @change="switch_show_pagination_list" 
+            :value="show_pagination_list" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_pagination_list.visible'), unchecked: label('table_widget_options_component.show_pagination_list.hidden')}")
 
     .show_limit_selectable
         .input_label {{ label('table_widget_options_component.show_limit_selectable') }}
