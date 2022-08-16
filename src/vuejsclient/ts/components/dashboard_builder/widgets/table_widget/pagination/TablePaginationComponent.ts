@@ -48,12 +48,11 @@ export default class TablePaginationComponent extends VueComponentBase {
     private page: number = 0;
 
     private max_page: number = 0;
-    private init_max_page: boolean = false;
 
     private new_page: number = 0;
     private new_page_str: string = "0";
 
-    private current_page_and_around: { [index: number]: number };
+    private current_page_and_around: { [index: number]: number } = {};
 
     private all_limit_selectable: number[] = null;
     private selected_limit: number = null;
@@ -68,56 +67,89 @@ export default class TablePaginationComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('max_page')
-    private oninit_max_page() {
-        if (!this.init_max_page) {
-            if (this.max_page < 5) {
-                for (let i = 0; i <= this.max_page; i++) {
-
-                    this.current_page_and_around[i] = i;
-                }
-            } else {
-                for (let i = 0; i <= 4; i++) {
-
-                    this.current_page_and_around[i] = i;
-                }
-            }
-
-            this.init_max_page = true;
-        }
-    }
-
     @Watch('new_page_str')
+    @Watch('max_page')
     private onchange_new_page_str() {
         let new_page_num: number = null;
+        let is_specific_change: boolean = false;
         try {
             new_page_num = parseInt(this.new_page_str);
 
+            //Init
             if ((!new_page_num) || isNaN(new_page_num)) {
                 new_page_num = 1;
+
+                if (this.max_page <= 5) {
+                    for (let i = 1; i < this.max_page; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                } else {
+                    for (let i = 1; i <= 5; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                }
+                is_specific_change = true;
             }
 
+            // Si current page = last page
             if (new_page_num > this.max_page) {
                 new_page_num = this.max_page;
                 this.new_page_str = new_page_num.toString();
+
+                if (this.max_page < 5) {
+                    for (let i = 1; i <= this.max_page; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                } else {
+                    for (let i = (this.max_page - 4); i <= this.max_page; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                }
+                is_specific_change = true;
             }
 
+            //Si current page = first page
             if (new_page_num < 1) {
                 new_page_num = 1;
                 this.new_page_str = new_page_num.toString();
+
+                if (this.max_page < 5) {
+                    for (let i = 1; i <= this.max_page; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                } else {
+                    for (let i = 1; i <= 5; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                }
+                is_specific_change = true;
             }
 
+            if (!is_specific_change) {
 
-            for (let i = 1; i < 6; i++) {
-                this.current_page_and_around[i] = i;
+                if (this.max_page < 5) {
+
+                    for (let i = 1; i <= this.max_page; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                } else if (this.new_page < 3) {
+
+                    for (let i = 1; i <= 5; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                } else if (this.new_page > this.max_page - 2) {
+
+                    for (let i = (this.max_page - 4); i <= this.max_page; i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                } else {
+
+                    for (let i = (this.new_page - 2); i <= (this.new_page + 2); i++) {
+                        this.current_page_and_around[i] = i;
+                    }
+                }
             }
 
-            for (let i = (this.max_page - 5); i <= this.max_page; i++) {
-                this.current_page_and_around[i] = i;
-            }
-            if (new_page_num == (this.max_page - 1)) {
-
-            }
         } catch (error) {
             this.new_page_str = this.new_page.toString();
             return;
@@ -206,6 +238,7 @@ export default class TablePaginationComponent extends VueComponentBase {
 
     private goto_next() {
         this.new_page++;
+        this.current_page_and_around = {};
         this.throttled_change_offset();
     }
 
@@ -213,6 +246,7 @@ export default class TablePaginationComponent extends VueComponentBase {
         if (this.new_page <= 1) {
             return;
         }
+        this.current_page_and_around = {};
         this.new_page--;
         this.throttled_change_offset();
     }
@@ -221,6 +255,7 @@ export default class TablePaginationComponent extends VueComponentBase {
         if (this.new_page <= 1) {
             return;
         }
+        this.current_page_and_around = {};
         this.new_page = 1;
         this.throttled_change_offset();
     }
@@ -229,11 +264,14 @@ export default class TablePaginationComponent extends VueComponentBase {
         if (this.new_page >= this.max_page) {
             return;
         }
+        this.current_page_and_around = {};
         this.new_page = this.max_page;
         this.throttled_change_offset();
     }
 
-    private switch_page_button() {
+    private switch_page_button(num_page: number) {
+        this.new_page = num_page;
+        this.current_page_and_around = {};
         this.throttled_change_offset();
         return;
     }
