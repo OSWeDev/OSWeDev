@@ -66,8 +66,8 @@
                                         i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
 
                                 template(v-for="(cpa, index_cpa) in current_page_and_around")
-                                    label(:for="'page-' + index_cpa") {{ cpa }}
-                                    .button(:id="'page-' + index_cpa")
+                                    label(:for="'btn-' + index_cpa") {{ cpa }}
+                                    .button(:id="'btn-' + index_cpa" @click="switch_page_button")
 
                                 template(v-if="max_page > 5")
                                     .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")

@@ -48,6 +48,7 @@ export default class TablePaginationComponent extends VueComponentBase {
     private page: number = 0;
 
     private max_page: number = 0;
+    private init_max_page: boolean = false;
 
     private new_page: number = 0;
     private new_page_str: string = "0";
@@ -67,17 +68,22 @@ export default class TablePaginationComponent extends VueComponentBase {
         return res;
     }
 
-    private mounted() {
-        if (this.max_page < 5) {
-            for (let i = 0; i <= this.max_page; i++) {
+    @Watch('max_page')
+    private oninit_max_page() {
+        if (!this.init_max_page) {
+            if (this.max_page < 5) {
+                for (let i = 0; i <= this.max_page; i++) {
 
-                this.current_page_and_around[i] = i;
-            }
-        } else {
-            for (let i = 0; i <= 4; i++) {
+                    this.current_page_and_around[i] = i;
+                }
+            } else {
+                for (let i = 0; i <= 4; i++) {
 
-                this.current_page_and_around[i] = i;
+                    this.current_page_and_around[i] = i;
+                }
             }
+
+            this.init_max_page = true;
         }
     }
 
@@ -225,6 +231,11 @@ export default class TablePaginationComponent extends VueComponentBase {
         }
         this.new_page = this.max_page;
         this.throttled_change_offset();
+    }
+
+    private switch_page_button() {
+        this.throttled_change_offset();
+        return;
     }
 
     private change_page_str() {
