@@ -1016,6 +1016,10 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.show_limit_selectable,
                     options.limit_selectable,
                     options.show_pagination_list,
+                    options.has_column_row_route_links,
+                    options.row_route_links,
+                    options.column_row_link_button_name,
+                    options.row_object_list,
                 ) : null;
             }
         } catch (error) {

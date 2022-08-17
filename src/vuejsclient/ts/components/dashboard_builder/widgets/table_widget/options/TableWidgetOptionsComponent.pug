@@ -157,6 +157,49 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
+    .field_has_column_row_route_links
+        .input_label {{ label('table_widget_options_component.has_column_row_route_links') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_has_column_row_route_links" 
+                :value="has_column_row_route_links" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            )
+
+    template(v-if="has_column_row_route_links")
+
+        //- template(v-for="(rrl, index_rrl) in row_route_links")
+        //-     label(:for="'add_route-' + (index_rrl + 1)")
+        //-     input.form-control(:id="'add_route-' + (index_rrl + 1)" v-model='row_route_links[index_rrl]')
+
+        //- multiselect(
+        //-     :preselect-first="false"
+        //-     :multiple="can_select_multiple"
+        //-     :close-on-select="false"
+        //-     v-model="tmp_row_object_list"
+        //-     :options="filter_visible_options"
+        //-     :custom-label="filter_visible_label"
+        //-     autocomplete="off"
+
+        //-     :searchable="true"
+        //-     :internal-search="false"
+        //-     :hide-selected="true"
+
+        //-     track-by="text_uid"
+            
+        //-     :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+            
+        //-     :select-label='label("multiselect.selectLabel")'
+        //-     :select-group-label='label("multiselect.selectGroupLabel")'
+        //-     :selected-label='label("multiselect.selectedLabel")'
+        //-     :deselect-label='label("multiselect.deselectLabel")'
+        //-     :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+        //-     @search-change="query_update_visible_options"
+        //- )
+
     .vocus_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.vocus_button') }}
         

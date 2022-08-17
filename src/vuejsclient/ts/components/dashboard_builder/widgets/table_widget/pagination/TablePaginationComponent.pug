@@ -68,7 +68,7 @@
                                 template(v-for="(cpa, index_cpa) in current_page_and_around")
                                     template(v-if='cpa == new_page')
                                         button.mr-1.ml-1.pagination_current(:id="'btn-' + index_cpa" @click="switch_page_button(cpa)") {{ cpa }}
-                                    tempalte(v-else)
+                                    template(v-else)
                                         button.mr-1.ml-1(:id="'btn-' + index_cpa" @click="switch_page_button(cpa)") {{ cpa }}
 
                                 template(v-if="max_page > 5")

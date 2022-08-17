@@ -1,5 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
+import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 
 export default class TableWidgetOptions {
@@ -52,6 +53,10 @@ export default class TableWidgetOptions {
         public show_limit_selectable: boolean,
         public limit_selectable: string,
         public show_pagination_list: boolean,
+        public has_column_row_route_links: boolean,
+        public row_route_links: string[],
+        public column_row_link_button_name: string,
+        public row_object_list: VOFieldRefVO[],
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {
