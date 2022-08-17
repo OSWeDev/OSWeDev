@@ -504,6 +504,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajouter une entête'
+        }, 'table_widget_column.new_header_column_select_type_label.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Glisser/déposer un champs'
         }, 'single_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'));
 

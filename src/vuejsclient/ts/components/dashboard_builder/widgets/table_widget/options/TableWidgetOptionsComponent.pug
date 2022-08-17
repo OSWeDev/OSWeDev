@@ -160,7 +160,8 @@
 
     .can_filter_by(v-if='widget_options')
         .input_label {{ label('table_widget_options_component.can_filter_by') }}
-        
+
+       
         toggle-button(
             @change="switch_can_filter_by" 
             :value="can_filter_by" 
@@ -170,10 +171,9 @@
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}
-
         template(v-if='columns && (columns.length > 1)')
             Vuenestable.nested_field_refs(
-                v-model="editable_columns" 
+                v-model="editable_columns"
                 @change="changed_columns"
                 key-prop="id"
                 :max-depth="1"

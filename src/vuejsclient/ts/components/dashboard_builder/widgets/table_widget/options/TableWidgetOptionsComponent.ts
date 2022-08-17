@@ -335,8 +335,40 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private get_default_options(): TableWidgetOptions {
         return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null);
     }
+    private async add_header(add_header: TableColumnDescVO) {
+        this.next_update_options = this.widget_options;
 
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        let i = -1;
+        let found = false;
+
+        if ((!!add_header) && (!!this.next_update_options.columns)) {
+            i = this.next_update_options.columns.findIndex((ref_elt) => {
+                return ref_elt.id == add_header.id;
+            });
+        }
+
+        if (i < 0) {
+            i = 0;
+            add_header.weight = 0;
+        } else {
+            found = true;
+        }
+
+        if (!found) {
+            if (!this.next_update_options.columns) {
+                this.next_update_options.columns = [];
+            }
+            this.next_update_options.columns.push(add_header);
+        }
+
+        await this.throttled_update_options();
+    }
     private async add_column(add_column: TableColumnDescVO) {
+        console.log(add_column);
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {

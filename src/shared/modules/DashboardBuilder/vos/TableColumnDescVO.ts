@@ -14,12 +14,14 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         "table_column_desc.type.var_ref",
         "table_column_desc.type.select_box",
         "table_column_desc.type.component",
+        "table_column_desc.type.header",
     ];
     public static TYPE_crud_actions: number = 0;
     public static TYPE_vo_field_ref: number = 1;
     public static TYPE_var_ref: number = 2;
     public static TYPE_select_box: number = 3;
     public static TYPE_component: number = 4;
+    public static TYPE_header: number = 5;
 
     public static SORT_asc: number = 0;
     public static SORT_desc: number = 1;
