@@ -55,7 +55,10 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     get datatable_field_uid() {
         return (this.type == TableColumnDescVO.TYPE_crud_actions) ? '__crud_actions' : this.api_type_id + '___' + this.field_id;
     }
-
+    /**
+    * Si TYPE_header
+    */
+    public header_name: string;
     /**
      * Si TYPE_component
      */
@@ -124,6 +127,16 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
             return null;
         }
 
+        // return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
+        //     ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
+        //         ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
+        //             ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
+        //                 ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : 
+        //                     ((this.type == TableColumnDescVO.TYPE_header) ? this.header_name : 'coucou')
+        //                 )
+        //             )
+        //         )
+        //     );
         return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
             ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
                 ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :

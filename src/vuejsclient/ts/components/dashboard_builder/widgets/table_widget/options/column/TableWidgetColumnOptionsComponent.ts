@@ -56,7 +56,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private tmp_font_color_header: string = null;
 
     private show_options: boolean = false;
-    private array_of_header: any[] = [];
 
     get vo_ref_tooltip(): string {
         if (!this.column) {
@@ -346,13 +345,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
     }
-    @Watch('new_header_columns')
-    private async onchange_new_header_columns() {
-    }
-    private emit_name(new_header_columns: string) {
-
-        this.array_of_header.push(new_header_columns);
-    }
+    // @Watch('new_header_columns', { immediate: true })
+    // private async onchange_new_header_columns() {
+    //     this.new_header_columns = this.new_header_columns;
+    //     console.log(this.new_header_columns);
+    // }
     @Watch('new_column_select_type_var_ref')
     private async onchange_new_column_select_type_var_ref() {
         if (!this.new_column_select_type_var_ref) {
@@ -427,10 +424,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('add_column', new_column);
     }
     // creation de la column
-    private dropp(event) {
-        // event.preventDefault();
-        // let api_type_id: string = event.dataTransfer.getData("api_type_id");
-        let field_id: string = this.new_header_columns;
+    private add_header(event) {
+        
+        this.new_header_columns = event.target.previousElementSibling._value;
+
+        if(!this.new_header_columns){
+            return;
+        }
+        let header_name: string = this.new_header_columns;
 
         if (this.object_column) {
             return;
@@ -438,8 +439,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
         let new_column = new TableColumnDescVO();
         new_column.type = TableColumnDescVO.TYPE_header;
-        // new_column.api_type_id = api_type_id;
-        new_column.field_id = field_id;
+        new_column.header_name = header_name;
         new_column.id = this.get_new_column_id();
         new_column.readonly = true;
         new_column.exportable = true;
@@ -447,7 +447,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.filter_by_access = null;
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
-        new_column.can_filter_by = true;
+        new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
 
@@ -615,6 +615,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
 
                 return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.object_column.var_id));
+            case TableColumnDescVO.TYPE_header:
+                if(!this.object_column.header_name){
+                    return null;
+                }
+                return this.t(this.object_column.header_name);
         }
 
         return null;
