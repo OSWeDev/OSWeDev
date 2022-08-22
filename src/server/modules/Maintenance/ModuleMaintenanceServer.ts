@@ -147,7 +147,6 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, num);
 
         maintenance.maintenance_over = true;
-        // maintenance.broadcasted_msg3 = true;
         maintenance.end_ts = Dates.now();
 
         ModuleDAOServer.getInstance().global_update_blocker = false;

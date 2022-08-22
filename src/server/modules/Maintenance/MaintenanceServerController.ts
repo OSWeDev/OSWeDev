@@ -99,13 +99,10 @@ export default class MaintenanceServerController {
         let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5);
 
         if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
-            // if (Dates.add(planned_maintenance.end_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text);
         } else if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
-            // } else if (Dates.add(planned_maintenance.end_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleWARN(user_id, null, ModuleMaintenance.MSG2_code_text);
         } else if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
-            // } else if (Dates.add(planned_maintenance.end_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
             await PushDataServerController.getInstance().notifySimpleINFO(user_id, null, ModuleMaintenance.MSG1_code_text);
         }
 
