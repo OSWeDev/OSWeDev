@@ -58,6 +58,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_form: boolean = true;
     private show_pagination_list: boolean = true;
     private has_column_row_route_links: boolean = false;
+    private has_table_total_footer: boolean = false;
     private can_filter_by: boolean = true;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
@@ -336,7 +337,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, false, null, null, null);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, false, null, null, null, false, null);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -471,6 +472,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.row_route_links,
                     options.column_row_link_button_name,
                     options.row_object_list,
+                    options.has_table_total_footer,
+                    options.vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {
@@ -694,6 +697,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.show_pagination_list != this.show_pagination_list) {
             this.next_update_options.show_pagination_list = this.show_pagination_list;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_has_table_total_footer() {
+        this.has_table_total_footer = !this.has_table_total_footer;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.has_table_total_footer != this.has_table_total_footer) {
+            this.next_update_options.has_table_total_footer = this.has_table_total_footer;
             await this.throttled_update_options();
         }
     }

@@ -78,6 +78,17 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_pagination_list.visible'), unchecked: label('table_widget_options_component.show_pagination_list.hidden')}")
+    
+    .has_table_total_footer
+        .input_label {{ label('table_widget_options_component.has_table_total_footer') }}
+        toggle-button(
+            @change="switch_has_table_total_footer" 
+            :value="has_table_total_footer" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.has_table_total_footer.visible'), unchecked: label('table_widget_options_component.has_table_total_footer.hidden')}")
+
+    template(v-if="has_table_total_footer")
 
     .show_limit_selectable
         .input_label {{ label('table_widget_options_component.show_limit_selectable') }}

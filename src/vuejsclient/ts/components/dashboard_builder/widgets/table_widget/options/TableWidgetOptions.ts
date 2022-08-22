@@ -57,6 +57,8 @@ export default class TableWidgetOptions {
         public row_route_links: string[],
         public column_row_link_button_name: string,
         public row_object_list: VOFieldRefVO[],
+        public has_table_total_footer: boolean,
+        public vo_ref_table_total: VOFieldRefVO,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

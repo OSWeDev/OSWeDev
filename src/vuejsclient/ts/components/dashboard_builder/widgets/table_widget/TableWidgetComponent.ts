@@ -361,6 +361,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         return this.widget_options && this.widget_options.show_pagination_list;
     }
 
+    get has_table_total_footer(): boolean {
+        return this.widget_options && this.widget_options.has_table_total_footer;
+    }
+
     get limit_selectable(): string[] {
         return (this.widget_options && this.widget_options.limit_selectable) ? this.widget_options.limit_selectable.split(",") : null;
     }
@@ -1020,6 +1024,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.row_route_links,
                     options.column_row_link_button_name,
                     options.row_object_list,
+                    options.has_table_total_footer,
+                    options.vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {

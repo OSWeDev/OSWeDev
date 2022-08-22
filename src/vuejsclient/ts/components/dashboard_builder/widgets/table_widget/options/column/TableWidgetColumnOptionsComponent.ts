@@ -305,6 +305,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.row_route_links,
                     options.column_row_link_button_name,
                     options.row_object_list,
+                    options.has_table_total_footer,
+                    options.vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {
