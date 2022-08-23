@@ -1387,6 +1387,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return this.get_flat_locale_translations[this.widget_options.get_placeholder_name_code_text(this.page_widget.id)];
     }
 
+    get advanced_mode_placeholder(): string {
+        if ((!this.get_flat_locale_translations) || (!this.widget_options) || (!this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)])) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.widget_options.get_advanced_mode_placeholder_code_text(this.page_widget.id)];
+    }
+
     get can_select_multiple(): boolean {
 
         if (!this.widget_options) {

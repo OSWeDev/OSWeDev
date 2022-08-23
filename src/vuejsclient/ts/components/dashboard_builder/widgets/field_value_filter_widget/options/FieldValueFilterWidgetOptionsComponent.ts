@@ -1018,6 +1018,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.label('FieldValueFilterWidget.filter_placeholder');
     }
 
+    get default_advanced_mode_placeholder_translation(): string {
+        return this.label('FieldValueFilterWidget.advanced_mode_placeholder');
+    }
+
     get widget_options(): FieldValueFilterWidgetOptions {
         if (!this.page_widget) {
             return null;

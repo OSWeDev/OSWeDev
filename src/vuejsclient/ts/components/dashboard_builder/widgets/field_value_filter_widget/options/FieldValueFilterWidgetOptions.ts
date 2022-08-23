@@ -6,6 +6,7 @@ import TSRange from "../../../../../../../shared/modules/DataRender/vos/TSRange"
 export default class FieldValueFilterWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
+    public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
@@ -92,5 +93,13 @@ export default class FieldValueFilterWidgetOptions {
             return null;
         }
         return FieldValueFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public get_advanced_mode_placeholder_code_text(page_widget_id: number): string {
+
+        if ((!this.vo_field_ref) || (!page_widget_id)) {
+            return null;
+        }
+        return FieldValueFilterWidgetOptions.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 }

@@ -142,12 +142,11 @@
             .placeholder_advanced_string_filter
                 .input_label {{ label('field_value_filter_widget_component.placeholder_advanced_string_filter') }}
                 .input_wrapper
-                    input(
-                        type="string"
-                        v-model="placeholder_advanced_string_filter"
-                        :placeholder="widget_options.placeholder_advanced_mode"
+                    Inlinetranslatabletext(
+                        v-if='widget_options && widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)'
+                        :code_text="widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)" 
+                        :is_editable="true"
                     )
-
 
             .hide_advanced_string_filter_type
                 .input_label {{ label('field_value_filter_widget_component.hide_advanced_string_filter_type') }}
