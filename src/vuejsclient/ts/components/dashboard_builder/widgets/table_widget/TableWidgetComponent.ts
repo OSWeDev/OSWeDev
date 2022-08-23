@@ -26,6 +26,7 @@ import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
@@ -121,6 +122,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private limit: number = null;
     private update_cpt_live: number = 0;
+    private array_of_headers: NumRange[] = [];
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
@@ -636,7 +638,18 @@ export default class TableWidgetComponent extends VueComponentBase {
             res.push(Object.assign(new TableColumnDescVO(), column));
         }
         WeightHandler.getInstance().sortByWeight(res);
+        let array_of_header: TableColumnDescVO[] = [];
+        // for (let i in res) {
+        //     let o = res[i];
+        //     let index_for_delete: number;
+        //     if (o.type == 5) {
+        //         array_of_header.push(o);
+        //         index_for_delete = res.indexOf(o);
+        //         res.splice(index_for_delete, 1);
 
+        //     }
+        // }
+        // this.array_of_headers = array_of_header;
         return res;
     }
 
@@ -718,6 +731,9 @@ export default class TableWidgetComponent extends VueComponentBase {
                         column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
                         this.dashboard.id, column.get_translatable_name_code_text(this.page_widget.id)).auto_update_datatable_field_uid_with_vo_type();
                     res[column.id] = var_data_field;
+                    break;
+                case TableColumnDescVO.TYPE_header:
+                    //to do surment a complete
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
                     let field = moduleTable.get_field_by_id(column.field_id);

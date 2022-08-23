@@ -176,12 +176,13 @@
                 v-model="editable_columns"
                 @change="changed_columns"
                 key-prop="id"
-                :max-depth="1"
                 children-prop="children"
+                max_depth="2"
             )
-                template(slot-scope="{ item }")
+                template(slot-scope="{ item }" 
+                )
 
-                    Vuenestablehandle(:item="item")
+                    Vuenestablehandle(:item="item" :class="{header_color:item.type == 5}")
                         i.fa.fa-bars.fa-fw(aria-hidden="true")
                     
                     .item_content

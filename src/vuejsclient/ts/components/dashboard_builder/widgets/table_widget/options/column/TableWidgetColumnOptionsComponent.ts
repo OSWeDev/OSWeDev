@@ -15,6 +15,7 @@ import TableWidgetController from '../../TableWidgetController';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumRange';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -425,10 +426,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
     // creation de la column
     private add_header(event) {
-        
+
         this.new_header_columns = event.target.previousElementSibling._value;
 
-        if(!this.new_header_columns){
+        if (!this.new_header_columns) {
             return;
         }
         let header_name: string = this.new_header_columns;
@@ -616,7 +617,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
                 return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.object_column.var_id));
             case TableColumnDescVO.TYPE_header:
-                if(!this.object_column.header_name){
+                if (!this.object_column.header_name) {
                     return null;
                 }
                 return this.t(this.object_column.header_name);

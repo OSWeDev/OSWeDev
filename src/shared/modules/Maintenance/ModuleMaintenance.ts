@@ -22,10 +22,6 @@ export default class ModuleMaintenance extends Module {
     public static MSG3_code_text = 'maintenance.msg3' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     public static MSG4_code_text = 'maintenance.msg4' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
 
-    // public static PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES = 'msg1_minutes';
-    // public static PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES = 'msg2_minutes';
-    // public static PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES = 'msg3_minutes';
-    // public static PARAM_NAME_INFORM_EVERY_MINUTES = 'inform_minutes';
     public static PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg1_minutes';
     public static PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg2_minutes';
     public static PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES = 'ModuleMaintenance.msg3_minutes';

@@ -41,7 +41,7 @@ include ../../../../../views/mixins/loading.pug
 
             .table_wrapper
                 table.table-striped.table-hover
-                    thead 
+                    thead
                         th.table_header(
                             v-for='column in columns' 
                             :class="{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id }"
@@ -58,12 +58,12 @@ include ../../../../../views/mixins/loading.pug
                                     template(v-if='order_desc_on_id == column.id')
                                         i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
 
-                            Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                            Inlinetranslatabletext( :code_text="column.get_translatable_name_code_text(page_widget.id)")
                     template(v-if="update_cpt_live <= 1")
                         tbody
                             tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
                                 td.table_col(
-                                    v-for='column in columns' 
+                                    v-for='column in columns'
                                     :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column) }'
                                     @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
                                     v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
