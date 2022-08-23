@@ -68,6 +68,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column_conf.editable_column.cannot_filter_by.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Figer'
+        }, 'table_widget_column_conf.editable_column.is_sticky.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ne pas figer'
+        }, 'table_widget_column_conf.editable_column.is_not_sticky.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Conditionner au droit'
         }, 'table_widget_column.filter_by_access.___LABEL___'));
 
@@ -645,7 +652,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.onchange_column.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Largeur du contenu de la colonne, en rem'
+            'fr-fr': 'Largeur du contenu de la colonne, en rem (requis si colonne figée)'
         }, 'table_widget_column_conf.column_width.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -1059,6 +1066,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Le filtre n'utilise pas le filtrage actif" },
             'field_value_filter_widget_component.no_inter_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Grouper les filtres" },
+            'dashboard_viewer.group_filters.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

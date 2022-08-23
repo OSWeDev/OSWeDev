@@ -142,6 +142,12 @@
                 }
             }
 
+            .group_filters_name,
+            .group_filters {
+                display: inline-block;
+                vertical-align: top;
+            }
+
             .back {
                 background: #333;
             }

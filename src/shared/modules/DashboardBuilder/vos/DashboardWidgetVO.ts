@@ -33,4 +33,6 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
     public name: string;
 
     public default_background: string;
+
+    public is_filter: boolean;
 }

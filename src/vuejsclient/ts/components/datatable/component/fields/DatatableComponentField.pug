@@ -5,9 +5,9 @@
         template(v-if="field.type == 'Simple'")
             template(v-if="field.moduleTableField.field_type == 'boolean'")
                 template(v-if="field_value == 'true' || field_value === true")
-                    i.boolean_value.is_true.fa.fa-check-circle.text-success
+                    i.boolean_value.is_true.fa(:class="{[field.moduleTableField.boolean_icon_true]: true, 'text-success': !field.moduleTableField.boolean_invert_colors, 'text-danger': field.moduleTableField.boolean_invert_colors}")
                 template(v-if="field_value == 'false' || field_value === false")
-                    i.boolean_value.is_false.fa.fa-times-circle.text-danger
+                    i.boolean_value.is_false.fa(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
             template(v-else-if="field.moduleTableField.field_type == 'password'")
                 i.fa.fa-lock
             template(v-else-if="field.moduleTableField.field_type == 'number[]'")

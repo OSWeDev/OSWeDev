@@ -592,6 +592,12 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.dashboards.push(this.dashboard);
     }
 
+    private async switch_group_filters(page: DashboardPageVO) {
+        page.group_filters = !page.group_filters;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(page);
+    }
+
     get dashboards_options() {
 
         if (!this.dashboards) {

@@ -101,6 +101,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private static instance: ModuleVarServer = null;
 
+    public cpt_for_datasources: { [datasource_name: string]: number } = {}; // TEMP DEBUG JFE
+
     public update_varcacheconf_from_cache = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.update_varcacheconf_from_cache_throttled.bind(this), 200, { leading: true, trailing: true });
 
@@ -1239,9 +1241,20 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in predeps) {
                 let predep = predeps[i];
                 let cache = {};
+
+                // TEMP DEBUG JFE start
+                // if (!this.cpt_for_datasources[predep.name]) {
+                //     this.cpt_for_datasources[predep.name] = 0;
+                // }
+                // this.cpt_for_datasources[predep.name]++;
+                // TEMP DEBUG JFE end
+
                 await predep.load_node_data(varDAGNode, cache);
             }
         }
+
+        // TEMP DEBUG JFE :
+        // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
         return var_controller.getParamDependencies(varDAGNode);
     }
@@ -1330,6 +1343,14 @@ export default class ModuleVarServer extends ModuleServerBase {
             let datasource_dep = datasources_deps[i];
 
             let cache = {};
+
+            // TEMP DEBUG JFE start
+            // if (!this.cpt_for_datasources[datasource_dep.name]) {
+            //     this.cpt_for_datasources[datasource_dep.name] = 0;
+            // }
+            // this.cpt_for_datasources[datasource_dep.name]++;
+            // TEMP DEBUG JFE - end
+
             await datasource_dep.load_node_data(varDAGNode, cache);
             let data = varDAGNode.datasources[datasource_dep.name];
 
@@ -1349,6 +1370,10 @@ export default class ModuleVarServer extends ModuleServerBase {
                 datasources_values[datasource_dep.name] = data_jsoned;
             }
         }
+
+        // TEMP DEBUG JFE :
+        // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+
         return datasources_values;
     }
 

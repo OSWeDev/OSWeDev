@@ -5,7 +5,7 @@
     Checklistitemmodalcomponent(ref='Checklistitemmodalcomponent')
 
     //- (@click="(event) => select_widget_and_stop(event, null)")
-    .grid_wrapper
+    .grid_wrapper(:class="{ filter_plie: !is_filtres_deplie }")
         template(v-if='!editable_dashboard_page')
             i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
@@ -22,36 +22,31 @@
                 :margin="[10, 10]"
                 :key="'Gridlayout__' + dashboard_page.id"
             )
-                template(v-for="item in editable_dashboard_page.layout")
-                    template(v-if='!item.hide')
-                        //- @click="(event) => select_widget_and_stop(event, item)"
-                        .grid_item_wrapper(
-                            @click="select_widget(item)"
-                            :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name]: true, ['item__' + item.id]: true, hide: isHide(item) }"
-                        )
-                            Griditem(
-                                :static="(!editable) || item.static"
-                                :x="item.x"
-                                :y="item.y"
-                                :w="item.w"
-                                :h="item.h"
-                                :i="item.i"
-                                @resized="resizedEvent"
-                                @moved="movedEvent"
-                                :style="'background:' + item.background"
-                                :key="'Griditem__' + item.id"
-                            )
-                                Dashboardbuilderboarditemcomponent(
-                                    :dashboard_page='dashboard_page'
-                                    :dashboard_pages='dashboard_pages'
-                                    :dashboard='dashboard'
-                                    :page_widget='item'
-                                    :is_edit_mode='editable'
-                                    :is_selected='selected_widget && (item.i == selected_widget.i)'
-                                    :key="'Dashboardbuilderboarditemcomponent__' + item.id + '__' + item_key[item.id]"
+                template(v-if="dashboard_page.group_filters")
+                    .filters-bloc.mt-3
+                        .row.header-filters-bloc
+                            .col.text-center
+                                Inlinetranslatabletext(:code_text="dashboard_page.translatable_group_filters_code_text" :is_editable="editable" default_translation="Filtres")
+                            .col.text-right.chevron
+                                template(v-if="is_filtres_deplie")
+                                    i.fa.fa-chevron-up(@click="change_is_filtres_deplie")
+                                template(v-else)
+                                    i.fa.fa-chevron-down(@click="change_is_filtres_deplie")
 
-                                    @delete_widget='delete_widget'
-                                    @select_widget='select_widget'
-                                    @select_page='select_page'
-                                )
+                        .row.body-filters-bloc(v-if="is_filtres_deplie")
+                            template(v-for="item in editable_dashboard_page.layout")
+                                template(v-if='!item.hide')
+                                    template(v-if='widgets_by_id[item.widget_id].is_filter')
+                                        include ./grid_item.pug
+
+                    .datatable-bloc
+                        template(v-for="item in editable_dashboard_page.layout")
+                            template(v-if='!item.hide')
+                                template(v-if='!widgets_by_id[item.widget_id].is_filter')
+                                    include ./grid_item.pug
+                
+                template(v-else)
+                    template(v-for="item in editable_dashboard_page.layout")
+                        template(v-if='!item.hide')
+                            include ./grid_item.pug
                         

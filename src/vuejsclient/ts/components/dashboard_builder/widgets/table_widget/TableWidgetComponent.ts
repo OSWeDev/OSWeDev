@@ -122,6 +122,10 @@ export default class TableWidgetComponent extends VueComponentBase {
     private limit: number = null;
     private update_cpt_live: number = 0;
 
+    private sticky_left_by_col_id: { [col_id: number]: number } = {};
+    private has_sticky_cols: boolean = false;
+    private last_sticky_col_id: number = null;
+
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
@@ -615,6 +619,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         let res: TableColumnDescVO[] = [];
+        let sticky_left: number = 0;
         for (let i in options.columns) {
 
             let column = options.columns[i];
@@ -624,6 +629,12 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
             if (column.column_width == null) {
                 column.column_width = 0;
+            }
+            if (column.is_sticky) {
+                this.sticky_left_by_col_id[column.id] = sticky_left;
+                sticky_left += parseInt(column.column_width.toString());
+                this.has_sticky_cols = true;
+                this.last_sticky_col_id = column.id;
             }
 
             /**
@@ -841,12 +852,12 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if (this.fields && (
-            (this.order_asc_on_id && this.fields[this.order_asc_on_id]) ||
-            (this.order_desc_on_id && this.fields[this.order_desc_on_id]))) {
+            ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
+            ((this.order_desc_on_id != null) && this.fields[this.order_desc_on_id]))) {
 
-            let field = this.order_asc_on_id ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
+            let field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            query_.set_sort(new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, !!this.order_asc_on_id));
+            query_.set_sort(new SortByVO(field.moduleTable.vo_type, field.module_table_field_id, (this.order_asc_on_id != null)));
         }
 
 
@@ -1276,7 +1287,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
     }
 
-    private get_style_column(column: TableColumnDescVO) {
+    private get_style_th(column: TableColumnDescVO) {
         let res = {};
 
         if (!column) {
@@ -1291,8 +1302,47 @@ export default class TableWidgetComponent extends VueComponentBase {
             res['color'] = column.font_color_header;
         }
 
+        if (column.is_sticky) {
+            res['minWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['maxWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['left'] = this.sticky_left_by_col_id
+                ? (this.sticky_left_by_col_id[column.id]
+                    ? (this.sticky_left_by_col_id[column.id] + 0.4) + "rem"
+                    : 0 + "rem")
+                : null;
+
+            if (this.last_sticky_col_id == column.id) {
+                res['borderRight'] = 'solid 1px rgb(185, 185, 185)';
+            }
+        }
+
         return res;
     }
+
+    private get_style_td(column: TableColumnDescVO) {
+        let res = {};
+
+        if (!column) {
+            return res;
+        }
+
+        if (column.is_sticky) {
+            res['minWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['maxWidth'] = (parseInt(column.column_width.toString()) + 0.4) + "rem"; // on ajoute le padding
+            res['left'] = this.sticky_left_by_col_id
+                ? (this.sticky_left_by_col_id[column.id]
+                    ? (this.sticky_left_by_col_id[column.id] + 0.4) + "rem"
+                    : 0 + "rem")
+                : null;
+
+            if (this.last_sticky_col_id == column.id) {
+                res['borderRight'] = 'solid 1px rgb(185, 185, 185)';
+            }
+        }
+
+        return res;
+    }
+
 
     get dashboard_vo_action() {
         return this.$route.params.dashboard_vo_action;

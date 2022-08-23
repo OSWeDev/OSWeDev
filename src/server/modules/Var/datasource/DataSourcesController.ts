@@ -1,15 +1,12 @@
 import DefaultTranslationManager from '../../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
-import DataSourceControllerBase from './DataSourceControllerBase';
 import VarsController from '../../../../shared/modules/Var/VarsController';
-import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import { createWriteStream } from 'fs';
 import ConfigurationService from '../../../env/ConfigurationService';
-import ObjectHandler from '../../../../shared/tools/ObjectHandler';
-import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import VarsPerfMonServerController from '../VarsPerfMonServerController';
+import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default class DataSourcesController {
 
@@ -28,9 +25,6 @@ export default class DataSourcesController {
 
     public registeredDataSourcesController: { [name: string]: DataSourceControllerBase } = {};
     public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: DataSourceControllerBase[] } = {};
-
-    private is_first_log: boolean = true;
-
     /**
      * ----- Local thread cache
      */

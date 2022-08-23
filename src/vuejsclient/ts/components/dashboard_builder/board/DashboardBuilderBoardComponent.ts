@@ -11,6 +11,7 @@ import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vo
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
+import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import ChecklistItemModalComponent from '../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent';
@@ -28,7 +29,8 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
-        Checklistitemmodalcomponent: ChecklistItemModalComponent
+        Checklistitemmodalcomponent: ChecklistItemModalComponent,
+        Inlinetranslatabletext: InlineTranslatableText,
     }
 })
 export default class DashboardBuilderBoardComponent extends VueComponentBase {
@@ -82,6 +84,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private widgets: DashboardPageWidgetVO[] = [];
 
     private editable_dashboard_page: IEditableDashboardPage = null;
+
+    private is_filtres_deplie: boolean = true;
 
     private throttled_rebuild_page_layout = ThrottleHelper.getInstance().declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
@@ -382,6 +386,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         } catch { }
 
         return false;
+    }
+
+    private change_is_filtres_deplie() {
+        this.is_filtres_deplie = !this.is_filtres_deplie;
     }
 
     // private select_widget_and_stop(event, page_widget) {

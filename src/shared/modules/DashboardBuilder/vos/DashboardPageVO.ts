@@ -12,6 +12,15 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
     public dashboard_id: number;
     public weight: number;
     public hide_navigation: boolean;
+    public group_filters: boolean;
+
+    get translatable_group_filters_code_text(): string {
+
+        if (!this.id) {
+            return null;
+        }
+        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + ".group_filters";
+    }
 
     get translatable_name_code_text(): string {
 
