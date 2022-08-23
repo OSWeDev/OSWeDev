@@ -28,6 +28,7 @@ import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401Set
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 import Patch20220713ChangeVarCacheType1To0 from './patchs/postmodules/Patch20220713ChangeVarCacheType1To0';
+import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822ChangeTypeRecurrCron';
 
 export default abstract class GeneratorBase {
 
@@ -56,7 +57,8 @@ export default abstract class GeneratorBase {
             Patch20211004ChangeLang.getInstance(),
             Patch20220111LocalizeCRONDate.getInstance(),
             Patch20220222RemoveVorfieldreffrombdd.getInstance(),
-            Patch20220223Adduniqtranslationconstraint.getInstance()
+            Patch20220223Adduniqtranslationconstraint.getInstance(),
+            Patch20220822ChangeTypeRecurrCron.getInstance(),
         ];
 
         this.post_modules_workers = [
