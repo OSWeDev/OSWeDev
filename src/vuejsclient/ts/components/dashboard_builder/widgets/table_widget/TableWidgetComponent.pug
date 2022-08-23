@@ -123,7 +123,18 @@ include ../../../../../views/mixins/loading.pug
                                             
                     template(v-if="has_table_total_footer")
                         tfoot
-                            tr TEST
+                            template(v-if="!!colspan_total")
+                                td.text-center(:colspan='colspan_total') {{ label('table_widget_component.table_total_footer')}}
+
+                            template(v-for='(column, index_column) in columns')
+                                template(v-if="is_column_type_number(column)")
+                                    td 
+                                        template(v-if="column_total && column_total[column.api_type_id]")
+                                            span {{ column_total[column.api_type_id][column.field_id] }}
+
+                                template(v-else)
+                                    template(v-if="!colspan_total || (parseInt(index_column) >= colspan_total)")
+                                        td 
 
             .lower_pagination 
                 Tablepaginationcomponent(

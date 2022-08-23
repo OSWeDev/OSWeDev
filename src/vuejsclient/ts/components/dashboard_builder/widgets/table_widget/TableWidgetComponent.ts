@@ -33,6 +33,7 @@ import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../../../VueAppBase';
@@ -121,6 +122,8 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private limit: number = null;
     private update_cpt_live: number = 0;
+
+    private column_total: { [api_type_id: string]: { [field_id: string]: number } } = {};
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
@@ -648,6 +651,23 @@ export default class TableWidgetComponent extends VueComponentBase {
         return res;
     }
 
+    get colspan_total(): number {
+        if (!this.columns || !this.columns.length) {
+            return null;
+        }
+
+        let res: number = 0;
+
+        for (let i in this.columns) {
+            if (!this.is_column_type_number(this.columns[i])) {
+                res++;
+                continue;
+            }
+
+            return res;
+        }
+    }
+
     private async onchange_column(
         row: any,
         field: DatatableField<any, any>,
@@ -920,7 +940,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
             data_rows.push(resData);
         }
-        await Promise.all(promises);
+
+        await all_promises(promises);
 
         this.data_rows = data_rows;
 
@@ -928,6 +949,8 @@ export default class TableWidgetComponent extends VueComponentBase {
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+
+        await this.reload_column_total();
 
         this.loaded_once = true;
         this.is_busy = false;
@@ -1025,7 +1048,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.column_row_link_button_name,
                     options.row_object_list,
                     options.has_table_total_footer,
-                    options.vo_ref_table_total,
+                    options.excludes_vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {
@@ -1307,6 +1330,91 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    private is_column_type_number(column: TableColumnDescVO) {
+        let res = false;
+
+        if ((!column.api_type_id) || (!column.field_id)) {
+            return res;
+        }
+
+        if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+            return res;
+        }
+
+        let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+        if (!field) {
+            return res;
+        }
+
+        if ((field.field_type == ModuleTableField.FIELD_TYPE_int)
+            || (field.field_type == ModuleTableField.FIELD_TYPE_float)
+            || (field.field_type == ModuleTableField.FIELD_TYPE_prct)
+            || (field.field_type == ModuleTableField.FIELD_TYPE_decimal_full_precision)
+            || (field.field_type == ModuleTableField.FIELD_TYPE_amount)) {
+            res = true;
+        }
+
+        return res;
+    }
+
+    private async reload_column_total() {
+        this.column_total = {};
+
+        if (!this.columns || !this.columns.length) {
+            return;
+        }
+
+        let promises = [];
+
+        for (let i in this.columns) {
+            if (!this.is_column_type_number(this.columns[i])) {
+                continue;
+            }
+
+            let column = this.columns[i];
+
+            if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+                continue;
+            }
+
+            let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            if (!field) {
+                continue;
+            }
+
+            if (!this.column_total[column.api_type_id]) {
+                this.column_total[column.api_type_id] = {};
+            }
+
+            let alias_field: string = column.field_id + "_" + column.api_type_id;
+
+            let query_: ContextQueryVO = query(column.api_type_id)
+                .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
+                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                    ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+                ));
+            // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)
+            // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));
+
+            promises.push((async () => {
+                let res = await ModuleContextFilter.getInstance().select(query_);
+
+                if (res && res[0]) {
+                    let column_total: number = res[0][alias_field];
+
+                    // Si pourcentage, on fait la somme des prct qu'on divise par le nbr de res
+                    if ((field.field_type == ModuleTableField.FIELD_TYPE_prct) && this.pagination_count) {
+                        column_total /= this.pagination_count;
+                    }
+
+                    this.column_total[column.api_type_id][column.field_id] = parseFloat(column_total.toFixed(2));
+                }
+            })());
+        }
+
+        await all_promises(promises);
     }
 
     get dashboard_vo_action() {

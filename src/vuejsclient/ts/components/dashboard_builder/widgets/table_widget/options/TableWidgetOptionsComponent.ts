@@ -5,6 +5,7 @@ import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -58,7 +59,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_form: boolean = true;
     private show_pagination_list: boolean = true;
     private has_column_row_route_links: boolean = false;
-    private has_table_total_footer: boolean = false;
+    private has_table_total_footer: boolean = true;
+    private excludes_vo_ref_table_total: VOFieldRefVO = null;
     private can_filter_by: boolean = true;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
@@ -148,6 +150,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.can_filter_by != this.widget_options.can_filter_by) {
             this.can_filter_by = this.widget_options.can_filter_by;
+        }
+        if (this.excludes_vo_ref_table_total != this.widget_options.excludes_vo_ref_table_total) {
+            this.excludes_vo_ref_table_total = this.widget_options.excludes_vo_ref_table_total;
         }
 
         this.limit = (this.widget_options.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT.toString() : this.widget_options.limit.toString();
@@ -473,7 +478,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.column_row_link_button_name,
                     options.row_object_list,
                     options.has_table_total_footer,
-                    options.vo_ref_table_total,
+                    options.excludes_vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {
