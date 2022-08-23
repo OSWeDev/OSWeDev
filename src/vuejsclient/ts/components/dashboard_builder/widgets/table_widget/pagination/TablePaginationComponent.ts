@@ -164,6 +164,11 @@ export default class TablePaginationComponent extends VueComponentBase {
             this.new_page = this.max_page;
             this.page = this.new_page;
         }
+
+        if (this.selected_limit != this.pagination_pagesize) {
+            this.selected_limit = this.pagination_pagesize;
+        }
+
         this.throttled_change_offset();
     }
 
