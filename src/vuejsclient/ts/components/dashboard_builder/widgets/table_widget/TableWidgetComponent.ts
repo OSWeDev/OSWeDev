@@ -121,6 +121,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     private filtering_by_active_field_filter: ContextFilterVO = null;
 
     private limit: number = null;
+    private tmp_nbpages_pagination_list: number = null;
     private update_cpt_live: number = 0;
 
     private column_total: { [api_type_id: string]: { [field_id: string]: number } } = {};
@@ -592,6 +593,13 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
     }
 
+    private async change_tmp_nbpages_pagination_list(new_tmp_nbpages_pagination_list: number) {
+        if (new_tmp_nbpages_pagination_list != this.pagination_offset) {
+            this.tmp_nbpages_pagination_list = new_tmp_nbpages_pagination_list;
+            await this.throttled_update_visible_options();
+        }
+    }
+
     private async change_limit(new_limit: number) {
         if (new_limit != this.pagination_offset) {
             this.limit = new_limit;
@@ -983,6 +991,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         this.limit = (!this.widget_options || (this.widget_options.limit == null)) ? TableWidgetOptions.DEFAULT_LIMIT : this.widget_options.limit;
+        this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
             this.throttled_update_visible_options(),
@@ -1043,12 +1052,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.show_limit_selectable,
                     options.limit_selectable,
                     options.show_pagination_list,
-                    options.has_column_row_route_links,
-                    options.row_route_links,
-                    options.column_row_link_button_name,
-                    options.row_object_list,
+                    options.nbpages_pagination_list,
                     options.has_table_total_footer,
-                    options.excludes_vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {

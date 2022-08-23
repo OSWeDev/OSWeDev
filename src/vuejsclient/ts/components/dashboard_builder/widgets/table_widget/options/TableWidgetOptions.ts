@@ -8,6 +8,7 @@ export default class TableWidgetOptions {
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
     public static DEFAULT_LIMIT: number = 100;
     public static DEFAULT_LIMIT_SELECTABLE: string = "10,20,50,100";
+    public static DEFAULT_NBPAGES_PAGINATION_LIST: number = 5;
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
@@ -53,12 +54,8 @@ export default class TableWidgetOptions {
         public show_limit_selectable: boolean,
         public limit_selectable: string,
         public show_pagination_list: boolean,
-        public has_column_row_route_links: boolean,
-        public row_route_links: string[],
-        public column_row_link_button_name: string,
-        public row_object_list: VOFieldRefVO[],
+        public nbpages_pagination_list: number,
         public has_table_total_footer: boolean,
-        public excludes_vo_ref_table_total: VOFieldRefVO,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

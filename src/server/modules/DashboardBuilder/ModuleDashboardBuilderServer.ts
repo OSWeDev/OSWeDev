@@ -966,6 +966,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.show_pagination_list.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nombre de blocs page cliquables" },
+            'table_widget_options_component.nbpage_pagination_list.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Non" },
             'table_widget_options_component.show_pagination_list.hidden.___LABEL___'
         ));
@@ -1008,10 +1012,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Oui" },
             'table_widget_options_component.show_pagination_slider.visible.___LABEL___'
-        ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Champs à exclure" },
-            'table_widget_options_component.excludes_vo_ref_table_total.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur de fond de l'entête" },

@@ -58,15 +58,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
     private show_pagination_list: boolean = true;
-    private has_column_row_route_links: boolean = false;
     private has_table_total_footer: boolean = true;
-    private excludes_vo_ref_table_total: VOFieldRefVO = null;
     private can_filter_by: boolean = true;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
+    private tmp_nbpages_pagination_list: number = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
 
     private editable_columns: TableColumnDescVO[] = null;
-    private column_row_link: TableColumnDescVO = null;
 
     get crud_api_type_id_select_options(): string[] {
         return this.dashboard.api_type_ids;
@@ -108,6 +106,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             }
             this.limit = TableWidgetOptions.DEFAULT_LIMIT.toString();
             this.limit_selectable = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
+            this.tmp_nbpages_pagination_list = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
             return;
         }
 
@@ -151,12 +150,25 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.can_filter_by != this.widget_options.can_filter_by) {
             this.can_filter_by = this.widget_options.can_filter_by;
         }
-        if (this.excludes_vo_ref_table_total != this.widget_options.excludes_vo_ref_table_total) {
-            this.excludes_vo_ref_table_total = this.widget_options.excludes_vo_ref_table_total;
-        }
 
         this.limit = (this.widget_options.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT.toString() : this.widget_options.limit.toString();
         this.limit_selectable = (this.widget_options.limit_selectable == null) ? TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE : this.widget_options.limit_selectable;
+        this.tmp_nbpages_pagination_list = (this.widget_options.nbpages_pagination_list == null) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
+    }
+
+    @Watch('tmp_nbpages_pagination_list')
+    private async onchange_nbpages_pagination_list() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        let nbpages_pagination_list = (this.tmp_nbpages_pagination_list == null) ? TableWidgetOptions.DEFAULT_LIMIT : this.tmp_nbpages_pagination_list;
+        if (this.widget_options.nbpages_pagination_list != nbpages_pagination_list) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.nbpages_pagination_list = nbpages_pagination_list;
+
+            await this.throttled_update_options();
+        }
     }
 
     @Watch('limit')
@@ -342,7 +354,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, false, null, null, null, false, null);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, true);
     }
 
     private async add_column(add_column: TableColumnDescVO) {
@@ -473,12 +485,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.show_limit_selectable,
                     options.limit_selectable,
                     options.show_pagination_list,
-                    options.has_column_row_route_links,
-                    options.row_route_links,
-                    options.column_row_link_button_name,
-                    options.row_object_list,
+                    options.nbpages_pagination_list,
                     options.has_table_total_footer,
-                    options.excludes_vo_ref_table_total,
                 ) : null;
             }
         } catch (error) {
@@ -717,49 +725,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.has_table_total_footer != this.has_table_total_footer) {
             this.next_update_options.has_table_total_footer = this.has_table_total_footer;
-            await this.throttled_update_options();
-        }
-    }
-
-    private async switch_has_column_row_route_links() {
-        this.has_column_row_route_links = !this.has_column_row_route_links;
-
-        // if (this.has_column_row_route_links) { //fait tout bugger. Je pense que la colonne est un type component, mais sans component name, il fait tout planter.
-
-        //     if (this.column_row_link == null && this.crud_api_type_id_selected) {
-
-        //         this.column_row_link = new TableColumnDescVO();
-        //         this.column_row_link.api_type_id = this.crud_api_type_id_selected;
-        //         // this.column_row_link.component_name = this.; erreur induit par le manque du component name: Cannot read properties of undefined (reading 'auto_update_datatable_field_uid_with_vo_type')
-        //         this.column_row_link.type = TableColumnDescVO.TYPE_component;
-        //         this.column_row_link.weight = -1;
-        //         this.column_row_link.id = this.get_new_column_id();
-        //         this.column_row_link.readonly = true;
-        //         this.column_row_link.exportable = false;
-        //         this.column_row_link.hide_from_table = false;
-        //         this.column_row_link.filter_by_access = null;
-        //         this.column_row_link.enum_bg_colors = null;
-        //         this.column_row_link.enum_fg_colors = null;
-        //         this.column_row_link.bg_color_header = null;
-        //         this.column_row_link.font_color_header = null;
-        //         this.column_row_link.can_filter_by = true;
-        //         this.column_row_link.column_width = 0;
-        //     }
-
-        //     await this.add_column(this.column_row_link);
-        // } else {
-
-        //     await this.remove_column(this.column_row_link);
-        // }
-
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        if (this.next_update_options.has_column_row_route_links != this.has_column_row_route_links) {
-            this.next_update_options.has_column_row_route_links = this.has_column_row_route_links;
             await this.throttled_update_options();
         }
     }
