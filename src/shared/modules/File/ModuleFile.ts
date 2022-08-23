@@ -7,6 +7,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import FileVO from './vos/FileVO';
+import FilterFilesVO from './vos/FilterFilesVO';
 
 export default class ModuleFile extends Module {
 
@@ -49,8 +50,18 @@ export default class ModuleFile extends Module {
             new ModuleTableField('file_access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
         ];
 
-        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
+        let label_field_ff = new ModuleTableField("path_to_check", ModuleTableField.FIELD_TYPE_file_field, 'fichier', true).unique();
+        let datatable_fields_ff = [
+            label_field_ff,
+            new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type de filtre', false, true).setEnumValues(FilterFilesVO.FILTER_TYPE_LABELS),
+            new ModuleTableField("new_path_saved", ModuleTableField.FIELD_TYPE_file_field, 'fichier', true)
+        ];
+
+        let datatableFilterFile = new ModuleTable(this, FilterFilesVO.API_TYPE_ID, () => new FilterFilesVO(), datatable_fields_ff, label_field_ff, "Fichier");
+
+        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field);
         this.datatables.push(datatable);
+        this.datatables.push(datatableFilterFile);
     }
 
     public registerApis() {

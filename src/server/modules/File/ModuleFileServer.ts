@@ -75,6 +75,15 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Année' },
+            'filter_file.FILTER_TYPE.YEAR'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Mois' },
+            'filter_file.FILTER_TYPE.MONTH'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Le chemin d\'accès actuel du fichier semble invalide, il devrait commencer par [' + ModuleFile.FILES_ROOT + '] ou [' + ModuleFile.SECURED_FILES_ROOT + ']. Les fichiers temporaires ne peuvent pas être sécurisés.' },
             'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
         ));

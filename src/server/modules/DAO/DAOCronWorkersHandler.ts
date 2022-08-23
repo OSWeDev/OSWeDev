@@ -15,10 +15,10 @@ export default class DAOCronWorkersHandler {
     private static instance: DAOCronWorkersHandler = null;
 
     private constructor() {
+
         ModuleCronServer.getInstance().registerCronWorker(CheckSegmentedIdsCronWorker.getInstance());
 
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
-
         planCronWorker.date_heure_planifiee = null;
         planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = "CheckSegmentedIdsCronWorker";

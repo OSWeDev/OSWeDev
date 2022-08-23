@@ -655,6 +655,23 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
+     * Objectif : formatage d'un timestamp en object Date en utc pour l'export excel
+     * @param timestamp timestamp à convertir en date UTC
+     * @returns Objet Date
+     */
+    private format_date_utc(timestamp: number): Date {
+        let date_locate = timestamp ? new Date(timestamp * 1000) : null;
+        if (date_locate) {
+            let timestmp_locate: number = Date.parse(date_locate.toDateString());
+            let diff_timestmp: number = (timestamp * 1000) - timestmp_locate;
+            let final_timestmp: number = timestmp_locate - diff_timestmp;
+            let date_white_timestmp_date_not_locate = new Date(final_timestmp);
+            return date_white_timestmp_date_not_locate;
+        } else {
+            return null;
+        }
+    }
+    /**
      * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
      * @param field le descriptif du champs à traduire
      * @param src_vo le vo source
@@ -699,15 +716,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                let date = src_vo[field_id] ? new Date(src_vo[field_id] * 1000) : null;
-                dest_vo[field_id] = date;
+                dest_vo[field_id] = this.format_date_utc(src_vo[field_id]);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
                 if ((src_vo[field_id] === null) || (typeof src_vo[field_id] === 'undefined')) {
                     dest_vo[field_id] = src_vo[field_id];
                 } else {
-                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => new Date(ts * 1000));
+                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
                 }
                 break;
 
