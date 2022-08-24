@@ -126,6 +126,8 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private column_total: { [api_type_id: string]: { [field_id: string]: number } } = {};
 
+    private last_calculation_cpt: number = 0;
+
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
@@ -804,6 +806,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private async update_visible_options() {
 
+        let launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
+
         this.update_cpt_live++;
         this.is_busy = true;
 
@@ -924,6 +930,13 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
+
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            this.update_cpt_live--;
+            return;
+        }
+
         this.actual_rows_query = cloneDeep(query_);
 
         let data_rows = [];
@@ -951,12 +964,24 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         await all_promises(promises);
 
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            this.update_cpt_live--;
+            return;
+        }
+
         this.data_rows = data_rows;
 
         let context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            this.update_cpt_live--;
+            return;
+        }
 
         await this.reload_column_total();
 

@@ -63,6 +63,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private actual_query: string = null;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private last_calculation_cpt: number = 0;
 
     get vo_field_ref_label(): string {
         if ((!this.widget_options) || (!this.vo_field_ref)) {
@@ -92,27 +93,31 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private async update_visible_options() {
 
+        let launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
+
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             this.filter_visible_options = [];
             return;
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        if (this.is_default_values_mode) {
-            if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-                this.is_init = false;
+        // if (this.is_default_values_mode) {
+        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
+            this.is_init = false;
 
-                this.tmp_filter_active_options = this.default_values;
-                return;
-            }
-        } else {
-            if (this.is_init && this.exclude_values && (this.exclude_values.length > 0)) {
-                this.is_init = false;
-
-                this.tmp_filter_active_options = await this.all_field_ref_vo_options_without_exclude_values();
-                return;
-            }
+            this.tmp_filter_active_options = this.default_values;
+            return;
         }
+        // } else {
+        if (this.is_init && this.exclude_values && (this.exclude_values.length > 0)) {
+            this.is_init = false;
+
+            this.tmp_filter_active_options = await this.all_field_ref_vo_options_without_exclude_values();
+            return;
+        }
+        // }
 
         /**
          * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
@@ -135,29 +140,35 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let tmp: DataFilterOption[] = [];
 
-        if (this.widget_options.is_default_values_mode && this.default_values) {
+        // if (this.widget_options.is_default_values_mode && this.default_values) {
+        // if (this.default_values) {
 
-            tmp = this.default_values;
+        //     tmp = this.default_values;
+        // } else {
+
+        // if (!this.widget_options.is_default_values_mode && this.exclude_values) {
+        if (this.exclude_values && (this.exclude_values.length > 0)) {
+
+            tmp = await this.all_field_ref_vo_options_without_exclude_values();
         } else {
 
-            if (!this.widget_options.is_default_values_mode && this.exclude_values) {
+            let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
 
-                tmp = await this.all_field_ref_vo_options_without_exclude_values();
-            } else {
+            let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
+            query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
+            query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
+            query_.active_api_type_ids = this.dashboard.api_type_ids;
 
-                let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                query_,
+                this.actual_query
+            );
+        }
 
-                let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
-                query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-                query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                    ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
-                query_.active_api_type_ids = this.dashboard.api_type_ids;
-
-                tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
-                    query_,
-                    this.actual_query
-                );
-            }
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
         }
 
         if (!tmp) {
@@ -334,10 +345,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return this.widget_options.has_other_ref_api_type_id;
     }
 
-    get is_default_values_mode(): boolean {
-        return this.widget_options.is_default_values_mode;
-    }
-
     get other_ref_api_type_id(): string {
         return this.widget_options.other_ref_api_type_id;
     }
@@ -435,7 +442,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.other_ref_api_type_id,
                     options.exclude_filter_opt_values,
                     options.exclude_ts_range_values,
-                    options.is_default_values_mode,
                     options.placeholder_advanced_mode,
                 ) : null;
             }

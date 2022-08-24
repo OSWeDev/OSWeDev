@@ -109,7 +109,7 @@
                     .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: vo_field_ref_label}")
                         template(v-for="(opt, index) in filter_visible_options")
                             .filter_opt
-                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + index" name="filter_opt" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                input(:checked="tmp_filter_active_options.findIndex((e) => e.label == opt.label) >= 0" :type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + index" name="filter_opt" @change="onchange_filter_opt_input($event.target, opt)")                            
                                 template(v-if='is_translatable_type')
                                     label.option__title.ml-2(:for="base_filter + index") {{ label(opt.label) }}
                                 template(v-else)
