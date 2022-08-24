@@ -65,13 +65,13 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         let res: VarCacheConfVO = new VarCacheConfVO();
         res.var_id = this.varConf.id;
 
-        res.estimated_compute_node_1k_card = 1000;
-        res.estimated_ctree_ddeps_get_node_deps_1k_card = 1000;
-        res.estimated_ctree_ddeps_handle_pixellisation_1k_card = 1000;
-        res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 1000;
-        res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 1000;
-        res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 1000;
-        res.estimated_load_nodes_datas_1k_card = 1000;
+        res.estimated_compute_node_1k_card = 0.001;
+        res.estimated_ctree_ddeps_get_node_deps_1k_card = 0.001;
+        res.estimated_ctree_ddeps_handle_pixellisation_1k_card = 0.001;
+        res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 0.001;
+        res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 0.001;
+        res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 0.001;
+        res.estimated_load_nodes_datas_1k_card = 0.001;
         return res;
     }
 

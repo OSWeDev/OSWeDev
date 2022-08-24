@@ -1184,6 +1184,32 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         vos = tmp_vos;
 
+        /**
+         * On check aussi que l'on a pas des updates à faire et uniquement des inserts, sinon on fait un update des vos concernés avant de faire les inserts (on pourrait le faire en // mais c'est plus compliqué)
+         */
+        let update_vos: IDistantVOBase[] = [];
+        let insert_vos: IDistantVOBase[] = [];
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (!!vo.id) {
+                update_vos.push(vo);
+            } else {
+                insert_vos.push(vo);
+            }
+        }
+
+        if (!!update_vos.length) {
+            await this.insertOrUpdateVOs_without_triggers(update_vos);
+        }
+
+        if (!insert_vos.length) {
+            return null;
+        }
+
+        vos = insert_vos;
+
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type];
         let table_name: string = moduleTable.full_name;
 

@@ -1013,7 +1013,7 @@ export default class VarsComputeController {
      * @returns true if it pushed a slow var, false otherwise
      */
     private async check_tree_for_slow_vars(var_dag: VarDAG, all_selected_var_datas: VarDataBaseVO[]): Promise<boolean> {
-        if (var_dag.nb_nodes > 1) {
+        if (var_dag.nb_nodes > 0) {
             return false;
         }
 

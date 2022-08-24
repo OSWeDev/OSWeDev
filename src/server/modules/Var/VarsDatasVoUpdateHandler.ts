@@ -804,7 +804,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 let promises = [];
 
-                let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+                let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
                 for (let var_id_s in intersectors_by_var_id) {
                     let intersectors = intersectors_by_var_id[var_id_s];
