@@ -1,20 +1,17 @@
 
 
-import { cloneDeep } from 'lodash';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
+import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
@@ -48,11 +45,10 @@ export default class VarsDatasVoUpdateHandler {
     public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
     public static TASK_NAME_has_vos_cud: string = 'VarsDatasVoUpdateHandler.has_vos_cud';
-    public static TASK_NAME_push_invalidate_matroids: string = 'VarsDatasVoUpdateHandler.push_invalidate_matroids';
-    public static TASK_NAME_push_invalidate_intersectors: string = 'VarsDatasVoUpdateHandler.push_invalidate_intersectors';
+    public static TASK_NAME_push_invalidators: string = 'VarsDatasVoUpdateHandler.push_invalidators';
     public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
-    public static TASK_NAME_filter_varsdatas_cache_by_matroids_intersection: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection';
-    public static TASK_NAME_filter_varsdatas_cache_by_exact_matroids: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroids';
+    // public static TASK_NAME_filter_varsdatas_cache_by_matroids_intersection: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_matroids_intersection';
+    // public static TASK_NAME_filter_varsdatas_cache_by_exact_matroids: string = 'VarsDatasVoUpdateHandler.filter_varsdatas_cache_by_exact_matroids';
 
     /**
      * Multithreading notes :
@@ -81,67 +77,83 @@ export default class VarsDatasVoUpdateHandler {
     private has_retrieved_vos_cud: boolean = false;
 
     /**
-     * La liste des intersecteurs à appliquer pour invalider les vars en base
+     * La liste des invalidations en attente de traitement
      */
-    private invalidate_intersectors: VarDataBaseVO[] = [];
-    /**
-     * La liste des matroids à invalider
-     */
-    private invalidate_matroids: VarDataBaseVO[] = [];
+    private invalidators: VarDataInvalidatorVO[] = [];
 
     private throttled_update_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_param.bind(this), 30000, { leading: false, trailing: true });
-    private throttle_push_invalidate_intersectors = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_push_invalidate_intersectors.bind(this), 1000, { leading: false, trailing: true });
-    private throttle_push_invalidate_matroids = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_push_invalidate_matroids.bind(this), 1000, { leading: false, trailing: true });
+    private throttle_push_invalidators = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_push_invalidators.bind(this), 1000, { leading: false, trailing: true });
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
         ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_has_vos_cud, this.has_vos_cud.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, this.filter_varsdatas_cache_by_matroids_intersection.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids, this.filter_varsdatas_cache_by_exact_matroids.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_intersectors, this.push_invalidate_intersectors.bind(this));
-        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_matroids, this.push_invalidate_matroids.bind(this));
+        // ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection, this.filter_varsdatas_cache_by_matroids_intersection.bind(this));
+        // ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids, this.filter_varsdatas_cache_by_exact_matroids.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_push_invalidators, this.push_invalidators.bind(this));
     }
 
+    // /**
+    //  * Demander l'invalidation par intersecteurs (mais sans remonter l'arbre)
+    //  * @param invalidate_intersectors
+    //  * @returns
+    //  */
+    // public async push_invalidate_intersectors(invalidate_intersectors: VarDataBaseVO[]): Promise<void> {
+    //     return new Promise(async (resolve, reject) => {
+
+    //         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+    //             reject,
+    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_intersectors,
+    //             resolve,
+    //             invalidate_intersectors)) {
+    //             return;
+    //         }
+
+    //         this.throttle_push_invalidate_intersectors(invalidate_intersectors);
+    //         resolve();
+    //     });
+    // }
+
+    // /**
+    //  * Demander l'invalidation de matroids exacts (mais sans remonter l'arbre)
+    //  * @param invalidate_matroids
+    //  * @returns
+    //  */
+    // public async push_invalidate_matroids(invalidate_matroids: VarDataBaseVO[]): Promise<void> {
+    //     return new Promise(async (resolve, reject) => {
+
+    //         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+    //             reject,
+    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_matroids,
+    //             resolve,
+    //             invalidate_matroids)) {
+    //             return;
+    //         }
+
+    //         this.throttle_push_invalidate_matroids(invalidate_matroids);
+    //         resolve();
+    //     });
+    // }
+
     /**
-     * Demander l'invalidation par intersecteurs (mais sans remonter l'arbre)
-     * @param invalidate_intersectors
+     * Demander une ou des invalidations
+     * @param invalidators
      * @returns
      */
-    public async push_invalidate_intersectors(invalidate_intersectors: VarDataBaseVO[]): Promise<void> {
+    public async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<void> {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
-                VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_intersectors,
+                VarsDatasVoUpdateHandler.TASK_NAME_push_invalidators,
                 resolve,
-                invalidate_intersectors)) {
+                invalidators)) {
                 return;
             }
 
-            this.throttle_push_invalidate_intersectors(invalidate_intersectors);
-            resolve();
-        });
-    }
-
-    /**
-     * Demander l'invalidation de matroids exacts (mais sans remonter l'arbre)
-     * @param invalidate_matroids
-     * @returns
-     */
-    public async push_invalidate_matroids(invalidate_matroids: VarDataBaseVO[]): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                reject,
-                VarsdatasComputerBGThread.getInstance().name,
-                VarsDatasVoUpdateHandler.TASK_NAME_push_invalidate_matroids,
-                resolve,
-                invalidate_matroids)) {
-                return;
-            }
-
-            this.throttle_push_invalidate_matroids(invalidate_matroids);
+            this.throttle_push_invalidators(invalidators);
             resolve();
         });
     }
@@ -223,8 +235,14 @@ export default class VarsDatasVoUpdateHandler {
                 limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
                 let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
+                let out_invalidate_intersectors: VarDataInvalidatorVO[] = [];
 
-                await this.invalidate_datas_and_parents(intersectors_by_index);
+                for (let i in intersectors_by_index) {
+                    let intersector = intersectors_by_index[i];
+
+                    await this.invalidate_datas_and_parents(new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false), out_invalidate_intersectors);
+                }
+                await this.push_invalidators(out_invalidate_intersectors);
 
                 // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
                 this.throttled_update_param();
@@ -239,6 +257,7 @@ export default class VarsDatasVoUpdateHandler {
     /**
      * Opti de suppression des vars, sans triggers !
      *  WARN ça signifie que les triggers sur suppression de vardata sont interdits à ce stade
+     *  !! Ne peut être utilisé safe que par handle_invalidation
      */
     public async delete_vars_pack_without_triggers(vars_to_delete: VarDataBaseVO[]) {
 
@@ -296,8 +315,13 @@ export default class VarsDatasVoUpdateHandler {
      * @param intersectors_by_index Ensemble E des intersecteurs en début de process, à dépiler
      */
     public async invalidate_datas_and_parents(
-        intersectors_by_index: { [index: string]: VarDataBaseVO }
+        invalidator: VarDataInvalidatorVO,
+        out_invalidate_intersectors: VarDataInvalidatorVO[]
     ) {
+
+        let intersectors_by_index: { [index: string]: VarDataBaseVO } = {
+            [invalidator.var_data.index]: invalidator.var_data
+        };
 
         let solved_intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
@@ -361,11 +385,99 @@ export default class VarsDatasVoUpdateHandler {
                     }
                 }
 
-                await this.push_invalidate_intersectors(invalidate_intersectors);
+                for (let i in invalidate_intersectors) {
+                    let invalidate_intersector = invalidate_intersectors[i];
+                    out_invalidate_intersectors.push(new VarDataInvalidatorVO(invalidate_intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, invalidator.invalidate_denied, invalidator.invalidate_imports));
+                }
             },
             this
         );
     }
+
+    // /**
+    //  * Update : Changement de méthode. On arrête de vouloir résoudre par niveau dans l'arbre des deps,
+    //  *  et on résoud simplement intersecteur par intersecteur. Donc on commence par identifier les intersecteurs (ensemble E)
+    //  *  déduis des vos, puis pour chacun (e) :
+    //  *      - On invalide les vars en appliquant e,
+    //  *      - On ajoute e dans F ensemble des intersecteurs résolus
+    //  *      - On charge les intersecteurs (E') déduis par dépendance à cet intersecteur. Pour chacun (e') :
+    //  *          - si e' dans E, on ignore
+    //  *          - si e' dans F, on ignore
+    //  *          - sinon on ajoute e' à E
+    //  *      - On supprime e de E et on continue de dépiler
+    //  * @param intersectors_by_index Ensemble E des intersecteurs en début de process, à dépiler
+    //  */
+    // public async invalidate_datas_and_parents(
+    //     intersectors_by_index: { [index: string]: VarDataBaseVO }
+    // ) {
+
+    //     let solved_intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
+    //     let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+
+    //     await PerfMonServerController.getInstance().monitor_async(
+    //         PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents],
+    //         async () => {
+
+    //             let promises = [];
+    //             let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+    //             let invalidate_intersectors: VarDataBaseVO[] = [];
+
+    //             while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
+    //                 for (let i in intersectors_by_index) {
+    //                     let intersector = intersectors_by_index[i];
+
+    //                     if (DEBUG_VARS) {
+    //                         ConsoleHandler.getInstance().log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
+    //                     }
+    //                     if (solved_intersectors_by_index[intersector.index]) {
+    //                         continue;
+    //                     }
+    //                     solved_intersectors_by_index[intersector.index] = intersector;
+    //                     invalidate_intersectors.push(intersector);
+
+    //                     if (promises.length >= max) {
+    //                         await Promise.all(promises);
+    //                         promises = [];
+    //                     }
+
+    //                     promises.push((async () => {
+
+    //                         let deps_intersectors = await this.get_deps_intersectors(intersector);
+
+    //                         for (let j in deps_intersectors) {
+    //                             let dep_intersector = deps_intersectors[j];
+
+    //                             if (intersectors_by_index[dep_intersector.index]) {
+    //                                 continue;
+    //                             }
+    //                             if (solved_intersectors_by_index[dep_intersector.index]) {
+    //                                 continue;
+    //                             }
+
+    //                             if (DEBUG_VARS) {
+    //                                 ConsoleHandler.getInstance().log('invalidate_datas_and_parents:' + intersector.index + '=>' + dep_intersector.index + ':');
+    //                             }
+
+    //                             intersectors_by_index[dep_intersector.index] = dep_intersector;
+    //                         }
+
+    //                         if (DEBUG_VARS) {
+    //                             ConsoleHandler.getInstance().log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
+    //                         }
+    //                         delete intersectors_by_index[intersector.index];
+    //                     })());
+    //                 }
+
+    //                 if (promises && promises.length) {
+    //                     await Promise.all(promises);
+    //                 }
+    //             }
+
+    //             await this.push_invalidate_intersectors(invalidate_intersectors);
+    //         },
+    //         this
+    //     );
+    // }
 
     public async has_vos_cud(): Promise<boolean> {
         return new Promise(async (resolve, reject) => {
@@ -395,161 +507,279 @@ export default class VarsDatasVoUpdateHandler {
         );
     }
 
-    public async handle_invalidate_intersectors() {
-        if (this.invalidate_intersectors && this.invalidate_intersectors.length) {
-            ConsoleHandler.getInstance().log('handle_invalidate_intersectors:IN:' + this.invalidate_intersectors.length);
+    /**
+     * On doit faire une union sur les intersecteurs, mais ni sur les inclusions ni sur les exacts
+     * Pour le moment on implémente pas les inclusions, qui n'ont pas une utilité évidente (on a pas d'interface pour faire ça pour le moment a priori en plus)
+     */
+    public async handle_invalidators() {
+        if (this.invalidators && this.invalidators.length) {
+            ConsoleHandler.getInstance().log('handle_invalidators:IN:' + this.invalidators.length);
+            let invalidators = this.invalidators;
+            this.invalidators = [];
 
-            // On va faire l'union de tous les invalidate_intersectors pour avoir un ensemble de tous les intersecteurs à invalider
-            // On regroupe par var_id
-            let invalidate_intersectors_by_var_id: { [var_id: string]: VarDataBaseVO[] } = {};
-            let old_invalidate_intersectors = cloneDeep(this.invalidate_intersectors);
+            let invalidate_intersectors: VarDataInvalidatorVO[] = [];
+            let invalidate_included: VarDataInvalidatorVO[] = [];
+            let invalidate_exact: VarDataInvalidatorVO[] = [];
 
-            for (let i in old_invalidate_intersectors) {
-                let invalidate_intersector = old_invalidate_intersectors[i];
+            for (let i in invalidators) {
+                let invalidator = invalidators[i];
 
-                if (!invalidate_intersectors_by_var_id[invalidate_intersector.var_id]) {
-                    invalidate_intersectors_by_var_id[invalidate_intersector.var_id] = [];
-                }
-
-                invalidate_intersectors_by_var_id[invalidate_intersector.var_id].push(invalidate_intersector);
-            }
-
-            let invalidate_intersectors = [];
-
-            for (let i in invalidate_intersectors_by_var_id) {
-                if (!invalidate_intersectors_by_var_id[i]) {
-                    continue;
-                }
-
-                // TEMP DEBUG JFE :
-                // for (let j in invalidate_intersectors_by_var_id[i]) {
-                //     console.log('avant union;' + invalidate_intersectors_by_var_id[i][j].var_id + ';' + invalidate_intersectors_by_var_id[i][j]._bdd_only_index);
-                // }
-
-                let res = MatroidController.getInstance().union(invalidate_intersectors_by_var_id[i]);
-
-                if (res && (res.length > 0)) {
-                    invalidate_intersectors.push(...res);
-
-                    // TEMP DEBUG JFE :
-                    // for (let k in res) {
-                    //     console.log('apres union;' + res[k].var_id + ';' + res[k]._bdd_only_index);
-                    // }
+                switch (invalidator.invalidator_type) {
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
+                        invalidate_exact.push(invalidator);
+                        break;
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_INCLUDED_OR_EXACT:
+                        invalidate_included.push(invalidator);
+                        break;
+                    case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
+                        invalidate_intersectors.push(invalidator);
+                        break;
                 }
             }
 
-            ConsoleHandler.getInstance().log('handle_invalidate_intersectors:UNION:' + invalidate_intersectors.length);
+            if (invalidate_included && invalidate_included.length) {
+                throw new Error('Not Implemented');
+            }
 
-            this.invalidate_intersectors = [];
-            await this.intersect_invalid_datas_and_push_for_update(invalidate_intersectors);
-            ConsoleHandler.getInstance().log('handle_invalidate_intersectors:OUT:' + invalidate_intersectors.length + '=>' + this.invalidate_intersectors.length);
+            if (invalidate_exact && invalidate_exact.length) {
+                ConsoleHandler.getInstance().log('handle_invalidators:invalidate_exact:' + invalidate_exact.length);
+
+                /**
+                 * Gestion des invalidations de parents :
+                 *  Sur un exact, invalidation de l'arbre ça veut dire demander l'invalidation exacte de ce matroid, puis l'invalidation par intersection
+                 *      de ses parents (et de tout l'arbre en remontant).
+                 */
+                for (let i in invalidate_exact) {
+                    let invalidator = invalidate_exact[i];
+
+                    if (!invalidator.propagate_to_parents) {
+                        continue;
+                    }
+
+                    this.invalidate_datas_and_parents(invalidator, invalidate_intersectors);
+                }
+
+                await this.invalidate_exact_datas_and_push_for_update(invalidate_exact);
+            }
+
+            if (invalidate_intersectors && invalidate_intersectors.length) {
+                ConsoleHandler.getInstance().log('handle_invalidators:invalidate_intersectors:' + invalidate_intersectors.length);
+
+
+                /**
+                 * Pour l'union des invalidators, on peut union à condition d'avoir :
+                 *  - un var_id identique
+                 *  - une conf de types de var_data à supprimer identiques (donc denied / imports identiques)
+                 *
+                 * Ensuite on veut faire l'union à la fois avant de déployer les invalidations qui propagate_to_parents, et après avoir propagé
+                 * Donc on commence par séparer les invalidations qui propagent, pour les union + appliquer
+                 * et enuite on aura plus que des invalidations qui ne propagent pas, et on les unionne pour les appliquer
+                 */
+                let invalidate_intersectors_propagation: VarDataInvalidatorVO[] = invalidate_intersectors.filter((invalidator) => invalidator.propagate_to_parents);
+                let invalidate_intersectors_no_propagation: VarDataInvalidatorVO[] = invalidate_intersectors.filter((invalidator) => !invalidator.propagate_to_parents);
+                let union_invalidate_intersectors_propagation = this.union_invalidators(invalidate_intersectors_propagation);
+
+                for (let i in union_invalidate_intersectors_propagation) {
+                    let invalidator = union_invalidate_intersectors_propagation[i];
+
+                    if (!invalidator.propagate_to_parents) {
+                        continue;
+                    }
+
+                    this.invalidate_datas_and_parents(invalidator, invalidate_intersectors_no_propagation);
+                }
+
+                let union_invalidate_intersectors_no_propagation = this.union_invalidators(invalidate_intersectors_no_propagation);
+                ConsoleHandler.getInstance().log('handle_invalidators:invalidate_intersectors:UNION:' + union_invalidate_intersectors_no_propagation.length);
+                await this.intersect_invalid_datas_and_push_for_update(union_invalidate_intersectors_no_propagation);
+            }
+            ConsoleHandler.getInstance().log('handle_invalidators:OUT:' + invalidators.length + '=>' + this.invalidators.length);
         }
-    }
-
-    public async handle_invalidate_matroids() {
-        if (this.invalidate_matroids && this.invalidate_matroids.length) {
-            ConsoleHandler.getInstance().log('handle_invalidate_matroids:IN:' + this.invalidate_matroids.length);
-            let invalidate_matroids = this.invalidate_matroids;
-            this.invalidate_matroids = [];
-            await this.invalidate_exact_datas_and_push_for_update(invalidate_matroids);
-            ConsoleHandler.getInstance().log('handle_invalidate_matroids:OUT:' + invalidate_matroids.length + '=>' + this.invalidate_matroids.length);
-        }
-    }
-
-    private throttled_push_invalidate_intersectors(invalidate_intersectors: VarDataBaseVO[]) {
-        this.invalidate_intersectors = this.invalidate_intersectors.concat(invalidate_intersectors);
-        VarsdatasComputerBGThread.getInstance().force_run_asap();
-    }
-
-    private throttled_push_invalidate_matroids(invalidate_matroids: VarDataBaseVO[]) {
-        this.invalidate_matroids = this.invalidate_matroids.concat(invalidate_matroids);
-        VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
 
     /**
-     * Se lance sur le thread des vars
+     * Pour l'union des invalidators, on peut union à condition d'avoir :
+     *  - un var_id identique
+     *  - une conf de types de var_data à supprimer identiques (donc denied / imports identiques)
+     *
+     * !! à ce stade on considère que le propagate est commun à tous ces invalidators
      */
-    private filter_varsdatas_cache_by_matroids_intersection(
-        api_type_id: string,
-        matroids: IMatroid[],
-        fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<VarDataBaseVO[]> {
+    private union_invalidators(invalidators: VarDataInvalidatorVO[]): VarDataInvalidatorVO[] {
+        let union_invalidators: VarDataInvalidatorVO[] = [];
 
-        return new Promise(async (resolve, reject) => {
+        /**
+         * On commence par regrouper par confs de types de var_data à supprimer
+         */
+        let invalidators_by_conf: { [conf_id: string]: VarDataInvalidatorVO[] } = {};
 
-            let thrower = (error) => {
-                //TODO fixme do something to inform user
-                ConsoleHandler.getInstance().error('failed filter_varsdatas_cache_by_matroids_intersection' + error);
-                resolve([]);
-            };
+        for (let i in invalidators) {
+            let invalidator = invalidators[i];
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                thrower,
-                VarsdatasComputerBGThread.getInstance().name,
-                VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection,
-                resolve,
-                api_type_id,
-                matroids,
-                fields_ids_mapper)) {
-                return;
+            let conf_id = (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0');
+            if (!invalidators[conf_id]) {
+                invalidators_by_conf[conf_id] = [];
+            }
+            invalidators_by_conf[conf_id].push(invalidator);
+        }
+
+        for (let conf_id in invalidators_by_conf) {
+            let this_conf_invalidators = invalidators_by_conf[conf_id];
+
+            if (this_conf_invalidators.length == 1) {
+                union_invalidators.push(this_conf_invalidators[0]);
+                continue;
             }
 
-            let res: VarDataBaseVO[] = [];
+            /**
+             * L'union est faite en sélectionnant le premier invalidator, et en union les var_datas.
+             *  Le reste de la conf est sensé être identique par définition donc ça devrait marcher.
+             */
+            let kept_invalidator = this_conf_invalidators[0];
+            let union_var_datas = MatroidController.getInstance().union(this_conf_invalidators.map((invalidator) => invalidator.var_data));
 
-            for (let i in matroids) {
-                res = res.concat(this.filter_varsdatas_cache_by_matroid_intersection(api_type_id, matroids[i], fields_ids_mapper));
+            for (let i in union_var_datas) {
+                let union_var_data = union_var_datas[i];
+                let union_invalidator = new VarDataInvalidatorVO(union_var_data, kept_invalidator.invalidator_type, kept_invalidator.propagate_to_parents, kept_invalidator.invalidate_denied, kept_invalidator.invalidate_imports);
+                union_invalidators.push(union_invalidator);
             }
+        }
 
-            resolve(res);
-        });
+        return union_invalidators;
     }
+
+    private throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
+        this.invalidators = this.invalidators.concat(invalidators);
+        VarsdatasComputerBGThread.getInstance().force_run_asap();
+    }
+
+    // /**
+    //  * Se lance sur le thread des vars
+    //  */
+    // private filter_varsdatas_cache_by_matroids_intersection(
+    //     api_type_id: string,
+    //     matroids: IMatroid[],
+    //     fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<VarDataBaseVO[]> {
+
+    //     return new Promise(async (resolve, reject) => {
+
+    //         let thrower = (error) => {
+    //             //TODO fixme do something to inform user
+    //             ConsoleHandler.getInstance().error('failed filter_varsdatas_cache_by_matroids_intersection' + error);
+    //             resolve([]);
+    //         };
+
+    //         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+    //             thrower,
+    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_matroids_intersection,
+    //             resolve,
+    //             api_type_id,
+    //             matroids,
+    //             fields_ids_mapper)) {
+    //             return;
+    //         }
+
+    //         let res: VarDataBaseVO[] = [];
+
+    //         for (let i in matroids) {
+    //             res = res.concat(this.filter_varsdatas_cache_by_matroid_intersection(api_type_id, matroids[i], fields_ids_mapper));
+    //         }
+
+    //         resolve(res);
+    //     });
+    // }
+
+    // /**
+    //  * Doit être lancé depuis le thread des vars
+    //  */
+    // private filter_varsdatas_cache_by_matroid_intersection(
+    //     api_type_id: string,
+    //     matroid: IMatroid,
+    //     fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+
+    //     let res: VarDataBaseVO[] = [];
+
+    //     let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+    //     let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+
+    //     if (!moduleTable) {
+    //         return null;
+    //     }
+
+    //     for (let i in VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
+    //         let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[i];
+
+    //         if (wrapper.var_data._type != api_type_id) {
+    //             continue;
+    //         }
+
+    //         if (!!(matroid as VarDataBaseVO).var_id) {
+
+    //             if (wrapper.var_data.var_id != (matroid as VarDataBaseVO).var_id) {
+    //                 continue;
+    //             }
+    //         }
+
+    //         let isok = true;
+    //         for (let j in matroid_fields) {
+    //             let matroid_field = matroid_fields[j];
+
+    //             let ranges: IRange[] = matroid[matroid_field.field_id];
+    //             let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+
+    //             if (!RangeHandler.getInstance().any_range_intersects_any_range(
+    //                 wrapper.var_data[field.field_id],
+    //                 ranges)) {
+    //                 isok = false;
+    //                 break;
+    //             }
+    //         }
+    //         if (!isok) {
+    //             continue;
+    //         }
+
+    //         res.push(wrapper.var_data);
+    //     }
+
+    //     return res;
+    // }
 
     /**
      * Doit être lancé depuis le thread des vars
      */
-    private filter_varsdatas_cache_by_matroid_intersection(
-        api_type_id: string,
-        matroid: IMatroid,
-        fields_ids_mapper: { [matroid_field_id: string]: string }): VarDataBaseVO[] {
+    private filter_varsdatas_cache_by_invalidator(invalidator: VarDataInvalidatorVO): VarDataBaseVO[] {
 
         let res: VarDataBaseVO[] = [];
-
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
-
-        if (!moduleTable) {
-            return null;
-        }
 
         for (let i in VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
             let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[i];
 
-            if (wrapper.var_data._type != api_type_id) {
+            if (wrapper.var_data._type != invalidator.var_data._type) {
                 continue;
             }
 
-            if (!!(matroid as VarDataBaseVO).var_id) {
-
-                if (wrapper.var_data.var_id != (matroid as VarDataBaseVO).var_id) {
-                    continue;
-                }
-            }
-
-            let isok = true;
-            for (let j in matroid_fields) {
-                let matroid_field = matroid_fields[j];
-
-                let ranges: IRange[] = matroid[matroid_field.field_id];
-                let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
-
-                if (!RangeHandler.getInstance().any_range_intersects_any_range(
-                    wrapper.var_data[field.field_id],
-                    ranges)) {
-                    isok = false;
-                    break;
-                }
-            }
-            if (!isok) {
+            if (wrapper.var_data.var_id != invalidator.var_data.var_id) {
                 continue;
+            }
+
+            if ((wrapper.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
+                continue;
+            }
+
+            if ((wrapper.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!invalidator.invalidate_imports)) {
+                continue;
+            }
+
+            if ((invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED) && !MatroidController.getInstance().matroid_intersects_matroid(wrapper.var_data, invalidator.var_data)) {
+                continue;
+            }
+
+            if ((invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT) && (wrapper.var_data.index != invalidator.var_data.index)) {
+                continue;
+            }
+
+            if (invalidator.invalidator_type == VarDataInvalidatorVO.INVALIDATOR_TYPE_INCLUDED_OR_EXACT) {
+                throw new Error('Not Implemented');
             }
 
             res.push(wrapper.var_data);
@@ -558,89 +788,142 @@ export default class VarsDatasVoUpdateHandler {
         return res;
     }
 
-    /**
-     * Se lance sur le thread des vars
-     */
-    private filter_varsdatas_cache_by_exact_matroids(
-        matroids: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+    // /**
+    //  * Se lance sur le thread des vars
+    //  */
+    // private filter_varsdatas_cache_by_exact_matroids(
+    //     matroids: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
 
-        return new Promise(async (resolve, reject) => {
+    //     return new Promise(async (resolve, reject) => {
 
-            let thrower = (error) => {
-                //TODO fixme do something to inform user
-                ConsoleHandler.getInstance().error('failed filter_varsdatas_cache_by_exact_matroids' + error);
-                resolve([]);
-            };
+    //         let thrower = (error) => {
+    //             //TODO fixme do something to inform user
+    //             ConsoleHandler.getInstance().error('failed filter_varsdatas_cache_by_exact_matroids' + error);
+    //             resolve([]);
+    //         };
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                thrower,
-                VarsdatasComputerBGThread.getInstance().name,
-                VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids,
-                resolve,
-                matroids)) {
-                return;
-            }
+    //         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+    //             thrower,
+    //             VarsdatasComputerBGThread.getInstance().name,
+    //             VarsDatasVoUpdateHandler.TASK_NAME_filter_varsdatas_cache_by_exact_matroids,
+    //             resolve,
+    //             matroids)) {
+    //             return;
+    //         }
 
-            let res: VarDataBaseVO[] = [];
+    //         let res: VarDataBaseVO[] = [];
 
-            for (let i in matroids) {
-                let param = this.filter_varsdatas_cache_by_exact_matroid(matroids[i]);
-                if (!!param) {
-                    res.push(param);
-                }
-            }
+    //         for (let i in matroids) {
+    //             let param = this.filter_varsdatas_cache_by_exact_matroid(matroids[i]);
+    //             if (!!param) {
+    //                 res.push(param);
+    //             }
+    //         }
 
-            resolve(res);
-        });
-    }
+    //         resolve(res);
+    //     });
+    // }
 
-    /**
-     * Doit être lancé depuis le thread des vars
-     */
-    private filter_varsdatas_cache_by_exact_matroid(matroid: VarDataBaseVO): VarDataBaseVO {
-        let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[matroid.index];
+    // /**
+    //  * Doit être lancé depuis le thread des vars
+    //  */
+    // private filter_varsdatas_cache_by_exact_matroid(matroid: VarDataBaseVO): VarDataBaseVO {
+    //     let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[matroid.index];
 
-        return wrapper ? wrapper.var_data : null;
-    }
+    //     return wrapper ? wrapper.var_data : null;
+    // }
 
     /**
      * Recherche en BDD et en cache les var_datas passés en param (exactement), et on push les invalidations dans le buffer de vars
-     * @param invalidate_matroids
+     * !! On doit être sur le thread des vars
+     * @param exact_invalidators
      */
-    private async invalidate_exact_datas_and_push_for_update(invalidate_matroids: VarDataBaseVO[]) {
+    private async invalidate_exact_datas_and_push_for_update(exact_invalidators: VarDataInvalidatorVO[]) {
 
-        let matroids_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-        for (let i in invalidate_matroids) {
-            let invalidate_intersector = invalidate_matroids[i];
+        let invalidators_by_var_id: { [var_id: number]: VarDataInvalidatorVO[] } = {};
+        for (let i in exact_invalidators) {
+            let invalidator = exact_invalidators[i];
 
-            if (!matroids_by_var_id[invalidate_intersector.var_id]) {
-                matroids_by_var_id[invalidate_intersector.var_id] = {};
+            if (!invalidators_by_var_id[invalidator.var_data.var_id]) {
+                invalidators_by_var_id[invalidator.var_data.var_id] = [];
             }
-            matroids_by_var_id[invalidate_intersector.var_id][invalidate_intersector.index] = invalidate_intersector;
+            invalidators_by_var_id[invalidator.var_data.var_id].push(invalidator);
         }
 
-        for (let var_id_s in matroids_by_var_id) {
-            let matroids = matroids_by_var_id[var_id_s];
+        for (let var_id_s in invalidators_by_var_id) {
+            let invalidators: VarDataInvalidatorVO[] = invalidators_by_var_id[var_id_s];
 
-            if ((!matroids) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(matroids))) {
+            if ((!invalidators) || (!invalidators.length)) {
                 continue;
             }
 
-            let sample_inter = matroids[ObjectHandler.getInstance().getFirstAttributeName(matroids)];
-            let list = Object.values(matroids);
+            let var_datas: VarDataBaseVO[] = await this.load_invalidateds_from_bdd(invalidators);
+            let cached: VarDataBaseVO[] = [];
 
-            let indexes = Object.keys(matroids);
-            if ((!indexes) || (!indexes.length)) {
-                return;
+            for (let i in invalidators) {
+                let invalidator = invalidators[i];
+                let cached_i = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[invalidator.var_data.index];
+
+                if (!cached_i) {
+                    continue;
+                }
+
+                if ((cached_i.var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) && (!invalidator.invalidate_denied)) {
+                    continue;
+                }
+
+                if ((cached_i.var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (!invalidator.invalidate_imports)) {
+                    continue;
+                }
+
+                cached.push(cached_i.var_data);
             }
-            let var_datas: VarDataBaseVO[] = await query(sample_inter._type).filter_by_text_eq('_bdd_only_index', indexes).select_vos<VarDataBaseVO>();
-            let cached: VarDataBaseVO[] = await this.filter_varsdatas_cache_by_exact_matroids(list);
 
             await this.handle_invalidation(var_datas, cached);
         }
     }
 
+    // /**
+    //  * ça fonctionne pas puisqu'on peut être sur un invalidateur de type intersection FIXME delete
+    //  */
+    // private can_invalidate(
+    //     var_data: VarDataBaseVO,
+    //     invalidators_for_var_data: { [invalidator_index: string]: VarDataInvalidatorVO }): boolean {
+    //     let can_invalidate = false;
+
+    //     if ((var_data.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (var_data.value_type != VarDataBaseVO.VALUE_TYPE_DENIED)) {
+    //         return true;
+    //     }
+
+    //     if (var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+    //         for (let j in invalidators_for_var_data) {
+    //             let invalidator = invalidators_for_var_data[j];
+    //             if (invalidator.invalidate_imports) {
+    //                 return true;
+    //             }
+    //         }
+    //     }
+
+    //     if (var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+    //         for (let j in invalidators_for_var_data) {
+    //             let invalidator = invalidators_for_var_data[j];
+    //             if (invalidator.invalidate_denied) {
+    //                 return true;
+    //             }
+    //         }
+    //     }
+
+    //     return can_invalidate;
+    // }
+
+    /**
+     * @param invalidators Params de l'invalidation. à ce stade on s'intéresse au type de vars qu'on peut invalider
+     * @param var_datas
+     * @param cached
+     * @returns
+     */
     private async handle_invalidation(
+        // invalidators: { [vardata_index: string]: { [invalidator_index: string]: VarDataInvalidatorVO } },
         var_datas: VarDataBaseVO[],
         cached: VarDataBaseVO[],
     ) {
@@ -669,20 +952,27 @@ export default class VarsDatasVoUpdateHandler {
             let var_data = var_datas[i];
             var_data_by_index[var_data.index] = var_data;
 
-            if ((var_data.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT) && (var_data.value_type != VarDataBaseVO.VALUE_TYPE_DENIED)) {
-                delete var_data.value;
-                var_data.value_ts = null;
-                var_datas_no_denied_and_no_import.push(var_data);
-            }
+            // let can_invalidate = this.can_invalidate(var_data, invalidators[var_data.index]);
+
+            // if (!can_invalidate) {
+            //     continue;
+            // }
+
+            // On doit avoir filtré en amont les types de datas (import et denied) pour éviter de les supprimer à ce stade à moins que ce soit explicitement l'objectif....
+            delete var_data.value;
+            var_data.value_ts = null;
+            var_datas_no_denied_and_no_import.push(var_data);
         }
 
         // Si on retrouve les mêmes qu'en bdd on ignore, on est déjà en train de les invalider
         for (let i in registered_var_datas) {
             let registered_var_data = registered_var_datas[i];
 
-            if ((registered_var_data.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) || (registered_var_data.value_type == VarDataBaseVO.VALUE_TYPE_DENIED)) {
-                continue;
-            }
+            // let can_invalidate = this.can_invalidate(registered_var_data, invalidators[registered_var_data.index]);
+
+            // if (!can_invalidate) {
+            //     continue;
+            // }
 
             // Je sais pas pkoi mais on est obligé de le faire ici même si on push dans le var_datas les objets
             //  (pour moi par ref) et qu'on supprime la value et le value_ts dedans...
@@ -816,81 +1106,123 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     /**
+     * On charge depuis la bdd en fonction des types de datas recherchées. En revanche on doit déjà cibler un seul api_type_id
+     */
+    private async load_invalidateds_from_bdd(invalidators: VarDataInvalidatorVO[]): Promise<VarDataBaseVO[]> {
+
+        if ((!invalidators) || (!invalidators.length)) {
+            return null;
+        }
+
+        let query_ = query(invalidators[ObjectHandler.getInstance().getFirstAttributeName(invalidators)].var_data._type);
+        let filters = [];
+
+        for (let i in invalidators) {
+            let invalidator = invalidators[i];
+            let var_data = invalidator.var_data;
+
+            let invalidator_filters = [];
+
+            switch (invalidator.invalidator_type) {
+                case VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT:
+                    invalidator_filters.push(filter(var_data._type, '_bdd_only_index').by_text_eq(var_data.index));
+                    break;
+                case VarDataInvalidatorVO.INVALIDATOR_TYPE_INCLUDED_OR_EXACT:
+                    throw new Error('Not Implemented');
+                case VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED:
+
+                    invalidator_filters.push(filter(var_data._type, 'var_id').by_num_eq(var_data.var_id));
+                    let matroid_fields = MatroidController.getInstance().getMatroidFields(var_data._type);
+                    for (let j in matroid_fields) {
+                        let matroid_field = matroid_fields[j];
+                        invalidator_filters.push(filter(var_data._type, matroid_field.field_id).by_num_x_ranges(var_data[matroid_field.field_id]));
+                    }
+                    break;
+            }
+
+            let valid_types = [RangeHandler.getInstance().create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_COMPUTED, NumSegment.TYPE_INT)];
+            if (invalidator.invalidate_denied) {
+                valid_types.push(RangeHandler.getInstance().create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_DENIED, NumSegment.TYPE_INT));
+            }
+            if (invalidator.invalidate_imports) {
+                valid_types.push(RangeHandler.getInstance().create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_IMPORT, NumSegment.TYPE_INT));
+            }
+
+            invalidator_filters.push(filter(var_data._type, 'value_type').by_num_x_ranges(valid_types));
+
+            let invalidator_filter_group = ContextFilterVO.and(invalidator_filters);
+            filters.push(invalidator_filter_group);
+        }
+
+        let filters_group = ContextFilterVO.or(filters);
+
+        return await query_.add_filters([filters_group]).select_vos<VarDataBaseVO>();
+    }
+
+    /**
      * Recherche en BDD et en cache par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
      * @param invalidate_intersectors
      */
-    private async intersect_invalid_datas_and_push_for_update(invalidate_intersectors: VarDataBaseVO[]) {
+    private async intersect_invalid_datas_and_push_for_update(invalidators_intersectors: VarDataInvalidatorVO[]) {
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update],
-            async () => {
+        // let invalidate_intersectors: VarDataBaseVO[] = [];
 
-                let intersectors_by_var_id: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
-                for (let i in invalidate_intersectors) {
-                    let invalidate_intersector = invalidate_intersectors[i];
+        let invalidators_by_var_id: { [var_id: number]: VarDataInvalidatorVO[] } = {};
 
-                    if (!intersectors_by_var_id[invalidate_intersector.var_id]) {
-                        intersectors_by_var_id[invalidate_intersector.var_id] = {};
+        let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
+        let cached_by_index: { [index: string]: VarDataBaseVO } = {};
+
+        let promises = [];
+
+        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
+
+        for (let var_id_s in invalidators_by_var_id) {
+            let invalidators: VarDataInvalidatorVO[] = invalidators_by_var_id[var_id_s];
+
+            if ((!invalidators) || (!invalidators.length)) {
+                continue;
+            }
+
+            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            let self = this;
+            promises.push((async () => {
+                let tmp_var_datas: VarDataBaseVO[] = await self.load_invalidateds_from_bdd(invalidators);
+
+                if (tmp_var_datas && (tmp_var_datas.length > 0)) {
+                    for (let i in tmp_var_datas) {
+                        let var_data = tmp_var_datas[i];
+                        var_datas_by_index[var_data.index] = var_data;
                     }
-                    intersectors_by_var_id[invalidate_intersector.var_id][invalidate_intersector.index] = invalidate_intersector;
                 }
+            })());
 
-                let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
-                let cached_by_index: { [index: string]: VarDataBaseVO } = {};
+            promises.push((async () => {
+                for (let i in invalidators) {
+                    let invalidator = invalidators[i];
 
-                let promises = [];
-
-                let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
-
-                for (let var_id_s in intersectors_by_var_id) {
-                    let intersectors = intersectors_by_var_id[var_id_s];
-
-                    if ((!intersectors) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors))) {
-                        continue;
-                    }
-
-                    let sample_inter = intersectors[ObjectHandler.getInstance().getFirstAttributeName(intersectors)];
-                    let list = Object.values(intersectors);
-
-                    if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                        await Promise.all(promises);
-                        promises = [];
-                    }
-
-                    promises.push((async () => {
-                        let tmp_var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, list, null);
-
-                        if (tmp_var_datas && (tmp_var_datas.length > 0)) {
-                            for (let i in tmp_var_datas) {
-                                let var_data = tmp_var_datas[i];
-                                var_datas_by_index[var_data.index] = var_data;
-                            }
+                    let tmp_cached: VarDataBaseVO[] = await this.filter_varsdatas_cache_by_invalidator(invalidator);
+                    if (tmp_cached && (tmp_cached.length > 0)) {
+                        for (let j in tmp_cached) {
+                            let var_data = tmp_cached[j];
+                            cached_by_index[var_data.index] = var_data;
                         }
-                    })());
-
-                    promises.push((async () => {
-                        let tmp_cached: VarDataBaseVO[] = await this.filter_varsdatas_cache_by_matroids_intersection(sample_inter._type, list, null);
-
-                        if (tmp_cached && (tmp_cached.length > 0)) {
-                            for (let i in tmp_cached) {
-                                let var_data = tmp_cached[i];
-                                cached_by_index[var_data.index] = var_data;
-                            }
-                        }
-                    })());
+                    }
                 }
+            })());
+        }
 
-                if (promises.length > 0) {
-                    await Promise.all(promises);
-                    promises = [];
-                }
+        if (promises.length > 0) {
+            await Promise.all(promises);
+            promises = [];
+        }
 
-                await this.handle_invalidation(
-                    Object.values(var_datas_by_index),
-                    Object.values(cached_by_index),
-                );
-            },
-            this
+        await this.handle_invalidation(
+            Object.values(var_datas_by_index),
+            Object.values(cached_by_index),
         );
     }
 

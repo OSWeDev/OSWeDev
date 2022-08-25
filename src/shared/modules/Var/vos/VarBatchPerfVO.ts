@@ -11,8 +11,7 @@ export default class VarBatchPerfVO implements IDistantVOBase {
 
     public batch_wrapper: VarNodePerfElementVO;
     //+ batch_wrapper
-    public handle_invalidate_intersectors: VarNodePerfElementVO;
-    public handle_invalidate_matroids: VarNodePerfElementVO;
+    public handle_invalidators: VarNodePerfElementVO;
 
     public handle_buffer_varsdatasproxy: VarNodePerfElementVO;
     public handle_buffer_varsdatasvoupdate: VarNodePerfElementVO;

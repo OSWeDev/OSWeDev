@@ -199,8 +199,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             /**
              * On invalide les vars si des intersecteurs sont en attente
              */
-            await this.handle_invalidate_intersectors_perf_wrapper(var_dag);
-            await this.handle_invalidate_matroids_perf_wrapper(var_dag);
+            await this.handle_invalidators_perf_wrapper(var_dag);
 
             /**
              * On met à jour la bdd si nécessaire
@@ -414,16 +413,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         return did_something;
     }
 
-    private async handle_invalidate_intersectors_perf_wrapper(var_dag: VarDAG) {
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_invalidate_intersectors, 'handle_invalidate_intersectors');
-        await VarsDatasVoUpdateHandler.getInstance().handle_invalidate_intersectors();
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_invalidate_intersectors, 'handle_invalidate_intersectors');
-    }
-
-    private async handle_invalidate_matroids_perf_wrapper(var_dag: VarDAG) {
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_invalidate_matroids, 'handle_invalidate_matroids');
-        await VarsDatasVoUpdateHandler.getInstance().handle_invalidate_matroids();
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_invalidate_matroids, 'handle_invalidate_matroids');
+    private async handle_invalidators_perf_wrapper(var_dag: VarDAG) {
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.handle_invalidators, 'handle_invalidators');
+        await VarsDatasVoUpdateHandler.getInstance().handle_invalidators();
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.handle_invalidators, 'handle_invalidators');
     }
 
     private async varsdatas_proxy_handle_buffer_perf_wrapper(var_dag: VarDAG) {
@@ -443,11 +436,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         let batch_wrapper_total_elapsed_time = Math.round(var_dag.perfs.batch_wrapper.total_elapsed_time ? var_dag.perfs.batch_wrapper.total_elapsed_time : 0) / 1000;
         let batch_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.batch_wrapper.initial_estimated_work_time ? var_dag.perfs.batch_wrapper.initial_estimated_work_time : 0) / 1000;
 
-        let handle_invalidate_intersectors_total_elapsed_time = Math.round(var_dag.perfs.handle_invalidate_intersectors.total_elapsed_time ? var_dag.perfs.handle_invalidate_intersectors.total_elapsed_time : 0) / 1000;
-        let handle_invalidate_intersectors_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidate_intersectors.initial_estimated_work_time ? var_dag.perfs.handle_invalidate_intersectors.initial_estimated_work_time : 0) / 1000;
-
-        let handle_invalidate_matroids_total_elapsed_time = Math.round(var_dag.perfs.handle_invalidate_matroids.total_elapsed_time ? var_dag.perfs.handle_invalidate_matroids.total_elapsed_time : 0) / 1000;
-        let handle_invalidate_matroids_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidate_matroids.initial_estimated_work_time ? var_dag.perfs.handle_invalidate_matroids.initial_estimated_work_time : 0) / 1000;
+        let handle_invalidators_total_elapsed_time = Math.round(var_dag.perfs.handle_invalidators.total_elapsed_time ? var_dag.perfs.handle_invalidators.total_elapsed_time : 0) / 1000;
+        let handle_invalidators_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidators.initial_estimated_work_time ? var_dag.perfs.handle_invalidators.initial_estimated_work_time : 0) / 1000;
 
         let handle_buffer_varsdatasproxy_total_elapsed_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.total_elapsed_time ? var_dag.perfs.handle_buffer_varsdatasproxy.total_elapsed_time : 0) / 1000;
         let handle_buffer_varsdatasproxy_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time ? var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time : 0) / 1000;
@@ -472,8 +462,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed : [' + var_dag.perfs.nb_batch_vars + '] registered / [' + var_dag.nb_nodes + '] all vars - took :');
         ConsoleHandler.getInstance().log('    [' + batch_wrapper_total_elapsed_time + ' sec] globally' + (batch_wrapper_initial_estimated_work_time ? ' / [' + batch_wrapper_initial_estimated_work_time + ' sec] initially estimated' : ''));
-        ConsoleHandler.getInstance().log('      [' + handle_invalidate_intersectors_total_elapsed_time + ' sec] invalidating by intersectors' + (handle_invalidate_intersectors_initial_estimated_work_time ? ' / [' + handle_invalidate_intersectors_initial_estimated_work_time + ' sec] initially estimated' : ''));
-        ConsoleHandler.getInstance().log('      [' + handle_invalidate_matroids_total_elapsed_time + ' sec] invalidating matroids' + (handle_invalidate_matroids_initial_estimated_work_time ? ' / [' + handle_invalidate_matroids_initial_estimated_work_time + ' sec] initially estimated' : ''));
+        ConsoleHandler.getInstance().log('      [' + handle_invalidators_total_elapsed_time + ' sec] invalidating by intersectors' + (handle_invalidators_initial_estimated_work_time ? ' / [' + handle_invalidators_initial_estimated_work_time + ' sec] initially estimated' : ''));
         ConsoleHandler.getInstance().log('      [' + handle_buffer_varsdatasproxy_total_elapsed_time + ' sec] saving cache to bdd' + (handle_buffer_varsdatasproxy_initial_estimated_work_time ? ' / [' + handle_buffer_varsdatasproxy_initial_estimated_work_time + ' sec] initially estimated' : ''));
         ConsoleHandler.getInstance().log('      [' + handle_buffer_varsdatasvoupdate_total_elapsed_time + ' sec] invalidating datas (generates intersectors)' + (handle_buffer_varsdatasvoupdate_initial_estimated_work_time ? ' / [' + handle_buffer_varsdatasvoupdate_initial_estimated_work_time + ' sec] initially estimated' : ''));
         ConsoleHandler.getInstance().log('      [' + computation_wrapper_total_elapsed_time + ' sec] building tree & computing' + (computation_wrapper_initial_estimated_work_time ? ' / [' + computation_wrapper_initial_estimated_work_time + ' sec] initially estimated' : ''));

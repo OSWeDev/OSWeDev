@@ -2,11 +2,10 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
@@ -24,7 +23,6 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
@@ -34,6 +32,7 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -85,8 +84,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
 
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
-    public static TASK_NAME_invalidate_cache_exact_and_parents = 'VarsDatasProxy.invalidate_cache_exact_and_parents';
-    public static TASK_NAME_invalidate_cache_intersection_and_parents = 'VarsDatasProxy.invalidate_cache_intersection_and_parents';
     public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
     public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
 
@@ -440,8 +437,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
 
-        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
-        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
 
@@ -611,96 +606,66 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        vos = vos.filter((vo) => {
+        let invalidators = [];
+        for (let i in vos) {
+            let vo = vos[i];
+
             if (!vo.check_param_is_valid(vo._type)) {
                 ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                return false;
+                continue;
             }
-            return true;
-        });
 
-        await VarsDatasVoUpdateHandler.getInstance().push_invalidate_matroids(vos);
+            // cas particulier de l'invalidation exacte où on accepte de supprimer un import ou un denied puisqu'on demande expressément de supprimer cette var
+
+            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, vo.value_type == VarDataBaseVO.VALUE_TYPE_DENIED, vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT);
+            invalidators.push(invalidator);
+        }
+
+        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
     }
 
     public async invalidate_cache_exact_and_parents(vos: VarDataBaseVO[]): Promise<boolean> {
 
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
 
-        return new Promise(async (resolve, reject) => {
+        let invalidators = [];
+        for (let i in vos) {
+            let vo = vos[i];
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                reject,
-                VarsdatasComputerBGThread.getInstance().name,
-                ModuleVarServer.TASK_NAME_invalidate_cache_exact_and_parents,
-                resolve,
-                vos)) {
-                return;
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                continue;
             }
 
-            if ((!vos) || (!vos.length)) {
-                resolve(true);
-                return;
-            }
+            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, true, false, false);
+            invalidators.push(invalidator);
+        }
 
-            vos = vos.filter((vo) => {
-                if (!vo.check_param_is_valid(vo._type)) {
-                    ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                    return false;
-                }
-                return true;
-            });
-
-            let vos_by_index: { [index: string]: VarDataBaseVO } = {};
-            for (let i in vos) {
-                let vo = vos[i];
-                let bdd_vo: VarDataBaseVO = await ModuleVar.getInstance().get_var_data_by_index(vo._type, vo.index);
-
-                if (!!bdd_vo) {
-                    vos_by_index[bdd_vo.index] = bdd_vo;
-                }
-            }
-
-            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_index);
-            resolve(true);
-        });
+        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
     }
 
     public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]): Promise<boolean> {
 
-        return new Promise(async (resolve, reject) => {
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
-                reject,
-                VarsdatasComputerBGThread.getInstance().name,
-                ModuleVarServer.TASK_NAME_invalidate_cache_intersection_and_parents,
-                resolve,
-                vos)) {
-                return;
+        let invalidators = [];
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                continue;
             }
 
-            if ((!vos) || (!vos.length)) {
-                resolve(true);
-                return;
-            }
+            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false);
+            invalidators.push(invalidator);
+        }
 
-            vos = vos.filter((vo) => {
-                if (!vo.check_param_is_valid(vo._type)) {
-                    ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-                    return false;
-                }
-                return true;
-            });
-
-            let vos_by_index: { [index: string]: VarDataBaseVO } = {};
-            for (let i in vos) {
-                let vo = vos[i];
-
-                vos_by_index[vo.index] = vo;
-            }
-
-            // invalidate intersected && parents
-            await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_index);
-            resolve(true);
-        });
+        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
     }
 
     /**
@@ -708,11 +673,13 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     public async delete_all_cache() {
 
-        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        throw new Error('Not implemented');
+        // // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
+        // for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+        //     let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
-            await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
-        }
+        //     await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+        // }
     }
 
     public async delete_cache_intersection(vos: VarDataBaseVO[]) {
@@ -721,6 +688,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
+        let invalidators = [];
         for (let i in vos) {
             let vo = vos[i];
 
@@ -729,25 +697,44 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-            let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
-
-            if (moduletable_vardata.is_segmented) {
-
-                let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
-
-                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
-                    let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
-                        query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-                    await ModuleServiceBase.getInstance().db.query(request);
-                }, moduletable_vardata.table_segmented_field_segment_type);
-
-            } else {
-                let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
-                    query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
-                await ModuleServiceBase.getInstance().db.query(request);
-            }
+            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, false);
+            invalidators.push(invalidator);
         }
+
+        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
+
+        // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
+        // if ((!vos) || (!vos.length)) {
+        //     return;
+        // }
+
+        // for (let i in vos) {
+        //     let vo = vos[i];
+
+        //     if (!vo.check_param_is_valid(vo._type)) {
+        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         continue;
+        //     }
+
+        //     let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+
+        //     if (moduletable_vardata.is_segmented) {
+
+        //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+        //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
+        //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
+        //                 query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+        //             await ModuleServiceBase.getInstance().db.query(request);
+        //         }, moduletable_vardata.table_segmented_field_segment_type);
+
+        //     } else {
+        //         let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
+        //             query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+        //         await ModuleServiceBase.getInstance().db.query(request);
+        //     }
+        // }
     }
 
     public async delete_cache_and_imports_intersection(vos: VarDataBaseVO[]) {
@@ -756,6 +743,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
+        let invalidators = [];
         for (let i in vos) {
             let vo = vos[i];
 
@@ -764,25 +752,44 @@ export default class ModuleVarServer extends ModuleServerBase {
                 continue;
             }
 
-            let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-            let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
-
-            if (moduletable_vardata.is_segmented) {
-
-                let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
-
-                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
-                    let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
-                        query_ + ';';
-                    await ModuleServiceBase.getInstance().db.query(request);
-                }, moduletable_vardata.table_segmented_field_segment_type);
-
-            } else {
-                let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
-                    query_ + ';';
-                await ModuleServiceBase.getInstance().db.query(request);
-            }
+            let invalidator = new VarDataInvalidatorVO(vo, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, false, true);
+            invalidators.push(invalidator);
         }
+
+        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
+
+        // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
+        // if ((!vos) || (!vos.length)) {
+        //     return;
+        // }
+
+        // for (let i in vos) {
+        //     let vo = vos[i];
+
+        //     if (!vo.check_param_is_valid(vo._type)) {
+        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         continue;
+        //     }
+
+        //     let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+
+        //     if (moduletable_vardata.is_segmented) {
+
+        //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+        //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
+        //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
+        //                 query_ + ';';
+        //             await ModuleServiceBase.getInstance().db.query(request);
+        //         }, moduletable_vardata.table_segmented_field_segment_type);
+
+        //     } else {
+        //         let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
+        //             query_ + ';';
+        //         await ModuleServiceBase.getInstance().db.query(request);
+        //     }
+        // }
     }
 
     public registerServerApiHandlers() {
@@ -804,8 +811,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
     }
     public registerCrons(): void {

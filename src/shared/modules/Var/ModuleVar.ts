@@ -89,7 +89,6 @@ export default class ModuleVar extends Module {
     public invalidate_cache_exact: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact);
     public invalidate_cache_exact_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_exact_and_parents);
     public invalidate_cache_intersection_and_parents: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection_and_parents);
-    // public invalidate_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_invalidate_cache_intersection);
     public delete_cache_and_imports_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_delete_cache_and_imports_intersection);
     public delete_cache_intersection: (vos: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_delete_cache_intersection);
     public getVarControllerDSDeps: (var_name: string) => Promise<string[]> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarControllerDSDeps);
@@ -469,8 +468,7 @@ export default class ModuleVar extends Module {
 
             new ModuleTableField('batch_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'batch_wrapper', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
 
-            new ModuleTableField('handle_invalidate_intersectors', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_intersectors', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('handle_invalidate_matroids', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_matroids', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('handle_invalidate_validators', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_validators', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
 
             new ModuleTableField('handle_buffer_varsdatasproxy', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasproxy', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
             new ModuleTableField('handle_buffer_varsdatasvoupdate', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasvoupdate', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),

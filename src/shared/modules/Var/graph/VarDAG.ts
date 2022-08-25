@@ -17,8 +17,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
         this.perfs.batch_wrapper = new VarNodePerfElementVO(null, 'batch_wrapper', this);
 
-        this.perfs.handle_invalidate_intersectors = new VarNodePerfElementVO(null, 'handle_invalidate_intersectors', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
-        this.perfs.handle_invalidate_matroids = new VarNodePerfElementVO(null, 'handle_invalidate_matroids', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
+        this.perfs.handle_invalidators = new VarNodePerfElementVO(null, 'handle_invalidators', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
         this.perfs.handle_buffer_varsdatasproxy = new VarNodePerfElementVO(null, 'handle_buffer_varsdatasproxy', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
         this.perfs.handle_buffer_varsdatasvoupdate = new VarNodePerfElementVO(null, 'handle_buffer_varsdatasvoupdate', this, VarNodeParentPerfVO.create_new(null, 'batch_wrapper'));
 

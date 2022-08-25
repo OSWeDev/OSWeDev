@@ -7,6 +7,7 @@ import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -257,9 +258,14 @@ export default class VarsCacheController {
                         }
                     }
 
-                    if (invalidateds && invalidateds.length) {
-                        await VarsDatasVoUpdateHandler.getInstance().delete_vars_pack_without_triggers(invalidateds);
+                    let invalidators: VarDataInvalidatorVO[] = [];
+                    for (let i in invalidateds) {
+                        let invalidated = invalidateds[i];
+
+                        let invalidator = new VarDataInvalidatorVO(invalidated, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, false, false);
+                        invalidators.push(invalidator);
                     }
+                    await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
 
                     if (go_to_next_table) {
                         this.partially_clean_bdd_cache_offset = 0;
