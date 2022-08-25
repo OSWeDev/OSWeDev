@@ -14,6 +14,7 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
@@ -723,9 +724,28 @@ export default class VarsDatasVoUpdateHandler {
                     ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:DELETED ' + bdd_vars_registered.length + ' vars from BDD cache.');
                 }
             }
-            // bdd_vars_registered à la place de registered_var_datas : pourquoi on remettrait en calcul les imports et denied ?
-            // si on les remet en calcul, c'est pour mettre à jour les calculs en bdd à la fin donc on indique cela (avec false)
+
+            // Je comprends pas la logique de la version actuelle.
+            //  On devrait virer directement du wrapper les infos qui indiquent qu'on existe en BDD, puisque c'est plus le cas. Si le wrapper existe pas encore ok, on push dans le cache,
+            //  mais si ça existe déjà faut surtout supprimer le wrapper actuel. Donc en fait faudrait limite supprimer la var du cache en supprimant le wrapper et en créer un nouveau.
+            for (let i in bdd_vars_registered) {
+                let bdd_var_registered = bdd_vars_registered[i];
+
+                delete bdd_var_registered.id;
+                delete bdd_var_registered.value_ts;
+                delete bdd_var_registered.value_type;
+                delete bdd_var_registered.value;
+
+                if (!VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[bdd_var_registered.index]) {
+                    continue;
+                }
+                delete VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[bdd_var_registered.index];
+            }
             await VarsDatasProxy.getInstance().prepend_var_datas(bdd_vars_registered, false);
+
+            // // bdd_vars_registered à la place de registered_var_datas : pourquoi on remettrait en calcul les imports et denied ?
+            // // si on les remet en calcul, c'est pour mettre à jour les calculs en bdd à la fin donc on indique cela (avec false)
+            // await VarsDatasProxy.getInstance().prepend_var_datas(bdd_vars_registered, false);
             if (env.DEBUG_VARS) {
                 ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
             }
@@ -742,8 +762,8 @@ export default class VarsDatasVoUpdateHandler {
              *  si on a une pixellisation sur la varconf, et que les pixels ne doivent pas être supprimés, en cas d'invalidation de pixel
              *  on les append aux prochains calculs.
              */
-            let vars_to_delete = [];
-            let vars_to_append = [];
+            let vars_to_delete: VarDataBaseVO[] = [];
+            let vars_to_append: VarDataBaseVO[] = [];
 
             for (let i in unregistered_var_datas) {
                 let unregistered_var_data = unregistered_var_datas[i];
@@ -771,6 +791,22 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             if (vars_to_append && vars_to_append.length) {
+
+                // Même remarque, on doit surement supprimer le wrapper actuel si il existe pour le recalculer
+                for (let i in vars_to_append) {
+                    let var_to_append = vars_to_append[i];
+
+                    delete var_to_append.id;
+                    delete var_to_append.value_ts;
+                    delete var_to_append.value_type;
+                    delete var_to_append.value;
+
+                    if (!VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_to_append.index]) {
+                        continue;
+                    }
+                    delete VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_to_append.index];
+                }
+
                 await VarsDatasProxy.getInstance().append_var_datas(vars_to_append);
                 if (env.DEBUG_VARS) {
                     ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');

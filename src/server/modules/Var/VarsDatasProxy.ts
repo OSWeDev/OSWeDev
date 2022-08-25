@@ -397,11 +397,6 @@ export default class VarsDatasProxy {
                             await VarsServerCallBackSubsController.getInstance().notify_vardatas([inserted_var_data]);
                         }
 
-                        /**
-                         * On s'assure qu'on a bien la même info dans le cache (cf https://trello.com/c/XkGripbS/1668-pb-de-redondance-de-calcul-sur-els-vars-on-fait-2-fois-le-calcul-ici-pkoi)
-                         */
-                        this.check_or_update_var_buffer(inserted_var_data);
-
                         if (!wrapper) {
                             continue;
                         }
