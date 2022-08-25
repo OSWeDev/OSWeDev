@@ -269,13 +269,30 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
          */
         for (let i in this.editable_columns) {
             let column = this.editable_columns[i];
-
-            this.columns.find((c) => c.id == column.id).weight = parseInt(i.toString());
+            this.columns.find((c) => {
+                if (column.type == 5) {
+                    for (let r in column.children) {
+                        let child = column.children[r];
+                        if (c.id == child.id) {
+                            c.weight = parseInt(r.toString());
+                        }
+                    }
+                } else {
+                    if (c.id == column.id) {
+                        c.weight = parseInt(i.toString());
+                    }
+                }
+            });
         }
+        // for (let i in this.editable_columns) {
+        //     let column = this.editable_columns[i];
+        //     this.columns.find((c) => c.id == column.id).weight = parseInt(i.toString());
+        // }
 
         await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
         this.next_update_options = this.widget_options;
-        this.next_update_options.columns = this.columns;
+        this.next_update_options.columns = this.editable_columns;
+        // this.next_update_options.columns = this.columns;
         await this.throttled_update_options();
     }
 
@@ -293,12 +310,20 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         let old_column: TableColumnDescVO = null;
 
         let i = this.next_update_options.columns.findIndex((column) => {
-            if (column.id == update_column.id) {
-                old_column = column;
-                return true;
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                column.children.forEach((child) => {
+                    if (child.id == update_column.id) {
+                        old_column = child;
+                        return true;
+                    }
+                });
+            } else {
+                if (column.id == update_column.id) {
+                    old_column = column;
+                    return true;
+                }
+                return false;
             }
-
-            return false;
         });
 
         if (i < 0) {

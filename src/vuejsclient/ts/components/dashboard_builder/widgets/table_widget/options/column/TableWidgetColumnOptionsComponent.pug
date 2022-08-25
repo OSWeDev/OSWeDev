@@ -2,10 +2,10 @@
     template(v-if='!column')
         .new_column_select_type 
             .new_column_select_type_label {{ label('table_widget_column.new_header_column_select_type_label') }}
-            //- template
-            //- .d-flex.justify-content-between.mb-2
-            //-     input.form.control(type="text" placeholder="..." v-model="new_header_columns")
-            //-     a.btn.btn-success(@click="add_header") Valider l'entête
+            template
+            .d-flex.justify-content-between.mb-2
+                input.form.control(type="text" placeholder="..." v-model="new_header_columns")
+                a.btn.btn-success(@click="add_header") Valider l'entête
 
 
             .new_column_select_type_label {{ label('table_widget_column.new_column_select_type_label') }}
