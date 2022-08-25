@@ -67,25 +67,34 @@ export default class TablesGraphComponent extends VueComponentBase {
     @Prop()
     private dashboard: DashboardVO;
 
+    private toggle = true; //Valeur de l'interrupteur.
     private current_cell = null;
     private graphic_cells: { [cellule: string]: typeof mxCell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
     private cells: { [api_type_id: string]: any } = {};
+
 
     private selectionChanged() {
         /* S'active lors qu'on selectionne une flèche ou une cellule.
         Point interessant, si des flèches se superposent, cliquer sur le nom de la flèche en question fonctionne.
         */
         let cell = editor.graph.getSelectionCell();
+
         this.$set(this, 'current_cell', cell);
     }
 
-    private async toggleCheck() { //TODO A l'avenir , il ne faudrait plus utiliser le bouton supprimer mais simplement l'interupteur.
+    private async toggleCheck() { //TODO être sûr que cette supression affecte les tables de widget.
         /* Toggle function
             Permet de réactiver une flèche supprimée.
             After delete_arrow.
         */
         const input = document.getElementById("myCheckbox") as HTMLInputElement; //Assertion obligatoire
+
         let arrowValue: typeof mxCell = editor.graph.getSelectionCell();
+
+        //Est-ce bien une flèche ?
+        if (arrowValue.edge != true) {
+            return console.log("Ce n'est pas une flèche !");
+        }
         let source_cell: typeof mxCell = arrowValue.source; //Cellule source de la flèche selectionnée.
         //Récuppération de la cellule en base SQL
         let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
@@ -101,8 +110,8 @@ export default class TablesGraphComponent extends VueComponentBase {
         }
 
         let db_cell_source = db_cells_source[0];
-        if (input.checked === true && db_cell_source.values_to_exclude.length > 0) {
-            //On oublie désactive la suppression si le champs à en effet été supprimé.
+        if (input.checked === false && db_cell_source.values_to_exclude.length > 0) {
+            //Désactive la suppression si le champs à en effet été supprimé.
             const startIndex = db_cell_source.values_to_exclude.indexOf(arrowValue.value);
             const deleteCount = 1;
 
@@ -110,50 +119,29 @@ export default class TablesGraphComponent extends VueComponentBase {
                 db_cell_source.values_to_exclude.splice(startIndex, deleteCount);
                 await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                 this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
+                this.toggle = false;
             }
 
+        } else if (input.checked === true) {
+            //Supprime la flèche en question
+            //Création des différents champs
+            if (!db_cell_source.values_to_exclude) {
+                db_cell_source.values_to_exclude = [];
+            }
+            //Rajout des flèches à éliminer dans ces champs.
+            //On rajoute une cible à éliminer.
+            if (!db_cell_source.values_to_exclude.includes(arrowValue.value)) { //On évite les doublons
+                db_cell_source.values_to_exclude.push(arrowValue.value);
+                await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+            }
+            this.toggle = true;
+            this.initgraph(); //On relance le graphe.
         }
     }
 
-    private async delete_arrow(arrowValue: typeof mxCell) { //TODO être sûr que cette supression affecte les tables de widget.
-        /*Pour supprimer des flèches en les selectionnant, est appelé via delete_cell*/
-        if (arrowValue.edge == false) { //Si ce n'est pas une flche.
-            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db arrow');
-            return;
-        }
-
-        //Cellule source
-        let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-            DashboardGraphVORefVO.API_TYPE_ID,
-            'dashboard_id',
-            [this.dashboard.id],
-            'vo_type',
-            [arrowValue.source.value.tables_graph_vo_type]
-        );
-        if ((!db_cells_source) || (!db_cells_source.length)) {
-            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
-            return;
-        }
-
-        let db_cell_source = db_cells_source[0];
-
-        //Création des différents champs
-        if (!db_cell_source.values_to_exclude) {
-            db_cell_source.values_to_exclude = [];
-        }
-        //Rajout des flèches à éliminer dans ces champs.
-        //On rajoute une cible à éliminer.
-        if (!db_cell_source.values_to_exclude.includes(arrowValue.value)) { //On évite les doublons
-            db_cell_source.values_to_exclude.push(arrowValue.value);
-        }
-        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
-        this.initgraph(); //On relance le graphe.
-    }
     private async delete_cell(cellValue: typeof mxCell) {
         /*Pour supprimer des cellules (ou des flèches)*/
-        if (cellValue.edge == true) {
-            return this.delete_arrow(cellValue);
-        }
+
         let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
             DashboardGraphVORefVO.API_TYPE_ID,
             'dashboard_id',
