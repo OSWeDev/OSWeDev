@@ -28,5 +28,7 @@ export default class EnvParam implements IEnvParam {
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
     public DEBUG_VARS: boolean = false;
+    public DEBUG_IMPORTS?: boolean = false;
     public ACTIVATE_PWA: boolean = false;
+    public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
 }

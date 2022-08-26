@@ -197,20 +197,15 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
 
             /**
-             * On invalide les vars si des intersecteurs sont en attente
-             */
-            await this.handle_invalidators_perf_wrapper(var_dag);
-
-            /**
-             * On met à jour la bdd si nécessaire
-             */
-            await this.varsdatas_proxy_handle_buffer_perf_wrapper(var_dag);
-
-            /**
              * On dépile les CUD sur les VOs et faire les invalidations
              */
 
             let refuse_computation = await this.varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag);
+
+            /**
+             * On invalide les vars si des intersecteurs sont en attente
+             */
+            await this.handle_invalidators_perf_wrapper(var_dag);
 
             /**
              * Fonctionnement :
@@ -249,6 +244,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             } else {
                 this.run_asap = true;
             }
+
+            /**
+             * On met à jour la bdd si nécessaire
+             */
+            await this.varsdatas_proxy_handle_buffer_perf_wrapper(var_dag);
 
             VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
 

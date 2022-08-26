@@ -23,8 +23,10 @@ export default interface IEnvParam {
     CONSOLE_LOG_TO_FILE: boolean;
     DEBUG_FORKS: boolean;
     DEBUG_VARS: boolean;
+    DEBUG_IMPORTS?: boolean;
     START_MAINTENANCE_ACCEPTATION_CODE: string;
     AUTO_END_MAINTENANCE_ON_START: boolean;
     CODE_GOOGLE_ANALYTICS: string;
     ACTIVATE_PWA: boolean;
+    RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean;
 }

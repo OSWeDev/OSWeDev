@@ -67,7 +67,7 @@ export default class VarsDatasVoUpdateHandler {
     public ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
     public last_call_handled_something: boolean = false;
 
-    public register_vo_cud = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.register_vo_cud_throttled.bind(this), 1000, { leading: true, trailing: true });
+    public register_vo_cud = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.register_vo_cud_throttled.bind(this), 100, { leading: true, trailing: true });
 
     private last_registration: number = null;
 
@@ -220,19 +220,21 @@ export default class VarsDatasVoUpdateHandler {
 
                 this.last_call_handled_something = true;
 
-                // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
-                // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
-                if ((this.ordered_vos_cud.length < 1000) && this.last_registration && ((Dates.now() - 1) < this.last_registration)) {
-                    return true;
-                }
+                // On throttle en amont donc je pense que ce n'est plus utile et qu'on perd facilement une seconde pour rien ici
+                // // Si on a des modifs en cours, on refuse de dépiler de suite pour éviter de faire des calculs en boucle
+                // // Sauf si on a trop de demandes déjà en attente dans ce cas on commence à dépiler pour alléger la mémoire
+                // if ((this.ordered_vos_cud.length < 1000) && this.last_registration && ((Dates.now() - 1) < this.last_registration)) {
+                //     return true;
+                // }
 
-                let limit = this.ordered_vos_cud.length;
+                // Si on met la limit à ordered_vos_cud.length c'est qu'elle sert à rien ...
+                // let limit = this.ordered_vos_cud.length;
 
                 let vo_types: string[] = [];
                 let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
                 let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
 
-                limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+                this.prepare_updates(vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
                 let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
                 let out_invalidate_intersectors: VarDataInvalidatorVO[] = [];
@@ -248,7 +250,7 @@ export default class VarsDatasVoUpdateHandler {
                 this.throttled_update_param();
 
                 // Si on continue d'invalider des Vos on attend sagement avant de relancer les calculs
-                return this.last_registration && ((Dates.now() - 1) < this.last_registration);
+                return this.ordered_vos_cud && this.ordered_vos_cud.length;
             },
             this
         );
@@ -556,7 +558,7 @@ export default class VarsDatasVoUpdateHandler {
                         continue;
                     }
 
-                    this.invalidate_datas_and_parents(invalidator, invalidate_intersectors);
+                    await this.invalidate_datas_and_parents(invalidator, invalidate_intersectors);
                 }
 
                 await this.invalidate_exact_datas_and_push_for_update(invalidate_exact);
@@ -586,11 +588,12 @@ export default class VarsDatasVoUpdateHandler {
                         continue;
                     }
 
-                    this.invalidate_datas_and_parents(invalidator, invalidate_intersectors_no_propagation);
+                    await this.invalidate_datas_and_parents(invalidator, invalidate_intersectors_no_propagation);
                 }
 
+                ConsoleHandler.getInstance().log('handle_invalidators:invalidate_intersectors:PRE UNION:' + invalidate_intersectors_no_propagation.length);
                 let union_invalidate_intersectors_no_propagation = this.union_invalidators(invalidate_intersectors_no_propagation);
-                ConsoleHandler.getInstance().log('handle_invalidators:invalidate_intersectors:UNION:' + union_invalidate_intersectors_no_propagation.length);
+                ConsoleHandler.getInstance().log('handle_invalidators:invalidate_intersectors:POST UNION:' + union_invalidate_intersectors_no_propagation.length);
                 await this.intersect_invalid_datas_and_push_for_update(union_invalidate_intersectors_no_propagation);
             }
             ConsoleHandler.getInstance().log('handle_invalidators:OUT:' + invalidators.length + '=>' + this.invalidators.length);
@@ -615,8 +618,8 @@ export default class VarsDatasVoUpdateHandler {
         for (let i in invalidators) {
             let invalidator = invalidators[i];
 
-            let conf_id = (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0');
-            if (!invalidators[conf_id]) {
+            let conf_id = invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0');
+            if (!invalidators_by_conf[conf_id]) {
                 invalidators_by_conf[conf_id] = [];
             }
             invalidators_by_conf[conf_id].push(invalidator);
@@ -1169,6 +1172,15 @@ export default class VarsDatasVoUpdateHandler {
 
         let invalidators_by_var_id: { [var_id: number]: VarDataInvalidatorVO[] } = {};
 
+        for (let i in invalidators_intersectors) {
+            let invalidator = invalidators_intersectors[i];
+            let var_data = invalidator.var_data;
+            if (!invalidators_by_var_id[var_data.var_id]) {
+                invalidators_by_var_id[var_data.var_id] = [];
+            }
+            invalidators_by_var_id[var_data.var_id].push(invalidator);
+        }
+
         let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
         let cached_by_index: { [index: string]: VarDataBaseVO } = {};
 
@@ -1513,18 +1525,17 @@ export default class VarsDatasVoUpdateHandler {
 
     /**
      * Préparation du batch d'invalidation des vars suite à des CUD de vos
-     * @param limit nombre max de CUDs à prendre en compte dans ce batch
      * @param vos_update_buffer les updates par type à remplir
      * @param vos_create_or_delete_buffer les creates / deletes par type à remplir
      * @param vo_types la liste des vo_types à remplir
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
-    private prepare_updates(limit: number, vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }, vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }, vo_types: string[]): number {
+    private prepare_updates(vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }, vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }, vo_types: string[]) {
 
         let start_time = Dates.now();
         let real_start_time = start_time;
 
-        while ((limit > 0) && this.ordered_vos_cud && this.ordered_vos_cud.length) {
+        while (this.ordered_vos_cud && this.ordered_vos_cud.length) {
 
 
             let actual_time = Dates.now();
@@ -1555,11 +1566,7 @@ export default class VarsDatasVoUpdateHandler {
                 }
                 vos_update_buffer[update_holder.post_update_vo._type].push(update_holder);
             }
-
-            limit--;
         }
-
-        return limit;
     }
 
     private getJSONFrom_ordered_vos_cud(): string {
