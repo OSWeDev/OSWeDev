@@ -4,8 +4,9 @@
             .new_column_select_type_label {{ label('table_widget_column.new_header_column_select_type_label') }}
             template
             .d-flex.justify-content-between.mb-2
-                input.form.control(type="text" placeholder="..." v-model="new_header_columns")
-                a.btn.btn-success(@click="add_header") Valider l'entête
+                form
+                    input.form.control.mr-3(type="text" placeholder="..." v-model="new_header_columns")
+                    button.btn.btn-success(type="submit" @click="add_header") Valider l'entête
 
 
             .new_column_select_type_label {{ label('table_widget_column.new_column_select_type_label') }}
@@ -72,8 +73,7 @@
 
             .remove_column(@click="remove_column" v-tooltip='vo_ref_tooltip')
                 i.fa.fa-trash(aria-hidden="true")
-
-            .default_sort_field(v-tooltip='default_sort_field_tooltip')
+            .default_sort_field(v-if="column.type != 5" v-tooltip='default_sort_field_tooltip')
                 template(v-if="default_sort_field == sort_asc")
                     i.fa.fa-sort-asc(@click="change_default_sort_field" aria-hidden="true")
                 template(v-else-if="default_sort_field == sort_desc")
@@ -81,7 +81,7 @@
                 template(v-else)
                     i.fa.fa-sort(@click="change_default_sort_field" aria-hidden="true")
 
-            template(v-if='!show_options')
+            template(v-if='!show_options && column.type != 5')
                 .show_options(@click="unhide_options")
                     i.fa.fa-plus(aria-hidden="true")
 

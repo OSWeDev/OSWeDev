@@ -660,18 +660,20 @@ export default class TableWidgetComponent extends VueComponentBase {
         // this.array_of_headers = res;
         // this.array_of_headers = final_array_of_header;
         // vue que je ne peut pas effacer un element en garentissant que j effacer le bonne element j'ajoute dans un nouveau tableau pour l'affichage final dans le dashboardboardbuilder
-        let final_res = [];
         for (const u in res) {
             let column = res[u];
+            let final_res = [];
             if (column.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
                 //pour mettre a plat les colonne pour l affichage
                 for (const r in column.children) {
                     let children = column.children[r];
                     let index = column.children.indexOf(children);
-                    column.children.push(Object.assign(new TableColumnDescVO(), children));
-                    res.push(Object.assign(new TableColumnDescVO(), children));
-                    column.children.splice(index, 1);
+                    // column.children.push(Object.assign(new TableColumnDescVO(), children));
+                    final_res.push(Object.assign(new TableColumnDescVO(), children));
+                    // res.push(Object.assign(new TableColumnDescVO(), children));
+                    // column.children.splice(index, 1);
                 }
+                column.children = final_res;
             }
             // else {
             //     final_res.push(Object.assign(new TableColumnDescVO(), column));

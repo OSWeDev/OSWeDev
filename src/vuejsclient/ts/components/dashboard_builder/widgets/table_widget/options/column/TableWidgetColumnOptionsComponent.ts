@@ -214,9 +214,16 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
             }
         }
-
-        this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
-        this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
+        if (this.object_column.type == TableColumnDescVO.TYPE_header && this.object_column.children.length > 0) {
+            for (const key in this.object_column.children) {
+                let child = this.object_column.children[key];
+                this.tmp_bg_color_header = child ? child.bg_color_header : null;
+                this.tmp_font_color_header = child ? child.font_color_header : null;
+            }
+        } else {
+            this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
+            this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
+        }
     }
 
     @Watch('column_width', { immediate: true })

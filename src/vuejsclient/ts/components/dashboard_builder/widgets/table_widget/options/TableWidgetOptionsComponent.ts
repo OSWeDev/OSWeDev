@@ -309,14 +309,33 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         let old_column: TableColumnDescVO = null;
 
+        // let i = this.next_update_options.columns.findIndex((column) => {
+        //     if (column.type == TableColumnDescVO.TYPE_header) {
+        //         column.children.forEach((child) => {
+        //             if (child.id == update_column.id) {
+        //                 old_column = child;
+        //                 return true;
+        //             }
+        //         });
+        //     } else {
+        //         if (column.id == update_column.id) {
+        //             old_column = column;
+        //             return true;
+        //         }
+        //         return false;
+        //     }
+        // });
+        let k: number;
         let i = this.next_update_options.columns.findIndex((column) => {
             if (column.type == TableColumnDescVO.TYPE_header) {
-                column.children.forEach((child) => {
+                for (let u in column.children) {
+                    let child = column.children[u];
                     if (child.id == update_column.id) {
                         old_column = child;
+                        k = parseInt(u);
                         return true;
                     }
-                });
+                }
             } else {
                 if (column.id == update_column.id) {
                     old_column = column;
@@ -343,8 +362,11 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 }
             }
         }
-
-        this.next_update_options.columns[i] = update_column;
+        if (typeof (k) != 'undefined') {
+            this.next_update_options.columns[i].children[k] = update_column;
+        } else {
+            this.next_update_options.columns[i] = update_column;
+        }
 
         await this.throttled_update_options();
     }
@@ -449,11 +471,27 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return res;
     }
 
-    private update_header_array({ dragItem, pathFrom, pathTo }) {
-        console.log("dragItem: " + dragItem);
-        console.log("pathForm: " + pathFrom);
-        console.log("pathTo: " + pathTo);
+    private beforeMove({ dragItem, pathFrom, pathTo }) {
+        if (pathTo.length > 2) {
+            return false;
+        }
+        if (dragItem.type == TableColumnDescVO.TYPE_header) {
+            return pathTo.length === 1;
+        }
+        // on rentre
+        if (pathFrom.length === 1 && dragItem.type == TableColumnDescVO.TYPE_vo_field_ref && this.columns[pathTo[0]].type == TableColumnDescVO.TYPE_vo_field_ref) {
+            return false;
+        }
+        // on sort
+        if (pathFrom.length === 2 && dragItem.type == TableColumnDescVO.TYPE_vo_field_ref) {
+            return true;
+        }
+        // if (dragItem.type == TableColumnDescVO.TYPE_vo_field_ref) {
+        //     return pathTo.length === 2 || pathTo.length === 1;
+        // }
+        return true;
     }
+
 
     private async update_options() {
         try {
