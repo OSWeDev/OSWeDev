@@ -9,11 +9,14 @@
                 .modal-body
                     Checklistmodalcomponent(
                         @onchangevo='onchangevo'
+                        @changecheckpoint='changecheckpoint'
+                        :checklist='checklist'
                         :checklist_item='selected_checklist_item'
                         :checkpoint='selected_checkpoint'
                         :checklist_controller='checklist_controller'
                         :ordered_checkpoints='ordered_checkpoints'
-                        :key='selected_checklist_item.id')
+                        :key='selected_checklist_item.id'
+                    )
 
                 .modal-footer
                     button.btn.btn-danger(type='button', @click="deleteSelectedItem(selected_checklist_item)") {{ label('checklist.checklist_item_modal.delete') }}

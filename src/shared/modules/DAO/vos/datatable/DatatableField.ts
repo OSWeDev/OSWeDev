@@ -67,6 +67,11 @@ export default abstract class DatatableField<T, U> {
     public hidden_print: boolean = false;
 
     /**
+     * Force Toggle Button to be visible
+     */
+    public force_toggle_button: boolean = false;
+
+    /**
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
@@ -143,6 +148,12 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
+    public set_force_toggle_button(): this {
+        this.force_toggle_button = true;
+
+        return this;
+    }
+
     public hide_export(): this {
         this.hiden_export = true;
 
@@ -204,6 +215,10 @@ export default abstract class DatatableField<T, U> {
      * @returns liste d'options triée/filtrée
      */
     public triFiltrage(options: { [id: number]: IDistantVOBase; }) {
+
+        if (!options) {
+            return;
+        }
 
         //transforme les options en arrays pour le tri
         let optionsArray: IDistantVOBase[] = Object.values(options);

@@ -276,7 +276,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        let e = this.checklist_controller.getCheckListItemNewInstance();
+        let e = await this.checklist_controller.getCheckListItemNewInstance();
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
         if ((!res) || !res.id) {
             ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');

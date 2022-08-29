@@ -8,6 +8,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
 import './CheckListItemComponent.scss';
@@ -38,6 +39,7 @@ export default class CheckListItemComponent extends VueComponentBase {
     private state_steps: { [step_name: string]: number } = {};
     private debounced_update_state_step = debounce(this.update_state_step.bind(this), 100);
     private checkpoint_descriptions: { [step_id: number]: string } = {};
+    private all_editable_fields: Array<DatatableField<any, any>> = null;
 
     private openmodal(checkpoint) {
 
@@ -57,10 +59,6 @@ export default class CheckListItemComponent extends VueComponentBase {
             return;
         }
 
-        if (step_id && !(this.checkpoints_editable_fields[step_id] && this.checkpoints_editable_fields[step_id].length)) {
-            return;
-        }
-
         if (!this.global_route_path) {
             this.$emit('openmodal', this.checklist_item, checkpoint);
             return;
@@ -74,6 +72,11 @@ export default class CheckListItemComponent extends VueComponentBase {
     private get_field_text(field: DatatableField<any, any>, table_field: ModuleTableField<any>) {
 
         let res = field.dataToHumanReadableField(this.checklist_item);
+
+        if (!table_field) {
+            return null;
+        }
+
         if ((field.type == SimpleDatatableField.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
             if (res == null) {
                 res = '';
@@ -150,10 +153,6 @@ export default class CheckListItemComponent extends VueComponentBase {
         return res;
     }
 
-    get all_editable_fields(): Array<DatatableField<any, any>> {
-        return this.checklist_controller.get_ordered_editable_fields();
-    }
-
     get STATE_DISABLED(): number {
         return CheckPointVO.STATE_DISABLED;
     }
@@ -192,6 +191,8 @@ export default class CheckListItemComponent extends VueComponentBase {
         let promises = [];
         let self = this;
 
+        this.all_editable_fields = await this.checklist_controller.get_ordered_editable_fields();
+
         for (let i in this.ordered_checkpoints) {
             let checkpoint = this.ordered_checkpoints[i];
 
@@ -207,7 +208,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             self.checkpoint_descriptions = await self.get_checkpoint_descriptions();
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     private async get_checkpoint_descriptions(): Promise<{ [step_id: number]: string }> {
@@ -234,9 +235,12 @@ export default class CheckListItemComponent extends VueComponentBase {
                 checkpoint_description += '<ul>';
                 for (let j in this.checkpoints_editable_fields[checkpoint.id]) {
                     let field: DatatableField<any, any> = this.checkpoints_editable_fields[checkpoint.id][j];
-                    let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
 
-                    checkpoint_description += this.get_field_text(field, table_field);
+                    if (field) {
+                        let table_field: ModuleTableField<any> = moduletable.get_field_by_id(field.module_table_field_id);
+
+                        checkpoint_description += this.get_field_text(field, table_field);
+                    }
                 }
                 checkpoint_description += '</ul>';
             }

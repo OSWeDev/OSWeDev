@@ -1463,9 +1463,13 @@ export default class RangeHandler {
                 res += ',';
             }
 
-            res += '"';
-            res += this.translate_range_to_bdd(range);
-            res += '"';
+            let res_range: string = this.translate_range_to_bdd(range);
+
+            if (res_range) {
+                res += '"';
+                res += res_range;
+                res += '"';
+            }
         }
         res += '}';
 
@@ -1475,7 +1479,7 @@ export default class RangeHandler {
     public translate_range_to_bdd(range: IRange): string {
 
         if (!range) {
-            return '';
+            return null;
         }
         let res = (range.min_inclusiv ? '[' : '(');
 
