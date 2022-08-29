@@ -36,7 +36,7 @@ export default abstract class CheckListControllerBase {
      */
     public abstract getCheckListItemNewInstance(): Promise<ICheckListItem>;
 
-    public abstract finalize_checklist(checklist_item: ICheckListItem): Promise<void>;
+    public abstract finalize_checklist(checklist_item: ICheckListItem): Promise<boolean>;
 
     public abstract get_state_step(step_name: string, checklist_item: ICheckListItem): Promise<number>;
 

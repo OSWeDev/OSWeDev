@@ -142,11 +142,41 @@ export default class CheckListModalComponent extends VueComponentBase {
             return;
         }
 
-        this.finalize_checklist_starting = true;
+        this.snotify.async(this.label('checklist.finalize.start'), () =>
+            new Promise(async (resolve, reject) => {
 
-        await this.checklist_controller.finalize_checklist(this.checklist_item);
+                this.finalize_checklist_starting = true;
 
-        this.finalize_checklist_starting = false;
+                let res: boolean = await this.checklist_controller.finalize_checklist(this.checklist_item);
+
+                if (res) {
+                    resolve({
+                        body: this.label('checklist.finalize.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+
+                } else {
+                    reject({
+                        body: this.label('checklist.finalize.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+
+                this.finalize_checklist_starting = false;
+
+                this.$emit('finalize', this.checklist_item, res);
+            })
+        );
     }
 
     private get_class_cp(cp: ICheckPoint): string[] {
