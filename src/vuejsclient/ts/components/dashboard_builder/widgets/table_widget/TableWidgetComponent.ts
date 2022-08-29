@@ -22,6 +22,7 @@ import DashboardBuilderController from '../../../../../../shared/modules/Dashboa
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
@@ -46,6 +47,9 @@ import InlineTranslatableText from '../../../InlineTranslatableText/InlineTransl
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import CRUDCreateModalComponent from './crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
@@ -127,6 +131,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private column_total: { [api_type_id: string]: { [field_id: string]: number } } = {};
 
     private last_calculation_cpt: number = 0;
+
+    private page_widgets: DashboardPageWidgetVO[] = null;
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
@@ -416,7 +422,19 @@ export default class TableWidgetComponent extends VueComponentBase {
     }
 
     private mounted() {
+        ValidationFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.do_update_visible_options.bind(this),
+        );
         this.stopLoading();
+    }
+
+    @Watch('dashboard_page', { immediate: true })
+    private async onchange_dashboard_page() {
+        if (!this.dashboard_page) {
+            return;
+        }
     }
 
     @Watch('dashboard_vo_action', { immediate: true })
@@ -591,21 +609,21 @@ export default class TableWidgetComponent extends VueComponentBase {
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
-            await this.throttled_update_visible_options();
+            await this.do_update_visible_options();
         }
     }
 
     private async change_tmp_nbpages_pagination_list(new_tmp_nbpages_pagination_list: number) {
         if (new_tmp_nbpages_pagination_list != this.pagination_offset) {
             this.tmp_nbpages_pagination_list = new_tmp_nbpages_pagination_list;
-            await this.throttled_update_visible_options();
+            await this.do_update_visible_options();
         }
     }
 
     private async change_limit(new_limit: number) {
         if (new_limit != this.pagination_offset) {
             this.limit = new_limit;
-            await this.throttled_update_visible_options();
+            await this.do_update_visible_options();
         }
     }
 
@@ -706,7 +724,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         default:
                             throw new Error('Not Implemented');
                     }
-                    self.throttled_update_visible_options();
+                    self.do_update_visible_options();
 
                     resolve({
                         body: self.label('TableWidgetComponent.onchange_column.ok'),
@@ -720,7 +738,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
-                    self.throttled_update_visible_options();
+                    self.do_update_visible_options();
                     reject({
                         body: self.label('TableWidgetComponent.onchange_column.failed'),
                         config: {
@@ -799,12 +817,29 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
-        this.is_busy = true;
-
         await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {
+        // Si je suis sur un init, je force l'update
+        if (this.is_init_widget_validation_filtres()) {
+            await this.do_update_visible_options();
+            return;
+        }
+
+        // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
+        if (this.has_widget_validation_filtres()) {
+            return;
+        }
+
+        await this.do_update_visible_options();
+    }
+
+    private async do_update_visible_options() {
+
+        this.page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
+            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]
+        );
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
@@ -929,6 +964,41 @@ export default class TableWidgetComponent extends VueComponentBase {
             query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator));
         }
 
+        // Si on a des widgets, on va ajouter les exclude values si y'en a
+        for (let i in this.page_widgets) {
+            let page_widget: DashboardPageWidgetVO = this.page_widgets[i];
+            let widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (!widget.is_filter) {
+                continue;
+            }
+
+            let options: FieldValueFilterWidgetOptions = null;
+            try {
+                if (!!page_widget.json_options) {
+                    options = JSON.parse(page_widget.json_options);
+                }
+            } catch (error) {
+                ConsoleHandler.getInstance().error(error);
+                continue;
+            }
+
+            if (!options) {
+                continue;
+            }
+
+            query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+                options.exclude_filter_opt_values,
+                options.vo_field_ref,
+                query_.filters,
+                true,
+            );
+        }
+
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -993,7 +1063,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     private async refresh() {
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_datatable_rows));
         AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(new RegExp('.*' + ModuleContextFilter.APINAME_select_count));
-        await this.throttled_update_visible_options();
+        await this.do_update_visible_options();
     }
 
     @Watch('widget_options', { immediate: true })
@@ -1019,7 +1089,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
-            this.throttled_update_visible_options(),
+            this.do_update_visible_options(),
             this.update_filter_by_access_cache()
         ];
         await Promise.all(promises);
@@ -1116,7 +1186,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         } else {
                             self.snotify.success(self.label('TableWidgetComponent.confirm_delete.ok'));
                         }
-                        await this.throttled_update_visible_options();
+                        await this.do_update_visible_options();
                     },
                     bold: false
                 },
@@ -1148,7 +1218,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         self.snotify.info(self.label('crud.actions.delete_all.start'));
 
                         await ModuleDAO.getInstance().delete_all_vos_triggers_ok(self.crud_activated_api_type);
-                        await self.throttled_update_visible_options();
+                        await self.do_update_visible_options();
                     },
                     bold: false
                 },
@@ -1457,6 +1527,63 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     get api_type_id_action() {
         return this.$route.params.api_type_id_action;
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    private is_init_widget_validation_filtres(): boolean {
+        if (!this.page_widgets) {
+            return false;
+        }
+
+        for (let i in this.page_widgets) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.page_widgets[i].widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (widget.is_filter) {
+                if (
+                    ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id] &&
+                    ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id][this.dashboard_page.id] &&
+                    ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id][this.dashboard_page.id][this.page_widgets[i].id]
+                ) {
+                    ValidationFiltersWidgetController.getInstance().set_is_init(
+                        this.dashboard_page,
+                        this.page_widgets[i],
+                        false
+                    );
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private has_widget_validation_filtres(): boolean {
+
+        if (!this.page_widgets) {
+            return false;
+        }
+
+        for (let i in this.page_widgets) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.page_widgets[i].widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (widget.is_validation_filters) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // /**

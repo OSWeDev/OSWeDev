@@ -926,10 +926,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Ajouter une colonne de boutons permettant l'ajout d'une ligne de liens routes et/ou liste de champs vo" },
-            'table_widget_options_component.has_column_row_route_links.___LABEL___'
-        ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Glisser / Déposer les champs pour la recherche multiple" },
             'multiple_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'
         ));

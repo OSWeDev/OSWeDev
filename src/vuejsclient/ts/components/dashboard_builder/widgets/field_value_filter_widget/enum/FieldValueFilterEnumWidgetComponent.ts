@@ -21,6 +21,7 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
 
@@ -58,7 +59,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private excludes_values_labels: { [label: string]: boolean } = {};
 
-    private is_init: boolean = true;
+    private is_init: boolean = false;
 
     private actual_query: string = null;
 
@@ -103,21 +104,22 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         // Si on a des valeurs par défaut, on va faire l'init
-        // if (this.is_default_values_mode) {
-        if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
+        let old_is_init: boolean = this.is_init;
 
-            this.tmp_filter_active_options = this.default_values;
-            return;
-        }
-        // } else {
-        if (this.is_init && this.exclude_values && (this.exclude_values.length > 0)) {
-            this.is_init = false;
+        this.is_init = true;
 
-            this.tmp_filter_active_options = await this.all_field_ref_vo_options_without_exclude_values();
-            return;
+        if (!old_is_init) {
+            if (this.default_values && (this.default_values.length > 0)) {
+                ValidationFiltersWidgetController.getInstance().set_is_init(
+                    this.dashboard_page,
+                    this.page_widget,
+                    true
+                );
+
+                this.tmp_filter_active_options = this.default_values;
+                return;
+            }
         }
-        // }
 
         /**
          * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
@@ -140,31 +142,26 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let tmp: DataFilterOption[] = [];
 
-        // if (this.widget_options.is_default_values_mode && this.default_values) {
-        // if (this.default_values) {
+        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
 
-        //     tmp = this.default_values;
-        // } else {
+        let query_ = query(query_api_type_id)
+            .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
+            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters)))
+            .set_limit(this.widget_options.max_visible_options)
+            .using(this.dashboard.api_type_ids);
 
-        // if (!this.widget_options.is_default_values_mode && this.exclude_values) {
-        if (this.exclude_values && (this.exclude_values.length > 0)) {
+        query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+            this.exclude_values,
+            this.vo_field_ref,
+            query_.filters,
+            false,
+        );
 
-            tmp = await this.all_field_ref_vo_options_without_exclude_values();
-        } else {
+        tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
+            query_,
+            this.actual_query
+        );
 
-            let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
-
-            let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
-            query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-            query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
-            query_.active_api_type_ids = this.dashboard.api_type_ids;
-
-            tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
-                query_,
-                this.actual_query
-            );
-        }
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -219,7 +216,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-        this.is_init = true;
+        this.is_init = false;
+        ValidationFiltersWidgetController.getInstance().set_is_init(
+            this.dashboard_page,
+            this.page_widget,
+            false
+        );
         await this.throttled_update_visible_options();
     }
 
@@ -252,7 +254,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         for (let i in locale_tmp_filter_active_options) {
             let active_option = locale_tmp_filter_active_options[i];
 
-            let new_translated_active_options = this.get_ContextFilterVO_from_DataFilterOption(active_option, field);
+            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
 
             if (!new_translated_active_options) {
                 continue;
@@ -261,7 +263,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             if (!translated_active_options) {
                 translated_active_options = new_translated_active_options;
             } else {
-                translated_active_options = this.merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
             }
         }
 
@@ -273,41 +275,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     private filter_visible_label(dfo: DataFilterOption): string {
-        return this.t(this.field.enum_values[dfo.label]);
-    }
-
-    private async all_field_ref_vo_options(): Promise<DataFilterOption[]> {
-        let query_options = query(this.vo_field_ref.api_type_id)
-            .field(this.vo_field_ref.field_id, 'label')
-            .using(this.dashboard.api_type_ids);
-
-        let options: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
-            query_options,
-            this.actual_query,
-        );
-
-        return options;
-    }
-
-    private async all_field_ref_vo_options_without_exclude_values(): Promise<DataFilterOption[]> {
-        let active_options: DataFilterOption[] = [];
-        let options: DataFilterOption[] = await this.all_field_ref_vo_options();
-
-        // Traitement sur le text-uid car pas d'id rempli dans le traitement de l'objet. Est-ce vraiment secure ?
-        for (let j in this.exclude_values) {
-
-            this.excludes_values_labels[this.exclude_values[j].string_value] = true;
-        }
-
-        for (let i in options) {
-            let opt: DataFilterOption = options[i];
-
-            if (!this.excludes_values_labels[opt.string_value]) {
-                active_options.push(opt);
-            }
-        }
-
-        return active_options;
+        return dfo.label;
     }
 
     get placeholder(): string {
@@ -450,170 +418,5 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         return options;
-    }
-
-    private merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
-        if (!a) {
-            return b;
-        }
-
-        if (!b) {
-            return a;
-        }
-
-        if (a.filter_type == b.filter_type) {
-            if (a.param_numranges && b.param_numranges) {
-                a.param_numranges = a.param_numranges.concat(b.param_numranges);
-                if (try_union) {
-                    a.param_numranges = RangeHandler.getInstance().getRangesUnion(a.param_numranges);
-                }
-                return a;
-            }
-
-            if (a.param_tsranges && b.param_tsranges) {
-                a.param_tsranges = a.param_tsranges.concat(b.param_tsranges);
-                if (try_union) {
-                    a.param_tsranges = RangeHandler.getInstance().getRangesUnion(a.param_tsranges);
-                }
-                return a;
-            }
-
-            if (a.param_textarray && b.param_textarray) {
-                if (!a.param_textarray.length) {
-                    a.param_textarray = b.param_textarray;
-                } else if (!b.param_textarray.length) {
-                } else {
-                    a.param_textarray = a.param_textarray.concat(b.param_textarray);
-                }
-                return a;
-            }
-
-            /**
-             * On doit gérer les merges booleans, en supprimant potentiellement la condition
-             *  (par exemple si on merge un true any avec un false any par définition c'est juste plus un filtre)
-             */
-            switch (a.filter_type) {
-                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY:
-                    throw new Error('Not Implemented');
-                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL:
-                    throw new Error('Not Implemented');
-                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY:
-                    throw new Error('Not Implemented');
-                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL:
-                    throw new Error('Not Implemented');
-
-                case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
-
-                default:
-                    break;
-            }
-        }
-
-        return a;
-    }
-
-    private get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, field: ModuleTableField<any>): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
-
-        translated_active_options.field_id = this.vo_field_ref.field_id;
-        translated_active_options.vo_type = this.vo_field_ref.api_type_id;
-
-        switch (field.field_type) {
-            // case ModuleTableField.FIELD_TYPE_file_field:
-            // case ModuleTableField.FIELD_TYPE_file_ref:
-            // case ModuleTableField.FIELD_TYPE_image_field:
-            // case ModuleTableField.FIELD_TYPE_image_ref:
-            case ModuleTableField.FIELD_TYPE_enum:
-                translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                translated_active_options.param_numranges = [RangeHandler.getInstance().create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
-                break;
-            // case ModuleTableField.FIELD_TYPE_int:
-            // case ModuleTableField.FIELD_TYPE_geopoint:
-            // case ModuleTableField.FIELD_TYPE_float:
-            // case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            // case ModuleTableField.FIELD_TYPE_amount:
-            // case ModuleTableField.FIELD_TYPE_foreign_key:
-            // case ModuleTableField.FIELD_TYPE_isoweekdays:
-            // case ModuleTableField.FIELD_TYPE_prct:
-            // case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            // case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            // case ModuleTableField.FIELD_TYPE_hour:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-            //     translated_active_options.param_numranges = [RangeHandler.getInstance().create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_tstz:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-            //     translated_active_options.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(
-            //         active_option.tstz_value, (field.segmentation_type != null) ? field.segmentation_type : TimeSegment.TYPE_DAY)];
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_html:
-            // case ModuleTableField.FIELD_TYPE_password:
-            // case ModuleTableField.FIELD_TYPE_email:
-            // case ModuleTableField.FIELD_TYPE_string:
-            // case ModuleTableField.FIELD_TYPE_textarea:
-            // case ModuleTableField.FIELD_TYPE_translatable_text:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-            //     translated_active_options.param_textarray = [active_option.string_value];
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            // case ModuleTableField.FIELD_TYPE_html_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_boolean:
-            //     if (!!active_option.boolean_value) {
-            //         translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY;
-            //     } else {
-            //         translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY;
-            //     }
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_numrange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_numrange_array:
-            // case ModuleTableField.FIELD_TYPE_refrange_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_daterange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_hourrange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_tsrange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_hourrange_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_int_array:
-            // case ModuleTableField.FIELD_TYPE_tstz_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_string_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_date:
-            // case ModuleTableField.FIELD_TYPE_day:
-            // case ModuleTableField.FIELD_TYPE_month:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-            //     translated_active_options.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(
-            //         active_option.tstz_value, (field.segmentation_type != null) ? field.segmentation_type : TimeSegment.TYPE_DAY)];
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-            //     throw new Error('Not Implemented');
-
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        return translated_active_options;
     }
 }

@@ -5,14 +5,7 @@ export default class ValidationFiltersWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "ValidationFiltersWidgetOptions.title.";
 
-    public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
-        return {};
-    }
-
-    public constructor(
-        public api_type_id: string,
-        public limit: number
-    ) { }
+    public constructor() { }
 
     public get_title_name_code_text(page_widget_id: number): string {
 

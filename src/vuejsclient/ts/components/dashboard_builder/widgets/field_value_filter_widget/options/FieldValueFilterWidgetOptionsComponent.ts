@@ -951,6 +951,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return;
         }
 
+        for (let i in tmp) {
+            let tmpi = tmp[i];
+            tmpi.label = this.t(tmpi.label);
+        }
+
         if (!tmp) {
             this.filter_visible_options = [];
         } else {
@@ -966,10 +971,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     private filter_visible_label(dfo: DataFilterOption): string {
-        if (this.is_type_enum) {
-            return this.t(this.field.enum_values[dfo.label]);
-        }
-
         return dfo.label;
     }
 

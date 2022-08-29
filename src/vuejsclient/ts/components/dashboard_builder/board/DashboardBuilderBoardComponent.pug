@@ -5,7 +5,7 @@
     Checklistitemmodalcomponent(ref='Checklistitemmodalcomponent')
 
     //- (@click="(event) => select_widget_and_stop(event, null)")
-    .grid_wrapper(:class="{ filter_plie: !is_filtres_deplie }")
+    .grid_wrapper(:class="{ filter_plie: (dashboard_page.group_filters && !is_filtres_deplie) }")
         template(v-if='!editable_dashboard_page')
             i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)

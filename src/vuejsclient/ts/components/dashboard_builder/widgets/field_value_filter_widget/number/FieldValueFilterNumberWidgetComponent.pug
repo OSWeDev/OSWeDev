@@ -1,13 +1,13 @@
 .field_value_filter_number_widget_component
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
-        .vo_field_ref_advanced
-            toggle-button(
-                @change="switch_advanced_filters" 
-                :value="advanced_filters" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+        //- .vo_field_ref_advanced
+        //-     toggle-button(
+        //-         @change="switch_advanced_filters" 
+        //-         :value="advanced_filters" 
+        //-         :sync="true"
+        //-         :width="100"
+        //-         :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
 
         template(v-if='advanced_filters')
             .vo_field_advanced_number_filters

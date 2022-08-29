@@ -192,6 +192,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.weight = 0;
         fieldValueFilter.default_background = '#f5f5f5';
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
+        fieldValueFilter.is_filter = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null), FieldValueFilterWidgetOptions.get_selected_fields);
 
@@ -287,6 +288,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ValidationFilters.weight = 3;
         ValidationFilters.default_background = '#f5f5f5';
         ValidationFilters.icon_component = 'Validationfilterswidgeticoncomponent';
+        ValidationFilters.is_validation_filters = true;
+        ValidationFilters.is_filter = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ValidationFilters, null, null);
 
